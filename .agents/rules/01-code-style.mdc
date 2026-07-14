@@ -1,0 +1,28 @@
+---
+description: Code-Stil-Regeln für KnowHowToAI — bewusst einfacher, pragmatischer Code ohne vorzeitige Abstraktion
+globs:
+alwaysApply: true
+---
+
+# Code-Stil
+
+Verbindliche Kurzfassung. Ausführliche Begründung: [docs/02-Architektur-und-Techstack.md, Abschnitt 1](../../docs/02-Architektur-und-Techstack.md#1-kernphilosophie--code-guidelines).
+
+## Grundregel: Bewusst einfacher Code
+
+Dieses Projekt bevorzugt **explizit einfachen, direkten Code** gegenüber "sauberer" Architektur um ihrer selbst willen. Im Zweifel gewinnt die simplere Lösung.
+
+* **Keine Interface-Wüsten.** `IDocumentService`, `IDocumentRepository` o.ä. sind verboten, solange es nur eine Implementierung gibt. Eine konkrete, direkt testbare Klasse reicht.
+* **Keine vorzeitige Abstraktion.** Kein Design für hypothetische zukünftige Anforderungen. Drei ähnliche Zeilen Code sind besser als eine verfrühte gemeinsame Abstraktion.
+* **Early Returns statt verschachtelter `if`/`else`-Kaskaden.** Zyklomatische Komplexität niedrig halten.
+* **Kein Feature-Creep.** Ein Bugfix bekommt kein Refactoring drumherum, eine einmalige Operation keinen Helper. Baue nur, was die aktuelle Roadmap-Aufgabe verlangt (siehe [docs/05-Roadmap.md](../../docs/05-Roadmap.md)).
+* **Kein Validierungs-/Fehlerbehandlungs-Ballast für Fälle, die nicht eintreten können.** Validierung nur an echten Systemgrenzen (Dateisystem-Input, DB-Verbindung, CLI-Argumente) — nicht zwischen internen, garantiert korrekten Aufrufen.
+* **Keine Rückwärtskompatibilitäts-Hacks.** Kein Umbenennen unbenutzter Variablen, kein `// entfernt`-Kommentar für gelöschten Code. Was sicher unbenutzt ist, wird komplett gelöscht.
+
+## Kommentare
+
+Standardmäßig **keine** Kommentare. Ein Kommentar ist nur gerechtfertigt, wenn er ein nicht-offensichtliches *Warum* erklärt (eine versteckte Bedingung, einen Workaround, eine Edge-Case-Entscheidung aus [docs/04](../../docs/04-Datenmodell-Validierung-Edgecases.md)). Niemals das *Was* beschreiben — gute Namen übernehmen das.
+
+## Domänen-spezifische Regeln
+
+Slug-Regeln, SQL-Schema, Front-Matter-Format etc. sind **nicht** hier dupliziert, sondern verbindlich in [docs/04-Datenmodell-Validierung-Edgecases.md](../../docs/04-Datenmodell-Validierung-Edgecases.md) beschrieben. Bei Widerspruch zwischen Code und docs/ gilt: docs/ zuerst korrigieren bzw. abgleichen, siehe [04-docs-reference.mdc](04-docs-reference.mdc).

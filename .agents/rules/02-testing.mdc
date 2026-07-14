@@ -1,0 +1,25 @@
+---
+description: Testpflicht für KnowHowToAI — wann Tests zwingend sind und wie sie gegen SQL Server isoliert werden
+globs:
+alwaysApply: true
+---
+
+# Tests
+
+## Testpflicht
+
+**Jedes nicht-triviale Feature braucht Tests, bevor es als fertig gilt.** Konkrete Abgrenzung für dieses Projekt:
+
+* **Pflicht:** alles in `KnowHowToAI.Core` — `FrontMatterParser`, `SlugRules`, `DocsValidator`, `ImportService`, `ExportService` und jede künftige Business-Logik. Dazu zählen insbesondere die in [docs/04-Datenmodell-Validierung-Edgecases.md](../../docs/04-Datenmodell-Validierung-Edgecases.md) beschriebenen Edge Cases (Orphan-Check, Slug-Regeln, Marker-Datei-Logik, leere DB, etc.) — jeder dort dokumentierte Fall braucht einen entsprechenden Test.
+* **Nicht separat pflicht:** reines Wiring in `KnowHowToAI.Cli` — `System.CommandLine`-Verdrahtung in `Program.cs` und die `[McpServerTool]`-Methoden in `DocsMcpTools`, solange sie nur dünn an `Core`-Services delegieren, ohne eigene Verzweigungslogik.
+* Sobald in der Cli-Schicht eigene Logik entsteht (mehr als reine Delegation), gehört diese Logik nach `Core`, damit sie testbar ist — nicht in der Cli-Schicht selbst testen.
+
+## Wie getestet wird
+
+* **xUnit v3** im Projekt `tests/KnowHowToAI.Core.Tests`, ein Test pro Verhalten (siehe bestehende `SlugRulesTests.cs` als Vorlage für Stil: `[Theory]`/`[InlineData]` für Regel-Tabellen, `[Fact]` für Einzelfälle).
+* **Core-Tests laufen ohne echten SQL Server.** DB-Zugriff (`ImportService`, `ExportService`) wird hinter einem schmalen Interface/Delegate isoliert, damit die reine Logik (Transaktions-Ablauf, Marker-Datei-Entscheidung, Wipe-and-Dump-Reihenfolge) ohne laufende SQL-Server-Instanz testbar ist. Echte Integrationstests gegen SQL Server sind bewusst Backlog (siehe [docs/05-Roadmap.md](../../docs/05-Roadmap.md), Abschnitt "v2+").
+* Vor jedem Commit, der Core-Code ändert: `dotnet test` muss grün sein.
+
+## Reihenfolge
+
+Tests werden zusammen mit der Implementierung geschrieben, nicht nachträglich als separater Schritt — ein Roadmap-Schritt (siehe [03-git-workflow.mdc](03-git-workflow.mdc)) gilt erst als abgeschlossen, wenn Code **und** zugehörige Tests im selben Commit stehen.
