@@ -29,6 +29,8 @@
 | Linting | **AiNetLinter** (externes CLI-Tool, als Test im Testprojekt eingebunden) | Roslyn-basierte Qualitätsprüfung (Komplexität, Sealed Classes, Phantom-Dependencies) zusätzlich zu Build+Tests; Details siehe [03, Abschnitt 4](03-Projektstruktur-und-Konfiguration.md#4-ainetlinter-code-qualitäts-gate) |
 
 > **Kritischer Hinweis für die Implementierung:** Beim MCP-Server darf **absolut nichts** auf `Console.Out`/`Console.Write` loggen, da dies das JSON-RPC-Protokoll korrumpiert. Ausschließlich Serilog mit `Console.Error`-Sink für alle Log-Ausgaben verwenden.
+>
+> **Console-Encoding:** `Program.cs` setzt `Console.OutputEncoding` auf `new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)`, nicht auf `Encoding.UTF8`. Deutsche Fehlermeldungen (Umlaute) würden auf der Windows-Konsole sonst falsch dargestellt — `Encoding.UTF8` selbst erzeugt aber eine BOM-Präambel beim ersten Schreibzugriff, die im `server`-Modus die ersten Bytes des stdout-JSON-RPC-Streams korrumpieren würde.
 
 ---
 

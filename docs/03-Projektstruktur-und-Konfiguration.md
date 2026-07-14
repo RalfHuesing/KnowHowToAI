@@ -32,6 +32,8 @@ KnowHowToAI/
 │   ├── KnowHowToAI.Cli/               # Entry Point
 │   │   ├── KnowHowToAI.Cli.csproj
 │   │   ├── Program.cs                 # System.CommandLine-Wiring (validate/import/export/server)
+│   │   ├── Logging/
+│   │   │   └── SerilogUpgradeLog.cs   # Bindet DbUps IUpgradeLog an Serilog (Console.Error)
 │   │   ├── McpTools/
 │   │   │   └── DocsMcpTools.cs        # [McpServerTool] list_children/search_docs/get_doc
 │   │   └── appsettings.example.json   # Beispiel-Konfiguration, echte appsettings.json nie committen
