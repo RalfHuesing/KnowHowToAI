@@ -117,4 +117,6 @@ Startet die App im stdio-Modus. Bietet exakt **drei MCP-Tools** (`KnowHowToAI.Cl
 
 Die Tools geben strukturierte Typen zurück statt roher JSON-Strings — das MCP-SDK serialisiert sie automatisch; manuelles `JsonSerializer.Serialize` in den Tool-Methoden entfällt.
 
+**Zusätzlich eine MCP-Resource, kein viertes Tool:** `docs://authoring-guide` (`KnowHowToAI.Cli.McpTools.DocsMcpResources`) liefert das Datei-Format (Front-Matter-Template, Slug-Regeln, Hierarchie-/Orphan-Regel) als kompakten Markdown-Text — nötig, damit Claude auch in einem leeren docs-root eines fremden Projekts weiß, wie eine neue `.md`-Datei aussehen muss, ohne dieses Repo zu kennen (siehe [01, Phase 2](01-Konzept-und-Workflow.md#phase-2-doku-erweitern-oder-umstrukturieren-schreib-modus)). Zusätzlich setzt der Server `ServerInstructions` (kurzer Hinweis auf die drei Tools + die Resource), der bei jeder Verbindung automatisch beim Client ankommt. MCP-Resources sind ein eigener Protokoll-Typ, kein Tool — die Zählung "drei schlanke MCP-Tools" ([00-Overview.md](00-Overview.md)) bleibt unverändert.
+
 Details zu Implementierungsreihenfolge: [05-Roadmap.md](05-Roadmap.md).

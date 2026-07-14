@@ -1,6 +1,7 @@
 using System.CommandLine;
 using DbUp.Engine.Output;
 using KnowHowToAI.Cli.Logging;
+using KnowHowToAI.Cli.McpTools;
 using KnowHowToAI.Core.Configuration;
 using KnowHowToAI.Core.Migrations;
 using KnowHowToAI.Core.Sync;
@@ -129,9 +130,10 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
         builder.Services.AddSerilog(Log.Logger);
         builder.Services.AddSingleton(options);
         builder.Services.AddSingleton(new SqlDocumentsStore(options.ConnectionString));
-        builder.Services.AddMcpServer()
+        builder.Services.AddMcpServer(o => o.ServerInstructions = DocsMcpResources.ServerInstructions)
             .WithStdioServerTransport()
-            .WithToolsFromAssembly();
+            .WithToolsFromAssembly()
+            .WithResourcesFromAssembly();
 
         using var host = builder.Build();
         await host.RunAsync(cancellationToken);

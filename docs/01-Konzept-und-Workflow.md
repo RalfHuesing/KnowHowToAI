@@ -80,6 +80,8 @@ Du beauftragst Claude: *"Erstelle mir eine neue Doku für unsere DNS-Konfigurati
 3. Claude entscheidet autonom, eine neue Datei unter `it/netzwerk/dns.md` anzulegen — mit einem **strikt regelkonformen Slug** (nur `a-z`, `0-9`, `-`).
 4. Claude schreibt den Text und befüllt das YAML Front Matter (Title, Tags, Synonyme) sauber im Header der Datei. Title/Tags/Synonyme dürfen normales Deutsch inkl. Umlauten enthalten — nur der Dateipfad (Slug) unterliegt der strikten Regel.
 
+**Leeres/fremdes docs-root:** Sitzt Claude in einem anderen Projekt an einem leeren docs-root, fehlen ihm die Beispiel-Dateien aus Schritt 2 als Vorlage. Dafür liefert der MCP-Server das Format selbst: eine kurze Instruktion bei jeder Verbindung plus die Resource `docs://authoring-guide` mit Front-Matter-Template, Slug-Regeln und Hierarchie-Regel (siehe [02, Abschnitt 4.D](02-Architektur-und-Techstack.md#d-knowhowtoaicli-server---config-path)).
+
 ### Phase 3: Die Qualitätskontrolle (Validierung)
 
 ```bash
