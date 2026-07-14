@@ -11,17 +11,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Events;
 
 // UTF8Encoding ohne BOM: Encoding.UTF8 würde beim ersten Schreibzugriff eine BOM-Präambel
 // ausgeben und damit im "server"-Modus die ersten Bytes des JSON-RPC-Streams korrumpieren.
 Console.OutputEncoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-// Sink zwingend auf Console.Error: Console.Out ist für den MCP-stdio-Server reserviert.
+// Kein Konsolen-Sink: Console.Out ist für den MCP-stdio-Server reserviert, und Console.Error wäre
+// bei einem von Cursor/Claude Desktop gestarteten Hintergrundprozess ohnehin nicht einsehbar.
 // Siehe docs/02-Architektur-und-Techstack.md, kritischer Implementierungs-Hinweis.
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
-    .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
+    .WriteTo.File(
+        Path.Combine(AppContext.BaseDirectory, "Logs", "knowhowtoai-.log"),
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 14,
+        shared: true)
     .CreateLogger();
 
 var configOption = new Option<string?>("--config")

@@ -23,12 +23,12 @@
 | Schema-Verwaltung | **DbUp** + nummerierte Skripte in `sql-scripts/` | Idempotente, versionierte Schema-Migration ohne ORM |
 | Suche | **`LIKE '%...%'`** über `title`/`content`/`tags`/`synonyms` | Kein Full-Text-Search-Feature vorausgesetzt (nicht auf jeder Ziel-Instanz installiert), kein RAG-Overkill |
 | Front-Matter-Parsing | `YamlDotNet` | Etablierter, schlanker YAML-Parser für .NET |
-| Logging | **Serilog**, Sink ausschließlich auf `Console.Error` | `Console.Out` ist exklusiv für das MCP-JSON-RPC-Protokoll reserviert |
+| Logging | **Serilog**, Sink ausschließlich auf eine rotierende Datei unter `Logs/` relativ zur `.exe` | `Console.Out` ist exklusiv für das MCP-JSON-RPC-Protokoll reserviert, `Console.Error` wäre bei einem von Cursor/Claude Desktop gestarteten Hintergrundprozess ohnehin nicht einsehbar und nicht persistent |
 | Testing | **xUnit v3** | Fokus auf Unit-Tests für Parser, Validator, Import/Export-Logik |
 | Konfiguration | `Microsoft.Extensions.Configuration` (`appsettings.json` + Umgebungsvariablen-Override) | Ein Konfigurationsort pro Einsatzort, siehe [03](03-Projektstruktur-und-Konfiguration.md) |
 | Linting | **AiNetLinter** (externes CLI-Tool, als Test im Testprojekt eingebunden) | Roslyn-basierte Qualitätsprüfung (Komplexität, Sealed Classes, Phantom-Dependencies) zusätzlich zu Build+Tests; Details siehe [03, Abschnitt 4](03-Projektstruktur-und-Konfiguration.md#4-ainetlinter-code-qualitäts-gate) |
 
-> **Kritischer Hinweis für die Implementierung:** Beim MCP-Server darf **absolut nichts** auf `Console.Out`/`Console.Write` loggen, da dies das JSON-RPC-Protokoll korrumpiert. Ausschließlich Serilog mit `Console.Error`-Sink für alle Log-Ausgaben verwenden.
+> **Kritischer Hinweis für die Implementierung:** Beim MCP-Server darf **absolut nichts** auf `Console.Out`/`Console.Write` loggen, da dies das JSON-RPC-Protokoll korrumpiert. Serilog schreibt deshalb ausschließlich in eine rotierende Datei (`Logs/knowhowtoai-<Datum>.log`, täglich rollend, 14 Tage aufbewahrt, `AppContext.BaseDirectory`-relativ) — kein Konsolen-Sink für keines der vier Kommandos, siehe [Program.cs](../src/KnowHowToAI.Cli/Program.cs).
 >
 > **Console-Encoding:** `Program.cs` setzt `Console.OutputEncoding` auf `new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)`, nicht auf `Encoding.UTF8`. Deutsche Fehlermeldungen (Umlaute) würden auf der Windows-Konsole sonst falsch dargestellt — `Encoding.UTF8` selbst erzeugt aber eine BOM-Präambel beim ersten Schreibzugriff, die im `server`-Modus die ersten Bytes des stdout-JSON-RPC-Streams korrumpieren würde.
 
