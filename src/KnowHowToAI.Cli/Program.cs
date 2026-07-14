@@ -75,7 +75,7 @@ async Task<int> RunImport(ParseResult parseResult, CancellationToken cancellatio
     try
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
-        IUpgradeLog upgradeLog = new SerilogUpgradeLog(Log.Logger);
+        IUpgradeLog upgradeLog = new SerilogUpgradeLogAdapter(Log.Logger);
 
         var migrationResult = SchemaMigrator.Migrate(options.ConnectionString, upgradeLog);
         if (!migrationResult.Successful)
