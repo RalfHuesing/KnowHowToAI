@@ -31,15 +31,18 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] Schema-Migration bewusst aus `ImportService` herausgezogen — läuft ab Schritt 5 vorgelagert in der Cli
   - [x] Tests: Validierungs-Gate, Happy Path, alle drei Marker-Datei-Szenarien, Front-Matter-Rundtrip
 
-- [ ] **5. CLI-Wiring** ← nächster Schritt
-  - [ ] `KnowHowToAiOptions`-Bindung aus `appsettings.json` (+ Env-Var-Override) pro `--config`-Pfad
-  - [ ] `validate`-Kommando: `DocsValidator` aufrufen, Fehlerliste ausgeben, Exit-Code ≠ 0 bei Fehlern
-  - [ ] `import`-Kommando: zuerst `SchemaMigrator.Migrate(...)`, dann `ImportService.ImportAsync(...)` (siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
-  - [ ] `export`-Kommando: `ExportService.ExportAsync(...)` mit `--target`
-  - [ ] `server`-Kommando: Grundgerüst für MCP-Hosting (Inhalt folgt in Schritt 6)
-  - [ ] Serilog konfiguriert, Sink zwingend `Console.Error`
+- [x] **5. CLI-Wiring**
+  - [x] `KnowHowToAiOptions`-Bindung aus `appsettings.json` (+ Env-Var-Override) pro `--config`-Pfad, klare Fehlermeldung bei fehlender Datei (kein stiller Fallback, siehe [04, Abschnitt 4.8](04-Datenmodell-Validierung-Edgecases.md#4-edge-cases--wie-sie-behandelt-werden))
+  - [x] `validate`-Kommando: `DocsValidator` aufrufen, Fehlerliste ausgeben, Exit-Code ≠ 0 bei Fehlern
+  - [x] `import`-Kommando: zuerst `SchemaMigrator.Migrate(...)`, dann `ImportService.ImportAsync(...)` (siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
+  - [x] `export`-Kommando: `ExportService.ExportAsync(...)` mit `--target`
+  - [x] `server`-Kommando: Generic-Host-Grundgerüst mit MCP-Hosting (Tool-Inhalt folgt in Schritt 6)
+  - [x] Serilog konfiguriert, Sink zwingend `Console.Error` (`standardErrorFromLevel: Verbose`)
+  - [x] `Console.OutputEncoding` auf BOM-loses UTF-8 gesetzt (Umlaute in Fehlermeldungen, ohne den stdout-JSON-RPC-Stream zu korrumpieren — siehe [02](02-Architektur-und-Techstack.md))
+  - [x] Alle vier Kommandos fangen Fehler an der CLI-Grenze ab (`catch (Exception)`, klare Meldung + Exit-Code ≠ 0) statt roher .NET-Stacktraces
+  - [x] Manuell smoke-getestet: `validate` (Erfolg + Fehlerfall), `import`/`export` gegen nicht erreichbaren SQL Server (klare Fehlermeldung, Exit 2), `server`-Start (stdout bleibt leer, Logging korrekt auf stderr)
 
-- [ ] **6. MCP-Stdio-Server**
+- [ ] **6. MCP-Stdio-Server** ← nächster Schritt
   - [ ] `DocsMcpTools.ListChildrenAsync` (SQL gegen `parent_slug`)
   - [ ] `DocsMcpTools.SearchDocsAsync` (Full-Text-Query, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-beispiel))
   - [ ] `DocsMcpTools.GetDocAsync`
@@ -53,9 +56,9 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
 
 ### Definition of Done (v1)
 
-- [ ] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie. *(Logik fertig seit Schritt 3, CLI-Anbindung fehlt noch — Schritt 5)*
-- [ ] `import` legt Schema per DbUp an/aktualisiert es und befüllt die Tabelle transaktional neu. *(Logik fertig seit Schritt 2/4, CLI-Anbindung fehlt noch — Schritt 5)*
-- [ ] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker). *(Logik fertig seit Schritt 4, CLI-Anbindung fehlt noch — Schritt 5)*
+- [x] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie. Verifiziert per Unittests und manuellem CLI-Lauf (Erfolgs- und Fehlerfall).
+- [ ] `import` legt Schema per DbUp an/aktualisiert es und befüllt die Tabelle transaktional neu. *Wiring steht und der Fehlerfall (SQL Server nicht erreichbar → klare Meldung, Exit 2) ist manuell verifiziert; der Erfolgspfad gegen einen echten, erreichbaren SQL Server steht noch aus (in dieser Umgebung kein SQL Server verfügbar).*
+- [x] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker). Verifiziert per Unittests (alle drei Szenarien aus [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) und manuellem CLI-Lauf.
 - [ ] `server` beantwortet alle drei MCP-Tools korrekt gegen eine befüllte DB, inkl. leerer/Fehlerfälle ohne Absturz.
 - [ ] Full-Text-Suche liefert sinnvoll gerankte Treffer für einen realistischen Testdatensatz.
 - [x] Alle Unittests grün, Core-Projekt ohne Abhängigkeit zu CLI/MCP-SDK.
