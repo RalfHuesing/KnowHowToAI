@@ -2,13 +2,13 @@
 
 Eine hierarchische Markdown-Wissensdatenbank mit MCP-Zugriff für Claude, Cursor & Co.
 
-Du schreibst Doku als Markdown-Dateien mit YAML-Front-Matter (`title`, `tags`, `synonyms`) in einer Ordnerhierarchie. Ein CLI-Tool validiert die Struktur und synchronisiert sie per Wipe-and-Dump in MS SQL Server. Ein MCP-stdio-Server macht die Bibliothek darüber für LLM-Agenten durchsuchbar — strukturiert (`list_children`), per Volltextsuche (`search_docs`) und im Detail (`get_doc`) — statt sie als unstrukturierte Textwüste in den Kontext zu laden.
+Du schreibst Doku als Markdown-Dateien mit YAML-Front-Matter (`title`, `tags`, `synonyms`) in einer Ordnerhierarchie. Ein CLI-Tool validiert die Struktur und synchronisiert sie per Wipe-and-Dump in MS SQL Server. Ein MCP-stdio-Server macht die Bibliothek darüber für LLM-Agenten durchsuchbar — strukturiert (`list_children`), per Stichwortsuche (`search_docs`) und im Detail (`get_doc`) — statt sie als unstrukturierte Textwüste in den Kontext zu laden.
 
 **Konzept & Architektur:** [docs/00-Overview.md](docs/00-Overview.md) — dort auch die Begründung für jede Grundsatzentscheidung.
 
 ## Tech-Stack
 
-.NET 10 · MS SQL Server (Full-Text Search) · Dapper · DbUp · `ModelContextProtocol`-SDK · `System.CommandLine` · Serilog · YamlDotNet · xUnit v3
+.NET 10 · MS SQL Server · Dapper · DbUp · `ModelContextProtocol`-SDK · `System.CommandLine` · Serilog · YamlDotNet · xUnit v3
 
 ## Schnellstart
 

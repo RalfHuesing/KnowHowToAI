@@ -21,7 +21,7 @@ Diese Entscheidungen wurden bewusst getroffen und sollten in der Umsetzung **nic
 1. **Generisches Tool, kein gebundener Inhalt.** Docs-Root-Pfad und SQL-Connection-String sind pro Einsatzort frei konfigurierbar (`appsettings.json`). Dieses Repo enthält nur die Software.
 2. **MS SQL Server statt SQLite.** Läuft lokal oder im Netzwerk, keine "Offline-first"-Anforderung. Alles Nötige steht in `appsettings.json`.
 3. **Schema-Verwaltung via nummerierte SQL-Skripte + DbUp.** Kein EF Core, kein ORM-Migrations-Ballast.
-4. **Volltextsuche via SQL Server Full-Text Search** (`CONTAINS`/`FREETEXT`), kein LIKE, kein Vector-RAG.
+4. **Suche via `LIKE '%...%'`**, kein Full-Text Search (setzt eine SQL-Server-Feature-Komponente voraus, die nicht auf jeder Zielinstanz installiert ist — siehe [04, Abschnitt "search_docs-Query"](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync)), kein Vector-RAG.
 5. **Strikte Slug-Regeln:** nur `a-z`, `0-9`, `-`, `/` in Dateipfaden — vermeidet Case-Collisions zwischen Windows/Linux/Git vollständig.
 6. **3-Projekt-Solution:** `KnowHowToAI.Core` (Logik), `KnowHowToAI.Cli` (Entry Point, CLI + MCP-Hosting), `KnowHowToAI.Core.Tests` (xUnit v3).
 7. **Sync nur manuell in v1** (kein Watch-Modus). `export` schreibt eine Marker-Datei und wiped nur, wenn diese vorhanden ist — sonst Abbruch mit Fehler (Schutz vor versehentlichem Datenverlust in Fremd-Verzeichnissen).

@@ -10,13 +10,12 @@ public class SchemaMigratorTests
     private const string UnusedConnectionString = "Server=unused;Database=unused;";
 
     [Fact]
-    public void DiscoverScripts_FindsBothEmbeddedScriptsInOrder()
+    public void DiscoverScripts_FindsEmbeddedScript()
     {
         var scripts = SchemaMigrator.DiscoverScripts(UnusedConnectionString, new NoOpUpgradeLog());
 
         Assert.Collection(scripts,
-            script => Assert.EndsWith("0001_create_documents_table.sql", script.Name, StringComparison.Ordinal),
-            script => Assert.EndsWith("0002_create_fulltext_catalog_and_index.sql", script.Name, StringComparison.Ordinal));
+            script => Assert.EndsWith("0001_create_documents_table.sql", script.Name, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -25,7 +24,6 @@ public class SchemaMigratorTests
         var scripts = SchemaMigrator.DiscoverScripts(UnusedConnectionString, new NoOpUpgradeLog());
 
         Assert.Contains("CREATE TABLE dbo.documents", scripts[0].Contents, StringComparison.Ordinal);
-        Assert.Contains("CREATE FULLTEXT INDEX", scripts[1].Contents, StringComparison.Ordinal);
     }
 
     private sealed class NoOpUpgradeLog : IUpgradeLog

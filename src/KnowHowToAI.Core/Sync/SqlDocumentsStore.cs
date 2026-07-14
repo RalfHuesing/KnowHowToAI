@@ -66,24 +66,22 @@ public sealed class SqlDocumentsStore(string connectionString)
         return [.. rows];
     }
 
-    // FREETEXTTABLE statt CONTAINSTABLE: toleranter gegenüber beliebigen, nicht durch das LLM
-    // vorformatierten Suchanfragen (keine Boolesche Syntax, kein Absturz bei Sonderzeichen).
-    // Siehe docs/04-Datenmodell-Validierung-Edgecases.md, Abschnitt "search_docs-Query".
     public async Task<IReadOnlyList<DocumentSummary>> SearchDocsAsync(string query, CancellationToken cancellationToken)
     {
         await using var connection = new SqlConnection(connectionString);
         var rows = await connection.QueryAsync<DocumentSummary>(new CommandDefinition(
             """
-            SELECT d.slug AS Slug, d.title AS Title
-            FROM FREETEXTTABLE(dbo.documents, (title, content, tags, synonyms), @Query) AS ft
-            JOIN dbo.documents d ON d.slug = ft.[KEY]
-            ORDER BY ft.RANK DESC;
+            SELECT slug AS Slug, title AS Title FROM dbo.documents
+            WHERE title LIKE @Pattern OR content LIKE @Pattern OR tags LIKE @Pattern OR synonyms LIKE @Pattern
+            ORDER BY title;
             """,
-            new { Query = query },
+            new { Pattern = BuildLikePattern(query) },
             cancellationToken: cancellationToken));
 
         return [.. rows];
     }
+
+    private static string BuildLikePattern(string query) => $"%{query}%";
 
     public async Task<DocumentDetail?> GetDocAsync(string slug, CancellationToken cancellationToken)
     {

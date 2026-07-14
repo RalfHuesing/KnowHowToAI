@@ -16,9 +16,9 @@ Klassische Dokumentations-Systeme scheitern im KI-Zeitalter an zwei Extremen:
 Wir trennen die **Autorenumgebung** (wo geschrieben wird) strikt von der **Leseumgebung** (wo die KI sucht).
 
 * **Das Dateisystem (Markdown + YAML Front Matter) ist für den Menschen & die KI zum Schreiben.** Markdown ist der globale Standard für Dokumentation, lässt sich versionieren (Git), leicht editieren und von jeder KI fehlerfrei generieren.
-* **MS SQL Server ist für die KI zum Lesen (via MCP).** SQL ermöglicht schnelle, deterministische Abfragen über Hierarchien, Tags, Synonyme und Volltext. Das LLM erhält eine strukturierte Landkarte der Dokumente, statt blind in Textwüsten zu fischen.
+* **MS SQL Server ist für die KI zum Lesen (via MCP).** SQL ermöglicht schnelle, deterministische Abfragen über Hierarchien, Tags, Synonyme und Textinhalte (per `LIKE`). Das LLM erhält eine strukturierte Landkarte der Dokumente, statt blind in Textwüsten zu fischen.
 
-> **Wichtig — kein Offline-Anspruch:** Anders als ein rein dateibasierter Ansatz benötigt dieses Tool einen erreichbaren SQL-Server (lokal oder im Netzwerk). Das ist eine bewusste Entscheidung: SQL Server bringt robustes Full-Text-Ranking, Transaktionssicherheit und Mehrbenutzerfähigkeit, die eine lokale SQLite-Datei nicht in gleicher Qualität bietet. Der Server-Zugriff ist reine Konfigurationssache (`appsettings.json`), keine Architekturschwäche.
+> **Wichtig — kein Offline-Anspruch:** Anders als ein rein dateibasierter Ansatz benötigt dieses Tool einen erreichbaren SQL-Server (lokal oder im Netzwerk). Das ist eine bewusste Entscheidung: SQL Server bringt Transaktionssicherheit und Mehrbenutzerfähigkeit, die eine lokale SQLite-Datei nicht in gleicher Qualität bietet. Der Server-Zugriff ist reine Konfigurationssache (`appsettings.json`), keine Architekturschwäche.
 
 ---
 
@@ -67,7 +67,7 @@ Jede dieser Rollen kann in einem anderen Projekt/Repo als diesem hier eingesetzt
 Du arbeitest in Cursor/Claude Code. Du fragst das LLM: *"Wie war nochmal das Routing für den Core-Switch im IT-Bereich eingerichtet?"*
 
 1. Das LLM nutzt `search_docs(query="routing core-switch")`.
-2. SQL Server Full-Text Search liefert den Treffer `it/netzwerk/routing` (gerankt nach Relevanz).
+2. Eine `LIKE`-Suche über Titel, Inhalt, Tags und Synonyme liefert den Treffer `it/netzwerk/routing`.
 3. Das LLM nutzt `get_doc(slug="it/netzwerk/routing")`, um gezielt *nur* diesen Inhalt zu laden.
 4. **Ergebnis:** Minimale Token-Verschwendung, maximale Präzision.
 
@@ -98,7 +98,6 @@ KnowHowToAI.Cli import --config ./knowhowtoai.appsettings.json
 1. DbUp führt ausstehende SQL-Skripte aus `sql-scripts/` aus (Schema ist danach garantiert aktuell).
 2. Import triggert intern `validate`. Bei Fehlern: Abbruch, keine DB-Änderung.
 3. In **einer Transaktion**: `DELETE FROM documents` + Neubefüllung aus allen validierten `.md`-Dateien.
-4. Der Full-Text-Index aktualisiert sich automatisch (SQL Server Change Tracking, `AUTO`-Population).
 
 Ab sofort steht das neue Wissen dem MCP-Server (und damit allen LLM-Sitzungen) zur Verfügung.
 
@@ -110,6 +109,6 @@ Ab sofort steht das neue Wissen dem MCP-Server (und damit allen LLM-Sitzungen) z
 
 > **Git-freundlich beim Schreiben.** Alle Inhalte liegen als Plain-Text-Markdown vor. Du kannst sie in Git committen, Diffs vergleichen und bei Fehlern auf einen älteren Stand zurückgehen.
 
-> **Robust beim Lesen.** SQL Server liefert transaktionssichere, gerankte Volltextsuche und skaliert deutlich über das hinaus, was eine LIKE-Abfrage auf einer Datei-DB leisten könnte.
+> **Robust beim Lesen.** SQL Server liefert transaktionssichere, nebenläufigkeitssichere Abfragen über Hierarchien und Volltext (`LIKE`), ohne dass mehrere gleichzeitige MCP-Sitzungen sich gegenseitig ins Gehege kommen — etwas, das eine reine Datei-DB nicht in gleicher Qualität leisten könnte.
 
 > **Sicher beim Export.** Der Export in ein Zielverzeichnis erfordert eine vom Tool selbst erzeugte Marker-Datei, bevor gewiped wird (siehe [04-Datenmodell-Validierung-Edgecases.md](04-Datenmodell-Validierung-Edgecases.md#export-marker-datei)). Ein versehentliches Leeren eines falschen/fremden Ordners ist damit ausgeschlossen.

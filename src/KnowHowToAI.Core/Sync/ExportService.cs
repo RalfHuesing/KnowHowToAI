@@ -4,7 +4,7 @@ namespace KnowHowToAI.Core.Sync;
 
 // Marker-Datei-geschützter Export der DB nach .md-Dateien. Der eigentliche SQL-Zugriff kommt als
 // Delegate von außen (z. B. SqlDocumentsStore.GetAllAsync) — so ist die Marker-Logik ohne echten
-// SQL Server testbar. Regeln: docs/04-Datenmodell-Validierung-Edgecases.md, Abschnitt 4.5.
+// SQL Server testbar. Regeln: docs/04-Datenmodell-Validierung-Edgecases.md, Abschnitt 4.4.
 public sealed class ExportService(Func<CancellationToken, Task<IReadOnlyList<Document>>> getAllAsync)
 {
     private readonly FrontMatterParser _parser = new();

@@ -14,7 +14,7 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] xUnit-v3-Testprojekt verdrahtet
 
 - [x] **2. SQL-Schema & DbUp-Integration**
-  - [x] `sql-scripts/0001_create_documents_table.sql`, `0002_create_fulltext_catalog_and_index.sql` (siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts-dbup-verwaltet))
+  - [x] `sql-scripts/0001_create_documents_table.sql` (siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts-dbup-verwaltet))
   - [x] `SchemaMigrator` (Core/Migrations) führt sie via DbUp aus, Skripte als Embedded Resource, Logging über `IUpgradeLog`-Parameter statt harter Serilog-Abhängigkeit
   - [x] Tests: Skript-Discovery ohne echten SQL Server
 
@@ -26,13 +26,13 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
 
 - [x] **4. Import/Export-Engine**
   - [x] `ImportService`: Validate-Gate + Wipe-and-Dump, SQL-Zugriff als Delegate (nicht Interface, siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
-  - [x] `ExportService`: Marker-Datei-Logik (siehe [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) + MD-Generierung
+  - [x] `ExportService`: Marker-Datei-Logik (siehe [04, Abschnitt 4.4](04-Datenmodell-Validierung-Edgecases.md#44-export-marker-datei)) + MD-Generierung
   - [x] `SqlDocumentsStore`: einziger Ort mit echtem SQL-Zugriff, Insert-Reihenfolge nach Slug-Tiefe (FK-sicher)
   - [x] Schema-Migration bewusst aus `ImportService` herausgezogen — läuft ab Schritt 5 vorgelagert in der Cli
   - [x] Tests: Validierungs-Gate, Happy Path, alle drei Marker-Datei-Szenarien, Front-Matter-Rundtrip
 
 - [x] **5. CLI-Wiring**
-  - [x] `KnowHowToAiOptions`-Bindung aus `appsettings.json` (+ Env-Var-Override) pro `--config`-Pfad, klare Fehlermeldung bei fehlender Datei (kein stiller Fallback, siehe [04, Abschnitt 4.8](04-Datenmodell-Validierung-Edgecases.md#4-edge-cases--wie-sie-behandelt-werden))
+  - [x] `KnowHowToAiOptions`-Bindung aus `appsettings.json` (+ Env-Var-Override) pro `--config`-Pfad, klare Fehlermeldung bei fehlender Datei (kein stiller Fallback, siehe [04, Abschnitt 4.7](04-Datenmodell-Validierung-Edgecases.md#4-edge-cases--wie-sie-behandelt-werden))
   - [x] `validate`-Kommando: `DocsValidator` aufrufen, Fehlerliste ausgeben, Exit-Code ≠ 0 bei Fehlern
   - [x] `import`-Kommando: zuerst `SchemaMigrator.Migrate(...)`, dann `ImportService.ImportAsync(...)` (siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
   - [x] `export`-Kommando: `ExportService.ExportAsync(...)` mit `--target`
@@ -44,7 +44,7 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
 
 - [x] **6. MCP-Stdio-Server**
   - [x] `SqlDocumentsStore.ListChildrenAsync` (SQL gegen `parent_slug`, NULL-sicher für Root)
-  - [x] `SqlDocumentsStore.SearchDocsAsync` (`FREETEXTTABLE` statt `CONTAINSTABLE`, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync))
+  - [x] `SqlDocumentsStore.SearchDocsAsync` (`LIKE '%...%'`, kein Full-Text Search — siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync))
   - [x] `SqlDocumentsStore.GetDocAsync` (`DocumentDetail?`, `null` wenn Slug unbekannt)
   - [x] `DocsMcpTools` delegiert dünn an `SqlDocumentsStore` (per DI injiziert), gibt strukturierte Typen zurück statt JSON-Strings
   - [x] `server`-Kommando hostet die drei Tools über stdio (`ModelContextProtocol`-SDK), `SqlDocumentsStore` als Singleton registriert
@@ -62,9 +62,9 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
 
 - [x] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie. Verifiziert per Unittests und manuellem CLI-Lauf (Erfolgs- und Fehlerfall).
 - [ ] `import` legt Schema per DbUp an/aktualisiert es und befüllt die Tabelle transaktional neu. *Wiring steht und der Fehlerfall (SQL Server nicht erreichbar → klare Meldung, Exit 2) ist manuell verifiziert; der Erfolgspfad gegen einen echten, erreichbaren SQL Server steht noch aus (in dieser Umgebung kein SQL Server verfügbar).*
-- [x] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker). Verifiziert per Unittests (alle drei Szenarien aus [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) und manuellem CLI-Lauf.
+- [x] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker). Verifiziert per Unittests (alle drei Szenarien aus [04, Abschnitt 4.4](04-Datenmodell-Validierung-Edgecases.md#44-export-marker-datei)) und manuellem CLI-Lauf.
 - [ ] `server` beantwortet alle drei MCP-Tools korrekt gegen eine befüllte DB, inkl. leerer/Fehlerfälle ohne Absturz. *Implementiert und Host-Start manuell verifiziert (stdout bleibt leer); die drei Tools selbst sind noch nicht gegen eine befüllte DB durchgespielt — blockiert durch dasselbe SQL-Setup-Problem wie beim `import`-DoD-Punkt.*
-- [ ] Full-Text-Suche liefert sinnvoll gerankte Treffer für einen realistischen Testdatensatz. *`FREETEXTTABLE`-Query implementiert (siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync)), aber noch nicht gegen reale Daten getestet.*
+- [ ] `search_docs` liefert korrekte Treffer für einen realistischen Testdatensatz (`LIKE`, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync)). *Implementiert, aber noch nicht gegen reale Daten getestet — blockiert durch dasselbe SQL-Setup-Problem.*
 - [x] Alle Unittests grün, Core-Projekt ohne Abhängigkeit zu CLI/MCP-SDK.
 
 ---
