@@ -8,4 +8,5 @@ Konzept: [docs/00-Overview.md](docs/00-Overview.md). Verbindliche Agenten-Regeln
 @.agents/rules/03-git-workflow.mdc
 @.agents/rules/04-docs-reference.mdc
 @.agents/rules/05-documentation.mdc
+@.agents/rules/06-configuration.mdc
 @.agents/rules/AiNetLinter.mdc

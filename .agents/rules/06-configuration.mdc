@@ -1,0 +1,25 @@
+---
+description: App-Settings statt Hardcoding — wo Einstellungen und statische Werte im Code landen dürfen
+globs:
+alwaysApply: true
+---
+
+# App-Settings statt Hardcoding
+
+## Grundregel
+
+**Jede sinnvoll veränderliche Einstellung gehört nach `appsettings.json`** (Bindung über `KnowHowToAiOptions`, siehe [03-Projektstruktur-und-Konfiguration.md, Abschnitt 2](../../docs/03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson)) — **nicht** als Literal im Code. Faustregel: Könnte ein Betreiber dieses Tools (anderer Rechner, anderes Projekt, andere Bibliothek) einen plausiblen Grund haben, den Wert zu ändern, ohne den Code anzufassen? Dann ist es eine Einstellung.
+
+Typische Kandidaten: Log-Rotation (Intervall, Aufbewahrungsdauer, Minimum-Level), Timeouts, Verzeichnisnamen, Limits/Schwellwerte — nicht nur `DocsRootPath`/`ConnectionString`.
+
+## Ausnahme: echte Konstanten
+
+Werte, die **nicht** pro Einsatzort variieren (feste URLs, Protokoll-Konstanten, Domänen-Trennzeichen wie das Front-Matter-`---`), bleiben Code — dafür in einer **zentralen Konstantendatei** statt verstreut über mehrere Klassen. Noch gibt es keine solche Datei in diesem Projekt; sobald ein zweiter Fall zu `FrontMatterParser.delimiter` hinzukommt, wird sie unter `KnowHowToAI.Core/Constants.cs` (oder passender benannt) angelegt.
+
+## Wie eine neue Einstellung ergänzt wird
+
+1. Property auf `KnowHowToAiOptions` (oder einer thematisch passenden Unter-Options-Klasse, ein Typ pro Datei) mit sinnvollem Default.
+2. Wert in `src/KnowHowToAI.Cli/appsettings.json` (der committeten Dev-/Demo-Konfiguration) ergänzen.
+3. `docs/03-Projektstruktur-und-Konfiguration.md`, Abschnitt 2 aktualisieren (siehe [05-documentation.mdc](05-documentation.mdc)) — das dortige JSON-Beispiel muss immer dem tatsächlichen Schema entsprechen.
+
+Kein Grund für eine Rückfrage beim Nutzer, ob eine neu entdeckte Einstellung nach `appsettings.json` gehört — das ist bereits durch diese Regel entschieden (siehe [00-clarification.mdc](00-clarification.mdc)).
