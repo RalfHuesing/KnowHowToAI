@@ -42,13 +42,31 @@ KnowHowToAI/
         ├── SlugRulesTests.cs
         ├── SchemaMigratorTests.cs
         ├── DocsValidatorTests.cs
-        └── ImportExportServiceTests.cs
+        ├── ImportExportServiceTests.cs
+        ├── AiNetLinterTests.cs         # führt AiNetLinter als externen Prozess aus, siehe Abschnitt 4
+        └── AiNetLinter/
+            ├── docs/                   # versionierte Tool-Doku (readme/agent-api/configuration)
+            ├── rules/KnowHowToAI.rules.json
+            └── output/                 # Lint-Reports, gitignored
 ```
 
 **Warum genau diese 3 Projekte?**
 - `KnowHowToAI.Core` enthält die gesamte Logik ohne IO-Framework-Abhängigkeiten (kein `System.CommandLine`, kein MCP-SDK) → einfach und schnell testbar mit xUnit v3.
 - `KnowHowToAI.Cli` ist der einzige Ort, der CLI-Parsing und MCP-Hosting kennt. Bleibt dünn (nur Wiring).
 - `KnowHowToAI.Core.Tests` testet ausschließlich `Core` — keine Integrationstests gegen einen echten SQL Server in v1 (siehe [05-Roadmap.md](05-Roadmap.md)).
+
+## 4. AiNetLinter (Code-Qualitäts-Gate)
+
+Zusätzlich zu Build und Unittests läuft [`AiNetLinter`](https://github.com/RalfHuesing/AiNetLinter) als Roslyn-basierter Linter gegen KI-taugliche Codestruktur (Komplexität, Sealed Classes, Phantom-Dependencies, Namespace-Pfad-Abgleich). Integriert als einzelner Test (`AiNetLinterTests.LintRun_ReportsNoViolations`) in `KnowHowToAI.Core.Tests` — kein eigenes Projekt.
+
+* **Tool-Standort:** extern, außerhalb des Repos (z. B. `C:\Daten\AiNetLinter-win-x64\AiNetLinter.exe`), Pfad überschreibbar per Umgebungsvariable `AINETLINTER_EXE`. Ist die `.exe` nicht vorhanden, wird der Test übersprungen (kein CI-Hard-Requirement) — das Tool ist ein optionales lokales Entwickler-Werkzeug.
+* **Konfiguration:** `tests/KnowHowToAI.Core.Tests/AiNetLinter/rules/KnowHowToAI.rules.json`, abgeleitet von den Tool-Defaults mit drei projektspezifischen Anpassungen:
+  * `Web.IsEnabled: false` — kein CSS/JS/Razor in diesem Projekt (reine Console-/MCP-Anwendung).
+  * `RuleMetadata.StaticTestSentinel.Severity: "error"` — macht die ohnehin geltende Testpflicht aus [02-testing.mdc](../.agents/rules/02-testing.mdc) zum automatisierten, build-blockierenden Gate für alles in `KnowHowToAI.Core`.
+  * `ProjectOverrides."*.Cli".Global.EnableTestSentinel: false` — spiegelt die in [02-testing.mdc](../.agents/rules/02-testing.mdc) dokumentierte Ausnahme (reines Cli-Wiring braucht keine eigenen Tests).
+* **Kein Baseline-File in v1:** Das Projekt ist aktuell verstoßfrei (verifiziert per Erstlauf), es gibt nichts einzufrieren. Eine `--baseline`-Datei wird nachgezogen, sobald ein erster dokumentierter Altlast-Verstoß bewusst in Kauf genommen wird.
+* **Cursor-Sync:** Der Test ruft `--sync-cursor-rules` mit auf und hält `.cursor/rules/AiNetLinter.mdc` (generierte Grenzwert-Übersicht für Cursor) automatisch aktuell.
+* Tool-Dokumentation ist unter `tests/KnowHowToAI.Core.Tests/AiNetLinter/docs/*.md` versioniert (Stand des Tools zum Zeitpunkt der Integration, ohne Netzzugriff nutzbar).
 
 ---
 
