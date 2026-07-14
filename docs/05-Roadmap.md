@@ -6,38 +6,59 @@ Ziel: Der komplette Doku-Loop (`validate` → `import` → `server`, plus `expor
 
 ### Implementierungs-Reihenfolge (für den frischen Umsetzungs-Chat)
 
-1. **Solution & Projekt-Setup** ✅
-   Solution `KnowHowToAI.sln` mit `src/KnowHowToAI.Core`, `src/KnowHowToAI.Cli`, `tests/KnowHowToAI.Core.Tests` anlegen (siehe [03-Projektstruktur-und-Konfiguration.md](03-Projektstruktur-und-Konfiguration.md)). NuGet-Pakete einbinden: `Dapper`, `Microsoft.Data.SqlClient`, `dbup-sqlserver`, `System.CommandLine`, `ModelContextProtocol`, `Serilog` (+ `Serilog.Sinks.Console`), `YamlDotNet`. xUnit-v3-Testprojekt verdrahten.
+Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rules/03-git-workflow.mdc)); Tests entstehen im selben Commit wie das Feature, nicht nachträglich.
 
-2. **SQL-Schema & DbUp-Integration** ✅
-   `sql-scripts/0001_create_documents_table.sql` und `0002_create_fulltext_catalog_and_index.sql` anlegen (siehe [04](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts-dbup-verwaltet)). DbUp-Runner-Code in `Core` oder `Cli`, der beim `import`-Kommando vor dem eigentlichen Sync läuft.
+- [x] **1. Solution & Projekt-Setup**
+  - [x] `KnowHowToAI.slnx` mit `src/KnowHowToAI.Core`, `src/KnowHowToAI.Cli`, `tests/KnowHowToAI.Core.Tests`
+  - [x] NuGet-Pakete: `Dapper`, `Microsoft.Data.SqlClient`, `dbup-sqlserver`, `System.CommandLine`, `ModelContextProtocol`, `Serilog` (+ `Serilog.Sinks.Console`), `YamlDotNet`
+  - [x] xUnit-v3-Testprojekt verdrahtet
 
-3. **Domain-Model & Front-Matter-Parser/Validator** ✅
-   `Document`-Klasse, `FrontMatterParser` (YamlDotNet), `SlugRules` (Regex-Validierung), `DocsValidator` (YAML-Check, Slug-Check, Orphan-Check — alle Fehler sammeln, siehe [04](04-Datenmodell-Validierung-Edgecases.md#3-validierungsregeln-validate)). Unittests für valide/invalide Dateien, Slug-Regeln, Orphan-Szenarien.
+- [x] **2. SQL-Schema & DbUp-Integration**
+  - [x] `sql-scripts/0001_create_documents_table.sql`, `0002_create_fulltext_catalog_and_index.sql` (siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts-dbup-verwaltet))
+  - [x] `SchemaMigrator` (Core/Migrations) führt sie via DbUp aus, Skripte als Embedded Resource, Logging über `IUpgradeLog`-Parameter statt harter Serilog-Abhängigkeit
+  - [x] Tests: Skript-Discovery ohne echten SQL Server
 
-4. **Import/Export-Engine** ✅
-   `ImportService`: Validate + Wipe-and-Dump, SQL-Zugriff als Delegate (nicht als Interface, siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout)). `ExportService`: Marker-Datei-Logik (siehe [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) + MD-Dateien inkl. YAML-Front-Matter-Generierung schreiben. `SqlDocumentsStore`: einziger Ort mit echtem SQL-Zugriff via Dapper.
+- [x] **3. Domain-Model & Front-Matter-Parser/Validator**
+  - [x] `Document`, `SlugRules` (Regex + Orphan-Hilfsfunktionen)
+  - [x] `FrontMatterParser`: YAML ↔ Markdown, inkl. `Render` für den Export (Rundtrip-fähig)
+  - [x] `DocsValidator`: Slug-Check, YAML-Check, mehrstufiger Orphan-Check — sammelt alle Fehler in einem Durchlauf (siehe [04, Abschnitt 3](04-Datenmodell-Validierung-Edgecases.md#3-validierungsregeln-validate))
+  - [x] Tests: valide/invalide Front-Matter, Slug-Regeln, Orphan-Szenarien, leeres Docs-Root
 
-5. **CLI-Wiring**
-   `Program.cs` mit `System.CommandLine`-Subcommands `validate`, `import`, `export`, `server`, jeweils mit `--config`-Option (siehe [03](03-Projektstruktur-und-Konfiguration.md#3-cli-kommandos-übersicht)). Konfigurationsbindung (`KnowHowToAiOptions`) aus `appsettings.json` + Env-Var-Override. **`import` ruft hier zuerst `SchemaMigrator.Migrate(...)` auf und erst danach `ImportService.ImportAsync(...)`** (Migration ist bewusst nicht Teil von `ImportService` selbst, siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout)).
+- [x] **4. Import/Export-Engine**
+  - [x] `ImportService`: Validate-Gate + Wipe-and-Dump, SQL-Zugriff als Delegate (nicht Interface, siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
+  - [x] `ExportService`: Marker-Datei-Logik (siehe [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) + MD-Generierung
+  - [x] `SqlDocumentsStore`: einziger Ort mit echtem SQL-Zugriff, Insert-Reihenfolge nach Slug-Tiefe (FK-sicher)
+  - [x] Schema-Migration bewusst aus `ImportService` herausgezogen — läuft ab Schritt 5 vorgelagert in der Cli
+  - [x] Tests: Validierungs-Gate, Happy Path, alle drei Marker-Datei-Szenarien, Front-Matter-Rundtrip
 
-6. **MCP-Stdio-Server**
-   `DocsMcpTools` mit `[McpServerTool]`-Methoden `list_children`, `search_docs`, `get_doc`, gemappt auf Dapper-Queries (Full-Text-Query für `search_docs`, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-beispiel)). Serilog zwingend auf `Console.Error`.
+- [ ] **5. CLI-Wiring** ← nächster Schritt
+  - [ ] `KnowHowToAiOptions`-Bindung aus `appsettings.json` (+ Env-Var-Override) pro `--config`-Pfad
+  - [ ] `validate`-Kommando: `DocsValidator` aufrufen, Fehlerliste ausgeben, Exit-Code ≠ 0 bei Fehlern
+  - [ ] `import`-Kommando: zuerst `SchemaMigrator.Migrate(...)`, dann `ImportService.ImportAsync(...)` (siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
+  - [ ] `export`-Kommando: `ExportService.ExportAsync(...)` mit `--target`
+  - [ ] `server`-Kommando: Grundgerüst für MCP-Hosting (Inhalt folgt in Schritt 6)
+  - [ ] Serilog konfiguriert, Sink zwingend `Console.Error`
 
-7. **Tests**
-   xUnit v3 für Parser, Validator, Slug-Regeln, Import/Export-Logik (Core, ohne echten SQL Server — DB-Zugriff hinter einem schmalen Interface/Delegate isolieren, damit Core-Tests ohne Datenbank laufen).
+- [ ] **6. MCP-Stdio-Server**
+  - [ ] `DocsMcpTools.ListChildrenAsync` (SQL gegen `parent_slug`)
+  - [ ] `DocsMcpTools.SearchDocsAsync` (Full-Text-Query, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-beispiel))
+  - [ ] `DocsMcpTools.GetDocAsync`
+  - [ ] `server`-Kommando hostet die drei Tools über stdio (`ModelContextProtocol`-SDK)
 
-8. **Setup-Dokumentation & Beispielkonfiguration**
-   `appsettings.example.json`, README mit Setup-Schritten (SQL-Server-Voraussetzungen inkl. Full-Text-Feature, `dotnet publish`, MCP-Launch-Config-Beispiel — siehe [03](03-Projektstruktur-und-Konfiguration.md#mcp-launch-konfiguration-beispiel-für-claude-desktopcursor)).
+- [x] **7. Tests** — kein separater Schritt mehr nötig: Tests entstehen laut Git-Workflow-Regel im selben Commit wie das jeweilige Feature (siehe Schritte 2–4). Was in Schritt 5/6 an echter Logik entsteht, bekommt dort seine Tests; reines CLI-Wiring ist laut [02-testing.mdc](../.agents/rules/02-testing.mdc) davon ausgenommen.
+
+- [ ] **8. Setup-Dokumentation & Beispielkonfiguration**
+  - [x] `appsettings.example.json` existiert bereits (aus Schritt 1)
+  - [ ] README mit Setup-Schritten (SQL-Server-Voraussetzungen inkl. Full-Text-Feature, `dotnet publish`, MCP-Launch-Config-Beispiel — siehe [03](03-Projektstruktur-und-Konfiguration.md#mcp-launch-konfiguration-beispiel-für-claude-desktopcursor))
 
 ### Definition of Done (v1)
 
-- [ ] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie.
-- [ ] `import` legt Schema per DbUp an/aktualisiert es und befüllt die Tabelle transaktional neu.
-- [ ] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker).
+- [ ] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie. *(Logik fertig seit Schritt 3, CLI-Anbindung fehlt noch — Schritt 5)*
+- [ ] `import` legt Schema per DbUp an/aktualisiert es und befüllt die Tabelle transaktional neu. *(Logik fertig seit Schritt 2/4, CLI-Anbindung fehlt noch — Schritt 5)*
+- [ ] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker). *(Logik fertig seit Schritt 4, CLI-Anbindung fehlt noch — Schritt 5)*
 - [ ] `server` beantwortet alle drei MCP-Tools korrekt gegen eine befüllte DB, inkl. leerer/Fehlerfälle ohne Absturz.
 - [ ] Full-Text-Suche liefert sinnvoll gerankte Treffer für einen realistischen Testdatensatz.
-- [ ] Alle Unittests grün, Core-Projekt ohne Abhängigkeit zu CLI/MCP-SDK.
+- [x] Alle Unittests grün, Core-Projekt ohne Abhängigkeit zu CLI/MCP-SDK.
 
 ---
 
