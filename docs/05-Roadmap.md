@@ -53,9 +53,10 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
 
 - [x] **7. Tests** — kein separater Schritt mehr nötig: Tests entstehen laut Git-Workflow-Regel im selben Commit wie das jeweilige Feature (siehe Schritte 2–4). Was in Schritt 5/6 an echter Logik entsteht, bekommt dort seine Tests; reines CLI-Wiring ist laut [02-testing.mdc](../.agents/rules/02-testing.mdc) davon ausgenommen.
 
-- [ ] **8. Setup-Dokumentation & Beispielkonfiguration**
+- [x] **8. Setup-Dokumentation & Beispielkonfiguration**
   - [x] `appsettings.json` existiert bereits, voll funktionsfähig und committet (aus Schritt 1/6, siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson))
-  - [ ] README mit Setup-Schritten (SQL-Server-Voraussetzungen inkl. Full-Text-Feature, `dotnet publish`, MCP-Launch-Config-Beispiel — siehe [03](03-Projektstruktur-und-Konfiguration.md#mcp-launch-konfiguration-beispiel-für-claude-desktopcursor))
+  - [x] `README.md` im Root (kurz, verweist auf `docs/` statt Inhalte zu duplizieren)
+  - [x] `scripts/publish.ps1`: Single-File-Self-Contained-Build nach `publish/` (gitignored), siehe [03, Abschnitt 5](03-Projektstruktur-und-Konfiguration.md#5-deployment-single-file-publish)
 
 ### Definition of Done (v1)
 
