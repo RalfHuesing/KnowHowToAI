@@ -55,3 +55,6 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# KnowHowToAI: Ausgabe von scripts/publish.ps1
+/publish/

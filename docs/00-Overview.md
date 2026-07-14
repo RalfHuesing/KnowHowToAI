@@ -25,7 +25,7 @@ Diese Entscheidungen wurden bewusst getroffen und sollten in der Umsetzung **nic
 5. **Strikte Slug-Regeln:** nur `a-z`, `0-9`, `-`, `/` in Dateipfaden — vermeidet Case-Collisions zwischen Windows/Linux/Git vollständig.
 6. **3-Projekt-Solution:** `KnowHowToAI.Core` (Logik), `KnowHowToAI.Cli` (Entry Point, CLI + MCP-Hosting), `KnowHowToAI.Core.Tests` (xUnit v3).
 7. **Sync nur manuell in v1** (kein Watch-Modus). `export` schreibt eine Marker-Datei und wiped nur, wenn diese vorhanden ist — sonst Abbruch mit Fehler (Schutz vor versehentlichem Datenverlust in Fremd-Verzeichnissen).
-8. **Distribution in v1:** reines Build-Artefakt (`dotnet publish`), MCP-Config verweist auf den Pfad zur `.exe`. Packaging als globales .NET-Tool ist Backlog.
+8. **Distribution in v1:** reines Build-Artefakt, self-contained Single-File-`.exe` via `scripts/publish.ps1` (siehe [03, Abschnitt 5](03-Projektstruktur-und-Konfiguration.md#5-deployment-single-file-publish)), MCP-Config verweist auf den Pfad zur `.exe`. Packaging als globales .NET-Tool ist Backlog.
 9. **Offizielles `ModelContextProtocol`-NuGet-Paket** für den stdio-Server, **`System.CommandLine`** für die CLI.
 
 Alle Details und Begründungen ("Warum?") stehen in den verlinkten Dokumenten.
