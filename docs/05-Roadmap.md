@@ -37,10 +37,10 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] `import`-Kommando: zuerst `SchemaMigrator.Migrate(...)`, dann `ImportService.ImportAsync(...)` (siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
   - [x] `export`-Kommando: `ExportService.ExportAsync(...)` mit `--target`
   - [x] `server`-Kommando: Generic-Host-Grundgerüst mit MCP-Hosting (Tool-Inhalt folgt in Schritt 6)
-  - [x] Serilog konfiguriert, Sink zwingend `Console.Error` (`standardErrorFromLevel: Verbose`)
+  - [x] Serilog konfiguriert, Sink zwingend rotierende Datei unter `Logs/` relativ zur `.exe` (kein Konsolen-Sink, täglich rollend, 14 Tage aufbewahrt)
   - [x] `Console.OutputEncoding` auf BOM-loses UTF-8 gesetzt (Umlaute in Fehlermeldungen, ohne den stdout-JSON-RPC-Stream zu korrumpieren — siehe [02](02-Architektur-und-Techstack.md))
   - [x] Alle vier Kommandos fangen Fehler an der CLI-Grenze ab (`catch (Exception)`, klare Meldung + Exit-Code ≠ 0) statt roher .NET-Stacktraces
-  - [x] Manuell smoke-getestet: `validate` (Erfolg + Fehlerfall), `import`/`export` gegen nicht erreichbaren SQL Server (klare Fehlermeldung, Exit 2), `server`-Start (stdout bleibt leer, Logging korrekt auf stderr)
+  - [x] Manuell smoke-getestet: `validate` (Erfolg + Fehlerfall), `import`/`export` gegen nicht erreichbaren SQL Server (klare Fehlermeldung, Exit 2), `server`-Start (stdout bleibt leer, Logging landet in `Logs/`)
 
 - [x] **6. MCP-Stdio-Server**
   - [x] `SqlDocumentsStore.ListChildrenAsync` (SQL gegen `parent_slug`, NULL-sicher für Root)
