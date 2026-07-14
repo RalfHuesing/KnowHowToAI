@@ -4,8 +4,9 @@ globs:
 alwaysApply: true
 ---
 
-Die verbindlichen Regeln für dieses Projekt (Code-Stil, Testpflicht, Git-Workflow, docs/-Referenz) liegen in `.agents/rules/`, nicht hier. Lies diese Dateien, bevor du Code änderst:
+Die verbindlichen Regeln für dieses Projekt (Rückfragen, Code-Stil, Testpflicht, Git-Workflow, docs/-Referenz) liegen in `.agents/rules/`, nicht hier. Lies diese Dateien, bevor du Code änderst:
 
+* `.agents/rules/00-clarification.mdc`
 * `.agents/rules/01-code-style.mdc`
 * `.agents/rules/02-testing.mdc`
 * `.agents/rules/03-git-workflow.mdc`
