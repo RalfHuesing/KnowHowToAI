@@ -59,19 +59,23 @@ KnowHowToAI/
   "KnowHowToAi": {
     "DocsRootPath": "C:\\Daten\\Entwicklung\\Ralf\\KnowHowToAI\\demo-docs",
     "ConnectionString": "Server=%COMPUTERNAME%\\MSSQLSERVER2022;Database=DemoDB;User Id=Agent;Password=Agent!;TrustServerCertificate=True;",
-    "ExportMarkerFileName": ".knowhowtoai-export-marker.json"
-  },
-  "Serilog": {
-    "MinimumLevel": "Information"
+    "ExportMarkerFileName": ".knowhowtoai-export-marker.json",
+    "Logging": {
+      "MinimumLevel": "Information",
+      "RollingInterval": "Day",
+      "RetainedFileCountLimit": 14
+    }
   }
 }
 ```
+
+* **`Logging`** (`KnowHowToAiLoggingOptions`): steuert die Serilog-Datei-Rotation — `MinimumLevel` (`Serilog.Events.LogEventLevel`-Name), `RollingInterval` (`Serilog.RollingInterval`-Name, z.B. `Day`), `RetainedFileCountLimit` (Anzahl aufbewahrter Dateien). Bewusst konfigurierbar statt hartcodiert, siehe [06-configuration.mdc](../.agents/rules/06-configuration.mdc). `Program.ConfigureLogger` baut damit den Serilog-Logger direkt nach `LoadOptions` neu auf (ein kurzlebiger Bootstrap-Logger mit denselben Defaults deckt die Zeitspanne davor ab, z.B. falls `LoadOptions` selbst fehlschlägt).
 
 * **Override per Umgebungsvariable:** `Microsoft.Extensions.Configuration` erlaubt `KnowHowToAi__ConnectionString` bzw. `KnowHowToAi__DocsRootPath` als Override, ohne die Datei anzufassen (z.B. für CI oder abweichende Rechner).
 * **`%COMPUTERNAME%`-Platzhalter:** `Program.LoadOptions` ersetzt den *literalen* Text `%COMPUTERNAME%` in der Connection-String durch `Environment.MachineName` — bewusst **nicht** `Environment.ExpandEnvironmentVariables(...)`. Letzteres würde die Umgebungsvariable `COMPUTERNAME` aus dem Prozess-Environment lesen, die fehlen kann, wenn der MCP-Server von Cursor/Claude Desktop mit einem reduzierten Environment gestartet wird. `Environment.MachineName` fragt den Rechnernamen direkt beim Betriebssystem ab und ist davon unabhängig. Damit funktioniert dieselbe committete `appsettings.json` unverändert auf jedem Rechner, auf dem eine SQL-Server-Instanz mit demselben Instanznamen und denselben Zugangsdaten existiert.
 * **Kein generisches Secret-Handling in v1, bewusste Ausnahme für dieses lokale Setup:** Grundsätzlich gilt weiterhin, dass produktive/sensible Connection-Strings nicht ins Repo gehören. Für dieses konkrete lokale Dev-/Demo-Setup (SQL-Login `Agent` auf einer lokalen Instanz, keine echten Geheimnisse) hat der Projektverantwortliche das Committen explizit freigegeben — `appsettings.json` ist daher **nicht** mehr in `.gitignore`, es gibt keine separate `appsettings.example.json` mehr. Bei einem späteren produktiven Einsatz mit echten Secrets ist diese Ausnahme erneut zu bewerten.
 * **SQL-Server-Instanzname ≠ Datenbankname:** Der Instanzname (`MSSQLSERVER2022`) muss zu einer tatsächlich registrierten SQL-Server-Instanz auf dem Zielrechner passen (`Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL'` zeigt die installierten Instanzen). Er ist unabhängig vom Datenbanknamen (`Database=DemoDB`).
-* **`Logs/`-Ordner neben der `.exe`:** Serilog legt beim Start jedes Kommandos automatisch `Logs/` relativ zu `AppContext.BaseDirectory` an (nicht in `appsettings.json` konfigurierbar, siehe [02](02-Architektur-und-Techstack.md#2-tech-stack--dependencies)). Gitignored über die generische `[Ll]ogs/`-Regel.
+* **`Logs/`-Ordner neben der `.exe`:** Serilog legt beim Start jedes Kommandos automatisch `Logs/` relativ zu `AppContext.BaseDirectory` an (Ordnername/-Präfix sind Konvention, nicht konfigurierbar; Rotation dagegen schon, siehe `Logging` oben und [02](02-Architektur-und-Techstack.md#2-tech-stack--dependencies)). Gitignored über die generische `[Ll]ogs/`-Regel.
 * **Bekannter lokaler Stolperstein (offen, noch nicht durch einen erfolgreichen Lauf verifiziert):** Bei der Implementierung von Schritt 6 zeigte sich per `sqlcmd`, dass die SQL-Server-Instanz auf dem Entwicklungsrechner ihren TCP-Listener nur an `127.0.0.1`/`::1` bindet (nicht an die per Hostname erreichbare Netzwerkadresse) und der Login `Agent` selbst über die Loopback-Adresse mit einer Anmeldefehler-Meldung abgelehnt wurde. Vor dem ersten produktiven `import`/`server`-Lauf prüfen: TCP/IP-Bindung in der SQL Server Configuration Manager (ggf. auf alle Interfaces erweitern) und den Login `Agent` (Passwort, Server-Rolle, ob Server im gemischten Authentifizierungsmodus läuft) separat verifizieren, z.B. per SSMS.
 
 ### MCP-Launch-Konfiguration (Beispiel für Claude Desktop/Cursor)

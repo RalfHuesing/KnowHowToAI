@@ -11,22 +11,19 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Events;
 
 // UTF8Encoding ohne BOM: Encoding.UTF8 würde beim ersten Schreibzugriff eine BOM-Präambel
 // ausgeben und damit im "server"-Modus die ersten Bytes des JSON-RPC-Streams korrumpieren.
 Console.OutputEncoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
-// Kein Konsolen-Sink: Console.Out ist für den MCP-stdio-Server reserviert, und Console.Error wäre
-// bei einem von Cursor/Claude Desktop gestarteten Hintergrundprozess ohnehin nicht einsehbar.
-// Siehe docs/02-Architektur-und-Techstack.md, kritischer Implementierungs-Hinweis.
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .WriteTo.File(
-        Path.Combine(AppContext.BaseDirectory, "Logs", "knowhowtoai-.log"),
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 14,
-        shared: true)
-    .CreateLogger();
+// Bootstrap-Logger mit Options-Defaults, bevor appsettings.json gelesen werden konnte (z.B. wenn
+// LoadOptions selbst fehlschlägt). Wird direkt nach LoadOptions durch die konfigurierten
+// Rotation-Einstellungen ersetzt, siehe ConfigureLogger. Kein Konsolen-Sink: Console.Out ist für
+// den MCP-stdio-Server reserviert, und Console.Error wäre bei einem von Cursor/Claude Desktop
+// gestarteten Hintergrundprozess ohnehin nicht einsehbar. Siehe
+// docs/02-Architektur-und-Techstack.md, kritischer Implementierungs-Hinweis.
+Log.Logger = ConfigureLogger(new KnowHowToAiLoggingOptions());
 
 var configOption = new Option<string?>("--config")
 {
@@ -65,6 +62,7 @@ int RunValidate(ParseResult parseResult)
     try
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
+        Log.Logger = ConfigureLogger(options.Logging);
         var result = new DocsValidator().Validate(options.DocsRootPath);
         return PrintValidationResult(result);
     }
@@ -80,6 +78,7 @@ async Task<int> RunImport(ParseResult parseResult, CancellationToken cancellatio
     try
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
+        Log.Logger = ConfigureLogger(options.Logging);
         IUpgradeLog upgradeLog = new SerilogUpgradeLogAdapter(Log.Logger);
 
         var migrationResult = SchemaMigrator.Migrate(options.ConnectionString, upgradeLog);
@@ -106,6 +105,7 @@ async Task<int> RunExport(ParseResult parseResult, CancellationToken cancellatio
     try
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
+        Log.Logger = ConfigureLogger(options.Logging);
         var target = parseResult.GetValue(targetOption)
             ?? throw new InvalidOperationException("--target ist erforderlich.");
 
@@ -128,6 +128,7 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
     try
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
+        Log.Logger = ConfigureLogger(options.Logging);
 
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();
@@ -174,6 +175,16 @@ static KnowHowToAiOptions LoadOptions(string? configPath)
             "%COMPUTERNAME%", Environment.MachineName, StringComparison.OrdinalIgnoreCase)
     };
 }
+
+static Serilog.ILogger ConfigureLogger(KnowHowToAiLoggingOptions loggingOptions) =>
+    new LoggerConfiguration()
+        .MinimumLevel.Is(Enum.Parse<LogEventLevel>(loggingOptions.MinimumLevel))
+        .WriteTo.File(
+            Path.Combine(AppContext.BaseDirectory, "Logs", "knowhowtoai-.log"),
+            rollingInterval: Enum.Parse<RollingInterval>(loggingOptions.RollingInterval),
+            retainedFileCountLimit: loggingOptions.RetainedFileCountLimit,
+            shared: true)
+        .CreateLogger();
 
 static int PrintValidationResult(ValidationResult result)
 {

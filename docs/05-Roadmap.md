@@ -37,7 +37,7 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] `import`-Kommando: zuerst `SchemaMigrator.Migrate(...)`, dann `ImportService.ImportAsync(...)` (siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout))
   - [x] `export`-Kommando: `ExportService.ExportAsync(...)` mit `--target`
   - [x] `server`-Kommando: Generic-Host-Grundgerüst mit MCP-Hosting (Tool-Inhalt folgt in Schritt 6)
-  - [x] Serilog konfiguriert, Sink zwingend rotierende Datei unter `Logs/` relativ zur `.exe` (kein Konsolen-Sink, täglich rollend, 14 Tage aufbewahrt)
+  - [x] Serilog konfiguriert, Sink zwingend rotierende Datei unter `Logs/` relativ zur `.exe` (kein Konsolen-Sink); Rotation (Intervall, Aufbewahrungsdauer, Minimum-Level) konfigurierbar über `KnowHowToAiOptions.Logging`, siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson)
   - [x] `Console.OutputEncoding` auf BOM-loses UTF-8 gesetzt (Umlaute in Fehlermeldungen, ohne den stdout-JSON-RPC-Stream zu korrumpieren — siehe [02](02-Architektur-und-Techstack.md))
   - [x] Alle vier Kommandos fangen Fehler an der CLI-Grenze ab (`catch (Exception)`, klare Meldung + Exit-Code ≠ 0) statt roher .NET-Stacktraces
   - [x] Manuell smoke-getestet: `validate` (Erfolg + Fehlerfall), `import`/`export` gegen nicht erreichbaren SQL Server (klare Fehlermeldung, Exit 2), `server`-Start (stdout bleibt leer, Logging landet in `Logs/`)
@@ -47,6 +47,7 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] `SqlDocumentsStore.SearchDocsAsync` (`LIKE '%...%'`, kein Full-Text Search — siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync))
   - [x] `SqlDocumentsStore.GetDocAsync` (`DocumentDetail?`, `null` wenn Slug unbekannt)
   - [x] `DocsMcpTools` delegiert dünn an `SqlDocumentsStore` (per DI injiziert), gibt strukturierte Typen zurück statt JSON-Strings
+  - [x] Jeder Tool-Aufruf loggt Parameter + Antwortgröße in Bytes (nicht den Inhalt), siehe [02, Abschnitt 4.D](02-Architektur-und-Techstack.md#d-knowhowtoaicli-server---config-path)
   - [x] `server`-Kommando hostet die drei Tools über stdio (`ModelContextProtocol`-SDK), `SqlDocumentsStore` als Singleton registriert
   - [x] `demo-docs/` als kleine Beispiel-Bibliothek angelegt, `appsettings.json` zeigt standardmäßig darauf
   - [ ] **Offen:** End-to-End-Verifikation gegen eine befüllte DB (list_children/search_docs/get_doc mit echten Ergebnissen) — blockiert durch ein SQL-Server-Setup-Problem auf dem Entwicklungsrechner (siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson), "Bekannter lokaler Stolperstein"), wird vom Projektverantwortlichen selbst geprüft
