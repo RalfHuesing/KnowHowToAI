@@ -13,4 +13,11 @@
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- sql-scripts/ ist die eine bearbeitbare Quelle (siehe docs/04); hier nur eingebettet. -->
+    <EmbeddedResource Include="..\..\sql-scripts\*.sql">
+      <Link>SqlScripts\%(Filename)%(Extension)</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

@@ -8,6 +8,10 @@ Dieses Dokument ist die verbindliche Referenz für alle Grenzfälle. Ziel: Ein f
 
 DbUp führt alle Skripte im Ordner in aufsteigender Dateinamen-Reihenfolge genau einmal aus und protokolliert das in einer eigenen Journal-Tabelle (Standard: `dbo.SchemaVersions`, wird von DbUp automatisch angelegt).
 
+**Laufzeit-Quelle: Embedded Resources, nicht Festplatte.** `sql-scripts/*.sql` bleibt der eine bearbeitbare Quellordner im Repo, wird aber beim Build in `KnowHowToAI.Core` als Embedded Resource eingebettet (`WithScriptsEmbeddedInAssembly`) statt zur Laufzeit von der Festplatte gelesen (`WithScriptsFromFileSystem`). Begründung: Das verteilte Artefakt ist eine einzelne `.exe` (siehe [00-Overview.md](00-Overview.md), Grundsatzentscheidung 8) — sie muss unabhängig vom Arbeitsverzeichnis oder Kopierziel funktionieren. Eine Skriptänderung erfordert dadurch einen Rebuild von `KnowHowToAI.Core`; das ist für dieses Projekt akzeptabel, da Schema-Änderungen ohnehin über den normalen Implementierungs-/Commit-Workflow laufen (siehe `.agents/rules/03-git-workflow.mdc`), nicht als Hotfix am laufenden System.
+
+**Logging-Abstraktion:** `SchemaMigrator` (in `KnowHowToAI.Core/Migrations/`) nimmt DbUps `IUpgradeLog` als Parameter entgegen, statt selbst eine Logging-Bibliothek zu referenzieren. `KnowHowToAI.Cli` reicht beim Aufruf eine Serilog-basierte Implementierung durch, die zwingend auf `Console.Error` schreibt (siehe [02-Architektur-und-Techstack.md](02-Architektur-und-Techstack.md)) — DbUps eingebautes `LogToConsole()` würde auf `Console.Out` schreiben und das MCP-Protokoll korrumpieren und darf daher nicht verwendet werden.
+
 ### `0001_create_documents_table.sql`
 
 ```sql
