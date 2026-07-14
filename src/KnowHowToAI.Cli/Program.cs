@@ -128,6 +128,7 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
         builder.Logging.ClearProviders();
         builder.Services.AddSerilog(Log.Logger);
         builder.Services.AddSingleton(options);
+        builder.Services.AddSingleton(new SqlDocumentsStore(options.ConnectionString));
         builder.Services.AddMcpServer()
             .WithStdioServerTransport()
             .WithToolsFromAssembly();
@@ -156,8 +157,16 @@ static KnowHowToAiOptions LoadOptions(string? configPath)
         .AddEnvironmentVariables()
         .Build();
 
-    return configuration.GetSection("KnowHowToAi").Get<KnowHowToAiOptions>()
+    var options = configuration.GetSection("KnowHowToAi").Get<KnowHowToAiOptions>()
         ?? throw new InvalidOperationException($"Abschnitt 'KnowHowToAi' fehlt in '{path}'.");
+
+    // Literal ersetzen statt Environment.ExpandEnvironmentVariables: robust auch dann, wenn der
+    // MCP-Prozess (von Cursor/Claude Desktop gestartet) COMPUTERNAME nicht im Environment geerbt hat.
+    return options with
+    {
+        ConnectionString = options.ConnectionString.Replace(
+            "%COMPUTERNAME%", Environment.MachineName, StringComparison.OrdinalIgnoreCase)
+    };
 }
 
 static int PrintValidationResult(ValidationResult result)

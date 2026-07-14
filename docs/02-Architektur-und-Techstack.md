@@ -103,16 +103,18 @@ Prüft das lokale Docs-Root-Verzeichnis, bevor importiert wird.
 
 ### D. `KnowHowToAI.Cli server --config <path>`
 
-Startet die App im stdio-Modus. Bietet exakt **drei MCP-Tools**:
+Startet die App im stdio-Modus. Bietet exakt **drei MCP-Tools** (`KnowHowToAI.Cli.McpTools.DocsMcpTools`, dünne Delegation an `SqlDocumentsStore`):
 
-1. **`list_children(parent_slug)`**
+1. **`list_children(parent_slug)`** → `IReadOnlyList<DocumentSummary>` (Slug + Title)
    *SQL:* `SELECT slug, title FROM dbo.documents WHERE parent_slug = @ParentSlug` (bzw. `IS NULL` für Root)
    *Zweck:* Ermöglicht dem LLM das gezielte "Durchblättern" der Bibliothek entlang der Fachbereiche.
-2. **`search_docs(query)`**
-   *SQL:* Full-Text-Query gegen den Index auf `title`, `content`, `tags`, `synonyms` mittels `CONTAINS`/`FREETEXT` + `CONTAINSTABLE`-Ranking.
-   *Zweck:* Schnelle, gerankte Stichwortsuche.
-3. **`get_doc(slug)`**
+2. **`search_docs(query)`** → `IReadOnlyList<DocumentSummary>`
+   *SQL:* `FREETEXTTABLE` gegen den Index auf `title`, `content`, `tags`, `synonyms`, sortiert nach `RANK` (nicht `CONTAINSTABLE` — siehe [04, Abschnitt "search_docs-Query"](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync) für die Begründung).
+   *Zweck:* Schnelle, gerankte Stichwortsuche, tolerant gegenüber beliebiger LLM-Eingabe.
+3. **`get_doc(slug)`** → `DocumentDetail?` (Title + Content, `null` wenn Slug unbekannt)
    *SQL:* `SELECT title, content FROM dbo.documents WHERE slug = @Slug`
    *Zweck:* Lazy-Loading des eigentlichen Inhalts, sobald das LLM das Ziel-Dokument identifiziert hat.
+
+Die Tools geben strukturierte Typen zurück statt roher JSON-Strings — das MCP-SDK serialisiert sie automatisch; manuelles `JsonSerializer.Serialize` in den Tool-Methoden entfällt.
 
 Details zu Implementierungsreihenfolge: [05-Roadmap.md](05-Roadmap.md).

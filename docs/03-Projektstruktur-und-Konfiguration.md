@@ -8,6 +8,9 @@ Root-Namespace/Solution-Name orientiert sich am Repo-Namen: **`KnowHowToAI`**.
 KnowHowToAI/
 ├── KnowHowToAI.slnx                   # .NET-10-natives XML-Solution-Format
 ├── docs/                              # Dieses Konzept (kein Projektinhalt)
+├── demo-docs/                         # Kleine Beispiel-Bibliothek für manuelle End-to-End-Tests
+│   ├── it.md
+│   └── it/netzwerk.md, it/netzwerk/routing.md
 ├── sql-scripts/                       # Nummerierte DbUp-Skripte, siehe 04 (werden in Core embedded)
 │   ├── 0001_create_documents_table.sql
 │   └── 0002_create_fulltext_catalog_and_index.sql
@@ -16,7 +19,9 @@ KnowHowToAI/
 │   │   ├── KnowHowToAI.Core.csproj
 │   │   ├── Documents/
 │   │   │   ├── Document.cs            # Domain-Objekt (Slug, Title, Content, Tags, Synonyms, ParentSlug)
-│   │   │   ├── FrontMatterParser.cs   # YAML-Front-Matter -> Document
+│   │   │   ├── DocumentSummary.cs     # Slug + Title, Rückgabe von list_children/search_docs
+│   │   │   ├── DocumentDetail.cs      # Title + Content, Rückgabe von get_doc
+│   │   │   ├── FrontMatterParser.cs   # YAML-Front-Matter <-> Document (Parse + Render)
 │   │   │   └── SlugRules.cs           # Regex + Validierung für Slugs
 │   │   ├── Validation/
 │   │   │   ├── DocsValidator.cs       # Orphan-Check, Slug-Check, YAML-Check
@@ -36,7 +41,7 @@ KnowHowToAI/
 │   │   │   └── SerilogUpgradeLog.cs   # Bindet DbUps IUpgradeLog an Serilog (Console.Error)
 │   │   ├── McpTools/
 │   │   │   └── DocsMcpTools.cs        # [McpServerTool] list_children/search_docs/get_doc
-│   │   └── appsettings.example.json   # Beispiel-Konfiguration, echte appsettings.json nie committen
+│   │   └── appsettings.json           # Voll funktionsfähige, committete Konfiguration (siehe Abschnitt 2)
 │   └── ... (weitere Projekte nur bei Bedarf, siehe 05-Roadmap Backlog)
 └── tests/
     └── KnowHowToAI.Core.Tests/
@@ -81,11 +86,13 @@ Zusätzlich zu Build und Unittests läuft [`AiNetLinter`](https://github.com/Ral
 
 **Ein Konfigurationsort pro Einsatzort/Projekt.** Enthält Docs-Root-Pfad *und* Connection-String gemeinsam. Liegt entweder neben der `.exe` (Default) oder wird explizit per `--config <path>` referenziert — so kann dieselbe gebaute `.exe` für mehrere unabhängige Projekte/Docs-Bibliotheken verwendet werden, indem man pro Projekt eine eigene Config-Datei anlegt und in der jeweiligen MCP-Launch-Config referenziert.
 
+`src/KnowHowToAI.Cli/appsettings.json` ist die tatsächlich genutzte, **committete** Konfiguration für dieses lokale Dev-/Demo-Setup (bewusste Abweichung von der ursprünglichen "nie committen"-Regel — siehe unten):
+
 ```json
 {
   "KnowHowToAi": {
-    "DocsRootPath": "C:\\Projekte\\MeinProjekt\\wissensdatenbank",
-    "ConnectionString": "Server=localhost;Database=KnowHowToAiDocs;Trusted_Connection=True;TrustServerCertificate=True;",
+    "DocsRootPath": "C:\\Daten\\Entwicklung\\Ralf\\KnowHowToAI\\demo-docs",
+    "ConnectionString": "Server=%COMPUTERNAME%\\MSSQLSERVER2022;Database=DemoDB;User Id=Agent;Password=Agent!;TrustServerCertificate=True;",
     "ExportMarkerFileName": ".knowhowtoai-export-marker.json"
   },
   "Serilog": {
@@ -95,7 +102,10 @@ Zusätzlich zu Build und Unittests läuft [`AiNetLinter`](https://github.com/Ral
 ```
 
 * **Override per Umgebungsvariable:** `Microsoft.Extensions.Configuration` erlaubt `KnowHowToAi__ConnectionString` bzw. `KnowHowToAi__DocsRootPath` als Override, ohne die Datei anzufassen (z.B. für CI oder abweichende Rechner).
-* **Kein Secret-Handling in v1:** Es wird davon ausgegangen, dass lokale/Netzwerk-SQL-Server mit Windows-Auth (`Trusted_Connection`) oder unkritischen Zugangsdaten genutzt werden. Falls SQL-Auth mit Passwort nötig wird, gehört der Connection-String **nicht** ins Git-Repo (`appsettings.json` mit echten Zugangsdaten in `.gitignore` aufnehmen, nur eine `appsettings.example.json` committen).
+* **`%COMPUTERNAME%`-Platzhalter:** `Program.LoadOptions` ersetzt den *literalen* Text `%COMPUTERNAME%` in der Connection-String durch `Environment.MachineName` — bewusst **nicht** `Environment.ExpandEnvironmentVariables(...)`. Letzteres würde die Umgebungsvariable `COMPUTERNAME` aus dem Prozess-Environment lesen, die fehlen kann, wenn der MCP-Server von Cursor/Claude Desktop mit einem reduzierten Environment gestartet wird. `Environment.MachineName` fragt den Rechnernamen direkt beim Betriebssystem ab und ist davon unabhängig. Damit funktioniert dieselbe committete `appsettings.json` unverändert auf jedem Rechner, auf dem eine SQL-Server-Instanz mit demselben Instanznamen und denselben Zugangsdaten existiert.
+* **Kein generisches Secret-Handling in v1, bewusste Ausnahme für dieses lokale Setup:** Grundsätzlich gilt weiterhin, dass produktive/sensible Connection-Strings nicht ins Repo gehören. Für dieses konkrete lokale Dev-/Demo-Setup (SQL-Login `Agent` auf einer lokalen Instanz, keine echten Geheimnisse) hat der Projektverantwortliche das Committen explizit freigegeben — `appsettings.json` ist daher **nicht** mehr in `.gitignore`, es gibt keine separate `appsettings.example.json` mehr. Bei einem späteren produktiven Einsatz mit echten Secrets ist diese Ausnahme erneut zu bewerten.
+* **SQL-Server-Instanzname ≠ Datenbankname:** Der Instanzname (`MSSQLSERVER2022`) muss zu einer tatsächlich registrierten SQL-Server-Instanz auf dem Zielrechner passen (`Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL'` zeigt die installierten Instanzen). Er ist unabhängig vom Datenbanknamen (`Database=DemoDB`).
+* **Bekannter lokaler Stolperstein (offen, noch nicht durch einen erfolgreichen Lauf verifiziert):** Bei der Implementierung von Schritt 6 zeigte sich per `sqlcmd`, dass die SQL-Server-Instanz auf dem Entwicklungsrechner ihren TCP-Listener nur an `127.0.0.1`/`::1` bindet (nicht an die per Hostname erreichbare Netzwerkadresse) und der Login `Agent` selbst über die Loopback-Adresse mit einer Anmeldefehler-Meldung abgelehnt wurde. Vor dem ersten produktiven `import`/`server`-Lauf prüfen: TCP/IP-Bindung in der SQL Server Configuration Manager (ggf. auf alle Interfaces erweitern) und den Login `Agent` (Passwort, Server-Rolle, ob Server im gemischten Authentifizierungsmodus läuft) separat verifizieren, z.B. per SSMS.
 
 ### MCP-Launch-Konfiguration (Beispiel für Claude Desktop/Cursor)
 
