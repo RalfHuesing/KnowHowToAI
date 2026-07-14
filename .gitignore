@@ -55,3 +55,7 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# KnowHowToAI: lokale Konfiguration mit echten Connection-Strings nie committen
+appsettings.json
+!appsettings.example.json
