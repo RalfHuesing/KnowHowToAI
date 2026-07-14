@@ -21,7 +21,7 @@
 | Datenbank | **MS SQL Server** (lokal oder im Netzwerk) | Vorgabe: kein anderer SQL-Dialekt vorgesehen |
 | DB-Zugriff | **Dapper** + `Microsoft.Data.SqlClient` | Schlanke, schnelle SQL-Queries ohne EF-Core-Ballast |
 | Schema-Verwaltung | **DbUp** + nummerierte Skripte in `sql-scripts/` | Idempotente, versionierte Schema-Migration ohne ORM |
-| Volltextsuche | **SQL Server Full-Text Search** (`CONTAINS`/`FREETEXT`) | Natives Ranking, kein Zusatz-Tooling, kein RAG-Overkill |
+| Suche | **`LIKE '%...%'`** über `title`/`content`/`tags`/`synonyms` | Kein Full-Text-Search-Feature vorausgesetzt (nicht auf jeder Ziel-Instanz installiert), kein RAG-Overkill |
 | Front-Matter-Parsing | `YamlDotNet` | Etablierter, schlanker YAML-Parser für .NET |
 | Logging | **Serilog**, Sink ausschließlich auf `Console.Error` | `Console.Out` ist exklusiv für das MCP-JSON-RPC-Protokoll reserviert |
 | Testing | **xUnit v3** | Fokus auf Unit-Tests für Parser, Validator, Import/Export-Logik |
@@ -57,7 +57,7 @@ Der relative Dateipfad ohne Endung ist der `slug` (z.B. `it/netzwerk/routing`) u
 
 ### Das Datenbankschema (MS SQL Server) — Kurzüberblick
 
-Vollständige DDL-Skripte und Full-Text-Setup: [04-Datenmodell-Validierung-Edgecases.md](04-Datenmodell-Validierung-Edgecases.md).
+Vollständige DDL-Skripte: [04-Datenmodell-Validierung-Edgecases.md](04-Datenmodell-Validierung-Edgecases.md).
 
 ```sql
 CREATE TABLE dbo.documents (
@@ -109,8 +109,8 @@ Startet die App im stdio-Modus. Bietet exakt **drei MCP-Tools** (`KnowHowToAI.Cl
    *SQL:* `SELECT slug, title FROM dbo.documents WHERE parent_slug = @ParentSlug` (bzw. `IS NULL` für Root)
    *Zweck:* Ermöglicht dem LLM das gezielte "Durchblättern" der Bibliothek entlang der Fachbereiche.
 2. **`search_docs(query)`** → `IReadOnlyList<DocumentSummary>`
-   *SQL:* `FREETEXTTABLE` gegen den Index auf `title`, `content`, `tags`, `synonyms`, sortiert nach `RANK` (nicht `CONTAINSTABLE` — siehe [04, Abschnitt "search_docs-Query"](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync) für die Begründung).
-   *Zweck:* Schnelle, gerankte Stichwortsuche, tolerant gegenüber beliebiger LLM-Eingabe.
+   *SQL:* `LIKE '%query%'` gegen `title`, `content`, `tags`, `synonyms` (siehe [04, Abschnitt "search_docs-Query"](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync)).
+   *Zweck:* Einfache, robuste Stichwortsuche ohne SQL-Server-Feature-Voraussetzung.
 3. **`get_doc(slug)`** → `DocumentDetail?` (Title + Content, `null` wenn Slug unbekannt)
    *SQL:* `SELECT title, content FROM dbo.documents WHERE slug = @Slug`
    *Zweck:* Lazy-Loading des eigentlichen Inhalts, sobald das LLM das Ziel-Dokument identifiziert hat.

@@ -13,7 +13,7 @@ public sealed class DocsMcpTools(SqlDocumentsStore store)
     public Task<IReadOnlyList<DocumentSummary>> ListChildrenAsync(string? parentSlug, CancellationToken cancellationToken) =>
         store.ListChildrenAsync(parentSlug, cancellationToken);
 
-    [McpServerTool(Name = "search_docs"), Description("Durchsucht Titel, Inhalt, Tags und Synonyme per SQL Server Full-Text Search.")]
+    [McpServerTool(Name = "search_docs"), Description("Durchsucht Titel, Inhalt, Tags und Synonyme nach einem Suchbegriff.")]
     public Task<IReadOnlyList<DocumentSummary>> SearchDocsAsync(string query, CancellationToken cancellationToken) =>
         store.SearchDocsAsync(query, cancellationToken);
 
