@@ -6,65 +6,41 @@ Root-Namespace/Solution-Name orientiert sich am Repo-Namen: **`KnowHowToAI`**.
 
 ```
 KnowHowToAI/
-├── KnowHowToAI.slnx                   # .NET-10-natives XML-Solution-Format
-├── docs/                              # Dieses Konzept (kein Projektinhalt)
-├── demo-docs/                         # Kleine Beispiel-Bibliothek für manuelle End-to-End-Tests
-│   ├── it.md
-│   └── it/netzwerk.md, it/netzwerk/routing.md
-├── sql-scripts/                       # Nummerierte DbUp-Skripte, siehe 04 (werden in Core embedded)
-│   ├── 0001_create_documents_table.sql
-│   └── 0002_create_fulltext_catalog_and_index.sql
-├── scripts/
-│   └── publish.ps1                    # Single-File-Self-Contained-Build, siehe Abschnitt 5
-├── publish/                           # Ausgabe von publish.ps1 (gitignored, nicht committen)
+├── KnowHowToAI.slnx    # .NET-10-natives XML-Solution-Format
+├── docs/               # Dieses Konzept (kein Projektinhalt)
+├── demo-docs/          # Kleine Beispiel-Bibliothek für manuelle End-to-End-Tests
+├── sql-scripts/        # Nummerierte DbUp-Skripte, siehe 04 (werden in Core embedded)
+├── scripts/            # Hilfsskripte, z.B. publish.ps1 (siehe Abschnitt 5)
+├── publish/            # Ausgabe von scripts/publish.ps1 (gitignored, nicht committen)
 ├── src/
-│   ├── KnowHowToAI.Core/              # Domain, Parser, Validator, Import/Export-Logik
-│   │   ├── KnowHowToAI.Core.csproj
-│   │   ├── Documents/
-│   │   │   ├── Document.cs            # Domain-Objekt (Slug, Title, Content, Tags, Synonyms, ParentSlug)
-│   │   │   ├── DocumentSummary.cs     # Slug + Title, Rückgabe von list_children/search_docs
-│   │   │   ├── DocumentDetail.cs      # Title + Content, Rückgabe von get_doc
-│   │   │   ├── FrontMatterParser.cs   # YAML-Front-Matter <-> Document (Parse + Render)
-│   │   │   └── SlugRules.cs           # Regex + Validierung für Slugs
-│   │   ├── Validation/
-│   │   │   ├── DocsValidator.cs       # Orphan-Check, Slug-Check, YAML-Check
-│   │   │   └── ValidationResult.cs
-│   │   ├── Migrations/
-│   │   │   └── SchemaMigrator.cs      # DbUp gegen embedded sql-scripts/*.sql, IUpgradeLog-Parameter
-│   │   ├── Sync/
-│   │   │   ├── ImportService.cs       # Validate + Wipe-and-Dump; SQL-Zugriff kommt als Delegate von außen
-│   │   │   ├── ExportService.cs       # Marker-Datei-Logik, MD-Generierung; SQL-Zugriff ebenfalls als Delegate
-│   │   │   └── SqlDocumentsStore.cs   # Einziger Ort mit echtem SqlConnection/Dapper-Zugriff (Wipe-and-Dump + Read)
-│   │   └── Configuration/
-│   │       └── KnowHowToAiOptions.cs  # DocsRootPath, ConnectionString, ExportMarkerFileName
-│   ├── KnowHowToAI.Cli/               # Entry Point
-│   │   ├── KnowHowToAI.Cli.csproj
-│   │   ├── Program.cs                 # System.CommandLine-Wiring (validate/import/export/server)
-│   │   ├── Logging/
-│   │   │   └── SerilogUpgradeLog.cs   # Bindet DbUps IUpgradeLog an Serilog (Console.Error)
-│   │   ├── McpTools/
-│   │   │   └── DocsMcpTools.cs        # [McpServerTool] list_children/search_docs/get_doc
-│   │   └── appsettings.json           # Voll funktionsfähige, committete Konfiguration (siehe Abschnitt 2)
-│   └── ... (weitere Projekte nur bei Bedarf, siehe 05-Roadmap Backlog)
+│   ├── KnowHowToAI.Core/   # Domain-Logik, kein IO-Framework — siehe Tabelle unten
+│   └── KnowHowToAI.Cli/    # Entry Point: CLI-Wiring + MCP-Hosting — siehe Tabelle unten
 └── tests/
     └── KnowHowToAI.Core.Tests/
-        ├── KnowHowToAI.Core.Tests.csproj
-        ├── FrontMatterParserTests.cs
-        ├── SlugRulesTests.cs
-        ├── SchemaMigratorTests.cs
-        ├── DocsValidatorTests.cs
-        ├── ImportExportServiceTests.cs
-        ├── AiNetLinterTests.cs         # führt AiNetLinter als externen Prozess aus, siehe Abschnitt 4
-        └── AiNetLinter/
-            ├── docs/                   # versionierte Tool-Doku (readme/agent-api/configuration)
-            ├── rules/KnowHowToAI.rules.json
-            └── output/                 # Lint-Reports, gitignored
+        └── AiNetLinter/    # Config/Docs/Output für den Linter-Test, siehe Abschnitt 4
 ```
 
-**Warum genau diese 3 Projekte?**
-- `KnowHowToAI.Core` enthält die gesamte Logik ohne IO-Framework-Abhängigkeiten (kein `System.CommandLine`, kein MCP-SDK) → einfach und schnell testbar mit xUnit v3.
-- `KnowHowToAI.Cli` ist der einzige Ort, der CLI-Parsing und MCP-Hosting kennt. Bleibt dünn (nur Wiring).
-- `KnowHowToAI.Core.Tests` testet ausschließlich `Core` — keine Integrationstests gegen einen echten SQL Server in v1 (siehe [05-Roadmap.md](05-Roadmap.md)).
+> **Diese Seite ist ein Schema, keine vollständige Dateiliste.** Neue Klassen kommen in den Ordner, der zu ihrer Verantwortung passt (ein Typ pro Datei, Dateiname = Typname) — das wird hier nicht bei jeder neuen Datei nachgetragen. Siehe [05-documentation.mdc](../.agents/rules/05-documentation.mdc): Projektstruktur-Doku beschreibt Konventionen, keine Inhaltsverzeichnisse.
+
+**`KnowHowToAI.Core`** — enthält die gesamte Logik ohne IO-Framework-Abhängigkeiten (kein `System.CommandLine`, kein MCP-SDK) → einfach und schnell testbar mit xUnit v3.
+
+| Ordner | Zuständigkeit |
+| --- | --- |
+| `Documents/` | Domain-Objekte und alles rund ums Parsen/Rendern eines Dokuments (`Document`, `DocumentSummary`, `DocumentDetail`, `FrontMatterParser`, `SlugRules`) |
+| `Validation/` | `DocsValidator`, `ValidationResult` |
+| `Migrations/` | `SchemaMigrator` (DbUp gegen embedded `sql-scripts/*.sql`) |
+| `Sync/` | `ImportService`, `ExportService` (SQL-Zugriff als Delegate von außen, siehe unten), `SqlDocumentsStore` (einziger Ort mit echtem `SqlConnection`/Dapper-Zugriff) |
+| `Configuration/` | `KnowHowToAiOptions` |
+
+**`KnowHowToAI.Cli`** — der einzige Ort, der CLI-Parsing und MCP-Hosting kennt. Bleibt dünn (nur Wiring).
+
+| Ordner | Zuständigkeit |
+| --- | --- |
+| *(Root)* | `Program.cs` — `System.CommandLine`-Wiring für `validate`/`import`/`export`/`server`, `appsettings.json` |
+| `Logging/` | Adapter zwischen Drittanbieter-Logging-Interfaces (z.B. DbUps `IUpgradeLog`) und Serilog |
+| `McpTools/` | `[McpServerToolType]`-Klassen |
+
+**`KnowHowToAI.Core.Tests`** — testet ausschließlich `Core`, ein Testfile pro getesteter Klasse, gleicher Namensmuster (`{Klasse}Tests.cs`). Keine Integrationstests gegen einen echten SQL Server in v1 (siehe [05-Roadmap.md](05-Roadmap.md)). Zusätzlich `AiNetLinterTests.cs` (siehe Abschnitt 4).
 
 **Wie `ImportService`/`ExportService` ohne SQL Server testbar bleiben:** Beide nehmen den SQL-Zugriff als **Delegate** entgegen (`Func<IReadOnlyList<Document>, CancellationToken, Task>` bzw. `Func<CancellationToken, Task<IReadOnlyList<Document>>>`), nicht als Interface. Ein `IDocumentsRepository`-Interface für eine einzige Implementierung widerspräche [01-code-style.mdc](../.agents/rules/01-code-style.mdc) (das genau dieses Beispiel als verbotene Interface-Wüste nennt); ein Delegate erreicht dieselbe Testbarkeit ohne die zusätzliche Abstraktionsebene — deckt sich mit der in [02-testing.mdc](../.agents/rules/02-testing.mdc) explizit genannten Option "Interface **oder** Delegate". `SqlDocumentsStore` ist die einzige Klasse mit echtem `SqlConnection`/Dapper-Zugriff und wird selbst nicht separat unit-getestet (dünner DB-Adapter, analog zu `SchemaMigrator.Migrate`).
 
