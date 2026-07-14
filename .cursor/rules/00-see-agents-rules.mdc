@@ -11,5 +11,6 @@ Die verbindlichen Regeln für dieses Projekt (Rückfragen, Code-Stil, Testpflich
 * `.agents/rules/02-testing.mdc`
 * `.agents/rules/03-git-workflow.mdc`
 * `.agents/rules/04-docs-reference.mdc`
+* `.agents/rules/05-documentation.mdc`
 
 Konzept-Dokumentation: `docs/00-Overview.md`.
