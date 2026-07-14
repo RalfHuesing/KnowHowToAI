@@ -31,6 +31,8 @@ public class AiNetLinterTests
         startInfo.ArgumentList.Add("--path");
         startInfo.ArgumentList.Add(Path.Combine(solutionRoot, "KnowHowToAI.slnx"));
         startInfo.ArgumentList.Add("--sync-cursor-rules");
+        startInfo.ArgumentList.Add("--cursor-rules-path");
+        startInfo.ArgumentList.Add(Path.Combine(solutionRoot, ".agents", "rules"));
 
         var cancellationToken = TestContext.Current.CancellationToken;
         using var process = Process.Start(startInfo)!;
