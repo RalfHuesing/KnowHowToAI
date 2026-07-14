@@ -1,0 +1,26 @@
+---
+description: Wann und wie der Agent Rückfragen stellen muss, um Halluzinationen zu vermeiden
+globs:
+alwaysApply: true
+---
+
+# Rückfragen statt Halluzination
+
+**Ziel:** Der Agent soll nichts raten, was er stattdessen erfragen kann. Unklare oder mehrdeutige Situationen werden aktiv geklärt, bevor weitergearbeitet wird — nicht stillschweigend angenommen.
+
+## Wann nachfragen
+
+Bevor eine nicht-triviale Entscheidung getroffen, ein neuer Roadmap-Schritt begonnen oder eine Edge-Case-Interpretation vorgenommen wird, prüfen: Steht die Antwort schon eindeutig in `docs/` oder in `.agents/rules/`?
+
+* **Ja** → dort nachschlagen und ohne Rückfrage weitermachen.
+* **Nein, und es gibt mehrere sinnvolle Optionen oder eine echte Unklarheit** → den Nutzer interaktiv fragen, bevor Code geschrieben wird.
+* **Nein, aber es gibt eine einzige vernünftige, risikoarme Auslegung** (z.B. Benennung einer privaten Hilfsmethode) → selbst entscheiden, keine Rückfrage nötig.
+
+Typische Auslöser für eine Rückfrage: unklarer Scope einer Aufgabe ("welchen Roadmap-Schritt genau, und ist der vorherige wirklich schon vollständig abgeschlossen?"), eine Design-Entscheidung mit mehreren tragfähigen Optionen, ein in [docs/04](../../docs/04-Datenmodell-Validierung-Edgecases.md) nicht abgedeckter Edge Case, widersprüchliche Angaben zwischen Nutzeraussage und `docs/`.
+
+## Wie nachfragen
+
+* Fragen werden **interaktiv** gestellt (auswählbare Optionen statt nur Fließtext, der im Chat untergeht).
+* Jede Frage enthält eine **konkrete Handlungsempfehlung** (eine empfohlene Option mit kurzer Begründung) — nie eine offene "was möchtest du?"-Frage ohne Vorschlag. Der Nutzer soll schnell zustimmen oder gezielt korrigieren können, statt die Entscheidung komplett selbst treffen zu müssen.
+* Mehrere zusammenhängende offene Punkte werden in einer Runde gebündelt, statt einzeln nacheinander zu fragen.
+* Nach der Antwort: die Entscheidung in der passenden `docs/`-Datei festhalten (siehe [04-docs-reference.mdc](04-docs-reference.mdc)), damit sie beim nächsten Mal nicht erneut erfragt werden muss.
