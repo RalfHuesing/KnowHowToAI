@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KnowHowToAI.Cli/KnowHowToAI.Cli.csproj" />
+    <Project Path="src/KnowHowToAI.Core/KnowHowToAI.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj" />
+  </Folder>
+</Solution>
