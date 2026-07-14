@@ -1,0 +1,31 @@
+---
+description: docs/ als Quelle der Wahrheit für Konzept, Architektur und Roadmap von KnowHowToAI
+globs:
+alwaysApply: true
+---
+
+# docs/ als Quelle der Wahrheit
+
+Das Verzeichnis [`docs/`](../../docs/00-Overview.md) beschreibt Intention, Architektur, Projektstruktur, Datenmodell/Edge-Cases und Roadmap dieses Tools vollständig. Diese Regeln hier wiederholen diesen Inhalt bewusst **nicht**, sondern verweisen darauf.
+
+## Vor der Implementierung
+
+Bevor eine neue Komponente gebaut oder eine Design-Entscheidung getroffen wird: die einschlägige `docs/`-Datei lesen.
+
+| Frage | Datei |
+| --- | --- |
+| Warum gibt es dieses Tool, wie sieht der tägliche Workflow aus? | [01-Konzept-und-Workflow.md](../../docs/01-Konzept-und-Workflow.md) |
+| Welcher Tech-Stack, welche MCP-Tools, welches SQL-Schema? | [02-Architektur-und-Techstack.md](../../docs/02-Architektur-und-Techstack.md) |
+| Wie ist die Solution aufgebaut, wie wird konfiguriert? | [03-Projektstruktur-und-Konfiguration.md](../../docs/03-Projektstruktur-und-Konfiguration.md) |
+| Wie lauten die exakten SQL-Skripte, Slug-Regeln, Edge Cases? | [04-Datenmodell-Validierung-Edgecases.md](../../docs/04-Datenmodell-Validierung-Edgecases.md) |
+| Was gehört in v1 (MVP), was ist Backlog, in welcher Reihenfolge? | [05-Roadmap.md](../../docs/05-Roadmap.md) |
+
+## Wenn Code und Konzept auseinanderlaufen
+
+Wenn sich während der Implementierung zeigt, dass eine Konzept-Entscheidung unklar, unvollständig oder falsch war: **zuerst `docs/` korrigieren**, dann den Code entsprechend anpassen — beides gehört in denselben bzw. unmittelbar aufeinanderfolgende Commits. `docs/` darf nie hinter dem tatsächlichen Verhalten des Codes zurückbleiben.
+
+Bei einer Entscheidung mit mehreren sinnvollen Optionen, die nicht bereits in `docs/` getroffen wurde: den Nutzer interaktiv fragen (siehe Grundsatz aus der Konzeptions-Sitzung), statt eigenmächtig zu entscheiden und nur in einem Kommentar zu vermerken.
+
+## Neue Erkenntnisse aus Edge Cases
+
+Ein während der Implementierung neu entdeckter Edge Case (der nicht bereits in [docs/04](../../docs/04-Datenmodell-Validierung-Edgecases.md) steht) wird dort ergänzt — inklusive der getroffenen Entscheidung, wie er behandelt wird — nicht nur stillschweigend im Code gelöst.

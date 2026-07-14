@@ -1,0 +1,40 @@
+---
+description: Agentisches Vorgehen für KnowHowToAI — Roadmap-getriebene Implementierung mit einem Commit pro abgeschlossenem Schritt
+globs:
+alwaysApply: true
+---
+
+# Agentisches Vorgehen & Git-Workflow
+
+Dieses Projekt wird agentisch entwickelt: Der Agent arbeitet die Schritte aus [docs/05-Roadmap.md](../../docs/05-Roadmap.md) selbstständig ab und committet dabei eigenständig — nicht nur am Ende einer Sitzung.
+
+## Ablauf
+
+1. Vor jedem Schritt: die relevanten `docs/`-Dateien lesen (siehe [04-docs-reference.mdc](04-docs-reference.mdc)) — nicht raten, wenn die Antwort bereits im Konzept steht.
+2. Implementieren (Code + Pflicht-Tests laut [02-testing.mdc](02-testing.mdc) im selben Arbeitsschritt).
+3. `dotnet build` und `dotnet test` müssen grün sein, bevor committet wird. Niemals nicht-kompilierenden oder rot-testenden Code committen.
+4. Committen — siehe Granularität unten.
+5. Erst dann zum nächsten Schritt übergehen.
+
+## Commit-Granularität
+
+**Ein Commit pro abgeschlossenem Roadmap-Schritt** (aus [docs/05-Roadmap.md](../../docs/05-Roadmap.md), Abschnitt "Implementierungs-Reihenfolge"), sobald dieser Schritt baut und — falls zutreffend — grüne Tests hat. Beispiele für einen Commit-Schnitt:
+
+* "SQL-Schema & DbUp-Integration" → ein Commit.
+* "Domain-Model & Front-Matter-Parser/Validator" → ein Commit (kann bei Bedarf in 2-3 in sich geschlossene, jeweils baubare Teil-Commits aufgeteilt werden, z.B. Parser separat von Validator — aber nicht Datei für Datei).
+
+Nicht erlaubt: mehrere Roadmap-Schritte in einem Commit bündeln, oder einen Schritt über mehrere unzusammenhängende Commits verteilen, die einzeln nicht bauen.
+
+## Commit-Messages
+
+Stil wie in der bisherigen Historie dieses Repos: prägnanter Titel im Imperativ (< 70 Zeichen), Leerzeile, dann ein kurzer Absatz, der das *Warum* erklärt (nicht nur auflistet, was geändert wurde), abschließend `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`.
+
+## Roadmap-Fortschritt sichtbar halten
+
+Nach jedem abgeschlossenen Schritt die Checkliste "Definition of Done" in [docs/05-Roadmap.md](../../docs/05-Roadmap.md) aktualisieren (`- [ ]` → `- [x]`) — als Teil desselben Commits, nicht separat.
+
+## Grenzen (gelten zusätzlich zu den generellen Sicherheitsregeln)
+
+* Kein `git push` ohne explizite Zustimmung des Nutzers für diese konkrete Aktion.
+* Kein `--no-verify`, kein `--force`, kein `git reset --hard` ohne ausdrückliche Anweisung.
+* Neue Commits statt `--amend`, außer der Nutzer bittet explizit darum.
