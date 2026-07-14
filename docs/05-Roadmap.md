@@ -42,16 +42,19 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] Alle vier Kommandos fangen Fehler an der CLI-Grenze ab (`catch (Exception)`, klare Meldung + Exit-Code ≠ 0) statt roher .NET-Stacktraces
   - [x] Manuell smoke-getestet: `validate` (Erfolg + Fehlerfall), `import`/`export` gegen nicht erreichbaren SQL Server (klare Fehlermeldung, Exit 2), `server`-Start (stdout bleibt leer, Logging korrekt auf stderr)
 
-- [ ] **6. MCP-Stdio-Server** ← nächster Schritt
-  - [ ] `DocsMcpTools.ListChildrenAsync` (SQL gegen `parent_slug`)
-  - [ ] `DocsMcpTools.SearchDocsAsync` (Full-Text-Query, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-beispiel))
-  - [ ] `DocsMcpTools.GetDocAsync`
-  - [ ] `server`-Kommando hostet die drei Tools über stdio (`ModelContextProtocol`-SDK)
+- [x] **6. MCP-Stdio-Server**
+  - [x] `SqlDocumentsStore.ListChildrenAsync` (SQL gegen `parent_slug`, NULL-sicher für Root)
+  - [x] `SqlDocumentsStore.SearchDocsAsync` (`FREETEXTTABLE` statt `CONTAINSTABLE`, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync))
+  - [x] `SqlDocumentsStore.GetDocAsync` (`DocumentDetail?`, `null` wenn Slug unbekannt)
+  - [x] `DocsMcpTools` delegiert dünn an `SqlDocumentsStore` (per DI injiziert), gibt strukturierte Typen zurück statt JSON-Strings
+  - [x] `server`-Kommando hostet die drei Tools über stdio (`ModelContextProtocol`-SDK), `SqlDocumentsStore` als Singleton registriert
+  - [x] `demo-docs/` als kleine Beispiel-Bibliothek angelegt, `appsettings.json` zeigt standardmäßig darauf
+  - [ ] **Offen:** End-to-End-Verifikation gegen eine befüllte DB (list_children/search_docs/get_doc mit echten Ergebnissen) — blockiert durch ein SQL-Server-Setup-Problem auf dem Entwicklungsrechner (siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson), "Bekannter lokaler Stolperstein"), wird vom Projektverantwortlichen selbst geprüft
 
 - [x] **7. Tests** — kein separater Schritt mehr nötig: Tests entstehen laut Git-Workflow-Regel im selben Commit wie das jeweilige Feature (siehe Schritte 2–4). Was in Schritt 5/6 an echter Logik entsteht, bekommt dort seine Tests; reines CLI-Wiring ist laut [02-testing.mdc](../.agents/rules/02-testing.mdc) davon ausgenommen.
 
 - [ ] **8. Setup-Dokumentation & Beispielkonfiguration**
-  - [x] `appsettings.example.json` existiert bereits (aus Schritt 1)
+  - [x] `appsettings.json` existiert bereits, voll funktionsfähig und committet (aus Schritt 1/6, siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson))
   - [ ] README mit Setup-Schritten (SQL-Server-Voraussetzungen inkl. Full-Text-Feature, `dotnet publish`, MCP-Launch-Config-Beispiel — siehe [03](03-Projektstruktur-und-Konfiguration.md#mcp-launch-konfiguration-beispiel-für-claude-desktopcursor))
 
 ### Definition of Done (v1)
@@ -59,8 +62,8 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
 - [x] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie. Verifiziert per Unittests und manuellem CLI-Lauf (Erfolgs- und Fehlerfall).
 - [ ] `import` legt Schema per DbUp an/aktualisiert es und befüllt die Tabelle transaktional neu. *Wiring steht und der Fehlerfall (SQL Server nicht erreichbar → klare Meldung, Exit 2) ist manuell verifiziert; der Erfolgspfad gegen einen echten, erreichbaren SQL Server steht noch aus (in dieser Umgebung kein SQL Server verfügbar).*
 - [x] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker). Verifiziert per Unittests (alle drei Szenarien aus [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) und manuellem CLI-Lauf.
-- [ ] `server` beantwortet alle drei MCP-Tools korrekt gegen eine befüllte DB, inkl. leerer/Fehlerfälle ohne Absturz.
-- [ ] Full-Text-Suche liefert sinnvoll gerankte Treffer für einen realistischen Testdatensatz.
+- [ ] `server` beantwortet alle drei MCP-Tools korrekt gegen eine befüllte DB, inkl. leerer/Fehlerfälle ohne Absturz. *Implementiert und Host-Start manuell verifiziert (stdout bleibt leer); die drei Tools selbst sind noch nicht gegen eine befüllte DB durchgespielt — blockiert durch dasselbe SQL-Setup-Problem wie beim `import`-DoD-Punkt.*
+- [ ] Full-Text-Suche liefert sinnvoll gerankte Treffer für einen realistischen Testdatensatz. *`FREETEXTTABLE`-Query implementiert (siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync)), aber noch nicht gegen reale Daten getestet.*
 - [x] Alle Unittests grün, Core-Projekt ohne Abhängigkeit zu CLI/MCP-SDK.
 
 ---

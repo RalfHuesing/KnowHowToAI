@@ -57,16 +57,16 @@ END
 
 > **Hinweis für die Implementierung:** Der tatsächliche automatisch generierte PK-Constraint-Name muss zur Laufzeit ermittelt werden (`SELECT name FROM sys.key_constraints WHERE parent_object_id = OBJECT_ID('dbo.documents')`), da SQL Server ihn nicht deterministisch `PK__documents` nennt, sofern er nicht explizit in `0001` benannt wird. **Empfehlung:** In `0001` den PK explizit benennen (`CONSTRAINT PK_documents PRIMARY KEY (slug)`), damit `0002` ihn hart referenzieren kann.
 
-### `search_docs`-Query (Beispiel)
+### `search_docs`-Query (umgesetzt in `SqlDocumentsStore.SearchDocsAsync`)
 
 ```sql
-SELECT d.slug, d.title, ft.RANK
-FROM CONTAINSTABLE(dbo.documents, (title, content, tags, synonyms), @Query) AS ft
+SELECT d.slug AS Slug, d.title AS Title
+FROM FREETEXTTABLE(dbo.documents, (title, content, tags, synonyms), @Query) AS ft
 JOIN dbo.documents d ON d.slug = ft.[KEY]
 ORDER BY ft.RANK DESC;
 ```
 
-`@Query` wird aus dem MCP-Tool-Input aufbereitet (z.B. einzelne Suchbegriffe mit `OR` verknüpft für tolerante Suche, oder `FREETEXTTABLE` statt `CONTAINSTABLE` für noch tolerantere natürlichsprachliche Suche — Entscheidung fällt in der Implementierung anhand realer Testfälle).
+**Entscheidung:** `FREETEXTTABLE` statt `CONTAINSTABLE`. `@Query` kommt roh vom LLM (natürlichsprachlich, ggf. mit Satzzeichen/Anführungszeichen) — `CONTAINSTABLE` erwartet eine boolesche Volltext-Syntax und wirft einen SQL-Fehler bei ungültigen Ausdrücken (z.B. unausgeglichene Anführungszeichen). `FREETEXTTABLE` behandelt die Eingabe tolerant als natürlichsprachliche Anfrage (Stemming inklusive) und kann nicht an der Eingabe-Syntax scheitern. Die Rank-Spalte wird nicht an das LLM zurückgegeben — die Ergebnisse sind bereits nach Relevanz sortiert, ein rohe Score-Zahl bietet keinen Mehrwert.
 
 ---
 
