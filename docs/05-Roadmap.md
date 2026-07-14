@@ -58,6 +58,12 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] `README.md` im Root (kurz, verweist auf `docs/` statt Inhalte zu duplizieren)
   - [x] `scripts/publish.ps1`: Single-File-Self-Contained-Build nach `publish/` (gitignored), siehe [03, Abschnitt 5](03-Projektstruktur-und-Konfiguration.md#5-deployment-single-file-publish)
 
+- [x] **9. MCP-Resource `docs://authoring-guide` + Server-Instructions**
+  - [x] `DocsMcpResources` (`KnowHowToAI.Cli/McpTools/`): statische Resource mit Front-Matter-Template, Slug-Regeln, Hierarchie-Regel als kompakter Markdown-Text — löst den Kaltstart-Fall (leeres/fremdes docs-root, Claude hat keine Beispiel-Dateien und kennt dieses Repo nicht), siehe [01, Phase 2](01-Konzept-und-Workflow.md#phase-2-doku-erweitern-oder-umstrukturieren-schreib-modus)
+  - [x] `ServerInstructions` im `server`-Kommando gesetzt (kurzer Pointer auf die drei Tools + die Resource, kommt automatisch bei jeder Verbindung an)
+  - [x] Reines Wiring ohne Verzweigungslogik → laut [02-testing.mdc](../.agents/rules/02-testing.mdc) keine separaten Unittests nötig, analog zu `DocsMcpTools`
+  - [x] Manuell smoke-getestet gegen den echten stdio-Server (`initialize` liefert `instructions`, `resources/list` zeigt die Resource, `resources/read` liefert den vollständigen Guide-Text; stdout bleibt reines JSON-RPC)
+
 ### Definition of Done (v1)
 
 - [x] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie. Verifiziert per Unittests und manuellem CLI-Lauf (Erfolgs- und Fehlerfall).
