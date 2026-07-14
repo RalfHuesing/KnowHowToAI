@@ -5,7 +5,7 @@ namespace KnowHowToAI.Cli.Logging;
 
 // Bindet DbUps IUpgradeLog an Serilog, damit die Migration nie auf Console.Out schreibt.
 // Siehe docs/04-Datenmodell-Validierung-Edgecases.md, Abschnitt 1 ("Logging-Abstraktion").
-public sealed class SerilogUpgradeLog(ILogger logger) : IUpgradeLog
+public sealed class SerilogUpgradeLogAdapter(ILogger logger) : IUpgradeLog
 {
     public void LogDebug(string format, params object[] args) => logger.Debug(format, args);
     public void LogInformation(string format, params object[] args) => logger.Information(format, args);

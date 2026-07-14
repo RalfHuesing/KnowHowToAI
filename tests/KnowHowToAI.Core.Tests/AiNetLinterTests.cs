@@ -16,33 +16,52 @@ public class AiNetLinterTests
 
         var solutionRoot = FindSolutionRoot();
         var configPath = Path.Combine(solutionRoot, "tests", "KnowHowToAI.Core.Tests", "AiNetLinter", "rules", "KnowHowToAI.rules.json");
+        var solutionPath = Path.Combine(solutionRoot, "KnowHowToAI.slnx");
         var outputDir = Path.Combine(solutionRoot, "tests", "KnowHowToAI.Core.Tests", "AiNetLinter", "output");
         Directory.CreateDirectory(outputDir);
         var reportPath = Path.Combine(outputDir, "lint-report.md");
+        var cancellationToken = TestContext.Current.CancellationToken;
 
+        // AiNetLinter-Bug (Program.cs "Schneller Pfad"): --sync-cursor-rules OHNE --playbook in
+        // derselben Ausführung wie ein Lint-Lauf überspringt den eigentlichen Audit (AuditCommand)
+        // komplett und liefert immer Exit 0, egal wie viele Verstöße vorliegen — nur der Sync läuft.
+        // Deshalb zwingend zwei getrennte Prozessaufrufe, sonst bleiben echte Verstöße unbemerkt.
+        var (lintExitCode, lintStdout, lintStderr) = await RunAiNetLinterAsync(
+            exePath, ["--config", configPath, "--path", solutionPath], cancellationToken);
+        await File.WriteAllTextAsync(reportPath, lintStdout, cancellationToken);
+
+        Assert.True(lintExitCode == 0,
+            $"AiNetLinter meldet Verstöße (Exit {lintExitCode}). Report: {reportPath}\n{lintStdout}\n{lintStderr}");
+
+        var (syncExitCode, syncStdout, syncStderr) = await RunAiNetLinterAsync(
+            exePath,
+            ["--config", configPath, "--path", solutionPath, "--sync-cursor-rules", "--cursor-rules-path", Path.Combine(solutionRoot, ".agents", "rules")],
+            cancellationToken);
+
+        Assert.True(syncExitCode == 0,
+            $"AiNetLinter konnte .agents/rules/AiNetLinter.mdc nicht synchronisieren (Exit {syncExitCode}).\n{syncStdout}\n{syncStderr}");
+    }
+
+    private static async Task<(int ExitCode, string Stdout, string Stderr)> RunAiNetLinterAsync(
+        string exePath, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    {
         var startInfo = new ProcessStartInfo(exePath)
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
         };
-        startInfo.ArgumentList.Add("--config");
-        startInfo.ArgumentList.Add(configPath);
-        startInfo.ArgumentList.Add("--path");
-        startInfo.ArgumentList.Add(Path.Combine(solutionRoot, "KnowHowToAI.slnx"));
-        startInfo.ArgumentList.Add("--sync-cursor-rules");
-        startInfo.ArgumentList.Add("--cursor-rules-path");
-        startInfo.ArgumentList.Add(Path.Combine(solutionRoot, ".agents", "rules"));
+        foreach (var argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
 
-        var cancellationToken = TestContext.Current.CancellationToken;
         using var process = Process.Start(startInfo)!;
         var stdout = await process.StandardOutput.ReadToEndAsync(cancellationToken);
         var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
-        await File.WriteAllTextAsync(reportPath, stdout, cancellationToken);
 
-        Assert.True(process.ExitCode == 0,
-            $"AiNetLinter meldet Verstöße (Exit {process.ExitCode}). Report: {reportPath}\n{stdout}\n{stderr}");
+        return (process.ExitCode, stdout, stderr);
     }
 
     // Kein --baseline: Projekt ist aktuell verstoßfrei, es gibt nichts einzufrieren.
