@@ -6,9 +6,9 @@ Root-Namespace/Solution-Name orientiert sich am Repo-Namen: **`KnowHowToAI`**.
 
 ```
 KnowHowToAI/
-├── KnowHowToAI.sln
+├── KnowHowToAI.slnx                   # .NET-10-natives XML-Solution-Format
 ├── docs/                              # Dieses Konzept (kein Projektinhalt)
-├── sql-scripts/                       # Nummerierte DbUp-Skripte, siehe 04
+├── sql-scripts/                       # Nummerierte DbUp-Skripte, siehe 04 (werden in Core embedded)
 │   ├── 0001_create_documents_table.sql
 │   └── 0002_create_fulltext_catalog_and_index.sql
 ├── src/
@@ -21,8 +21,10 @@ KnowHowToAI/
 │   │   ├── Validation/
 │   │   │   ├── DocsValidator.cs       # Orphan-Check, Slug-Check, YAML-Check
 │   │   │   └── ValidationResult.cs
+│   │   ├── Migrations/
+│   │   │   └── SchemaMigrator.cs      # DbUp gegen embedded sql-scripts/*.sql, IUpgradeLog-Parameter
 │   │   ├── Sync/
-│   │   │   ├── ImportService.cs       # Wipe-and-Dump, Transaktion, DbUp-Aufruf
+│   │   │   ├── ImportService.cs       # Wipe-and-Dump, Transaktion, ruft SchemaMigrator zuerst auf
 │   │   │   └── ExportService.cs       # Marker-Datei-Logik, MD-Generierung
 │   │   └── Configuration/
 │   │       └── KnowHowToAiOptions.cs  # DocsRootPath, ConnectionString, ExportMarkerFileName
@@ -31,13 +33,14 @@ KnowHowToAI/
 │   │   ├── Program.cs                 # System.CommandLine-Wiring (validate/import/export/server)
 │   │   ├── McpTools/
 │   │   │   └── DocsMcpTools.cs        # [McpServerTool] list_children/search_docs/get_doc
-│   │   └── appsettings.json           # Default-/Beispiel-Konfiguration (siehe unten)
+│   │   └── appsettings.example.json   # Beispiel-Konfiguration, echte appsettings.json nie committen
 │   └── ... (weitere Projekte nur bei Bedarf, siehe 05-Roadmap Backlog)
 └── tests/
     └── KnowHowToAI.Core.Tests/
         ├── KnowHowToAI.Core.Tests.csproj
         ├── FrontMatterParserTests.cs
         ├── SlugRulesTests.cs
+        ├── SchemaMigratorTests.cs
         ├── DocsValidatorTests.cs
         └── ImportExportServiceTests.cs
 ```
