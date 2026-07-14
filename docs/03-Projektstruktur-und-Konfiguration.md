@@ -24,8 +24,9 @@ KnowHowToAI/
 │   │   ├── Migrations/
 │   │   │   └── SchemaMigrator.cs      # DbUp gegen embedded sql-scripts/*.sql, IUpgradeLog-Parameter
 │   │   ├── Sync/
-│   │   │   ├── ImportService.cs       # Wipe-and-Dump, Transaktion, ruft SchemaMigrator zuerst auf
-│   │   │   └── ExportService.cs       # Marker-Datei-Logik, MD-Generierung
+│   │   │   ├── ImportService.cs       # Validate + Wipe-and-Dump; SQL-Zugriff kommt als Delegate von außen
+│   │   │   ├── ExportService.cs       # Marker-Datei-Logik, MD-Generierung; SQL-Zugriff ebenfalls als Delegate
+│   │   │   └── SqlDocumentsStore.cs   # Einziger Ort mit echtem SqlConnection/Dapper-Zugriff (Wipe-and-Dump + Read)
 │   │   └── Configuration/
 │   │       └── KnowHowToAiOptions.cs  # DocsRootPath, ConnectionString, ExportMarkerFileName
 │   ├── KnowHowToAI.Cli/               # Entry Point
@@ -54,6 +55,10 @@ KnowHowToAI/
 - `KnowHowToAI.Core` enthält die gesamte Logik ohne IO-Framework-Abhängigkeiten (kein `System.CommandLine`, kein MCP-SDK) → einfach und schnell testbar mit xUnit v3.
 - `KnowHowToAI.Cli` ist der einzige Ort, der CLI-Parsing und MCP-Hosting kennt. Bleibt dünn (nur Wiring).
 - `KnowHowToAI.Core.Tests` testet ausschließlich `Core` — keine Integrationstests gegen einen echten SQL Server in v1 (siehe [05-Roadmap.md](05-Roadmap.md)).
+
+**Wie `ImportService`/`ExportService` ohne SQL Server testbar bleiben:** Beide nehmen den SQL-Zugriff als **Delegate** entgegen (`Func<IReadOnlyList<Document>, CancellationToken, Task>` bzw. `Func<CancellationToken, Task<IReadOnlyList<Document>>>`), nicht als Interface. Ein `IDocumentsRepository`-Interface für eine einzige Implementierung widerspräche [01-code-style.mdc](../.agents/rules/01-code-style.mdc) (das genau dieses Beispiel als verbotene Interface-Wüste nennt); ein Delegate erreicht dieselbe Testbarkeit ohne die zusätzliche Abstraktionsebene — deckt sich mit der in [02-testing.mdc](../.agents/rules/02-testing.mdc) explizit genannten Option "Interface **oder** Delegate". `SqlDocumentsStore` ist die einzige Klasse mit echtem `SqlConnection`/Dapper-Zugriff und wird selbst nicht separat unit-getestet (dünner DB-Adapter, analog zu `SchemaMigrator.Migrate`).
+
+**Schema-Migration ist kein Teil von `ImportService` mehr.** `SchemaMigrator.Migrate(...)` läuft in der Cli-Schicht (Schritt 5) **vor** dem Aufruf von `ImportService.ImportAsync(...)`, nicht innerhalb davon — Migration erfordert zwingend eine echte DB-Verbindung und würde sonst die Testbarkeit von `ImportService` wieder zunichtemachen. Für den Endnutzer ändert sich am dokumentierten Ablauf aus [01-Konzept-und-Workflow.md](01-Konzept-und-Workflow.md#phase-4-synchronisation-wipe-and-dump) nichts: `KnowHowToAI.Cli import` führt weiterhin beide Schritte in der beschriebenen Reihenfolge aus, nur eben als zwei Aufrufe innerhalb desselben Kommandos statt als ein Aufruf.
 
 ## 4. AiNetLinter (Code-Qualitäts-Gate)
 

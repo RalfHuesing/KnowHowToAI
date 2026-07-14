@@ -15,8 +15,8 @@ public sealed class DocsValidator
 
         foreach (var filePath in Directory.EnumerateFiles(docsRootPath, "*.md", SearchOption.AllDirectories))
         {
-            var slug = ToSlug(docsRootPath, filePath);
-            var relativePath = ToRelativePath(docsRootPath, filePath);
+            var slug = SlugRules.FromFilePath(docsRootPath, filePath);
+            var relativePath = $"{slug}.md";
 
             if (!SlugRules.IsValidSlug(slug))
             {
@@ -52,15 +52,4 @@ public sealed class DocsValidator
 
         return new ValidationResult { Errors = errors };
     }
-
-    private static string ToSlug(string docsRootPath, string filePath)
-    {
-        var relative = ToRelativePath(docsRootPath, filePath);
-        return relative[..^Path.GetExtension(relative).Length];
-    }
-
-    private static string ToRelativePath(string docsRootPath, string filePath) =>
-        Path.GetRelativePath(docsRootPath, filePath)
-            .Replace(Path.DirectorySeparatorChar, '/')
-            .Replace(Path.AltDirectorySeparatorChar, '/');
 }

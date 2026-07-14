@@ -14,6 +14,12 @@ public sealed class FrontMatterParser
             .IgnoreUnmatchedProperties()
             .Build();
 
+    private static readonly ISerializer Serializer =
+        new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
+            .Build();
+
     public Document Parse(string slug, string fileContent)
     {
         var (yaml, content) = SplitFrontMatter(fileContent);
@@ -33,6 +39,19 @@ public sealed class FrontMatterParser
             Tags = frontMatter.Tags ?? [],
             Synonyms = frontMatter.Synonyms ?? [],
         };
+    }
+
+    public string Render(Document document)
+    {
+        var frontMatter = new FrontMatterData
+        {
+            Title = document.Title,
+            Tags = document.Tags.Count > 0 ? [.. document.Tags] : null,
+            Synonyms = document.Synonyms.Count > 0 ? [.. document.Synonyms] : null,
+        };
+
+        var yaml = Serializer.Serialize(frontMatter).TrimEnd('\n');
+        return $"---\n{yaml}\n---\n{document.Content}";
     }
 
     private static (string Yaml, string Content) SplitFrontMatter(string fileContent)
