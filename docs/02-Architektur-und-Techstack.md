@@ -26,6 +26,7 @@
 | Logging | **Serilog**, Sink ausschließlich auf `Console.Error` | `Console.Out` ist exklusiv für das MCP-JSON-RPC-Protokoll reserviert |
 | Testing | **xUnit v3** | Fokus auf Unit-Tests für Parser, Validator, Import/Export-Logik |
 | Konfiguration | `Microsoft.Extensions.Configuration` (`appsettings.json` + Umgebungsvariablen-Override) | Ein Konfigurationsort pro Einsatzort, siehe [03](03-Projektstruktur-und-Konfiguration.md) |
+| Linting | **AiNetLinter** (externes CLI-Tool, als Test im Testprojekt eingebunden) | Roslyn-basierte Qualitätsprüfung (Komplexität, Sealed Classes, Phantom-Dependencies) zusätzlich zu Build+Tests; Details siehe [03, Abschnitt 4](03-Projektstruktur-und-Konfiguration.md#4-ainetlinter-code-qualitäts-gate) |
 
 > **Kritischer Hinweis für die Implementierung:** Beim MCP-Server darf **absolut nichts** auf `Console.Out`/`Console.Write` loggen, da dies das JSON-RPC-Protokoll korrumpiert. Ausschließlich Serilog mit `Console.Error`-Sink für alle Log-Ausgaben verwenden.
 
