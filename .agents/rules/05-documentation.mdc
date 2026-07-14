@@ -1,0 +1,31 @@
+---
+description: Dokumentationspflicht für KnowHowToAI — wann docs/ aktualisiert werden muss und wie knapp sie bleibt
+globs:
+alwaysApply: true
+---
+
+# Dokumentationspflicht
+
+**Ziel:** `docs/` beschreibt jederzeit den tatsächlichen Stand des Projekts — nicht mehr, nicht weniger. Keine veraltete Doku, aber auch keine Romane ohne Mehrwert. Dokumentation wächst mit dem Projekt mit und wird bei jeder relevanten Änderung mitgepflegt, nicht nachträglich in einer separaten Aufräum-Session.
+
+## Wann `docs/` aktualisiert werden muss
+
+Eine Änderung ist dokumentationspflichtig, wenn sie mindestens eines davon betrifft:
+
+* eine Architektur- oder Tech-Stack-Entscheidung (neue Abhängigkeit, neues Tool, geänderter Datenfluss) → [02-Architektur-und-Techstack.md](../../docs/02-Architektur-und-Techstack.md)
+* die Projektstruktur (neues Projekt, neuer Ordner mit eigener Bedeutung, geänderte Konfiguration) → [03-Projektstruktur-und-Konfiguration.md](../../docs/03-Projektstruktur-und-Konfiguration.md)
+* das Datenmodell, eine Validierungsregel oder ein neu entdeckter Edge Case → [04-Datenmodell-Validierung-Edgecases.md](../../docs/04-Datenmodell-Validierung-Edgecases.md)
+* den Fortschritt oder Zuschnitt der Roadmap → [05-Roadmap.md](../../docs/05-Roadmap.md)
+
+**Nicht dokumentationspflichtig:** rein interne Refactorings ohne Verhaltens- oder Entscheidungsänderung, Variablennamen, Implementierungsdetails, die bereits aus dem Code selbst ersichtlich sind.
+
+## Wie dokumentiert wird
+
+* **Kurz und mit Mehrwert.** Ein Satz, der eine Entscheidung und ihr Warum festhält, ist besser als ein Absatz, der den Code nacherzählt. Wenn eine Information bereits aus dem Code ersichtlich ist, gehört sie nicht zusätzlich in `docs/`.
+* **Verweisen statt duplizieren.** Neue Erkenntnisse an der einen zuständigen Stelle ergänzen und von dort aus verlinken (siehe [04-docs-reference.mdc](04-docs-reference.mdc)) — nicht dieselbe Information in mehreren Dateien wiederholen.
+* **Gleicher Commit.** Die docs-Änderung gehört in denselben Commit wie die Code-Änderung, die sie beschreibt (siehe [03-git-workflow.mdc](03-git-workflow.mdc)) — nie als separates "Doku nachziehen"-Ticket für später.
+* **Roadmap aktuell halten.** Abgeschlossene Punkte in der "Definition of Done" (siehe [05-Roadmap.md](../../docs/05-Roadmap.md)) werden abgehakt, sobald sie zutreffen — keine Roadmap, die den wahren Stand nicht mehr widerspiegelt.
+
+## Weder-noch
+
+Kein Freibrief für Bürokratie: Nicht jede Zeile Code braucht einen Docs-Verweis, und nicht jede Design-Mikroentscheidung muss ausformuliert werden. Im Zweifel gilt dieselbe Grundregel wie beim Code selbst (siehe [01-code-style.mdc](01-code-style.mdc)): so knapp wie möglich, so ausführlich wie nötig, damit ein frischer Chat ohne Rückfrage weiterarbeiten kann.
