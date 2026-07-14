@@ -18,4 +18,12 @@ public static partial class SlugRules
         var lastSeparator = slug.LastIndexOf('/');
         return lastSeparator < 0 ? null : slug[..lastSeparator];
     }
+
+    public static string FromFilePath(string docsRootPath, string filePath)
+    {
+        var relative = Path.GetRelativePath(docsRootPath, filePath)
+            .Replace(Path.DirectorySeparatorChar, '/')
+            .Replace(Path.AltDirectorySeparatorChar, '/');
+        return relative[..^Path.GetExtension(relative).Length];
+    }
 }

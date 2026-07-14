@@ -6,20 +6,20 @@ Ziel: Der komplette Doku-Loop (`validate` → `import` → `server`, plus `expor
 
 ### Implementierungs-Reihenfolge (für den frischen Umsetzungs-Chat)
 
-1. **Solution & Projekt-Setup**
+1. **Solution & Projekt-Setup** ✅
    Solution `KnowHowToAI.sln` mit `src/KnowHowToAI.Core`, `src/KnowHowToAI.Cli`, `tests/KnowHowToAI.Core.Tests` anlegen (siehe [03-Projektstruktur-und-Konfiguration.md](03-Projektstruktur-und-Konfiguration.md)). NuGet-Pakete einbinden: `Dapper`, `Microsoft.Data.SqlClient`, `dbup-sqlserver`, `System.CommandLine`, `ModelContextProtocol`, `Serilog` (+ `Serilog.Sinks.Console`), `YamlDotNet`. xUnit-v3-Testprojekt verdrahten.
 
-2. **SQL-Schema & DbUp-Integration**
+2. **SQL-Schema & DbUp-Integration** ✅
    `sql-scripts/0001_create_documents_table.sql` und `0002_create_fulltext_catalog_and_index.sql` anlegen (siehe [04](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts-dbup-verwaltet)). DbUp-Runner-Code in `Core` oder `Cli`, der beim `import`-Kommando vor dem eigentlichen Sync läuft.
 
-3. **Domain-Model & Front-Matter-Parser/Validator**
+3. **Domain-Model & Front-Matter-Parser/Validator** ✅
    `Document`-Klasse, `FrontMatterParser` (YamlDotNet), `SlugRules` (Regex-Validierung), `DocsValidator` (YAML-Check, Slug-Check, Orphan-Check — alle Fehler sammeln, siehe [04](04-Datenmodell-Validierung-Edgecases.md#3-validierungsregeln-validate)). Unittests für valide/invalide Dateien, Slug-Regeln, Orphan-Szenarien.
 
-4. **Import/Export-Engine**
-   `ImportService`: Wipe-and-Dump in einer Transaktion via Dapper. `ExportService`: Marker-Datei-Logik (siehe [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) + MD-Dateien inkl. YAML-Front-Matter-Generierung schreiben.
+4. **Import/Export-Engine** ✅
+   `ImportService`: Validate + Wipe-and-Dump, SQL-Zugriff als Delegate (nicht als Interface, siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout)). `ExportService`: Marker-Datei-Logik (siehe [04, Abschnitt 4.5](04-Datenmodell-Validierung-Edgecases.md#45-export-marker-datei)) + MD-Dateien inkl. YAML-Front-Matter-Generierung schreiben. `SqlDocumentsStore`: einziger Ort mit echtem SQL-Zugriff via Dapper.
 
 5. **CLI-Wiring**
-   `Program.cs` mit `System.CommandLine`-Subcommands `validate`, `import`, `export`, `server`, jeweils mit `--config`-Option (siehe [03](03-Projektstruktur-und-Konfiguration.md#3-cli-kommandos-übersicht)). Konfigurationsbindung (`KnowHowToAiOptions`) aus `appsettings.json` + Env-Var-Override.
+   `Program.cs` mit `System.CommandLine`-Subcommands `validate`, `import`, `export`, `server`, jeweils mit `--config`-Option (siehe [03](03-Projektstruktur-und-Konfiguration.md#3-cli-kommandos-übersicht)). Konfigurationsbindung (`KnowHowToAiOptions`) aus `appsettings.json` + Env-Var-Override. **`import` ruft hier zuerst `SchemaMigrator.Migrate(...)` auf und erst danach `ImportService.ImportAsync(...)`** (Migration ist bewusst nicht Teil von `ImportService` selbst, siehe [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout)).
 
 6. **MCP-Stdio-Server**
    `DocsMcpTools` mit `[McpServerTool]`-Methoden `list_children`, `search_docs`, `get_doc`, gemappt auf Dapper-Queries (Full-Text-Query für `search_docs`, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-beispiel)). Serilog zwingend auf `Console.Error`.
