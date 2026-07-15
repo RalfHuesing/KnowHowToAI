@@ -57,8 +57,9 @@ Jede dieser Rollen kann in einem anderen Projekt/Repo als diesem hier eingesetzt
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │                   4. IMPORTIEREN (Sync)                 │
-│  DbUp bringt Schema auf den neuesten Stand, danach wird │
-│  die Tabelle gewiped und aus validen MDs neu befüllt.   │
+│  SQL-Skripte bringen Schema auf den neuesten Stand,     │
+│  danach wird die Tabelle gewiped und aus validen MDs    │
+│  neu befüllt.                                           │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -97,9 +98,9 @@ KnowHowToAI.Cli validate --config ./knowhowtoai.appsettings.json
 KnowHowToAI.Cli import --config ./knowhowtoai.appsettings.json
 ```
 
-1. DbUp führt ausstehende SQL-Skripte aus `sql-scripts/` aus (Schema ist danach garantiert aktuell).
+1. `SchemaMigrator` führt die (selbst-idempotenten) SQL-Skripte aus `sql-scripts/` aus (Schema ist danach garantiert aktuell, siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts)).
 2. Import triggert intern `validate`. Bei Fehlern: Abbruch, keine DB-Änderung.
-3. In **einer Transaktion**: `DELETE FROM documents` + Neubefüllung aus allen validierten `.md`-Dateien.
+3. In **einer Transaktion**: `DELETE FROM <DocumentsTableName>` + Neubefüllung aus allen validierten `.md`-Dateien.
 
 Ab sofort steht das neue Wissen dem MCP-Server (und damit allen LLM-Sitzungen) zur Verfügung.
 

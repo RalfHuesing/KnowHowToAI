@@ -6,7 +6,7 @@
 * **Keep it Simple:** Early Returns nutzen, tiefe Verschachtelungen (`if-else`-Kaskaden) vermeiden, zyklomatische Komplexität minimal halten.
 * **Source of Truth:** Die Wahrheit liegt im lokalen Dateisystem als Markdown-Dateien mit YAML Front Matter. MS SQL Server dient als performanter, relationaler Lese- und Suchcache für den MCP-Server.
 * **Wipe and Dump:** Der Import-Prozess löscht die bestehenden Zeilen der `documents`-Tabelle komplett und baut sie aus den validierten Markdown-Dateien deterministisch neu auf — in einer Transaktion.
-* **Kein ORM-Ballast:** Kein EF Core. Dapper für Queries, DbUp für Schema-Verwaltung.
+* **Kein ORM-Ballast:** Kein EF Core. Dapper für Queries, ein schlanker eigener `SchemaMigrator` (kein DbUp, keine Journal-Tabelle — siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts)) für Schema-Verwaltung.
 
 ---
 
@@ -20,7 +20,7 @@
 | CLI-Parsing | `System.CommandLine` | Subcommands, Optionen, Auto-Help, offizielle .NET-Library |
 | Datenbank | **MS SQL Server** (lokal oder im Netzwerk) | Vorgabe: kein anderer SQL-Dialekt vorgesehen |
 | DB-Zugriff | **Dapper** + `Microsoft.Data.SqlClient` | Schlanke, schnelle SQL-Queries ohne EF-Core-Ballast |
-| Schema-Verwaltung | **DbUp** + nummerierte Skripte in `sql-scripts/` | Idempotente, versionierte Schema-Migration ohne ORM |
+| Schema-Verwaltung | Eigener `SchemaMigrator` + nummerierte, selbst-idempotente Skripte in `sql-scripts/` | Kein ORM, keine Journal-/Versionstabelle — Skripte prüfen selbst per `IF NOT EXISTS`, ob es etwas zu tun gibt |
 | Suche | **`LIKE '%...%'`** über `title`/`content`/`tags`/`synonyms` | Kein Full-Text-Search-Feature vorausgesetzt (nicht auf jeder Ziel-Instanz installiert), kein RAG-Overkill |
 | Front-Matter-Parsing | `YamlDotNet` | Etablierter, schlanker YAML-Parser für .NET |
 | Logging | **Serilog**, Sink ausschließlich auf eine rotierende Datei unter `Logs/` relativ zur `.exe` | `Console.Out` ist exklusiv für das MCP-JSON-RPC-Protokoll reserviert, `Console.Error` wäre bei einem von Cursor/Claude Desktop gestarteten Hintergrundprozess ohnehin nicht einsehbar und nicht persistent |
@@ -57,7 +57,7 @@ Der relative Dateipfad ohne Endung ist der `slug` (z.B. `it/netzwerk/routing`) u
 
 ### Das Datenbankschema (MS SQL Server) — Kurzüberblick
 
-Vollständige DDL-Skripte: [04-Datenmodell-Validierung-Edgecases.md](04-Datenmodell-Validierung-Edgecases.md).
+Vollständige DDL-Skripte: [04-Datenmodell-Validierung-Edgecases.md](04-Datenmodell-Validierung-Edgecases.md). Der Tabellenname `documents` ist der Default aus `KnowHowToAiOptions.DocumentsTableName` — pro `appsettings.json` frei umbenennbar (siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson)), z.B. um mehrere thematisch getrennte Wissensbibliotheken in derselben Datenbank zu halten.
 
 ```sql
 CREATE TABLE dbo.documents (
@@ -72,7 +72,7 @@ CREATE TABLE dbo.documents (
 );
 ```
 
-> `ON DELETE CASCADE` ist auf sich selbst referenzierenden Tabellen in SQL Server nicht erlaubt (Zyklus-Gefahr). Da `import` ohnehin per `DELETE FROM documents` (ohne WHERE) den kompletten Tabelleninhalt in einer Transaktion leert, ist Cascade nicht nötig — siehe [04](04-Datenmodell-Validierung-Edgecases.md).
+> `ON DELETE CASCADE` ist auf sich selbst referenzierenden Tabellen in SQL Server nicht erlaubt (Zyklus-Gefahr). Da `import` ohnehin per `DELETE FROM <DocumentsTableName>` (ohne WHERE) den kompletten Tabelleninhalt in einer Transaktion leert, ist Cascade nicht nötig — siehe [04](04-Datenmodell-Validierung-Edgecases.md).
 
 ---
 

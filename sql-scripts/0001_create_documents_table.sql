@@ -1,16 +1,16 @@
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'documents' AND schema_id = SCHEMA_ID('dbo'))
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = '{{DocumentsTableName}}' AND schema_id = SCHEMA_ID('dbo'))
 BEGIN
-    CREATE TABLE dbo.documents (
+    CREATE TABLE dbo.{{DocumentsTableName}} (
         slug        NVARCHAR(450)   NOT NULL,
         parent_slug NVARCHAR(450)   NULL,
         title       NVARCHAR(400)   NOT NULL,
         content     NVARCHAR(MAX)   NOT NULL,
         tags        NVARCHAR(MAX)   NULL,
         synonyms    NVARCHAR(MAX)   NULL,
-        CONSTRAINT PK_documents PRIMARY KEY (slug),
-        CONSTRAINT FK_documents_parent
-            FOREIGN KEY (parent_slug) REFERENCES dbo.documents(slug)
+        CONSTRAINT PK_{{DocumentsTableName}} PRIMARY KEY (slug),
+        CONSTRAINT FK_{{DocumentsTableName}}_parent
+            FOREIGN KEY (parent_slug) REFERENCES dbo.{{DocumentsTableName}}(slug)
     );
 
-    CREATE INDEX IX_documents_parent_slug ON dbo.documents(parent_slug);
+    CREATE INDEX IX_{{DocumentsTableName}}_parent_slug ON dbo.{{DocumentsTableName}}(parent_slug);
 END
