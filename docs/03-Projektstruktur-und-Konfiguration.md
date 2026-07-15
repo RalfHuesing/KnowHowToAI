@@ -64,12 +64,16 @@ KnowHowToAI/
       "MinimumLevel": "Information",
       "RollingInterval": "Day",
       "RetainedFileCountLimit": 14
+    },
+    "Validation": {
+      "MaxContentLengthWarning": 8000
     }
   }
 }
 ```
 
 * **`Logging`** (`KnowHowToAiLoggingOptions`): steuert die Serilog-Datei-Rotation — `MinimumLevel` (`Serilog.Events.LogEventLevel`-Name), `RollingInterval` (`Serilog.RollingInterval`-Name, z.B. `Day`), `RetainedFileCountLimit` (Anzahl aufbewahrter Dateien). Bewusst konfigurierbar statt hartcodiert, siehe [06-configuration.mdc](../.agents/rules/06-configuration.mdc). `Program.ConfigureLogger` baut damit den Serilog-Logger direkt nach `LoadOptions` neu auf (ein kurzlebiger Bootstrap-Logger mit denselben Defaults deckt die Zeitspanne davor ab, z.B. falls `LoadOptions` selbst fehlschlägt).
+* **`Validation`** (`KnowHowToAiValidationOptions`): `MaxContentLengthWarning` — Zeichen-Schwelle, ab der `validate` ein zu großes Einzeldokument nur als Warnung meldet (Exit-Code bleibt 0), siehe [04, Edge Case 4.6](04-Datenmodell-Validierung-Edgecases.md#46-sehr-große-dokumente).
 
 * **Override per Umgebungsvariable:** `Microsoft.Extensions.Configuration` erlaubt `KnowHowToAi__ConnectionString` bzw. `KnowHowToAi__DocsRootPath` als Override, ohne die Datei anzufassen (z.B. für CI oder abweichende Rechner).
 * **`%COMPUTERNAME%`-Platzhalter:** `Program.LoadOptions` ersetzt den *literalen* Text `%COMPUTERNAME%` in der Connection-String durch `Environment.MachineName` — bewusst **nicht** `Environment.ExpandEnvironmentVariables(...)`. Letzteres würde die Umgebungsvariable `COMPUTERNAME` aus dem Prozess-Environment lesen, die fehlen kann, wenn der MCP-Server von Cursor/Claude Desktop mit einem reduzierten Environment gestartet wird. `Environment.MachineName` fragt den Rechnernamen direkt beim Betriebssystem ab und ist davon unabhängig. Damit funktioniert dieselbe committete `appsettings.json` unverändert auf jedem Rechner, auf dem eine SQL-Server-Instanz mit demselben Instanznamen und denselben Zugangsdaten existiert.

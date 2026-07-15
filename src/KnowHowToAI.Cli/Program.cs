@@ -63,7 +63,7 @@ int RunValidate(ParseResult parseResult)
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
         Log.Logger = ConfigureLogger(options.Logging);
-        var result = new DocsValidator().Validate(options.DocsRootPath);
+        var result = new DocsValidator(options.Validation.MaxContentLengthWarning).Validate(options.DocsRootPath);
         return PrintValidationResult(result);
     }
     catch (Exception ex)
@@ -89,7 +89,7 @@ async Task<int> RunImport(ParseResult parseResult, CancellationToken cancellatio
         }
 
         var store = new SqlDocumentsStore(options.ConnectionString);
-        var importService = new ImportService(store.ReplaceAllAsync);
+        var importService = new ImportService(store.ReplaceAllAsync, options.Validation.MaxContentLengthWarning);
         var result = await importService.ImportAsync(options.DocsRootPath, cancellationToken);
         return PrintValidationResult(result);
     }
@@ -188,9 +188,14 @@ static Serilog.ILogger ConfigureLogger(KnowHowToAiLoggingOptions loggingOptions)
 
 static int PrintValidationResult(ValidationResult result)
 {
+    foreach (var warning in result.Warnings)
+    {
+        Console.WriteLine($"WARNING {warning.FilePath}: {warning.Reason}");
+    }
+
     if (result.IsValid)
     {
-        Console.WriteLine("Validation successful. 0 errors found.");
+        Console.WriteLine($"Validation successful. 0 errors found, {result.Warnings.Count} warning(s) found.");
         return 0;
     }
 

@@ -66,6 +66,8 @@ ORDER BY title;
 | Orphan-Check | Für Slug `a/b/c` müssen `a.md` **und** `a/b.md` existieren | Datei + fehlender Parent-Pfad |
 | Eindeutigkeit | Ergibt sich automatisch aus dem Dateisystem (ein Slug = ein Pfad) — keine zusätzliche Prüfung nötig, siehe Edge Case 4.1 |
 | `tags`/`synonyms` optional | Dürfen fehlen oder leere Liste sein, dann `NULL` in der DB | kein Fehler |
+| Datei-/Pfad-Referenzen in `content` | Markdown-Links (`[text](ziel)`) mit `file://`-Schema oder Ziel endet auf `.md`/`.markdown` (relativ/absolut, Anker/Query ignoriert) | Datei + Linkziel (siehe Edge Case 4.9) |
+| Dokumentlänge | Zeichenlänge von `content` gegen `KnowHowToAi:Validation:MaxContentLengthWarning` (Default 8.000) | **nur Warnung**, kein Fehler — Exit-Code bleibt 0 (siehe Edge Case 4.6) |
 
 Der Validator sammelt **alle** Fehler in einem Durchlauf (nicht beim ersten Fehler abbrechen) und gibt sie gesammelt aus — wichtig, damit Claude in einem Rutsch alle Probleme fixen kann, statt iterativ einen nach dem anderen zu entdecken.
 
@@ -94,10 +96,17 @@ Der Validator sammelt **alle** Fehler in einem Durchlauf (nicht beim ersten Fehl
 `title`, `tags`, `synonyms` werden als vom Menschen lesbarer Text behandelt (UTF-8, Umlaute erlaubt). Bei der DB-Persistierung werden `tags`/`synonyms` als JSON-Array-Text (`["netzwerk","switch"]`) gespeichert, nicht als kommagetrennter String — eindeutiger beim Parsen in beide Richtungen (Import/Export). Für die `LIKE`-Suche (Abschnitt 1) bedeutet das: Ein Treffer in `tags`/`synonyms` matcht gegen die rohe JSON-Text-Repräsentation, nicht gegen einzelne Array-Elemente — für die Zwecke der Stichwortsuche ausreichend.
 
 ### 4.6 Sehr große Dokumente
-`content NVARCHAR(MAX)` hat keine praktische Größenbegrenzung für Markdown-Dokumentation. Für `get_doc` gibt es in v1 kein Trunkieren — das LLM bekommt den vollen Inhalt. Falls das später zum Problem wird (sehr große Einzeldokumente), ist Chunking/Trunkieren ein Backlog-Thema (siehe [05-Roadmap.md](05-Roadmap.md)).
+`content NVARCHAR(MAX)` hat keine praktische Größenbegrenzung für Markdown-Dokumentation. Für `get_doc` gibt es in v1 kein Trunkieren — das LLM bekommt den vollen Inhalt. `validate` warnt seit v2 bei Überschreiten von `KnowHowToAi:Validation:MaxContentLengthWarning` (Default 8.000 Zeichen, `DocsValidator.ValidateContentLength`) mit Datei + Zeichenzahl — bricht dabei aber nicht ab (Exit-Code bleibt 0, wenn sonst alles valide ist), da eine lange Datei kein Fehler ist, sondern nur ein Signal für eine sinnvollere Slug-Aufteilung. Falls das Kontext-Aufblähen trotz Warnung zum Problem wird, ist Chunking/Trunkieren weiterhin ein Backlog-Thema (siehe [05-Roadmap.md](05-Roadmap.md)).
 
 ### 4.7 `--config` zeigt auf nicht existierende/fehlerhafte Datei
 CLI bricht mit klarer Fehlermeldung ab (Pfad + "Datei nicht gefunden" bzw. Configuration-Binding-Fehler), kein stiller Fallback auf Defaults — falsche Konfiguration soll nie unbemerkt gegen die falsche Datenbank/den falschen Ordner laufen.
 
 ### 4.8 Verbindung zum SQL Server nicht erreichbar
 `validate` benötigt **keine** DB-Verbindung (rein dateibasiert). `import`, `export` und `server` benötigen eine Verbindung — bei Fehlschlag: klare Fehlermeldung mit Connection-String-Ziel (Server/Datenbank-Name, ohne Zugangsdaten zu loggen), Exit-Code ≠ 0 bzw. beim MCP-Server ein Tool-Error statt Crash des ganzen Prozesses.
+
+### 4.9 Datei-/Pfad-Referenzen statt Slug-Referenzen in `content`
+Ausgangsfall: Ein Agent hat in echten Docs Links wie `[Buchungserfassung](file:///c:/Daten/.../erfassung-sitzungen.md)` geschrieben. Im SQL-Cache-Modell existiert zur Laufzeit des lesenden LLM kein Dateisystem mehr — Navigation läuft ausschließlich über `list_children`/`get_doc`/Slugs (siehe [02, Abschnitt 4.D](02-Architektur-und-Techstack.md#d-knowhowtoaicli-server---config-path)). Solche Links sind daher wirkungslos bzw. irreführend.
+
+`DocsValidator.ValidateContentLinks` prüft `content` per Regex auf Markdown-Links (`[text](ziel)`, deckt auch Bild-Syntax `![alt](ziel)` ab) und meldet einen Fehler, wenn das Linkziel mit `file://`-Schema beginnt oder (nach Abschneiden von Titel-Suffix, Anker `#` und Query `?`) auf `.md`/`.markdown` endet — unabhängig davon, ob relativ oder absolut. Reine `http(s)://`-Links und interne Slug-Referenzen ohne `.md`-Endung lösen keinen Fehler aus.
+
+**Bewusst nicht geprüft:** ob interne Slug-Referenzen tatsächlich existierende Slugs treffen (tote interne Links) — setzt eine noch offene Design-Entscheidung voraus, wie ein "Verweis auf ein anderes Dokument" syntaktisch aussehen soll (siehe [01](01-Konzept-und-Workflow.md)). Ebenfalls bewusst nicht geprüft: Live-Erreichbarkeit von `http(s)://`-Links (würde `validate` netzwerkabhängig und flaky machen, siehe 4.8).

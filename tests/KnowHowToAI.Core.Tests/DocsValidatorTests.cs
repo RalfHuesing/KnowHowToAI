@@ -74,8 +74,58 @@ public class DocsValidatorTests : IDisposable
         Assert.Equal(2, result.Errors.Count);
     }
 
-    private void WriteDoc(string slug, string title) =>
-        WriteFile($"{slug}.md", $"---\ntitle: \"{title}\"\n---\nInhalt.");
+    [Theory]
+    [InlineData("[Erfassung](file:///c:/Daten/erfassung-sitzungen.md)")]
+    [InlineData("[Erfassung](erfassung-sitzungen.md)")]
+    [InlineData("[Erfassung](../docs/erfassung-sitzungen.markdown)")]
+    [InlineData("[Erfassung](erfassung-sitzungen.md#abschnitt)")]
+    public void Validate_ContentContainsFileOrMarkdownLink_ReportsError(string link)
+    {
+        WriteDoc("it", "IT", link);
+
+        var result = _validator.Validate(_docsRoot);
+
+        var error = Assert.Single(result.Errors);
+        Assert.Contains("Datei-/Pfad-Referenz", error.Reason);
+    }
+
+    [Fact]
+    public void Validate_ContentContainsSlugAndHttpLinks_ReturnsNoErrors()
+    {
+        WriteDoc("it", "IT", "[Netzwerk](it/netzwerk) und [Doku](https://example.com/handbuch)");
+
+        var result = _validator.Validate(_docsRoot);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_ContentAtThreshold_ReturnsNoWarning()
+    {
+        var validator = new DocsValidator(maxContentLengthWarning: 10);
+        WriteDoc("it", "IT", new string('a', 10));
+
+        var result = validator.Validate(_docsRoot);
+
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void Validate_ContentAboveThreshold_ReportsWarningButStaysValid()
+    {
+        var validator = new DocsValidator(maxContentLengthWarning: 10);
+        WriteDoc("it", "IT", new string('a', 11));
+
+        var result = validator.Validate(_docsRoot);
+
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("11 Zeichen", warning.Reason);
+        Assert.True(result.IsValid);
+        Assert.Empty(result.Errors);
+    }
+
+    private void WriteDoc(string slug, string title, string content = "Inhalt.") =>
+        WriteFile($"{slug}.md", $"---\ntitle: \"{title}\"\n---\n{content}");
 
     private void WriteFile(string relativePath, string content)
     {

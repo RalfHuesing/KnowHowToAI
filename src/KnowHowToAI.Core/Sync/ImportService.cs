@@ -6,9 +6,9 @@ namespace KnowHowToAI.Core.Sync;
 // Validate + Wipe-and-Dump. Der eigentliche SQL-Zugriff kommt als Delegate von außen (z. B.
 // SqlDocumentsStore.ReplaceAllAsync) — so ist die Orchestrierung ohne echten SQL Server testbar.
 // Schema-Migration läuft VOR diesem Aufruf in der Cli-Schicht (siehe docs/03, Abschnitt 3).
-public sealed class ImportService(Func<IReadOnlyList<Document>, CancellationToken, Task> replaceAllAsync)
+public sealed class ImportService(Func<IReadOnlyList<Document>, CancellationToken, Task> replaceAllAsync, int maxContentLengthWarning = 8000)
 {
-    private readonly DocsValidator _validator = new();
+    private readonly DocsValidator _validator = new(maxContentLengthWarning);
     private readonly FrontMatterParser _parser = new();
 
     // Gibt bei Validierungsfehlern die ValidationResult mit den Fehlern zurück, ohne replaceAllAsync
