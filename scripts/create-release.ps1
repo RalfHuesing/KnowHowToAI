@@ -91,7 +91,9 @@ function Invoke-DotNetValidation {
 
         if (-not $SkipTests) {
             Write-Host '[INFO] dotnet test...' -ForegroundColor Cyan
-            dotnet test --nologo -v q --no-build
+            # Kein --nologo: das xUnit-v3-Testprojekt laeuft ueber den Microsoft.Testing.Platform-Runner
+            # (xunit.v3.mtp-v2), der --nologo nicht kennt und mit Exitcode 5 abbricht (VSTest-only-Flag).
+            dotnet test -v q --no-build
             if ($LASTEXITCODE -ne 0) {
                 throw 'dotnet test fehlgeschlagen.'
             }
