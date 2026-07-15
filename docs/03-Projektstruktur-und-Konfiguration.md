@@ -139,3 +139,9 @@ Erzeugt via `dotnet publish` eine **self-contained Single-File-.exe** unter `pub
 * `-p:IncludeNativeLibrariesForSelfExtract=true` bündelt auch native Abhängigkeiten in die eine `.exe`, statt sie beim ersten Start in einen Temp-Ordner zu extrahieren.
 * `appsettings.json` liegt nach dem Publish weiterhin als separate Datei neben der `.exe` (bewusst nicht in die Single-File eingebettet — muss editierbar bleiben, siehe Abschnitt 2).
 * `publish/` ist gitignored; jeder baut sich die `.exe` lokal selbst, es wird kein Build-Artefakt versioniert.
+
+### GitHub Release (`v*`-Tag)
+
+`.github/workflows/release.yml` baut bei jedem Push eines `v*`-Tags (z.B. `v1.0.1`) denselben Single-File-Build wie `scripts/publish.ps1` (nur `win-x64`, kein Multi-Platform-Matrix-Build — passend zum bisherigen, bewusst Windows-zentrierten Setup dieses Projekts, siehe `%COMPUTERNAME%`-Connection-String in Abschnitt 2) und veröffentlicht ihn als `KnowHowToAI-win-x64.zip` unter GitHub Releases.
+
+`scripts/create-release.ps1` (analog zum gleichnamigen Skript in `AiNetLinter`) automatisiert das Auslösen: erhöht die Patch-Version in `src/KnowHowToAI.Cli/KnowHowToAI.Cli.csproj` (`<Version>`), lässt `dotnet build`/`dotnet test` laufen, committet, pusht `main` und den Tag `vX.Y.Z` — der Push des Tags startet den Workflow. `-DryRun` zeigt die geplanten Schritte ohne Änderungen.
