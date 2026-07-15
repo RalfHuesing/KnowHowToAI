@@ -8,7 +8,7 @@ Du schreibst Doku als Markdown-Dateien mit YAML-Front-Matter (`title`, `tags`, `
 
 ## Tech-Stack
 
-.NET 10 · MS SQL Server · Dapper · DbUp · `ModelContextProtocol`-SDK · `System.CommandLine` · Serilog · YamlDotNet · xUnit v3
+.NET 10 · MS SQL Server · Dapper · `ModelContextProtocol`-SDK · `System.CommandLine` · Serilog · YamlDotNet · xUnit v3
 
 ## Schnellstart
 
@@ -21,7 +21,7 @@ dotnet run --project src/KnowHowToAI.Cli -- import
 dotnet run --project src/KnowHowToAI.Cli -- server
 ```
 
-Konfiguration liegt in [`src/KnowHowToAI.Cli/appsettings.json`](src/KnowHowToAI.Cli/appsettings.json) (Docs-Root-Pfad + SQL-Connection-String, Details in [docs/03](docs/03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson)). Eine kleine Beispiel-Bibliothek liegt unter [`demo-docs/`](demo-docs/).
+Konfiguration liegt in [`src/KnowHowToAI.Cli/appsettings.json`](src/KnowHowToAI.Cli/appsettings.json) (Docs-Root-Pfad, SQL-Connection-String, Tabellenname, Details in [docs/03](docs/03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson)). Eine kleine Beispiel-Bibliothek liegt unter [`demo-docs/`](demo-docs/).
 
 ### Single-File-Build
 

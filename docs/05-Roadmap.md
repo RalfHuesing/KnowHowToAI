@@ -13,10 +13,10 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] NuGet-Pakete: `Dapper`, `Microsoft.Data.SqlClient`, `dbup-sqlserver`, `System.CommandLine`, `ModelContextProtocol`, `Serilog` (+ `Serilog.Sinks.Console`), `YamlDotNet`
   - [x] xUnit-v3-Testprojekt verdrahtet
 
-- [x] **2. SQL-Schema & DbUp-Integration**
-  - [x] `sql-scripts/0001_create_documents_table.sql` (siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts-dbup-verwaltet))
-  - [x] `SchemaMigrator` (Core/Migrations) führt sie via DbUp aus, Skripte als Embedded Resource, Logging über `IUpgradeLog`-Parameter statt harter Serilog-Abhängigkeit
-  - [x] Tests: Skript-Discovery ohne echten SQL Server
+- [x] **2. SQL-Schema & Migrations-Runner**
+  - [x] `sql-scripts/0001_create_documents_table.sql`, Tabellenname als `{{DocumentsTableName}}`-Platzhalter (siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts))
+  - [x] `SchemaMigrator` (Core/Migrations): eigener, simpler Runner (kein DbUp, keine Journal-/Versionstabelle — Skripte sind selbst idempotent und laufen bei jedem `import` erneut), Skripte als Embedded Resource, Logging über `Action<string>`-Delegate statt harter Serilog-Abhängigkeit
+  - [x] Tests: Skript-Discovery + Platzhalter-Ersetzung ohne echten SQL Server
 
 - [x] **3. Domain-Model & Front-Matter-Parser/Validator**
   - [x] `Document`, `SlugRules` (Regex + Orphan-Hilfsfunktionen)
@@ -65,10 +65,15 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] Reines Wiring ohne Verzweigungslogik → laut [02-testing.mdc](../.agents/rules/02-testing.mdc) keine separaten Unittests nötig, analog zu `DocsMcpTools`
   - [x] Manuell smoke-getestet gegen den echten stdio-Server (`initialize` liefert `instructions`, `resources/list` zeigt die Resource, `resources/read` liefert den vollständigen Guide-Text; stdout bleibt reines JSON-RPC)
 
+- [x] **10. DbUp entfernt, Tabellenname konfigurierbar**
+  - [x] `SchemaMigrator` von DbUp auf einen eigenen, simplen Runner umgestellt — kein Journal/`dbo.SchemaVersions` mehr, Skripte sind selbst idempotent (`IF NOT EXISTS`) und laufen bei jedem `import` erneut (siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts))
+  - [x] `KnowHowToAiOptions.DocumentsTableName` (Default `documents`), `SqlIdentifierValidator` gegen SQL-Injection über den Konfigurationswert, `{{DocumentsTableName}}`-Platzhalter in `sql-scripts/0001_create_documents_table.sql` inkl. parametrisierter Constraint-/Index-Namen — ermöglicht mehrere thematisch getrennte Wissenstabellen in derselben Datenbank, je eine eigene MCP-Server-Instanz (siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson))
+  - [x] Tests: `SchemaMigratorTests` (Platzhalter-Ersetzung), `SqlIdentifierValidatorTests` (gültige/ungültige Bezeichner)
+
 ### Definition of Done (v1)
 
 - [x] `validate` erkennt alle in [04](04-Datenmodell-Validierung-Edgecases.md) beschriebenen Fehlerfälle korrekt und sammelt sie. Verifiziert per Unittests und manuellem CLI-Lauf (Erfolgs- und Fehlerfall).
-- [ ] `import` legt Schema per DbUp an/aktualisiert es und befüllt die Tabelle transaktional neu. *Wiring steht und der Fehlerfall (SQL Server nicht erreichbar → klare Meldung, Exit 2) ist manuell verifiziert; der Erfolgspfad gegen einen echten, erreichbaren SQL Server steht noch aus (in dieser Umgebung kein SQL Server verfügbar).*
+- [ ] `import` legt Schema per `SchemaMigrator` an/aktualisiert es und befüllt die Tabelle transaktional neu. *Wiring steht und der Fehlerfall (SQL Server nicht erreichbar → klare Meldung, Exit 2) ist manuell verifiziert; der Erfolgspfad gegen einen echten, erreichbaren SQL Server steht noch aus (in dieser Umgebung kein SQL Server verfügbar).*
 - [x] `export` respektiert die Marker-Datei-Logik strikt (kein Wipe ohne Marker). Verifiziert per Unittests (alle drei Szenarien aus [04, Abschnitt 4.4](04-Datenmodell-Validierung-Edgecases.md#44-export-marker-datei)) und manuellem CLI-Lauf.
 - [ ] `server` beantwortet alle drei MCP-Tools korrekt gegen eine befüllte DB, inkl. leerer/Fehlerfälle ohne Absturz. *Implementiert und Host-Start manuell verifiziert (stdout bleibt leer); die drei Tools selbst sind noch nicht gegen eine befüllte DB durchgespielt — blockiert durch dasselbe SQL-Setup-Problem wie beim `import`-DoD-Punkt.*
 - [ ] `search_docs` liefert korrekte Treffer für einen realistischen Testdatensatz (`LIKE`, siehe [04](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync)). *Implementiert, aber noch nicht gegen reale Daten getestet — blockiert durch dasselbe SQL-Setup-Problem.*
@@ -82,7 +87,7 @@ Diese Punkte bewusst **nicht** in v1, um den Kern-Loop nicht zu verzögern:
 
 * **Interne Querverweise gegen vorhandene Slugs prüfen** (tote interne Links erkennen) — abgegrenzter Rest von "Inhaltliche Validierung von `content`" (Datei-/`file://`-Link-Check und Längen-Warnung sind umgesetzt, siehe [04, Abschnitt 3](04-Datenmodell-Validierung-Edgecases.md#3-validierungsregeln-validate) und [04, Edge Case 4.9](04-Datenmodell-Validierung-Edgecases.md#49-datei-pfad-referenzen-statt-slug-referenzen-in-content)). Setzt erst eine Design-Entscheidung voraus, wie ein "Verweis auf ein anderes Dokument" syntaktisch überhaupt aussehen soll (aktuell nicht definiert, siehe [01](01-Konzept-und-Workflow.md)). **Bewusst nicht vorgeschlagen:** Live-Erreichbarkeits-Check von `http(s)://`-Links — `validate` ist laut [04, Edge Case 4.8](04-Datenmodell-Validierung-Edgecases.md#48-verbindung-zum-sql-server-nicht-erreichbar) bewusst rein dateibasiert ohne Netzwerkabhängigkeit; ein Netzwerk-Check würde `validate` langsam und flaky machen.
 * **Watch-Modus** (`docu-cli watch`): automatisches `validate`+`import` bei Dateiänderungen (FileSystemWatcher + Debouncing).
-* **Multi-Library-Support**: mehrere unabhängige Docs-Bibliotheken/DBs gleichzeitig ansprechbar aus einem Server-Prozess (aktuell: eine Config = eine Bibliothek, mehrere Configs = mehrere MCP-Server-Einträge — das reicht für v1 völlig aus).
+* **Multi-Library-Support**: mehrere unabhängige Docs-Bibliotheken/DBs gleichzeitig ansprechbar aus einem **einzigen** Server-Prozess (aktuell: eine Config = eine Bibliothek, mehrere Configs = mehrere MCP-Server-Einträge/-Prozesse — das reicht für v1 völlig aus). Der leichtgewichtige Teilschritt dafür — pro Config eine eigene Tabelle (`DocumentsTableName`) in derselben oder unterschiedlichen Datenbanken — ist bereits umgesetzt (Schritt 10); offen bleibt nur das Zusammenführen mehrerer Bibliotheken in einem Prozess.
 * **Schreib-Tools via MCP** (z.B. `create_doc`, `update_doc` direkt aus dem LLM heraus, ohne Umweg über Filesystem-Export). Bewusst zurückgestellt, da der Validierungs-Gate-Mechanismus (Abschnitt "Wipe and Dump") dafür erst durchdacht werden müsste (Race Conditions, wenn Claude parallel schreibt während `import` läuft).
 * **Packaging als globales .NET-Tool** (`dotnet tool install --global`) statt reinem Build-Artefakt.
 * **CI-Pipeline** (GitHub Actions: Build + Test bei jedem Push/PR).

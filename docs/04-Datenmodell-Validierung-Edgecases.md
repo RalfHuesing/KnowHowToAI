@@ -4,41 +4,46 @@ Dieses Dokument ist die verbindliche Referenz für alle Grenzfälle. Ziel: Ein f
 
 ---
 
-## 1. SQL-Skripte (`sql-scripts/`, DbUp-verwaltet)
+## 1. SQL-Skripte (`sql-scripts/`)
 
-DbUp führt alle Skripte im Ordner in aufsteigender Dateinamen-Reihenfolge genau einmal aus und protokolliert das in einer eigenen Journal-Tabelle (Standard: `dbo.SchemaVersions`, wird von DbUp automatisch angelegt).
+**Kein DbUp, keine Journal-/Versionstabelle.** `SchemaMigrator` (in `KnowHowToAI.Core/Migrations/`) ist ein bewusst simpler, selbstgeschriebener Runner: Er liest alle `*.sql`-Embedded-Resources in aufsteigender Namens-Reihenfolge und führt sie bei **jedem** `import`-Lauf erneut aus — es gibt keine Tabelle, die protokolliert, welche Skripte schon liefen. Das funktioniert, weil jedes Skript selbst idempotent ist (`IF NOT EXISTS`-Guard, siehe unten): Existiert die Zieltabelle schon, tut das Skript nichts. Konsequenz für neue Skripte: **jedes Skript muss seine eigene Idempotenz sicherstellen** und darf kein `GO` enthalten (der Runner unterstützt keinen Batch-Separator — ein Skript ist immer genau ein Batch).
 
-**Laufzeit-Quelle: Embedded Resources, nicht Festplatte.** `sql-scripts/*.sql` bleibt der eine bearbeitbare Quellordner im Repo, wird aber beim Build in `KnowHowToAI.Core` als Embedded Resource eingebettet (`WithScriptsEmbeddedInAssembly`) statt zur Laufzeit von der Festplatte gelesen (`WithScriptsFromFileSystem`). Begründung: Das verteilte Artefakt ist eine einzelne `.exe` (siehe [00-Overview.md](00-Overview.md), Grundsatzentscheidung 8) — sie muss unabhängig vom Arbeitsverzeichnis oder Kopierziel funktionieren. Eine Skriptänderung erfordert dadurch einen Rebuild von `KnowHowToAI.Core`; das ist für dieses Projekt akzeptabel, da Schema-Änderungen ohnehin über den normalen Implementierungs-/Commit-Workflow laufen (siehe `.agents/rules/03-git-workflow.mdc`), nicht als Hotfix am laufenden System.
+**Tabellenname als Platzhalter.** `{{DocumentsTableName}}` im Skripttext wird von `SchemaMigrator` zur Laufzeit durch `KnowHowToAiOptions.DocumentsTableName` ersetzt (validiert über `SqlIdentifierValidator`, siehe [03, Abschnitt 2](03-Projektstruktur-und-Konfiguration.md#2-konfiguration-appsettingsjson)) — Constraint-/Index-Namen sind ebenfalls parametrisiert, damit mehrere unterschiedlich benannte Tabellen in derselben Datenbank nicht mit denselben Constraint-Namen kollidieren.
 
-**Logging-Abstraktion:** `SchemaMigrator` (in `KnowHowToAI.Core/Migrations/`) nimmt DbUps `IUpgradeLog` als Parameter entgegen, statt selbst eine Logging-Bibliothek zu referenzieren. `KnowHowToAI.Cli` reicht beim Aufruf eine Serilog-basierte Implementierung durch, die zwingend auf `Console.Error` schreibt (siehe [02-Architektur-und-Techstack.md](02-Architektur-und-Techstack.md)) — DbUps eingebautes `LogToConsole()` würde auf `Console.Out` schreiben und das MCP-Protokoll korrumpieren und darf daher nicht verwendet werden.
+**Laufzeit-Quelle: Embedded Resources, nicht Festplatte.** `sql-scripts/*.sql` bleibt der eine bearbeitbare Quellordner im Repo, wird aber beim Build in `KnowHowToAI.Core` als Embedded Resource eingebettet, statt zur Laufzeit von der Festplatte gelesen zu werden. Begründung: Das verteilte Artefakt ist eine einzelne `.exe` (siehe [00-Overview.md](00-Overview.md), Grundsatzentscheidung 8) — sie muss unabhängig vom Arbeitsverzeichnis oder Kopierziel funktionieren. Eine Skriptänderung erfordert dadurch einen Rebuild von `KnowHowToAI.Core`; das ist für dieses Projekt akzeptabel, da Schema-Änderungen ohnehin über den normalen Implementierungs-/Commit-Workflow laufen (siehe `.agents/rules/03-git-workflow.mdc`), nicht als Hotfix am laufenden System.
+
+**Logging:** `SchemaMigrator.MigrateAsync` nimmt ein `Action<string> logInformation`-Delegate entgegen statt selbst eine Logging-Bibliothek zu referenzieren (Delegate statt Interface — konsistent mit [03, Abschnitt 1](03-Projektstruktur-und-Konfiguration.md#1-solution-layout)). `KnowHowToAI.Cli` reicht `message => Log.Logger.Information(message)` durch; die Serilog-Datei-Sink schreibt zwingend nicht auf `Console.Out` (siehe [02-Architektur-und-Techstack.md](02-Architektur-und-Techstack.md)).
 
 ### `0001_create_documents_table.sql`
 
 ```sql
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'documents' AND schema_id = SCHEMA_ID('dbo'))
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = '{{DocumentsTableName}}' AND schema_id = SCHEMA_ID('dbo'))
 BEGIN
-    CREATE TABLE dbo.documents (
-        slug        NVARCHAR(450)   NOT NULL PRIMARY KEY,
+    CREATE TABLE dbo.{{DocumentsTableName}} (
+        slug        NVARCHAR(450)   NOT NULL,
         parent_slug NVARCHAR(450)   NULL,
         title       NVARCHAR(400)   NOT NULL,
         content     NVARCHAR(MAX)   NOT NULL,
         tags        NVARCHAR(MAX)   NULL,
         synonyms    NVARCHAR(MAX)   NULL,
-        CONSTRAINT FK_documents_parent
-            FOREIGN KEY (parent_slug) REFERENCES dbo.documents(slug)
+        CONSTRAINT PK_{{DocumentsTableName}} PRIMARY KEY (slug),
+        CONSTRAINT FK_{{DocumentsTableName}}_parent
+            FOREIGN KEY (parent_slug) REFERENCES dbo.{{DocumentsTableName}}(slug)
     );
 
-    CREATE INDEX IX_documents_parent_slug ON dbo.documents(parent_slug);
+    CREATE INDEX IX_{{DocumentsTableName}}_parent_slug ON dbo.{{DocumentsTableName}}(parent_slug);
 END
 ```
 
 ### `search_docs`-Query (umgesetzt in `SqlDocumentsStore.SearchDocsAsync`)
 
 ```sql
-SELECT slug AS Slug, title AS Title FROM dbo.documents
+SELECT slug AS Slug, title AS Title FROM dbo.<DocumentsTableName>
 WHERE title LIKE @Pattern OR content LIKE @Pattern OR tags LIKE @Pattern OR synonyms LIKE @Pattern
 ORDER BY title;
 ```
+
+`<DocumentsTableName>` wird in `SqlDocumentsStore` als validierter Bezeichner (`SqlIdentifierValidator`) direkt in den SQL-Text interpoliert, da Tabellennamen sich nicht als SQL-Parameter binden lassen — die Validierung ist die einzige Absicherung gegen SQL-Injection über einen manipulierten Konfigurationswert.
 
 **Entscheidung: `LIKE '%...%'`, kein SQL Server Full-Text Search.** Ursprünglich war Full-Text Search (`CONTAINSTABLE`/`FREETEXTTABLE`) vorgesehen (natives Ranking). Verworfen, weil Full-Text Search eine separate, nicht auf jeder SQL-Server-Instanz installierte Feature-Komponente voraussetzt — auf der Ziel-Instanz dieses Projekts ist sie nicht vorhanden, und das Tool soll gegen eine Standard-Installation ohne Zusatzvoraussetzungen laufen. `LIKE` braucht kein Setup-Prerequisite, keinen Catalog, keinen Index. `@Pattern` wird in `SqlDocumentsStore.BuildLikePattern` aus der rohen LLM-Eingabe als `%query%` gebaut — anders als bei Full-Text-Such-Syntax kann dabei nichts an Sonderzeichen/Anführungszeichen in der Eingabe scheitern. Kein Ranking: Ergebnisse werden alphabetisch nach `title` sortiert, nicht nach Relevanz.
 
@@ -82,7 +87,7 @@ Der Validator sammelt **alle** Fehler in einem Durchlauf (nicht beim ersten Fehl
 `list_children(null)` auf einer leeren Tabelle liefert eine leere Liste, kein Fehler. `search_docs`/`get_doc` liefern ebenfalls leere/„nicht gefunden"-Antworten statt Exceptions — der MCP-Server darf nie wegen fehlender Daten abstürzen.
 
 ### 4.3 Import-Transaktion & Nebenläufigkeit
-`DELETE FROM dbo.documents` + Neubefüllung laufen in **einer** Transaktion (`BEGIN TRAN` / `COMMIT`). Ein parallel laufender MCP-Server sieht dadurch nie einen halb-geleerten Zustand — SQL Server Standard-Isolationslevel (`READ COMMITTED`) reicht, da die Transaktion die Tabelle für die Dauer des Wipe-and-Dump exklusiv genug behandelt (Lesevorgänge während der Transaktion blockieren kurz oder sehen den alten Stand, abhängig vom Isolationslevel — für v1 ausreichend, kein `SNAPSHOT`-Isolation-Requirement).
+`DELETE FROM dbo.<DocumentsTableName>` + Neubefüllung laufen in **einer** Transaktion (`BEGIN TRAN` / `COMMIT`). Ein parallel laufender MCP-Server sieht dadurch nie einen halb-geleerten Zustand — SQL Server Standard-Isolationslevel (`READ COMMITTED`) reicht, da die Transaktion die Tabelle für die Dauer des Wipe-and-Dump exklusiv genug behandelt (Lesevorgänge während der Transaktion blockieren kurz oder sehen den alten Stand, abhängig vom Isolationslevel — für v1 ausreichend, kein `SNAPSHOT`-Isolation-Requirement).
 
 ### 4.4 Export-Marker-Datei
 * **Zweck:** Verhindert, dass `export` versehentlich ein Fremdverzeichnis (z.B. `C:\Users\...\Documents`) leert.

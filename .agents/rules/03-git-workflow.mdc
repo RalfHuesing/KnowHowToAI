@@ -20,7 +20,7 @@ Dieses Projekt wird agentisch entwickelt: Der Agent arbeitet die Schritte aus [d
 
 **Ein Commit pro abgeschlossenem Roadmap-Schritt** (aus [docs/05-Roadmap.md](../../docs/05-Roadmap.md), Abschnitt "Implementierungs-Reihenfolge"), sobald dieser Schritt baut und — falls zutreffend — grüne Tests hat. Beispiele für einen Commit-Schnitt:
 
-* "SQL-Schema & DbUp-Integration" → ein Commit.
+* "SQL-Schema & Migrations-Runner" → ein Commit.
 * "Domain-Model & Front-Matter-Parser/Validator" → ein Commit (kann bei Bedarf in 2-3 in sich geschlossene, jeweils baubare Teil-Commits aufgeteilt werden, z.B. Parser separat von Validator — aber nicht Datei für Datei).
 
 Nicht erlaubt: mehrere Roadmap-Schritte in einem Commit bündeln, oder einen Schritt über mehrere unzusammenhängende Commits verteilen, die einzeln nicht bauen.

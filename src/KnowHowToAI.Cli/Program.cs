@@ -1,6 +1,4 @@
 using System.CommandLine;
-using DbUp.Engine.Output;
-using KnowHowToAI.Cli.Logging;
 using KnowHowToAI.Cli.McpTools;
 using KnowHowToAI.Core.Configuration;
 using KnowHowToAI.Core.Migrations;
@@ -38,7 +36,7 @@ var targetOption = new Option<string?>("--target")
 var validateCommand = new Command("validate", "Prüft das Docs-Root-Verzeichnis (YAML, Slugs, Hierarchie).") { configOption };
 validateCommand.SetAction(RunValidate);
 
-var importCommand = new Command("import", "Führt DbUp-Migrationen aus und synchronisiert die Docs per Wipe-and-Dump nach SQL Server.") { configOption };
+var importCommand = new Command("import", "Bringt das Schema per SQL-Skripten auf den aktuellen Stand und synchronisiert die Docs per Wipe-and-Dump nach SQL Server.") { configOption };
 importCommand.SetAction(RunImport);
 
 var exportCommand = new Command("export", "Exportiert den DB-Inhalt als .md-Dateien (Marker-Datei-geschützt).") { configOption, targetOption };
@@ -79,16 +77,11 @@ async Task<int> RunImport(ParseResult parseResult, CancellationToken cancellatio
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
         Log.Logger = ConfigureLogger(options.Logging);
-        IUpgradeLog upgradeLog = new SerilogUpgradeLogAdapter(Log.Logger);
 
-        var migrationResult = SchemaMigrator.Migrate(options.ConnectionString, upgradeLog);
-        if (!migrationResult.Successful)
-        {
-            Console.Error.WriteLine($"Schema-Migration fehlgeschlagen: {migrationResult.Error?.Message}");
-            return 2;
-        }
+        await SchemaMigrator.MigrateAsync(
+            options.ConnectionString, options.DocumentsTableName, message => Log.Logger.Information(message), cancellationToken);
 
-        var store = new SqlDocumentsStore(options.ConnectionString);
+        var store = new SqlDocumentsStore(options.ConnectionString, options.DocumentsTableName);
         var importService = new ImportService(store.ReplaceAllAsync, options.Validation.MaxContentLengthWarning);
         var result = await importService.ImportAsync(options.DocsRootPath, cancellationToken);
         return PrintValidationResult(result);
@@ -109,7 +102,7 @@ async Task<int> RunExport(ParseResult parseResult, CancellationToken cancellatio
         var target = parseResult.GetValue(targetOption)
             ?? throw new InvalidOperationException("--target ist erforderlich.");
 
-        var store = new SqlDocumentsStore(options.ConnectionString);
+        var store = new SqlDocumentsStore(options.ConnectionString, options.DocumentsTableName);
         var exportService = new ExportService(store.GetAllAsync);
         await exportService.ExportAsync(target, options.ExportMarkerFileName, cancellationToken);
 
@@ -134,7 +127,7 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
         builder.Logging.ClearProviders();
         builder.Services.AddSerilog(Log.Logger);
         builder.Services.AddSingleton(options);
-        builder.Services.AddSingleton(new SqlDocumentsStore(options.ConnectionString));
+        builder.Services.AddSingleton(new SqlDocumentsStore(options.ConnectionString, options.DocumentsTableName));
         builder.Services.AddMcpServer(o => o.ServerInstructions = DocsMcpResources.ServerInstructions)
             .WithStdioServerTransport()
             .WithToolsFromAssembly()

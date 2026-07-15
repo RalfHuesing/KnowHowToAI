@@ -28,7 +28,7 @@ KnowHowToAI/
 | --- | --- |
 | `Documents/` | Domain-Objekte und alles rund ums Parsen/Rendern eines Dokuments (`Document`, `DocumentSummary`, `DocumentDetail`, `FrontMatterParser`, `SlugRules`) |
 | `Validation/` | `DocsValidator`, `ValidationResult` |
-| `Migrations/` | `SchemaMigrator` (DbUp gegen embedded `sql-scripts/*.sql`) |
+| `Migrations/` | `SchemaMigrator` (eigener Runner gegen embedded `sql-scripts/*.sql`, kein DbUp) |
 | `Sync/` | `ImportService`, `ExportService` (SQL-Zugriff als Delegate von außen, siehe unten), `SqlDocumentsStore` (einziger Ort mit echtem `SqlConnection`/Dapper-Zugriff) |
 | `Configuration/` | `KnowHowToAiOptions` |
 
@@ -37,14 +37,13 @@ KnowHowToAI/
 | Ordner | Zuständigkeit |
 | --- | --- |
 | *(Root)* | `Program.cs` — `System.CommandLine`-Wiring für `validate`/`import`/`export`/`server`, `appsettings.json` |
-| `Logging/` | Adapter zwischen Drittanbieter-Logging-Interfaces (z.B. DbUps `IUpgradeLog`) und Serilog |
 | `McpTools/` | `[McpServerToolType]`-Klassen |
 
 **`KnowHowToAI.Core.Tests`** — testet ausschließlich `Core`, ein Testfile pro getesteter Klasse, gleicher Namensmuster (`{Klasse}Tests.cs`). Keine Integrationstests gegen einen echten SQL Server in v1 (siehe [05-Roadmap.md](05-Roadmap.md)). Zusätzlich `AiNetLinterTests.cs` (siehe Abschnitt 4).
 
 **Wie `ImportService`/`ExportService` ohne SQL Server testbar bleiben:** Beide nehmen den SQL-Zugriff als **Delegate** entgegen (`Func<IReadOnlyList<Document>, CancellationToken, Task>` bzw. `Func<CancellationToken, Task<IReadOnlyList<Document>>>`), nicht als Interface. Ein `IDocumentsRepository`-Interface für eine einzige Implementierung widerspräche [01-code-style.mdc](../.agents/rules/01-code-style.mdc) (das genau dieses Beispiel als verbotene Interface-Wüste nennt); ein Delegate erreicht dieselbe Testbarkeit ohne die zusätzliche Abstraktionsebene — deckt sich mit der in [02-testing.mdc](../.agents/rules/02-testing.mdc) explizit genannten Option "Interface **oder** Delegate". `SqlDocumentsStore` ist die einzige Klasse mit echtem `SqlConnection`/Dapper-Zugriff und wird selbst nicht separat unit-getestet (dünner DB-Adapter, analog zu `SchemaMigrator.Migrate`).
 
-**Schema-Migration ist kein Teil von `ImportService` mehr.** `SchemaMigrator.Migrate(...)` läuft in der Cli-Schicht (Schritt 5) **vor** dem Aufruf von `ImportService.ImportAsync(...)`, nicht innerhalb davon — Migration erfordert zwingend eine echte DB-Verbindung und würde sonst die Testbarkeit von `ImportService` wieder zunichtemachen. Für den Endnutzer ändert sich am dokumentierten Ablauf aus [01-Konzept-und-Workflow.md](01-Konzept-und-Workflow.md#phase-4-synchronisation-wipe-and-dump) nichts: `KnowHowToAI.Cli import` führt weiterhin beide Schritte in der beschriebenen Reihenfolge aus, nur eben als zwei Aufrufe innerhalb desselben Kommandos statt als ein Aufruf.
+**Schema-Migration ist kein Teil von `ImportService` mehr.** `SchemaMigrator.MigrateAsync(...)` läuft in der Cli-Schicht (Schritt 5) **vor** dem Aufruf von `ImportService.ImportAsync(...)`, nicht innerhalb davon — Migration erfordert zwingend eine echte DB-Verbindung und würde sonst die Testbarkeit von `ImportService` wieder zunichtemachen. Für den Endnutzer ändert sich am dokumentierten Ablauf aus [01-Konzept-und-Workflow.md](01-Konzept-und-Workflow.md#phase-4-synchronisation-wipe-and-dump) nichts: `KnowHowToAI.Cli import` führt weiterhin beide Schritte in der beschriebenen Reihenfolge aus, nur eben als zwei Aufrufe innerhalb desselben Kommandos statt als ein Aufruf.
 
 ---
 
@@ -59,6 +58,7 @@ KnowHowToAI/
   "KnowHowToAi": {
     "DocsRootPath": "C:\\Daten\\Entwicklung\\Ralf\\KnowHowToAI\\demo-docs",
     "ConnectionString": "Server=%COMPUTERNAME%\\MSSQLSERVER2022;Database=DemoDB;User Id=Agent;Password=Agent!;TrustServerCertificate=True;",
+    "DocumentsTableName": "documents",
     "ExportMarkerFileName": ".knowhowtoai-export-marker.json",
     "Logging": {
       "MinimumLevel": "Information",
@@ -72,6 +72,7 @@ KnowHowToAI/
 }
 ```
 
+* **`DocumentsTableName`** (Default `documents`): Name der SQL-Server-Tabelle, gegen die `SchemaMigrator` und `SqlDocumentsStore` arbeiten (Schema `dbo`, siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#1-sql-skripte-sql-scripts)). Frei umbenennbar pro Config — ermöglicht mehrere thematisch getrennte Wissensbibliotheken (z.B. Sage-100-Doku, HR, ein Kundenprojekt) als eigene Tabellen in derselben oder unterschiedlichen Datenbanken, jede über einen eigenen MCP-Server-Prozess mit eigener `--config` angesprochen. Nur Buchstaben, Ziffern und Unterstrich erlaubt, kein führendes Ziffernzeichen (`SqlIdentifierValidator`, Kern-Absicherung gegen SQL-Injection über den Wert, da Tabellennamen nicht als SQL-Parameter gebunden werden können).
 * **`Logging`** (`KnowHowToAiLoggingOptions`): steuert die Serilog-Datei-Rotation — `MinimumLevel` (`Serilog.Events.LogEventLevel`-Name), `RollingInterval` (`Serilog.RollingInterval`-Name, z.B. `Day`), `RetainedFileCountLimit` (Anzahl aufbewahrter Dateien). Bewusst konfigurierbar statt hartcodiert, siehe [06-configuration.mdc](../.agents/rules/06-configuration.mdc). `Program.ConfigureLogger` baut damit den Serilog-Logger direkt nach `LoadOptions` neu auf (ein kurzlebiger Bootstrap-Logger mit denselben Defaults deckt die Zeitspanne davor ab, z.B. falls `LoadOptions` selbst fehlschlägt).
 * **`Validation`** (`KnowHowToAiValidationOptions`): `MaxContentLengthWarning` — Zeichen-Schwelle, ab der `validate` ein zu großes Einzeldokument nur als Warnung meldet (Exit-Code bleibt 0), siehe [04, Edge Case 4.6](04-Datenmodell-Validierung-Edgecases.md#46-sehr-große-dokumente).
 
