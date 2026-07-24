@@ -54,7 +54,7 @@ public sealed partial class DocsValidator(int maxContentLengthWarning = 8000)
             }
         }
 
-        return new ValidationResult { Errors = errors, Warnings = warnings };
+        return new ValidationResult(errors, warnings);
     }
 
     // Erkennt Datei-/Pfad-Referenzen statt Slug-Referenzen: file://-Links und Links auf .md/.markdown

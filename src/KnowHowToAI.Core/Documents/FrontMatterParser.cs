@@ -30,15 +30,13 @@ public sealed class FrontMatterParser
             throw new InvalidOperationException($"Front Matter von '{slug}' enthält kein 'title'.");
         }
 
-        return new Document
-        {
-            Slug = slug,
-            ParentSlug = SlugRules.GetParentSlug(slug),
-            Title = frontMatter.Title,
-            Content = content,
-            Tags = frontMatter.Tags ?? [],
-            Synonyms = frontMatter.Synonyms ?? [],
-        };
+        return new Document(
+            slug,
+            frontMatter.Title,
+            content,
+            SlugRules.GetParentSlug(slug),
+            frontMatter.Tags ?? [],
+            frontMatter.Synonyms ?? []);
     }
 
     public string Render(Document document)

@@ -102,15 +102,13 @@ public sealed class SqlDocumentsStore
             cancellationToken: cancellationToken));
     }
 
-    private static Document ToDocument(DocumentRow row) => new()
-    {
-        Slug = row.Slug,
-        ParentSlug = SlugRules.GetParentSlug(row.Slug),
-        Title = row.Title,
-        Content = row.Content,
-        Tags = row.Tags is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Tags)!,
-        Synonyms = row.Synonyms is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Synonyms)!,
-    };
+    private static Document ToDocument(DocumentRow row) => new(
+        row.Slug,
+        row.Title,
+        row.Content,
+        SlugRules.GetParentSlug(row.Slug),
+        row.Tags is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Tags)!,
+        row.Synonyms is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Synonyms)!);
 
     private sealed record DocumentRow(string Slug, string Title, string Content, string? Tags, string? Synonyms);
 }

@@ -2,9 +2,9 @@ namespace KnowHowToAI.Core.Validation;
 
 public sealed record ValidationError(string FilePath, string Reason);
 
-public sealed class ValidationResult
+public sealed record ValidationResult(
+    IReadOnlyList<ValidationError> Errors,
+    IReadOnlyList<ValidationError> Warnings)
 {
-    public IReadOnlyList<ValidationError> Errors { get; init; } = [];
-    public IReadOnlyList<ValidationError> Warnings { get; init; } = [];
     public bool IsValid => Errors.Count == 0;
 }

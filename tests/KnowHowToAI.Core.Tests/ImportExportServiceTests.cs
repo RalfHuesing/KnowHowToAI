@@ -71,7 +71,7 @@ public class ExportServiceTests : IDisposable
     [Fact]
     public async Task ExportAsync_NewTargetDirectory_CreatesMarkerAndWritesDocuments()
     {
-        var document = new Document { Slug = "it/netzwerk", Title = "Netzwerk", Content = "Inhalt.", Tags = ["a"] };
+        var document = new Document("it/netzwerk", "Netzwerk", "Inhalt.", ParentSlug: "it", Tags: ["a"], Synonyms: []);
         var service = new ExportService((_) => Task.FromResult<IReadOnlyList<Document>>([document]));
 
         await service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken);
@@ -94,7 +94,7 @@ public class ExportServiceTests : IDisposable
         var staleFile = Path.Combine(_targetDirectory, "veraltet.md");
         await File.WriteAllTextAsync(staleFile, "alt", TestContext.Current.CancellationToken);
 
-        var document = new Document { Slug = "neu", Title = "Neu", Content = "Inhalt." };
+        var document = new Document("neu", "Neu", "Inhalt.", null, [], []);
         var service = new ExportService((_) => Task.FromResult<IReadOnlyList<Document>>([document]));
 
         await service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken);
