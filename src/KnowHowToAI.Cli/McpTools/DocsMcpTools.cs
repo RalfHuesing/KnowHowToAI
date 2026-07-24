@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Text.Json;
 using KnowHowToAI.Core.Documents;
+using KnowHowToAI.Core.Logging;
 using KnowHowToAI.Core.Sync;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
@@ -8,8 +8,6 @@ using ModelContextProtocol.Server;
 namespace KnowHowToAI.Cli.McpTools;
 
 // Die drei MCP-Tools des Servers. SQL-Details: docs/02-Architektur-und-Techstack.md, Abschnitt 4.D.
-// Jeder Aufruf loggt Tool-Name + Parameter sowie die Größe der Antwort in Bytes (nicht deren
-// Inhalt) — Sichtbarkeit für den Betreiber ohne SQL Profiler, siehe docs/02, Abschnitt 4.D.
 [McpServerToolType]
 public sealed class DocsMcpTools(SqlDocumentsStore store, ILogger<DocsMcpTools> logger)
 {
@@ -18,7 +16,7 @@ public sealed class DocsMcpTools(SqlDocumentsStore store, ILogger<DocsMcpTools> 
     {
         logger.LogInformation("list_children(parentSlug={ParentSlug})", parentSlug);
         var result = await store.ListChildrenAsync(parentSlug, cancellationToken);
-        LogResponseSize("list_children", result);
+        logger.LogInformation("list_children response: {Size}", ResponseSize.Measure(result));
         return result;
     }
 
@@ -27,7 +25,7 @@ public sealed class DocsMcpTools(SqlDocumentsStore store, ILogger<DocsMcpTools> 
     {
         logger.LogInformation("search_docs(query={Query})", query);
         var result = await store.SearchDocsAsync(query, cancellationToken);
-        LogResponseSize("search_docs", result);
+        logger.LogInformation("search_docs response: {Size}", ResponseSize.Measure(result));
         return result;
     }
 
@@ -36,10 +34,7 @@ public sealed class DocsMcpTools(SqlDocumentsStore store, ILogger<DocsMcpTools> 
     {
         logger.LogInformation("get_doc(slug={Slug})", slug);
         var result = await store.GetDocAsync(slug, cancellationToken);
-        LogResponseSize("get_doc", result);
+        logger.LogInformation("get_doc response: {Size}", ResponseSize.Measure(result));
         return result;
     }
-
-    private void LogResponseSize<T>(string toolName, T response) =>
-        logger.LogInformation("{ToolName} response: {ByteCount} bytes", toolName, JsonSerializer.SerializeToUtf8Bytes(response).Length);
 }
