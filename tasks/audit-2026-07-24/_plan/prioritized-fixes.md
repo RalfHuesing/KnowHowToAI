@@ -113,7 +113,16 @@ lösen *Klassen* von Problemen, nicht Einzelfälle.
 **Impact:** DoS-Vektor geschlossen. LLM kann nicht mehr via `%`/`_`/`[`/`\`
 amplifizieren. Längen-Cap schützt vor Memory-Issues.
 
-**Konkrete Schritte:**
+**Tatsächliche Umsetzung (Commit `27570cd`):** `Document` und `ValidationResult`
+als positional records. `required`-Keyword entfernt (Begründung: C# 14 erlaubt
+required nur als Property-Modifier, positional-ctor-Params sind ohnehin required).
+Alle 5 Aufrufer auf positional ctor umgestellt. Verifier hatte zwei
+Nicht-FAIL-Findings: (a) Record-Equality für `IReadOnlyList<T>` ist per Referenz,
+(b) `Tags`/`Synonyms` können null sein. Beides im App-Kontext irrelevant: kein
+Aufrufer vergleicht Document-Instanzen via Equals/==, und die zwei Aufrufer von
+Document liefern konsistent non-null. Status Quo akzeptiert. 55 Tests grün.
+
+**Konkrete Schritte (verbleibend, F-CQ-003):**
 1. `KnowHowToAiOptions.Search.MaxQueryLength` (Default 200) hinzufügen
 2. `SearchDocsAsync` validiert + escaped
 3. `BuildLikePattern` schreibt auf Escaped-Form
