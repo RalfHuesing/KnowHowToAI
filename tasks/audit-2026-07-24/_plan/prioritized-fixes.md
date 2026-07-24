@@ -5,23 +5,34 @@
 > Konvention. (b) Bei Gleichstand: weniger Dependencies zwischen Fixes = früher.
 > (c) Bei weiterem Gleichstand: weniger Dateien anfasst = früher.
 
+## Status-Legende
+
+- ✅ = umgesetzt + committed (siehe Commit-Hash in Klammern)
+- 🚧 = in Bearbeitung
+- ⏭️ = bewusst übersprungen
+- ⬜ = offen
+
 ## Sofort (≤ 30 Min, hoher Impact)
 
 Diese Fixes sind klein genug für einen einzelnen Commit und haben entweder
 Sicherheits- oder Performance-Impact, der pro Tool-Aufruf oder pro Log-Zeile spürbar ist.
 
-### Fix #1 — F-PE-001: Doppelte JSON-Serialisierung in `LogResponseSize` eliminieren
+### Fix #1 — ✅ F-PE-001: Doppelte JSON-Serialisierung in `LogResponseSize` eliminieren (`d262095`)
 
 **Schweregrad:** High · **Aufwand:** ~20 Min · **Commit-Granularität:** 1 Commit
 **Impact:** Alle Tool-Aufrufe werden schneller; bei großen `get_doc`-Antworten
 sparen wir 100% der Serialisierungs-Zeit (siehe `_findings/F-PE-001-double-json-serialize.md`).
 
 **Konkrete Schritte:**
-1. `MeasureResponseSize<T>(T response)` Helper in `DocsMcpTools` hinzufügen
-2. Drei `LogResponseSize`-Aufrufe auf direkten `MeasureResponseSize`-Call umstellen
-3. `LogResponseSize` löschen
-4. `docs/02` Zeile 120 (F-DK-001) anpassen: "Größe wird als Item-Count bzw.
-   Content-Länge geloggt"
+1. `Measure<T>(T response)` Helper nach `src/KnowHowToAI.Core/Logging/ResponseSize.cs` extrahieren
+2. Drei `LogResponseSize`-Aufrufe in `DocsMcpTools.cs` auf `ResponseSize.Measure(result)` umstellen
+3. Lokalen `LogResponseSize<T>`-Helper + `using System.Text.Json;` löschen
+4. `docs/02` Zeile 120 (F-DK-001) anpassen
+5. Tests in `tests/KnowHowToAI.Core.Tests/ResponseSizeTests.cs` (6 Cases)
+
+**Tatsächliche Umsetzung (Commit `d262095`):** Wie geplant + Regel-Disput mit
+`02-testing.mdc` (Switch-Expression mit 4 Cases ist "eigene Logik", muss nach Core)
+per Refactor aufgelöst. Helper lebt jetzt in Core, 6 Tests dazu, 49 → 55 grün.
 
 **Geschätzte Latenz-Reduktion pro Tool-Call:**
 - 1 KB: vernachlässigbar
