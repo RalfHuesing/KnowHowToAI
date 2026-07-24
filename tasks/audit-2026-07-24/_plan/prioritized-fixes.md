@@ -89,7 +89,26 @@ Aufrufen konsistente Ergebnisse.
 
 ---
 
-### Fix #5 — F-CQ-003: Defensive `JsonSerializer.Deserialize`
+### Fix #2 — ✅ F-CQ-001/002: `Document` und `ValidationResult` als sealed records (`27570cd`)
+
+**Schweregrad:** High (F-CQ-001) + Medium (F-CQ-002, im selben Commit gelöst)
+**Aufwand:** ~10 Min · **Commit-Granularität:** 1 Commit
+**Impact:** Konsistenz mit den anderen Domain-Records (`DocumentSummary`,
+`DocumentDetail`, `ValidationError`, `SqlScript`, `DocumentRow`,
+`FrontMatterData`). Records liefern implizites `sealed`, `Equals`/`GetHashCode`
+per Property (für Wert-Type-Props), `ToString()` mit Property-Liste,
+`with`-Expression.
+
+**Tatsächliche Umsetzung (Commit `27570cd`):** `Document` und `ValidationResult`
+als positional records. `required`-Keyword entfernt (Begründung: C# 14 erlaubt
+required nur als Property-Modifier, positional-ctor-Params sind ohnehin required).
+Alle 5 Aufrufer auf positional ctor umgestellt. Verifier hatte zwei
+Nicht-FAIL-Findings: (a) Record-Equality für `IReadOnlyList<T>` ist per Referenz,
+(b) `Tags`/`Synonyms` können null sein. Beides im App-Kontext irrelevant: kein
+Aufrufer vergleicht Document-Instanzen via Equals/==, und die zwei Aufrufer von
+Document liefern konsistent non-null. Status Quo akzeptiert. 55 Tests grün.
+
+### Fix #3 — F-CQ-003: Defensive `JsonSerializer.Deserialize`
 
 **Schweregrad:** Medium · **Aufwand:** ~10 Min · **Commit-Granularität:** 1 Commit
 **Impact:** Wenn DB-Daten verbogen sind, gibt `export` eine leere Liste zurück
