@@ -268,19 +268,18 @@ automatisch obsolet (Doku muss aktualisiert werden).
 
 ---
 
-### Fix #15 — F-DK-002 bis F-DK-006: Doku-Lücken schließen
+### Fix #15 — F-DK-005 bis F-DK-008: Doku-Lücken schließen (Rest nach Prio-B-Extraktion)
 
-**Schweregrad:** Medium · **Aufwand:** ~30 Min total
+**Schweregrad:** Medium · **Aufwand:** ~15 Min total
 **Impact:** Vollständigere Doku. Konsistenter mit Code.
 
+**Hinweis:** F-DK-002, F-DK-003, F-DK-004 sind in Prio B extrahiert (siehe `tasks/audit-2026-07-24-PrioB/Konzept.md`).
+
 **Konkrete Schritte:**
-1. F-DK-002: `ServerInstructions` zitieren
-2. F-DK-003: Service-Konstruktion in `Program.cs` dokumentieren
-3. F-DK-004: `SchemaMigrator` Transaktions-Verlust
-4. F-DK-005: Preview-Dependencies
-5. F-DK-006: `TrustServerCertificate=True` erklären
-6. F-DK-007: `Microsoft.Data.SqlClient 7.0` Breaking Changes
-7. F-DK-008: `authoring-guide` Slug-Beispiele
+1. F-DK-005: Preview-Dependencies (wird ggf. mit F-DP-001 in Brocken B kombiniert)
+2. F-DK-006: `TrustServerCertificate=True` erklären
+3. F-DK-007: `Microsoft.Data.SqlClient 7.0` Breaking Changes
+4. F-DK-008: `authoring-guide` Slug-Beispiele (per Audit "kein Handlungsbedarf")
 
 **Commit:** Ein einzelner Doku-Commit.
 
@@ -328,7 +327,7 @@ notwendigen Reviews + Diskussionen.
 10. F-DP-001 (Preview-Dependencies) — Dependency-Update
 11. F-PE-002 (TOP-Cap) — Performance
 12. F-TS-001 (SQL-Tests) — Test-Infrastruktur
-13. Doku-Commit (F-DK-001 bis F-DK-008) — als finaler Polish
+13. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
 ```
 
 **Optional, separate Commits:**

@@ -36,11 +36,11 @@ AiNetLinter meldet 0 Verstöße, Doku ist umfangreich und konsistent mit dem Cod
 | Schweregrad | Anzahl | Prozent |
 | --- | --- | --- |
 | **Critical** | 0 | 0% |
-| **High** | 10 | 12% |
-| **Medium** | 26 | 31% |
-| **Low** | 21 | 25% |
-| **Info** | 28 | 33% |
-| **Gesamt** | **85 Findings** | 100% |
+| **High** | 10 | 13% |
+| **Medium** | 19 | 25% |
+| **Low** | 20 | 26% |
+| **Info** | 28 | 36% |
+| **Gesamt** | **77 Findings** | 100% |
 
 *(Zahlen aus allen 9 Dimensions-Dateien summiert; `_demo-docs/`-Mini-Audit
 ausgenommen, da nicht durch den vollen Filter.)*
@@ -53,11 +53,11 @@ ausgenommen, da nicht durch den vollen Filter.)*
 | 2 | Sicherheit (MCP-Attack-Surface) | [02-security.md](02-security.md) | 1 | 4 | 3 | 1 |
 | 3 | Architektur & Patterns | [03-architecture.md](03-architecture.md) | 2 | 3 | 2 | 3 |
 | 4 | Test-Coverage & -Qualität | [04-tests.md](04-tests.md) | 1 | 4 | 6 | 1 |
-| 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 1 | 4 | 2 | 5 |
+| 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 1 | 1 | 3 | 4 |
 | 6 | Konfiguration & Deployment | [06-config-deploy.md](06-config-deploy.md) | 1 | 5 | 2 | 3 |
 | 7 | Dependencies & NuGets | [07-dependencies.md](07-dependencies.md) | 1 | 3 | 2 | 2 |
 | 8 | Performance / SQL-Effizienz | [08-performance.md](08-performance.md) | 2 | 5 | 1 | 1 |
-| 9 | MCP-Tool-API-Qualität | [09-mcp-tool-api.md](09-mcp-tool-api.md) | 1 | 4 | 2 | 3 |
+| 9 | MCP-Tool-API-Qualität | [09-mcp-tool-api.md](09-mcp-tool-api.md) | 1 | 0 | 1 | 3 |
 
 ## Top 5 High-Findings (in Reihenfolge der Wichtigkeit)
 
@@ -118,7 +118,7 @@ tasks/audit-2026-07-24/
 │   ├── F-PE-001-double-json-serialize.md
 │   └── F-AR-002-core-services-without-logger.md
 ├── _plan/                              # Priorisierter Plan
-│   ├── prioritized-fixes.md            # 15 Fixes in Reihenfolge (F-SE-002 gestrichen)
+│   ├── prioritized-fixes.md            # Rest nach Prio A + Prio B Extraktion
 │   └── nice-to-haves.md                # Low-Priority + Backlog
 ├── _demo-docs/                         # Separater Mini-Audit
 │   └── findings.md
@@ -126,6 +126,10 @@ tasks/audit-2026-07-24/
 ├── _meta-test.log                      # Test-Baseline
 └── _meta-lint.log                      # Linter-Baseline
 ```
+
+> **Hinweis:** Findings sind inzwischen in zwei separate Prio-Ordner extrahiert:
+> - [`../audit-2026-07-24-PrioA/Konzept.md`](../audit-2026-07-24-PrioA/Konzept.md) — 5 Prio-A-Findings (umgesetzt)
+> - [`../audit-2026-07-24-PrioB/Konzept.md`](../audit-2026-07-24-PrioB/Konzept.md) — 7 Tool-UX & Doku-Polish-Findings
 
 ## Empfohlene Reihenfolge für den Projektverantwortlichen
 

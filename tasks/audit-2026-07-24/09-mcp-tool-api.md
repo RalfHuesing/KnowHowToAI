@@ -23,11 +23,6 @@
 | ID | Schwere | Titel | Datei:Zeile |
 | --- | --- | --- | --- |
 | [F-MC-001](#f-mc-001) | **High** | Tool-Description-Qualität: `list_children`/`search_docs`/`get_doc` beschreiben das *Was*, aber nicht das *Wann-nicht* (Edge-Cases) oder die Fehler-Semantik — LLM trifft falsche Entscheidungen | `McpTools/DocsMcpTools.cs:16, 25, 34` |
-| [F-MC-002](#f-mc-002) | Medium | Keine Tool-Beispiele in den Descriptions — LLM-UX-Best-Practice ist, ein konkretes Beispiel-Argument + Beispiel-Output in der Description zu zeigen | `McpTools/DocsMcpTools.cs:16, 25, 34` |
-| [F-MC-003](#f-mc-003) | Medium | `ServerInstructions` ist `static const string`, nicht zentral dokumentiert — bei Änderungen fehlt die LLM-UX-Wirksamkeits-Validierung | `McpTools/DocsMcpResources.cs:11-14` |
-| [F-MC-004](#f-mc-004) | Medium | `get_doc` mit `DocumentDetail?` (nullable) ist semantisch korrekt, aber: der `null`-Fall ist in der Description nicht erwähnt — LLM weiß nicht, ob es "nicht gefunden" als Fehler oder als leere Antwort interpretieren soll | `McpTools/DocsMcpTools.cs:34` |
-| [F-MC-005](#f-mc-005) | Medium | `DocsMcpResources.authoring-guide` erwähnt keine Längen-Empfehlung für Einzeldokumente (`MaxContentLengthWarning` ist in `appsettings.json` und Validator, aber im LLM-Guide nicht erwähnt) | `McpTools/DocsMcpResources.cs:20-57` |
-| [F-MC-006](#f-mc-006) | Low | Tool-Namen-Konvention (snake_case) wird in keiner Doku-Datei als Konvention festgehalten — wenn ein viertes Tool hinzukommt, gibt es keine Anleitung | `McpTools/DocsMcpTools.cs:16, 25, 34` |
 | [F-MC-007](#f-mc-007) | Low | `CancellationToken` wird vom SDK durchgereicht, aber: das LLM hat keine Cancellation-Controls — bei langlaufenden Queries (F-PE-005 LIKE-Index-Scan) kann das LLM nicht abbrechen | `McpTools/DocsMcpTools.cs:17, 26, 35` |
 | [F-MC-008](#f-mc-008) | Info | `DocumentSummary` und `DocumentDetail` als Return-Typen sind saubere DTOs — SDK generiert daraus das JSON-Schema | `Documents/DocumentSummary.cs`, `Documents/DocumentDetail.cs` |
 | [F-MC-009](#f-mc-009) | Info | `ServerInstructions` setzt den MCP-Standard-Konventionen entsprechend (kurz, Tool-Liste, Workflow-Hint) | `McpTools/DocsMcpResources.cs:11-14` |
@@ -114,124 +109,6 @@ Plus für `search_docs` und `get_doc` analog.
 
 ---
 
-### F-MC-002 — Keine Tool-Beispiele in den Descriptions
-
-**Schweregrad:** Medium (LLM-UX)
-
-**Beobachtung:** Die aktuellen Descriptions sind *Definitionen*, nicht *Anleitungen*.
-LLMs verarbeiten Beispiele oft besser als abstrakte Beschreibungen.
-
-**Beispiel-Pattern (für LLM-UX):**
-```json
-// list_children(parentSlug="it")
-[
-  {"slug": "it/netzwerk", "title": "Netzwerk"},
-  {"slug": "it/security", "title": "Security"}
-]
-```
-
-Wenn das in der Description steht, hat das LLM ein konkretes Format-Verständnis und
-muss nicht raten.
-
-**Fix-Empfehlung:** Pro Tool ein konkretes JSON-Beispiel in der Description. Die
-Beispiele sollten *valide* sein (syntaktisch und semantisch), sonst verwirrt das LLM
-mehr als es hilft.
-
-**Aufwand:** ~20 Minuten.
-
----
-
-### F-MC-003 — `ServerInstructions` zentral undokumentiert
-
-**Schweregrad:** Medium (Änderungs-Risiko)
-
-**Beobachtung:** Siehe F-DK-002 in Dim 5. Hier nochmal aus API-Perspektive:
-
-`ServerInstructions` ist die *Eingangstür* für jedes verbundene LLM. Bei Änderungen
-(z.B. neuer Workflow-Schritt, geänderte Tool-Liste) gibt es keinen Test, keinen
-Review-Prozess, keine Dokumentation, die die LLM-UX-Wirksamkeit prüft.
-
-**Fix-Empfehlung:**
-1. In `docs/02` (oder einer neuen `docs/06-LLM-UX.md`): den konkreten Wortlaut
-   dokumentieren + Wirkungs-Achsen (Länge, Vokabular, Tool-Reihenfolge) festhalten.
-2. Optional: Ein Smoke-Test, der `ServerInstructions` in einen LLM-Prompt einfügt
-   und prüft, ob das LLM die Tools korrekt benennt (zu aufwendig für Unit-Test,
-   aber als Doku-Anforderung sinnvoll).
-
-**Aufwand:** ~5 Minuten (Doku).
-
----
-
-### F-MC-004 — `null`-Semantik für `get_doc` undokumentiert
-
-**Schweregrad:** Medium (Edge-Case, LLM-UX)
-
-**Beobachtung:**
-`GetDocAsync` returnt `DocumentDetail?` (nullable). Die Description sagt das nicht
-explizit. LLMs neigen dazu, `null` als Fehler zu interpretieren und in eine
-Fehlerbehandlungs-Schleife zu gehen.
-
-**Beispiel-Schleife (häufig in LLM-Logs beobachtet):**
-```
-LLM: get_doc(slug="foo")
-Tool: null
-LLM: "foo existiert nicht. Ich versuche foo-bar."
-LLM: get_doc(slug="foo-bar")
-Tool: null
-LLM: "..."
-```
-
-Mit klarer Description würde das LLM frühzeitig aufhören:
-```csharp
-[Description("""
-    Lädt Titel und Inhalt eines einzelnen Dokuments.
-
-    Returnt null, wenn der Slug nicht existiert (kein Fehler, einfach nicht da).
-    Das LLM soll dann einen anderen Slug probieren oder die Anfrage abbrechen.
-    """)]
-```
-
-**Fix:** In die Description explizit "Returnt null bei unbekanntem Slug" einbauen.
-
-**Aufwand:** ~5 Minuten.
-
----
-
-### F-MC-005 — `authoring-guide` Length-Warning fehlt
-
-**Schweregrad:** Medium (LLM-UX)
-
-**Beobachtung:** Der `authoring-guide` (Resource) lehrt LLMs, neue Doku zu schreiben.
-Aber: er erwähnt nicht, dass zu lange Doku problematisch ist (`MaxContentLengthWarning`
-in appsettings.json + Validator). Ein LLM, das einen 50-KB-Block als ein Doc schreibt,
-bekommt beim nächsten `validate` eine Warning, aber das LLM weiß nicht warum.
-
-**Fix-Empfehlung:** Im `authoring-guide` einen kurzen Hinweis:
-> "Einzeldokumente sollten idealerweise unter 8.000 Zeichen bleiben (Schwelle
-> konfigurierbar in appsettings.json). Längere Inhalte sind möglich, aber das LLM
-> bekommt sie in `get_doc` als *ganzen* Content — Token-Budget!"
-
-**Aufwand:** ~5 Minuten.
-
----
-
-### F-MC-006 — Tool-Naming-Konvention undokumentiert
-
-**Schweregrad:** Low (Prozess-Frage)
-
-**Beobachtung:** Die drei Tools heißen `list_children`, `search_docs`, `get_doc`
-— snake_case, alle mit Verb im Imperativ. Das ist MCP-Standard, aber nirgends im
-Repo dokumentiert.
-
-**Fix-Empfehlung:** Kurzer Absatz in `docs/02`:
-> "MCP-Tool-Namen: snake_case, Verb im Imperativ. Beispiele: `list_children`,
-> `search_docs`, `get_doc`. Beim Hinzufügen eines neuen Tools: Name mit Doku
-> abgleichen."
-
-**Aufwand:** ~2 Minuten.
-
----
-
 ### F-MC-007 — Cancellation für LLM nicht exposed
 
 **Schweregrad:** Low (MCP-Standard-Limit, nicht behebbar)
@@ -276,14 +153,12 @@ den Cold-Start-Fall ab. Alles positive Bestätigungen, kein Handlungsbedarf.
 
 ## Zusammenfassung Dim 9
 
-- **10 Findings**, davon 1 × High, 4 × Medium, 2 × Low, 3 × Info.
+- **5 Findings** (nach Brocken A-Extraktion), davon 1 × High, 0 × Medium, 1 × Low, 3 × Info.
 - **Hauptthema:** Die Tool-Descriptions sind *technisch* korrekt (das MCP-SDK akzeptiert
   sie so), aber *funktional* unzureichend für LLM-Konsumenten. Ein LLM kann mit den
   aktuellen Descriptions die Tools *aufrufen*, aber nicht *optimal aufrufen*.
-- **Quick Win:** F-MC-001 (Description-Ausbau) ist die wichtigste einzelne Verbesserung.
-  Mit 30 Minuten Aufwand werden die drei Tools deutlich LLM-tauglicher.
-- **Mittel- bis langfristig:** F-MC-002 (Beispiele), F-MC-003 (`ServerInstructions`
-  dokumentieren), F-MC-004 (`null`-Semantik) sind die nächsten Schritte.
+- **Quick Win:** F-MC-001 ist in Prio A (umgesetzt). F-MC-002 bis F-MC-006 sind in Prio B extrahiert (Tool-UX & Doku-Polish).
+- **Mittel- bis langfristig:** F-MC-007 (Cancellation) bleibt im Audit als „akzeptiert, MCP-Spec-Limit" dokumentiert; keine offene Maßnahme.
 - **Insgesamt:** Das API-Design ist sauber (klare Typen, korrekte Nullable-Annotationen,
   idiomatische Tool-Namen). Was fehlt, ist die Doku-Schicht, die LLMs brauchen, um
   die Tools *gut* zu benutzen.
