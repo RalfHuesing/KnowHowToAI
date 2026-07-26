@@ -1,0 +1,41 @@
+---
+description: Betriebssystem- & Shell-Vorgaben für KnowHowToAI — Windows-Umgebung, PowerShell 7 (pwsh) und Verbot von Linux/Bash-Syntax
+globs:
+alwaysApply: true
+---
+
+# Betriebssystem & Shell-Umgebung
+
+**Ziel:** Verhindern von Befehlsfehlern durch inkompatible Linux/Bash-Syntax in Terminal- und Tool-Befehlen. Die Entwicklung und Ausführung dieses Projekts erfolgt unter Windows mit PowerShell 7.
+
+## Systemumgebung & Werkzeuge
+
+* **Betriebssystem:** Windows
+* **Standard-Shell:** PowerShell 7 (`pwsh`), **nicht** Linux Bash/sh/zsh und **nicht** klassische `cmd.exe`.
+* **Verfügbare CLI-Tools:**
+  * `.NET 10 CLI` (`dotnet build`, `dotnet test`, `dotnet run`)
+  * `PowerShell 7` (`pwsh`)
+  * `ripgrep` (`rg`) für schnelle Text-/Dateisuche
+  * `git` für Versionskontrolle
+  * `python`
+  * `node`
+
+## Verbot von Linux/Bash-Syntax (Verbindliche Regeln)
+
+In `run_command` und allen Terminal-Befehlen dürfen **keine Linux- oder Bash-Spezifika** verwendet werden:
+
+* **Kein `&&` oder `||` für Bash-Befehlsketten:** Befehle nicht im Bash-Stil verketten. Nutze stattdessen separate Werkzeugaufrufe oder explizite PowerShell-Strukturen (z.B. `;` oder `; if ($?) { ... }`).
+* **Keine Linux-Befehle oder POSIX-Utilities:**
+  * **Verboten:** `cat`, `grep`, `export VAR=val`, `ls -la`, `touch`, `rm -rf`, `which`, `head`, `tail`, `find`, Redirection nach `/dev/null`, Subshells `$(...)`.
+  * **Erlaubt / Bevorzugt:**
+    * Suche in Dateien: `rg` (ripgrep) statt `grep`
+    * Dateiinhalt anzeigen/lesen: PowerShell-Cmdlets (`Get-Content`) oder passende Agenten-Tools (`view_file`)
+    * Datei/Ordner löschen: `Remove-Item -Recurse -Force`
+    * Umgebungsvariablen setzen: `$env:VAR = "wert"`
+    * Pfadprüfungen: `Test-Path`
+    * Bauen/Testen: `dotnet build`, `dotnet test`
+
+## Pfadangaben & Pfadtrenner
+
+* Verwende Windows-Pfadtrenner (`\`) oder PowerShell-kompatible Schrägstriche (`/`).
+* Absolute Pfade auf Windows beginnen mit Laufwerksbuchstaben (z.B. `C:\Daten\...`).
