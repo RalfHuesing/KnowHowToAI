@@ -3,7 +3,7 @@ status: executing  # executing | done | aborted
 task: audit-2026-07-24-PrioA
 started_at: 2026-07-26T17:52:53+02:00
 last_updated: 2026-07-26T17:52:53+02:00
-total_fix_rounds: 0  # Summe aller Fix-Runden über alle Steps (Task-weiter Not-Anker, siehe Config)
+total_fix_rounds: 1  # Summe aller Fix-Runden über alle Steps (Task-weiter Not-Anker, siehe Config)
 current_step: step-001
 ---
 
@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-002` (done (pending audit)) — Auditer ausstehend
+- **Aktueller Schritt:** `step-002` (done (fix-01 pending)) — Auditer-Verdict: issues, Fix-Step wird angelegt
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -26,7 +26,7 @@ current_step: step-001
 | Step | Status | Title | Fix-Runden | Coded | Reviewed | Commit |
 |------|--------|-------|------------|-------|----------|--------|
 | step-001 | done | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | `b97eae7` | approved | `0366828` |
-| step-002 | done (pending audit) | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 0/3 | `a9e4140` | - | - |
+| step-002 | done (fix-01 pending) | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 0/3 → 1/3 | `a9e4140` | issues | - |
 | step-003 | open | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | - | - | - |
 | step-004 | open | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 | - | - | - |
 | step-005 | open | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
@@ -51,6 +51,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T18:16:00+02:00 — step-001: review-commit-hash in History nachtragen, Commit `929b389`
 - 2026-07-26T18:30:00+02:00 — step-002: open → in_progress (coder-Aufruf gestartet)
 - 2026-07-26T18:45:00+02:00 — step-002: in_progress → done (pending audit), Code-Commit `a9e4140`, Doku-Commit `03a6ff6`. Build grün, 72 Tests grün (65 + 7 neue), AiNetLinter 0 neue Verstöße. Coder-Abweichungen (im step-result dokumentiert): (a) `DocsMcpTools.cs` + `Program.cs` mit-aktualisiert (Plan hatte das nicht gelistet, aber Build würde sonst brechen — nötig wegen `int`-Primitive-Parameter im `DocsMcpTools`-Primary-Constructor, der nicht zuverlässig via `ActivatorUtilities` aufgelöst wird); (b) Plan-Tippfehler in einer Test-Erwartung korrigiert; (c) Commit-Subject 76 Zeichen (4 über Plan-DoD-Grenze ≤ 72).
+- 2026-07-26T19:55:00+02:00 — step-002: auditer-Verdict `issues` → fix-01 angelegt. Findings: (1) `BuildLikePatternTests.cs:5` triggert AiNetLinter `AvoidExcessiveMiddleMen` (7/7 = 100% forwarding > 60% Threshold) — Fix: Refactor auf 2-3 `[Theory]` + `[InlineData]`; (2) `step-result.md:84` behauptet fälschlich „0 neue Verstöße", tatsächlich zeigt lint-report 1 Violation. Beobachtungen (out of scope): Commit-Subject 77 Zeichen (Soft-Verstoß, Repo-Präzedenz 99 Zeichen); Doku-Typo `]-`Klammer` in `docs/04:50`; `DocsMcpTools` Primitive Obsession (relevant für Step 003).
 
 ## Config (optional)
 
