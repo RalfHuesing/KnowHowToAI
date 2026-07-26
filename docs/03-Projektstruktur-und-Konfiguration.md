@@ -36,7 +36,7 @@ KnowHowToAI/
 
 **`KnowHowToAI.Cli`** — der einzige Ort, der CLI-Parsing und MCP-Hosting kennt. Bleibt dünn (nur Wiring).
 
-* `Program.cs` enthält die Composition-Root-Factory (`BuildStore`/`BuildImportService`/`BuildExportService`) — alle Services werden an einer einzigen Stelle konstruiert (kein `new SqlDocumentsStore(...)` verstreut über Run-Methoden).
+* `Program.cs` enthält die **Composition-Root-Factory** (`BuildStore`/`BuildImportService`/`BuildExportService`) — alle Services werden an *einer einzigen* Stelle konstruiert (kein `new SqlDocumentsStore(...)` verstreut über Run-Methoden). Die CLI-Modi (`validate`/`import`/`export`) bauen ihre Services per direktem `new` der Factory-Ergebnisse; der `server`-Modus registriert dieselben Factory-Ergebnisse per `AddSingleton` im Generic-Host. Service-Lebensdauer: `SqlDocumentsStore` ist als Singleton gedacht (zustandslos auf Instance-Ebene, teilt den DB-Connection-Pool über die Lebensdauer des Prozesses), `ImportService`/`ExportService`/`DocsValidator` sind effektiv transient (pro CLI-Lauf neu) bzw. ebenfalls Singleton im Server-Modus. Logger werden durchgängig per `ILogger<T>`-Konstruktor-Injection übergeben — die CLI-Modi reichen einen Serilog-Backend-Logger via `LoggerFactory.Create(b => b.AddSerilog(Log.Logger))` durch, der `server`-Modus löst sie aus dem DI-Container auf.
 
 | Ordner | Zuständigkeit |
 | --- | --- |
