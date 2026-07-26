@@ -74,7 +74,7 @@ ORDER BY title;
 | Datei-/Pfad-Referenzen in `content` | Markdown-Links (`[text](ziel)`) mit `file://`-Schema oder Ziel endet auf `.md`/`.markdown` (relativ/absolut, Anker/Query ignoriert) | Datei + Linkziel (siehe Edge Case 4.9) |
 | Dokumentlänge | Zeichenlänge von `content` gegen `KnowHowToAi:Validation:MaxContentLengthWarning` (Default 8.000) | **nur Warnung**, kein Fehler — Exit-Code bleibt 0 (siehe Edge Case 4.6) |
 
-Der Validator sammelt **alle** Fehler in einem Durchlauf (nicht beim ersten Fehler abbrechen) und gibt sie gesammelt aus — wichtig, damit Claude in einem Rutsch alle Probleme fixen kann, statt iterativ einen nach dem anderen zu entdecken.
+Der Validator sammelt **alle** Fehler in einem Durchlauf (nicht beim ersten Fehler abbrechen) und gibt sie gesammelt aus — wichtig, damit der Agent in einem Rutsch alle Probleme fixen kann, statt iterativ einen nach dem anderen zu entdecken.
 
 ---
 

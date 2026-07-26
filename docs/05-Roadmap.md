@@ -2,7 +2,7 @@
 
 ## v1 (MVP) — Kern-Loop zuerst
 
-Ziel: Der komplette Doku-Loop (`validate` → `import` → `server`, plus `export`) funktioniert Ende-zu-Ende gegen einen echten MS SQL Server, mit den drei MCP-Tools nutzbar in Cursor/Claude Desktop/Claude Code.
+Ziel: Der komplette Doku-Loop (`validate` → `import` → `server`, plus `export`) funktioniert Ende-zu-Ende gegen einen echten MS SQL Server, mit den drei MCP-Tools nutzbar für MCP-Clients und AI-Agenten.
 
 ### Implementierungs-Reihenfolge (für den frischen Umsetzungs-Chat)
 
@@ -60,7 +60,7 @@ Jeder Schritt ist ein eigener Commit (siehe [03-git-workflow.mdc](../.agents/rul
   - [x] `scripts/publish.ps1`: Single-File-Self-Contained-Build nach `publish/` (gitignored), siehe [03, Abschnitt 5](03-Projektstruktur-und-Konfiguration.md#5-deployment-single-file-publish)
 
 - [x] **9. MCP-Resource `docs://authoring-guide` + Server-Instructions**
-  - [x] `DocsMcpResources` (`KnowHowToAI.Cli/McpTools/`): statische Resource mit Front-Matter-Template, Slug-Regeln, Hierarchie-Regel als kompakter Markdown-Text — löst den Kaltstart-Fall (leeres/fremdes docs-root, Claude hat keine Beispiel-Dateien und kennt dieses Repo nicht), siehe [01, Phase 2](01-Konzept-und-Workflow.md#phase-2-doku-erweitern-oder-umstrukturieren-schreib-modus)
+  - [x] `DocsMcpResources` (`KnowHowToAI.Cli/McpTools/`): statische Resource mit Front-Matter-Template, Slug-Regeln, Hierarchie-Regel als kompakter Markdown-Text — löst den Kaltstart-Fall (leeres/fremdes docs-root, der Agent hat keine Beispiel-Dateien und kennt dieses Repo nicht), siehe [01, Phase 2](01-Konzept-und-Workflow.md#phase-2-doku-erweitern-oder-umstrukturieren-schreib-modus)
   - [x] `ServerInstructions` im `server`-Kommando gesetzt (kurzer Pointer auf die drei Tools + die Resource, kommt automatisch bei jeder Verbindung an)
   - [x] Reines Wiring ohne Verzweigungslogik → laut [02-testing.mdc](../.agents/rules/02-testing.mdc) keine separaten Unittests nötig, analog zu `DocsMcpTools`
   - [x] Manuell smoke-getestet gegen den echten stdio-Server (`initialize` liefert `instructions`, `resources/list` zeigt die Resource, `resources/read` liefert den vollständigen Guide-Text; stdout bleibt reines JSON-RPC)
@@ -88,7 +88,7 @@ Diese Punkte bewusst **nicht** in v1, um den Kern-Loop nicht zu verzögern:
 * **Interne Querverweise gegen vorhandene Slugs prüfen** (tote interne Links erkennen) — abgegrenzter Rest von "Inhaltliche Validierung von `content`" (Datei-/`file://`-Link-Check und Längen-Warnung sind umgesetzt, siehe [04, Abschnitt 3](04-Datenmodell-Validierung-Edgecases.md#3-validierungsregeln-validate) und [04, Edge Case 4.9](04-Datenmodell-Validierung-Edgecases.md#49-datei-pfad-referenzen-statt-slug-referenzen-in-content)). Setzt erst eine Design-Entscheidung voraus, wie ein "Verweis auf ein anderes Dokument" syntaktisch überhaupt aussehen soll (aktuell nicht definiert, siehe [01](01-Konzept-und-Workflow.md)). **Bewusst nicht vorgeschlagen:** Live-Erreichbarkeits-Check von `http(s)://`-Links — `validate` ist laut [04, Edge Case 4.8](04-Datenmodell-Validierung-Edgecases.md#48-verbindung-zum-sql-server-nicht-erreichbar) bewusst rein dateibasiert ohne Netzwerkabhängigkeit; ein Netzwerk-Check würde `validate` langsam und flaky machen.
 * **Watch-Modus** (`docu-cli watch`): automatisches `validate`+`import` bei Dateiänderungen (FileSystemWatcher + Debouncing).
 * **Multi-Library-Support**: mehrere unabhängige Docs-Bibliotheken/DBs gleichzeitig ansprechbar aus einem **einzigen** Server-Prozess (aktuell: eine Config = eine Bibliothek, mehrere Configs = mehrere MCP-Server-Einträge/-Prozesse — das reicht für v1 völlig aus). Der leichtgewichtige Teilschritt dafür — pro Config eine eigene Tabelle (`DocumentsTableName`) in derselben oder unterschiedlichen Datenbanken — ist bereits umgesetzt (Schritt 10); offen bleibt nur das Zusammenführen mehrerer Bibliotheken in einem Prozess.
-* **Schreib-Tools via MCP** (z.B. `create_doc`, `update_doc` direkt aus dem LLM heraus, ohne Umweg über Filesystem-Export). Bewusst zurückgestellt, da der Validierungs-Gate-Mechanismus (Abschnitt "Wipe and Dump") dafür erst durchdacht werden müsste (Race Conditions, wenn Claude parallel schreibt während `import` läuft).
+* **Schreib-Tools via MCP** (z.B. `create_doc`, `update_doc` direkt aus dem LLM heraus, ohne Umweg über Filesystem-Export). Bewusst zurückgestellt, da der Validierungs-Gate-Mechanismus (Abschnitt "Wipe and Dump") dafür erst durchdacht werden müsste (Race Conditions, wenn der Agent parallel schreibt während `import` läuft).
 * **Packaging als globales .NET-Tool** (`dotnet tool install --global`) statt reinem Build-Artefakt.
 * **CI-Pipeline** (GitHub Actions: Build + Test bei jedem Push/PR).
 * **Integrationstests gegen echten SQL Server** (z.B. via Testcontainers), zusätzlich zu den reinen Unittests aus v1.

@@ -18,7 +18,7 @@ Console.OutputEncoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Ident
 // Bootstrap-Logger mit Options-Defaults, bevor appsettings.json gelesen werden konnte (z.B. wenn
 // LoadOptions selbst fehlschlägt). Wird direkt nach LoadOptions durch die konfigurierten
 // Rotation-Einstellungen ersetzt, siehe ConfigureLogger. Kein Konsolen-Sink: Console.Out ist für
-// den MCP-stdio-Server reserviert, und Console.Error wäre bei einem von Cursor/Claude Desktop
+// den MCP-stdio-Server reserviert, und Console.Error wäre bei einem von einem MCP-Host
 // gestarteten Hintergrundprozess ohnehin nicht einsehbar. Siehe
 // docs/02-Architektur-und-Techstack.md, kritischer Implementierungs-Hinweis.
 Log.Logger = ConfigureLogger(new KnowHowToAiLoggingOptions());
@@ -161,7 +161,7 @@ static KnowHowToAiOptions LoadOptions(string? configPath)
         ?? throw new InvalidOperationException($"Abschnitt 'KnowHowToAi' fehlt in '{path}'.");
 
     // Literal ersetzen statt Environment.ExpandEnvironmentVariables: robust auch dann, wenn der
-    // MCP-Prozess (von Cursor/Claude Desktop gestartet) COMPUTERNAME nicht im Environment geerbt hat.
+    // MCP-Prozess (von einem MCP-Host gestartet) COMPUTERNAME nicht im Environment geerbt hat.
     return options with
     {
         ConnectionString = options.ConnectionString.Replace(

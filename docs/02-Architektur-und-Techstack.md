@@ -15,7 +15,7 @@
 | Bereich | Wahl | Begründung |
 | --- | --- | --- |
 | Runtime | .NET 10 (Console Application) | Aktuelle LTS-Version |
-| Protokoll | MCP via stdio | Standard für Cursor/Claude Desktop/Claude Code |
+| Protokoll | MCP via stdio | Standard für MCP-Clients und AI-Agenten |
 | MCP-SDK | [`ModelContextProtocol`](https://www.nuget.org/packages/ModelContextProtocol) (offizielles C#-SDK) | Attribute-basierte Tool-Registrierung (`[McpServerTool]`), fertiges stdio-Hosting über `Microsoft.Extensions.Hosting` |
 | CLI-Parsing | `System.CommandLine` | Subcommands, Optionen, Auto-Help, offizielle .NET-Library |
 | Datenbank | **MS SQL Server** (lokal oder im Netzwerk) | Vorgabe: kein anderer SQL-Dialekt vorgesehen |
@@ -23,7 +23,7 @@
 | Schema-Verwaltung | Eigener `SchemaMigrator` + nummerierte, selbst-idempotente Skripte in `sql-scripts/` | Kein ORM, keine Journal-/Versionstabelle — Skripte prüfen selbst per `IF NOT EXISTS`, ob es etwas zu tun gibt |
 | Suche | **`LIKE '%...%'`** über `title`/`content`/`tags`/`synonyms` | Kein Full-Text-Search-Feature vorausgesetzt (nicht auf jeder Ziel-Instanz installiert), kein RAG-Overkill |
 | Front-Matter-Parsing | `YamlDotNet` | Etablierter, schlanker YAML-Parser für .NET |
-| Logging | **Serilog**, Sink ausschließlich auf eine rotierende Datei unter `Logs/` relativ zur `.exe` | `Console.Out` ist exklusiv für das MCP-JSON-RPC-Protokoll reserviert, `Console.Error` wäre bei einem von Cursor/Claude Desktop gestarteten Hintergrundprozess ohnehin nicht einsehbar und nicht persistent |
+| Logging | **Serilog**, Sink ausschließlich auf eine rotierende Datei unter `Logs/` relativ zur `.exe` | `Console.Out` ist exklusiv für das MCP-JSON-RPC-Protokoll reserviert, `Console.Error` wäre bei einem von einem MCP-Host gestarteten Hintergrundprozess ohnehin nicht einsehbar und nicht persistent |
 | Testing | **xUnit v3** | Fokus auf Unit-Tests für Parser, Validator, Import/Export-Logik |
 | Konfiguration | `Microsoft.Extensions.Configuration` (`appsettings.json` + Umgebungsvariablen-Override) | Ein Konfigurationsort pro Einsatzort, siehe [03](03-Projektstruktur-und-Konfiguration.md) |
 | Linting | **AiNetLinter** (externes CLI-Tool, als Test im Testprojekt eingebunden) | Roslyn-basierte Qualitätsprüfung (Komplexität, Sealed Classes, Phantom-Dependencies) zusätzlich zu Build+Tests; Details siehe [03, Abschnitt 4](03-Projektstruktur-und-Konfiguration.md#4-ainetlinter-code-qualitäts-gate) |
@@ -119,6 +119,6 @@ Die Tools geben strukturierte Typen zurück statt roher JSON-Strings — das MCP
 
 **Sichtbarkeit ohne SQL Profiler:** Jeder Tool-Aufruf loggt vor der SQL-Abfrage seine Parameter (z.B. `search_docs(query=...)`) und nach der Abfrage die Größe der Antwort als Item-Count für Listen bzw. Content-Länge für `get_doc` (ohne erneute JSON-Serialisierung) — **nicht** deren Inhalt, da der Log sonst selbst zum riesigen, unübersichtlichen Datenberg würde. Damit ist im Log erkennbar, was das verbundene LLM anfragt und wie viel Datenvolumen zurückgeht, ohne einen SQL Profiler mitlaufen lassen zu müssen.
 
-**Zusätzlich eine MCP-Resource, kein viertes Tool:** `docs://authoring-guide` (`KnowHowToAI.Cli.McpTools.DocsMcpResources`) liefert das Datei-Format (Front-Matter-Template, Slug-Regeln, Hierarchie-/Orphan-Regel) als kompakten Markdown-Text — nötig, damit Claude auch in einem leeren docs-root eines fremden Projekts weiß, wie eine neue `.md`-Datei aussehen muss, ohne dieses Repo zu kennen (siehe [01, Phase 2](01-Konzept-und-Workflow.md#phase-2-doku-erweitern-oder-umstrukturieren-schreib-modus)). Zusätzlich setzt der Server `ServerInstructions` (kurzer Hinweis auf die drei Tools + die Resource), der bei jeder Verbindung automatisch beim Client ankommt. MCP-Resources sind ein eigener Protokoll-Typ, kein Tool — die Zählung "drei schlanke MCP-Tools" ([00-Overview.md](00-Overview.md)) bleibt unverändert.
+**Zusätzlich eine MCP-Resource, kein viertes Tool:** `docs://authoring-guide` (`KnowHowToAI.Cli.McpTools.DocsMcpResources`) liefert das Datei-Format (Front-Matter-Template, Slug-Regeln, Hierarchie-/Orphan-Regel) als kompakten Markdown-Text — nötig, damit ein Agent auch in einem leeren docs-root eines fremden Projekts weiß, wie eine neue `.md`-Datei aussehen muss, ohne dieses Repo zu kennen (siehe [01, Phase 2](01-Konzept-und-Workflow.md#phase-2-doku-erweitern-oder-umstrukturieren-schreib-modus)). Zusätzlich setzt der Server `ServerInstructions` (kurzer Hinweis auf die drei Tools + die Resource), der bei jeder Verbindung automatisch beim Client ankommt. MCP-Resources sind ein eigener Protokoll-Typ, kein Tool — die Zählung "drei schlanke MCP-Tools" ([00-Overview.md](00-Overview.md)) bleibt unverändert.
 
 Details zu Implementierungsreihenfolge: [05-Roadmap.md](05-Roadmap.md).

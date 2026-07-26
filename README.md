@@ -1,6 +1,6 @@
 # KnowHowToAI
 
-Eine hierarchische Markdown-Wissensdatenbank mit MCP-Zugriff für Claude, Cursor & Co.
+Eine hierarchische Markdown-Wissensdatenbank mit MCP-Zugriff für AI-Agenten & MCP-Clients.
 
 Du schreibst Doku als Markdown-Dateien mit YAML-Front-Matter (`title`, `tags`, `synonyms`) in einer Ordnerhierarchie. Ein CLI-Tool validiert die Struktur und synchronisiert sie per Wipe-and-Dump in MS SQL Server. Ein MCP-stdio-Server macht die Bibliothek darüber für LLM-Agenten durchsuchbar — strukturiert (`list_children`), per Stichwortsuche (`search_docs`) und im Detail (`get_doc`) — statt sie als unstrukturierte Textwüste in den Kontext zu laden.
 
@@ -29,7 +29,7 @@ Konfiguration liegt in [`src/KnowHowToAI.Cli/appsettings.json`](src/KnowHowToAI.
 scripts\publish.ps1
 ```
 
-Erzeugt eine self-contained `publish\KnowHowToAI.Cli.exe`, die z.B. in der MCP-Server-Konfiguration von Cursor/Claude Desktop referenziert werden kann (Beispiel in [docs/03, Abschnitt 2](docs/03-Projektstruktur-und-Konfiguration.md#mcp-launch-konfiguration-beispiel-für-claude-desktopcursor)).
+Erzeugt eine self-contained `publish\KnowHowToAI.Cli.exe`, die z.B. in der MCP-Server-Konfiguration eines MCP-Clients (z.B. AI-Agenten / MCP-Hosts) referenziert werden kann (Beispiel in [docs/03, Abschnitt 2](docs/03-Projektstruktur-und-Konfiguration.md#mcp-launch-konfiguration-beispiel-für-mcp-hosts)).
 
 ## Dokumentation
 

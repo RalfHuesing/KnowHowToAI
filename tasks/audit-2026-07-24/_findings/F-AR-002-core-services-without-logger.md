@@ -36,7 +36,7 @@ Konsequenz: Diagnose von Produktions-Problemen ist schwierig, weil weder
 - Debugging erfordert Code-Instrumente oder SQL-Server-Profile, statt Logs
 
 ### 3. Cross-Process-Korrelation schwierig
-- Wenn der MCP-Server von Cursor/Claude Desktop gestartet wird, ist `stdout`
+- Wenn der MCP-Server von einem MCP-Host gestartet wird, ist `stdout`
   für JSON-RPC reserviert. Strukturierte Logs in eine Datei sind die einzige
   Möglichkeit, *welche* Tool-Aufrufe gerade laufen.
 - Aktuell: nur die Top-Level-`RunXxx`-Catch-All-Exception wird geloggt.

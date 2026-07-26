@@ -22,7 +22,7 @@ public class AiNetLinterTests
         var reportPath = Path.Combine(outputDir, "lint-report.md");
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        // AiNetLinter-Bug (Program.cs "Schneller Pfad"): --sync-cursor-rules OHNE --playbook in
+        // AiNetLinter: --sync-agent-rules OHNE --playbook in
         // derselben Ausführung wie ein Lint-Lauf überspringt den eigentlichen Audit (AuditCommand)
         // komplett und liefert immer Exit 0, egal wie viele Verstöße vorliegen — nur der Sync läuft.
         // Deshalb zwingend zwei getrennte Prozessaufrufe, sonst bleiben echte Verstöße unbemerkt.
@@ -35,7 +35,7 @@ public class AiNetLinterTests
 
         var (syncExitCode, syncStdout, syncStderr) = await RunAiNetLinterAsync(
             exePath,
-            ["--config", configPath, "--path", solutionPath, "--sync-cursor-rules", "--cursor-rules-path", Path.Combine(solutionRoot, ".agents", "rules")],
+            ["--config", configPath, "--path", solutionPath, "--sync-agent-rules", "--agent-rules-path", Path.Combine(solutionRoot, ".agents", "rules")],
             cancellationToken);
 
         Assert.True(syncExitCode == 0,

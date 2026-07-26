@@ -1,6 +1,6 @@
 # KnowHowToAI — Projektübersicht
 
-> **Elevator Pitch:** Ein generisches, wiederverwendbares .NET-Tool, das eine hierarchische Markdown-Wissensdatenbank (Front Matter + Ordnerstruktur) in einen MS-SQL-Server-Cache synchronisiert und diesen Cache per MCP (Model Context Protocol) für LLMs (Claude, Cursor, ...) durchsuchbar macht. Geschrieben wird in Markdown-Dateien im Filesystem, gelesen wird strukturiert per SQL über drei schlanke MCP-Tools.
+> **Elevator Pitch:** Ein generisches, wiederverwendbares .NET-Tool, das eine hierarchische Markdown-Wissensdatenbank (Front Matter + Ordnerstruktur) in einen MS-SQL-Server-Cache synchronisiert und diesen Cache per MCP (Model Context Protocol) für AI-Agenten durchsuchbar macht. Geschrieben wird in Markdown-Dateien im Filesystem, gelesen wird strukturiert per SQL über drei schlanke MCP-Tools.
 
 Dieses Verzeichnis (`docs/`) beschreibt **das Tool selbst**, nicht eine konkrete Wissensdatenbank. Die eigentlichen `.md`-Inhalte, die später durchsucht werden, leben in einem beliebigen, frei konfigurierbaren Zielverzeichnis außerhalb dieses Repos (siehe [03-Projektstruktur-und-Konfiguration.md](03-Projektstruktur-und-Konfiguration.md)).
 

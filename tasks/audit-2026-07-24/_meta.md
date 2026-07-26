@@ -36,7 +36,7 @@
   Slug-Konformität, Feature-Coverage). Nicht durch den vollen Code-Quality/Security-Filter gejagt.
 - **GitHub Actions Workflow:** `.github/workflows/release.yml` wurde nicht im Detail auditiert —
   ist nicht der Hot-Path, sondern 1:1 `scripts/publish.ps1` + Tag-Trigger. Bei Bedarf nachziehbar.
-- **`.cursor/rules/`-Inhalt:** Nur ein Verweis auf `.agents/rules/`, kein Audit-Substrat.
+- **`.agents/rules/`-Inhalt:** Enthält die Agenten-Regeln und AiNetLinter.mdc.
 - **AiNetLinter-Tool selbst:** Externes Repo, nicht Teil dieses Audits. Die `.rules.json` wurde
   nur gegen die `.mdc` abgeglichen, nicht inhaltlich bewertet.
 - **Datenbank-Migrations-Skripte jenseits 0001:** Aktuell existiert nur `0001`, also nicht anwendbar.

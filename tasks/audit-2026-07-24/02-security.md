@@ -17,7 +17,7 @@
 | **Böswilliger Doku-Autor** | Kann Dateien in den Docs-Root legen (z.B. kompromittierter Git-PR) | Front-Matter-Werte, Markdown-Links, Content |
 | **Kompromittierte Config** | `appsettings.json` wird manuell verbogen oder ersetzt | `ConnectionString`, `DocumentsTableName` |
 | **Angreifer mit Filesystem-Zugriff** | Andere Apps laufen mit demselben User-Account | Lesen der Logs (`Logs/*.log`) |
-| **MCP-Host-Umgebung** | Cursor/Claude Desktop startet den Server mit reduziertem Environment | Env-Var-Lookups, Working-Directory, `AppContext.BaseDirectory` |
+| **MCP-Host-Umgebung** | MCP-Host startet den Server mit reduziertem Environment | Env-Var-Lookups, Working-Directory, `AppContext.BaseDirectory` |
 
 ## Findings-Übersicht
 
