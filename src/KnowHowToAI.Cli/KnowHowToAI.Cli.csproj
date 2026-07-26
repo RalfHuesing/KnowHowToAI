@@ -13,10 +13,10 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
-    <PackageReference Include="ModelContextProtocol" Version="2.0.0-preview.2" />
+    <PackageReference Include="ModelContextProtocol" Version="1.4.1" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageReference Include="System.CommandLine" Version="3.0.0-preview.5.26302.115" />
+    <PackageReference Include="System.CommandLine" Version="2.0.10" />
   </ItemGroup>
 
   <PropertyGroup>
