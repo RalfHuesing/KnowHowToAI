@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-002` (done) — fix-01 approved. Nächster Schritt: `step-003` (Coder)
+- **Aktueller Schritt:** `step-003` (in_progress) — Coder-Aufruf gestartet
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -28,7 +28,7 @@ current_step: step-001
 | step-001 | done | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | `b97eae7` | approved | `0366828` |
 | step-002 | done | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 1/3 (fix-01 approved) | `a9e4140` | approved (nach fix-01) | `84cf2e1` (fix-01) |
 | step-002/fix-01 | done | Fix-01: AiNetLinter-Verstoß beheben + step-result.md korrigieren | - | `84cf2e1` | approved | (nächster Audit-Commit) |
-| step-003 | open | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | - | - | - |
+| step-003 | in_progress | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | - | - | - |
 | step-004 | open | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 | - | - | - |
 | step-005 | open | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
 
