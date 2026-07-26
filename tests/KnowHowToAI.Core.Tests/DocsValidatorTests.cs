@@ -125,6 +125,54 @@ public class DocsValidatorTests : IDisposable
         Assert.Empty(result.Errors);
     }
 
+    [Fact]
+    public void Validate_EmptyContent_NoWarning()
+    {
+        var validator = new DocsValidator(maxContentLengthWarning: 10, logger: NullLogger<DocsValidator>.Instance);
+        WriteDoc("it", "IT", string.Empty);
+
+        var result = validator.Validate(_docsRoot);
+
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void Validate_VeryShortContent_NoWarning()
+    {
+        var validator = new DocsValidator(maxContentLengthWarning: 10, logger: NullLogger<DocsValidator>.Instance);
+        WriteDoc("it", "IT", "a");
+
+        var result = validator.Validate(_docsRoot);
+
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void Validate_ZeroWarningThreshold_WarnsEverythingNonEmpty()
+    {
+        var validator = new DocsValidator(maxContentLengthWarning: 0, logger: NullLogger<DocsValidator>.Instance);
+        WriteDoc("it", "IT", "a");
+
+        var result = validator.Validate(_docsRoot);
+
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("1 Zeichen", warning.Reason);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_OnlyNonMdFiles_ReturnsNoErrorsAndIgnoresThem()
+    {
+        WriteFile("notiz.txt", "Kein Markdown.");
+        WriteFile("bild.png", "PNG-Binary.");
+
+        var result = _validator.Validate(_docsRoot);
+
+        Assert.True(result.IsValid);
+        Assert.Empty(result.Errors);
+        Assert.Empty(result.Warnings);
+    }
+
     private void WriteDoc(string slug, string title, string content = "Inhalt.") =>
         WriteFile($"{slug}.md", $"---\ntitle: \"{title}\"\n---\n{content}");
 

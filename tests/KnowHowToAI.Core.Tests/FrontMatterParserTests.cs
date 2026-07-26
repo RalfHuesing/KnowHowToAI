@@ -108,4 +108,30 @@ public class FrontMatterParserTests
 
         Assert.Throws<InvalidOperationException>(() => _parser.Parse("kaputt", fileContent));
     }
+
+    [Theory]
+    [InlineData("   ")]
+    [InlineData("\t")]
+    [InlineData(" \t  ")]
+    public void Parse_WhitespaceOnlyTitle_Throws(string title)
+    {
+        var fileContent = $"---\ntitle: \"{title}\"\n---\nInhalt.";
+
+        var exception = Assert.Throws<InvalidOperationException>(() => _parser.Parse("ws-titel", fileContent));
+        Assert.Contains("title", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_FileWithUtf8Bom_Throws()
+    {
+        var bom = new byte[] { 0xEF, 0xBB, 0xBF };
+        var body = System.Text.Encoding.UTF8.GetBytes("---\ntitle: \"Bom\"\n---\nInhalt.");
+        var withBom = new byte[bom.Length + body.Length];
+        bom.CopyTo(withBom, 0);
+        body.CopyTo(withBom, bom.Length);
+        var fileContent = System.Text.Encoding.UTF8.GetString(withBom);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => _parser.Parse("mit-bom", fileContent));
+        Assert.Contains("YAML Front Matter", exception.Message);
+    }
 }
