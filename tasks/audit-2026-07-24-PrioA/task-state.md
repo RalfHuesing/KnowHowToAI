@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-003` (in_progress) — Coder-Aufruf gestartet
+- **Aktueller Schritt:** `step-003` (done (pending audit)) — Auditer ausstehend
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -28,7 +28,7 @@ current_step: step-001
 | step-001 | done | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | `b97eae7` | approved | `0366828` |
 | step-002 | done | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 1/3 (fix-01 approved) | `a9e4140` | approved (nach fix-01) | `84cf2e1` (fix-01) |
 | step-002/fix-01 | done | Fix-01: AiNetLinter-Verstoß beheben + step-result.md korrigieren | - | `84cf2e1` | approved | (nächster Audit-Commit) |
-| step-003 | in_progress | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | - | - | - |
+| step-003 | done (pending audit) | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | `c90e4c4` | - | - |
 | step-004 | open | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 | - | - | - |
 | step-005 | open | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
 
@@ -57,6 +57,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T20:01:00+02:00 — fix-01: open → in_progress (coder-Aufruf gestartet)
 - 2026-07-26T20:15:00+02:00 — fix-01: in_progress → done (pending audit), Code-Commit `84cf2e1`, Doku-Commit `29fbe2e`. Build grün, 72 Tests grün, AiNetLinter **0 Violations** (vorher 1) — Hauptzweck erreicht. Scope-Disziplin gehalten: keine Änderungen an `BuildLikePattern`/`SearchDocsAsync`/`DocsMcpTools`/Commit-Subject/Doku-Typo.
 - 2026-07-26T20:30:00+02:00 — fix-01: auditer-Verdict `approved`. Beide Findings behoben. AiNetLinter-Report direkt gelesen (nicht nur Test-Exit-Code vertraut): 0 Violations.
+- 2026-07-26T21:00:00+02:00 — step-003: in_progress → done (pending audit), Code-Commit `c90e4c4`, Doku-Commit `af68fe0`. Build grün, 78 Tests grün (72 + 4 SearchResultTests + 2 ResponseSizeTests), AiNetLinter 0 Violations (Report direkt gelesen). Coder-Abweichungen: (a) `SearchResultTests` als 2 Methoden statt 4 Facts ([Theory]+[InlineData], Lektion aus fix-01); (b) Value-Equality-Test angepasst wegen IReadOnlyList-Default-Reference-Equality; (c) Backticks im Commit-Body von PowerShell-Parsing gefiltert (stilistisch, kein Inhaltsproblem).
 
 ## Config (optional)
 
