@@ -18,6 +18,14 @@ if ($LASTEXITCODE -ne 0)
     throw "Tests rot -- Publish abgebrochen."
 }
 
+# NuGet-Audit: keine Pakete mit bekannten High-Severity-Vulnerabilities veroeffentlichen
+Write-Host "NuGet-Audit (High-Severity)..."
+dotnet list $project package --vulnerable --include-transitive | Out-String | Write-Host
+if ($LASTEXITCODE -ne 0)
+{
+    throw "Vulnerable Pakete gefunden -- Publish abgebrochen."
+}
+
 # Output-Verzeichnis vorher leeren, damit keine stale Files zurueckbleiben
 if (Test-Path $output)
 {

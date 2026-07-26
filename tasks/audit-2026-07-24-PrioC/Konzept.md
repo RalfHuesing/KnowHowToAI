@@ -8,14 +8,14 @@
 
 ## Inhalt
 
-| ID | Titel | Schweregrad | Aufwand | Dimension |
-|---|---|---|---|---|
-| [F-AR-001](#f-ar-001--di-inkonsistenz-zwischen-cli-commands) | DI-Inkonsistenz zwischen CLI-Commands | High | ~30 Min | Architektur |
-| [F-AR-004](#f-ar-004--sqldocumentsstore-thread-safety-undokumentiert) | `SqlDocumentsStore` Thread-Safety undokumentiert | Medium | ~5-20 Min | Architektur |
-| [F-AR-007](#f-ar-007--service-lifetimes-undokumentiert) | Service-Lifetimes undokumentiert | Low | ~5 Min | Architektur |
-| [F-DP-001](#f-dp-001--zwei-preview-dependencies-stable-verfügbar) | Zwei Preview-Dependencies, Stable verfügbar | High | ~10 Min | Dependencies |
-| [F-DP-002](#f-dp-002--microsoftdatasqlclient-702-breaking-changes-undokumentiert) | `Microsoft.Data.SqlClient 7.0.2` Breaking Changes (undokumentiert) | Medium | ~5 Min | Dependencies |
-| [F-DP-003](#f-dp-003--keine-dotnet-list-package---vulnerable-policy) | Keine `dotnet list package --vulnerable` Policy | Medium | ~15 Min | Dependencies |
+| ID | Titel | Schweregrad | Aufwand | Dimension | Status |
+|---|---|---|---|---|---|
+| [F-AR-001](#f-ar-001--di-inkonsistenz-zwischen-cli-commands) | DI-Inkonsistenz zwischen CLI-Commands | High | ~30 Min | Architektur | **erledigt** (Commit 934978b) |
+| [F-AR-004](#f-ar-004--sqldocumentsstore-thread-safety-undokumentiert) | `SqlDocumentsStore` Thread-Safety undokumentiert | Medium | ~5-20 Min | Architektur | offen |
+| [F-AR-007](#f-ar-007--service-lifetimes-undokumentiert) | Service-Lifetimes undokumentiert | Low | ~5 Min | Architektur | **erledigt** (in F-DK-003 docs/03) |
+| [F-DP-001](#f-dp-001--zwei-preview-dependencies-stable-verfügbar) | Zwei Preview-Dependencies, Stable verfügbar | High | ~10 Min | Dependencies | **erledigt** (Commit 8fed418) |
+| [F-DP-002](#f-dp-002--microsoftdatasqlclient-702-breaking-changes-undokumentiert) | `Microsoft.Data.SqlClient 7.0.2` Breaking Changes (undokumentiert) | Medium | ~5 Min | Dependencies | **erledigt** |
+| [F-DP-003](#f-dp-003--keine-dotnet-list-package---vulnerable-policy) | Keine `dotnet list package --vulnerable` Policy | Medium | ~15 Min | Dependencies | **erledigt** |
 
 **Gesamt-Aufwand:** ~1 Stunde (35 Min Code + 30 Min Doku + 5 Min Build-Konfig). Aufteilbar in 3-5 Commits.
 
