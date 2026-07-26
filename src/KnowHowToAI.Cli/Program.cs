@@ -171,10 +171,10 @@ static KnowHowToAiOptions LoadOptions(string? configPath)
 
 static Serilog.ILogger ConfigureLogger(KnowHowToAiLoggingOptions loggingOptions) =>
     new LoggerConfiguration()
-        .MinimumLevel.Is(Enum.Parse<LogEventLevel>(loggingOptions.MinimumLevel))
+        .MinimumLevel.Is(EnumParseHelpers.Parse<LogEventLevel>(loggingOptions.MinimumLevel))
         .WriteTo.File(
             Path.Combine(AppContext.BaseDirectory, "Logs", "knowhowtoai-.log"),
-            rollingInterval: Enum.Parse<RollingInterval>(loggingOptions.RollingInterval),
+            rollingInterval: EnumParseHelpers.Parse<RollingInterval>(loggingOptions.RollingInterval),
             retainedFileCountLimit: loggingOptions.RetainedFileCountLimit,
             shared: true)
         .CreateLogger();

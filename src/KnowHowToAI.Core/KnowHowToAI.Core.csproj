@@ -13,6 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="KnowHowToAI.Core.Tests" />
+    <InternalsVisibleTo Include="KnowHowToAI.Cli" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- sql-scripts/ ist die eine bearbeitbare Quelle (siehe docs/04); hier nur eingebettet. -->
     <EmbeddedResource Include="..\..\sql-scripts\*.sql">
       <Link>SqlScripts\%(Filename)%(Extension)</Link>
