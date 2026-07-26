@@ -127,18 +127,20 @@ Interfaces beisteuert.
 
 | Datei | Fix | Art der Änderung |
 |---|---|---|
-| `src/KnowHowToAI.Core/Sync/SqlDocumentsStore.cs` | F-SE-001, F-PE-002, F-AR-002 | `BuildLikePattern` → `internal static` + Escape; SQL um `TOP` + Title-Ranking; Konstruktor + 2-3 Log-Calls |
+| `src/KnowHowToAI.Core/Documents/SearchResult.cs` (neu) | F-PE-002 | neuer `sealed record SearchResult(IReadOnlyList<DocumentSummary> Results, bool Truncated)` |
+| `src/KnowHowToAI.Core/Logging/ResponseSize.cs` | F-AR-002 (Folge von F-PE-002) | neuer Switch-Arm `SearchResult search => search.Results.Count` |
+| `src/KnowHowToAI.Core/Sync/SqlDocumentsStore.cs` | F-SE-001, F-PE-002, F-AR-002 | `BuildLikePattern` → `internal static` + Escape; SQL um `TOP` + `COUNT(*) OVER()` + Title-Ranking; Rückgabetyp `SearchResult`; Konstruktor + 2-3 Log-Calls |
 | `src/KnowHowToAI.Core/Sync/ImportService.cs` | F-AR-002 | positional record: +1 ctor-Param `ILogger<ImportService>` (zieht Update aller Aufrufer nach sich) |
 | `src/KnowHowToAI.Core/Sync/ExportService.cs` | F-AR-002 | positional record: +1 ctor-Param `ILogger<ExportService>` (gleiches Aufrufer-Update) |
 | `src/KnowHowToAI.Core/Validation/DocsValidator.cs` | F-AR-002 | Konstruktor + 1-2 Log-Calls |
 | `src/KnowHowToAI.Core/Configuration/KnowHowToAiOptions.cs` | F-SE-001, F-PE-002 | neue Sub-Options-Klasse `KnowHowToAiSearchOptions` (Properties `MaxQueryLength`, `MaxResults`) analog zu `Logging`/`Validation` |
 | `src/KnowHowToAI.Cli/Program.cs` | F-CD-001, F-AR-002 | `Enum.Parse` → `TryParse`+eigene `InvalidOperationException`; Composition-Root-Factory-Funktion; `SqlDocumentsStore`-Konstruktion in 3 Run-Methoden auf Factory umstellen |
-| `src/KnowHowToAI.Cli/McpTools/DocsMcpTools.cs` | F-MC-001 | 3× `[Description(...)]`-String um Edge-Cases, Fehler-Semantik, Sortierung, Cap-Begründung erweitern |
+| `src/KnowHowToAI.Cli/McpTools/DocsMcpTools.cs` | F-MC-001, F-AR-002 (Folge) | 3× `[Description(...)]`-String um Edge-Cases, Fehler-Semantik, Sortierung, Truncation-Marker erweitern; `search_docs`-Tool-Rückgabe ist `SearchResult` (nicht `result.Results`) |
 | `src/KnowHowToAI.Cli/appsettings.json` | F-SE-001, F-PE-002 | `KnowHowToAi.Search.{MaxQueryLength,MaxResults}` ergänzen |
-| `tests/KnowHowToAI.Core.Tests/...` (neu/erweitert) | F-SE-001, F-AR-002 | `BuildLikePattern` via `InternalsVisibleTo`; Tests mit `NullLogger<T>.Instance` |
-| `docs/02-Architektur-und-Techstack.md` | F-MC-001, F-SE-001 | Abschnitt 4.D (Tool-Description-Quelldoku); LIKE-Semantik präziser |
+| `tests/KnowHowToAI.Core.Tests/...` (neu/erweitert) | F-SE-001, F-PE-002, F-AR-002 | `BuildLikePattern` via `InternalsVisibleTo`; `SearchResult`-Truncation-Logik in neuer `SearchResultTests.cs`; Tests mit `NullLogger<T>.Instance` |
+| `docs/02-Architektur-und-Techstack.md` | F-MC-001, F-SE-001, F-PE-002 | Abschnitt 4.D (Tool-Description-Quelldoku inkl. Response-Shape); LIKE-Semantik präziser; `search_docs`-Response-Shape dokumentiert |
 | `docs/03-Projektstruktur-und-Konfiguration.md` | F-CD-001, F-SE-001, F-PE-002 | Abschnitt 2: JSON-Beispiel + Options-Tabelle um `Logging`-Enum-Hinweis und `Search`-Sub-Options erweitern |
-| `docs/04-Datenmodell-Validierung-Edgecases.md` | F-SE-001, F-PE-002 | Abschnitt 1 (search_docs-Query): LIKE-Semantik, Wildcard-Literal-Verhalten, TOP-Cap, Title-Ranking präzise festhalten |
+| `docs/04-Datenmodell-Validierung-Edgecases.md` | F-SE-001, F-PE-002 | Abschnitt 1 (search_docs-Query): LIKE-Semantik, Wildcard-Literal-Verhalten, TOP-Cap + `COUNT(*) OVER()` für Truncation, Title-Ranking präzise festhalten |
 | `docs/05-Roadmap.md` | F-AR-002 (implizit) | keine Änderung nötig — `ILogger`-Injection ist *kein* Roadmap-Punkt, sondern Architektur-Verbesserung im laufenden v1 |
 
 ## Wie (grober Ansatz)
@@ -157,6 +159,26 @@ Interfaces beisteuert.
 Tiebreak-Logik: (a) Security > Performance > Architektur > LLM-UX > Konvention;
 (b) bei Gleichstand weniger Abhängigkeiten zwischen Fixes = früher;
 (c) bei weiterem Gleichstand weniger Dateien angefasst = früher.
+
+**Querschnittsregel — Magic-Werte in `appsettings.json`:** Jeder in einem
+Fix neu eingeführte Schwellenwert (`MaxQueryLength`, `MaxResults`,
+`MaxContentLengthWarning`, evtl. weitere) landet in einer thematisch
+passenden Sub-Options-Klasse auf `KnowHowToAiOptions` mit sinnvollem
+Default — **keine** Literale im Code. Begründung: `.agents/rules/06-
+configuration.mdc` plus expliziter Wunsch des Nutzers (Dialog 2026-07-26),
+„keine Magic-Werte im Code, die eigentlich in appsettings konfigurierbar
+sein sollten". Betrifft *alle* fünf Fixes; wird pro Fix im Detail
+umgesetzt (s. u.).
+
+**Querschnittsregel — LLM-Sichtbarkeit von Begrenzungen:** Jede Antwort
+eines MCP-Tools, die durch eine Konfigurationsgrenze beschnitten wurde
+(heute nur `search_docs` via `MaxResults`), liefert dem LLM einen
+*sichtbaren Marker* in der Antwort — nicht nur einen Log-Eintrag. Wenn
+das LLM den Marker nicht sieht, kann es nicht wissen, dass es noch
+mehr Treffer gibt, und handelt auf einer unvollständigen Information.
+Begründung: expliziter Wunsch des Nutzers (Dialog 2026-07-26). Umsetzung
+in F-PE-002 + F-MC-001; weitere Indikatoren (z. B. Content-Trunkierung
+in `get_doc`) bleiben v2-Backlog.
 
 ### Fix-Detail-Übersicht
 
@@ -294,17 +316,39 @@ Strings liefern identische Ergebnisse. Nur Queries mit `%`/`_`/`[`
 **Problem:** dieselbe Stelle wie Fix 2. Ohne `TOP`-Cap können hunderte bis
 tausende Treffer zurückkommen, was das LLM-Token-Budget sprengt. Sortierung
 alphabetisch, nicht nach Relevanz — die relevantesten Treffer landen
-verstreut.
+verstreut. **Plus:** heute bekommt das LLM die Treffer als flaches Array
+und hat *keine* Möglichkeit zu sehen, ob es gekappt wurde — das ist die
+LLM-UX-Falle, die der Nutzer im Dialog 2026-07-26 explizit benannt hat
+(„dem LLM klar gemeldet werden, dass TOP verwendet wurde, damit das
+weiß, dass es noch mehr Datensätze gibt").
 
 **Bewusste Entscheidung dokumentiert:** docs/04 Z.48 sagt „Kein Ranking:
 Ergebnisse werden alphabetisch sortiert" — das ist die *bewusste*
-Grundsatzentscheidung. Die fehlende `TOP`-Begrenzung ist aber ein *Loch*,
-keine Entscheidung.
+Grundsatzentscheidung. Die fehlende `TOP`-Begrenzung und der fehlende
+Truncation-Marker sind aber *Löcher*, keine Entscheidungen.
 
-**Fix-Empfehlung:**
+**Fix-Empfehlung — drei Teile:**
+
+**(a) Response-Shape** (neues Core-Record):
+
+```csharp
+// src/KnowHowToAI.Core/Documents/SearchResult.cs (neu)
+public sealed record SearchResult(
+    IReadOnlyList<DocumentSummary> Results,
+    bool Truncated);
+```
+
+`SearchResult` ist positional record, sealed, mit Wert-Type-Properties
+(`bool`) und einer `IReadOnlyList<>`-Property. Konsequent mit den
+anderen Domain-Records (`DocumentSummary`, `DocumentDetail`,
+`ValidationError`).
+
+**(b) SQL** — `COUNT(*) OVER()` als Window-Function, eine Query statt
+zweier (kein Race-Condition-Risiko, keine zweite SQL-Round-Trip):
 
 ```sql
-SELECT TOP (@MaxResults) slug AS Slug, title AS Title
+SELECT TOP (@MaxResults) slug AS Slug, title AS Title,
+       COUNT(*) OVER() AS TotalCount
 FROM dbo.<DocumentsTableName>
 WHERE title LIKE @Pattern OR content LIKE @Pattern
    OR tags LIKE @Pattern OR synonyms LIKE @Pattern
@@ -313,21 +357,49 @@ ORDER BY
     title;
 ```
 
-`MaxResults` aus `KnowHowToAiOptions.Search.MaxResults` (Default 50).
-`SearchDocsAsync` nimmt den Wert als zusätzlichen Parameter entgegen
-(oder bekommt ihn via Options-Injection in F-AR-002).
+`TotalCount` ist die Anzahl der Treffer *ohne* `TOP`-Begrenzung. Der
+Coder leitet daraus `Truncated = (TotalCount > Results.Count)` ab.
 
-**Tests:** Verifikation über `SearchDocsAsync`-Aufrufe (Backlog F-TS-001
-für echte DB); hier: Dokumentation im `SearchDocsAsync`-XML-Kommentar
-(sofern vorhanden) oder im Code-Selbstkommentar warum `MaxResults`
-existiert.
+**(c) `SearchDocsAsync`-Rückgabetyp** wechselt von
+`Task<IReadOnlyList<DocumentSummary>>` zu `Task<SearchResult>`. Das ist
+ein API-Bruch — bewusst akzeptiert, weil:
+- Das LLM braucht den `Truncated`-Marker in der Antwort (nicht im Log).
+- `list_children` und `get_doc` bleiben unverändert (kein Cap → kein Marker nötig).
+- Die Description in F-MC-001 dokumentiert den neuen Shape transparent.
 
-**Doku:** `docs/02` Abschnitt 4.D — Hinweis auf `TOP`-Cap in der
-`search_docs`-Tool-Doku (wird mit Fix 4 in die Description übernommen).
-`docs/04` Abschnitt 1 — `MaxResults`-Hinweis.
+**`MaxResults` aus `KnowHowToAiOptions.Search.MaxResults` (Default 50,
+konfigurierbar in `appsettings.json`)** — `SearchDocsAsync` bekommt den
+Wert via Parameter injiziert (entweder direkt, oder via F-AR-002 über
+eine Service-Composition-Root, die `KnowHowToAiOptions` aufnimmt).
 
-**Risiko:** Niedrig. Cap ist additiv-defensiv. Title-Ranking ist Heuristik,
-kann über weitere Optionen verfeinert werden.
+**Tests** (siehe F-TS-001 Backlog-Vorbehalt für DB-nahe Tests):
+
+| Test | Datei | Was er prüft |
+|---|---|---|
+| `SearchResult_Truncated_WhenMoreHitsThanMaxResults` | `tests/KnowHowToAI.Core.Tests/Documents/SearchResultTests.cs` (neu) | `new SearchResult([a, b], Truncated: true)` für `[]` abgeleitet aus `TotalCount=5, Count=2` |
+| `SearchResult_NotTruncated_WhenAllHitsFitInMaxResults` | selbe Datei | `new SearchResult([a, b, c], Truncated: false)` für `TotalCount=3, Count=3` |
+| `SearchResult_EmptyQuery_GivesEmptyNotTruncated` | selbe Datei | Konsistenz mit F-SE-001: leerer Query → leere Results, `Truncated=false` |
+| `SearchDocsAsync_QueryTooLong_ThrowsArgumentException` | `tests/KnowHowToAI.Core.Tests/Sync/...` | bleibt aus F-SE-001 |
+
+Der `SearchResult`-Helper für die `Truncated`-Berechnung wird in
+`SearchDocsAsync` selbst gekapselt (oder in eine kleine private Methode
+extrahiert, falls der `Count`-Vergleich + Window-Function-Mapping
+unübersichtlich wird). Die `SearchResult`-Logik selbst — also
+`TotalCount > Count` → `Truncated` — bleibt in der SQL-zu-Objekt-
+Übersetzung in `SqlDocumentsStore`; die `SearchResult`-Records werden
+einfach konstruiert.
+
+**Doku:** `docs/02` Abschnitt 4.D — neuer Hinweis-Block „Response-Shape"
+für `search_docs` (verweist auf die Description in F-MC-001).
+`docs/04` Abschnitt 1 (search_docs-Query) — `MaxResults`-Hinweis +
+Notiz, dass die SQL `COUNT(*) OVER()` nutzt. `docs/03` Abschnitt 2 —
+JSON-Beispiel um `Search`-Block erweitern.
+
+**Risiko:** Niedrig-invasiv. `MaxResults` ist konfigurierbar (Querschnitts-
+regel). Title-Ranking ist Heuristik, kann über weitere Optionen
+verfeinert werden. Response-Shape-Bruch ist *einmalig* (kein
+Migrationspfad nötig — Tool ist v1.0.2, Konsumenten sind LLMs, die
+gerade erst die Description neu lesen).
 
 ---
 
@@ -362,13 +434,45 @@ Analog für `search_docs` und `get_doc`. Für `search_docs` insbesondere:
 - LIKE-Semantik (`'%query%'`, Substring)
 - Wildcard-Literal-Verhalten (kommt mit Fix 2)
 - Title-Ranking (kommt mit Fix 3)
-- `TOP`-Cap (kommt mit Fix 3, Default 50)
-- Keine Ranking-Garantie über Title-Treffer hinaus
+- `TOP`-Cap (kommt mit Fix 3, Default 50, konfigurierbar via `KnowHowToAi.Search.MaxResults`)
+- **Response-Shape `SearchResult { results, truncated }`** (kommt mit Fix 3) — das LLM muss aus `truncated: true` schließen, dass es *mehr* Treffer gibt und die Suche verfeinern (präziserer Query, andere Begriffe). `truncated: false` heißt: alle Treffer sind in `results`.
+- Sortierung deterministisch (zuerst Title-Treffer, dann alphabetisch nach Title) — keine versteckte Reihenfolge.
 
 Für `get_doc`:
 - `null`-Return bei unbekanntem Slug
 - Token-Budget-Hinweis (NVARCHAR(MAX))
 - Kein YAML-Front-Matter im Content
+- Keine Trunkierung in v1 (Backlog F-Backlog)
+
+Beispiel für die `search_docs`-Description (komplett, in dieser Form
+in den `[Description(...)]`-String übernehmen):
+
+```text
+Durchsucht Titel, Inhalt, Tags und Synonyme nach einem Suchbegriff
+(Substring-Match). Liefert die Treffer als SearchResult.
+
+Response-Shape:
+- { results: DocumentSummary[], truncated: bool }
+- results: Slug + Title der gefundenen Dokumente
+- truncated: true, wenn es mehr Treffer gibt als MaxResults (Default 50,
+  konfigurierbar via appsettings.json → KnowHowToAi.Search.MaxResults).
+  In dem Fall: Suche verfeinern (präziserer Query) statt alle Treffer
+  zu erwarten.
+
+Semantik:
+- SQL LIKE '%query%' gegen title, content, tags, synonyms
+- Wildcard-Zeichen (% _ [) im Query werden literal behandelt
+- Sortierung: zuerst Title-Treffer, dann alphabetisch nach title
+
+Edge Cases:
+- query = null/leer/Whitespace: leere results, truncated=false
+- query länger als MaxQueryLength (Default 200, konfigurierbar via
+  appsettings.json → KnowHowToAi.Search.MaxQueryLength): Tool-Error
+- Keine Treffer: leere results, truncated=false
+```
+
+Die *exakten* deutschen Formulierungen + Reihenfolge legt der Coder im
+Step fest — das obige ist die inhaltliche Mindest-Spezifikation.
 
 **Nice-to-Have (kann mit rein):** ein konkretes Beispiel-Output-JSONSnippet
 pro Tool. Aufwand < 15 Min, LLM-UX-Mehrwert da.
@@ -477,6 +581,31 @@ Analog für die anderen drei Services.
 
 Im Server-Modus wird `SqlDocumentsStore` bereits per DI gebaut; `ILogger<SqlDocumentsStore>` ist via `AddSerilog(Log.Logger)` als Logger-Provider verfügbar. Per `AddSingleton<ILogger<SqlDocumentsStore>>(sp => new Logger<SqlDocumentsStore>(Log.Logger))` oder durch Anpassung der Service-Registrierung an `AddLogging` muss der Logger explizit aufgelöst werden — Details im Planer-Step.
 
+**Schritt 5f — Anpassung an `SearchResult`-Shape (Folge von F-PE-002):**
+
+Durch F-PE-002 liefert `SqlDocumentsStore.SearchDocsAsync` jetzt
+`SearchResult` statt `IReadOnlyList<DocumentSummary>`. Drei Stellen
+müssen mitgezogen werden:
+
+- `ResponseSize.Measure<T>` in `Core/Logging/ResponseSize.cs` bekommt
+  einen neuen Switch-Arm: `SearchResult search => search.Results.Count`.
+  Sonst fällt der `SearchResult`-Fall auf `_ => 0` durch und der
+  Log-Eintrag in `DocsMcpTools` zeigt eine `Size=0` an — irreführend.
+- `DocsMcpTools.SearchDocsAsync` reicht `result` (den Wrapper) als
+  Tool-Antwort durch, **nicht** `result.Results` — sonst geht der
+  `truncated`-Marker verloren, den das LLM laut Querschnittsregel
+  sehen muss.
+- `logger.LogInformation("search_docs response: {Size}", ...)` misst
+  weiterhin nur `Results.Count` (über den neuen Switch-Arm) — das
+  reicht für die Beobachtbarkeit; `Truncated` selbst wird im
+  Log-Stream implizit sichtbar, weil bei `Truncated=true` der Size
+  am `MaxResults`-Cap landet.
+
+Diese Anpassungen sind im selben F-AR-002-Commit mit drin, nicht
+separat — sie sind direkte Folge der F-PE-002-Änderung und werden
+sonst durch `DocsMcpTools` einen falschen Response-Type loggen bzw.
+einen falschen Tool-Rückgabetyp liefern.
+
 **Doku:** `docs/03` Abschnitt 1 (Solution-Layout) — Notiz, dass Core-
 Services `ILogger<T>` per Konstruktor erwarten. `docs/02` Abschnitt 2
 (Tech-Stack-Tabelle) — `Microsoft.Extensions.Logging.Abstractions` als
@@ -497,7 +626,9 @@ muss das im Detail durchdenken.
 - [ ] `dotnet build -c Release` — 0 Warnungen, 0 Fehler
 - [ ] `dotnet test` — alle bestehenden Tests grün (Baseline 55 vor diesem
       Task) **und** alle in den Fix-Details explizit genannten neuen Tests
-      grün
+      grün (insb. `SearchResultTests` mit Truncation-Marker-Logik,
+      `BuildLikePatternTests` mit Escape-Verhalten, alle
+      Service-Tests mit `NullLogger<T>.Instance`)
 - [ ] `AiNetLinter` (über den `AiNetLinterTests`-Test oder direkter CLI-Lauf)
       — 0 neue Verstöße
 - [ ] Conventional Commits, deutscher Imperativ-Titel, `Co-Authored-By: Claude Sonnet 5`
