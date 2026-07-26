@@ -1,21 +1,21 @@
 ---
-status: executing  # executing | done | aborted
+status: done  # executing | done | aborted
 task: audit-2026-07-24-PrioA
 started_at: 2026-07-26T17:52:53+02:00
-last_updated: 2026-07-26T17:52:53+02:00
+last_updated: 2026-07-27T00:30:00+02:00
 total_fix_rounds: 2  # Summe aller Fix-Runden über alle Steps (Task-weiter Not-Anker, siehe Config)
-current_step: step-001
+current_step: step-005  # alle Steps done
 ---
 
 # Task State: audit-2026-07-24-PrioA
 
 ## Übersicht
 
-- **Task-Status:** `executing`
-- **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
+- **Task-Status:** `done`
+- **Fix-Runden gesamt:** 2 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
 - **Aktueller Schritt:** alle 5 Steps done. Schritt 6 (Globaler 360°-Audit) startet.
 - **Gestartet:** 2026-07-26T17:52:53+02:00
-- **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
+- **Zuletzt aktualisiert:** 2026-07-27T00:30:00+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
   5 High-Findings aus `tasks/audit-2026-07-24/`)
 - **Working-Tree zu Beginn:** clean, Branch `main`, 9 Commits ahead of `origin/main`
@@ -68,6 +68,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T23:15:00+02:00 — fix-01: auditer-Verdict `approved`. Beide MAJOR-Findings behoben. Description + Doku-Konsistenz wiederhergestellt.
 - 2026-07-26T23:45:00+02:00 — step-005: in_progress → done (pending audit), Code-Commit `934978b`, Doku-Commit `ac2409f`. Build grün, 78 Tests grün (keine neuen), AiNetLinter 0 Violations (Report direkt gelesen). 5 Coder-Abweichungen (alle im step-result dokumentiert): (a) Collection-Expression durch `.ToList()` ersetzt (CS9176-Inferenz); (b) Plan-Beispiel für RunServer-Lambda Parameter-Reihenfolge korrigiert; (c) `Log.Logger.ForContext<T>()` liefert Serilog-ILogger, Bridge via `LoggerFactory.Create + AddSerilog(dispose: false)` pro Run-Methode; (d) Beispiel-Logs in docs/03 übersprungen (kein echter Smoke möglich); (e) Subject 75 Zeichen.
 - 2026-07-27T00:15:00+02:00 — step-005: auditer-Verdict `approved`. Kern-Anforderungen (Beobachtbarkeit, Composition-Root-Factory, F-AR-001-Konsolidierung) bestätigt. 10 MINOR/NITPICK-Beobachtungen fließen in 360°-Audit (Schritt 6).
+- 2026-07-27T00:30:00+02:00 — Schritt 6 (Globaler 360°-Audit): Verdict `done`. Build 0/0, 78/78 Tests, AiNetLinter 0 Violations (alle selbst nachgeprüft). Alle 5 Findings komplett umgesetzt in Konzept-Reihenfolge. 9 MINOR/NITPICK-Hygiene-Empfehlungen für Folge-Tasks. `task-summary.md` geschrieben.
 
 ## Config (optional)
 
