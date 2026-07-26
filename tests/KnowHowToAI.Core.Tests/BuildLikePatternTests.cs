@@ -4,31 +4,18 @@ namespace KnowHowToAI.Core.Tests;
 
 public class BuildLikePatternTests
 {
-    [Fact]
-    public void BuildLikePattern_AllowsNormalSubstring() =>
-        Assert.Equal("%routing%", SqlDocumentsStore.BuildLikePattern("routing"));
+    [Theory]
+    [InlineData("routing", "%routing%")]
+    [InlineData("50%", "%50[%]%")]
+    [InlineData("a_b", "%a[_]b%")]
+    [InlineData("[abc", "%[[]abc%")]
+    [InlineData("", "%%")]
+    public void BuildLikePattern_EscapesSqlWildcardsAndWraps(string input, string expected) =>
+        Assert.Equal(expected, SqlDocumentsStore.BuildLikePattern(input));
 
-    [Fact]
-    public void BuildLikePattern_EscapesPercent() =>
-        Assert.Equal("%50[%]%", SqlDocumentsStore.BuildLikePattern("50%"));
-
-    [Fact]
-    public void BuildLikePattern_EscapesUnderscore() =>
-        Assert.Equal("%a[_]b%", SqlDocumentsStore.BuildLikePattern("a_b"));
-
-    [Fact]
-    public void BuildLikePattern_EscapesOpeningBracket() =>
-        Assert.Equal("%[[]abc%", SqlDocumentsStore.BuildLikePattern("[abc"));
-
-    [Fact]
-    public void BuildLikePattern_EmptyInput_ReturnsPercentPercent() =>
-        Assert.Equal("%%", SqlDocumentsStore.BuildLikePattern(string.Empty));
-
-    [Fact]
-    public void BuildLikePattern_OrderOfEscapesDoesNotDoubleEscape() =>
-        Assert.Equal("%[[][%]]%", SqlDocumentsStore.BuildLikePattern("[%]"));
-
-    [Fact]
-    public void BuildLikePattern_AllThreeWildcardsInOneInput_AllEscaped() =>
-        Assert.Equal("%[%]a[_]b[[]c]%", SqlDocumentsStore.BuildLikePattern("%a_b[c]"));
+    [Theory]
+    [InlineData("[%]", "%[[][%]]%")]
+    [InlineData("%a_b[c]", "%[%]a[_]b[[]c]%")]
+    public void BuildLikePattern_PreservesEscapingOrder(string input, string expected) =>
+        Assert.Equal(expected, SqlDocumentsStore.BuildLikePattern(input));
 }

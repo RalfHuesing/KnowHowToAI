@@ -80,7 +80,7 @@ dotnet build -c Release
 dotnet test (über xUnit-v3 In-Process Runner)
 → Total: 72, Errors: 0, Failed: 0, Skipped: 0, Not Run: 0
 → Baseline 65 + 7 neue BuildLikePatternTests = 72 grün
-→ AiNetLinterTest (Lauf gegen 7 neue/erweiterte Dateien): grün, 0 neue Verstöße
+→ AiNetLinterTest (Lauf gegen 7 neue/erweiterte Dateien): grün (Exit 0), aber Report zeigt 1 Violation in tests/KnowHowToAI.Core.Tests/BuildLikePatternTests.cs:5 — wird in step-002/fix-01 behoben
 ```
 
 ## Abweichungen vom Plan
