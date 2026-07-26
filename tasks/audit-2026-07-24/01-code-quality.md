@@ -14,9 +14,6 @@
 | --- | --- | --- | --- |
 | [F-CQ-001](#f-cq-001) | **High** | `sealed` fehlt an zwei Core-Klassen — `Document`, `ValidationResult` | `Documents/Document.cs:3`, `Validation/ValidationResult.cs:5` |
 | [F-CQ-002](#f-cq-002) | Medium | `Document` ist `class` mit nur `init`-Properties — `record` wäre idiomatisch + würde F-CQ-001 mit lösen | `Documents/Document.cs` |
-| [F-CQ-003](#f-cq-003) | Medium | `JsonSerializer.Deserialize<List<string>>(row.Tags)!` mit `!`-Suppressor | `Sync/SqlDocumentsStore.cs:111-112` |
-| [F-CQ-004](#f-cq-004) | Low | Magic-String-Konstante `---` an mehreren Stellen (`FrontMatterParser.delimiter`, `docs/04` und `docs/02` referenziert `---` als YAML-Delimiter) | `Documents/FrontMatterParser.cs:59` |
-| [F-CQ-005](#f-cq-005) | Low | Drei `new FrontMatterParser()`-Instanzen in `ImportService`/`ExportService`/`DocsValidator` | `Sync/ImportService.cs:12`, `Sync/ExportService.cs:10`, `Validation/DocsValidator.cs:10` |
 | [F-CQ-006](#f-cq-006) | Info | `static class DocsMcpResources` — `static` für reine Konstanten-Resource-Klasse | `McpTools/DocsMcpResources.cs:9` |
 | [F-CQ-007](#f-cq-007) | Info | `partial class DocsValidator` für `GeneratedRegex` — AiNetLinter `MaxPartialClassFiles=2` erfüllt (1 File) | `Validation/DocsValidator.cs:8, 92-93` |
 | [F-CQ-008](#f-cq-008) | Info | Kommentarblöcke in `Program.cs:14-23, 163-164` und `SchemaMigrator.cs:8-11` sind ausnahmslos Warum-begründet | (mehrere) |
@@ -105,106 +102,6 @@ Oder beibehalten als `class`, dann aber `sealed` + Kommentar, warum bewusst kein
 
 ---
 
-### F-CQ-003 — `!`-Suppressor auf `JsonSerializer.Deserialize`
-
-**Schweregrad:** Medium (Defensive-Coding-Lücke)
-
-**Beobachtung:**
-`src/KnowToAI.Core/Sync/SqlDocumentsStore.cs:111-112`:
-```csharp
-Tags = row.Tags is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Tags)!,
-Synonyms = row.Synonyms is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Synonyms)!,
-```
-
-Der `!`-Suppressor schluckt zwei Fehlerfälle:
-1. `row.Tags` ist nicht-`null` aber kein gültiges JSON → `JsonException`
-2. `row.Tags` ist `null` als String, aber nicht `is null` (z.B. Leerstring) → `JsonException`
-
-In beiden Fällen fliegt eine unbehandelte Exception aus `GetAllAsync` heraus. In einem
-MCP-Tool-Kontext heißt das: der ganze Tool-Aufruf scheitert mit `Internal Server Error`,
-statt ein definiertes "Daten sind kaputt, ich gebe leere Liste zurück und logge"-Verhalten
-zu zeigen.
-
-**Szenario:** DB wurde von Hand verbogen, oder ein zukünftiger Bug schreibt ungültigen
-JSON. `export` schlägt ohne klaren Fehler fehl.
-
-**Impact:** Niedrig operativ (kein bekannter Bug, kein bekannter Auslöser), aber genau die
-Art "kann passieren, ist dann schwer zu debuggen".
-
-**Fix-Empfehlung:**
-```csharp
-private static IReadOnlyList<string> DeserializeJsonArrayOrEmpty(string? json)
-{
-    if (string.IsNullOrWhiteSpace(json)) return [];
-    try
-    {
-        return JsonSerializer.Deserialize<List<string>>(json) ?? [];
-    }
-    catch (JsonException ex)
-    {
-        // Log via ILogger, wenn verfügbar — bis dahin: leere Liste + klare Notiz
-        return [];
-    }
-}
-```
-Plus Logging in `SqlDocumentsStore` einführen (auch F-AR-002 in Dim 3).
-
-**Aufwand:** ~10 Minuten + neuer Test.
-
----
-
-### F-CQ-004 — Magic-String-Konstante `---` (YAML-Delimiter)
-
-**Schweregrad:** Low (Regel sagt: erst ab 2. Fall handeln)
-
-**Beobachtung:**
-Die Zeichenkette `"---"` taucht an mehreren Stellen auf:
-- `src/KnowHowToAI.Core/Documents/FrontMatterParser.cs:59` — `const string delimiter = "---"`
-- `src/KnowHowToAI.Core/Documents/FrontMatterParser.cs:62, 67` — `StartsWith(delimiter + "\n", ...)` und `IndexOf("\n" + delimiter, ...)`
-- `src/KnowHowToAI.Cli/McpTools/DocsMcpResources.cs:35, 39` — im Authoring-Guide als Beispiel-Front-Matter
-
-Die `.mdc`-Regel `06-configuration.mdc` (Zeile 17) sagt explizit:
-> "Sobald ein zweiter Fall zu `FrontMatterParser.delimiter` hinzukommt, wird sie unter `KnowHowToAI.Core/Constants.cs` (oder passender benannt) angelegt."
-
-**Aktueller Status:** Innerhalb der Codebase nur ein Anwendungsort (im `FrontMatterParser`).
-Der Authoring-Guide-String ist Doku-Output, kein Code-Coupling. Die Regel ist also **noch
-nicht** verletzt.
-
-**Empfehlung:** Diese Beobachtung dokumentieren, damit der nächste Anwendungsort
-(vermutlich beim Schreiben eines zweiten Tools, das YAML parst oder erzeugt) die Konstante
-*nicht* dupliziert, sondern auf `Constants.YamlDelimiter` o.ä. umgestellt wird.
-
-**Aufwand:** 0 jetzt, ~5 Minuten wenn der Fall eintritt.
-
----
-
-### F-CQ-005 — Drei `new FrontMatterParser()`-Instanzen
-
-**Schweregrad:** Low (kein Bug, AiNetLinter `AvoidExcessiveMiddleMen` nicht verletzt)
-
-**Beobachtung:**
-`FrontMatterParser` ist zustandslos (nur `static readonly` YamlDotNet-Konfigurationen).
-Drei Stellen instanziieren ihn pro Anfrage:
-- `ImportService._parser = new FrontMatterParser()` (Zeile 12)
-- `ExportService._parser = new FrontMatterParser()` (Zeile 10)
-- `DocsValidator._parser = new FrontMatterParser()` (Zeile 10)
-
-**Theoretische Optionen:**
-1. **`static` machen:** Spart die drei Allokationen, klarer Vertrag. Da der Parser
-   zustandslos ist, ist das semantisch korrekt. YamlDotNet-Deserializer/Serializer sind
-   thread-safe (laut Docs).
-2. **Per DI injizieren:** Wäre konsistent mit `SqlDocumentsStore` in `RunServer`, aber
-   bricht das bestehende `ImportService`/`ExportService`-Konstruktor-Design (Delegate
-   für `replaceAllAsync`/`getAllAsync`).
-
-**Empfehlung:** `static class FrontMatterParser` mit `static Document Parse(...)` und
-`static string Render(...)`. Spart ~3 Zeilen pro Service, klarer Vertrag, kein DI-Refactor
-nötig. YamlDotNet-Thread-Safety in Docs verifizieren vor dem Umbau.
-
-**Aufwand:** ~15 Minuten + Test-Run (keine Test-Änderungen erwartet).
-
----
-
 ### F-CQ-006 — `static class DocsMcpResources` (Info)
 
 **Beobachtung:** Korrekte Verwendung von `static class` für reine Konstanten-Resource.
@@ -240,6 +137,7 @@ auf `docs/02` (Architektur) verlagern statt auskommentieren.
 
 ---
 
+
 ## Quantitative Linter-Compliance (Stichprobe)
 
 | AiNetLinter-Regel | Limit | Tatsächlich | Status |
@@ -259,7 +157,7 @@ auf `docs/02` (Architektur) verlagern statt auskommentieren.
 
 ## Zusammenfassung Dim 1
 
-- **8 Findings**, davon 1 × High, 2 × Medium, 4 × Low, 1 × Info.
+- **5 Findings** (nach Prio H-Extraktion), davon 1 × High (PrioA), 1 × Medium, 0 × Low, 3 × Info.
 - Hauptthema: ein einziger Lückenbereich — `sealed`/`record`-Disziplin in zwei Core-Klassen
   (F-CQ-001, F-CQ-002 hängen zusammen). Sonst ist die Code-Qualität auf einem Niveau, das
   die `.mdc`-Regeln konsistent einhält.
