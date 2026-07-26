@@ -36,11 +36,11 @@ AiNetLinter meldet 0 Verstöße, Doku ist umfangreich und konsistent mit dem Cod
 | Schweregrad | Anzahl | Prozent |
 | --- | --- | --- |
 | **Critical** | 0 | 0% |
-| **High** | 8 | 12% |
-| **Medium** | 12 | 18% |
-| **Low** | 19 | 28% |
-| **Info** | 28 | 42% |
-| **Gesamt** | **67 Findings** | 100% |
+| **High** | 7 | 13% |
+| **Medium** | 8 | 14% |
+| **Low** | 13 | 23% |
+| **Info** | 28 | 50% |
+| **Gesamt** | **56 Findings** | 100% |
 
 *(Zahlen aus allen 9 Dimensions-Dateien summiert; `_demo-docs/`-Mini-Audit
 ausgenommen, da nicht durch den vollen Filter.)*
@@ -52,7 +52,7 @@ ausgenommen, da nicht durch den vollen Filter.)*
 | 1 | Code-Quality & AiNetLinter-Konformität | [01-code-quality.md](01-code-quality.md) | 1 | 2 | 4 | 1 |
 | 2 | Sicherheit (MCP-Attack-Surface) | [02-security.md](02-security.md) | 1 | 0 | 3 | 2 |
 | 3 | Architektur & Patterns | [03-architecture.md](03-architecture.md) | 1 | 1 | 1 | 3 |
-| 4 | Test-Coverage & -Qualität | [04-tests.md](04-tests.md) | 1 | 4 | 6 | 1 |
+| 4 | Test-Coverage & -Qualität | [04-tests.md](04-tests.md) | 0 | 0 | 0 | 1 |
 | 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 1 | 1 | 3 | 4 |
 | 6 | Konfiguration & Deployment | [06-config-deploy.md](06-config-deploy.md) | 1 | 5 | 2 | 3 |
 | 7 | Dependencies & NuGets | [07-dependencies.md](07-dependencies.md) | 0 | 0 | 2 | 3 |
@@ -127,11 +127,12 @@ tasks/audit-2026-07-24/
 └── _meta-lint.log                      # Linter-Baseline
 ```
 
-> **Hinweis:** Findings sind inzwischen in vier separate Prio-Ordner extrahiert:
+> **Hinweis:** Findings sind inzwischen in fünf separate Prio-Ordner extrahiert:
 > - [`../audit-2026-07-24-PrioA/Konzept.md`](../audit-2026-07-24-PrioA/Konzept.md) — 5 Prio-A-Findings (umgesetzt)
 > - [`../audit-2026-07-24-PrioB/Konzept.md`](../audit-2026-07-24-PrioB/Konzept.md) — 7 Tool-UX & Doku-Polish-Findings
 > - [`../audit-2026-07-24-PrioC/Konzept.md`](../audit-2026-07-24-PrioC/Konzept.md) — 6 Architecture & Dependencies-Findings
 > - [`../audit-2026-07-24-PrioD/Konzept.md`](../audit-2026-07-24-PrioD/Konzept.md) — 3 Sicherheits-Hardening-Findings (Rest Dim 2)
+> - [`../audit-2026-07-24-PrioE/Konzept.md`](../audit-2026-07-24-PrioE/Konzept.md) — 11 Test-Coverage-Findings (Dim 4)
 
 ## Empfohlene Reihenfolge für den Projektverantwortlichen
 

@@ -209,24 +209,6 @@ verbessert LLM-UX.
 
 ---
 
-### Fix #13 — F-TS-001: SQL-Integrationstest-Infrastruktur (Backlog-Item)
-
-**Schweregrad:** High (per Doku akzeptiert, aber langfristig wichtig)
-**Aufwand:** ~4 Stunden (SQLite-Setup) + laufende Test-Pflege
-**Impact:** Tests für `SqlDocumentsStore`. Edge-Cases (F-SE-001, F-CQ-003,
-F-SE-004) werden testbar.
-
-**Konkrete Schritte:**
-1. SQLite-In-Memory oder Testcontainers für SQL-Server
-2. `SqlDocumentsStore`-Tests gegen die In-Memory-DB
-3. Besondere Vorsicht: `LIKE`-Semantik unterscheidet sich zwischen SQLite und
-   SQL Server (Index-Nutzung, Escape-Verhalten)
-4. Alternative: Bestehende `SqlIdentifierValidator`-Tests als Vorbild
-
-**Detail:** Siehe Dim 4.
-
----
-
 ### Fix #14 — F-DK-001: Doku für `LogResponseSize` (mit Fix #1)
 
 Schon im Plan als Teil von Fix #1. Wenn Fix #1 umgesetzt ist, ist F-DK-001
@@ -290,11 +272,10 @@ notwendigen Reviews + Diskussionen.
 7. F-SE-001 (LIKE-Wildcard) — Security
 8. F-AR-002 (ILogger-Injection) — Architektur
 9. F-PE-002 (TOP-Cap) — Performance
-10. F-TS-001 (SQL-Tests) — Test-Infrastruktur
-11. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
+10. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
 ```
 
-**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz), F-SE-005 (Credentials-Doku) sind in PrioD extrahiert.
+**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz), F-SE-005 (Credentials-Doku) sind in PrioD extrahiert. F-TS-001 bis F-TS-011 (Test-Coverage) sind in PrioE extrahiert.
 
 **Optional, separate Commits:**
 - F-AR-005 (Constants.cs) — kann entstehen, wenn F-SE-004 umgesetzt wird
