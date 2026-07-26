@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-001`
+- **Aktueller Schritt:** `step-001` (in_progress)
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -25,7 +25,7 @@ current_step: step-001
 
 | Step | Status | Title | Fix-Runden | Coded | Reviewed | Commit |
 |------|--------|-------|------------|-------|----------|--------|
-| step-001 | open | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | - | - | - |
+| step-001 | in_progress | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | - | - | - |
 | step-002 | open | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 0/3 | - | - | - |
 | step-003 | open | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | - | - | - |
 | step-004 | open | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 | - | - | - |
@@ -43,6 +43,8 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T17:52:53+02:00 — Task angelegt (Konzept `Konzept.md` lag bereits mit status: ready vor)
 - 2026-07-26T17:52:53+02:00 — Planer-Aufruf gestartet (Initial-Plan)
 - 2026-07-26T18:00:00+02:00 — Planer hat 5 Steps generiert (`step-001`..`step-005`): F-CD-001 → F-SE-001 → F-PE-002 → F-MC-001/002 → F-AR-002. Nice-to-Have F-MC-002 in Step 004 konsolidiert, F-AR-001 in Step 005 mitkonsolidiert, `InternalsVisibleTo` für Core in Step 002. Commit steht aus.
+- 2026-07-26T18:01:30+02:00 — Planer-Output committet, Commit `020c664` (`docs(task): plane step-001..005 fuer audit-2026-07-24-PrioA`)
+- 2026-07-26T18:02:00+02:00 — step-001: open → in_progress (coder-Aufruf gestartet)
 
 ## Config (optional)
 
