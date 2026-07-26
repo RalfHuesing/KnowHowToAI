@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-005` (done (pending audit)) — Auditer ausstehend
+- **Aktueller Schritt:** alle 5 Steps done. Schritt 6 (Globaler 360°-Audit) startet.
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -31,7 +31,7 @@ current_step: step-001
 | step-003 | done | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | `c90e4c4` | approved | (nächster Audit-Commit) |
 | step-004 | done | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 1/3 (fix-01 approved) | `5346f25` | approved (nach fix-01) | `1e2c62c` (fix-01) |
 | step-004/fix-01 | done | Fix-01: list_children Empty-String-Falschaussage korrigieren | - | `1e2c62c` | approved | (nächster Audit-Commit) |
-| step-005 | done (pending audit) | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | `934978b` | - | - |
+| step-005 | done | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | `934978b` | approved | (nächster Audit-Commit) |
 
 <Wird vom Orchestrator gepflegt. Status pro Step: open / in_progress /
 done / done (fix-XX pending) / blocked. „Fix-Runden" = Anzahl vorhandener
@@ -67,6 +67,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T23:00:00+02:00 — fix-01: in_progress → done (pending audit), Code-Commit `1e2c62c`, Doku-Commit `f199965`. Build grün, 78 Tests grün, AiNetLinter 0 Violations (Report direkt gelesen). Beide Text-Korrekturen exakt nach Plan umgesetzt.
 - 2026-07-26T23:15:00+02:00 — fix-01: auditer-Verdict `approved`. Beide MAJOR-Findings behoben. Description + Doku-Konsistenz wiederhergestellt.
 - 2026-07-26T23:45:00+02:00 — step-005: in_progress → done (pending audit), Code-Commit `934978b`, Doku-Commit `ac2409f`. Build grün, 78 Tests grün (keine neuen), AiNetLinter 0 Violations (Report direkt gelesen). 5 Coder-Abweichungen (alle im step-result dokumentiert): (a) Collection-Expression durch `.ToList()` ersetzt (CS9176-Inferenz); (b) Plan-Beispiel für RunServer-Lambda Parameter-Reihenfolge korrigiert; (c) `Log.Logger.ForContext<T>()` liefert Serilog-ILogger, Bridge via `LoggerFactory.Create + AddSerilog(dispose: false)` pro Run-Methode; (d) Beispiel-Logs in docs/03 übersprungen (kein echter Smoke möglich); (e) Subject 75 Zeichen.
+- 2026-07-27T00:15:00+02:00 — step-005: auditer-Verdict `approved`. Kern-Anforderungen (Beobachtbarkeit, Composition-Root-Factory, F-AR-001-Konsolidierung) bestätigt. 10 MINOR/NITPICK-Beobachtungen fließen in 360°-Audit (Schritt 6).
 
 ## Config (optional)
 
