@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Dapper;
 using KnowHowToAI.Core.Documents;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace KnowHowToAI.Core.Sync;
 
@@ -12,16 +14,22 @@ public sealed class SqlDocumentsStore
 {
     private readonly string _connectionString;
     private readonly string _table;
+    private readonly ILogger<SqlDocumentsStore> _logger;
 
-    public SqlDocumentsStore(string connectionString, string documentsTableName)
+    public SqlDocumentsStore(string connectionString, string documentsTableName, ILogger<SqlDocumentsStore> logger)
     {
         SqlIdentifierValidator.EnsureValid(documentsTableName);
         _connectionString = connectionString;
         _table = $"dbo.{documentsTableName}";
+        _logger = logger;
     }
 
     public async Task ReplaceAllAsync(IReadOnlyList<Document> documents, CancellationToken cancellationToken)
     {
+        _logger.LogInformation(
+            "ReplaceAll startet: {DocumentCount} Dokumente in Tabelle {Table}",
+            documents.Count, _table);
+        var sw = Stopwatch.StartNew();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -50,20 +58,30 @@ public sealed class SqlDocumentsStore
         }
 
         await transaction.CommitAsync(cancellationToken);
+        _logger.LogInformation(
+            "ReplaceAll abgeschlossen: {DocumentCount} Dokumente in {ElapsedMs}ms",
+            documents.Count, sw.ElapsedMilliseconds);
     }
 
     public async Task<IReadOnlyList<Document>> GetAllAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("GetAll startet");
+        var sw = Stopwatch.StartNew();
         await using var connection = new SqlConnection(_connectionString);
         var rows = await connection.QueryAsync<DocumentRow>(new CommandDefinition(
             $"SELECT slug AS Slug, title AS Title, content AS Content, tags AS Tags, synonyms AS Synonyms FROM {_table};",
             cancellationToken: cancellationToken));
 
-        return [.. rows.Select(ToDocument)];
+        var result = rows.Select(ToDocument).ToList();
+        _logger.LogInformation(
+            "GetAll abgeschlossen: {DocumentCount} Dokumente in {ElapsedMs}ms",
+            result.Count, sw.ElapsedMilliseconds);
+        return result;
     }
 
     public async Task<IReadOnlyList<DocumentSummary>> ListChildrenAsync(string? parentSlug, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("ListChildren(parentSlug={ParentSlug})", parentSlug);
         await using var connection = new SqlConnection(_connectionString);
         var rows = await connection.QueryAsync<DocumentSummary>(new CommandDefinition(
             $"""
@@ -73,11 +91,16 @@ public sealed class SqlDocumentsStore
             new { ParentSlug = parentSlug },
             cancellationToken: cancellationToken));
 
-        return [.. rows];
+        var result = rows.ToList();
+        _logger.LogInformation("ListChildren abgeschlossen: {ResultCount} Kinder", result.Count);
+        return result;
     }
 
     public async Task<SearchResult> SearchDocsAsync(string query, int maxQueryLength, int maxResults, CancellationToken cancellationToken)
     {
+        _logger.LogInformation(
+            "SearchDocs(query='{Query}', maxQueryLength={MaxQueryLength}, maxResults={MaxResults})",
+            query, maxQueryLength, maxResults);
         if (string.IsNullOrWhiteSpace(query)) return new SearchResult([], Truncated: false);
         if (query.Length > maxQueryLength)
         {
@@ -103,7 +126,11 @@ public sealed class SqlDocumentsStore
         var rowList = rows.AsList();
         var results = rowList.Select(r => new DocumentSummary(r.Slug, r.Title)).ToList();
         var totalCount = rowList.Count > 0 ? rowList[0].TotalCount : 0;
-        return new SearchResult(results, Truncated: totalCount > results.Count);
+        var searchResult = new SearchResult(results, Truncated: totalCount > results.Count);
+        _logger.LogInformation(
+            "SearchDocs abgeschlossen: {ResultCount} Treffer, truncated={Truncated}",
+            searchResult.Results.Count, searchResult.Truncated);
+        return searchResult;
     }
 
     internal static string BuildLikePattern(string query)
@@ -117,11 +144,16 @@ public sealed class SqlDocumentsStore
 
     public async Task<DocumentDetail?> GetDocAsync(string slug, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("GetDoc(slug='{Slug}')", slug);
         await using var connection = new SqlConnection(_connectionString);
-        return await connection.QuerySingleOrDefaultAsync<DocumentDetail>(new CommandDefinition(
+        var result = await connection.QuerySingleOrDefaultAsync<DocumentDetail>(new CommandDefinition(
             $"SELECT title AS Title, content AS Content FROM {_table} WHERE slug = @Slug;",
             new { Slug = slug },
             cancellationToken: cancellationToken));
+        _logger.LogInformation(
+            "GetDoc abgeschlossen: {ResultState}",
+            result is null ? "null" : $"content length={result.Content?.Length ?? 0}");
+        return result;
     }
 
     private static Document ToDocument(DocumentRow row) => new(

@@ -1,11 +1,12 @@
 using KnowHowToAI.Core.Validation;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KnowHowToAI.Core.Tests;
 
 public class DocsValidatorTests : IDisposable
 {
     private readonly string _docsRoot = Directory.CreateTempSubdirectory("knowhowtoai-docs-").FullName;
-    private readonly DocsValidator _validator = new();
+    private readonly DocsValidator _validator = new(logger: NullLogger<DocsValidator>.Instance);
 
     public void Dispose() => Directory.Delete(_docsRoot, recursive: true);
 
@@ -102,7 +103,7 @@ public class DocsValidatorTests : IDisposable
     [Fact]
     public void Validate_ContentAtThreshold_ReturnsNoWarning()
     {
-        var validator = new DocsValidator(maxContentLengthWarning: 10);
+        var validator = new DocsValidator(maxContentLengthWarning: 10, logger: NullLogger<DocsValidator>.Instance);
         WriteDoc("it", "IT", new string('a', 10));
 
         var result = validator.Validate(_docsRoot);
@@ -113,7 +114,7 @@ public class DocsValidatorTests : IDisposable
     [Fact]
     public void Validate_ContentAboveThreshold_ReportsWarningButStaysValid()
     {
-        var validator = new DocsValidator(maxContentLengthWarning: 10);
+        var validator = new DocsValidator(maxContentLengthWarning: 10, logger: NullLogger<DocsValidator>.Instance);
         WriteDoc("it", "IT", new string('a', 11));
 
         var result = validator.Validate(_docsRoot);

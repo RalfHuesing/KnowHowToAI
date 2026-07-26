@@ -1,16 +1,20 @@
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using KnowHowToAI.Core.Documents;
+using Microsoft.Extensions.Logging;
 
 namespace KnowHowToAI.Core.Validation;
 
 // YAML-Check, Slug-Check, Orphan-Check, Content-Link-Check — alle Fehler sammeln statt beim ersten abzubrechen.
 // Regeln: docs/04-Datenmodell-Validierung-Edgecases.md, Abschnitt 3.
-public sealed partial class DocsValidator(int maxContentLengthWarning = 8000)
+public sealed partial class DocsValidator(int maxContentLengthWarning = 8000, ILogger<DocsValidator>? logger = null)
 {
     private readonly FrontMatterParser _parser = new();
 
     public ValidationResult Validate(string docsRootPath)
     {
+        logger?.LogInformation("Validate startet: docsRoot='{DocsRoot}'", docsRootPath);
+        var sw = Stopwatch.StartNew();
         var errors = new List<ValidationError>();
         var warnings = new List<ValidationError>();
         var slugs = new HashSet<string>();
@@ -54,7 +58,11 @@ public sealed partial class DocsValidator(int maxContentLengthWarning = 8000)
             }
         }
 
-        return new ValidationResult(errors, warnings);
+        var result = new ValidationResult(errors, warnings);
+        logger?.LogInformation(
+            "Validate abgeschlossen: {ErrorCount} Fehler, {WarningCount} Warnungen, {ElapsedMs}ms",
+            result.Errors.Count, result.Warnings.Count, sw.ElapsedMilliseconds);
+        return result;
     }
 
     // Erkennt Datei-/Pfad-Referenzen statt Slug-Referenzen: file://-Links und Links auf .md/.markdown

@@ -24,6 +24,8 @@ KnowHowToAI/
 
 **`KnowHowToAI.Core`** — enthält die gesamte Logik ohne IO-Framework-Abhängigkeiten (kein `System.CommandLine`, kein MCP-SDK) → einfach und schnell testbar mit xUnit v3.
 
+* Alle öffentlichen Services in Core (`SqlDocumentsStore`, `DocsValidator`, `ImportService`, `ExportService`) erwarten `ILogger<T>` per Konstruktor. Default ist `null` (kein Logging); Production-Code in Cli reicht den Serilog-Backend-Logger durch.
+
 | Ordner | Zuständigkeit |
 | --- | --- |
 | `Documents/` | Domain-Objekte und alles rund ums Parsen/Rendern eines Dokuments (`Document`, `DocumentSummary`, `DocumentDetail`, `FrontMatterParser`, `SlugRules`) |
@@ -33,6 +35,8 @@ KnowHowToAI/
 | `Configuration/` | `KnowHowToAiOptions` |
 
 **`KnowHowToAI.Cli`** — der einzige Ort, der CLI-Parsing und MCP-Hosting kennt. Bleibt dünn (nur Wiring).
+
+* `Program.cs` enthält die Composition-Root-Factory (`BuildStore`/`BuildImportService`/`BuildExportService`) — alle Services werden an einer einzigen Stelle konstruiert (kein `new SqlDocumentsStore(...)` verstreut über Run-Methoden).
 
 | Ordner | Zuständigkeit |
 | --- | --- |

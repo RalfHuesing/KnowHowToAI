@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Documents;
 using KnowHowToAI.Core.Sync;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KnowHowToAI.Core.Tests;
 
@@ -14,11 +15,14 @@ public class ImportServiceTests : IDisposable
     {
         WriteDoc("IT", "Ungültiger Slug");
         var replaceCallCount = 0;
-        var service = new ImportService((_, _) =>
-        {
-            replaceCallCount++;
-            return Task.CompletedTask;
-        });
+        var service = new ImportService(
+            (_, _) =>
+            {
+                replaceCallCount++;
+                return Task.CompletedTask;
+            },
+            maxContentLengthWarning: 8000,
+            logger: NullLogger<ImportService>.Instance);
 
         var result = await service.ImportAsync(_docsRoot, TestContext.Current.CancellationToken);
 
@@ -32,11 +36,14 @@ public class ImportServiceTests : IDisposable
         WriteDoc("it", "IT");
         WriteDoc("it/netzwerk", "Netzwerk");
         IReadOnlyList<Document>? replacedWith = null;
-        var service = new ImportService((documents, _) =>
-        {
-            replacedWith = documents;
-            return Task.CompletedTask;
-        });
+        var service = new ImportService(
+            (documents, _) =>
+            {
+                replacedWith = documents;
+                return Task.CompletedTask;
+            },
+            maxContentLengthWarning: 8000,
+            logger: NullLogger<ImportService>.Instance);
 
         var result = await service.ImportAsync(_docsRoot, TestContext.Current.CancellationToken);
 
@@ -72,7 +79,9 @@ public class ExportServiceTests : IDisposable
     public async Task ExportAsync_NewTargetDirectory_CreatesMarkerAndWritesDocuments()
     {
         var document = new Document("it/netzwerk", "Netzwerk", "Inhalt.", ParentSlug: "it", Tags: ["a"], Synonyms: []);
-        var service = new ExportService((_) => Task.FromResult<IReadOnlyList<Document>>([document]));
+        var service = new ExportService(
+            (_) => Task.FromResult<IReadOnlyList<Document>>([document]),
+            NullLogger<ExportService>.Instance);
 
         await service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken);
 
@@ -95,7 +104,9 @@ public class ExportServiceTests : IDisposable
         await File.WriteAllTextAsync(staleFile, "alt", TestContext.Current.CancellationToken);
 
         var document = new Document("neu", "Neu", "Inhalt.", null, [], []);
-        var service = new ExportService((_) => Task.FromResult<IReadOnlyList<Document>>([document]));
+        var service = new ExportService(
+            (_) => Task.FromResult<IReadOnlyList<Document>>([document]),
+            NullLogger<ExportService>.Instance);
 
         await service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken);
 
@@ -109,11 +120,13 @@ public class ExportServiceTests : IDisposable
         Directory.CreateDirectory(_targetDirectory);
         await File.WriteAllTextAsync(Path.Combine(_targetDirectory, "fremd.txt"), "fremd", TestContext.Current.CancellationToken);
         var getAllCallCount = 0;
-        var service = new ExportService((_) =>
-        {
-            getAllCallCount++;
-            return Task.FromResult<IReadOnlyList<Document>>([]);
-        });
+        var service = new ExportService(
+            (_) =>
+            {
+                getAllCallCount++;
+                return Task.FromResult<IReadOnlyList<Document>>([]);
+            },
+            NullLogger<ExportService>.Instance);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken));

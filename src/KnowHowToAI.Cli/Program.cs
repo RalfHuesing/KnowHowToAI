@@ -61,7 +61,10 @@ int RunValidate(ParseResult parseResult)
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
         Log.Logger = ConfigureLogger(options.Logging);
-        var result = new DocsValidator(options.Validation.MaxContentLengthWarning).Validate(options.DocsRootPath);
+        using var loggerFactory = LoggerFactory.Create(b => b.AddSerilog(Log.Logger, dispose: false));
+        var result = new DocsValidator(
+            options.Validation.MaxContentLengthWarning,
+            loggerFactory.CreateLogger<DocsValidator>()).Validate(options.DocsRootPath);
         return PrintValidationResult(result);
     }
     catch (Exception ex)
@@ -77,12 +80,13 @@ async Task<int> RunImport(ParseResult parseResult, CancellationToken cancellatio
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
         Log.Logger = ConfigureLogger(options.Logging);
+        using var loggerFactory = LoggerFactory.Create(b => b.AddSerilog(Log.Logger, dispose: false));
 
         await SchemaMigrator.MigrateAsync(
             options.ConnectionString, options.DocumentsTableName, message => Log.Logger.Information(message), cancellationToken);
 
-        var store = new SqlDocumentsStore(options.ConnectionString, options.DocumentsTableName);
-        var importService = new ImportService(store.ReplaceAllAsync, options.Validation.MaxContentLengthWarning);
+        var store = BuildStore(options, loggerFactory.CreateLogger<SqlDocumentsStore>());
+        var importService = BuildImportService(options, store, loggerFactory.CreateLogger<ImportService>());
         var result = await importService.ImportAsync(options.DocsRootPath, cancellationToken);
         return PrintValidationResult(result);
     }
@@ -99,11 +103,12 @@ async Task<int> RunExport(ParseResult parseResult, CancellationToken cancellatio
     {
         var options = LoadOptions(parseResult.GetValue(configOption));
         Log.Logger = ConfigureLogger(options.Logging);
+        using var loggerFactory = LoggerFactory.Create(b => b.AddSerilog(Log.Logger, dispose: false));
         var target = parseResult.GetValue(targetOption)
             ?? throw new InvalidOperationException("--target ist erforderlich.");
 
-        var store = new SqlDocumentsStore(options.ConnectionString, options.DocumentsTableName);
-        var exportService = new ExportService(store.GetAllAsync);
+        var store = BuildStore(options, loggerFactory.CreateLogger<SqlDocumentsStore>());
+        var exportService = BuildExportService(store, loggerFactory.CreateLogger<ExportService>());
         await exportService.ExportAsync(target, options.ExportMarkerFileName, cancellationToken);
 
         Console.WriteLine($"Export abgeschlossen nach '{target}'.");
@@ -127,11 +132,13 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
         builder.Logging.ClearProviders();
         builder.Services.AddSerilog(Log.Logger);
         builder.Services.AddSingleton(options);
-        builder.Services.AddSingleton(new SqlDocumentsStore(options.ConnectionString, options.DocumentsTableName));
-        builder.Services.AddSingleton<DocsMcpTools>(sp => new DocsMcpTools(
+        builder.Services.AddSingleton<SqlDocumentsStore>(sp => BuildStore(
+            options,
+            sp.GetRequiredService<ILogger<SqlDocumentsStore>>()));
+        builder.Services.AddSingleton(sp => new DocsMcpTools(
             sp.GetRequiredService<SqlDocumentsStore>(),
-            sp.GetRequiredService<KnowHowToAiOptions>().Search.MaxQueryLength,
-            sp.GetRequiredService<KnowHowToAiOptions>().Search.MaxResults,
+            options.Search.MaxQueryLength,
+            options.Search.MaxResults,
             sp.GetRequiredService<ILogger<DocsMcpTools>>()));
         builder.Services.AddMcpServer(o => o.ServerInstructions = DocsMcpResources.ServerInstructions)
             .WithStdioServerTransport()
@@ -148,6 +155,20 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
         return 2;
     }
 }
+
+// Composition-Root-Factory: einziger Ort, an dem SqlDocumentsStore/ImportService/ExportService
+// konstruiert werden. CLI-Modi (validate/import/export) reichen den Serilog-Backend-Logger über
+// eine kurze LoggerFactory.Create(b => b.AddSerilog(Log.Logger, dispose: false)) → CreateLogger<T>()
+// Brücke als Microsoft.Extensions.Logging.ILogger<T> durch; der Server-Modus löst ILogger<T>
+// über den DI-Container auf. Siehe docs/03, Abschnitt 1 (Solution-Layout) und Konzept F-AR-001/F-AR-002.
+static SqlDocumentsStore BuildStore(KnowHowToAiOptions options, ILogger<SqlDocumentsStore> logger) =>
+    new(options.ConnectionString, options.DocumentsTableName, logger);
+
+static ImportService BuildImportService(KnowHowToAiOptions options, SqlDocumentsStore store, ILogger<ImportService> logger) =>
+    new(store.ReplaceAllAsync, options.Validation.MaxContentLengthWarning, logger);
+
+static ExportService BuildExportService(SqlDocumentsStore store, ILogger<ExportService> logger) =>
+    new(store.GetAllAsync, logger);
 
 static KnowHowToAiOptions LoadOptions(string? configPath)
 {
