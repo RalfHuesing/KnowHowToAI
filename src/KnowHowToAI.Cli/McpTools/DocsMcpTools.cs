@@ -17,7 +17,7 @@ public sealed class DocsMcpTools(SqlDocumentsStore store, int maxQueryLength, in
 
         Edge Cases:
         - parentSlug = null oder weggelassen: listet die Root-Dokumente
-        - parentSlug = "" (leerer String): wirft ArgumentException — nicht dasselbe wie null
+        - parentSlug = "" (leerer String): leere Liste, kein Fehler (semantisch identisch zu einem unbekannten Slug)
         - parentSlug existiert nicht als Dokument: leere Liste, kein Fehler
         - parentSlug ist kein gültiger Slug (z.B. "Foo Bar"): wird vom Server akzeptiert
           und liefert eine leere Liste
