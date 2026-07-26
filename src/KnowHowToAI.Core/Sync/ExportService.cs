@@ -11,8 +11,6 @@ public sealed class ExportService(
     Func<CancellationToken, Task<IReadOnlyList<Document>>> getAllAsync,
     ILogger<ExportService>? logger = null)
 {
-    private readonly FrontMatterParser _parser = new();
-
     public async Task ExportAsync(string targetDirectory, string exportMarkerFileName, CancellationToken cancellationToken = default)
     {
         logger?.LogInformation(
@@ -27,7 +25,7 @@ public sealed class ExportService(
         {
             var filePath = Path.Combine(targetDirectory, document.Slug.Replace('/', Path.DirectorySeparatorChar) + ".md");
             Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-            await File.WriteAllTextAsync(filePath, _parser.Render(document), cancellationToken);
+            await File.WriteAllTextAsync(filePath, FrontMatterParser.Render(document), cancellationToken);
         }
 
         logger?.LogInformation(

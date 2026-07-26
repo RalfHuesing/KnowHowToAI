@@ -6,7 +6,10 @@ namespace KnowHowToAI.Core.Documents;
 
 // Parst eine einzelne .md-Datei (YAML Front Matter + Inhalt) in ein Document.
 // Front-Matter-Format: docs/02-Architektur-und-Techstack.md, Abschnitt 3.
-public sealed class FrontMatterParser
+// Static class, weil der Parser zustandslos ist (YamlDotNet-Deserializer/Serializer sind
+// intern thread-safe). Vermeidet drei `new FrontMatterParser()`-Allokationen in den
+// Core-Services.
+public static class FrontMatterParser
 {
     private static readonly IDeserializer Deserializer =
         new DeserializerBuilder()
@@ -20,7 +23,7 @@ public sealed class FrontMatterParser
             .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
             .Build();
 
-    public Document Parse(string slug, string fileContent)
+    public static Document Parse(string slug, string fileContent)
     {
         var (yaml, content) = SplitFrontMatter(fileContent);
         var frontMatter = DeserializeFrontMatter(yaml);
@@ -39,7 +42,7 @@ public sealed class FrontMatterParser
             frontMatter.Synonyms ?? []);
     }
 
-    public string Render(Document document)
+    public static string Render(Document document)
     {
         var frontMatter = new FrontMatterData
         {

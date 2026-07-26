@@ -4,8 +4,6 @@ namespace KnowHowToAI.Core.Tests;
 
 public class FrontMatterParserTests
 {
-    private readonly FrontMatterParser _parser = new();
-
     [Fact]
     public void Parse_ValidFile_ReturnsDocumentWithParsedFields()
     {
@@ -20,7 +18,7 @@ public class FrontMatterParserTests
             Hier steht der eigentliche Dokumenteninhalt.
             """;
 
-        var document = _parser.Parse("it/netzwerk/routing", fileContent);
+        var document = FrontMatterParser.Parse("it/netzwerk/routing", fileContent);
 
         Assert.Equal("it/netzwerk/routing", document.Slug);
         Assert.Equal("it/netzwerk", document.ParentSlug);
@@ -40,7 +38,7 @@ public class FrontMatterParserTests
             # IT
             """;
 
-        var document = _parser.Parse("it", fileContent);
+        var document = FrontMatterParser.Parse("it", fileContent);
 
         Assert.Null(document.ParentSlug);
     }
@@ -55,7 +53,7 @@ public class FrontMatterParserTests
             Inhalt.
             """;
 
-        var document = _parser.Parse("minimal", fileContent);
+        var document = FrontMatterParser.Parse("minimal", fileContent);
 
         Assert.Empty(document.Tags);
         Assert.Empty(document.Synonyms);
@@ -71,7 +69,7 @@ public class FrontMatterParserTests
             Inhalt ohne Titel.
             """;
 
-        var exception = Assert.Throws<InvalidOperationException>(() => _parser.Parse("kein-titel", fileContent));
+        var exception = Assert.Throws<InvalidOperationException>(() => FrontMatterParser.Parse("kein-titel", fileContent));
         Assert.Contains("title", exception.Message);
     }
 
@@ -80,7 +78,7 @@ public class FrontMatterParserTests
     {
         const string fileContent = "Kein Front Matter hier.";
 
-        Assert.Throws<InvalidOperationException>(() => _parser.Parse("ohne-front-matter", fileContent));
+        Assert.Throws<InvalidOperationException>(() => FrontMatterParser.Parse("ohne-front-matter", fileContent));
     }
 
     [Fact]
@@ -92,7 +90,7 @@ public class FrontMatterParserTests
             Inhalt ohne schließendes Trennzeichen.
             """;
 
-        Assert.Throws<InvalidOperationException>(() => _parser.Parse("offen", fileContent));
+        Assert.Throws<InvalidOperationException>(() => FrontMatterParser.Parse("offen", fileContent));
     }
 
     [Fact]
@@ -106,7 +104,7 @@ public class FrontMatterParserTests
             Inhalt.
             """;
 
-        Assert.Throws<InvalidOperationException>(() => _parser.Parse("kaputt", fileContent));
+        Assert.Throws<InvalidOperationException>(() => FrontMatterParser.Parse("kaputt", fileContent));
     }
 
     [Theory]
@@ -117,7 +115,7 @@ public class FrontMatterParserTests
     {
         var fileContent = $"---\ntitle: \"{title}\"\n---\nInhalt.";
 
-        var exception = Assert.Throws<InvalidOperationException>(() => _parser.Parse("ws-titel", fileContent));
+        var exception = Assert.Throws<InvalidOperationException>(() => FrontMatterParser.Parse("ws-titel", fileContent));
         Assert.Contains("title", exception.Message);
     }
 
@@ -131,7 +129,7 @@ public class FrontMatterParserTests
         body.CopyTo(withBom, bom.Length);
         var fileContent = System.Text.Encoding.UTF8.GetString(withBom);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => _parser.Parse("mit-bom", fileContent));
+        var exception = Assert.Throws<InvalidOperationException>(() => FrontMatterParser.Parse("mit-bom", fileContent));
         Assert.Contains("YAML Front Matter", exception.Message);
     }
 }

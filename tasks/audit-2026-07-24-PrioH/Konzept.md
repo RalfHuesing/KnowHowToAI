@@ -8,11 +8,11 @@
 
 ## Inhalt
 
-| ID | Titel | Schweregrad | Aufwand |
-|---|---|---|---|
-| [F-CQ-003](#f-cq-003---suppressor-auf-jsonserializerdeserialize) | `!`-Suppressor auf `JsonSerializer.Deserialize` | Medium | ~10 Min + Test |
-| [F-CQ-004](#f-cq-004--magic-string-konstante----yaml-delimiter) | Magic-String-Konstante `---` (YAML-Delimiter) | Low | 0 jetzt (Vor-Bote) |
-| [F-CQ-005](#f-cq-005--drei-new-frontmatterparser-instanzen) | Drei `new FrontMatterParser()`-Instanzen | Low | ~15 Min |
+| ID | Titel | Schweregrad | Aufwand | Status |
+|---|---|---|---|---|
+| [F-CQ-003](#f-cq-003---suppressor-auf-jsonserializerdeserialize) | `!`-Suppressor auf `JsonSerializer.Deserialize` | Medium | ~10 Min + Test | **erledigt** (Commit 387b2b2) |
+| [F-CQ-004](#f-cq-004--magic-string-konstante----yaml-delimiter) | Magic-String-Konstante `---` (YAML-Delimiter) | Low | 0 jetzt (Vor-Bote) | offen (Vor-Bote) |
+| [F-CQ-005](#f-cq-005--drei-new-frontmatterparser-instanzen) | Drei `new FrontMatterParser()`-Instanzen | Low | ~15 Min | **erledigt** |
 
 **Gesamt-Aufwand:** ~25 Min (10 Min Code + 15 Min Code + 0 Min Doku-Beobachtung). Aufteilbar in 2 Commits.
 

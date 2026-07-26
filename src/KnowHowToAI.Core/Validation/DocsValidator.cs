@@ -9,8 +9,6 @@ namespace KnowHowToAI.Core.Validation;
 // Regeln: docs/04-Datenmodell-Validierung-Edgecases.md, Abschnitt 3.
 public sealed partial class DocsValidator(int maxContentLengthWarning = 8000, ILogger<DocsValidator>? logger = null)
 {
-    private readonly FrontMatterParser _parser = new();
-
     public ValidationResult Validate(string docsRootPath)
     {
         logger?.LogInformation("Validate startet: docsRoot='{DocsRoot}'", docsRootPath);
@@ -34,7 +32,7 @@ public sealed partial class DocsValidator(int maxContentLengthWarning = 8000, IL
 
             try
             {
-                var document = _parser.Parse(slug, File.ReadAllText(filePath));
+                var document = FrontMatterParser.Parse(slug, File.ReadAllText(filePath));
                 ValidateContentLinks(relativePath, document.Content, errors);
                 ValidateContentLength(relativePath, document.Content, warnings);
             }

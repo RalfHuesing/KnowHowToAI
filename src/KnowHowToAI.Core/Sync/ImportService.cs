@@ -14,7 +14,6 @@ public sealed class ImportService(
     ILogger<ImportService>? logger = null)
 {
     private readonly DocsValidator _validator = new(maxContentLengthWarning);
-    private readonly FrontMatterParser _parser = new();
 
     // Gibt bei Validierungsfehlern die ValidationResult mit den Fehlern zurück, ohne replaceAllAsync
     // aufzurufen. Bei Erfolg eine ValidationResult ohne Fehler, nachdem der Import durchgelaufen ist.
@@ -45,7 +44,7 @@ public sealed class ImportService(
         foreach (var filePath in Directory.EnumerateFiles(docsRootPath, "*.md", SearchOption.AllDirectories))
         {
             var slug = SlugRules.FromFilePath(docsRootPath, filePath);
-            yield return _parser.Parse(slug, File.ReadAllText(filePath));
+            yield return FrontMatterParser.Parse(slug, File.ReadAllText(filePath));
         }
     }
 }

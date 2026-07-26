@@ -89,8 +89,7 @@ public class ExportServiceTests : IDisposable
         var writtenFile = Path.Combine(_targetDirectory, "it", "netzwerk.md");
         Assert.True(File.Exists(writtenFile));
 
-        var parser = new FrontMatterParser();
-        var roundTripped = parser.Parse("it/netzwerk", await File.ReadAllTextAsync(writtenFile, TestContext.Current.CancellationToken));
+        var roundTripped = FrontMatterParser.Parse("it/netzwerk", await File.ReadAllTextAsync(writtenFile, TestContext.Current.CancellationToken));
         Assert.Equal("Netzwerk", roundTripped.Title);
         Assert.Equal(["a"], roundTripped.Tags);
     }
