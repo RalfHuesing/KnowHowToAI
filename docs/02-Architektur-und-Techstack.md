@@ -111,6 +111,7 @@ Startet die App im stdio-Modus. Bietet exakt **drei MCP-Tools** (`KnowHowToAI.Cl
    *Zweck:* Ermöglicht dem LLM das gezielte "Durchblättern" der Bibliothek entlang der Fachbereiche.
 2. **`search_docs(query)`** → `IReadOnlyList<DocumentSummary>`
    *SQL:* `LIKE '%query%'` gegen `title`, `content`, `tags`, `synonyms` (siehe [04, Abschnitt "search_docs-Query"](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync)).
+   *Query-Semantik:* `LIKE '%query%'` mit Bracket-Escaping (`%`/`_`/`[` werden literal behandelt), kein Wildcard-Smuggling möglich. Längen-Cap via `KnowHowToAi.Search.MaxQueryLength` (Default 200), längere Queries lösen `ArgumentException` aus.
    *Zweck:* Einfache, robuste Stichwortsuche ohne SQL-Server-Feature-Voraussetzung.
 3. **`get_doc(slug)`** → `DocumentDetail?` (Title + Content, `null` wenn Slug unbekannt)
    *SQL:* `SELECT title, content FROM dbo.documents WHERE slug = @Slug`

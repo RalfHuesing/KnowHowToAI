@@ -128,6 +128,10 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
         builder.Services.AddSerilog(Log.Logger);
         builder.Services.AddSingleton(options);
         builder.Services.AddSingleton(new SqlDocumentsStore(options.ConnectionString, options.DocumentsTableName));
+        builder.Services.AddSingleton<DocsMcpTools>(sp => new DocsMcpTools(
+            sp.GetRequiredService<SqlDocumentsStore>(),
+            sp.GetRequiredService<KnowHowToAiOptions>().Search.MaxQueryLength,
+            sp.GetRequiredService<ILogger<DocsMcpTools>>()));
         builder.Services.AddMcpServer(o => o.ServerInstructions = DocsMcpResources.ServerInstructions)
             .WithStdioServerTransport()
             .WithToolsFromAssembly()

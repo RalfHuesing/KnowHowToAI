@@ -10,4 +10,5 @@ public sealed record KnowHowToAiOptions
     public string ExportMarkerFileName { get; init; } = ".knowhowtoai-export-marker.json";
     public KnowHowToAiLoggingOptions Logging { get; init; } = new();
     public KnowHowToAiValidationOptions Validation { get; init; } = new();
+    public KnowHowToAiSearchOptions Search { get; init; } = new();
 }

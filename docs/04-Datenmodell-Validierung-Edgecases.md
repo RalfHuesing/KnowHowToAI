@@ -47,6 +47,10 @@ ORDER BY title;
 
 **Entscheidung: `LIKE '%...%'`, kein SQL Server Full-Text Search.** Ursprünglich war Full-Text Search (`CONTAINSTABLE`/`FREETEXTTABLE`) vorgesehen (natives Ranking). Verworfen, weil Full-Text Search eine separate, nicht auf jeder SQL-Server-Instanz installierte Feature-Komponente voraussetzt — auf der Ziel-Instanz dieses Projekts ist sie nicht vorhanden, und das Tool soll gegen eine Standard-Installation ohne Zusatzvoraussetzungen laufen. `LIKE` braucht kein Setup-Prerequisite, keinen Catalog, keinen Index. `@Pattern` wird in `SqlDocumentsStore.BuildLikePattern` aus der rohen LLM-Eingabe als `%query%` gebaut — anders als bei Full-Text-Such-Syntax kann dabei nichts an Sonderzeichen/Anführungszeichen in der Eingabe scheitern. Kein Ranking: Ergebnisse werden alphabetisch nach `title` sortiert, nicht nach Relevanz.
 
+**Bracket-Escape in `BuildLikePattern`:** Die SQL-Wildcard-Zeichen `%`, `_` und `[` werden vor dem Pattern-Aufbau in die SQL-Server-Backslash-Escape-Notation umgeschrieben (`%` → `[%]`, `_` → `[_]`, `[` → `[[]`), sodass die LLM-kontrollierte `query`-Eingabe *literal* in `title`/`content`/`tags`/`synonyms` gesucht wird. Eine Anfrage `query="%"` matched also nicht alle Zeilen, sondern sucht literal nach dem Prozent-Zeichen. Die Reihenfolge der `.Replace`-Aufrufe ist relevant: `[` muss *zuerst* ersetzt werden, damit die durch die anderen Escapes eingefügten `[`-Zeichen nicht selbst escapet werden. Die `]-`Klammer` braucht kein Escape.
+
+**Maximale Query-Länge:** `KnowHowToAi.Search.MaxQueryLength` (Default 200, konfigurierbar in `appsettings.json`). Längere Queries lösen `ArgumentException` aus, bevor ein SQL-Round-Trip stattfindet — verhindert trivialen DoS-Vektor gegen den SQL-Server durch riesige Pattern-Strings. Leere oder reine Whitespace-Queries liefern eine leere Liste, keinen Fehler (konsistent mit Edge Case 4.2 „leere DB").
+
 ---
 
 ## 2. Slug-Regeln

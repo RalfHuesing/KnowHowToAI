@@ -9,7 +9,7 @@ namespace KnowHowToAI.Cli.McpTools;
 
 // Die drei MCP-Tools des Servers. SQL-Details: docs/02-Architektur-und-Techstack.md, Abschnitt 4.D.
 [McpServerToolType]
-public sealed class DocsMcpTools(SqlDocumentsStore store, ILogger<DocsMcpTools> logger)
+public sealed class DocsMcpTools(SqlDocumentsStore store, int maxQueryLength, ILogger<DocsMcpTools> logger)
 {
     [McpServerTool(Name = "list_children"), Description("Listet die direkten Kind-Dokumente eines Slugs (oder der Wurzel, wenn parentSlug leer ist).")]
     public async Task<IReadOnlyList<DocumentSummary>> ListChildrenAsync(string? parentSlug, CancellationToken cancellationToken)
@@ -24,7 +24,7 @@ public sealed class DocsMcpTools(SqlDocumentsStore store, ILogger<DocsMcpTools> 
     public async Task<IReadOnlyList<DocumentSummary>> SearchDocsAsync(string query, CancellationToken cancellationToken)
     {
         logger.LogInformation("search_docs(query={Query})", query);
-        var result = await store.SearchDocsAsync(query, cancellationToken);
+        var result = await store.SearchDocsAsync(query, maxQueryLength, cancellationToken);
         logger.LogInformation("search_docs response: {Size}", ResponseSize.Measure(result));
         return result;
     }

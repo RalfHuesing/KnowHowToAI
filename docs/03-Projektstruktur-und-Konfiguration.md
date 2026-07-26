@@ -67,6 +67,10 @@ KnowHowToAI/
     },
     "Validation": {
       "MaxContentLengthWarning": 8000
+    },
+    "Search": {
+      "MaxQueryLength": 200,
+      "MaxResults": 50
     }
   }
 }
@@ -76,6 +80,7 @@ KnowHowToAI/
 * **`Logging`** (`KnowHowToAiLoggingOptions`): steuert die Serilog-Datei-Rotation — `MinimumLevel` (`Serilog.Events.LogEventLevel`-Name), `RollingInterval` (`Serilog.RollingInterval`-Name, z.B. `Day`), `RetainedFileCountLimit` (Anzahl aufbewahrter Dateien). Bewusst konfigurierbar statt hartcodiert, siehe [06-configuration.mdc](../.agents/rules/06-configuration.mdc). `Program.ConfigureLogger` baut damit den Serilog-Logger direkt nach `LoadOptions` neu auf (ein kurzlebiger Bootstrap-Logger mit denselben Defaults deckt die Zeitspanne davor ab, z.B. falls `LoadOptions` selbst fehlschlägt).
   * `MinimumLevel` / `RollingInterval`: case-insensitive Enum-Parsing (`Information` und `information` funktionieren beide). Bei ungültigem Wert gibt das Tool eine `InvalidOperationException` mit der Liste aller erlaubten Werte aus — kein kryptisches .NET-Stacktrace.
 * **`Validation`** (`KnowHowToAiValidationOptions`): `MaxContentLengthWarning` — Zeichen-Schwelle, ab der `validate` ein zu großes Einzeldokument nur als Warnung meldet (Exit-Code bleibt 0), siehe [04, Edge Case 4.6](04-Datenmodell-Validierung-Edgecases.md#46-sehr-große-dokumente).
+* **`Search`** (`KnowHowToAiSearchOptions`): `MaxQueryLength` (Default 200) — maximale Länge der `search_docs`-Query in Zeichen, längere Queries lösen `ArgumentException` aus. `MaxResults` (Default 50) — wird ab F-PE-002 als `TOP`-Cap im SQL verwendet, siehe [04, Abschnitt 1](04-Datenmodell-Validierung-Edgecases.md#search_docs-query-umgesetzt-in-sqldocumentsstoresearchdocsasync).
 
 * **Override per Umgebungsvariable:** `Microsoft.Extensions.Configuration` erlaubt `KnowHowToAi__ConnectionString` bzw. `KnowHowToAi__DocsRootPath` als Override, ohne die Datei anzufassen (z.B. für CI oder abweichende Rechner).
 * **`%COMPUTERNAME%`-Platzhalter:** `Program.LoadOptions` ersetzt den *literalen* Text `%COMPUTERNAME%` in der Connection-String durch `Environment.MachineName` — bewusst **nicht** `Environment.ExpandEnvironmentVariables(...)`. Letzteres würde die Umgebungsvariable `COMPUTERNAME` aus dem Prozess-Environment lesen, die fehlen kann, wenn der MCP-Server von einem MCP-Host mit einem reduzierten Environment gestartet wird. `Environment.MachineName` fragt den Rechnernamen direkt beim Betriebssystem ab und ist davon unabhängig. Damit funktioniert dieselbe committete `appsettings.json` unverändert auf jedem Rechner, auf dem eine SQL-Server-Instanz mit demselben Instanznamen und denselben Zugangsdaten existiert.

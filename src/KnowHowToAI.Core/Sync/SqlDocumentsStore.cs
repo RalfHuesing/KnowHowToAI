@@ -76,8 +76,16 @@ public sealed class SqlDocumentsStore
         return [.. rows];
     }
 
-    public async Task<IReadOnlyList<DocumentSummary>> SearchDocsAsync(string query, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<DocumentSummary>> SearchDocsAsync(string query, int maxQueryLength, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(query)) return [];
+        if (query.Length > maxQueryLength)
+        {
+            throw new ArgumentException(
+                $"search_docs query ist {query.Length} Zeichen lang, max {maxQueryLength}.",
+                nameof(query));
+        }
+
         await using var connection = new SqlConnection(_connectionString);
         var rows = await connection.QueryAsync<DocumentSummary>(new CommandDefinition(
             $"""
@@ -91,7 +99,14 @@ public sealed class SqlDocumentsStore
         return [.. rows];
     }
 
-    private static string BuildLikePattern(string query) => $"%{query}%";
+    internal static string BuildLikePattern(string query)
+    {
+        var escaped = query
+            .Replace("[", "[[]")
+            .Replace("%", "[%]")
+            .Replace("_", "[_]");
+        return $"%{escaped}%";
+    }
 
     public async Task<DocumentDetail?> GetDocAsync(string slug, CancellationToken cancellationToken)
     {
