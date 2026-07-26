@@ -155,21 +155,6 @@ SQL-Operationen werden transparent. Audit-Trail ermöglicht.
 
 ---
 
-### Fix #8 — F-AR-001: DI-Inkonsistenz mit Composition-Root-Pattern beheben
-
-**Schweregrad:** High · **Aufwand:** ~30 Min · **Commit-Granularität:** 1 Commit
-**Impact:** Service-Konstruktion ist konsistent. Refactor-Sicherheit für
-Decorator-Pattern, AOP, etc.
-
-**Konkrete Schritte:**
-1. `BuildCoreServices(KnowHowToAiOptions options)` Factory-Funktion in `Program.cs`
-2. `RunValidate`/`RunImport`/`RunExport`/`RunServer` über die Factory
-3. Tests unverändert (Services werden weiterhin per `new` in Tests konstruiert)
-
-**Risiko:** Niedrig. Funktional keine Änderung.
-
----
-
 ### Fix #9 — F-CD-001: String-Enum-Validation in `Logging`-Options
 
 **Schweregrad:** High · **Aufwand:** ~20 Min · **Commit-Granularität:** 1 Commit
@@ -207,25 +192,6 @@ LLM-Aufruf klar, Fehlinterpretationen werden vermieden.
 Diese Fixes sind *eigenständige Projekte* und brauchen Planung + mehrere
 Commits. Sie sind nicht-blockierend für v1, aber wichtig für die langfristige
 Gesundheit des Projekts.
-
-### Fix #11 — F-DP-001: Preview-Dependencies klären
-
-**Schweregrad:** High (Dependency-Choice) · **Aufwand:** ~10 Min (Downgrade) oder
-~30 Min (bewusst behalten + dokumentieren)
-**Impact:** Reduziert das Risiko, dass Breaking Changes aus 2.0.0 / 3.0.0 das
-Tool ohne Vorwarnung kaputtmachen.
-
-**Konkrete Schritte:**
-1. **Option A (Downgrade):** `ModelContextProtocol` auf `1.4.1` (Stable),
-   `System.CommandLine` auf `2.0.10` (Stable). Build + Tests grün.
-2. **Option B (Beibehalten):** Bewusste Wahl dokumentieren in `docs/02`
-   Tech-Stack-Tabelle. Wiederevaluations-Trigger festhalten: nach 2.0.0 Stable.
-
-**Empfehlung:** Option A für `System.CommandLine` (schnell, kein Funktionsverlust).
-Option B für `ModelContextProtocol`, *wenn* 2.0-Stable innerhalb 4 Wochen kommt;
-sonst auch Downgrade.
-
----
 
 ### Fix #12 — F-PE-002: `TOP`-Cap für `SearchDocsAsync` + Title-Ranking
 
@@ -323,15 +289,14 @@ notwendigen Reviews + Diskussionen.
 6. F-CD-001 (Enum-Validation) — Konfig
 7. F-SE-001 (LIKE-Wildcard) — Security
 8. F-AR-002 (ILogger-Injection) — Architektur
-9. F-AR-001 (Composition Root) — Architektur, baut auf #8
-10. F-DP-001 (Preview-Dependencies) — Dependency-Update
-11. F-PE-002 (TOP-Cap) — Performance
-12. F-TS-001 (SQL-Tests) — Test-Infrastruktur
-13. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
+9. F-PE-002 (TOP-Cap) — Performance
+10. F-TS-001 (SQL-Tests) — Test-Infrastruktur
+11. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
 ```
 
+**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA.
+
 **Optional, separate Commits:**
-- F-AR-004 (SchemaMigrator-Transaktion) — eigenständig
 - F-AR-005 (Constants.cs) — kann entstehen, wenn F-SE-004 umgesetzt wird
 - F-CD-002/003/004 (Config-Sicherheit) — größeres Refactor, eigener Plan
 - F-AR-003 (LogResponseSize in falscher Schicht) — obsolet nach Fix #4
