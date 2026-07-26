@@ -54,6 +54,34 @@ public class ImportServiceTests : IDisposable
         Assert.Contains(replacedWith, d => d.Slug == "it/netzwerk" && d.Title == "Netzwerk");
     }
 
+    [Fact]
+    public async Task ImportAsync_ReplaceThrows_PropagatesException()
+    {
+        WriteDoc("it", "IT");
+        var service = new ImportService(
+            (_, _) => throw new InvalidOperationException("SQL-Fehler"),
+            maxContentLengthWarning: 8000,
+            logger: NullLogger<ImportService>.Instance);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.ImportAsync(_docsRoot, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ImportAsync_CancellationRequestedBeforeReplace_PropagatesOperationCanceled()
+    {
+        WriteDoc("it", "IT");
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        var service = new ImportService(
+            (_, _) => Task.CompletedTask,
+            maxContentLengthWarning: 8000,
+            logger: NullLogger<ImportService>.Instance);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => service.ImportAsync(_docsRoot, cts.Token));
+    }
+
     private void WriteDoc(string slug, string title)
     {
         var fullPath = Path.Combine(_docsRoot, $"{slug}.md");
@@ -130,5 +158,30 @@ public class ExportServiceTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken));
         Assert.Equal(0, getAllCallCount);
+    }
+
+    [Fact]
+    public async Task ExportAsync_GetAllThrows_PropagatesException()
+    {
+        var service = new ExportService(
+            (_) => throw new InvalidOperationException("DB-Fehler"),
+            NullLogger<ExportService>.Instance);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ExportAsync_EmptyList_WritesMarkerOnly()
+    {
+        var service = new ExportService(
+            (_) => Task.FromResult<IReadOnlyList<Document>>([]),
+            NullLogger<ExportService>.Instance);
+
+        await service.ExportAsync(_targetDirectory, MarkerFileName, TestContext.Current.CancellationToken);
+
+        Assert.True(File.Exists(Path.Combine(_targetDirectory, MarkerFileName)));
+        var mdFiles = Directory.EnumerateFiles(_targetDirectory, "*.md", SearchOption.AllDirectories).ToList();
+        Assert.Empty(mdFiles);
     }
 }

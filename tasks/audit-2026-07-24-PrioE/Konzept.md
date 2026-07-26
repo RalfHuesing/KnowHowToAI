@@ -13,11 +13,11 @@
 | [F-TS-001](#f-ts-001--sqldocumentsstore-hat-keine-unit-tests) | `SqlDocumentsStore` hat keine Unit-Tests | High (per `02-testing.mdc` akzeptiert) | Backlog-Doku | offen |
 | [F-TS-002](#f-ts-002--schemamigratormigrateasync-nicht-getestet) | `SchemaMigrator.MigrateAsync` nicht getestet | Medium | ~30 Min + SQLite-Setup | offen (Backlog) |
 | [F-TS-003](#f-ts-003--docsvalidator-deckt-content-länge-nur-an-boundary-ab) | `DocsValidator` deckt Content-Länge nur an Boundary ab | Medium | ~5 Min | **erledigt** |
-| [F-TS-004](#f-ts-004--importservicereplaceallasync-throws-nicht-getestet) | `ImportService.replaceAllAsync`-Throws nicht getestet | Medium | ~15 Min | offen |
-| [F-TS-005](#f-ts-005--importservice-und-fehlgeschlagene-files) | `ImportService` und fehlgeschlagene Files | Medium | ~20 Min | offen |
+| [F-TS-004](#f-ts-004--importservicereplaceallasync-throws-nicht-getestet) | `ImportService.replaceAllAsync`-Throws nicht getestet | Medium | ~15 Min | **erledigt** |
+| [F-TS-005](#f-ts-005--importservice-und-fehlgeschlagene-files) | `ImportService` und fehlgeschlagene Files | Medium | ~20 Min | offen (Backlog: IOException-Sammlung im Validator) |
 | [F-TS-006](#f-ts-006--frontmatterparser-kein-test-für-nur-whitespace-title) | `FrontMatterParser` kein Test für nur-whitespace `title` | Low | ~5 Min | **erledigt** |
 | [F-TS-007](#f-ts-007--frontmatterparser-kein-bom-test) | `FrontMatterParser` kein BOM-Test | Low | ~5 Min | **erledigt** |
-| [F-TS-008/009](#f-ts-008--f-ts-009--exportservice-edge-cases-fehlen) | `ExportService` Edge-Cases fehlen | Low | ~10 Min | offen |
+| [F-TS-008/009](#f-ts-008--f-ts-009--exportservice-edge-cases-fehlen) | `ExportService` Edge-Cases fehlen | Low | ~10 Min | **erledigt** |
 | [F-TS-010](#f-ts-010--slugrulesfromfilepath-nicht-getestet) | `SlugRules.FromFilePath` nicht getestet | Low | ~15 Min | **erledigt** |
 | [F-TS-011](#f-ts-011--docsvalidator-und-nicht-md-dateien) | `DocsValidator` und Nicht-MD-Dateien | Low | ~5 Min | **erledigt** |
 
