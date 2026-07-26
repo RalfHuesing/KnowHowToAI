@@ -11,8 +11,8 @@
 | ID | Titel | Schweregrad | Aufwand | Status |
 |---|---|---|---|---|
 | [F-PE-003](#f-pe-003--listchildrenasync-ohne-order-by) | `ListChildrenAsync` ohne `ORDER BY` | Medium | ~5 Min | **erledigt** (Commit d8f22a5) |
-| [F-PE-004](#f-pe-004--replaceallasync-n1-insert-pattern) | `ReplaceAllAsync` N+1-Insert-Pattern | Medium (Backlog) | ~5 Min Doku | offen |
-| [F-PE-005](#f-pe-005--like--index-scan) | `LIKE '%...%'` Index-Scan | Medium | ~5 Min Doku | offen |
+| [F-PE-004](#f-pe-004--replaceallasync-n1-insert-pattern) | `ReplaceAllAsync` N+1-Insert-Pattern | Medium (Backlog) | ~5 Min Doku | **erledigt** (Backlog-Hinweis in docs/05) |
+| [F-PE-005](#f-pe-005--like--index-scan) | `LIKE '%...%'` Index-Scan | Medium | ~5 Min Doku | **erledigt** (Performance-Erwartung in docs/04) |
 | [F-PE-006](#f-pe-006--filereadalltext-in-async-methode) | `File.ReadAllText` in async-Methode | Medium | ~15 Min + Tests | **erledigt** |
 
 **Gesamt-Aufwand:** ~30 Min (5 Min SQL-Fix + 15 Min Code + 10 Min Doku). Aufteilbar in 2-3 Commits.

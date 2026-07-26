@@ -10,7 +10,7 @@
 
 | ID | Titel | Schweregrad | Aufwand | Status |
 |---|---|---|---|---|
-| [F-TS-001](#f-ts-001--sqldocumentsstore-hat-keine-unit-tests) | `SqlDocumentsStore` hat keine Unit-Tests | High (per `02-testing.mdc` akzeptiert) | Backlog-Doku | offen |
+| [F-TS-001](#f-ts-001--sqldocumentsstore-hat-keine-unit-tests) | `SqlDocumentsStore` hat keine Unit-Tests | High (per `02-testing.mdc` akzeptiert) | Backlog-Doku | **erledigt** (Verweis in docs/05 Backlog) |
 | [F-TS-002](#f-ts-002--schemamigratormigrateasync-nicht-getestet) | `SchemaMigrator.MigrateAsync` nicht getestet | Medium | ~30 Min + SQLite-Setup | offen (Backlog) |
 | [F-TS-003](#f-ts-003--docsvalidator-deckt-content-länge-nur-an-boundary-ab) | `DocsValidator` deckt Content-Länge nur an Boundary ab | Medium | ~5 Min | **erledigt** |
 | [F-TS-004](#f-ts-004--importservicereplaceallasync-throws-nicht-getestet) | `ImportService.replaceAllAsync`-Throws nicht getestet | Medium | ~15 Min | **erledigt** |
