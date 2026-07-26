@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-004/fix-01` (done (pending audit)) — Auditer ausstehend
+- **Aktueller Schritt:** `step-004` (done) — fix-01 approved. Nächster Schritt: `step-005` (Coder)
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -29,8 +29,8 @@ current_step: step-001
 | step-002 | done | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 1/3 (fix-01 approved) | `a9e4140` | approved (nach fix-01) | `84cf2e1` (fix-01) |
 | step-002/fix-01 | done | Fix-01: AiNetLinter-Verstoß beheben + step-result.md korrigieren | - | `84cf2e1` | approved | (nächster Audit-Commit) |
 | step-003 | done | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | `c90e4c4` | approved | (nächster Audit-Commit) |
-| step-004 | done (fix-01 pending) | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 1/3 | `5346f25` | issues | - |
-| step-004/fix-01 | done (pending audit) | Fix-01: list_children Empty-String-Falschaussage korrigieren | - | `1e2c62c` | - | - |
+| step-004 | done | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 1/3 (fix-01 approved) | `5346f25` | approved (nach fix-01) | `1e2c62c` (fix-01) |
+| step-004/fix-01 | done | Fix-01: list_children Empty-String-Falschaussage korrigieren | - | `1e2c62c` | approved | (nächster Audit-Commit) |
 | step-005 | open | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
 
 <Wird vom Orchestrator gepflegt. Status pro Step: open / in_progress /
@@ -65,6 +65,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T22:45:00+02:00 — Planer (Fix-Modus) hat step-004/fix-01/step-plan.md erzeugt. Beide MAJOR-Findings adressiert. 5 MINOR-Beobachtungen explizit ausgeschlossen. Commit steht aus.
 - 2026-07-26T22:46:00+02:00 — fix-01: open → in_progress (coder-Aufruf gestartet)
 - 2026-07-26T23:00:00+02:00 — fix-01: in_progress → done (pending audit), Code-Commit `1e2c62c`, Doku-Commit `f199965`. Build grün, 78 Tests grün, AiNetLinter 0 Violations (Report direkt gelesen). Beide Text-Korrekturen exakt nach Plan umgesetzt.
+- 2026-07-26T23:15:00+02:00 — fix-01: auditer-Verdict `approved`. Beide MAJOR-Findings behoben. Description + Doku-Konsistenz wiederhergestellt.
 
 ## Config (optional)
 
