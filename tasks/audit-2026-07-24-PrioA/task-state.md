@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-001` (done (pending audit)) — Auditer ausstehend
+- **Aktueller Schritt:** `step-001` (done) — Verdict: approved. Nächster Schritt: `step-002` (Coder)
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -25,7 +25,7 @@ current_step: step-001
 
 | Step | Status | Title | Fix-Runden | Coded | Reviewed | Commit |
 |------|--------|-------|------------|-------|----------|--------|
-| step-001 | done (pending audit) | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | `b97eae7` | - | - |
+| step-001 | done | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | `b97eae7` | approved | `0366828` |
 | step-002 | open | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 0/3 | - | - | - |
 | step-003 | open | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | - | - | - |
 | step-004 | open | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 | - | - | - |
@@ -46,6 +46,8 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T18:01:30+02:00 — Planer-Output committet, Commit `020c664` (`docs(task): plane step-001..005 fuer audit-2026-07-24-PrioA`)
 - 2026-07-26T18:02:00+02:00 — step-001: open → in_progress (coder-Aufruf gestartet)
 - 2026-07-26T18:05:54+02:00 — step-001: in_progress → done (pending audit), Code-Commit `b97eae7`, Doku-Commit `b242a2c`. Build grün, 65 Tests grün (55 Baseline + 10 neue), AiNetLinter 0 neue Verstöße. Coder-Abweichungen (alle unkritisch, im step-result dokumentiert): `InternalsVisibleTo` für Core.Tests + Cli vorgezogen (Plan hatte nur Core.Tests für Step 002 vorgesehen), `Serilog.Sinks.File` zusätzlich als Test-Dep (für `RollingInterval`-Enum), Test-File flach statt `Configuration/`-Subordner (passt zur Projekt-Konvention).
+- 2026-07-26T18:15:00+02:00 — step-001: auditer-Verdict `approved`. Commit `0366828` ist der Status-Update-Commit vor dem Audit; der Audit-Commit folgt hier.
+- 2026-07-26T18:15:30+02:00 — step-001: done (pending audit) → done, Review-Commit mit step-review.md + step-plan.md-Status-Update (siehe nächster Commit-Hash)
 
 ## Config (optional)
 
