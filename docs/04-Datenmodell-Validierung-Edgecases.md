@@ -60,6 +60,8 @@ ORDER BY
 
 **Maximale Query-Länge:** `KnowHowToAi.Search.MaxQueryLength` (Default 200, konfigurierbar in `appsettings.json`). Längere Queries lösen `ArgumentException` aus, bevor ein SQL-Round-Trip stattfindet — verhindert trivialen DoS-Vektor gegen den SQL-Server durch riesige Pattern-Strings. Leere oder reine Whitespace-Queries liefern eine leere Liste, keinen Fehler (konsistent mit Edge Case 4.2 „leere DB").
 
+**LLM-UX-Details** (Edge Cases, Response-Shape-Beispiele, Begründungen für die Wahl der Defaults wie `MaxResults`/`MaxQueryLength` und das Bracket-Escape): siehe [02, Abschnitt 4.D](02-Architektur-und-Techstack.md#quell-doku-für-die-tool-descriptions).
+
 ---
 
 ## 2. Slug-Regeln
