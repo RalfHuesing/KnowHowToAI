@@ -30,7 +30,7 @@ public sealed class ImportService(
             return validationResult;
         }
 
-        var documents = ReadDocuments(docsRootPath).ToList();
+        var documents = await ReadDocumentsAsync(docsRootPath, cancellationToken);
         await replaceAllAsync(documents, cancellationToken);
 
         logger?.LogInformation(
@@ -39,12 +39,21 @@ public sealed class ImportService(
         return validationResult;
     }
 
-    private IEnumerable<Document> ReadDocuments(string docsRootPath)
+    // async File-IO verhindert Thread-Block bei großen Dateien. Directory.EnumerateFiles
+    // wird mit ToList() materialisiert, weil der Enumerator sonst während des await blockiert
+    // wäre; bei sehr großen docs-roots den Materialisierungs-Schritt ggf. später durch
+    // Channel-Reader ersetzen (Backlog).
+    private async Task<IReadOnlyList<Document>> ReadDocumentsAsync(string docsRootPath, CancellationToken cancellationToken)
     {
-        foreach (var filePath in Directory.EnumerateFiles(docsRootPath, "*.md", SearchOption.AllDirectories))
+        var filePaths = Directory.EnumerateFiles(docsRootPath, "*.md", SearchOption.AllDirectories).ToList();
+        var documents = new List<Document>(filePaths.Count);
+        foreach (var filePath in filePaths)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var slug = SlugRules.FromFilePath(docsRootPath, filePath);
-            yield return FrontMatterParser.Parse(slug, File.ReadAllText(filePath));
+            var content = await File.ReadAllTextAsync(filePath, cancellationToken);
+            documents.Add(FrontMatterParser.Parse(slug, content));
         }
+        return documents;
     }
 }
