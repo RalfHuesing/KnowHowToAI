@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-004` (done) — fix-01 approved. Nächster Schritt: `step-005` (Coder)
+- **Aktueller Schritt:** `step-005` (in_progress) — Coder-Aufruf gestartet
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -31,7 +31,7 @@ current_step: step-001
 | step-003 | done | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | `c90e4c4` | approved | (nächster Audit-Commit) |
 | step-004 | done | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 1/3 (fix-01 approved) | `5346f25` | approved (nach fix-01) | `1e2c62c` (fix-01) |
 | step-004/fix-01 | done | Fix-01: list_children Empty-String-Falschaussage korrigieren | - | `1e2c62c` | approved | (nächster Audit-Commit) |
-| step-005 | open | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
+| step-005 | in_progress | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
 
 <Wird vom Orchestrator gepflegt. Status pro Step: open / in_progress /
 done / done (fix-XX pending) / blocked. „Fix-Runden" = Anzahl vorhandener
