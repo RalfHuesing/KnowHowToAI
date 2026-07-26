@@ -3,7 +3,7 @@ status: executing  # executing | done | aborted
 task: audit-2026-07-24-PrioA
 started_at: 2026-07-26T17:52:53+02:00
 last_updated: 2026-07-26T17:52:53+02:00
-total_fix_rounds: 1  # Summe aller Fix-Runden über alle Steps (Task-weiter Not-Anker, siehe Config)
+total_fix_rounds: 2  # Summe aller Fix-Runden über alle Steps (Task-weiter Not-Anker, siehe Config)
 current_step: step-001
 ---
 
@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-004` (done (pending audit)) — Auditer ausstehend
+- **Aktueller Schritt:** `step-004` (done (fix-01 pending)) — Auditer-Verdict: issues, 2 MAJOR-Findings
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -29,7 +29,7 @@ current_step: step-001
 | step-002 | done | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 1/3 (fix-01 approved) | `a9e4140` | approved (nach fix-01) | `84cf2e1` (fix-01) |
 | step-002/fix-01 | done | Fix-01: AiNetLinter-Verstoß beheben + step-result.md korrigieren | - | `84cf2e1` | approved | (nächster Audit-Commit) |
 | step-003 | done | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | `c90e4c4` | approved | (nächster Audit-Commit) |
-| step-004 | done (pending audit) | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 | `5346f25` | - | - |
+| step-004 | done (fix-01 pending) | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 → 1/3 | `5346f25` | issues | - |
 | step-005 | open | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
 
 <Wird vom Orchestrator gepflegt. Status pro Step: open / in_progress /
@@ -60,6 +60,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T21:00:00+02:00 — step-003: in_progress → done (pending audit), Code-Commit `c90e4c4`, Doku-Commit `af68fe0`. Build grün, 78 Tests grün (72 + 4 SearchResultTests + 2 ResponseSizeTests), AiNetLinter 0 Violations (Report direkt gelesen). Coder-Abweichungen: (a) `SearchResultTests` als 2 Methoden statt 4 Facts ([Theory]+[InlineData], Lektion aus fix-01); (b) Value-Equality-Test angepasst wegen IReadOnlyList-Default-Reference-Equality; (c) Backticks im Commit-Body von PowerShell-Parsing gefiltert (stilistisch, kein Inhaltsproblem).
 - 2026-07-26T21:30:00+02:00 — step-003: auditer-Verdict `approved`. Kern-Anforderung (LLM sieht `truncated`-Marker) verifiziert in `DocsMcpTools.cs:24,29`. AiNetLinter-Report direkt gelesen, 0 Violations. 6 Adversarial Probes alle sauber.
 - 2026-07-26T22:00:00+02:00 — step-004: in_progress → done (pending audit), Code-Commit `5346f25`, Doku-Commit `9a94c0f`. Build grün, 78 Tests grün (Baseline unverändert, keine neuen Tests in diesem Step), AiNetLinter 0 Violations. Coder-Abweichungen: (a) `get_doc`-Description um YAML-Front-Matter-Edge-Case ergänzt (im Plan-Spirit); (b) `search_docs` 4. Edge-Case "Viele Treffer (truncated=true)" zusätzlich; (c) Subject 74 Zeichen (im Plan-DoD so vorgegeben, Repo-Präzedenz).
+- 2026-07-26T22:30:00+02:00 — step-004: auditer-Verdict `issues` (2 MAJOR-Findings). Severity-Gating-Regel zwischenzeitlich von Ralf committed (`38f4513`) — Auditer hat sie angewendet, MINOR-Findings flossen in „Sonstige Beobachtungen", MAJOR triggern `issues`. Findings: (1) `DocsMcpTools.cs:20` `list_children`-Description behauptet `parentSlug=""` → ArgumentException, **tatsächlich leere Liste** (per Smoke-Test verifiziert); (2) `docs/02:133` hat gleiche Falschaussage. Fix-Step wird angelegt.
 
 ## Config (optional)
 
