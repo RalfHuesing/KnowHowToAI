@@ -24,6 +24,12 @@ public sealed class SqlDocumentsStore
         _logger = logger;
     }
 
+    // Nicht thread-safe: zwei parallele Aufrufe (oder ein paralleler Read mit
+    // Snapshot-Erwartung) würden die Wipe-and-Dump-Transaktion zerreißen. In v1 nur
+    // aus dem `import`-CLI-Kommando aufgerufen, das per Single-Process-Semantik
+    // serialisiert läuft. Sobald Schreib-Tools via MCP (Backlog) ergänzt werden,
+    // muss ein SemaphoreSlim-Schutzwall oder ein expliziter "single-writer"-Vertrag
+    // hinzukommen.
     public async Task ReplaceAllAsync(IReadOnlyList<Document> documents, CancellationToken cancellationToken)
     {
         _logger.LogInformation(

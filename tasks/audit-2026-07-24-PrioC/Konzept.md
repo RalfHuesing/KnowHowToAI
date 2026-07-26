@@ -11,7 +11,7 @@
 | ID | Titel | Schweregrad | Aufwand | Dimension | Status |
 |---|---|---|---|---|---|
 | [F-AR-001](#f-ar-001--di-inkonsistenz-zwischen-cli-commands) | DI-Inkonsistenz zwischen CLI-Commands | High | ~30 Min | Architektur | **erledigt** (Commit 934978b) |
-| [F-AR-004](#f-ar-004--sqldocumentsstore-thread-safety-undokumentiert) | `SqlDocumentsStore` Thread-Safety undokumentiert | Medium | ~5-20 Min | Architektur | offen |
+| [F-AR-004](#f-ar-004--sqldocumentsstore-thread-safety-undokumentiert) | `SqlDocumentsStore` Thread-Safety undokumentiert | Medium | ~5-20 Min | Architektur | **erledigt** (Variante A: Code-Kommentar an ReplaceAllAsync) |
 | [F-AR-007](#f-ar-007--service-lifetimes-undokumentiert) | Service-Lifetimes undokumentiert | Low | ~5 Min | Architektur | **erledigt** (in F-DK-003 docs/03) |
 | [F-DP-001](#f-dp-001--zwei-preview-dependencies-stable-verfügbar) | Zwei Preview-Dependencies, Stable verfügbar | High | ~10 Min | Dependencies | **erledigt** (Commit 8fed418) |
 | [F-DP-002](#f-dp-002--microsoftdatasqlclient-702-breaking-changes-undokumentiert) | `Microsoft.Data.SqlClient 7.0.2` Breaking Changes (undokumentiert) | Medium | ~5 Min | Dependencies | **erledigt** |
