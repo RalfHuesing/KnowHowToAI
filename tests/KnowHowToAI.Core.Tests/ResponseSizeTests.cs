@@ -53,4 +53,17 @@ public class ResponseSizeTests
     {
         Assert.Equal(0, ResponseSize.Measure("irgendein Text"));
     }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(0)]
+    public void Measure_SearchResult_ReturnsResultsCount(int resultsCount)
+    {
+        IReadOnlyList<DocumentSummary> results = Enumerable.Range(0, resultsCount)
+            .Select(i => new DocumentSummary($"slug-{i}", $"Title {i}"))
+            .ToList();
+        var result = new SearchResult(results, Truncated: false);
+
+        Assert.Equal(resultsCount, ResponseSize.Measure(result));
+    }
 }

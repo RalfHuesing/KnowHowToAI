@@ -38,12 +38,21 @@ END
 ### `search_docs`-Query (umgesetzt in `SqlDocumentsStore.SearchDocsAsync`)
 
 ```sql
-SELECT slug AS Slug, title AS Title FROM dbo.<DocumentsTableName>
+SELECT TOP (@MaxResults) slug AS Slug, title AS Title,
+       COUNT(*) OVER() AS TotalCount
+FROM dbo.<DocumentsTableName>
 WHERE title LIKE @Pattern OR content LIKE @Pattern OR tags LIKE @Pattern OR synonyms LIKE @Pattern
-ORDER BY title;
+ORDER BY
+    CASE WHEN title LIKE @Pattern THEN 0 ELSE 1 END,
+    title;
 ```
 
 `<DocumentsTableName>` wird in `SqlDocumentsStore` als validierter Bezeichner (`SqlIdentifierValidator`) direkt in den SQL-Text interpoliert, da Tabellennamen sich nicht als SQL-Parameter binden lassen — die Validierung ist die einzige Absicherung gegen SQL-Injection über einen manipulierten Konfigurationswert.
+
+* **`TOP (@MaxResults)`** schützt das Token-Budget des LLM vor Massen-Treffern bei sehr breiten Suchen. Default 50, konfigurierbar via `KnowHowToAi.Search.MaxResults` in `appsettings.json`. `@MaxResults` ist als SQL-Parameter gebunden (kein Literal im SQL-Text).
+* **`COUNT(*) OVER()`** liefert die Treffer-Gesamtzahl *ohne* `TOP`-Begrenzung in derselben Query — daraus wird `Truncated = (TotalCount > Results.Count)` in der Antwort abgeleitet. *Eine* SQL-Round-Trip statt zweier (kein Race-Condition-Risiko zwischen `COUNT(*)` und `SELECT TOP`).
+* **Title-Ranking:** `ORDER BY (CASE WHEN title LIKE @Pattern THEN 0 ELSE 1 END), title` — Title-Treffer kommen zuerst, dann alphabetisch. Bewusst keine komplexere Ranking-Heuristik (kein Full-Text-Search, keine Score-Berechnung), konsistent mit der `LIKE`-basierten Architektur.
+* **Response-Shape:** `SearchResult { results, truncated }` — der `truncated`-Marker ist die einzige Möglichkeit für das LLM zu erkennen, dass die Trefferliste gekappt wurde. Siehe auch [02, Abschnitt 4.D](02-Architektur-und-Techstack.md#d-knowhowtoaicli-server---config-path).
 
 **Entscheidung: `LIKE '%...%'`, kein SQL Server Full-Text Search.** Ursprünglich war Full-Text Search (`CONTAINSTABLE`/`FREETEXTTABLE`) vorgesehen (natives Ranking). Verworfen, weil Full-Text Search eine separate, nicht auf jeder SQL-Server-Instanz installierte Feature-Komponente voraussetzt — auf der Ziel-Instanz dieses Projekts ist sie nicht vorhanden, und das Tool soll gegen eine Standard-Installation ohne Zusatzvoraussetzungen laufen. `LIKE` braucht kein Setup-Prerequisite, keinen Catalog, keinen Index. `@Pattern` wird in `SqlDocumentsStore.BuildLikePattern` aus der rohen LLM-Eingabe als `%query%` gebaut — anders als bei Full-Text-Such-Syntax kann dabei nichts an Sonderzeichen/Anführungszeichen in der Eingabe scheitern. Kein Ranking: Ergebnisse werden alphabetisch nach `title` sortiert, nicht nach Relevanz.
 

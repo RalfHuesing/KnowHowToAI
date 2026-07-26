@@ -76,9 +76,9 @@ public sealed class SqlDocumentsStore
         return [.. rows];
     }
 
-    public async Task<IReadOnlyList<DocumentSummary>> SearchDocsAsync(string query, int maxQueryLength, CancellationToken cancellationToken)
+    public async Task<SearchResult> SearchDocsAsync(string query, int maxQueryLength, int maxResults, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(query)) return [];
+        if (string.IsNullOrWhiteSpace(query)) return new SearchResult([], Truncated: false);
         if (query.Length > maxQueryLength)
         {
             throw new ArgumentException(
@@ -87,16 +87,23 @@ public sealed class SqlDocumentsStore
         }
 
         await using var connection = new SqlConnection(_connectionString);
-        var rows = await connection.QueryAsync<DocumentSummary>(new CommandDefinition(
+        var rows = await connection.QueryAsync<SearchRow>(new CommandDefinition(
             $"""
-            SELECT slug AS Slug, title AS Title FROM {_table}
+            SELECT TOP (@MaxResults) slug AS Slug, title AS Title,
+                   COUNT(*) OVER() AS TotalCount
+            FROM {_table}
             WHERE title LIKE @Pattern OR content LIKE @Pattern OR tags LIKE @Pattern OR synonyms LIKE @Pattern
-            ORDER BY title;
+            ORDER BY
+                CASE WHEN title LIKE @Pattern THEN 0 ELSE 1 END,
+                title;
             """,
-            new { Pattern = BuildLikePattern(query) },
+            new { Pattern = BuildLikePattern(query), MaxResults = maxResults },
             cancellationToken: cancellationToken));
 
-        return [.. rows];
+        var rowList = rows.AsList();
+        var results = rowList.Select(r => new DocumentSummary(r.Slug, r.Title)).ToList();
+        var totalCount = rowList.Count > 0 ? rowList[0].TotalCount : 0;
+        return new SearchResult(results, Truncated: totalCount > results.Count);
     }
 
     internal static string BuildLikePattern(string query)
@@ -126,4 +133,5 @@ public sealed class SqlDocumentsStore
         row.Synonyms is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Synonyms)!);
 
     private sealed record DocumentRow(string Slug, string Title, string Content, string? Tags, string? Synonyms);
+    private sealed record SearchRow(string Slug, string Title, int TotalCount);
 }

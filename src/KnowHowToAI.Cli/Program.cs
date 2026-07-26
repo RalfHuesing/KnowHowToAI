@@ -131,6 +131,7 @@ async Task<int> RunServer(ParseResult parseResult, CancellationToken cancellatio
         builder.Services.AddSingleton<DocsMcpTools>(sp => new DocsMcpTools(
             sp.GetRequiredService<SqlDocumentsStore>(),
             sp.GetRequiredService<KnowHowToAiOptions>().Search.MaxQueryLength,
+            sp.GetRequiredService<KnowHowToAiOptions>().Search.MaxResults,
             sp.GetRequiredService<ILogger<DocsMcpTools>>()));
         builder.Services.AddMcpServer(o => o.ServerInstructions = DocsMcpResources.ServerInstructions)
             .WithStdioServerTransport()
