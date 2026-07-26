@@ -36,11 +36,11 @@ AiNetLinter meldet 0 Verstöße, Doku ist umfangreich und konsistent mit dem Cod
 | Schweregrad | Anzahl | Prozent |
 | --- | --- | --- |
 | **Critical** | 0 | 0% |
-| **High** | 8 | 11% |
-| **Medium** | 15 | 21% |
-| **Low** | 19 | 27% |
-| **Info** | 28 | 40% |
-| **Gesamt** | **70 Findings** | 100% |
+| **High** | 8 | 12% |
+| **Medium** | 12 | 18% |
+| **Low** | 19 | 28% |
+| **Info** | 28 | 42% |
+| **Gesamt** | **67 Findings** | 100% |
 
 *(Zahlen aus allen 9 Dimensions-Dateien summiert; `_demo-docs/`-Mini-Audit
 ausgenommen, da nicht durch den vollen Filter.)*
@@ -50,7 +50,7 @@ ausgenommen, da nicht durch den vollen Filter.)*
 | Dim | Titel | Datei | High | Medium | Low | Info |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Code-Quality & AiNetLinter-Konformität | [01-code-quality.md](01-code-quality.md) | 1 | 2 | 4 | 1 |
-| 2 | Sicherheit (MCP-Attack-Surface) | [02-security.md](02-security.md) | 1 | 4 | 3 | 1 |
+| 2 | Sicherheit (MCP-Attack-Surface) | [02-security.md](02-security.md) | 1 | 0 | 3 | 2 |
 | 3 | Architektur & Patterns | [03-architecture.md](03-architecture.md) | 1 | 1 | 1 | 3 |
 | 4 | Test-Coverage & -Qualität | [04-tests.md](04-tests.md) | 1 | 4 | 6 | 1 |
 | 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 1 | 1 | 3 | 4 |
@@ -127,10 +127,11 @@ tasks/audit-2026-07-24/
 └── _meta-lint.log                      # Linter-Baseline
 ```
 
-> **Hinweis:** Findings sind inzwischen in drei separate Prio-Ordner extrahiert:
+> **Hinweis:** Findings sind inzwischen in vier separate Prio-Ordner extrahiert:
 > - [`../audit-2026-07-24-PrioA/Konzept.md`](../audit-2026-07-24-PrioA/Konzept.md) — 5 Prio-A-Findings (umgesetzt)
 > - [`../audit-2026-07-24-PrioB/Konzept.md`](../audit-2026-07-24-PrioB/Konzept.md) — 7 Tool-UX & Doku-Polish-Findings
 > - [`../audit-2026-07-24-PrioC/Konzept.md`](../audit-2026-07-24-PrioC/Konzept.md) — 6 Architecture & Dependencies-Findings
+> - [`../audit-2026-07-24-PrioD/Konzept.md`](../audit-2026-07-24-PrioD/Konzept.md) — 3 Sicherheits-Hardening-Findings (Rest Dim 2)
 
 ## Empfohlene Reihenfolge für den Projektverantwortlichen
 

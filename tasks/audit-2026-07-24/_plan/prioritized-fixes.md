@@ -251,18 +251,18 @@ automatisch obsolet (Doku muss aktualisiert werden).
 
 ---
 
-### Fix #16 — F-SE-004 + F-AR-005: `SqlIdentifierValidator` lowercase-only + `Constants.cs`
+### Fix #16 — F-AR-005: `Constants.cs` einführen (wenn 2. Fall entsteht)
 
-**Schweregrad:** Medium · **Aufwand:** ~30 Min
-**Impact:** Plattform-Inkonsistenz behoben. Konsistente Identifier-Regeln
-analog zu `SlugRules`.
+**Schweregrad:** Medium · **Aufwand:** ~20 Min (sobald 2. Fall da ist)
+**Impact:** Vorbereitung für zukünftige Refactorings; Konsolidierung von
+`---`-Delimiter, `.md`/`.markdown`-Extensions, `file://`-Präfix.
 
-**Konkrete Schritte:**
-1. `SqlIdentifierValidator` Regex auf `^[a-z_][a-z0-9_]{0,99}$` umstellen
-2. Reserved-Words-Liste (ca. 50 häufigste) als HashSet hinzufügen
-3. Tests anpassen
-4. Falls `Constants.cs` entsteht: `FrontMatterParser.delimiter` dorthin verschieben
-5. Doku in `docs/03` aktualisieren
+**Hinweis:** F-SE-004 (`SqlIdentifierValidator` lowercase-only) ist in PrioD extrahiert. F-AR-005 entsteht erst, wenn ein 2. Anwendungsfall für eine dieser Konstanten hinzukommt (per `.agents/rules/06-configuration.mdc`).
+
+**Konkrete Schritte (sobald relevant):**
+1. `KnowHowToAI.Core/Constants.cs` anlegen
+2. `FrontMatterParser.delimiter` dorthin verschieben
+3. Weitere Verwendungen (`.md`/`.markdown` Extension-Check, `file://`-Präfix) sukzessive konsolidieren
 
 ---
 
@@ -294,7 +294,7 @@ notwendigen Reviews + Diskussionen.
 11. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
 ```
 
-**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA.
+**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz), F-SE-005 (Credentials-Doku) sind in PrioD extrahiert.
 
 **Optional, separate Commits:**
 - F-AR-005 (Constants.cs) — kann entstehen, wenn F-SE-004 umgesetzt wird

@@ -24,9 +24,6 @@
 | ID | Schwere | Titel | Datei:Zeile |
 | --- | --- | --- | --- |
 | [F-SE-001](#f-se-001) | **High** | `BuildLikePattern` interpoliert `query` ohne LIKE-Wildcard-Escaping — DoS-Vektor | `Sync/SqlDocumentsStore.cs:94` |
-| [F-SE-003](#f-se-003) | Medium | Keine Längen-Validierung der MCP-Tool-Argumente → DoS via 10MB-Slug | `McpTools/DocsMcpTools.cs:17, 26, 35` |
-| [F-SE-004](#f-se-004) | Medium | `SqlIdentifierValidator` erlaubt case-mixed + `_` → Plattform-Inkonsistenz auf Linux-DB | `Sync/SqlIdentifierValidator.cs:10` |
-| [F-SE-005](#f-se-005) | Medium | `ConnectionString` mit hartcodierten Credentials in committed `appsettings.json` | `Cli/appsettings.json:4` |
 | [F-SE-006](#f-se-006) | Low | `SlugRules.FromFilePath` ohne expliziten Path-Traversal-Schutz (Defense-in-Depth) | `Documents/SlugRules.cs:22-28` |
 | [F-SE-007](#f-se-007) | Low | `%COMPUTERNAME%`-Expansion ist hartcodiert; keine generische Env-Var-Expansion | `Cli/Program.cs:163-169` |
 | [F-SE-008](#f-se-008) | Low | `JsonSerializer.Deserialize<List<string>>(row.Tags)!` ohne Defensive Catch (siehe F-CQ-003) | `Sync/SqlDocumentsStore.cs:111-112` |
@@ -104,124 +101,6 @@ Plus Tests:
 **Detail-Datei:** [`_findings/F-SE-001-like-wildcard-injection.md`](_findings/F-SE-001-like-wildcard-injection.md)
 
 **Aufwand:** ~30 Minuten + Tests.
-
----
-
-### F-SE-003 — Keine Längen-Validierung der MCP-Tool-Argumente
-
-**Schweregrad:** Medium (DoS-Vektor, niedriger als F-SE-001, weil Wirkung pro Aufruf)
-
-**Beobachtung:**
-`DocsMcpTools.ListChildrenAsync(string? parentSlug, ...)`, `SearchDocsAsync(string query, ...)`,
-`GetDocAsync(string slug, ...)` — keine Längen-Validierung. Das MCP-SDK selbst hat keine
-Schutzmaßnahmen.
-
-**Vektor 1 — 10MB-Slug:**
-- LLM schickt `slug = "a".repeat(10_000_000)`.
-- `GetDocAsync` macht `SELECT ... WHERE slug = @Slug` — der SQL-Server parameterisiert, also
-  harmlos. ABER: das MCP-Framework muss den 10-MB-String erst durch JSON-Serialisierung/-Deserialisierung
-  jagen, was Speicher kostet.
-- Schlimmer: In `GetDocAsync` wird `LogResponseSize` mit dem Document aufgerufen. Wenn das Document
-  100 KB ist, wird es durch JSON-Serialisierung ALLER Felder gejagt → weitere 100 KB Allokation.
-
-**Vektor 2 — `query` mit 100 KB:**
-Siehe F-SE-001.
-
-**Fix-Empfehlung:**
-In `DocsMcpTools` (oder in `SqlDocumentsStore`) eine Validierungsschicht:
-```csharp
-private const int MaxSlugLength = 450; // SQL Server-Index-Limit
-private const int MaxQueryLength = 200; // siehe F-SE-001
-
-private static void ValidateSlug(string? slug)
-{
-    if (slug is not null && slug.Length > MaxSlugLength)
-    {
-        throw new ArgumentException(
-            $"Slug ist {slug.Length} Zeichen lang, max {MaxSlugLength}.", nameof(slug));
-    }
-}
-```
-Auch `parentSlug` validieren. Fehler als Tool-Error zurückgeben (MCP-SDK-Standard), nicht als
-unbehandelte Exception.
-
-**Aufwand:** ~15 Minuten + Tests.
-
----
-
-### F-SE-004 — `SqlIdentifierValidator` Plattform-Inkonsistenz
-
-**Schweregrad:** Medium (funktioniert auf Windows-DB, kann auf Linux-DB brechen)
-
-**Beobachtung:**
-`src/KnowHowToAI.Core/Sync/SqlIdentifierValidator.cs:10`:
-```csharp
-private static readonly Regex Pattern = new("^[A-Za-z_][A-Za-z0-9_]{0,99}$", ...);
-```
-
-Erlaubt: Großbuchstaben, Kleinbuchstaben, Ziffern, Unterstrich. Max 100 Zeichen.
-
-**Plattform-Verhalten:**
-- **Windows-Default-Collation** (z.B. `SQL_Latin1_General_CP1_CI_AS`): case-**insensitive**.
-  `MyTable` und `mytable` sind *derselbe* Identifier. Funktioniert.
-- **Linux-Default-Collation** (z.B. mit `UTF8`-Collation, oder wenn explizit
-  `Latin1_General_100_BIN2`): case-**sensitive**. `MyTable` und `mytable` sind
-  *verschiedene* Identifier.
-
-**Konsequenz:** Eine `appsettings.json` mit `"DocumentsTableName": "MyTable"` funktioniert
-auf dem Dev-Rechner (Windows) und bricht auf einer Linux-DB-Instanz, weil:
-- Die Migration erstellt `dbo.MyTable` (Windows erlaubt es, Linux erlaubt es auch).
-- Aber wenn `MyTable` UND `mytable` in derselben DB existieren würden, wäre das Verhalten
-  undefiniert.
-- Schlimmer: Wenn eine CI-Instanz auf Linux läuft, kann eine config mit Uppercase zu
-  kryptischen Fehlern führen.
-
-**SQL Server Reserved Words:**
-Die Regex erlaubt auch Identifier wie `Table`, `Select`, `From`, `User` etc. SQL Server
-wirft dann "Incorrect syntax near the reserved word". `SchemaMigrator` würde beim `CREATE
-TABLE dbo.User` scheitern.
-
-**Fix-Empfehlung:**
-1. Lowercase-only erzwingen: `^[a-z_][a-z0-9_]{0,99}$` — passt zu den Slug-Regeln
-   (lowercase-only) und ist plattform-konsistent.
-2. Optional: Liste verbotener Reserved Words prüfen (z.B. via eine `HashSet<string>` mit
-   den ~50 häufigsten).
-3. Konsistenz mit `SlugRules`: beide nutzen `a-z0-9-` als "sichere" Identifiers.
-
-**Aufwand:** ~15 Minuten + Tests für Lowercase-only + Reserved-Word-Liste.
-
----
-
-### F-SE-005 — `ConnectionString` mit Credentials in `appsettings.json`
-
-**Schweregrad:** Medium (bewusst vom Projektverantwortlichen freigegeben, daher kein Critical;
-aber Pattern-Risiko für den ersten produktiven Einsatz)
-
-**Beobachtung:**
-`src/KnowHowToAI.Cli/appsettings.json:4`:
-```json
-"ConnectionString": "Server=%COMPUTERNAME%\\MSSQLSERVER2022;Database=DemoDB;User Id=Agent;Password=Agent!;TrustServerCertificate=True;",
-```
-
-In Git committed. `docs/03-Projektstruktur-und-Konfiguration.md`, Zeile 81 dokumentiert:
-> "Für dieses konkrete lokale Dev-/Demo-Setup (SQL-Login `Agent` auf einer lokalen Instanz,
-> keine echten Geheimnisse) hat der Projektverantwortliche das Committen explizit
-> freigegeben — `appsettings.json` ist daher **nicht** mehr in `.gitignore`."
-
-**Risiko-Pattern (für die Zukunft, nicht heute):**
-- Sobald jemand die Config-Datei für einen nicht-Dev-Einsatz kopiert (z.B. Test-Server,
-  Kunden-Demo), sind die echten Credentials in Git-History.
-- `.gitignore` enthält `appsettings.json` *nicht*, daher sind alle jemals committeten
-  Versionen in der History.
-
-**Mitigation, die heute schon geht:**
-- `appsettings.example.json` als Template ohne Credentials, mit `appsettings.json` in
-  `.gitignore`. User kopiert example → real, füllt Credentials.
-- Oder: User-Secrets-Pattern (`dotnet user-secrets`), das Git-safe ist.
-- Oder: explizit dokumentieren, dass `appsettings.json` für *nur* Dev ist, und der
-  Production-Pfad eigene `appsettings.Production.json` + User-Secrets erwartet.
-
-**Aufwand:** ~30 Minuten für saubere Trennung.
 
 ---
 
@@ -308,14 +187,8 @@ Kein Leak von ConnectionString, Pfaden, oder Inhalten. Sauber.
 
 ---
 
+
 ## Zusammenfassung Dim 2
 
-- **9 Findings**, davon 1 × High, 4 × Medium, 3 × Low, 1 × Info.
-- **Hot Path:** F-SE-001 (LIKE-Injection) ist der dringendste Fix (~45 Min Aufwand)
-  und hochgradig sicherheitsrelevant.
-- **Pattern-Risiko:** F-SE-005 (Credentials in committed Config) ist bewusst, aber das
-  Pattern sollte für den ersten Produktiveinsatz auf `appsettings.example.json` +
-  User-Secrets umgestellt werden.
-- **Defense-in-Depth:** Die SqlIdentifierValidator-Plattform-Inkonsistenz (F-SE-004) ist
-  ein "funktioniert, bis es nicht mehr funktioniert"-Risiko. Lowercase-only ist die saubere
-  Lösung und kostet ~15 Minuten.
+- **6 Findings** (nach Prio D-Extraktion), davon 1 × High (PrioA), 0 × Medium, 3 × Low, 2 × Info.
+- **F-SE-001** (LIKE-Injection) ist in PrioA extrahiert. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz) und F-SE-005 (Credentials-Doku-Hinweis) sind in PrioD extrahiert.
