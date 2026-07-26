@@ -30,7 +30,6 @@ public class SqlIdentifierValidatorTests
     [InlineData("table")]
     [InlineData("select")]
     [InlineData("from")]
-    [InlineData("user")] // repeated to verify HashSet behavior
     public void EnsureValid_RejectsSqlReservedWords(string tableName) =>
         Assert.Throws<ArgumentException>(() => SqlIdentifierValidator.EnsureValid(tableName));
 }

@@ -162,8 +162,25 @@ public sealed class SqlDocumentsStore
         row.Title,
         row.Content,
         SlugRules.GetParentSlug(row.Slug),
-        row.Tags is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Tags)!,
-        row.Synonyms is null ? [] : JsonSerializer.Deserialize<List<string>>(row.Synonyms)!);
+        DeserializeJsonArrayOrEmpty(row.Tags),
+        DeserializeJsonArrayOrEmpty(row.Synonyms));
+
+    // Robuster Deserialize: fehlende/leere/ungueltige JSON-Strings liefern eine leere Liste
+    // statt einer unbehandelten JsonException. So bricht ein MCP-Tool-Call nicht ab,
+    // wenn die DB mal verbogene Daten enthaelt.
+    private static IReadOnlyList<string> DeserializeJsonArrayOrEmpty(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return [];
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json) ?? [];
+        }
+        catch (JsonException)
+        {
+            // DB-Format verletzt. Lieber leere Liste als Tool-Crash.
+            return [];
+        }
+    }
 
     private sealed record DocumentRow(string Slug, string Title, string Content, string? Tags, string? Synonyms);
     private sealed record SearchRow(string Slug, string Title, int TotalCount);
