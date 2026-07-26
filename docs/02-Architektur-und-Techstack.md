@@ -152,4 +152,22 @@ Die `[Description(...)]`-Strings in `DocsMcpTools.cs` sind aus diesem Abschnitt 
 
 **Zusätzlich eine MCP-Resource, kein viertes Tool:** `docs://authoring-guide` (`KnowHowToAI.Cli.McpTools.DocsMcpResources`) liefert das Datei-Format (Front-Matter-Template, Slug-Regeln, Hierarchie-/Orphan-Regel) als kompakten Markdown-Text — nötig, damit ein Agent auch in einem leeren docs-root eines fremden Projekts weiß, wie eine neue `.md`-Datei aussehen muss, ohne dieses Repo zu kennen (siehe [01, Phase 2](01-Konzept-und-Workflow.md#phase-2-doku-erweitern-oder-umstrukturieren-schreib-modus)). Zusätzlich setzt der Server `ServerInstructions` (kurzer Hinweis auf die drei Tools + die Resource), der bei jeder Verbindung automatisch beim Client ankommt. MCP-Resources sind ein eigener Protokoll-Typ, kein Tool — die Zählung "drei schlanke MCP-Tools" ([00-Overview.md](00-Overview.md)) bleibt unverändert.
 
+#### Tool-Naming-Konvention
+
+MCP-Tool-Namen in diesem Server folgen **snake_case + Verb im Imperativ**: `list_children`, `search_docs`, `get_doc`. Beim Hinzufügen eines neuen Tools: Name mit der bestehenden Konvention und mit diesem Doku-Abschnitt abgleichen, damit LLM-Client-Code (Auto-Discovery, Type-Mapping) nicht pro Tool neu angefasst werden muss.
+
+#### `ServerInstructions` — die Eingangstür zum Server
+
+`ServerInstructions` ist der Text, den jeder verbundene MCP-Client beim `initialize`-Handshake als ersten Kontext mitgeteilt bekommt. Er ist die *Eingangstür* für jedes verbundene LLM — eine Änderung am Wortlaut ändert direkt die LLM-UX, ohne dass Tests das mitbekommen. Exakter aktueller Wortlaut (aus `DocsMcpResources.ServerInstructions`):
+
+> "KnowHowToAI: durchsuchbare Wissensdatenbank. Lesen: list_children/search_docs/get_doc. Neue oder geänderte Doku als .md-Datei im docs-root anlegen (Format siehe Resource docs://authoring-guide), danach 'validate' und 'import' per CLI ausführen."
+
+Wirkungs-Achsen, die beim Ändern beachtet werden müssen:
+
+* **Länge:** kurz genug, dass das LLM den Text nicht überfliegt; lang genug, dass Lese-Tools *und* Schreib-Workflow klar sind.
+* **Vokabular:** Tool-Namen wörtlich wie in den `[McpServerTool(Name=...)]`-Attributen, keine Synonyme.
+* **Reihenfolge:** Lesen-Tools vor Schreib-Workflow (LLM soll erst suchen, dann ggf. selbst Doku schreiben).
+
+Bei Änderungen: Doku hier mitziehen, damit die LLM-UX-Begründung nicht verloren geht.
+
 Details zu Implementierungsreihenfolge: [05-Roadmap.md](05-Roadmap.md).

@@ -11,10 +11,10 @@
 | ID | Titel | Schweregrad | Aufwand | LLM-UX? | Status |
 |---|---|---|---|---|---|
 | [F-MC-002](#f-mc-002--keine-tool-beispiele-in-den-descriptions) | Keine Tool-Beispiele in den Descriptions | Medium | ~20 Min | ja | **erledigt** |
-| [F-MC-003](#f-mc-003--serverinstructions-zentral-undokumentiert) | `ServerInstructions` zentral undokumentiert (= F-DK-002) | Medium | ~5 Min | ja | offen |
+| [F-MC-003](#f-mc-003--serverinstructions-zentral-undokumentiert) | `ServerInstructions` zentral undokumentiert (= F-DK-002) | Medium | ~5 Min | ja | **erledigt** |
 | [F-MC-004](#f-mc-004--null-semantik-für-get_doc-undokumentiert) | `null`-Semantik für `get_doc` undokumentiert | Medium | ~5 Min | ja | **erledigt** (war schon im Prio-A-Commit enthalten) |
 | [F-MC-005](#f-mc-005--authoring-guide-length-warning-fehlt) | `authoring-guide` Length-Warning fehlt | Medium | ~5 Min | ja | **erledigt** |
-| [F-MC-006](#f-mc-006--tool-naming-konvention-undokumentiert) | Tool-Naming-Konvention undokumentiert | Low | ~2 Min | ja (für Maintainer) | offen |
+| [F-MC-006](#f-mc-006--tool-naming-konvention-undokumentiert) | Tool-Naming-Konvention undokumentiert | Low | ~2 Min | ja (für Maintainer) | **erledigt** |
 | [F-DK-003](#f-dk-003--service-konstruktion-in-programcs-undokumentiert) | Service-Konstruktion in `Program.cs` undokumentiert | Medium | ~10 Min | nein (Maintainer) | offen |
 | [F-DK-004](#f-dk-004--schemamigrator-transaktions-verlust-undokumentiert) | `SchemaMigrator` Transaktions-Verlust undokumentiert | Medium | ~5 Min Doku / ~15 Min Code | nein (Maintainer) | offen |
 
