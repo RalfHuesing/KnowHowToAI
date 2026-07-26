@@ -36,11 +36,11 @@ AiNetLinter meldet 0 Verstöße, Doku ist umfangreich und konsistent mit dem Cod
 | Schweregrad | Anzahl | Prozent |
 | --- | --- | --- |
 | **Critical** | 0 | 0% |
-| **High** | 7 | 16% |
-| **Medium** | 3 | 7% |
-| **Low** | 13 | 30% |
-| **Info** | 21 | 47% |
-| **Gesamt** | **44 Findings** | 100% |
+| **High** | 7 | 18% |
+| **Medium** | 3 | 8% |
+| **Low** | 10 | 26% |
+| **Info** | 19 | 49% |
+| **Gesamt** | **39 Findings** | 100% |
 
 *(Zahlen aus allen 9 Dimensions-Dateien summiert; `_demo-docs/`-Mini-Audit
 ausgenommen, da nicht durch den vollen Filter.)*
@@ -53,7 +53,7 @@ ausgenommen, da nicht durch den vollen Filter.)*
 | 2 | Sicherheit (MCP-Attack-Surface) | [02-security.md](02-security.md) | 1 | 0 | 3 | 2 |
 | 3 | Architektur & Patterns | [03-architecture.md](03-architecture.md) | 1 | 1 | 1 | 3 |
 | 4 | Test-Coverage & -Qualität | [04-tests.md](04-tests.md) | 0 | 0 | 0 | 1 |
-| 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 1 | 1 | 3 | 4 |
+| 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 0 | 0 | 1 | 4 |
 | 6 | Konfiguration & Deployment | [06-config-deploy.md](06-config-deploy.md) | 1 | 0 | 2 | 3 |
 | 7 | Dependencies & NuGets | [07-dependencies.md](07-dependencies.md) | 0 | 0 | 2 | 3 |
 | 8 | Performance / SQL-Effizienz | [08-performance.md](08-performance.md) | 2 | 1 | 1 | 1 |
@@ -127,7 +127,7 @@ tasks/audit-2026-07-24/
 └── _meta-lint.log                      # Linter-Baseline
 ```
 
-> **Hinweis:** Findings sind inzwischen in acht separate Prio-Ordner extrahiert:
+> **Hinweis:** Findings sind inzwischen in neun separate Prio-Ordner extrahiert:
 > - [`../audit-2026-07-24-PrioA/Konzept.md`](../audit-2026-07-24-PrioA/Konzept.md) — 5 Prio-A-Findings (umgesetzt)
 > - [`../audit-2026-07-24-PrioB/Konzept.md`](../audit-2026-07-24-PrioB/Konzept.md) — 7 Tool-UX & Doku-Polish-Findings
 > - [`../audit-2026-07-24-PrioC/Konzept.md`](../audit-2026-07-24-PrioC/Konzept.md) — 6 Architecture & Dependencies-Findings
@@ -136,6 +136,7 @@ tasks/audit-2026-07-24/
 > - [`../audit-2026-07-24-PrioF/Konzept.md`](../audit-2026-07-24-PrioF/Konzept.md) — 4 Performance-Polish-Findings (Rest Dim 8)
 > - [`../audit-2026-07-24-PrioG/Konzept.md`](../audit-2026-07-24-PrioG/Konzept.md) — 5 Config-Deploy-Findings (Rest Dim 6)
 > - [`../audit-2026-07-24-PrioH/Konzept.md`](../audit-2026-07-24-PrioH/Konzept.md) — 3 Code-Quality-Rest-Findings (Rest Dim 1)
+> - [`../audit-2026-07-24-PrioI/Konzept.md`](../audit-2026-07-24-PrioI/Konzept.md) — 4 Doku-Rest-Findings (Rest Dim 5)
 
 ## Empfohlene Reihenfolge für den Projektverantwortlichen
 

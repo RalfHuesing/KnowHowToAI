@@ -261,7 +261,7 @@ notwendigen Reviews + Diskussionen.
 10. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
 ```
 
-**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz), F-SE-005 (Credentials-Doku) sind in PrioD extrahiert. F-TS-001 bis F-TS-011 (Test-Coverage) sind in PrioE extrahiert. F-PE-003 (ORDER BY), F-PE-004 (SqlBulkCopy-Backlog), F-PE-005 (LIKE-Performance-Doku), F-PE-006 (File.ReadAllText async) sind in PrioF extrahiert. F-CD-002 bis F-CD-006 (Config-Deploy) sind in PrioG extrahiert. F-CQ-003, F-CQ-004, F-CQ-005 (Code-Quality-Rest) sind in PrioH extrahiert.
+**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz), F-SE-005 (Credentials-Doku) sind in PrioD extrahiert. F-TS-001 bis F-TS-011 (Test-Coverage) sind in PrioE extrahiert. F-PE-003 (ORDER BY), F-PE-004 (SqlBulkCopy-Backlog), F-PE-005 (LIKE-Performance-Doku), F-PE-006 (File.ReadAllText async) sind in PrioF extrahiert. F-CD-002 bis F-CD-006 (Config-Deploy) sind in PrioG extrahiert. F-CQ-003, F-CQ-004, F-CQ-005 (Code-Quality-Rest) sind in PrioH extrahiert. F-DK-001 (obsolet), F-DK-005, F-DK-006, F-DK-007 (Doku-Rest) sind in PrioI extrahiert.
 
 **Optional, separate Commits:**
 - F-AR-005 (Constants.cs) — kann entstehen, wenn F-SE-004 umgesetzt wird
