@@ -58,3 +58,7 @@ nunit-*.xml
 
 # KnowHowToAI: Ausgabe von scripts/publish.ps1
 /publish/
+
+# Temporäres Verzeichnis für autonome Agenten
+/temp/
+

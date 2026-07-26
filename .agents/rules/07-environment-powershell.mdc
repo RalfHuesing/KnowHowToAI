@@ -1,12 +1,12 @@
 ---
-description: Betriebssystem- & Shell-Vorgaben für KnowHowToAI — Windows-Umgebung, PowerShell 7 (pwsh) und Verbot von Linux/Bash-Syntax
+description: Betriebssystem- & Shell-Vorgaben für KnowHowToAI — Windows-Umgebung, PowerShell 7 (pwsh), Temp-Verzeichnis-Regeln und Verbot von Linux/Bash-Syntax
 globs:
 alwaysApply: true
 ---
 
 # Betriebssystem & Shell-Umgebung
 
-**Ziel:** Verhindern von Befehlsfehlern durch inkompatible Linux/Bash-Syntax in Terminal- und Tool-Befehlen. Die Entwicklung und Ausführung dieses Projekts erfolgt unter Windows mit PowerShell 7.
+**Ziel:** Verhindern von Befehlsfehlern durch inkompatible Linux/Bash-Syntax in Terminal- und Tool-Befehlen sowie Vorgaben für Arbeits- und Temp-Verzeichnisse autonomer Agenten. Die Entwicklung und Ausführung dieses Projekts erfolgt unter Windows mit PowerShell 7.
 
 ## Systemumgebung & Werkzeuge
 
@@ -19,6 +19,15 @@ alwaysApply: true
   * `git` für Versionskontrolle
   * `python`
   * `node`
+
+## Temporäre Verzeichnisse für Agenten (Projekt-Root `temp/`)
+
+Wenn Agenten während der autonomen Arbeit ein temporäres Verzeichnis benötigen (z. B. für Test-Dateien, temporäre Skripte oder Ausführungsartefakte):
+
+* **Keine externen Temp-Ordner:** Es dürfen **keine** systemweiten Temp-Verzeichnisse wie `%TEMP%`, `AppData\Local\Temp` oder `/tmp` außerhalb des Projekt-Roots verwendet werden.
+* **Projekt-internes Temp-Verzeichnis:** Alle temporären Dateien und Test-Ordner müssen innerhalb des Projekt-Roots im Verzeichnis `temp/` (z. B. `<Projekt-Root>\temp\`) abgelegt werden.
+* **.gitignore-Status:** Das Verzeichnis `temp/` ist in `.gitignore` eingetragen und wird nicht versioniert. Agenten müssen darauf achten, keine Temp-Dateien außerhalb von `temp/` abzulegen.
+* **Aufräumpflicht:** Agenten müssen ihre im `temp/`-Verzeichnis erzeugten Dateien und Verzeichnisse nach Abschluss der jeweiligen Test- oder Ausführungsschritte wieder aufräumen (löschen).
 
 ## Verbot von Linux/Bash-Syntax (Verbindliche Regeln)
 
