@@ -59,19 +59,6 @@ Records funktioniert.
 
 ---
 
-### Fix #4 — F-PE-003: `ORDER BY slug` in `ListChildrenAsync`
-
-**Schweregrad:** Medium · **Aufwand:** ~5 Min · **Commit-Granularität:** 1 Commit
-**Impact:** Deterministische Treffer-Reihenfolge. LLM bekommt bei wiederholten
-Aufrufen konsistente Ergebnisse.
-
-**Konkrete Schritte:**
-1. `ListChildrenAsync` SQL: `ORDER BY slug` anhängen
-2. Test in `SqlDocumentsStore`-Test-Suite (siehe F-TS-001 — aktuell nicht
-   existent, das ist eine Quick-Lösung)
-
----
-
 ### Fix #2 — ✅ F-CQ-001/002: `Document` und `ValidationResult` als sealed records (`27570cd`)
 
 **Schweregrad:** High (F-CQ-001) + Medium (F-CQ-002, im selben Commit gelöst)
@@ -264,9 +251,8 @@ notwendigen Reviews + Diskussionen.
 
 ```
 1. F-CQ-001/002 (sealed/record) — architektonisch unabhängig
-2. F-PE-003 (ORDER BY) — Datenbank-Behavior
-3. F-CQ-003 (defensive Deserialize) — Robustheit
-4. F-PE-001 (LogResponseSize) — MCP-Loop
+2. F-CQ-003 (defensive Deserialize) — Robustheit
+3. F-PE-001 (LogResponseSize) — MCP-Loop
 5. F-MC-001 (Tool-Descriptions) — LLM-UX, baut auf Fix #4 auf
 6. F-CD-001 (Enum-Validation) — Konfig
 7. F-SE-001 (LIKE-Wildcard) — Security
@@ -275,7 +261,7 @@ notwendigen Reviews + Diskussionen.
 10. Doku-Commit (F-DK-005 bis F-DK-008; F-DK-001 obsolet; F-DK-002/003/004 in Prio B)
 ```
 
-**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz), F-SE-005 (Credentials-Doku) sind in PrioD extrahiert. F-TS-001 bis F-TS-011 (Test-Coverage) sind in PrioE extrahiert.
+**Hinweis:** F-AR-001 (Composition Root), F-DP-001 (Preview-Dependencies), F-DP-002 (SqlClient Breaking), F-DP-003 (NuGet-Audit), F-AR-004 (Thread-Safety), F-AR-007 (Service-Lifetimes) sind in PrioC extrahiert. F-AR-002 ist in PrioA. F-SE-003 (Längen-Validierung), F-SE-004 (Plattform-Inkonsistenz), F-SE-005 (Credentials-Doku) sind in PrioD extrahiert. F-TS-001 bis F-TS-011 (Test-Coverage) sind in PrioE extrahiert. F-PE-003 (ORDER BY), F-PE-004 (SqlBulkCopy-Backlog), F-PE-005 (LIKE-Performance-Doku), F-PE-006 (File.ReadAllText async) sind in PrioF extrahiert.
 
 **Optional, separate Commits:**
 - F-AR-005 (Constants.cs) — kann entstehen, wenn F-SE-004 umgesetzt wird

@@ -36,11 +36,11 @@ AiNetLinter meldet 0 Verstöße, Doku ist umfangreich und konsistent mit dem Cod
 | Schweregrad | Anzahl | Prozent |
 | --- | --- | --- |
 | **Critical** | 0 | 0% |
-| **High** | 7 | 13% |
-| **Medium** | 8 | 14% |
-| **Low** | 13 | 23% |
-| **Info** | 28 | 50% |
-| **Gesamt** | **56 Findings** | 100% |
+| **High** | 7 | 14% |
+| **Medium** | 4 | 8% |
+| **Low** | 13 | 25% |
+| **Info** | 28 | 54% |
+| **Gesamt** | **52 Findings** | 100% |
 
 *(Zahlen aus allen 9 Dimensions-Dateien summiert; `_demo-docs/`-Mini-Audit
 ausgenommen, da nicht durch den vollen Filter.)*
@@ -56,7 +56,7 @@ ausgenommen, da nicht durch den vollen Filter.)*
 | 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 1 | 1 | 3 | 4 |
 | 6 | Konfiguration & Deployment | [06-config-deploy.md](06-config-deploy.md) | 1 | 5 | 2 | 3 |
 | 7 | Dependencies & NuGets | [07-dependencies.md](07-dependencies.md) | 0 | 0 | 2 | 3 |
-| 8 | Performance / SQL-Effizienz | [08-performance.md](08-performance.md) | 2 | 5 | 1 | 1 |
+| 8 | Performance / SQL-Effizienz | [08-performance.md](08-performance.md) | 2 | 1 | 1 | 1 |
 | 9 | MCP-Tool-API-Qualität | [09-mcp-tool-api.md](09-mcp-tool-api.md) | 1 | 0 | 1 | 3 |
 
 ## Top 5 High-Findings (in Reihenfolge der Wichtigkeit)
@@ -127,12 +127,13 @@ tasks/audit-2026-07-24/
 └── _meta-lint.log                      # Linter-Baseline
 ```
 
-> **Hinweis:** Findings sind inzwischen in fünf separate Prio-Ordner extrahiert:
+> **Hinweis:** Findings sind inzwischen in sechs separate Prio-Ordner extrahiert:
 > - [`../audit-2026-07-24-PrioA/Konzept.md`](../audit-2026-07-24-PrioA/Konzept.md) — 5 Prio-A-Findings (umgesetzt)
 > - [`../audit-2026-07-24-PrioB/Konzept.md`](../audit-2026-07-24-PrioB/Konzept.md) — 7 Tool-UX & Doku-Polish-Findings
 > - [`../audit-2026-07-24-PrioC/Konzept.md`](../audit-2026-07-24-PrioC/Konzept.md) — 6 Architecture & Dependencies-Findings
 > - [`../audit-2026-07-24-PrioD/Konzept.md`](../audit-2026-07-24-PrioD/Konzept.md) — 3 Sicherheits-Hardening-Findings (Rest Dim 2)
 > - [`../audit-2026-07-24-PrioE/Konzept.md`](../audit-2026-07-24-PrioE/Konzept.md) — 11 Test-Coverage-Findings (Dim 4)
+> - [`../audit-2026-07-24-PrioF/Konzept.md`](../audit-2026-07-24-PrioF/Konzept.md) — 4 Performance-Polish-Findings (Rest Dim 8)
 
 ## Empfohlene Reihenfolge für den Projektverantwortlichen
 

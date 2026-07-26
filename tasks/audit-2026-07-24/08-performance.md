@@ -28,10 +28,6 @@
 | --- | --- | --- | --- |
 | [F-PE-001](#f-pe-001) | **High** | `LogResponseSize` serialisiert die *gesamte* Response zu JSON-Bytes nur um die Länge zu messen — pro Tool-Aufruf, inkl. `get_doc` mit potenziell MB-großem Content | `McpTools/DocsMcpTools.cs:43-44` |
 | [F-PE-002](#f-pe-002) | **High** | `SearchDocsAsync` ohne `TOP`/`LIMIT` — bei großen Tabellen können tausende Treffer zurückkommen, plus LLM-Token-Budget-Sprengung | `Sync/SqlDocumentsStore.cs:79-92` |
-| [F-PE-003](#f-pe-003) | Medium | `ListChildrenAsync` ohne `ORDER BY` — Treffer-Reihenfolge unspezifiziert, LLM-UX-Inkonsistenz | `Sync/SqlDocumentsStore.cs:65-77` |
-| [F-PE-004](#f-pe-004) | Medium | `ReplaceAllAsync` ist N+1-Insert (Loop mit `ExecuteAsync` pro Dokument) — bei 10.000 Dokumenten sind das 10.000 separate Round-Trips zum SQL-Server | `Sync/SqlDocumentsStore.cs:32-50` |
-| [F-PE-005](#f-pe-005) | Medium | `LIKE '%...%'` über `title`/`content`/`tags`/`synonyms` mit führendem Wildcard = Sequential Scan — bewusste Entscheidung (siehe `docs/00` Grundsatzentscheidung 4), aber: die Implikation für die Token-Budget-Berechnung des LLM ist undokumentiert | `Sync/SqlDocumentsStore.cs:79-92` |
-| [F-PE-006](#f-pe-006) | Medium | `ImportService.ReadDocuments` nutzt `File.ReadAllText` (synchron) in einem `async`-Methode — blockiert Thread-Pool-Thread pro Datei | `Sync/ImportService.cs:30-37` |
 | [F-PE-007](#f-pe-007) | Low | Kein expliziter `JsonSerializerOptions` Cache — pro `GetAllAsync`-Aufruf wird `JsonSerializer.Serialize` ohne gecachte Options aufgerufen, was Reflection pro Aufruf verursachen kann | `Sync/SqlDocumentsStore.cs:45-46, 111-112` |
 | [F-PE-008](#f-pe-008) | Low | `SqlDocumentsStore` erstellt pro Methoden-Aufruf eine neue `SqlConnection` — Connection-Pooling durch `Microsoft.Data.SqlClient` mitigiert das, aber `new` + `OpenAsync` + `Dispose` ist nicht gratis | `Sync/SqlDocumentsStore.cs:25, 57, 67, 81, 98` |
 | [F-PE-009](#f-pe-009) | Info | `MarkdownLinkRegex` ist `[GeneratedRegex]` — compiled und gecached seitens .NET, kein Hot-Path-Problem | `Validation/DocsValidator.cs:92-93` |
@@ -168,178 +164,6 @@ Mit `MaxResults` aus `KnowHowToAiOptions.Search` (neu), Default z.B. 50.
 
 ---
 
-### F-PE-003 — `ListChildrenAsync` ohne `ORDER BY`
-
-**Schweregrad:** Medium (LLM-UX, Performance neutral)
-
-**Beobachtung:**
-`src/KnowHowToAI.Core/Sync/SqlDocumentsStore.cs:65-77`:
-```csharp
-public async Task<IReadOnlyList<DocumentSummary>> ListChildrenAsync(string? parentSlug, CancellationToken cancellationToken)
-{
-    // ...
-    var rows = await connection.QueryAsync<DocumentSummary>(new CommandDefinition(
-        $"""
-        SELECT slug AS Slug, title AS Title FROM {_table}
-        WHERE (@ParentSlug IS NULL AND parent_slug IS NULL) OR parent_slug = @ParentSlug;
-        """,
-        new { ParentSlug = parentSlug },
-        cancellationToken: cancellationToken));
-    return [.. rows];
-}
-```
-
-**Konsequenz:**
-- Ohne `ORDER BY` ist die Treffer-Reihenfolge unspezifiziert. SQL-Server *kann* bei
-  einem HEAP-Table (kein Clustered-Index auf der Zugriffs-Spalte) jede beliebige
-  Reihenfolge liefern, auch zwischen Aufrufen.
-- Für `list_children(parentSlug="it")` ist die *erwartete* UX: alphabetische oder
-  hierarchische Sortierung. Aktuell: zufällig.
-- LLM bekommt bei wiederholten Aufrufen potenziell unterschiedliche Reihenfolgen
-  → Caching-Invalidierung im LLM-Kontext, Verwirrung.
-
-**Fix-Empfehlung:**
-```sql
-SELECT slug AS Slug, title AS Title FROM dbo.<DocumentsTableName>
-WHERE (@ParentSlug IS NULL AND parent_slug IS NULL) OR parent_slug = @ParentSlug
-ORDER BY slug;  -- alphabetisch nach Slug = deterministisch
-```
-
-**Aufwand:** ~5 Minuten + Test (falls einer existiert — existiert nicht, weil
-`SqlDocumentsStore` nicht getestet wird).
-
----
-
-### F-PE-004 — `ReplaceAllAsync` N+1-Insert-Pattern
-
-**Schweregrad:** Medium (Skaliert linear mit Dokument-Anzahl, nicht katastrophal)
-
-**Beobachtung:**
-`src/KnowHowToAI.Core/Sync/SqlDocumentsStore.cs:32-50`:
-```csharp
-foreach (var document in documents.OrderBy(document => document.Slug.Count(c => c == '/')))
-{
-    await connection.ExecuteAsync(new CommandDefinition(
-        $"""
-        INSERT INTO {_table} (slug, parent_slug, title, content, tags, synonyms)
-        VALUES (@Slug, @ParentSlug, @Title, @Content, @Tags, @Synonyms);
-        """,
-        // ...
-        transaction, cancellationToken: cancellationToken));
-}
-```
-
-**Probleme:**
-- Pro Dokument ein Round-Trip zum SQL-Server (Network + Parse + Plan-Build pro
-  Insert).
-- Bei 10.000 Dokumenten: 10.000 separate Inserts in einer Transaktion. Jeder
-  Commit implizit pro Transaktion, aber jeder Insert selbst ist ein Network-
-  Hop.
-
-**Mitigation:**
-- `SqlBulkCopy` (Dapper's `BulkInsert` oder direkt) — ein einzelner Bulk-Copy
-  kann 10.000 Zeilen in einem Hop einfügen.
-- ABER: `SqlBulkCopy` ist nicht trivial — Column-Mapping, Identity-Columns,
-  Constraints. Und in der bestehenden Transaktion einzubetten erfordert
-  Sonderbehandlung.
-
-**Realistische Einschätzung:**
-- Bei den typischen Doku-Bibliotheken (Sage 100, HR, ein Kundenprojekt) vermutlich
-  <1000 Dokumente. 1000 Inserts in einer Transaktion dauern auf lokalem SQL-Server
-  ca. 0,5-1 Sekunde. Akzeptabel.
-- Bei großen Bibliotheken (z.B. komplette Rewe-Produkt-Doku mit 50.000 Artikeln)
-  wäre SqlBulkCopy empfehlenswert.
-
-**Fix-Empfehlung:**
-1. Benchmark dokumentieren: bei welcher Dokument-Anzahl wird N+1 spürbar?
-2. Wenn >5.000 Dokumente regelmäßig: SqlBulkCopy mit `DestinationTableName` +
-   manuelles Column-Mapping.
-3. Wenn <1.000: Status Quo OK.
-
-**Aufwand:** ~2 Stunden für SqlBulkCopy-Migration + 30 Min Tests. Aktuell:
-kein dringender Handlungsbedarf, dokumentieren und in Backlog aufnehmen.
-
----
-
-### F-PE-005 — `LIKE '%...%'` Index-Scan
-
-**Schweregrad:** Medium (bewusste Entscheidung, aber Token-Budget-Implikation undokumentiert)
-
-**Beobachtung:**
-`LIKE '%...%'` mit führendem Wildcard verhindert Index-Nutzung. SQL-Server macht
-einen vollen Tabellen-Scan + Pattern-Match pro Zeile.
-
-**Auswirkung:**
-- 100 Dokumente: < 10 ms, kein Problem
-- 1.000 Dokumente: ~50-100 ms, merklich
-- 10.000 Dokumente: ~500 ms-1 s, problematisch für interaktive LLM-UX
-- 100.000 Dokumente: mehrere Sekunden, unbrauchbar
-
-`docs/00-Overview.md` Grundsatzentscheidung 4 dokumentiert die Wahl *bewusst*
-(kein Full-Text-Search-Voraussetzung). Aber:
-- Die Token-Budget-Konsequenz (F-PE-002) ist NICHT dokumentiert
-- Die Tabellen-Größen-Schwelle, ab der die Performance spürbar wird, ist NICHT
-  dokumentiert
-- Die Migrations-Option zu Full-Text (oder Trigram-Index) ist nur als Backlog-
-  Item erwähnt (siehe `docs/05-Roadmap.md`)
-
-**Fix-Empfehlung:** Kurzer Abschnitt in `docs/04` (oder `docs/02` Tech-Stack):
-"Performance-Erwartung `LIKE '%...%'`: O(n) Scan pro Query. Bei <1.000 Dokumenten
-kein Problem. Bei >10.000 empfiehlt sich `MAXTOP`-Begrenzung (siehe F-PE-002) oder
-Migration auf SQL-Server-Full-Text."
-
-**Aufwand:** ~5 Minuten Doku.
-
----
-
-### F-PE-006 — `File.ReadAllText` in async-Methode
-
-**Schweregrad:** Medium (Thread-Pool-Blockierung, kleinere Bibliotheken OK)
-
-**Beobachtung:**
-`src/KnowHowToAI.Core/Sync/ImportService.cs:30-37`:
-```csharp
-private IEnumerable<Document> ReadDocuments(string docsRootPath)
-{
-    foreach (var filePath in Directory.EnumerateFiles(docsRootPath, "*.md", SearchOption.AllDirectories))
-    {
-        var slug = SlugRules.FromFilePath(docsRootPath, filePath);
-        yield return _parser.Parse(slug, File.ReadAllText(filePath));
-    }
-}
-```
-
-`File.ReadAllText` ist synchron. Die Methode ist `IEnumerable<Document>` (kein
-async), also nicht direkt ein `async-over-sync`-Issue. ABER: `ImportService.ImportAsync`
-ruft `ReadDocuments` auf, und der `yield return` blockiert den laufenden Thread
-während jedes File-Reads.
-
-**Auswirkung:**
-- Bei 1.000 kleinen Dateien: jeder File-Read < 1 ms, kaum spürbar
-- Bei 100 großen Dateien (mehrere MB): jeweils 10-50 ms synchroner Block pro Datei
-- Thread-Pool-Thread ist für die Dauer blockiert (kein anderer Code kann laufen)
-
-**Fix-Empfehlung:**
-```csharp
-private async Task<List<Document>> ReadDocumentsAsync(string docsRootPath, CancellationToken cancellationToken)
-{
-    var files = Directory.EnumerateFiles(docsRootPath, "*.md", SearchOption.AllDirectories).ToList();
-    var documents = new List<Document>(files.Count);
-    foreach (var filePath in files)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var slug = SlugRules.FromFilePath(docsRootPath, filePath);
-        var content = await File.ReadAllTextAsync(filePath, cancellationToken);
-        documents.Add(_parser.Parse(slug, content));
-    }
-    return documents;
-}
-```
-
-**Aufwand:** ~15 Minuten + Test-Update (CancellationToken-Pfad).
-
----
-
 ### F-PE-007 — `JsonSerializer` ohne gecachte Options (Low)
 
 **Beobachtung:** `JsonSerializer.Serialize(document.Tags)` und
@@ -378,6 +202,7 @@ Kein Handlungsbedarf.
 
 ---
 
+
 ## Performance-Token-Budget-Schätzung
 
 Eine `DocumentSummary` ist ~50-100 Tokens. Eine `DocumentDetail` ist
@@ -400,9 +225,10 @@ abgefangen. Andere Verbesserungen sind nice-to-have.
 
 ---
 
+
 ## Zusammenfassung Dim 8
 
-- **9 Findings**, davon 2 × High, 5 × Medium, 1 × Low, 1 × Info.
+- **5 Findings** (nach Prio F-Extraktion), davon 2 × High (PrioA), 1 × Medium, 1 × Low, 1 × Info.
 - **Hot-Path-Problem:** F-PE-001 (Doppel-JSON) und F-PE-002 (kein `TOP`-Cap) sind
   die zwei wichtigsten Quick Wins. Beide klein im Aufwand, groß in der Wirkung.
 - **Bewusste Entscheidungen:** F-PE-004 (N+1-Insert) und F-PE-005 (LIKE-Index-Scan)
