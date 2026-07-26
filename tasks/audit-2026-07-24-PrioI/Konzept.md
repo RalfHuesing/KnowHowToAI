@@ -8,12 +8,12 @@
 
 ## Inhalt
 
-| ID | Titel | Schweregrad | Aufwand |
-|---|---|---|---|
-| [F-DK-001](#f-dk-001--logresponsesize-doku-dokumentiert-suboptimales-verhalten-als-soll) | `LogResponseSize`-Doku dokumentiert suboptimales Verhalten als Soll | High (obsolet) | obsolet |
-| [F-DK-005](#f-dk-005--preview-dependencies-undokumentiert) | Preview-Dependencies undokumentiert | Medium | ~5 Min |
-| [F-DK-006](#f-dk-006--trustservercertificatetrue-undokumentiert) | `TrustServerCertificate=True` undokumentiert | Low | ~3 Min |
-| [F-DK-007](#f-dk-007--microsoftdatasqlclient-70-breaking-changes-infolow) | `Microsoft.Data.SqlClient 7.0` Breaking Changes (Info/Low) | Low | ~3 Min Querverweis |
+| ID | Titel | Schweregrad | Aufwand | Status |
+|---|---|---|---|---|
+| [F-DK-001](#f-dk-001--logresponsesize-doku-dokumentiert-suboptimales-verhalten-als-soll) | `LogResponseSize`-Doku dokumentiert suboptimales Verhalten als Soll | High (obsolet) | obsolet | **erledigt** |
+| [F-DK-005](#f-dk-005--preview-dependencies-undokumentiert) | Preview-Dependencies undokumentiert | Medium | ~5 Min | **obsolet** nach F-DP-001 (Downgrade in Commit 8fed418) |
+| [F-DK-006](#f-dk-006--trustservercertificatetrue-undokumentiert) | `TrustServerCertificate=True` undokumentiert | Low | ~3 Min | **erledigt** (in F-DP-002-Commit mit-erledigt) |
+| [F-DK-007](#f-dk-007--microsoftdatasqlclient-70-breaking-changes-infolow) | `Microsoft.Data.SqlClient 7.0` Breaking Changes (Info/Low) | Low | ~3 Min Querverweis | **erledigt** (in F-DP-002-Commit mit-erledigt) |
 
 **Gesamt-Aufwand:** ~10 Min Doku-Updates. Aufteilbar in 1-2 Commits.
 

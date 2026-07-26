@@ -8,11 +8,11 @@
 
 ## Inhalt
 
-| ID | Titel | Schweregrad | Aufwand |
-|---|---|---|---|
-| [F-SE-003](#f-se-003--keine-längen-validierung-der-mcp-tool-argumente) | Keine Längen-Validierung der MCP-Tool-Argumente | Medium | ~20 Min + Tests |
-| [F-SE-004](#f-se-004--sqlidentifiervalidator-plattform-inkonsistenz) | `SqlIdentifierValidator` Plattform-Inkonsistenz | Medium | ~15 Min + Tests |
-| [F-SE-005](#f-se-005--connectionstring-mit-credentials-in-appsettingsjson) | `ConnectionString` mit Credentials in `appsettings.json` | Medium | ~5 Min Doku |
+| ID | Titel | Schweregrad | Aufwand | Status |
+|---|---|---|---|---|
+| [F-SE-003](#f-se-003--keine-längen-validierung-der-mcp-tool-argumente) | Keine Längen-Validierung der MCP-Tool-Argumente | Medium | ~20 Min + Tests | offen |
+| [F-SE-004](#f-se-004--sqlidentifiervalidator-plattform-inkonsistenz) | `SqlIdentifierValidator` Plattform-Inkonsistenz | Medium | ~15 Min + Tests | **erledigt** (Commit 3d549aa) |
+| [F-SE-005](#f-se-005--connectionstring-mit-credentials-in-appsettingsjson) | `ConnectionString` mit Credentials in `appsettings.json` | Medium | ~5 Min Doku | **erledigt** |
 
 **Gesamt-Aufwand:** ~40 Min (20 Min Code + 15 Min Tests + 5 Min Doku). Aufteilbar in 2 Commits.
 
