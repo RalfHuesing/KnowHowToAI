@@ -56,11 +56,11 @@ kommen, aber gefunden wurden.>
 <Test-Command + Ergebnis>
 ```
 
-## Findings (bei `issues`)
+## Findings (bei `issues` — zwingend CRITICAL oder MAJOR)
 
-<Nummerierte Liste, präzise. Jeder Punkt: Datei:Zeile + Was + Wie fixen.>
+<Nummerierte Liste. Jeder Punkt MUSS mit [CRITICAL] oder [MAJOR] getaggt sein: Datei:Zeile + Schweregrad + Was + Wie fixen.>
 
-1. `pfad/zu/datei.cs:42` — <Befund>. **Fix:** <konkret>.
+1. `pfad/zu/datei.cs:42` — [CRITICAL|MAJOR] <Befund>. **Fix:** <konkret>.
 2. ...
 
 ## Frage an Nutzer (bei `blocked`)
@@ -70,8 +70,6 @@ extrahieren — das berührt aber Y in einem anderen Modul. Soll das in
 diesem Step mitgemacht werden, oder als eigener Refactoring-Step
 angelegt werden?">
 
-## Sonstige Beobachtungen (nicht als Issues zu werten)
+## Sonstige Beobachtungen / MINOR / NITPICK (führt NICHT zu issues, Verdict bleibt approved)
 
-<Dinge die ich gesehen habe, die aber außerhalb des Scopes dieses Steps
-oder dieses Tasks liegen. Pro Punkt: kurze Beschreibung. Diese Liste
-fließt ggf. in den globalen Audit am Ende.>
+<Dinge die gesehen wurden, die aber MINOR/NITPICK sind (z. B. Linter-Hinweise in Test-Dateien, kosmetische Stilfragen, Re-Factor-Ideen). Pro Punkt: kurze Beschreibung. Diese Liste fließt in den globalen 360°-Audit am Ende.>

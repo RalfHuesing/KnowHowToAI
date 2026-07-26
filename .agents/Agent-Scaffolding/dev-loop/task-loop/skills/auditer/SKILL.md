@@ -75,15 +75,38 @@ eines einzelnen Audits — dieses Versuchs-Budget übernimmt das.
   wirklich das Verhalten ab?
 - Gibt es Edge-Cases die im Plan nicht bedacht sind?
 
+### Severity Gating (Schweregrade für Findings)
+
+Jeder Befund muss in eine der drei folgenden Kategorien eingeordnet werden:
+
+- **`CRITICAL`:**
+  - Bricht Build, schlägt bei Tests fehl oder führt zu Linter-Fatalities.
+  - Echte Logikfehler, Bugs, Security-Lücken oder gebrochene Contract-Bedingungen.
+  - Kern-Anforderung des Step-Plans komplett ignoriert oder verfehlt.
+- **`MAJOR`:**
+  - Explizite Verletzung von Projekt-Regeln (`.agents/rules/**`) im **Produktionscode**.
+  - Fehlendes Error Handling oder ungeschützte Ressourcen im Produktionscode.
+  - Verfehlte Abnahme-Kriterien des Step-Plans.
+- **`MINOR / NITPICK`:**
+  - Kosmetische Linter-Meldungen oder Code-Smells in **Test-Dateien** (z. B. Warnungen wegen Delegaten/MiddleMen in Unit-Tests).
+  - Reine Stilfragen, Lesbarkeits-Tipps, leicht abweichende Commit-Subject-Längen oder Vorschläge für spätere Refactorings.
+  - Kosmetische Tippfehler in Kommentaren oder Doku.
+
+#### Regel für das Verdict:
+- **`issues` darf AUSSCHLIESSLICH dann vergeben werden, wenn mindestens ein `CRITICAL`- oder `MAJOR`-Finding vorliegt.**
+- **`MINOR / NITPICK`-Findings führen NIEMALS zu einem `issues`-Verdict.** Liegen nur Minor/Nitpick-Punkte vor, lautet das Verdict zwingend **`approved`**.
+- Alle `MINOR / NITPICK`-Findings werden in `step-review.md` unter `Sonstige Beobachtungen` gesammelt und bremsen den Loop nicht.
+
 ### Schritt 3 — Verdict fällen
 
 Drei mögliche Verdict:
 
-**`approved`** — alle drei Ebenen ok, keine Findings
+**`approved`** — alle drei Ebenen ok, oder nur `MINOR / NITPICK`-Findings vorhanden
 - Schreibe `step-review.md` mit Verdict `approved`
+- Falls `MINOR / NITPICK`-Findings vorhanden sind, notiere sie unter `Sonstige Beobachtungen`
 - Kein Folge-Step
 
-**`issues`** — konkrete, im Scope des Steps liegende Probleme
+**`issues`** — mindestens ein `CRITICAL`- oder `MAJOR`-Finding im Scope des Steps
 - Schreibe `step-review.md` mit Verdict `issues`
 - **Lege keinen neuen Top-Level-Step an.** Die Nachbesserung läuft als
   **Fix-Step innerhalb des aktuellen Steps**: `step-NNN/fix-XX/`. Die

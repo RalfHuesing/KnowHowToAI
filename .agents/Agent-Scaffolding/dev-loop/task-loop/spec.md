@@ -109,8 +109,8 @@ Für jeden `open` Step in der Reihenfolge:
 3. Coder implementiert, schreibt `step-NNN/step-result.md`, committet
 4. Orchestrator setzt Step auf `done (pending audit)`
 5. Orchestrator ruft Auditer mit Step-Plan + Result als Input
-6. Auditer prüft, schreibt `step-NNN/step-review.md`:
-   - **approved** → Orchestrator setzt Step auf `done`
+6. Auditer prüft (Severity Gating: `issues` erfordert mindestens ein `CRITICAL`- oder `MAJOR`-Finding, `MINOR/NITPICK`-Findings führen zu `approved`), schreibt `step-NNN/step-review.md`:
+   - **approved** → Orchestrator setzt Step auf `done` (etwaige `MINOR`-Findings wandern in `Sonstige Beobachtungen`)
    - **issues** → Orchestrator legt einen **Fix-Step** an: `step-NNN/fix-XX/`
      (`XX` = nächste freie Nummer *innerhalb* dieses Steps, Start `01`)
      mit Status `open`. Äußerer Step wird auf `done (fix-XX pending)`
