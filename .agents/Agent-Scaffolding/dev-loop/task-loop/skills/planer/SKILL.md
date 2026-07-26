@@ -112,9 +112,10 @@ Pro Step:
 - Verwende das **Template** `../../templates/step-plan.md`
 - Fülle alle Pflichtfelder aus (siehe Template)
 - Status im Frontmatter: `open`
-- **Modell-Info im Frontmatter:** `model_id` und `model_knowledge_cutoff`
+- **Modell-Info im Frontmatter:** `created_by_model` und `created_by_model_knowledge_cutoff`
   mit deinem eigenen Modell ausfüllen (steht in deinem System-Prompt,
-  z. B. „You are powered by the model named ..." / „knowledge cutoff").
+  z. B. unter „You are powered by the model named ..." / „knowledge cutoff").
+  Ersetze den Platzhalter `<Modell-ID deiner eigenen LLM-Instanz>` durch deine tatsächliche Modell-ID.
   Reine technische Nachvollziehbarkeit, keine Wertung.
 
 **Commits sind nicht deine Aufgabe:** Der Orchestrator committet die von

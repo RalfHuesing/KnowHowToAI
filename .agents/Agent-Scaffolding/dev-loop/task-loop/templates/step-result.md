@@ -4,8 +4,8 @@ type: step-result
 task: <TASK-NAME>
 step: <NNN>              # im Fix-Modus: <NNN>/fix-<XX>
 coded_by: coder
-coded_by_model: <Modell-ID, z. B. claude-sonnet-5>
-coded_by_model_knowledge_cutoff: <z. B. 2026-01>
+coded_by_model: <Modell-ID deiner eigenen LLM-Instanz>
+coded_by_model_knowledge_cutoff: <Knowledge-Cutoff-Datum, z. B. 2026-01>
 coded_at: <ISO-8601>
 code_commit_hash: <SHA>  # Commit mit Code+Tests (Coder-Skill Schritt 5)
 # Hinweis: den Commit, der DIESE Datei enthält (Coder-Skill Schritt 7),

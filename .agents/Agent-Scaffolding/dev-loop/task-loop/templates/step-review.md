@@ -4,8 +4,8 @@ type: step-review
 task: <TASK-NAME>
 step: <NNN>              # im Fix-Modus: <NNN>/fix-<XX>
 reviewed_by: auditer
-reviewed_by_model: <Modell-ID, z. B. claude-sonnet-5>
-reviewed_by_model_knowledge_cutoff: <z. B. 2026-01>
+reviewed_by_model: <Modell-ID deiner eigenen LLM-Instanz>
+reviewed_by_model_knowledge_cutoff: <Knowledge-Cutoff-Datum, z. B. 2026-01>
 reviewed_at: <ISO-8601>
 verdict: approved  # approved | issues | blocked
 ---

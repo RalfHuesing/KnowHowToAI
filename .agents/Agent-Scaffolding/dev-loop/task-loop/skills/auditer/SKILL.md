@@ -116,9 +116,10 @@ Pflicht-Inhalt:
 - Bei `issues`: präziser Fix-Vorschlag (wird im Fix-Step übernommen)
 - Bei `blocked`: konkrete Frage an den Nutzer
 - Test-/Build-Status (was du selbst nachgeprüft hast)
-- **Modell-Info im Frontmatter:** `model_id` und `model_knowledge_cutoff`
+- **Modell-Info im Frontmatter:** `reviewed_by_model` und `reviewed_by_model_knowledge_cutoff`
   mit deinem eigenen Modell ausfüllen (steht in deinem System-Prompt,
-  z. B. „You are powered by the model named ..." / „knowledge cutoff").
+  z. B. unter „You are powered by the model named ..." / „knowledge cutoff").
+  Ersetze den Platzhalter `<Modell-ID deiner eigenen LLM-Instanz>` durch deine tatsächliche Modell-ID.
   Reine technische Nachvollziehbarkeit, keine Wertung.
 
 **Commits sind nicht deine Aufgabe:** Der Orchestrator committet dein

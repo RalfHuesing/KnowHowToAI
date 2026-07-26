@@ -100,9 +100,10 @@ Pflicht-Inhalt:
 - Beobachtungen (Dinge die du gesehen hast, aber nicht gefixt —
   Vorschläge für Folge-Steps)
 - Bekannte Unschärfen (was der Auditer besonders prüfen sollte)
-- **Modell-Info im Frontmatter:** `model_id` und `model_knowledge_cutoff`
+- **Modell-Info im Frontmatter:** `coded_by_model` und `coded_by_model_knowledge_cutoff`
   mit deinem eigenen Modell ausfüllen (steht in deinem System-Prompt,
-  z. B. „You are powered by the model named ..." / „knowledge cutoff").
+  z. B. unter „You are powered by the model named ..." / „knowledge cutoff").
+  Ersetze den Platzhalter `<Modell-ID deiner eigenen LLM-Instanz>` durch deine tatsächliche Modell-ID.
   Reine technische Nachvollziehbarkeit, keine Wertung.
 
 Aktualisiere danach das `status`-Feld in `step-plan.md` von `in_progress`
