@@ -14,7 +14,7 @@
 
 | Bereich | Wahl | Begründung |
 | --- | --- | --- |
-| OS & Shell | **Windows** + **PowerShell 7 (`pwsh`)** | Primäre Entwicklungs- und Ausführungsumgebung. Tool-Aufrufe nutzen pwsh, `rg`, `dotnet` CLI, `git`, `python`, `node` (keine Linux/Bash-Befehlsketten). Details siehe [.agents/rules/07-environment-powershell.mdc](../.agents/rules/07-environment-powershell.mdc) |
+| OS & Shell | **Windows** + **PowerShell 7 (`pwsh`)** | Primäre Entwicklungs- und Ausführungsumgebung. Tool-Aufrufe nutzen pwsh, `rg`, `dotnet` CLI, `git`, `python`, `node` (keine Linux/Bash-Befehlsketten). Details siehe [.agents/rules/07-environment.mdc](../.agents/rules/07-environment.mdc) |
 | Runtime | .NET 10 (Console Application) | Aktuelle LTS-Version |
 | Protokoll | MCP via stdio | Standard für MCP-Clients und AI-Agenten |
 | MCP-SDK | [`ModelContextProtocol`](https://www.nuget.org/packages/ModelContextProtocol) (offizielles C#-SDK) | Attribute-basierte Tool-Registrierung (`[McpServerTool]`), fertiges stdio-Hosting über `Microsoft.Extensions.Hosting` |

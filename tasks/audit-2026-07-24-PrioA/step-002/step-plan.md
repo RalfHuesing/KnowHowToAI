@@ -1,5 +1,5 @@
 ---
-status: open
+status: in_progress
 type: step-plan
 task: audit-2026-07-24-PrioA
 step: 002
