@@ -91,7 +91,7 @@ geschlossen — und der Stand ist Build+Tests+Lint+Doku-grün.
 | Test-Framework | xUnit v3 | bestehend |
 | Logging-Abstraktion | `Microsoft.Extensions.Logging.Abstractions` | neu in Core, nur Interfaces (~30 KB), keine konkrete Logger-Implementierung — Core bleibt unabhängig vom konkreten Logging-Backend (Serilog bleibt exklusiv in Cli) |
 | DB-Zugriff | Dapper + `Microsoft.Data.SqlClient` | bestehend |
-| SQL-Server | bestehende lokale Instanz `NB-RALF261022\MSSQLSERVER2022` | bestehend; Setup-Problem Vorbehalt (s. o.) |
+| SQL-Server | bestehende lokale Instanz `NB-RALF261022\MSSQLSERVER2022` | bestehend; Setup-Problem Vorbehalt (s. o.), Access zur DB siehe `src\KnowHowToAI.Cli\appsettings.json` - niemals NT Auth verwenden. immer DemoDB verwenden. |
 | Linting | AiNetLinter | bestehend; `*.Core` weiterhin strikt, `*.Cli` mit `EnableTestSentinel: false` |
 
 **Kein neuer Tech-Stack.** Alle fünf Fixes nutzen bestehende Bausteine;
