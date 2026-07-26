@@ -54,5 +54,13 @@ public static class DocsMcpResources
         Für Slug `a/b/c` müssen auch `a.md` und `a/b.md` existieren, sonst schlägt
         `validate` fehl. `it.md` plus Ordner `it/` mit weiteren Dateien ist normal und
         kein Konflikt.
+
+        ## Dokumentlänge
+
+        Einzeldokumente bleiben idealerweise unter ~8.000 Zeichen (Schwelle konfigurierbar
+        in `appsettings.json` → `KnowHowToAi:Validation:MaxContentLengthWarning`). Längere
+        Inhalte sind möglich, aber `get_doc` liefert den vollen Content ohne Trunkierung
+        zurück — bei sehr großen Dokumenten sprengt das das Token-Budget. Lieber in
+        mehrere kleinere Slugs aufteilen statt einen riesigen.
         """;
 }

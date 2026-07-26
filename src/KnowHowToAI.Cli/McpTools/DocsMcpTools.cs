@@ -61,6 +61,18 @@ public sealed class DocsMcpTools(SqlDocumentsStore store, int maxQueryLength, in
           appsettings.json → KnowHowToAi.Search.MaxQueryLength): Tool-Error
         - Keine Treffer: leere results, truncated=false
         - Viele Treffer (> MaxResults): truncated=true in der Antwort
+
+        Beispiel:
+        - search_docs(query="netzwerk konfiguration")
+          → {
+              "results": [
+                {"slug": "it/netzwerk", "title": "Netzwerk"},
+                {"slug": "it/netzwerk/vlan", "title": "VLAN-Konfiguration"}
+              ],
+              "truncated": false
+            }
+        - search_docs(query="dns") mit >50 Treffern
+          → { "results": [...50 Einträge...], "truncated": true }
         """)]
     public async Task<SearchResult> SearchDocsAsync(string query, CancellationToken cancellationToken)
     {
