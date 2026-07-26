@@ -1,5 +1,5 @@
 ---
-status: in_progress
+status: done (pending audit)
 type: step-plan
 task: audit-2026-07-24-PrioA
 step: 003
