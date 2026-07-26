@@ -86,7 +86,8 @@ public sealed class SqlDocumentsStore
         var rows = await connection.QueryAsync<DocumentSummary>(new CommandDefinition(
             $"""
             SELECT slug AS Slug, title AS Title FROM {_table}
-            WHERE (@ParentSlug IS NULL AND parent_slug IS NULL) OR parent_slug = @ParentSlug;
+            WHERE (@ParentSlug IS NULL AND parent_slug IS NULL) OR parent_slug = @ParentSlug
+            ORDER BY slug;
             """,
             new { ParentSlug = parentSlug },
             cancellationToken: cancellationToken));
