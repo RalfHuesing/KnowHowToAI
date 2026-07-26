@@ -24,7 +24,6 @@
 | ID | Schwere | Titel | Datei:Zeile |
 | --- | --- | --- | --- |
 | [F-SE-001](#f-se-001) | **High** | `BuildLikePattern` interpoliert `query` ohne LIKE-Wildcard-Escaping — DoS-Vektor | `Sync/SqlDocumentsStore.cs:94` |
-| [F-SE-002](#f-se-002) | **High** | LLM-Args werden ungekürzt und ungefiltert ins Serilog-File geschrieben — PII-Leak | `McpTools/DocsMcpTools.cs:19, 28, 37` |
 | [F-SE-003](#f-se-003) | Medium | Keine Längen-Validierung der MCP-Tool-Argumente → DoS via 10MB-Slug | `McpTools/DocsMcpTools.cs:17, 26, 35` |
 | [F-SE-004](#f-se-004) | Medium | `SqlIdentifierValidator` erlaubt case-mixed + `_` → Plattform-Inkonsistenz auf Linux-DB | `Sync/SqlIdentifierValidator.cs:10` |
 | [F-SE-005](#f-se-005) | Medium | `ConnectionString` mit hartcodierten Credentials in committed `appsettings.json` | `Cli/appsettings.json:4` |
@@ -105,54 +104,6 @@ Plus Tests:
 **Detail-Datei:** [`_findings/F-SE-001-like-wildcard-injection.md`](_findings/F-SE-001-like-wildcard-injection.md)
 
 **Aufwand:** ~30 Minuten + Tests.
-
----
-
-### F-SE-002 — LLM-Args ungekürzt im Log-File
-
-**Schweregrad:** High (PII-Leak in Logs, die ggf. von anderen Apps gelesen werden)
-
-**Beobachtung:**
-`src/KnowHowToAI.Cli/McpTools/DocsMcpTools.cs:19, 28, 37`:
-```csharp
-logger.LogInformation("list_children(parentSlug={ParentSlug})", parentSlug);
-logger.LogInformation("search_docs(query={Query})", query);
-logger.LogInformation("get_doc(slug={Slug})", slug);
-```
-
-**Problem 1 — PII via `query`:**
-Das LLM schickt u.U. `query = "Müller Personalnummer 4711"` (vom User gefragt: "Wer hat
-Personalnummer 4711?"). Diese Suchanfrage enthält PII und landet ungekürzt im
-`Logs/knowhowtoai-<datum>.log`. Wenn andere Apps auf demselben Rechner dieselben Logs
-lesen (z.B. Log-Aggregation, Support-Diagnose), wird die PII gestreut.
-
-**Problem 2 — Klartextgeheimnisse via `slug`:**
-`get_doc(slug="...")` — Slugs sind nach Design kryptisch (`a-z0-9-`), aber wenn die
-Doku-Bibliothek sensible Inhalte hat, kann der Slug selbst ein Indikator sein
-("hr-kuendigungsprozess" als gültiger Slug wäre informativ).
-
-**Problem 3 — Lange Strings:**
-`query` kann theoretisch mehrere KB lang sein (F-SE-001 zeigt den DoS-Vektor). Das Log
-enthält dann mehrere KB reine Eingabe. Log-File-Rotation macht das nicht rückgängig.
-
-**Fix-Empfehlung:**
-1. Längen-Truncation in der Log-Zeile selbst:
-   ```csharp
-   private static string Truncate(string? value, int maxLength = 80) =>
-       value is null ? "<null>" :
-       value.Length <= maxLength ? value : value[..maxLength] + $"…(+{value.Length - maxLength} chars)";
-   ```
-2. PII-Markierung optional (z.B. `parentSlug=…` statt Klartext, wenn `Validation.MaxContentLengthWarning > 0`
-   ist das sowieso nicht möglich — also lieber: Pattern-Replacement für typische PII-Formate).
-3. Besser: `Hash` loggen, nicht Klartext, wenn nur Korrelation wichtig ist:
-   ```csharp
-   logger.LogInformation("search_docs(queryHash={Hash}, queryLength={Length})",
-       query?.GetHashCode(), query?.Length ?? 0);
-   ```
-
-**Detail-Datei:** [`_findings/F-SE-002-pii-in-logs.md`](_findings/F-SE-002-pii-in-logs.md)
-
-**Aufwand:** ~20 Minuten.
 
 ---
 
@@ -359,9 +310,9 @@ Kein Leak von ConnectionString, Pfaden, oder Inhalten. Sauber.
 
 ## Zusammenfassung Dim 2
 
-- **10 Findings**, davon 2 × High, 4 × Medium, 3 × Low, 1 × Info.
-- **Hot Path:** F-SE-001 (LIKE-Injection) und F-SE-002 (PII in Logs) sind die zwei
-  dringendsten Fixes. Beide sind klein (~30 Min Aufwand) und hochgradig sicherheitsrelevant.
+- **9 Findings**, davon 1 × High, 4 × Medium, 3 × Low, 1 × Info.
+- **Hot Path:** F-SE-001 (LIKE-Injection) ist der dringendste Fix (~45 Min Aufwand)
+  und hochgradig sicherheitsrelevant.
 - **Pattern-Risiko:** F-SE-005 (Credentials in committed Config) ist bewusst, aber das
   Pattern sollte für den ersten Produktiveinsatz auf `appsettings.example.json` +
   User-Secrets umgestellt werden.

@@ -41,24 +41,7 @@ per Refactor aufgelöst. Helper lebt jetzt in Core, 6 Tests dazu, 49 → 55 grü
 
 ---
 
-### Fix #2 — F-SE-002: PII-Hashing in `LogResponseSize`-Args
-
-**Schweregrad:** High · **Aufwand:** ~25 Min · **Commit-Granularität:** 1 Commit
-**Impact:** PII (Suchanfragen, sensible Slugs) landet nicht mehr im Log-File.
-Datenschutz-Risiko (DSGVO-Implikationen je nach Use-Case) behoben.
-
-**Konkrete Schritte:**
-1. `Truncate`-Helper für Werte, `Hash`-Helper (oder `string.GetHashCode()`)
-2. Drei `LogInformation` mit Args umstellen auf `Hash + Length` statt `Value`
-3. Tool-Description (F-MC-001) anpassen, sobald die ausgebaut werden
-4. Tests (optional, weil `DocsMcpTools` nicht testpflichtig)
-
-**Risiko:** Niedrig. Korrelation via `Hash` weiterhin möglich (zwei Aufrufe
-mit identischem `query` haben identischen Hash).
-
----
-
-### Fix #3 — F-CQ-001 + F-CQ-002: `sealed` für `Document` und `ValidationResult` / `Document` als Record
+### Fix #2 — F-CQ-001 + F-CQ-002: `sealed` für `Document` und `ValidationResult` / `Document` als Record
 
 **Schweregrad:** High (F-CQ-001) · **Aufwand:** ~10 Min · **Commit-Granularität:** 1 Commit
 **Impact:** AiNetLinter-Konformität wiederhergestellt, `Document` als Record
@@ -337,16 +320,15 @@ notwendigen Reviews + Diskussionen.
 2. F-PE-003 (ORDER BY) — Datenbank-Behavior
 3. F-CQ-003 (defensive Deserialize) — Robustheit
 4. F-PE-001 (LogResponseSize) — MCP-Loop
-5. F-SE-002 (PII-Hashing) — Security, mit Fix #4 verbunden
-6. F-MC-001 (Tool-Descriptions) — LLM-UX, baut auf Fix #5 auf
-7. F-CD-001 (Enum-Validation) — Konfig
-8. F-SE-001 (LIKE-Wildcard) — Security
-9. F-AR-002 (ILogger-Injection) — Architektur
-10. F-AR-001 (Composition Root) — Architektur, baut auf #9
-11. F-DP-001 (Preview-Dependencies) — Dependency-Update
-12. F-PE-002 (TOP-Cap) — Performance
-13. F-TS-001 (SQL-Tests) — Test-Infrastruktur
-14. Doku-Commit (F-DK-001 bis F-DK-008) — als finaler Polish
+5. F-MC-001 (Tool-Descriptions) — LLM-UX, baut auf Fix #4 auf
+6. F-CD-001 (Enum-Validation) — Konfig
+7. F-SE-001 (LIKE-Wildcard) — Security
+8. F-AR-002 (ILogger-Injection) — Architektur
+9. F-AR-001 (Composition Root) — Architektur, baut auf #8
+10. F-DP-001 (Preview-Dependencies) — Dependency-Update
+11. F-PE-002 (TOP-Cap) — Performance
+12. F-TS-001 (SQL-Tests) — Test-Infrastruktur
+13. Doku-Commit (F-DK-001 bis F-DK-008) — als finaler Polish
 ```
 
 **Optional, separate Commits:**

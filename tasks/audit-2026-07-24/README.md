@@ -25,7 +25,7 @@ AiNetLinter meldet 0 Verstöße, Doku ist umfangreich und konsistent mit dem Cod
    die Länge zu messen (Performance, alle Tool-Calls betroffen)
 2. `BuildLikePattern` interpoliert `query` ohne LIKE-Wildcard-Escaping
    (Sicherheit, DoS-Vektor)
-3. LLM-Tool-Args landen ungekürzt im Serilog-File (Sicherheit, PII)
+3. `SearchDocsAsync` hat kein `TOP`/`LIMIT` (Performance, Token-Budget-Sprengung)
 4. Core-Services (`ImportService`, `ExportService`, `SqlDocumentsStore`,
    `DocsValidator`) haben kein `ILogger<T>` (Architektur, Beobachtbarkeit)
 5. Tool-Descriptions sind sehr knapp, ohne Edge-Case- oder Fehler-Semantik
@@ -36,11 +36,11 @@ AiNetLinter meldet 0 Verstöße, Doku ist umfangreich und konsistent mit dem Cod
 | Schweregrad | Anzahl | Prozent |
 | --- | --- | --- |
 | **Critical** | 0 | 0% |
-| **High** | 11 | 13% |
-| **Medium** | 26 | 30% |
-| **Low** | 21 | 24% |
+| **High** | 10 | 12% |
+| **Medium** | 26 | 31% |
+| **Low** | 21 | 25% |
 | **Info** | 28 | 33% |
-| **Gesamt** | **86 Findings** | 100% |
+| **Gesamt** | **85 Findings** | 100% |
 
 *(Zahlen aus allen 9 Dimensions-Dateien summiert; `_demo-docs/`-Mini-Audit
 ausgenommen, da nicht durch den vollen Filter.)*
@@ -50,7 +50,7 @@ ausgenommen, da nicht durch den vollen Filter.)*
 | Dim | Titel | Datei | High | Medium | Low | Info |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Code-Quality & AiNetLinter-Konformität | [01-code-quality.md](01-code-quality.md) | 1 | 2 | 4 | 1 |
-| 2 | Sicherheit (MCP-Attack-Surface) | [02-security.md](02-security.md) | 2 | 4 | 3 | 1 |
+| 2 | Sicherheit (MCP-Attack-Surface) | [02-security.md](02-security.md) | 1 | 4 | 3 | 1 |
 | 3 | Architektur & Patterns | [03-architecture.md](03-architecture.md) | 2 | 3 | 2 | 3 |
 | 4 | Test-Coverage & -Qualität | [04-tests.md](04-tests.md) | 1 | 4 | 6 | 1 |
 | 5 | Doku vs. Code-Drift | [05-docs-drift.md](05-docs-drift.md) | 1 | 4 | 2 | 5 |
@@ -65,16 +65,15 @@ ausgenommen, da nicht durch den vollen Filter.)*
 | --- | --- | --- | --- |
 | [F-PE-001](_findings/F-PE-001-double-json-serialize.md) | Doppelte JSON-Serialisierung in `LogResponseSize` | `McpTools/DocsMcpTools.cs:43-44` | ~20 Min |
 | [F-SE-001](_findings/F-SE-001-like-wildcard-injection.md) | LIKE-Wildcard-Injection in `BuildLikePattern` | `Sync/SqlDocumentsStore.cs:94` | ~45 Min |
-| [F-SE-002](_findings/F-SE-002-pii-in-logs.md) | PII via LLM-Args im Serilog-File | `McpTools/DocsMcpTools.cs:19, 28, 37` | ~25 Min |
+| [F-PE-002](08-performance.md) | `SearchDocsAsync` ohne `TOP`/`LIMIT` | `Sync/SqlDocumentsStore.cs:79-92` | ~30 Min |
 | [F-AR-002](_findings/F-AR-002-core-services-without-logger.md) | Core-Services ohne `ILogger<T>`-Injection | mehrere | ~1,5 h |
 | F-MC-001 (in [09-mcp-tool-api.md](09-mcp-tool-api.md)) | Tool-Description-Qualität (Edge-Cases, Fehler-Semantik fehlt) | `McpTools/DocsMcpTools.cs:16, 25, 34` | ~30 Min + Doku |
 
-**Gesamt-Aufwand für die Top 5:** ~3,5 Stunden reines Implementieren.
+**Gesamt-Aufwand für die Top 5:** ~3,25 Stunden reines Implementieren.
 
 Detail-Dateien (mit Code-Diffs, Risiko-Analyse, Migrations-Plan) liegen unter
-[`_findings/`](_findings/) für die 4 mit ⭐ markierten (PE-001, SE-001, SE-002,
-AR-002); F-MC-001 ist ausführlich in [09-mcp-tool-api.md](09-mcp-tool-api.md)
-dokumentiert.
+[`_findings/`](_findings/) für die 3 mit ⭐ markierten (PE-001, SE-001, AR-002);
+F-MC-001 und F-PE-002 sind ausführlich in ihren Dimensions-Dateien dokumentiert.
 
 ## Working-Tree-Entscheidung
 
@@ -116,11 +115,10 @@ tasks/audit-2026-07-24/
 ├── 09-mcp-tool-api.md                  # Dim 9 — MCP-Tool-API
 ├── _findings/                          # Detail-Reports für High-Findings
 │   ├── F-SE-001-like-wildcard-injection.md
-│   ├── F-SE-002-pii-in-logs.md
 │   ├── F-PE-001-double-json-serialize.md
 │   └── F-AR-002-core-services-without-logger.md
 ├── _plan/                              # Priorisierter Plan
-│   ├── prioritized-fixes.md            # 16 Fixes in Reihenfolge
+│   ├── prioritized-fixes.md            # 15 Fixes in Reihenfolge (F-SE-002 gestrichen)
 │   └── nice-to-haves.md                # Low-Priority + Backlog
 ├── _demo-docs/                         # Separater Mini-Audit
 │   └── findings.md
