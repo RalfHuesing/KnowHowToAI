@@ -61,6 +61,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T21:30:00+02:00 — step-003: auditer-Verdict `approved`. Kern-Anforderung (LLM sieht `truncated`-Marker) verifiziert in `DocsMcpTools.cs:24,29`. AiNetLinter-Report direkt gelesen, 0 Violations. 6 Adversarial Probes alle sauber.
 - 2026-07-26T22:00:00+02:00 — step-004: in_progress → done (pending audit), Code-Commit `5346f25`, Doku-Commit `9a94c0f`. Build grün, 78 Tests grün (Baseline unverändert, keine neuen Tests in diesem Step), AiNetLinter 0 Violations. Coder-Abweichungen: (a) `get_doc`-Description um YAML-Front-Matter-Edge-Case ergänzt (im Plan-Spirit); (b) `search_docs` 4. Edge-Case "Viele Treffer (truncated=true)" zusätzlich; (c) Subject 74 Zeichen (im Plan-DoD so vorgegeben, Repo-Präzedenz).
 - 2026-07-26T22:30:00+02:00 — step-004: auditer-Verdict `issues` (2 MAJOR-Findings). Severity-Gating-Regel zwischenzeitlich von Ralf committed (`38f4513`) — Auditer hat sie angewendet, MINOR-Findings flossen in „Sonstige Beobachtungen", MAJOR triggern `issues`. Findings: (1) `DocsMcpTools.cs:20` `list_children`-Description behauptet `parentSlug=""` → ArgumentException, **tatsächlich leere Liste** (per Smoke-Test verifiziert); (2) `docs/02:133` hat gleiche Falschaussage. Fix-Step wird angelegt.
+- 2026-07-26T22:45:00+02:00 — Planer (Fix-Modus) hat step-004/fix-01/step-plan.md erzeugt. Beide MAJOR-Findings adressiert. 5 MINOR-Beobachtungen explizit ausgeschlossen. Commit steht aus.
 
 ## Config (optional)
 
