@@ -13,7 +13,7 @@ current_step: step-001
 
 - **Task-Status:** `executing`
 - **Fix-Runden gesamt:** 0 (Not-Anker bei `max_total_fix_rounds`, siehe Config)
-- **Aktueller Schritt:** `step-002` (done (fix-01 pending)) — Auditer-Verdict: issues, Fix-Step wird angelegt
+- **Aktueller Schritt:** `step-002/fix-01` (done (pending audit)) — Auditer ausstehend
 - **Gestartet:** 2026-07-26T17:52:53+02:00
 - **Zuletzt aktualisiert:** 2026-07-26T17:52:53+02:00
 - **Quell-Konzept:** `tasks/audit-2026-07-24-PrioA/Konzept.md` (status: ready,
@@ -26,7 +26,8 @@ current_step: step-001
 | Step | Status | Title | Fix-Runden | Coded | Reviewed | Commit |
 |------|--------|-------|------------|-------|----------|--------|
 | step-001 | done | F-CD-001 — Verständliche Fehlermeldungen bei ungültigen Logging-Enum-Werten | 0/3 | `b97eae7` | approved | `0366828` |
-| step-002 | done (fix-01 pending) | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 0/3 → 1/3 | `a9e4140` | issues | - |
+| step-002 | done (fix-01 pending) | F-SE-001 — LIKE-Wildcard-Injection in BuildLikePattern schließen + Längen-Cap | 1/3 | `a9e4140` | issues | - |
+| step-002/fix-01 | done (pending audit) | Fix-01: AiNetLinter-Verstoß beheben + step-result.md korrigieren | - | `84cf2e1` | - | - |
 | step-003 | open | F-PE-002 — search_docs mit TOP-Cap, Title-Ranking und Truncation-Marker fürs LLM | 0/3 | - | - | - |
 | step-004 | open | F-MC-001 + F-MC-002 — Tool-Description-Qualität + Beispiel-Outputs | 0/3 | - | - | - |
 | step-005 | open | F-AR-002 — `ILogger<T>`-Injection in Core-Services + Composition-Root-Factory | 0/3 | - | - | - |
@@ -54,6 +55,7 @@ Format: `- <ISO-8601> — <Was passiert ist>.>
 - 2026-07-26T19:55:00+02:00 — step-002: auditer-Verdict `issues` → fix-01 angelegt. Findings: (1) `BuildLikePatternTests.cs:5` triggert AiNetLinter `AvoidExcessiveMiddleMen` (7/7 = 100% forwarding > 60% Threshold) — Fix: Refactor auf 2-3 `[Theory]` + `[InlineData]`; (2) `step-result.md:84` behauptet fälschlich „0 neue Verstöße", tatsächlich zeigt lint-report 1 Violation. Beobachtungen (out of scope): Commit-Subject 77 Zeichen (Soft-Verstoß, Repo-Präzedenz 99 Zeichen); Doku-Typo `]-`Klammer` in `docs/04:50`; `DocsMcpTools` Primitive Obsession (relevant für Step 003).
 - 2026-07-26T20:00:00+02:00 — Planer (Fix-Modus) hat step-002/fix-01/step-plan.md erzeugt. Beide Findings adressiert. Doku-Typo (Beobachtung 2) bewusst NICHT aufgenommen (Scope-Disziplin, Begründung im step-plan.md dokumentiert). Commit steht aus.
 - 2026-07-26T20:01:00+02:00 — fix-01: open → in_progress (coder-Aufruf gestartet)
+- 2026-07-26T20:15:00+02:00 — fix-01: in_progress → done (pending audit), Code-Commit `84cf2e1`, Doku-Commit `29fbe2e`. Build grün, 72 Tests grün, AiNetLinter **0 Violations** (vorher 1) — Hauptzweck erreicht. Scope-Disziplin gehalten: keine Änderungen an `BuildLikePattern`/`SearchDocsAsync`/`DocsMcpTools`/Commit-Subject/Doku-Typo.
 
 ## Config (optional)
 
