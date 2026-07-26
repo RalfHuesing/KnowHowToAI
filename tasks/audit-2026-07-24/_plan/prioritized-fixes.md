@@ -265,5 +265,5 @@ notwendigen Reviews + Diskussionen.
 
 **Optional, separate Commits:**
 - F-AR-005 (Constants.cs) — kann entstehen, wenn F-SE-004 umgesetzt wird
-- F-CD-002/003/004 (Config-Sicherheit) — größeres Refactor, eigener Plan
+- F-CD-002/003/004 (Config-Sicherheit) — in PrioG extrahiert
 - F-AR-003 (LogResponseSize in falscher Schicht) — obsolet nach Fix #4
