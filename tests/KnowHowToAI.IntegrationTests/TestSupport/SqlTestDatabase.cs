@@ -6,17 +6,14 @@ namespace KnowHowToAI.IntegrationTests.TestSupport;
 
 /// <summary>
 /// Erstellt eine eindeutig benannte, isolierte SQL-Testdatenbank pro Testlauf und entfernt
-/// sie danach wieder. Liest den Connection String ausschließlich aus der dokumentierten
-/// Konfiguration (Environment-Variable KHTOAI_INTEGRATION_CONNSTR).
+/// sie danach wieder. Liest die Verbindung ausschließlich aus der dokumentierten
+/// Appsettings-Sektion <c>DatabaseConnection</c>.
 /// Datenbankname wird vor dem Löschen gegen das Testpräfix validiert.
 /// </summary>
 public sealed class SqlTestDatabase : IAsyncDisposable
 {
     /// <summary>Obligatorisches Präfix für Testdatenbanknamen – verhindert versehentliches Löschen.</summary>
     public const string DatabasePrefix = "KnowHowToAI_Test_";
-
-    /// <summary>Environment-Variable, aus der der Connection String gelesen wird.</summary>
-    public const string ConnectionStringEnvVar = "KHTOAI_INTEGRATION_CONNSTR";
 
     private readonly string _masterConnectionString;
     private bool _disposed;
@@ -36,21 +33,14 @@ public sealed class SqlTestDatabase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Liest den Connection String aus der Environment-Variable, erzeugt eine eindeutig
-    /// benannte Testdatenbank und gibt die Instanz zurück.
+    /// Liest die Verbindung aus der App-Konfiguration, erzeugt eine eindeutig benannte
+    /// Testdatenbank und gibt die Instanz zurück.
     /// Wirft eine klare Exception, wenn die Voraussetzung fehlt.
     /// </summary>
     public static async Task<SqlTestDatabase> CreateAsync(CancellationToken cancellationToken = default)
     {
-        var masterConnStr = Environment.GetEnvironmentVariable(ConnectionStringEnvVar);
-        if (string.IsNullOrWhiteSpace(masterConnStr))
-        {
-            throw new InvalidOperationException(
-                $"Preflight-Fehler: Die Environment-Variable '{ConnectionStringEnvVar}' ist nicht gesetzt. " +
-                "Sie muss einen SQL-Server-Connection-String für Integrationstests enthalten. " +
-                "Bitte die Variable in der Test-Umgebung setzen (User Secrets / CI-Variable). " +
-                "Credentials gehören niemals in den Code.");
-        }
+        var settings = SqlIntegrationTestSettings.Load();
+        var masterConnStr = settings.CreateMasterConnectionString();
 
         var uniqueSuffix = Guid.NewGuid().ToString("N")[..12];
         var dbName = $"{DatabasePrefix}{uniqueSuffix}";
@@ -61,13 +51,20 @@ public sealed class SqlTestDatabase : IAsyncDisposable
             InitialCatalog = "master"
         };
 
-        await using (var masterConn = new SqlConnection(masterBuilder.ConnectionString))
+        try
         {
+            await using var masterConn = new SqlConnection(masterBuilder.ConnectionString);
             await masterConn.OpenAsync(cancellationToken).ConfigureAwait(false);
             var createCmd = masterConn.CreateCommand();
             // DatabaseName enthält nur alphanumerische Zeichen und Unterstriche – sicher für DDL
             createCmd.CommandText = $"CREATE DATABASE [{dbName}];";
             await createCmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (SqlException ex)
+        {
+            throw new InvalidOperationException(
+                $"Preflight-Fehler: SQL Server ist nicht für Integrationstests bereit (SQL-Fehlercode {ex.Number}). " +
+                "Die konfigurierte Anmeldung benötigt Erreichbarkeit sowie CREATE/DROP-Berechtigung für isolierte Testdatenbanken.");
         }
 
         // Connection String auf die neue Datenbank umstellen

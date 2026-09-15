@@ -8,8 +8,7 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Migrations;
 
 /// <summary>
 /// Integrationsnachweise für M1.3 (Migration Runner) und M1.5 (Integrationsnachweise)
-/// gegen einen echten SQL Server. Verbindung ausschließlich über
-/// <see cref="SqlTestDatabase.ConnectionStringEnvVar"/>.
+/// gegen einen echten SQL Server mit der Appsettings-Sektion <c>DatabaseConnection</c>.
 /// </summary>
 [Trait("Category", "Integration")]
 public sealed class SqlSchemaMigratorTests

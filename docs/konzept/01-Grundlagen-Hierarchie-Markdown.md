@@ -94,15 +94,23 @@ Konfiguration wird in V1 wie folgt getrennt:
   unterschiedlich eingestellt werden.
 - Retrieval-, Paging-, Timeout- und Migrationsparameter sind ebenfalls
   Anwendungskonfiguration.
-- Connection Strings und andere Secrets werden nicht mit realen Werten im Repository
-  gespeichert.
+- Die Datenbankverbindung steht bewusst in der eigenen, versionierten
+  `DatabaseConnection`-Sektion von `appsettings.json`. Sie enthält `Server`,
+  `Database`, `UserName`, `Password` und `UseWindowsAuthentication`. Für den
+  Greenfield-Stand ist kein alternativer Connection-String aus Environment-Variablen,
+  User Secrets oder einem Deployment-Secretstore vorgesehen.
+- Der Wert `DatabaseConnection:Server` darf Windows-Umgebungsplatzhalter enthalten.
+  Der versionierte Default `%COMPUTERNAME%\MSSQLSERVER2022` wird erst zur Laufzeit
+  expandiert; der Platzhalter ist keine Konfigurationsquelle und überschreibt keine
+  anderen Einstellungen.
 
-Nicht geheime Defaults stehen zentral in `appsettings.json`. Überschreibungen erfolgen
-in der üblichen Reihenfolge über umgebungsspezifische Appsettings, Environment-
-Variablen und Kommandozeilenargumente. Die Konfiguration wird beim Prozessstart in
-immutable typed Options gebunden und vollständig validiert. Ungültige Werte führen zu
-einem klaren Startfehler. V1 lädt Konfigurationsänderungen nicht live nach; sie werden
-nach einem Prozessneustart wirksam.
+Die Datenbankverbindung wird ausschließlich aus dieser AppSettings-Sektion gelesen.
+Die übrigen Defaults stehen zentral in `appsettings.json`. Überschreibungen für diese
+Policies erfolgen in der üblichen Reihenfolge über umgebungsspezifische Appsettings,
+Environment-Variablen und Kommandozeilenargumente. Die Konfiguration wird beim
+Prozessstart in immutable typed Options gebunden und vollständig validiert. Ungültige
+Werte führen zu einem klaren Startfehler. V1 lädt Konfigurationsänderungen nicht live
+nach; sie werden nach einem Prozessneustart wirksam.
 
 Domain, Application Services und Storage greifen nicht direkt auf `IConfiguration`
 oder frei verteilte Schlüssel zu. Der Composition Root übergibt fertig validierte

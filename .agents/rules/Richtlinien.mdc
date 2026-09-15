@@ -55,7 +55,7 @@ Nutzeranweisungen haben Vorrang.
 ## Konfiguration
 
 - Die Wissensdatenbank enthält keine Betriebs-, Retrieval- oder Quality-Konfiguration. Fachlicher versionierter Zustand wie Rollen und Resolution Orders bleibt davon unberührt und gehört weiterhin in Snapshots.
-- Nicht geheime Defaults stehen ausschließlich in `appsettings.json`; reale Secrets kommen aus Environment, User Secrets oder dem Deployment-Secretstore. Die dokumentierte Priorität lautet `appsettings.json` < umgebungsspezifische Appsettings < Environment < Kommandozeile.
+- Die Datenbankverbindung wird ausschließlich aus der eigenen versionierten `DatabaseConnection`-Sektion in `appsettings.json` gelesen; ihr Serverwert darf einen zur Laufzeit expandierten Windows-Platzhalter enthalten. Für sie gibt es keine Connection-String-Umgebungsvariable. Die übrigen Policy-Defaults folgen der dokumentierten Priorität `appsettings.json` < umgebungsspezifische Appsettings < Environment < Kommandozeile.
 - Der Server bindet Konfiguration beim Start einmalig an immutable typed Options und validiert Werte sowie feldübergreifende Beziehungen fail-fast. Kein Live-Reload in V1.
 - Domain, Application und Storage kennen weder `IConfiguration` noch frei verteilte Konfigurationsschlüssel. Der Composition Root übergibt validierte Policy-Records.
 - Keine Magic Numbers: konfigurierbare Werte kommen aus Options; unverhandelbare Invarianten, technische Validierungsbereiche und Fehlercodes stehen jeweils an einer zentralen Code-Stelle. Dieselbe Vorgabe gilt für Tests.

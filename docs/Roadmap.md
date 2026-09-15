@@ -101,16 +101,19 @@ Konfiguration wird strikt nach Verantwortlichkeit getrennt:
    | `Migrations:LockTimeoutSeconds` | `60` | `1..600` | Warten auf Migration Lock |
    | `Migrations:ApplyOnStartup` | `true` | Boolean | ausstehende Migrationen beim Serverstart anwenden |
 
-5. **Secrets** wie Connection Strings stehen niemals mit realen Werten im Repository.
-   Sie kommen aus Environment-Variablen, User Secrets oder dem Deployment-Secretstore.
+5. **Datenbankverbindung** wird ausschließlich aus der eigenen versionierten
+   `DatabaseConnection`-Sektion in `appsettings.json` gelesen. Der Serverwert darf
+   einen zur Laufzeit expandierten Windows-Platzhalter enthalten; es gibt keine
+   alternative Connection-String-Umgebungsvariable. Die verbindliche Beschreibung
+   steht in [Anwendungskonfiguration](konzept/01-Grundlagen-Hierarchie-Markdown.md).
 
-Die effektive Reihenfolge ist `appsettings.json` <
+Für Quality-, Retrieval- und Start-Policies ist die effektive Reihenfolge `appsettings.json` <
 `appsettings.{Environment}.json` < Environment-Variablen mit Präfix/Mapping
 `KnowHowToAI__...` < Kommandozeilenargumente. Optionen werden einmal beim Start in
 immutable Records gebunden, vollständig validiert und anschließend nicht live neu
 geladen. Ungültige, widersprüchliche oder außerhalb zentral definierter technischer
-Sicherheitsbereiche liegende Werte verhindern den Start mit einem klaren Fehler ohne
-Secrets. Änderungen erfordern einen Prozessneustart.
+Sicherheitsbereiche liegende Werte verhindern den Start mit einem klaren Fehler.
+Änderungen erfordern einen Prozessneustart.
 
 Defaultwerte stehen genau einmal in der versionierten `appsettings.json`;
 Validierungsbereiche und übergreifende Beziehungen stehen genau einmal in zentralen
@@ -151,8 +154,8 @@ Placeholder sein.
   - [x] `scripts/test-integration.ps1`
   - [x] Initialer Build und Placeholder-FastTest erfolgreich
 - [x] **M0.4: Zentrale Anwendungskonfiguration**
-  - [x] `appsettings.json` mit dem V1-Konfigurationsbaum und ausschließlich
-    nicht-geheimen Defaults anlegen
+  - [x] `appsettings.json` mit dem V1-Konfigurationsbaum einschließlich der eigenen
+    `DatabaseConnection`-Sektion anlegen
   - [x] immutable typed Options ohne versteckte Fallbackwerte und zentrale
     Options-Validatoren definieren; Defaults ausschließlich aus `appsettings.json` laden
   - [x] alle Options mit verständlichen Startup-Fehlern validieren, einschließlich
@@ -216,13 +219,15 @@ echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert we
     SQL-Applikationssperre serialisieren
   - [x] Fehler mit Skriptname und Fehlercode, aber ohne Connection String/Credentials
     protokollieren; keine teilweise als erfolgreich markierte Migration
-- [ ] **M1.4: SQL-Integrationstest-Harness**
-  - [ ] Verbindung ausschließlich über dokumentierte Environment-/Secret-Konfiguration
-  - [ ] pro Testlauf eindeutig benannte isolierte Testdatenbank erzeugen und nur diese
+- [x] **M1.4: SQL-Integrationstest-Harness**
+  - [x] Verbindung ausschließlich aus der dokumentierten `DatabaseConnection`-Sektion
+    in `appsettings.json` lesen und `%COMPUTERNAME%` im Serverwert erst zur Laufzeit
+    auflösen
+  - [x] pro Testlauf eindeutig benannte isolierte Testdatenbank erzeugen und nur diese
     wieder entfernen; Datenbanknamen vor Löschung gegen festen Testpräfix validieren
-  - [ ] fehlende Voraussetzungen mit klarer Preflight-Meldung melden, niemals als
+  - [x] fehlende Voraussetzungen mit klarer Preflight-Meldung melden, niemals als
     scheinbar grünen Test überspringen
-  - [ ] parallele Testausführung ohne gemeinsame mutable Daten ermöglichen
+  - [x] parallele Testausführung ohne gemeinsame mutable Daten ermöglichen
 - [ ] **M1.5: Integrationsnachweise**
   - [ ] frische Datenbank wird vollständig erstellt und geseedet
   - [ ] zweiter Lauf ist ohne Schemaänderung erfolgreich
