@@ -26,25 +26,27 @@ Jeder Meilenstein und jede Teilaufgabe wird bei Abschluss sofort von `[ ]` auf `
 ---
 
 ## M1: Relationales Datenmodell & SQL-Schema
-- [ ] **M1.1: Tabellendefinitionen (Präfix `KnowHowToAI_`)**
-  - [ ] `sql-scripts/0001_create_system_and_snapshots.sql`:
-    - [ ] `KnowHowToAI_SystemState` (CurrentSnapshotId, LastUpdatedUtc)
-    - [ ] `KnowHowToAI_Snapshot` (SnapshotId, BaseSnapshotId, State, CreatedAtUtc, CommittedAtUtc)
-    - [ ] `KnowHowToAI_Transaction` (TransactionId, BaseSnapshotId, WorkingSnapshotId, State, CreatedAtUtc, CommittedAtUtc, Metadata)
-    - [ ] `KnowHowToAI_Release` (ReleaseId, SnapshotId, Name, ReleasedAtUtc)
-  - [ ] `sql-scripts/0002_create_hierarchy_and_content.sql`:
-    - [ ] `KnowHowToAI_Node` (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
-    - [ ] `KnowHowToAI_NodeContent` (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
-  - [ ] `sql-scripts/0003_create_roles_and_dependencies.sql`:
-    - [ ] `KnowHowToAI_Role` (RoleId, Name, Description)
-    - [ ] `KnowHowToAI_RoleResolution` (RequestedRoleId, CandidateRoleId, Priority)
-    - [ ] `KnowHowToAI_ContentDependency` (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
+- [x] **M1.1: Tabellendefinitionen (Präfix `KnowHowToAI_`, MS SQL >= 2019)**
+  - [x] `sql-scripts/README.md` (Dokumentation Zielplattform MS SQL Server >= 2019 und Namenskonventionen)
+  - [x] `sql-scripts/0001_create_system_and_snapshots.sql`:
+    - [x] `KnowHowToAI_SystemState` (CurrentSnapshotId, LastUpdatedUtc)
+    - [x] `KnowHowToAI_Snapshot` (SnapshotId, BaseSnapshotId, State, CreatedAtUtc, CommittedAtUtc)
+    - [x] `KnowHowToAI_Transaction` (TransactionId, BaseSnapshotId, WorkingSnapshotId, State, CreatedAtUtc, CommittedAtUtc, Metadata)
+    - [x] `KnowHowToAI_Release` (ReleaseId, SnapshotId, Name, ReleasedAtUtc)
+  - [x] `sql-scripts/0002_create_roles.sql`:
+    - [x] `KnowHowToAI_Role` (SnapshotId, RoleId, Name, Description, IsDeleted)
+    - [x] `KnowHowToAI_RoleResolution` (SnapshotId, RequestedRoleId, CandidateRoleId, Priority)
+  - [x] `sql-scripts/0003_create_nodes_and_content.sql`:
+    - [x] `KnowHowToAI_Node` (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
+    - [x] `KnowHowToAI_NodeContent` (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+    - [x] `KnowHowToAI_ContentDependency` (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
 - [ ] **M1.2: Schema-Migration & DDL-Runner**
   - [ ] `ISchemaMigrator` / Migrations-Runner im Storage-Projekt implementieren
   - [ ] Idempotente Skript-Ausführung und Versionskontrolle für Datenbank-Initialisierung
-- [ ] **M1.3: Seed-Daten für Initialzustand**
-  - [ ] Standard-Rolle `Default` und initiale Role Resolution Order definieren
-  - [ ] Initialen leeren Committed Snapshot (ID 1) und `SystemState` anlegen
+- [x] **M1.3: Seed-Daten für Initialzustand**
+  - [x] `sql-scripts/0004_seed_initial_state.sql`:
+    - [x] Initialen leeren Committed Snapshot (ID 1) und `SystemState` anlegen
+    - [x] Standard-Rolle `Default` und initiale Role Resolution Order definieren
 - [ ] **M1.4: Tests für M1**
   - [ ] Integrationstest für Schema-Erstellung auf frischer Datenbank
   - [ ] Integrationstest für Idempotenz der Migrationen

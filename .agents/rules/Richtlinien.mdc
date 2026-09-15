@@ -10,6 +10,7 @@ Nutzeranweisungen haben Vorrang.
 
 ## Architektur & Domänen-Invarianten
 
+- **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, keine Abwärtskompatibilität zu Altversionen, kein Rückgriff auf alte Branches; einzige fachliche Wahrheit ist `docs/Konzept.md`.
 - **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `MCP Adapter (STDIO in V1)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. MCP-Handler enthalten keine Geschäftslogik (reine Delegation). Keine Kopplung der Domänenlogik an Transport oder STDIO (spätere HTTP-/REST-Adapter architektonisch vorbereitet).
 - **Agentischer MCP-Fokus & Token-Effizienz**:
   - Tool-Payloads radikal token-sparsam halten (Progressive Disclosure, Metadata-First: `list_children` liefert Metadaten, kein Dump ganzer Bäume).

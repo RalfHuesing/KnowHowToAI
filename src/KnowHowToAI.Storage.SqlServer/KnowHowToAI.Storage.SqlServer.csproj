@@ -16,4 +16,10 @@
     <InternalsVisibleTo Include="KnowHowToAI.Server" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\sql-scripts\*.sql">
+      <Link>SqlScripts\%(Filename)%(Extension)</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

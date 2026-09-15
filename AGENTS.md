@@ -2,6 +2,11 @@
 
 Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und Menschen (.NET / C#, MS SQL Server, MCP STDIO).
 
+## Grundprinzip: Greenfield (Hard Cut)
+
+- Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, keine Abwärtskompatibilität, kein Rückgriff auf alte Branches.
+- Verbindliche fachliche und architektonische Quelle ist ausschließlich [docs/Konzept.md](docs/Konzept.md).
+
 ## Verbindliche Dokumentation & Regeln
 
 - **Fachkonzept, Architektur & Invarianten**: [docs/Konzept.md](docs/Konzept.md)
