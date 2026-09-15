@@ -1,157 +1,545 @@
 # KnowHowTo AI – Implementierungs-Roadmap
 
-Verbindlicher Projektfortschritt und Status-Tracking für Agenten und Entwickler.  
-Jeder Meilenstein und jede Teilaufgabe wird bei Abschluss sofort von `[ ]` auf `[x]` gesetzt.
+Diese Datei ist Ausführungsplan und verbindliche Statusquelle für V1. Die fachliche
+und architektonische Wahrheit bleibt `docs/Konzept.md`. Bei einem Widerspruch gilt
+das Konzept; der Widerspruch wird vor weiterer Implementierung geklärt und beide
+Dokumente werden anschließend synchronisiert.
+
+## Arbeitsweise für Agenten
+
+- Meilensteine werden in der angegebenen Reihenfolge umgesetzt. Ein späterer Punkt
+  darf nur vorgezogen werden, wenn seine Voraussetzungen bereits erfüllt sind.
+- `[x]` bedeutet: implementiert, mit dem unter **Abnahme** genannten Nachweis geprüft
+  und ohne Placeholder produktiv nutzbar. Angelegte Dateien oder kompilierende
+  Stubs allein gelten nicht als erledigte Fachfunktion.
+- Ein Elternpunkt wird erst auf `[x]` gesetzt, wenn alle verpflichtenden Unterpunkte
+  abgeschlossen sind. Bewusst optionale Punkte sind ausdrücklich als solche markiert.
+- Pro Arbeitsschritt wird der kleinste zusammenhängende, vertikal prüfbare Slice
+  umgesetzt. Roadmap-Status und neu entdeckte Arbeit werden im selben Slice gepflegt.
+- Keine stillen Architekturentscheidungen: Ungeklärte Punkte werden unter
+  **Entscheidungsregister** ergänzt und vor davon abhängiger Implementierung geklärt.
+- Nach jedem Slice gelten die Quality Gates aus `.agents/rules/Richtlinien.mdc` und
+  die Testebenen aus `.agents/rules/TestRichtlinien.mdc`.
+- Fehlercodes und öffentliche MCP-Felder sind Verträge. Umbenennungen nach ihrer
+  Einführung benötigen eine bewusste Vertragsänderung; V1 benötigt keine
+  Abwärtskompatibilität zu noch nicht veröffentlichten Zwischenständen.
+
+## Verbindliche V1-Entscheidungen
+
+- Pro Snapshot gibt es höchstens einen aktiven persistierten Root-Node. Der initiale
+  leere Snapshot darf noch keinen Root besitzen. `get_root` liefert dann
+  `availability = None` statt einen künstlichen Node zu erfinden.
+- Rollen und Role Resolution Orders sind versionierter Wissenszustand. Sie werden
+  innerhalb einer KnowHowTo-AI-Transaction über dieselben Service-/MCP-Grenzen wie
+  andere fachliche Änderungen verwaltet; direkte Änderungen committed Snapshots per
+  SQL sind unzulässig.
+- Freshness von `Derived` Content wird transitiv ausgewertet. Zyklen im
+  Dependency-Graph sind eine harte Invariante und werden abgelehnt.
+- Releases und die minimalen Historienabfragen `get_snapshot`, `list_releases`,
+  `compare_snapshots` und `get_transaction_changes` gehören zu V1.
+- Gespeicherter Content enthält keine Dokumentüberschriften. Eine normale Erwähnung
+  des Node-Titels im Fließtext bleibt erlaubt. Markdown- und HTML-Headings sind harte
+  Fehler; überschriftenähnliche Ersatzformatierungen sind Qualitätswarnungen.
+- Die Standardwarnschwelle für einen einzelnen normalisierten `ContentMd` beträgt
+  4 KiB UTF-8. `NodeTooLarge` verhindert Speichern oder Commit nicht; der Agent soll
+  den Inhalt in einer eigenen Transaction in Child-Nodes strukturieren. Die Schwelle
+  ist über App-Konfiguration änderbar, ein fachliches hartes Größenlimit gibt es in V1 nicht.
+- Die Datenbank enthält ausschließlich Wissens-, Versions-, Transaktions- und
+  Release-Daten. Betriebsparameter und nicht versionierte Quality-/Retrieval-Policies
+  werden nicht in fachlichen Tabellen gespeichert, sondern beim Prozessstart aus
+  zentraler App-Konfiguration gebunden.
+
+## Entscheidungsregister
+
+Alle derzeit implementierungsrelevanten Punkte sind entschieden. Neue offene Punkte
+werden hier mit Status, betroffenen Meilensteinen und einer empfohlenen Option ergänzt.
+
+| ID | Entscheidung | Status |
+|---|---|---|
+| ADR-V1-001 | Höchstens ein persistierter Root; leerer Initialzustand erlaubt | entschieden |
+| ADR-V1-002 | Rollenpflege transaktional über Application/MCP | entschieden |
+| ADR-V1-003 | Transitive Freshness; Dependency-Zyklen verboten | entschieden |
+| ADR-V1-004 | Minimale Release- und Historienfunktionen in V1 | entschieden |
+| ADR-V1-005 | 4-KiB-Default als konfigurierbares Soft-Limit; Überschriften bleiben harte Fehler | entschieden |
+| ADR-V1-006 | App-Konfiguration statt DB-Konfiguration; harte Invarianten sind nicht abschaltbar | entschieden |
+
+## Konfigurationsmodell V1
+
+Konfiguration wird strikt nach Verantwortlichkeit getrennt:
+
+1. **Harte Domain-Invarianten** sind nicht konfigurierbar. Dazu gehören unter anderem
+   Heading-Verbot, maximal ein Root, unveränderliche committed Snapshots,
+   Transaction-Pflicht, zyklenfreie Hierarchie/Dependencies und exakt ein Treffer bei
+   `replace_text`. Sie werden zentral als Domainlogik und stabile Fehlercodes definiert.
+2. **Quality-Policies** sind typed Options aus `appsettings*.json`, Environment-
+   Variablen oder Kommandozeile. Sie warnen, blockieren aber keinen fachlich gültigen
+   Commit. V1-Defaults:
+
+   | Schlüssel unter `KnowHowToAI` | Default | Gültiger Bereich | Bedeutung |
+   |---|---:|---:|---|
+   | `Validation:ContentSizeWarningBytes` | `4096` | `512..1048576` | `NodeTooLarge` ab normalisierter UTF-8-Größe |
+   | `Validation:ChildCountWarning` | `25` | `2..10000` | `TooManyChildren` für einen Parent |
+   | `Validation:HierarchyDepthWarning` | `8` | `2..256` | `HierarchyTooDeep` ab globaler Node-Tiefe |
+   | `Validation:PossibleEmbeddedHeadingWarning` | `true` | Boolean | heuristische Warnung für Ersatztitel |
+
+3. **Retrieval-/Transportgrenzen** sind typed Options. V1-Defaults:
+
+   | Schlüssel unter `KnowHowToAI` | Default | Gültiger Bereich | Bedeutung |
+   |---|---:|---:|---|
+   | `Retrieval:DefaultPageSize` | `20` | `1..MaximumPageSize` | Standardseite für Listen |
+   | `Retrieval:MaximumPageSize` | `100` | `1..1000` | größte akzeptierte Listenseite |
+   | `Retrieval:SearchPageSize` | `10` | `1..SearchMaximumPageSize` | Standardseite für Search |
+   | `Retrieval:SearchMaximumPageSize` | `50` | `1..500` | größte akzeptierte Search-Seite |
+   | `Retrieval:SnippetMaximumCharacters` | `300` | `50..4000` | maximale Länge eines Search-Snippets |
+
+4. **Storage-/Startparameter** sind typed Options. V1-Defaults:
+
+   | Schlüssel unter `KnowHowToAI` | Default | Gültiger Bereich | Bedeutung |
+   |---|---:|---:|---|
+   | `Storage:CommandTimeoutSeconds` | `30` | `1..600` | SQL-Command-Timeout |
+   | `Migrations:LockTimeoutSeconds` | `60` | `1..600` | Warten auf Migration Lock |
+   | `Migrations:ApplyOnStartup` | `true` | Boolean | ausstehende Migrationen beim Serverstart anwenden |
+
+5. **Secrets** wie Connection Strings stehen niemals mit realen Werten im Repository.
+   Sie kommen aus Environment-Variablen, User Secrets oder dem Deployment-Secretstore.
+
+Die effektive Reihenfolge ist `appsettings.json` <
+`appsettings.{Environment}.json` < Environment-Variablen mit Präfix/Mapping
+`KnowHowToAI__...` < Kommandozeilenargumente. Optionen werden einmal beim Start in
+immutable Records gebunden, vollständig validiert und anschließend nicht live neu
+geladen. Ungültige, widersprüchliche oder außerhalb zentral definierter technischer
+Sicherheitsbereiche liegende Werte verhindern den Start mit einem klaren Fehler ohne
+Secrets. Änderungen erfordern einen Prozessneustart.
+
+Defaultwerte stehen genau einmal in der versionierten `appsettings.json`;
+Validierungsbereiche und übergreifende Beziehungen stehen genau einmal in zentralen
+`*OptionsValidator`-Typen. Typed Options besitzen keine abweichenden versteckten
+Fallbackwerte: Fehlt die zentrale Konfiguration, schlägt der Start verständlich fehl.
+Keine Magic Numbers in Handlern, Services, Repositories oder Tests. Tests dürfen
+abweichende Options explizit injizieren. Warnungen geben den effektiv verwendeten
+Grenzwert und Ist-Wert zurück. Da eine Serverinstanz genau eine Datenbank bedient,
+können unterschiedliche Wissensbasen über unterschiedliche App-Konfigurationen
+verschiedene Policies erhalten, ohne Konfiguration in der Datenbank zu speichern.
 
 ---
 
 ## M0: Solution-Setup & Testinfrastruktur
-- [x] **M0.1: Solution- & Projektstruktur anlegen**
-  - [x] .NET Solution anlegen (`KnowHowToAI.sln` bzw. `KnowHowToAI.slnx`)
-  - [x] Projekt `src/KnowHowToAI.Core` (Domänenmodelle, Invarianten, Interfaces, Schichtenentkopplung)
-  - [x] Projekt `src/KnowHowToAI.Storage.SqlServer` (ADO.NET / Dapper, DDL-Runner, Snapshot-Engine)
-  - [x] Projekt `src/KnowHowToAI.Server` (MCP STDIO Adapter, Tool-Hosting, CLI-Einstiegspunkt)
-  - [x] Testprojekt `tests/KnowHowToAI.Core.Tests` (FastTests: Unit-Tests für Fachlogik)
-  - [x] Testprojekt `tests/KnowHowToAI.IntegrationTests` (Integrationstests für SQL Server und MCP)
-- [x] **M0.2: Zentrale Build- & Codeanalyse-Konfiguration**
-  - [x] `Directory.Build.props` mit `TreatWarningsAsErrors=true`, `#nullable enable`, C# 12+ einrichten
-  - [x] `Directory.Packages.props` mit Central Package Management (CPM) einrichten
-  - [x] `.editorconfig` für Coding-Standards (`sealed` by default, Formatierung) definieren
-  - [x] AiNetLinter-Integration verifizieren (`ainetlinter-rules.json` für Solution angepasst, Score 10.0)
-- [x] **M0.3: Entwickler- & Testskripte**
-  - [x] `scripts/test-fast.ps1` für deterministische Unit-Tests (`Category=Unit`) bereitstellen
-  - [x] `scripts/test-integration.ps1` für Datenbank- und E2E-Tests bereitstellen
-  - [x] Initialer Build- und FastTest-Durchlauf fehlerfrei (`Incremental Gate` erfüllt)
+
+**Statusziel:** Kompilierbares Greenfield-Gerüst. Fachfunktionen dürfen noch
+Placeholder sein.
+
+- [x] **M0.1: Solution- und Projektstruktur**
+  - [x] `KnowHowToAI.slnx`
+  - [x] `src/KnowHowToAI.Core` für Domain, Application-Verträge und Ports
+  - [x] `src/KnowHowToAI.Storage.SqlServer` für SQL-Persistenz und Migrationen
+  - [x] `src/KnowHowToAI.Server` ausschließlich für Hosting, Konfiguration und MCP
+  - [x] `tests/KnowHowToAI.Core.Tests` für FastTests
+  - [x] `tests/KnowHowToAI.IntegrationTests` für echte SQL-/STDIO-Grenzen
+- [x] **M0.2: Zentrale Build- und Paketkonfiguration**
+  - [x] .NET 10, Nullable und `TreatWarningsAsErrors` zentral aktivieren
+  - [x] Central Package Management einrichten
+  - [x] `.editorconfig` für Formatierung und Dateikonventionen bereitstellen
+  - [x] AiNetLinter-Konfiguration auf die neue Solution ausrichten
+- [x] **M0.3: Testskripte und initialer Nachweis**
+  - [x] `scripts/test-fast.ps1`
+  - [x] `scripts/test-integration.ps1`
+  - [x] Initialer Build und Placeholder-FastTest erfolgreich
+- [ ] **M0.4: Zentrale Anwendungskonfiguration**
+  - [ ] `appsettings.json` mit dem V1-Konfigurationsbaum und ausschließlich
+    nicht-geheimen Defaults anlegen
+  - [ ] immutable typed Options ohne versteckte Fallbackwerte und zentrale
+    Options-Validatoren definieren; Defaults ausschließlich aus `appsettings.json` laden
+  - [ ] alle Options mit verständlichen Startup-Fehlern validieren, einschließlich
+    `Default <= Maximum`, positiver Timeouts und sinnvoller Mindest-/Höchstwerte
+  - [ ] Override-Reihenfolge und Environment-Variablennamen dokumentieren
+  - [ ] sicherstellen, dass Domain und Storage keine direkte Abhängigkeit von
+    `IConfiguration` oder `IOptions` erhalten; der Composition Root übergibt Records
+  - [ ] Tests für Defaults, Overrides, ungültige Werte und Secret-Redaction
+
+**Abnahme:** Solution baut warnungsfrei; beide Testprojekte sind auffindbar;
+Konfigurationsdefaults, Overrides und ungültige Werte sind automatisiert belegt.
+Dieser Meilenstein behauptet ausdrücklich noch keine getestete Fachlogik.
 
 ---
 
-## M1: Relationales Datenmodell & SQL-Schema
-- [x] **M1.1: Tabellendefinitionen (Präfix `KnowHowToAI_`, MS SQL >= 2019)**
-  - [x] `sql-scripts/README.md` (Dokumentation Zielplattform MS SQL Server >= 2019 und Namenskonventionen)
-  - [x] `sql-scripts/0001_create_system_and_snapshots.sql`:
-    - [x] `KnowHowToAI_SystemState` (CurrentSnapshotId, LastUpdatedUtc)
-    - [x] `KnowHowToAI_Snapshot` (SnapshotId, BaseSnapshotId, State, CreatedAtUtc, CommittedAtUtc)
-    - [x] `KnowHowToAI_Transaction` (TransactionId, BaseSnapshotId, WorkingSnapshotId, State, CreatedAtUtc, CommittedAtUtc, Metadata)
-    - [x] `KnowHowToAI_Release` (ReleaseId, SnapshotId, Name, ReleasedAtUtc)
-  - [x] `sql-scripts/0002_create_roles.sql`:
-    - [x] `KnowHowToAI_Role` (SnapshotId, RoleId, Name, Description, IsDeleted)
-    - [x] `KnowHowToAI_RoleResolution` (SnapshotId, RequestedRoleId, CandidateRoleId, Priority)
-  - [x] `sql-scripts/0003_create_nodes_and_content.sql`:
-    - [x] `KnowHowToAI_Node` (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
-    - [x] `KnowHowToAI_NodeContent` (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
-    - [x] `KnowHowToAI_ContentDependency` (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
-- [ ] **M1.2: Schema-Migration & DDL-Runner**
-  - [ ] `ISchemaMigrator` / Migrations-Runner im Storage-Projekt implementieren
-  - [ ] Idempotente Skript-Ausführung und Versionskontrolle für Datenbank-Initialisierung
-- [x] **M1.3: Seed-Daten für Initialzustand**
-  - [x] `sql-scripts/0004_seed_initial_state.sql`:
-    - [x] Initialen leeren Committed Snapshot (ID 1) und `SystemState` anlegen
-    - [x] Standard-Rolle `Default` und initiale Role Resolution Order definieren
-- [ ] **M1.4: Tests für M1**
-  - [ ] Integrationstest für Schema-Erstellung auf frischer Datenbank
-  - [ ] Integrationstest für Idempotenz der Migrationen
+## M1: SQL-Schema, Migrationen & reale Testumgebung
+
+**Voraussetzung:** M0.
+**Statusziel:** Reproduzierbares, nebenläufig sicher migrierbares Schema auf einem
+echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert werden.
+
+- [x] **M1.1: Initiales relationales Schema entwerfen**
+  - [x] System-, Snapshot-, Transaction- und Release-Tabellen
+  - [x] versionierte Rollen und Role Resolution Orders
+  - [x] versionierte Nodes, Contents und Content Dependencies
+  - [x] initialen committed Snapshot und Rolle `Default` seeden
+- [ ] **M1.2: Schema vor Implementierungsbeginn härten**
+  - [ ] Zustände, Zeitstempel, Fremdschlüssel, Eindeutigkeiten und Indizes gegen das
+    Konzept auditieren; solange noch kein unterstützter Datenbankstand existiert, die
+    Greenfield-Baseline direkt korrigieren statt künstliche Reparaturmigrationen anzulegen
+  - [ ] sicherstellen, dass eine Dependency auf einen aktiven expliziten Source-Content
+    derselben Snapshot-Version zeigt; Revisionsgleichheit zusätzlich fachlich prüfen
+  - [ ] die für Snapshot-Kopie, Root-Abfrage, Geschwistersortierung, Rollenauflösung,
+    Freshness und Search nötigen Indizes definieren
+  - [ ] `Priority > 0`, eindeutige Kandidaten und deterministische Reihenfolge absichern
+  - [ ] Status-/Zeitstempel-Kombinationen absichern: Working/Open ohne Commitzeit,
+    Committed mit Commitzeit, Discarded ohne Aktivierung als Current
+  - [ ] monotone `ChangeVersion` je offener Transaction für konsistente Cursor auf dem
+    veränderlichen Working Snapshot vorsehen
+  - [ ] festlegen und testen, dass Release-Namen eindeutig und Releases nach Erstellung
+    unveränderliche Verweise auf committed Snapshots sind
+- [ ] **M1.3: Migration Runner**
+  - [ ] `ISchemaMigrator` als Port und SQL-Server-Implementierung erstellen
+  - [ ] Migration Journal mit Version, Name, SHA-256-Checksum und `AppliedAtUtc`
+  - [ ] Checksum deterministisch über den als UTF-8/LF normalisierten Skriptinhalt
+    berechnen; das Journal, nicht `IF OBJECT_ID`, ist die Idempotenzquelle
+  - [ ] eingebettete Skripte strikt numerisch sortieren; doppelte Versionen ablehnen
+  - [ ] bereits angewendete Skripte nicht erneut ausführen; geänderte Checksum mit
+    `MigrationChecksumMismatch` ablehnen
+  - [ ] ab dem ersten unterstützten/deployten Datenbankstand angewendete Migrationen
+    unverändert lassen und jede Schemaänderung ausschließlich als neue Migration ergänzen
+  - [ ] je Migration kurze SQL-Transaction verwenden und parallele Runner per
+    SQL-Applikationssperre serialisieren
+  - [ ] Fehler mit Skriptname und Fehlercode, aber ohne Connection String/Credentials
+    protokollieren; keine teilweise als erfolgreich markierte Migration
+- [ ] **M1.4: SQL-Integrationstest-Harness**
+  - [ ] Verbindung ausschließlich über dokumentierte Environment-/Secret-Konfiguration
+  - [ ] pro Testlauf eindeutig benannte isolierte Testdatenbank erzeugen und nur diese
+    wieder entfernen; Datenbanknamen vor Löschung gegen festen Testpräfix validieren
+  - [ ] fehlende Voraussetzungen mit klarer Preflight-Meldung melden, niemals als
+    scheinbar grünen Test überspringen
+  - [ ] parallele Testausführung ohne gemeinsame mutable Daten ermöglichen
+- [ ] **M1.5: Integrationsnachweise**
+  - [ ] frische Datenbank wird vollständig erstellt und geseedet
+  - [ ] zweiter Lauf ist ohne Schemaänderung erfolgreich
+  - [ ] veränderte Checksum wird abgelehnt
+  - [ ] parallele Runner wenden jede Migration genau einmal an
+  - [ ] Fehler in einer Migration hinterlässt weder Journal-Eintrag noch Teilschema
+
+**Abnahme:** Migrations-Integrationstests laufen gegen echten SQL Server grün; das
+resultierende Schema entspricht allen DDL- und Index-Erwartungen.
 
 ---
 
-## M2: Transaktions- & Snapshot-Engine
-- [ ] **M2.1: Transaktionseröffnung (`begin_transaction`)**
-  - [ ] Neuen Working Snapshot erzeugen (`State = Working`, `BaseSnapshotId = CurrentSnapshotId`)
-  - [ ] Vollständige Snapshot-Kopie via atomarem SQL `INSERT ... SELECT` (Nodes, NodeContents, Dependencies)
-  - [ ] Transaktionsdatensatz persistieren (`State = Open`)
-- [ ] **M2.2: Transaktionsabschluss (`commit_transaction`)**
-  - [ ] Kurze, atomare SQL-Transaktion für den Commit-Vorgang
-  - [ ] Concurrency-Check: Prüfen ob `BaseSnapshotId == CurrentSnapshotId`
-  - [ ] Fehler `SnapshotConflict` werfen, falls konkurrierender Commit dazwischenkam
-  - [ ] Snapshot-Status auf `Committed` setzen, `SystemState.CurrentSnapshotId` atomar umschalten
-  - [ ] Transaktions-Status auf `Committed` setzen
-- [ ] **M2.3: Transaktionsabbruch (`discard_transaction`)**
-  - [ ] Snapshot-Status auf `Discarded` setzen
-  - [ ] Transaktions-Status auf `Discarded` setzen
-  - [ ] `SystemState` bleibt unverändert; keine Rückabwicklung von Working-Daten nötig
-- [ ] **M2.4: Snapshot-Unveränderlichkeit & Soft-Delete**
-  - [ ] Schreibschutz-Validierung: Keine Schreiboperationen auf bereits committed Snapshots
-  - [ ] Soft-Delete-Semantik in Datenzugriffsschicht absichern (`IsDeleted = true`)
-- [ ] **M2.5: Tests für M2**
-  - [ ] Integrationstest: Transaktionszyklus (Begin -> Write -> Commit -> Verify Current)
-  - [ ] Integrationstest: Discard-Zyklus (Begin -> Write -> Discard -> Verify Current unchanged)
-  - [ ] Integrationstest: Parallele Transaktionen mit deterministischem `SnapshotConflict`
+## M2: Domain-Kern, Verträge & deterministische Invarianten
+
+**Voraussetzung:** M0; für reine Domain-Tests nicht M1.
+**Statusziel:** SQL- und transportfreie Fachlogik mit vollständigen FastTests.
+
+- [ ] **M2.1: Grundtypen und Ergebnisvertrag**
+  - [ ] starke/opaque IDs und unveränderliche Modelle für Snapshot, Transaction, Node,
+    Role, NodeContent, Dependency und Release
+  - [ ] zentrale Enums für Zustände, `ContentMode`, `Availability` und `Freshness`
+  - [ ] `Result<T>` mit stabilem `code`, maschinenlesbaren `details` und `warnings`;
+    erwartete Fachfehler nicht als Exceptions modellieren
+  - [ ] Uhrzeit und ID-Erzeugung über injizierbare Ports deterministisch testbar machen
+  - [ ] `CancellationToken` an allen asynchronen Application-/Storage-Grenzen führen
+- [ ] **M2.2: Read-Kontext**
+  - [ ] genau einen Selektor zulassen: `transactionId`, `snapshotId` oder keinen
+    (Current); Kombination mit `InvalidReadContext` ablehnen
+  - [ ] Transaction liest ausschließlich ihren Working Snapshot
+  - [ ] historische Reads akzeptieren nur vorhandene Snapshots; Tombstones werden
+    standardmäßig nicht als aktive Daten ausgeliefert
+- [ ] **M2.3: Content-Normalisierung und Revisionen**
+  - [ ] Eingaben kanonisch auf LF normalisieren; keine semantische Änderung allein
+    durch CRLF/LF
+  - [ ] bei neuem oder tatsächlich geändertem normalisiertem Text eine neue
+    `ContentRevisionId` erzeugen
+  - [ ] bei identischem Text die Revision beibehalten; reine Aktualisierung von Mode
+    oder Dependencies ändert die Textrevision nicht
+  - [ ] Löschen und erneutes Anlegen erzeugt auch bei gleichem Text eine neue Revision
+- [ ] **M2.4: Heading- und Strukturvalidator**
+  - [ ] Markdig-AST für ATX- und Setext-Headings verwenden
+  - [ ] rohe HTML-Elemente `<h1>` bis `<h6>` unabhängig von Groß-/Kleinschreibung
+    ablehnen; `HeadingNotAllowed` mit Position und Art zurückgeben
+  - [ ] Heading-Syntax in Fenced/Indented Code, Inline-Code, Escapes und normalen
+    Textvorkommen wie `C#` erlauben
+  - [ ] alleinstehende Strong-/Emphasis-Absätze und eine alleinstehende Wiederholung
+    des Node-Titels als `PossibleEmbeddedHeading` warnen, nicht hart ablehnen
+  - [ ] persistiertes System-Front-Matter mit `FrontMatterNotAllowed` ablehnen
+- [ ] **M2.5: Größen- und Strukturwarnungen**
+  - [ ] normalisierte UTF-8-Größe messen; Standardgrenze 4 KiB aus typed Options verwenden
+  - [ ] `NodeTooLarge` mit Ist-Größe, Schwelle und Empfehlung für Child-Nodes liefern
+  - [ ] Warnungen für ungewöhnliche Hierarchietiefe und Child-Anzahl vorbereiten
+  - [ ] Warnungen blockieren weder Mutation noch Commit und verändern keinen Content
+- [ ] **M2.6: Hierarchie-Invarianten**
+  - [ ] maximal einen aktiven Root pro Snapshot; leerer Baum zulässig
+  - [ ] Parent muss aktiv im selben Snapshot existieren; Self-Parent und Zyklen ablehnen
+  - [ ] `NodeId` nie wiederverwenden; Titel leer/Whitespace ablehnen
+  - [ ] Geschwister deterministisch nach `SortOrder`, danach `NodeId` sortieren
+  - [ ] Create/Move/Reorder normalisiert betroffene Geschwister atomar auf lückenlose,
+    eindeutige SortOrder-Werte
+- [ ] **M2.7: Rollenauflösung**
+  - [ ] explizite, nicht rekursive Kandidatenliste exakt in Priority-Reihenfolge prüfen
+  - [ ] gelöschte/fehlende Rollen oder doppelte Kandidaten ablehnen
+  - [ ] keine impliziten Kandidaten ergänzen; fehlende Konfiguration transparent melden
+  - [ ] Ergebnis enthält immer `requestedRole`, nullable `resolvedRole`,
+    `availability`, `fallbackUsed` und Content-Metadaten
+- [ ] **M2.8: Dependencies und transitive Freshness**
+  - [ ] `Independent` hat keine Dependencies; `Derived` hat mindestens eine
+  - [ ] Source muss aktiver expliziter Content sein; ein Fallback ist keine speicherbare
+    Source-Revision
+  - [ ] Self-Dependency und direkte/transitive Zyklen mit `DependencyCycle` ablehnen
+  - [ ] `Stale`, wenn Source fehlt/gelöscht ist, ihre aktuelle Revision abweicht oder
+    eine abgeleitete Source transitiv stale ist; sonst `Current`
+  - [ ] dieselbe Logik für Current, historischen und Working Snapshot verwenden
+- [ ] **M2.9: Textoperationen und Löschung**
+  - [ ] `replace_text` ändert nur expliziten Content der angefragten Rolle, niemals den
+    per Fallback aufgelösten Content
+  - [ ] exakt ein ordinaler Match; 0 = `TextNotFound`, >1 = `MultipleTextMatches`
+  - [ ] Ergebnis erneut normalisieren und vollständig validieren
+  - [ ] `delete_content` tombstoned nur expliziten Rollen-Content
+  - [ ] `delete_node` mit aktiven Children ohne explizites `deleteSubtree=true` ablehnen;
+    Subtree-Löschung tombstoned Nodes und deren Contents konsistent
+- [ ] **M2.10: FastTests für jeden Domain-Vertrag**
+  - [ ] Positiv-, Rand- und Negativfälle aus M2.1 bis M2.9
+  - [ ] Property-/Datentests für Hierarchiezyklen, Sortierung und Match-Anzahlen dort,
+    wo sie gegenüber Einzelbeispielen zusätzlichen Fehlerraum abdecken
+
+**Abnahme:** Core enthält keine SQL-/MCP-Abhängigkeit; alle genannten Invarianten sind
+durch FastTests belegt; Placeholder-Code und Placeholder-Tests sind entfernt.
 
 ---
 
-## M3: Domänenlogik, Validatoren & Invarianten
-- [ ] **M3.1: Markdown-Heading-Validator**
-  - [ ] Echten Markdown-Parser (Markdig) einbinden
-  - [ ] Harte Invariante: Striktes Verbot von Markdown-Headings (`#`) im gespeicherten Content
-  - [ ] Striktes Verbot von HTML-Headings (`<h1>` - `<h6>`)
-  - [ ] Fenced Code Blocks mit `#` (z. B. C# Preprocessor `#if`, Kommentare) zulassen
-- [ ] **M3.2: Node- & Content-Trennung**
-  - [ ] Node-Titel und Metadaten ausschließlich in der Node-Hierarchie führen
-  - [ ] Prüfung: Node-Titel darf nicht im Content repliziert werden
-- [ ] **M3.3: Rollenauflösung (Role Resolution)**
-  - [ ] Deterministische Resolution Order für angefragte Rolle laden
-  - [ ] Fallback-Logik ausführen, falls kein expliziter Rollen-Content existiert
-  - [ ] Transparentes Ergebnis: `requestedRole`, `resolvedRole`, `fallbackUsed`
-- [ ] **M3.4: Content-Revisionen, Provenienz & Stale-Erkennung**
-  - [ ] `ContentRevisionId`: Erzeugung neuer Revisions-ID bei echtem Inhalts-Update
-  - [ ] `ContentMode`: Unterscheidung zwischen `Independent` und `Derived`
-  - [ ] Abhängigkeiten speichern: `Target` verweist auf `Source` mit `SourceContentRevisionId`
-  - [ ] Stale-Prüfung: Erkennen, wenn `SourceContentRevisionId` nicht mehr der aktuellen Quell-Revision entspricht
-- [ ] **M3.5: Text-Patching (`replace_text`)**
-  - [ ] Exakte Match-Prüfung im vorhandenen Text
-  - [ ] Invariante: Exakt 1 Match erforderlich; Fehler bei 0 Matches (`TextNotFound`) oder >1 Matches (`MultipleTextMatches`)
-- [ ] **M3.6: Hierarchie-Operationen**
-  - [ ] Node anlegen (`create_node`), verschieben (`move_node`), umbenennen, umsortieren
-  - [ ] Zyklus-Erkennung in der Eltern-Kind-Beziehung
-  - [ ] `delete_node` (global, Fehler bei vorhandenen Children ohne Subtree-Flag) vs. `delete_content` (nur Rolle)
-- [ ] **M3.7: Markdown-Export-Engine (`export_tree`)**
-  - [ ] Export-Root wird Heading Level 1 (`# Title`)
-  - [ ] Kind-Nodes erhalten relative Überschriftenebenen (`##`, `###`)
-  - [ ] Rollenauflösung pro exportiertem Node berücksichtigen
-- [ ] **M3.8: Tests für M3**
-  - [ ] FastTests: Heading-Validator (Positiv-/Negativtests, Fenced Code, Edge Cases)
-  - [ ] FastTests: Rollenauflösung und Fallback
-  - [ ] FastTests: Stale-Erkennung und Revisions-Vergleiche
-  - [ ] FastTests: `replace_text`-Fehlerfälle (0 Matches, Multi-Match, Single-Match)
-  - [ ] FastTests: Hierarchie-Validierung und Zyklus-Prüfung
-  - [ ] FastTests: Markdown-Export-Assembler
+## M3: SQL-Repositories & Snapshot-/Transaction-Engine
+
+**Voraussetzung:** M1 und die benötigten Verträge aus M2.
+**Statusziel:** Kurze atomare SQL-Operationen implementieren das vollständige
+Snapshot-Modell ohne lang laufende SQL-Transaction.
+
+- [ ] **M3.1: Repository-Ports und SQL-Grundlage**
+  - [ ] Connection Factory, parametrisierte Dapper-Zugriffe und zentrale Mappings
+  - [ ] kein dynamisches SQL aus Nutzereingaben; Cancellation und Timeouts durchreichen
+  - [ ] Repository liefert Daten/Fachzustände, aber keine MCP-Typen
+- [ ] **M3.2: `begin_transaction`**
+  - [ ] Current Snapshot unter geeigneter Sperre lesen und neuen Working Snapshot anlegen
+  - [ ] vollständige Kopie von Rollen, Role Resolutions, Nodes, NodeContents und
+    ContentDependencies per `INSERT ... SELECT`
+  - [ ] Transaction mit Base-/Working-Snapshot und optionalen Audit-Metadaten anlegen
+  - [ ] gesamte Eröffnung atomar; bei Fehler weder halber Snapshot noch offene
+    Transaction
+- [ ] **M3.3: Mutationen auf Working Snapshot**
+  - [ ] bei jeder Mutation Transaction vorhanden/offen und Snapshot `Working` prüfen
+  - [ ] committed/discarded Snapshots nie verändern
+  - [ ] Mutationen derselben Transaction über die Transaction-Zeile serialisieren und
+    `ChangeVersion` bei jeder erfolgreichen Zustandsänderung atomar erhöhen
+  - [ ] Soft-Delete/Tombstone-Semantik in sämtlichen Abfragen konsistent anwenden
+- [ ] **M3.4: `validate_transaction`**
+  - [ ] harte Fehler, Warnungen, stale Contents und Refactoring-Kandidaten aggregieren
+  - [ ] deterministische Sortierung und deduplizierte Befunde
+  - [ ] Validation ist read-only und mehrfach identisch aufrufbar
+- [ ] **M3.5: `commit_transaction`**
+  - [ ] in einer kurzen SQL-Transaction Open-/Working-Zustand und harte Validatoren prüfen
+  - [ ] Current-Zeile sperren und `BaseSnapshotId == CurrentSnapshotId` vergleichen
+  - [ ] bei Konflikt keinerlei Statusänderung; `SnapshotConflict` enthält Base und Current
+  - [ ] bei Erfolg Snapshot, SystemState und Transaction atomar auf Committed setzen
+  - [ ] wiederholter Commit/Commit nach Discard liefert stabil `TransactionClosed`
+- [ ] **M3.6: `discard_transaction`**
+  - [ ] Open Transaction und Working Snapshot atomar auf Discarded setzen
+  - [ ] Current Snapshot unverändert lassen; Working-Daten zur Historie behalten
+  - [ ] wiederholter Discard/Discard nach Commit liefert stabil `TransactionClosed`
+- [ ] **M3.7: SQL-Integrationstests**
+  - [ ] Begin kopiert alle fünf versionierten Datenbereiche vollständig
+  - [ ] eigene Writes sind im Working Read sichtbar, aber nicht im Current Read
+  - [ ] Commit und Discard inklusive Zuständen/Zeitstempeln
+  - [ ] zwei parallele Transactions: genau der erste Commit gewinnt
+  - [ ] Rollback bei injiziertem Fehler in Begin, Mutation und Commit
+  - [ ] historische committed Snapshots bleiben byte-/wertgleich reproduzierbar
+
+**Abnahme:** Alle M3-Integrationstests grün; es bleibt zwischen MCP-Aufrufen keine
+offene SQL-Transaction oder Connection bestehen.
 
 ---
 
-## M4: MCP-Server & STDIO-Tools
-- [ ] **M4.1: Application Services Layer**
-  - [ ] `IKnowledgeTransactionService` (Transaktionslebenszyklus)
-  - [ ] `IKnowledgeNavigationService` (Lesen, Hierarchie, Auflösung)
-  - [ ] `IKnowledgeMutationService` (Schreiben von Nodes und Content)
-  - [ ] `IKnowledgeExportService` (Markdown-Export)
-  - [ ] `Result<T>`-Rückgaben für alle Service-Methoden
-- [ ] **M4.2: MCP STDIO Server Setup**
-  - [ ] MCP-Hosting über STDIO konfigurieren
-  - [ ] Dependency Injection / Service-Verdrahtung ohne Transport-Kopplung
-- [ ] **M4.3: Tool-Implementierung**
-  - [ ] **Transaktions-Tools**: `begin_transaction`, `commit_transaction`, `discard_transaction`, `get_transaction`
-  - [ ] **Navigations-Tools**: `get_root`, `get_node`, `list_children`, `list_roles`
-  - [ ] **Struktur-Tools**: `create_node`, `update_node`, `move_node`, `reorder_node`, `delete_node`
-  - [ ] **Content-Tools**: `replace_content`, `replace_text`, `delete_content`
-  - [ ] **Validierungs-Tools**: `validate_transaction`
-  - [ ] **Export-Tools**: `export_tree`
-- [ ] **M4.4: Fehlerbehandlung & Symmetrie**
-  - [ ] Standardisierte maschinenlesbare Fehlercodes (`TransactionNotFound`, `SnapshotConflict`, etc.)
-  - [ ] Tool-Outputs und Folge-Inputs symmetrisch halten (Zero-Transformation)
-- [ ] **M4.5: Tests für M4**
-  - [ ] Integrationstests: End-to-End-Tool-Aufrufe über MCP-Protokoll
-  - [ ] Vertragstests für alle MCP-Tool-Schemas
+## M4: Application Services & vollständige Mutationsfälle
+
+**Voraussetzung:** M2, M3.
+**Statusziel:** Transportneutrale Use Cases orchestrieren Domain und Repository.
+
+- [ ] **M4.1: Services**
+  - [ ] Transaction Service: begin/get/validate/commit/discard
+  - [ ] Navigation Service: root/node/children/roles und Read-Kontext
+  - [ ] Mutation Service: Nodes, Content, Rollen und Resolution Orders
+  - [ ] Export/Search Service sowie History/Release Service als getrennte Zuständigkeiten
+  - [ ] Validierung und Result-Mapping an einer eindeutigen Schicht, keine doppelte
+    abweichende Fachlogik in Handlern und Repositories
+- [ ] **M4.2: Node-Mutationen**
+  - [ ] create/update/move/reorder/delete einschließlich Root- und Subtree-Semantik
+  - [ ] globale Auswirkung von Strukturänderungen in Ergebnissen/Warnungen sichtbar
+- [ ] **M4.3: Content-Mutationen**
+  - [ ] replace_content, replace_text und delete_content
+  - [ ] Mode-/Dependency-Regeln, Revisionsvergabe und Normalisierung atomar anwenden
+  - [ ] Mutationsergebnis enthält Revision, Snapshot, Warnungen und Freshness
+- [ ] **M4.4: Rollen-Mutationen**
+  - [ ] create/update/delete Role nur innerhalb einer offenen Transaction
+  - [ ] vollständige Resolution Order atomar ersetzen; nie schrittweise Zwischenzustände
+  - [ ] `delete_role` nur zulassen, nachdem Content-, Dependency- und Resolution-
+    Referenzen innerhalb derselben Working Transaction entfernt/ersetzt wurden;
+    andernfalls `RoleInUse` mit den blockierenden Referenzen liefern
+- [ ] **M4.5: Service-Tests**
+  - [ ] Use-Case-Tests mit In-Memory-Fakes für Orchestrierung und Fehlerweitergabe
+  - [ ] keine Wiederholung bereits in M2 bewiesener Parser-/Algorithmusvarianten
+
+**Abnahme:** Jeder fachliche V1-Write ist über genau einen transportneutralen Use Case
+erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
 
 ---
 
-## M5: Retrieval-Optimierung, Search & End-to-End
-- [ ] **M5.1: Token-effiziente Navigation (Progressive Disclosure)**
-  - [ ] `list_children` optimieren: Reiner Metadaten-Return (Titel, Description, ChildCount, Freshness, ContentSize)
-- [ ] **M5.2: Textbasierte Suche (`search`)**
-  - [ ] Parametrisierte Suche über Titel, Description und Markdown-Content
-  - [ ] Treffer als schlanke Kontext-Snippets zurückgeben
-- [ ] **M5.3: Qualitätswarnungen & Refactoring-Kandidaten**
-  - [ ] Soft-Limits: Erkennung zu großer Nodes (`NodeTooLarge`), Warnungen statt Speicherverbot
-  - [ ] Warnung bei Stale Derived Content in Transaktionen
-- [ ] **M5.4: End-to-End-Workflow-Verifikation**
-  - [ ] Vollständiger Lebenszyklus: Consultant-Erfassung -> Developer-Update -> Stale-Erkennung -> EndUser-Doku-Sync
-  - [ ] Verifikation aller Quality Gates (`verify` Score 10.0, Solution fehler- und warnungsfrei)
+## M5: Retrieval, Export, Search, Historie & Releases
+
+**Voraussetzung:** M4.
+**Statusziel:** Vollständige, deterministische Read-Seite mit begrenzten Antworten.
+
+- [ ] **M5.1: Metadata-first Navigation**
+  - [ ] `get_root`, `get_node`, `list_children`, `list_roles`
+  - [ ] `list_children` liefert standardmäßig keinen Content, sondern NodeId, Titel,
+    Description, ChildCount, ContentSize, Availability, ResolvedRole und Freshness
+  - [ ] deterministische Sortierung und Cursor-/Limit-Paging; ungültige/abgelaufene
+    Cursor mit stabilem Fehler statt stiller Ergebnisverschiebung
+  - [ ] Cursor an Snapshot, Query/Filter und bei Working Reads an `ChangeVersion`
+    binden; nach einer Mutation mit `CursorExpired` ablehnen
+- [ ] **M5.2: Markdown-Export**
+  - [ ] ausgewählter Root wird H1, Nachfahren erhalten relative Heading-Level
+  - [ ] Rollenauflösung und Freshness pro Node; Node ohne Content nur bei exportiertem
+    Nachfahren aufnehmen
+  - [ ] gelöschte/irrelevante Zweige auslassen; stabile Leerzeilen und LF-Ausgabe
+  - [ ] tiefer als sechs Ebenen: gültige, dokumentierte Strategie festlegen und testen,
+    bevor der Exportvertrag veröffentlicht wird
+- [ ] **M5.3: Textsuche V1**
+  - [ ] parametrisierte Suche über Title, Description und aktiven auflösbaren Content
+  - [ ] SQL-Wildcards und Sonderzeichen sicher behandeln; keine dynamische SQL-Konkatenation
+  - [ ] schlanke Snippets mit begrenzter Länge, Trefferfeld und Node-Metadaten
+  - [ ] feste Maximalwerte, Paging und deterministisches Ranking/Tie-Breaking
+  - [ ] dokumentieren, dass V1 weder semantische noch linguistisch vollständige Suche
+    verspricht
+- [ ] **M5.4: Historie und Diff**
+  - [ ] `get_snapshot` mit Zustand und Metadaten
+  - [ ] `compare_snapshots` als strukturierter Netto-Diff für Nodes, Rollen, Resolution
+    Orders, Contents und Dependencies; keine Rekonstruktion eines Operation Logs
+  - [ ] `get_transaction_changes` vergleicht Base und Working/Committed Snapshot
+  - [ ] große Diffs paginieren; Reihenfolge und Change-Arten stabil halten
+- [ ] **M5.5: Releases**
+  - [ ] `create_release` registriert atomar einen unveränderlichen Namen/Verweis auf einen
+    committed Snapshot; dies ist Metadatenregistrierung und keine Snapshot-Mutation
+  - [ ] `list_releases` paginiert und deterministisch sortiert
+  - [ ] normaler Commit/Release darf stale oder übergroßen Content enthalten; Befunde
+    werden transparent zurückgegeben, da komplexe Release Policies nicht V1 sind
+- [ ] **M5.6: Fast- und Integrationstests**
+  - [ ] Export-Golden-Cases für leere, gefilterte, fallback- und stale Bäume
+  - [ ] Search/Paging einschließlich Sonderzeichen und Größenlimits
+  - [ ] Snapshot-/Transaction-Diffs für create/update/move/delete und Rollenänderungen
+  - [ ] Release nur auf committed Snapshot, Namenskonflikt und historische Reproduktion
+
+**Abnahme:** Kein Listen-/Such-/Diff-Tool liefert unkontrolliert den Gesamtbestand;
+Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgabe.
+
+---
+
+## M6: MCP-Server über STDIO
+
+**Voraussetzung:** M4 und die jeweils veröffentlichten M5-Use-Cases.
+**Statusziel:** Dünner Adapter mit stabilen Schemas und sauberem STDIO-Protokoll.
+
+- [ ] **M6.1: Hosting und Konfiguration**
+  - [ ] Generic Host, DI und validierte Connection-/Validator-Konfiguration
+  - [ ] Schema-Migration gemäß `Migrations:ApplyOnStartup` kontrolliert ausführen
+  - [ ] Logs ausschließlich nach `stderr` oder Datei; `stdout` ist exklusiv MCP
+  - [ ] Secrets und vollständige Content-Payloads nicht protokollieren
+  - [ ] Shutdown, Cancellation und defektes Client-Pipe-Verhalten sauber behandeln
+- [ ] **M6.2: Gemeinsamer Tool-Vertrag**
+  - [ ] JSON-Feldnamen, Nullability, Limits und Beispiele vor Handlercode festlegen
+  - [ ] einheitliche Success-/Error-Struktur mit `code`, `message`, `details`, `warnings`
+  - [ ] IDs aus Antworten ohne Umformatierung als Folgeparameter verwendbar
+  - [ ] `transactionId` und `snapshotId` gegenseitig ausschließen
+- [ ] **M6.3: Transaction- und Validation-Tools**
+  - [ ] `begin_transaction`, `get_transaction`, `validate_transaction`
+  - [ ] `commit_transaction`, `discard_transaction`
+- [ ] **M6.4: Navigation-, Search- und Export-Tools**
+  - [ ] `get_root`, `get_node`, `list_children`, `list_roles`, `search`
+  - [ ] `export_tree`
+- [ ] **M6.5: Struktur-, Content- und Rollen-Tools**
+  - [ ] `create_node`, `update_node`, `move_node`, `reorder_node`, `delete_node`
+  - [ ] `replace_content`, `replace_text`, `delete_content`
+  - [ ] `create_role`, `update_role`, `delete_role`, `set_role_resolution`
+- [ ] **M6.6: Historien- und Release-Tools**
+  - [ ] `get_snapshot`, `compare_snapshots`, `get_transaction_changes`
+  - [ ] `create_release`, `list_releases`
+- [ ] **M6.7: Vertrags- und STDIO-Integrationstests**
+  - [ ] jedes Tool-Schema mit gültigem Minimalrequest und repräsentativen Fehlern
+  - [ ] echter Serverprozess über STDIO: Initialize, Tool Call, Response, Shutdown
+  - [ ] beweisen, dass Startup-/SQL-/Logging-Ausgaben `stdout` nicht verunreinigen
+  - [ ] unbekannte Felder/Tools, ungültige JSON-Typen, Cancellation und Serverfehler
+    liefern protokollkonforme Antworten ohne Prozessabsturz
+
+**Abnahme:** Ein externer MCP-Client kann den vollständigen V1-Workflow ausschließlich
+über STDIO durchführen; Handler enthalten nur Mapping und Delegation.
+
+---
+
+## M7: End-to-End-Härtung & V1-Abschluss
+
+**Voraussetzung:** M1 bis M6.
+**Statusziel:** Nachweis, dass die Einzelverträge als Gesamtsystem funktionieren.
+
+- [ ] **M7.1: Referenzworkflow**
+  - [ ] Rollen Consultant, Developer und EndUser samt Resolution Orders transaktional
+    anlegen
+  - [ ] Consultant-Wissen erfassen und committen
+  - [ ] Developer-Content daraus ableiten/ergänzen und mehrfach versionieren
+  - [ ] EndUser-Content mit Dependencies erzeugen, Source ändern und transitive
+    Stale-Erkennung nachweisen
+  - [ ] EndUser synchronisieren, Freshness `Current` nachweisen und Release erstellen
+  - [ ] historischen Release exportieren und unverändert reproduzieren
+- [ ] **M7.2: Konkurrenz- und Wiederanlauftests**
+  - [ ] konkurrierende Commits verlieren keine Daten
+  - [ ] Serverneustart während offener KnowHowTo-AI-Transaction lässt Daten lesbar und
+    die Transaction weiter explizit commit-/discard-fähig
+  - [ ] parallele Migration/Serverstarts beschädigen das Schema nicht
+- [ ] **M7.3: Qualitäts- und Lastgrenzen**
+  - [ ] 4-KiB-Default sowie mindestens ein abweichender konfigurierter Grenzwert im
+    Tool-Workflow mit Refactoring-Hinweis nachweisen
+  - [ ] große Child-Listen, Search-Treffer und Diffs bleiben gepaged
+  - [ ] repräsentativen Snapshot-Copy-/Search-Umfang messen und dokumentieren; keine
+    unbelegte Performanceoptimierung oder V1-Copy-on-write einführen
+- [ ] **M7.4: Betriebsnachweis**
+  - [ ] Konfigurationsbeispiel ohne Secrets, SQL-Berechtigungen und Startkommando
+    dokumentieren
+  - [ ] Release/Publish des Servers und Smoke-Test des veröffentlichten Artefakts
+  - [ ] bekannte V1-Grenzen aus `docs/Konzept.md` gegen Implementierung prüfen
+- [ ] **M7.5: Abschlussgate**
+  - [ ] `dotnet build KnowHowToAI.slnx` warnungsfrei
+  - [ ] AiNetLinter `verify(..., scope: "solution")`: pass, Score 10.0, 0 Violations
+  - [ ] vollständige FastTests grün
+  - [ ] vollständige SQL-/MCP-Integrationstests grün
+  - [ ] `git diff --check` und finale manuelle Diff-/Dokumentationsprüfung
+
+**Abnahme:** Der Referenzworkflow ist ausschließlich über veröffentlichte MCP-Tools
+reproduzierbar, alle Gates sind grün und kein Placeholder verbleibt.
+
+---
+
+## Stabiler Fehlercode-Katalog für V1
+
+Dieser Katalog wird bei der Implementierung zentral als Code/Vertrag angelegt. Neue
+Codes dürfen ergänzt, bestehende nach Veröffentlichung nicht beiläufig umbenannt werden.
+
+- Kontext/Zustand: `InvalidReadContext`, `SnapshotNotFound`, `SnapshotNotCommitted`,
+  `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`, `InvalidCursor`,
+  `CursorExpired`
+- Struktur/Rollen: `NodeNotFound`, `RootAlreadyExists`, `ParentNodeNotFound`,
+  `InvalidHierarchy`, `NodeHasChildren`, `RoleNotFound`, `RoleInUse`,
+  `RoleResolutionNotConfigured`, `InvalidRoleResolution`
+- Content: `ExplicitContentNotFound`, `HeadingNotAllowed`, `FrontMatterNotAllowed`,
+  `TextNotFound`, `MultipleTextMatches`, `InvalidDependency`, `DependencyCycle`
+- Migration/Release: `MigrationChecksumMismatch`, `MigrationFailed`,
+  `ReleaseNotFound`, `ReleaseNameConflict`
+
+Warncodes wie `NodeTooLarge`, `PossibleEmbeddedHeading`, `TooManyChildren`,
+`HierarchyTooDeep`, `LargeContentReplace` und `StaleDerivedContent` sind keine Fehler.
+
+## Bewusst außerhalb von V1
+
+HTTP-MCP, REST, UI/Admin-Oberfläche, Authentifizierung/ACL, Mandantenmodell innerhalb
+einer Instanz, rollenabhängige Präsentationshierarchien, semantische/Vektorsuche,
+automatisches Merge/Rebase, Copy-on-write, permanenter Auto-Sync, Unified-Diff als
+Kernoperation, vollständiges Operation Log, Event Sourcing und harte Release Policies.

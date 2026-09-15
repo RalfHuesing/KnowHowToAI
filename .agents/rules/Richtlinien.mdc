@@ -16,22 +16,26 @@ Nutzeranweisungen haben Vorrang.
   - Tool-Payloads radikal token-sparsam halten (Progressive Disclosure, Metadata-First: `list_children` liefert Metadaten, kein Dump ganzer Bäume).
   - Strukturierte, maschinenlesbare MCP-Antworten mit klaren, stabilen Fehlercodes (z. B. `TransactionNotFound`, `SnapshotConflict`, `HeadingNotAllowed`, `TextNotFound`, `MultipleTextMatches`).
   - Symmetrische IDs (`NodeId`, `RoleId`, `TransactionId`, `SnapshotId`): Ausgaben von Tools müssen ohne Bereinigung oder Typkonvertierung als Eingabe für Folgetools nutzbar sein.
-  - Alle Schreiboperationen erfordern zwingend eine `TransactionId`. Leseoperationen akzeptieren optional `TransactionId` (Working Snapshot) oder `SnapshotId` (Historie; Default ist Current Snapshot). Rollen werden explizit übergeben.
+  - Alle Änderungen des versionierten Wissenszustands erfordern zwingend eine `TransactionId`. Die atomare Registrierung eines unveränderlichen Releases auf einen bereits committed Snapshot ist Metadatenverwaltung und die einzige V1-Ausnahme.
+  - Leseoperationen akzeptieren entweder `TransactionId` (Working Snapshot), `SnapshotId` (Historie) oder keinen Selektor (Current Snapshot), niemals beide Selektoren zugleich. Rollen werden explizit übergeben.
 - **Snapshot- & Transaktionsmodell**:
   - Tabellen-Präfix `KnowHowToAI_`.
-  - Vollständige Snapshot-Kopien pro Transaktion (Working Snapshot auf Basis des Current Snapshot).
+  - Vollständige Snapshot-Kopien pro Transaktion (Working Snapshot auf Basis des Current Snapshot), einschließlich Rollen und Role Resolution Orders.
   - Keine lang laufenden offenen SQL-Transaktionen; KnowHowTo-AI-Transaktionen bestehen aus kurzen, atomaren SQL-Operationen.
-  - Committed Snapshots sind unveränderlich. Keine physischen Löschungen (Soft-Delete / Tombstone-Semantik).
+  - Committed und historische Snapshots sind unveränderlich und werden nie physisch verändert. Fachobjekte wie Nodes, Rollen und Content werden im Working Snapshot per Soft-Delete/Tombstone entfernt. Reine Zuordnungszeilen ohne eigene Identität (Role Resolution, Content Dependency) dürfen im Working Snapshot atomar ersetzt werden, weil der Base Snapshot die Historie vollständig erhält.
   - Kein automatisches 3-Wege-Merge oder Rebase in V1; konkurrierende Commits führen deterministisch zu `SnapshotConflict`.
   - `delete_node` (global über alle Rollen) und `delete_content` (nur Rollen-Content) strikt unterscheiden.
+  - Pro Snapshot existiert höchstens ein aktiver persistierter Root-Node; der initiale leere Snapshot darf noch keinen Root besitzen.
 - **Wissens- & Content-Invarianten**:
   - Markdown ist reines Inhaltsformat (`ContentMd`), nicht Dokumentstruktur. Die Struktur liegt vollständig im relationalen Modell.
-  - Node-Titel gehören in die Hierarchie, niemals in `ContentMd`.
-  - Gespeicherter Content darf absolut keine Überschriften enthalten (weder `#`-Markdown noch HTML-Headings).
+  - Node-Titel gehören als Strukturelement ausschließlich in die Hierarchie. Normale sprachliche Erwähnungen des Titels im Fließtext sind erlaubt. Eine absichtlich als Überschrift oder alleinstehender Ersatztitel gespeicherte Wiederholung ist fachlich unzulässig; soweit sie syntaktisch nicht zweifelsfrei erkennbar ist, wird sie wegen möglicher Fehlalarme als Qualitätswarnung gemeldet.
+  - Gespeicherter Content darf absolut keine Markdown- oder HTML-Überschriften enthalten. Markdown-/HTML-Headings sind harte Fehler; heuristisch erkannte überschriftenähnliche Ersatzformatierungen liefern eine Warnung, weil sie nicht ohne Fehlalarme als Überschrift beweisbar sind.
   - Heading-Validierung zwingend über echten Markdown-Parser (kein naives String-Matching auf `#`).
   - Rollen frei definierbar; Fallback erfolgt deterministisch über explizite, nicht-rekursive Role Resolution Orders.
-  - Eigener Rollen-Content ist `Independent` oder `Derived`. Derived Content speichert Source-Revisions; Stale-Erkennung statt permanenter automatischer Synchronisation.
-- Bevorzuge direkte Lösungen und unveränderliche Datenmodelle (`record`, Immutability). Abstraktionen erfordern konkreten Mehrwert für Wiederverwendung, Verständlichkeit oder Testbarkeit.
+  - Rollen und Role Resolution Orders werden wie anderer versionierter Zustand ausschließlich in einer Working Transaction geändert.
+  - Eigener Rollen-Content ist `Independent` oder `Derived`. Derived Content speichert explizite Source-Revisions; Freshness wird transitiv ausgewertet und Dependency-Zyklen sind unzulässig.
+  - Die über App-Konfiguration änderbare Standardwarnschwelle pro normalisiertem Content beträgt 4 KiB UTF-8 (`NodeTooLarge`). Sie ist kein hartes Speicher- oder Commitlimit; Refactoring erfolgt bewusst in Child-Nodes und einer eigenen Transaction.
+- Bevorzuge direkte Lösungen und unveränderliche Datenmodelle (`record`, Immutability). Abstraktionen erfordern konkreten Mehrwert für Wiederverwendung, Verständlichkeit oder Testbarkeit; keine vorsorglichen Interfaces ohne Port-, Boundary- oder Testnutzen.
 
 ## C#-Analyse und Dokumentation
 
@@ -39,6 +43,7 @@ Nutzeranweisungen haben Vorrang.
 - **Roadmap-Pflege**: `docs/Roadmap.md` ist die verbindliche Statusquelle. Erledigte Aufgaben nach jedem Teilschritt sofort auf `[x]` setzen; neue Erkenntnisse oder Teilaufgaben direkt darin nachführen und stets aktuell halten.
 - Nur implementiertes, belegbares Verhalten dokumentieren. CLI-, Konfigurations-, Regel- und MCP-Beschreibungen gegen aktuellen Code prüfen.
 - Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell `docs/Konzept.md` und Agentenregeln synchronisieren.
+- Vor dem ersten unterstützten Datenbankstand darf die Greenfield-Baseline direkt korrigiert werden. Danach sind angewendete Migrationsskripte unveränderlich; Änderungen erfolgen ausschließlich durch neue, vorwärts gerichtete Migrationen mit neuer Versionsnummer.
 - `README.md` nur bei ausdrücklichem Auftrag ändern; Fremdänderungen erhalten.
 
 ## Windows und Dateien
@@ -47,23 +52,30 @@ Nutzeranweisungen haben Vorrang.
 - Kein temporärer Dateisystem-Workflow für Wissensinhalte (kein DB -> Temp-Datei -> Edit -> DB); alle Lese- und Schreibvorgänge laufen direkt über die MCP-/Service-API.
 - Credentials gehören niemals in Diagnosen, Logs oder Toolantworten.
 
+## Konfiguration
+
+- Die Wissensdatenbank enthält keine Betriebs-, Retrieval- oder Quality-Konfiguration. Fachlicher versionierter Zustand wie Rollen und Resolution Orders bleibt davon unberührt und gehört weiterhin in Snapshots.
+- Nicht geheime Defaults stehen ausschließlich in `appsettings.json`; reale Secrets kommen aus Environment, User Secrets oder dem Deployment-Secretstore. Die dokumentierte Priorität lautet `appsettings.json` < umgebungsspezifische Appsettings < Environment < Kommandozeile.
+- Der Server bindet Konfiguration beim Start einmalig an immutable typed Options und validiert Werte sowie feldübergreifende Beziehungen fail-fast. Kein Live-Reload in V1.
+- Domain, Application und Storage kennen weder `IConfiguration` noch frei verteilte Konfigurationsschlüssel. Der Composition Root übergibt validierte Policy-Records.
+- Keine Magic Numbers: konfigurierbare Werte kommen aus Options; unverhandelbare Invarianten, technische Validierungsbereiche und Fehlercodes stehen jeweils an einer zentralen Code-Stelle. Dieselbe Vorgabe gilt für Tests.
+
 ## Code und Teststrategie
 
-- **C#-Coding-Prinzipien**: Konkrete Klassen standardmäßig `sealed` deklarieren; `#nullable enable` am Dateianfang; Methoden flach halten und ab 4 Parametern Parameter-Records nutzen; kein `async void`, keine blockierenden Task-Aufrufe (`.Result`, `.Wait()`), keine leeren `catch`-Blöcke.
+- **C#-Coding-Prinzipien**: Konkrete Klassen standardmäßig `sealed` deklarieren, außer Vererbung ist Teil eines belegten Designs. Nullable wird zentral über `Directory.Build.props` aktiviert; keine redundanten `#nullable enable`-Direktiven pro Datei. Methoden flach halten und fachlich zusammengehörige oder häufig gemeinsam weitergereichte Parameter in Parameter-Records bündeln, nicht allein wegen einer starren Parameteranzahl. Kein `async void`, keine blockierenden Task-Aufrufe (`.Result`, `.Wait()`), keine leeren `catch`-Blöcke; `CancellationToken` an asynchronen Application-/IO-Grenzen weiterreichen.
 - Keine Compilerwarnungen einführen (`TreatWarningsAsErrors`). Erwartete Fehler als `Result<T>` modellieren; Exceptions bleiben echten exogenen Fehlern (z. B. SQL/IO) vorbehalten.
 - **Red-Test-First bei Bugs**: Bei Fehlern oder unerwartetem Verhalten zuerst einen isolierten fehlschlagenden xUnit-v3-Test schreiben; erst danach beheben (dauerhafter Regressionsschutz).
 - **Test-Design & Authoring**: Für Testebenen, Testgestaltung und Testumgebung gilt `.agents/rules/TestRichtlinien.mdc`. Ein grüner, scope-passender Testlauf bleibt gültiger Nachweis bis zur nächsten Code- oder Konfigurationsänderung; nicht blind wiederholen.
 - **Workflow- und MCP-Quality-Gates**:
-  - **Taskbeginn**: Saubere Codebasis voraussetzen; vor der ersten Änderung kein Build, Verify oder Test.
-  - **Incremental Gate**: Nach jedem kohärenten Coding-Slice mit Produktions- oder Testcode in dieser Reihenfolge: `dotnet build`, `verify(targetPath)` (sobald Solution/Target vorhanden), passender FastTests-Lauf (standardmäßig `pwsh scripts/test-fast.ps1 -Filter Category=Unit` bzw. `dotnet test --filter Category=Unit`). Kein bekannter roter Stand bleibt als Zwischen- oder Übergabestand bestehen.
+  - **Taskbeginn**: Zuerst `git status` und betroffene Dateien prüfen. Wenn für den berührten Scope kein aktueller grüner Nachweis vorliegt, vor der ersten Code-/Konfigurationsänderung den kleinsten aussagekräftigen Baseline-Test ausführen. Vorhandene fremde Änderungen und vorbestehende Fehler nicht ungefragt verändern; klar vom eigenen Delta trennen.
+  - **Incremental Gate**: Nach jedem kohärenten Coding-Slice mit Produktions- oder Testcode in dieser Reihenfolge: `dotnet build`, `verify(targetPath)` (sobald Solution/Target vorhanden), passender FastTests-Lauf (standardmäßig `pwsh scripts/test-fast.ps1 -Filter Category=Unit` bzw. `dotnet test --filter Category=Unit`). Kein durch den Slice verursachter roter Stand bleibt als Zwischen- oder Übergabestand bestehen.
   - **Abschlussgate**: Vor Abschluss: `dotnet build`, `verify(targetPath, scope: "solution")`, vollständiger FastTests-Lauf (`pwsh scripts/test-fast.ps1`). Integrationstests (`scripts/test-integration.ps1`) nur bei Berührung von SQL/MCP-Infrastruktur oder ausdrücklichem Auftrag.
-  - Jeder fehlgeschlagene Schritt ist vor dem Weiterarbeiten zu beheben; danach das jeweilige Gate vollständig wiederholen. Das Abschlussgate gilt nur bei `verdict=pass`, `score=10.0` und `violationCount=0`. Advisory-Kandidaten bei `changes` erfordern Agentenurteil, beeinflussen das Verdict nicht und sind keine sichere Lösch- oder Änderungsanweisung.
+  - Einen selbst verursachten fehlgeschlagenen Schritt vor dem Weiterarbeiten beheben und das jeweilige Gate vollständig wiederholen. Bei einem belegbar vorbestehenden oder außerhalb des Scopes liegenden Fehler nicht eigenmächtig den Scope erweitern: Nachweis und Abgrenzung dokumentieren und nur weiterarbeiten, wenn das eigene Delta dennoch sicher prüfbar bleibt. Das Abschlussgate gilt nur bei `verdict=pass`, `score=10.0` und `violationCount=0`. Advisory-Kandidaten bei `changes` erfordern Agentenurteil, beeinflussen das Verdict nicht und sind keine sichere Lösch- oder Änderungsanweisung.
   - `dotnet build` muss alle Solution-Projekte fehler- und warnungsfrei bauen (`TreatWarningsAsErrors`).
   - Für reine Dokumentations-, Markdown- oder Agentenregel-Änderungen sind Build und Tests nicht erforderlich; `git diff --check` und eine saubere Diff-Prüfung genügen.
 - Kommentare erklären nur nicht offensichtliches „Why“; keine Ticket-, Prompt- oder Refactoring-Historie im Produktionscode.
 
 ## Git und parallele Agenten
 
-- **Immer automatischer Commit**: Jede erfolgreiche Änderung (Code, Tests, Docs, Agentenregeln) wird nach passenden Prüfungen immer unmittelbar und automatisch committet.
-- **Common Commit Standards**: Deutsche Conventional Commits im Imperativ (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`). Nur explizit betroffene Pfade stagen (kein `git add .`); atomare, in sich geschlossene Commits. Pushes und Historienänderungen nur auf ausdrückliche Anforderung.
-- **Strikt serielle Abarbeitung**: Pro Task höchstens ein aktiver Agent. Keine überlappenden Builds, Tests oder Linter-Läufe.
+- **Commits nur bei Auftrag oder übergeordneter Vorgabe**: Änderungen nach erfolgreicher Prüfung im Working Tree zur Review belassen, sofern Nutzer- oder Systemanweisung keinen Commit verlangt. Bei Commits deutsche Conventional Commits im Imperativ (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`) verwenden, nur explizit betroffene Pfade stagen (kein `git add .`) und atomare, in sich geschlossene Commits erstellen. Pushes und Historienänderungen nur auf ausdrückliche Anforderung.
+- **Sichere Parallelität**: Unabhängige, vorwiegend lesende Analyse darf parallelisiert werden, wenn die Laufzeit dies erlaubt. Schreibbereiche vorab eindeutig zuweisen; keine parallelen Änderungen an denselben Dateien oder Verträgen. Builds, Tests, Migrationen und Linter-Läufe innerhalb desselben Worktrees seriell ausführen. Ein koordinierender Agent integriert und prüft das Gesamtergebnis.

@@ -7,17 +7,31 @@ alwaysApply: false
 # KnowHowToAI-TestRichtlinien
 
 - **Test-Design & Ebenen**:
-  - FastTests (Unit-Tests) sind Standard für deterministische Fachlogik: Markdown-Heading-Parser/Validierung, Rollenauflösung (Role Resolution Order), Stale-Erkennung / Freshness-Zustände, Node-Hierarchie-Logik im Speicher, Text-Ersetzung (`replace_text`), Export-Assemblierung zu Markdown, `Result`-Inhalte und Mappings. Sie starten weder SQL Server noch MCP-Infrastruktur.
-  - Integrationstests belegen ausschließlich reale Grenzen oder Zusammensetzung: MS SQL Server (Snapshot-Kopien via `INSERT ... SELECT`, Transaktions-Commit/Discard, Concurrency/SnapshotConflict, Schemamigrationen, Soft-Delete), MCP-Transport über STDIO, Prozess-/Serverlebenszyklus und Konfigurationsbindung.
+  - FastTests (Unit-Tests) sind Standard für deterministische Fachlogik: Markdown-/HTML-Heading-Validierung, Content-Normalisierung und Größenwarnungen, Rollenauflösung, transitive Stale-Erkennung und Dependency-Zyklen, Node-Hierarchie und Sortierung im Speicher, Text-Ersetzung (`replace_text`), Export-Assemblierung, `Result`-Inhalte und DTO-Mappings. Sie starten weder SQL Server noch MCP-Infrastruktur.
+  - Integrationstests belegen ausschließlich reale Grenzen oder Zusammensetzung: MS SQL Server (Migration Journal/Checksums, Snapshot-Kopien via `INSERT ... SELECT`, Commit/Discard, Concurrency/SnapshotConflict, Constraints, Indizes und Soft-Delete), MCP-Transport über STDIO, Prozess-/Serverlebenszyklus und Konfigurationsbindung.
   - Einen fachlichen Fall nicht zusätzlich über vollständigen Serverstart oder echte SQL-Datenbank testen, wenn er als Unit-Test belegbar ist. Pro Boundary genügen repräsentative Vertragstests; Varianten und Edge-Cases gehören in FastTests.
   - Die Behauptung eines Tests bestimmt seine Ebene, nicht der Ordner des Produktionscodes. Ein echter End-to-End- oder SQL-Vertrag bleibt ein Integrationstest.
 - **Test-Methodik & Qualität**:
   - **Red-Test-First bei Bugs**: Bei Fehlern oder unerwartetem Verhalten zuerst einen isolierten fehlschlagenden xUnit-v3-Test (Rot-Test / Reproduktionstest) schreiben. Erst danach gezielt beheben, bis der Test grün ist (dauerhafter Regressionsschutz).
   - Jede Logikänderung erhält xUnit-v3-Tests, die Verhalten statt Implementierungsdetails prüfen.
+  - Für jede harte Invariante mindestens Akzeptanz- und Ablehnungsfall testen. Für Warnungen zusätzlich belegen, dass die Mutation erfolgreich bleibt und weder Eingabe noch persistierter Content still verändert wird.
+  - Tests folgen Arrange/Act/Assert, erhalten verhaltensbeschreibende Namen und prüfen bei Fehlern mindestens stabilen Code und relevante strukturierte Details statt kompletter Meldungstexte.
+  - Zeit, IDs und andere nicht-deterministische Werte über kontrollierbare Provider einspeisen. Keine Wall-Clock-Wartezeiten, zufälligen Daten ohne festen Seed oder Reihenfolgeabhängigkeiten.
+  - Parameterisierte Tests verwenden, wenn mehrere Eingaben denselben Vertrag belegen. Property-basierte Tests nur dort ergänzen, wo sie einen echten kombinatorischen Fehlerraum abdecken.
+  - Konfigurationstests belegen zentrale Appsettings-Defaults, die vollständige Override-Reihenfolge, feldübergreifende Options-Validierung, Fail-fast bei fehlenden/ungültigen Werten und die Redaction von Secrets. Fachtests injizieren Policy-Records direkt und lesen keine globale Konfiguration.
   - Tests niemals abschwächen oder auskommentieren; stets Ursache beheben.
 - **Infrastruktur & Isolation**:
   - Tests parallelisierbar halten (globale Serialisierung nur bei belegtem Bedarf; gemeinsame Zustände via Lock, Fixture oder Semaphore sichern).
-  - Datenbank-Integrationstests isoliert halten (dedizierte Test-Datenbank, isolierte Transaktionen oder isolierte Snapshot-IDs; keine Test-Interferenzen).
+  - Datenbank-Integrationstests gegen einen echten unterstützten SQL Server ausführen. Pro Lauf eine eindeutig benannte Datenbank mit festem Testpräfix verwenden; vor automatischem Löschen den aufgelösten Datenbanknamen gegen dieses Präfix validieren. Keine Entwickler-, Shared- oder Produktionsdatenbank leeren oder wiederverwenden.
+  - Connection Strings ausschließlich aus dokumentierter Testkonfiguration/Secrets lesen, niemals in Testausgaben schreiben. Fehlende SQL-Voraussetzungen müssen im Integrationstest-Skript als klarer Preflight-Fehler sichtbar sein und dürfen nicht als grüner Skip erscheinen.
+  - Migrationstests prüfen frische Installation, Wiederholung, Checksum-Abweichung, atomaren Fehlerfall und konkurrierende Runner. Snapshot-Tests prüfen alle versionierten Tabellen, nicht nur Nodes und Content.
+  - MCP-Vertragstests starten einen echten Serverprozess und prüfen, dass `stdout` ausschließlich Protokollnachrichten enthält; Logs und Diagnosen gehören nach `stderr` oder in eine Datei.
   - Testtemporärdateien (falls nötig) ausschließlich im ignorierten Repo-Temp (`temp/`) anlegen (nie im System-Temp).
   - Verifikation ausschließlich über die vorhandene C#-Testinfrastruktur (keine Ad-hoc-Skripte committen).
+- **Abdeckungsmatrix für kritische Workflows**:
+  - Jeder Read-Kontext wird gegen Current, expliziten Snapshot und Working Transaction geprüft; die Kombination von `transactionId` und `snapshotId` ist ein Negativfall.
+  - Jeder Mutations-Use-Case prüft offene, fehlende und geschlossene Transaction sowie unveränderten Current Snapshot vor Commit.
+  - Commit/Discard werden auf Wiederholung und Rennen geprüft; bei Fehlern darf kein partieller Zustandswechsel verbleiben.
+  - Rollen-Fallback und Freshness werden getrennt geprüft, einschließlich Fallback auf Derived Content und transitiv stale Quellen.
+  - Paging-/Limit-Verträge prüfen stabile Reihenfolge, Seiten ohne Duplikate/Lücken und ungültige Cursor.
 - **Abgrenzung**: Prüfzeitpunkt, Reihenfolge, Skripte und Quality-Gates stehen ausschließlich in `Richtlinien.mdc`.

@@ -78,6 +78,43 @@ Für Markdown-Verarbeitung soll eine etablierte Markdown-Bibliothek verwendet we
 
 Für SQL-Zugriff, MCP und sonstige Infrastruktur sollen aktuelle, gepflegte Standardpakete verwendet werden.
 
+## 3.1 Anwendungskonfiguration
+
+Die KnowHowTo-AI-Datenbank enthält ausschließlich Wissen und die zu seiner
+Versionierung, Bearbeitung und Freigabe benötigten Daten. Dazu gehören beispielsweise
+Snapshots, Transactions, Rollen, Role Resolution Orders und Releases. Nicht
+versionierte Betriebs-, Retrieval- oder Quality-Konfiguration wird nicht in der
+Wissensdatenbank gespeichert.
+
+Konfiguration wird in V1 wie folgt getrennt:
+
+- Harte fachliche Invarianten sind nicht abschaltbar. Dazu gehören insbesondere das
+  Heading-Verbot, die Transaction-Pflicht, unveränderliche committed Snapshots,
+  höchstens ein Root sowie zyklenfreie Hierarchie und Content Dependencies.
+- Qualitätsgrenzen wie Content-Größe, Child-Anzahl und Hierarchietiefe sind
+  Anwendungskonfiguration. Sie erzeugen Warnungen und können pro Serverinstanz
+  unterschiedlich eingestellt werden.
+- Retrieval-, Paging-, Timeout- und Migrationsparameter sind ebenfalls
+  Anwendungskonfiguration.
+- Connection Strings und andere Secrets werden nicht mit realen Werten im Repository
+  gespeichert.
+
+Nicht geheime Defaults stehen zentral in `appsettings.json`. Überschreibungen erfolgen
+in der üblichen Reihenfolge über umgebungsspezifische Appsettings, Environment-
+Variablen und Kommandozeilenargumente. Die Konfiguration wird beim Prozessstart in
+immutable typed Options gebunden und vollständig validiert. Ungültige Werte führen zu
+einem klaren Startfehler. V1 lädt Konfigurationsänderungen nicht live nach; sie werden
+nach einem Prozessneustart wirksam.
+
+Domain, Application Services und Storage greifen nicht direkt auf `IConfiguration`
+oder frei verteilte Schlüssel zu. Der Composition Root übergibt fertig validierte
+Options-/Policy-Records. Dadurch bleiben Defaults, gültige Bereiche und Overrides an
+einer zentralen Stelle nachvollziehbar und im Fachcode entstehen keine Magic Numbers.
+
+Da eine MCP-Serverinstanz genau eine KnowHowTo-AI-Datenbank bedient, kann jede
+Wissensbasis durch eine eigene App-Konfiguration abweichende Quality-Policies nutzen,
+ohne Betriebsparameter in der Datenbank zu speichern.
+
 ---
 
 # 4. Transport und Systemgrenzen
@@ -208,6 +245,10 @@ Sage 100
 
 Jeder Punkt der Hierarchie ist ein `Node`.
 
+Pro Snapshot existiert höchstens ein aktiver persistierter Root-Node. Der initiale
+leere Snapshot darf noch keinen Root besitzen. Sobald ein Root angelegt wurde, bilden
+alle weiteren aktiven Nodes genau einen von ihm ausgehenden Baum.
+
 Ein Node besitzt mindestens:
 
 ```text
@@ -327,7 +368,11 @@ Diese Funktion wird in V1 **nicht umgesetzt**.
 
 Der Titel eines Nodes ist Bestandteil der Hierarchie.
 
-Er gehört **nicht** in den Markdown-Content.
+Er darf im Markdown-Content nicht nochmals als Dokumenttitel, Überschrift oder
+alleinstehender Ersatztitel gespeichert werden. Eine normale sprachliche Erwähnung
+des Titels im Fließtext ist dagegen zulässig und oft unvermeidbar. Echte Markdown-
+oder HTML-Headings werden hart abgelehnt. Nur heuristisch erkennbare Ersatztitel
+erzeugen wegen möglicher Fehlalarme eine Qualitätswarnung.
 
 Beispiel:
 
@@ -427,7 +472,7 @@ HTML-Heading-Konstrukte wie:
 <h2>Heading</h2>
 ```
 
-sollen ebenfalls nicht verwendet werden, da sie die zentrale Struktur umgehen würden.
+sind ebenfalls verboten, da sie die zentrale Struktur umgehen würden.
 
 Fenced Code Blocks werden selbstverständlich nicht als Dokumentüberschriften interpretiert.
 
@@ -530,6 +575,10 @@ Die Größe soll über konfigurierbare Validatoren bewertet werden.
 
 Ein zu großer Node erzeugt zunächst eine Warnung und wird zum Refactoring-Kandidaten.
 
+Für V1 gilt als konfigurierbarer Standardwert eine Warnschwelle von 4 KiB für den
+normalisierten UTF-8-Content eines einzelnen Nodes. Die Warnung enthält Ist-Größe,
+Schwelle und die Empfehlung, fachliche Unterpunkte als Child-Nodes anzulegen.
+
 Wissen soll nicht verloren gehen, nur weil die Struktur gerade nicht optimal ist.
 
 Grundprinzip:
@@ -621,9 +670,11 @@ Neue Rollen können grundsätzlich hinzugefügt werden.
 
 Eine Administrationsoberfläche für Rollen ist in V1 nicht Bestandteil des Projekts.
 
-Die Rollen können initial über Datenbankkonfiguration, Seed-Daten oder administrative SQL-Mechanismen gepflegt werden.
+Die initiale Rolle `Default` kann über Seed-Daten angelegt werden. Danach werden
+Rollen und ihre Resolution Orders wie anderer versionierter Wissenszustand innerhalb
+einer KnowHowTo-AI-Transaction über Application Services und MCP-Funktionen gepflegt.
 
-Auch bei manueller Pflege dürfen bereits committed Snapshots nicht nachträglich verändert werden.
+Auch bei der Rollenpflege dürfen bereits committed Snapshots nicht nachträglich verändert werden.
 
 ---
 
@@ -919,6 +970,10 @@ Sources:
 
 Wenn sich später eine Source-Revision ändert, wird der abgeleitete Inhalt stale.
 
+Ist eine Source selbst `Derived` und stale, ist auch der davon abhängige Content
+transitiv stale. Abhängigkeiten dürfen deshalb weder direkte noch indirekte Zyklen
+bilden. Ein Dependency-Zyklus ist eine harte Invariante und wird abgelehnt.
+
 ---
 
 # 27. Stale-Erkennung
@@ -1176,6 +1231,14 @@ INSERT ... SELECT ...
 
 in den Working Snapshot kopiert.
 
+Die vollständige Kopie umfasst mindestens:
+
+- Rollen,
+- Role Resolution Orders,
+- Nodes,
+- NodeContents,
+- ContentDependencies.
+
 Die Transaction referenziert:
 
 ```text
@@ -1249,6 +1312,13 @@ oder eine äquivalente Tombstone-Semantik.
 Es werden keine historischen Datensätze physisch entfernt, um den aktuellen Zustand herzustellen.
 
 Ein alter Snapshot bleibt unverändert nachvollziehbar.
+
+Soft-Delete gilt für fachliche Objekte mit stabiler Identität, insbesondere Nodes,
+Rollen und Rollen-Content. Reine Zuordnungen wie Role Resolution Orders und Content
+Dependencies dürfen innerhalb eines Working Snapshots atomar ersetzt werden. Dies
+zerstört keine Historie, weil der unveränderte Base Snapshot die vorherige Zuordnung
+vollständig enthält. Committed oder historische Snapshots werden niemals physisch
+verändert.
 
 ---
 
@@ -1519,19 +1589,24 @@ Default
 
 V1 benötigt keine grafische Administration.
 
-Es ist ausreichend, wenn Rollen und ihre Resolution Orders initial über:
+Die Rolle `Default` und ihre initiale Resolution Order dürfen durch das Seed-Skript
+angelegt werden. Laufende Änderungen erfolgen anschließend über transaktionale
+Application-/MCP-Operationen, mindestens:
 
-- Seed-Daten,
-- Datenbankskripte,
-- administrative SQL-Prozeduren
-
-gepflegt werden können.
+```text
+create_role
+update_role
+delete_role
+set_role_resolution
+```
 
 Wichtig:
 
 Committed Snapshots dürfen auch dabei niemals direkt verändert werden.
 
-Änderungen müssen einen neuen versionierten Zustand erzeugen.
+Änderungen müssen einen neuen versionierten Zustand erzeugen und deshalb eine offene
+KnowHowTo-AI-Transaction verwenden. Direkte administrative SQL-Änderungen an
+versionierten Tabellen sind kein unterstützter V1-Workflow.
 
 Eine spätere Administrationsoberfläche ist vorgesehen, aber nicht Bestandteil von V1.
 
@@ -1981,6 +2056,15 @@ reorder_node
 delete_node
 ```
 
+## Rollen und Resolution Orders
+
+```text
+create_role
+update_role
+delete_role
+set_role_resolution
+```
+
 ## Content
 
 ```text
@@ -2003,16 +2087,19 @@ export_tree
 
 ## Historie
 
-Mindestens konzeptionell sinnvoll:
+V1 enthält mindestens:
 
 ```text
 get_snapshot
 list_releases
 compare_snapshots
 get_transaction_changes
+create_release
 ```
 
-Historienabfragen können teilweise nachgelagert implementiert werden, die Datenstruktur muss sie jedoch ermöglichen.
+`create_release` registriert atomar einen unveränderlichen Verweis auf einen bereits
+committed Snapshot. Da es keinen versionierten Snapshot-Inhalt verändert, benötigt
+diese Metadatenoperation keine KnowHowTo-AI-Transaction.
 
 ---
 
@@ -2226,7 +2313,13 @@ WorkingSnapshotId
 State
 CreatedAt
 CommittedAt
+ChangeVersion
 ```
+
+`ChangeVersion` beginnt bei `0` und wird bei jeder erfolgreichen Änderung des
+Working Snapshots atomar erhöht. Damit können paginierte Reads erkennen, dass ein
+Cursor nach einer zwischenzeitlichen Mutation nicht mehr zu demselben Arbeitsstand
+gehört.
 
 Zusätzlich sind optionale Metadaten sinnvoll:
 
@@ -2462,8 +2555,11 @@ Verwaltung von:
 - Releases
 - Snapshots
 - Transactions
-- Validator-Konfiguration
 - Knowledge-Struktur
+
+Nicht versionierte Validator- und Betriebsparameter bleiben auch bei einer späteren
+Oberfläche Anwendungskonfiguration und werden nicht als Wissensinhalt in dieser
+Datenbank gespeichert.
 
 ## Präsentations-Views
 
@@ -2516,36 +2612,38 @@ Content-Rollen bleiben davon getrennt.
 
 Die folgenden Regeln sind verbindlich.
 
-1. Jeder fachliche Write benötigt eine `TransactionId`.
+1. Jeder Write am versionierten Wissenszustand benötigt eine `TransactionId`; die Registrierung eines Releases ist reine Metadatenverwaltung.
 2. Eine KnowHowTo-AI-Transaction ist keine langfristig offene SQL-Transaction.
 3. Beim Öffnen einer Transaction wird der vollständige aktuelle Wissensstand kopiert.
 4. Committed Snapshots sind unveränderlich.
 5. Historische Daten werden nicht physisch gelöscht.
 6. Jeder Node besitzt eine stabile logische `NodeId`.
-7. Die Hierarchie ist in V1 global für alle Rollen.
-8. Node-Titel gehören nicht in `ContentMd`.
-9. Persistierter Content darf keine Überschriften enthalten.
-10. Überschriften werden ausschließlich aus der Node-Hierarchie erzeugt.
-11. Heading-Validierung erfolgt mit einem Markdown-Parser.
-12. Rollen sind frei definierbar.
-13. Role Resolution Orders sind frei konfigurierbar und deterministisch.
-14. Fehlender Rollen-Content darf per Fallback aufgelöst werden.
-15. `requestedRole` und `resolvedRole` werden immer transparent zurückgegeben.
-16. Identischer Content wird nicht unnötig pro Rolle dupliziert.
-17. Eigener Rollen-Content kann als `Independent` oder `Derived` geführt werden.
-18. Derived Content speichert Source-Revisions.
-19. Änderungen an Source-Revisions können abhängigen Content als stale markieren.
-20. Stale Content wird nicht automatisch überschrieben.
-21. Dokumentationssynchronisation ist ein eigener Workflow.
-22. Nodes sollen klein gehalten werden.
-23. Zu große Nodes erzeugen zunächst Qualitätswarnungen statt automatischem Wissensverlust.
-24. Refactoring erfolgt bewusst und transaktional.
-25. Content-Reads sind metadata-first und token-effizient.
-26. Reads können gegen Current Snapshot, historischen Snapshot oder Working Transaction laufen.
-27. Konkurrierende Commits dürfen keine Änderungen überschreiben.
-28. V1 führt kein automatisches Merge aus.
-29. Node-Löschung und Rollen-Content-Löschung sind unterschiedliche Operationen.
-30. STDIO ist nur der erste Transport; Businesslogik darf nicht darin liegen.
+7. Pro Snapshot existiert höchstens ein aktiver Root-Node; ein leerer Snapshot darf keinen besitzen.
+8. Die Hierarchie ist in V1 global für alle Rollen.
+9. Node-Titel werden nicht als Überschrift oder Ersatztitel in `ContentMd` gespeichert; normale Erwähnungen im Fließtext sind erlaubt.
+10. Persistierter Content darf keine Überschriften enthalten.
+11. Überschriften werden ausschließlich aus der Node-Hierarchie erzeugt.
+12. Heading-Validierung erfolgt mit einem Markdown-Parser.
+13. Rollen sind frei definierbar und werden nach dem initialen Seed transaktional gepflegt.
+14. Role Resolution Orders sind frei konfigurierbar und deterministisch.
+15. Fehlender Rollen-Content darf per Fallback aufgelöst werden.
+16. `requestedRole` und `resolvedRole` werden immer transparent zurückgegeben.
+17. Identischer Content wird nicht unnötig pro Rolle dupliziert.
+18. Eigener Rollen-Content kann als `Independent` oder `Derived` geführt werden.
+19. Derived Content speichert Source-Revisions.
+20. Änderungen an Source-Revisions oder stale Derived Sources markieren abhängigen Content transitiv als stale.
+21. Content Dependencies dürfen keine Zyklen bilden.
+22. Stale Content wird nicht automatisch überschrieben.
+23. Dokumentationssynchronisation ist ein eigener Workflow.
+24. Nodes sollen klein gehalten werden.
+25. Zu große Nodes erzeugen standardmäßig ab 4 KiB eine konfigurierbare Qualitätswarnung statt automatischem Wissensverlust.
+26. Refactoring erfolgt bewusst und transaktional.
+27. Content-Reads sind metadata-first und token-effizient.
+28. Reads können gegen Current Snapshot, historischen Snapshot oder Working Transaction laufen.
+29. Konkurrierende Commits dürfen keine Änderungen überschreiben.
+30. V1 führt kein automatisches Merge aus.
+31. Node-Löschung und Rollen-Content-Löschung sind unterschiedliche Operationen.
+32. STDIO ist nur der erste Transport; Businesslogik darf nicht darin liegen.
 
 ---
 
@@ -2931,18 +3029,16 @@ Die Implementierung sollte aus diesem Konzept in ungefähr folgender Reihenfolge
 
 1. Domänenmodell und Invarianten festlegen.
 2. konkretes SQL-Schema entwerfen.
-3. Snapshot- und Transaction-Semantik implementieren.
-4. Node-Hierarchie implementieren.
-5. Rollen und Role Resolution implementieren.
-6. NodeContent und ContentRevision implementieren.
-7. Markdown-Validator implementieren.
-8. Content Dependencies und Stale-Erkennung implementieren.
-9. Application Services implementieren.
-10. MCP-Tools definieren.
+3. Migration Runner und reale SQL-Testumgebung implementieren.
+4. Domänenverträge, Validatoren und Invarianten mit FastTests implementieren.
+5. Snapshot- und Transaction-Semantik einschließlich vollständiger Snapshot-Kopie implementieren.
+6. Node-Hierarchie, Rollen und Role Resolution implementieren.
+7. NodeContent, ContentRevision, Dependencies und transitive Stale-Erkennung implementieren.
+8. Application Services implementieren.
+9. Navigation, Search, Export, Historie und Releases implementieren.
+10. MCP-Verträge definieren.
 11. STDIO-MCP-Adapter implementieren.
-12. Export implementieren.
-13. Navigation und Search implementieren.
-14. weitere Qualitätsvalidatoren ergänzen.
-15. Integrationstests für konkurrierende Transactions, Rollenauflösung, Snapshots und Drift erstellen.
+12. Integrationstests für Migrationen, konkurrierende Transactions, Rollenauflösung, Snapshots, Drift und MCP erstellen.
+13. End-to-End-Workflow und V1-Abschlussgates ausführen.
 
 Dieses Konzept ist die fachliche Ausgangsbasis. Änderungen an den hier definierten Kerninvarianten sollten bewusst als Architekturentscheidung behandelt werden.
