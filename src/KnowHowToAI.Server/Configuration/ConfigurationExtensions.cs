@@ -18,8 +18,9 @@ internal static class ConfigurationExtensions
     ///   3. Environment-Variablen mit Doppelunterstrich als Trennzeichen (z.B. KnowHowToAI__Retrieval__MaximumPageSize=200)
     ///   4. Kommandozeilenargumente
     ///
-    /// Secrets (Connection Strings) kommen ausschließlich aus Environment-Variablen,
-    /// User Secrets oder dem Deployment-Secretstore – niemals aus appsettings.json.
+    /// Die separate <c>DatabaseConnection</c>-Sektion wird bewusst nicht hier gebunden.
+    /// Sie stammt ausschließlich aus der versionierten App-Konfiguration und erhält
+    /// keine alternative Connection-String-Umgebungsvariable.
     /// </summary>
     public static IServiceCollection AddKnowHowToAIOptions(
         this IServiceCollection services,
