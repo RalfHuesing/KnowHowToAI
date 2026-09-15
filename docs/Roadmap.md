@@ -279,14 +279,14 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] Transaction liest ausschließlich ihren Working Snapshot
   - [x] historische Reads akzeptieren nur vorhandene Snapshots; Tombstones werden
     standardmäßig nicht als aktive Daten ausgeliefert
-- [ ] **M2.3: Content-Normalisierung und Revisionen**
-  - [ ] Eingaben kanonisch auf LF normalisieren; keine semantische Änderung allein
+- [x] **M2.3: Content-Normalisierung und Revisionen**
+  - [x] Eingaben kanonisch auf LF normalisieren; keine semantische Änderung allein
     durch CRLF/LF
-  - [ ] bei neuem oder tatsächlich geändertem normalisiertem Text eine neue
+  - [x] bei neuem oder tatsächlich geändertem normalisiertem Text eine neue
     `ContentRevisionId` erzeugen
-  - [ ] bei identischem Text die Revision beibehalten; reine Aktualisierung von Mode
+  - [x] bei identischem Text die Revision beibehalten; reine Aktualisierung von Mode
     oder Dependencies ändert die Textrevision nicht
-  - [ ] Löschen und erneutes Anlegen erzeugt auch bei gleichem Text eine neue Revision
+  - [x] Löschen und erneutes Anlegen erzeugt auch bei gleichem Text eine neue Revision
 - [ ] **M2.4: Heading- und Strukturvalidator**
   - [ ] Markdig-AST für ATX- und Setext-Headings verwenden
   - [ ] rohe HTML-Elemente `<h1>` bis `<h6>` unabhängig von Groß-/Kleinschreibung
