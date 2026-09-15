@@ -11,6 +11,7 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Migrations;
 /// gegen einen echten SQL Server mit der Appsettings-Sektion <c>DatabaseConnection</c>.
 /// </summary>
 [Trait("Category", "ManualDatabaseIntegration")]
+[Collection("ManualDatabaseIntegration")]
 public sealed class SqlSchemaMigratorTests
 {
     // ─── Helper ────────────────────────────────────────────────────────────────
@@ -36,14 +37,15 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task FreshDatabase_AppliesAllMigrations()
     {
-        await using var db = await SqlTestDatabase.ConnectAsync();
+        await using var db = await SqlTestDatabase.ConnectFreshAsync();
         var (migrator, catalog) = BuildMigrator(db);
 
         var applied = await migrator.MigrateAsync();
 
         Assert.Equal(catalog.Scripts.Count, applied);
         await AssertJournalHasEntriesAsync(db, catalog.Scripts.Count);
-        await AssertSeedTableExistsAsync(db);
+        await AssertExpectedSchemaAsync(db);
+        await AssertInitialStateIsSeededAsync(db);
     }
 
     // ─── M1.5 Nachweis 2: Zweiter Lauf ist ohne Schemaänderung erfolgreich ────
@@ -51,7 +53,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task SecondRun_IsIdempotent()
     {
-        await using var db = await SqlTestDatabase.ConnectAsync();
+        await using var db = await SqlTestDatabase.ConnectFreshAsync();
         var (migrator, _) = BuildMigrator(db);
 
         var firstRun = await migrator.MigrateAsync();
@@ -66,7 +68,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task ModifiedChecksum_IsRejected()
     {
-        await using var db = await SqlTestDatabase.ConnectAsync();
+        await using var db = await SqlTestDatabase.ConnectFreshAsync();
         var (migrator, catalog) = BuildMigrator(db);
 
         // Ersten Lauf erfolgreich abschließen
@@ -90,7 +92,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task ParallelRunners_ApplyEachMigrationExactlyOnce()
     {
-        await using var db = await SqlTestDatabase.ConnectAsync();
+        await using var db = await SqlTestDatabase.ConnectFreshAsync();
 
         // Mehrere Runner parallel starten
         const int runnerCount = 4;
@@ -118,7 +120,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task FailedMigration_LeavesNoJournalEntryOrPartialSchema()
     {
-        await using var db = await SqlTestDatabase.ConnectAsync();
+        await using var db = await SqlTestDatabase.ConnectFreshAsync();
         var bootstrap = new EmbeddedMigrationCatalog().BootstrapScript;
         var failingScript = MigrationScript.Create(
             1,
@@ -151,14 +153,92 @@ public sealed class SqlSchemaMigratorTests
         Assert.Equal(expectedCount, actual);
     }
 
-    private static async Task AssertSeedTableExistsAsync(SqlTestDatabase db)
+    private static async Task AssertExpectedSchemaAsync(SqlTestDatabase db)
     {
-        // Prüft, dass das Seed-Skript ausgeführt wurde (SystemState-Tabelle vorhanden und befüllt)
         await using var conn = await db.ConnectionFactory.OpenAsync();
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM dbo.KnowHowToAI_SystemState;";
-        var count = (int)(await cmd.ExecuteScalarAsync())!;
-        Assert.True(count > 0, "Seed-Skript muss mindestens einen SystemState-Eintrag erzeugt haben.");
+        cmd.CommandText = """
+            SELECT tableInfo.name
+            FROM sys.tables AS tableInfo
+            INNER JOIN sys.schemas AS schemaInfo ON schemaInfo.schema_id = tableInfo.schema_id
+            WHERE schemaInfo.name = N'dbo' AND tableInfo.name LIKE N'KnowHowToAI[_]%'
+            ORDER BY tableInfo.name;
+            """;
+
+        var tables = await ReadStringsAsync(cmd);
+        Assert.Equal(
+            [
+                "KnowHowToAI_ContentDependency",
+                "KnowHowToAI_Node",
+                "KnowHowToAI_NodeContent",
+                "KnowHowToAI_Release",
+                "KnowHowToAI_Role",
+                "KnowHowToAI_RoleResolution",
+                "KnowHowToAI_SchemaMigration",
+                "KnowHowToAI_Snapshot",
+                "KnowHowToAI_SystemState",
+                "KnowHowToAI_Transaction"
+            ],
+            tables);
+
+        cmd.CommandText = """
+            SELECT indexInfo.name
+            FROM sys.indexes AS indexInfo
+            INNER JOIN sys.tables AS tableInfo ON tableInfo.object_id = indexInfo.object_id
+            INNER JOIN sys.schemas AS schemaInfo ON schemaInfo.schema_id = tableInfo.schema_id
+            WHERE schemaInfo.name = N'dbo'
+              AND tableInfo.name LIKE N'KnowHowToAI[_]%'
+              AND indexInfo.name LIKE N'%[_]KnowHowToAI[_]%'
+              AND indexInfo.is_primary_key = 0
+              AND indexInfo.is_unique_constraint = 0
+            ORDER BY indexInfo.name;
+            """;
+
+        var indexes = await ReadStringsAsync(cmd);
+        Assert.Equal(
+            [
+                "IX_KnowHowToAI_ContentDependency_Source",
+                "IX_KnowHowToAI_Node_NodeId",
+                "IX_KnowHowToAI_NodeContent_Revision",
+                "IX_KnowHowToAI_NodeContent_Role",
+                "IX_KnowHowToAI_Release_Snapshot",
+                "IX_KnowHowToAI_Role_RoleId",
+                "IX_KnowHowToAI_RoleResolution_Candidate",
+                "IX_KnowHowToAI_Snapshot_BaseSnapshot",
+                "IX_KnowHowToAI_Snapshot_State",
+                "IX_KnowHowToAI_Transaction_State",
+                "UQ_KnowHowToAI_Node_ActiveRoot",
+                "UQ_KnowHowToAI_Node_ActiveSiblingSortOrder"
+            ],
+            indexes);
+    }
+
+    private static async Task AssertInitialStateIsSeededAsync(SqlTestDatabase db)
+    {
+        await using var conn = await db.ConnectionFactory.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT COUNT(*)
+            FROM dbo.KnowHowToAI_SystemState AS systemState
+            INNER JOIN dbo.KnowHowToAI_Snapshot AS snapshot
+                ON snapshot.SnapshotId = systemState.CurrentSnapshotId
+            INNER JOIN dbo.KnowHowToAI_Role AS roleInfo
+                ON roleInfo.SnapshotId = snapshot.SnapshotId
+            INNER JOIN dbo.KnowHowToAI_RoleResolution AS resolution
+                ON resolution.SnapshotId = snapshot.SnapshotId
+                AND resolution.RequestedRoleId = roleInfo.RoleId
+            WHERE systemState.Id = 1
+              AND snapshot.State = 'Committed'
+              AND snapshot.BaseSnapshotId IS NULL
+              AND snapshot.CommittedAtUtc IS NOT NULL
+              AND roleInfo.RoleId = N'Default'
+              AND roleInfo.Name = N'Default'
+              AND roleInfo.IsDeleted = 0
+              AND resolution.CandidateRoleId = N'Default'
+              AND resolution.Priority = 1;
+            """;
+        var matchingSeedStates = (int)(await cmd.ExecuteScalarAsync())!;
+        Assert.Equal(1, matchingSeedStates);
     }
 
     private static async Task AssertNoDuplicateVersionsInJournalAsync(SqlTestDatabase db)
@@ -192,6 +272,15 @@ public sealed class SqlSchemaMigratorTests
         cmd.CommandText = "SELECT OBJECT_ID(@tableName, N'U');";
         cmd.Parameters.AddWithValue("@tableName", $"dbo.{tableName}");
         var objectId = await cmd.ExecuteScalarAsync();
-        Assert.Null(objectId);
+        Assert.True(objectId is null or DBNull, $"Tabelle '{tableName}' darf nach dem Rollback nicht bestehen.");
+    }
+
+    private static async Task<List<string>> ReadStringsAsync(Microsoft.Data.SqlClient.SqlCommand command)
+    {
+        var values = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+            values.Add(reader.GetString(0));
+        return values;
     }
 }

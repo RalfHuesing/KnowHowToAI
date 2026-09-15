@@ -165,6 +165,10 @@ internal sealed class SqlSchemaMigrator : ISchemaMigrator
         await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            // Ein fehlerhaftes Skript muss die gesamte kurzen Migrations-Transaction
+            // zurücksetzen, auch wenn das Skript selbst diese Session-Option vergisst.
+            await ExecuteScriptAsync(connection, transaction, "SET XACT_ABORT ON;", cancellationToken).ConfigureAwait(false);
+
             // SQL-Skript ausführen
             await ExecuteScriptAsync(connection, transaction, script.Content, cancellationToken).ConfigureAwait(false);
 

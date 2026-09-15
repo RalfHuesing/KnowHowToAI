@@ -7,10 +7,13 @@ namespace KnowHowToAI.IntegrationTests.TestSupport;
 /// <summary>
 /// Stellt eine Verbindung zu der manuell bereitgestellten Testdatenbank her. Liest die
 /// Verbindung ausschließlich aus der dokumentierten Appsettings-Sektion
-/// <c>DatabaseConnection</c> und erzeugt oder entfernt niemals Datenbanken.
+/// <c>DatabaseConnection</c> und erzeugt oder entfernt niemals Datenbanken. Manuelle
+/// Migrationstests verwenden ausschließlich eine dafür dedizierte Datenbank.
 /// </summary>
 public sealed class SqlTestDatabase : IAsyncDisposable
 {
+    private bool _resetOnDispose;
+
     public string DatabaseName { get; }
     public string ConnectionString { get; }
     internal SqlConnectionFactory ConnectionFactory { get; }
@@ -48,5 +51,61 @@ public sealed class SqlTestDatabase : IAsyncDisposable
         return new SqlTestDatabase(settings.Database, connectionString);
     }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    /// <summary>
+    /// Stellt für einen expliziten manuellen Migrationstest einen leeren
+    /// KnowHowToAI-Schemazustand bereit. Die Datenbank selbst bleibt unverändert.
+    /// </summary>
+    public static async Task<SqlTestDatabase> ConnectFreshAsync(CancellationToken cancellationToken = default)
+    {
+        var database = await ConnectAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await database.ResetKnowHowToAISchemaAsync(cancellationToken).ConfigureAwait(false);
+            database._resetOnDispose = true;
+            return database;
+        }
+        catch
+        {
+            await database.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_resetOnDispose)
+            await ResetKnowHowToAISchemaAsync(CancellationToken.None).ConfigureAwait(false);
+    }
+
+    private async Task ResetKnowHowToAISchemaAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectionFactory.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        using var command = connection.CreateCommand();
+        command.Transaction = (SqlTransaction)transaction;
+        command.CommandText = """
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_RollbackProbe;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_ContentDependency;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_NodeContent;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_RoleResolution;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_Node;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_Role;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_Release;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_Transaction;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_SystemState;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_Snapshot;
+            DROP TABLE IF EXISTS dbo.KnowHowToAI_SchemaMigration;
+            """;
+
+        try
+        {
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
+    }
 }

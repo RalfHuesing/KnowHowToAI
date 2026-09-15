@@ -228,14 +228,15 @@ echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert we
   - [x] fehlende Voraussetzungen mit klarer Preflight-Meldung melden, niemals als
     scheinbar grünen Test überspringen
   - [x] mutierende M1.5-Migrationstests ausschließlich als explizite
-    `ManualDatabaseIntegration` ausführen, weil sie einen manuell vorbereiteten
-    Datenbankzustand voraussetzen
-- [ ] **M1.5: Integrationsnachweise**
-  - [ ] frische Datenbank wird vollständig erstellt und geseedet
-  - [ ] zweiter Lauf ist ohne Schemaänderung erfolgreich
-  - [ ] veränderte Checksum wird abgelehnt
-  - [ ] parallele Runner wenden jede Migration genau einmal an
-  - [ ] Fehler in einer Migration hinterlässt weder Journal-Eintrag noch Teilschema
+    `ManualDatabaseIntegration` gegen eine dedizierte, manuell bereitgestellte
+    Testdatenbank ausführen; der Harness setzt ausschließlich bekannte
+    KnowHowToAI-Tabellen zurück und erzeugt oder entfernt keine Datenbank
+- [x] **M1.5: Integrationsnachweise**
+  - [x] frische Datenbank wird vollständig erstellt und geseedet
+  - [x] zweiter Lauf ist ohne Schemaänderung erfolgreich
+  - [x] veränderte Checksum wird abgelehnt
+  - [x] parallele Runner wenden jede Migration genau einmal an
+  - [x] Fehler in einer Migration hinterlässt weder Journal-Eintrag noch Teilschema
 
 **Abnahme:** Migrations-Integrationstests laufen gegen echten SQL Server grün; das
 resultierende Schema entspricht allen DDL- und Index-Erwartungen.
