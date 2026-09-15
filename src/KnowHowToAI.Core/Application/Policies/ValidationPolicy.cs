@@ -1,3 +1,5 @@
+using KnowHowToAI.Core.Domain.Validation;
+
 namespace KnowHowToAI.Core.Application.Policies;
 
 /// <summary>
@@ -18,5 +20,7 @@ public sealed record ValidationPolicy
 
     /// <summary>Aktiviert die heuristische Warnung für alleinstehende Ersatztitel (PossibleEmbeddedHeading).</summary>
     public bool PossibleEmbeddedHeadingWarning { get; init; }
-}
 
+    public QualityWarningThresholds ToQualityWarningThresholds() =>
+        new(ContentSizeWarningBytes, ChildCountWarning, HierarchyDepthWarning);
+}

@@ -296,11 +296,11 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] alleinstehende Strong-/Emphasis-Absätze und eine alleinstehende Wiederholung
     des Node-Titels als `PossibleEmbeddedHeading` warnen, nicht hart ablehnen
   - [x] persistiertes System-Front-Matter mit `FrontMatterNotAllowed` ablehnen
-- [ ] **M2.5: Größen- und Strukturwarnungen**
-  - [ ] normalisierte UTF-8-Größe messen; Standardgrenze 4 KiB aus typed Options verwenden
-  - [ ] `NodeTooLarge` mit Ist-Größe, Schwelle und Empfehlung für Child-Nodes liefern
-  - [ ] Warnungen für ungewöhnliche Hierarchietiefe und Child-Anzahl vorbereiten
-  - [ ] Warnungen blockieren weder Mutation noch Commit und verändern keinen Content
+- [x] **M2.5: Größen- und Strukturwarnungen**
+  - [x] normalisierte UTF-8-Größe messen; Standardgrenze 4 KiB aus typed Options verwenden
+  - [x] `NodeTooLarge` mit Ist-Größe, Schwelle und Empfehlung für Child-Nodes liefern
+  - [x] Warnungen für ungewöhnliche Hierarchietiefe und Child-Anzahl vorbereiten
+  - [x] Warnungen blockieren weder Mutation noch Commit und verändern keinen Content
 - [ ] **M2.6: Hierarchie-Invarianten**
   - [ ] maximal einen aktiven Root pro Snapshot; leerer Baum zulässig
   - [ ] Parent muss aktiv im selben Snapshot existieren; Self-Parent und Zyklen ablehnen
