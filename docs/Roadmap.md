@@ -401,6 +401,17 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] zwei parallele Transactions: genau der erste Commit gewinnt
   - [x] Rollback bei injiziertem Fehler in Begin, Mutation und Commit
   - [x] historische committed Snapshots bleiben byte-/wertgleich reproduzierbar
+- [x] **M3.8: Konsistente Validierungsansicht unter parallelen Working-Mutationen**
+  - [x] vollständige Validierungsdaten (Rollen, Resolution Orders, Nodes, NodeContents
+    und ContentDependencies) innerhalb einer einzelnen kurzen, read-only SQL-Transaction
+    nach Open-/Working-Guard und unter derselben Transaction-Zeilen-Sperre lesen
+  - [x] `validate_transaction` ausschließlich aus dieser atomaren Ansicht erzeugen; keine
+    parallelen Einzel-Reads mit gemischten Snapshot-Zeitständen
+  - [x] echte SQL-Integration mit gezielt überlappender Mutation/Validierung: der Befund
+    repräsentiert vollständig den Zustand vor oder nach der Mutation, niemals einen
+    Mischzustand; Wiederholung ohne Mutation bleibt identisch und read-only
+  - [x] fehlende, geschlossene oder nicht mehr offene Working-Transaction liefert dabei
+    weiterhin stabile Fehlercodes ohne Zustands- oder `ChangeVersion`-Änderung
 
 **Abnahme:** Alle M3-Integrationstests grün; es bleibt zwischen MCP-Aufrufen keine
 offene SQL-Transaction oder Connection bestehen.

@@ -64,12 +64,8 @@ internal abstract class SqlRepository
 
         try
         {
-            var guard = await connection.QuerySingleOrDefaultAsync<WorkingSnapshotMutationGuardRow>(
-                CreateCommand(
-                    LockTransactionSql,
-                    new { transactionId = transactionId.Value },
-                    cancellationToken,
-                    databaseTransaction)).ConfigureAwait(false);
+            var guard = await ReadWorkingSnapshotGuardAsync(connection, databaseTransaction, transactionId, cancellationToken)
+                .ConfigureAwait(false);
             ValidateWorkingSnapshotMutationGuard(guard, transactionId);
 
             var context = new SqlWorkingSnapshotMutationContext(
@@ -100,8 +96,30 @@ internal abstract class SqlRepository
         }
     }
 
+    /// <summary>Liest unter derselben Sperre wie Mutationen den offenen Working-Snapshot-Zustand.</summary>
+    protected async Task<WorkingSnapshotGuard?> ReadWorkingSnapshotGuardAsync(
+        SqlConnection connection,
+        SqlTransaction databaseTransaction,
+        TransactionId transactionId,
+        CancellationToken cancellationToken)
+    {
+        var guard = await connection.QuerySingleOrDefaultAsync<WorkingSnapshotMutationGuardRow>(
+            CreateCommand(
+                LockTransactionSql,
+                new { transactionId = transactionId.Value },
+                cancellationToken,
+                databaseTransaction)).ConfigureAwait(false);
+        return guard is null
+            ? null
+            : new WorkingSnapshotGuard(
+                guard.WorkingSnapshotId,
+                guard.TransactionState,
+                guard.SnapshotState,
+                guard.ChangeVersion);
+    }
+
     private static void ValidateWorkingSnapshotMutationGuard(
-        WorkingSnapshotMutationGuardRow? guard,
+        WorkingSnapshotGuard? guard,
         TransactionId transactionId)
     {
         if (guard is null)
@@ -119,6 +137,12 @@ internal abstract class SqlRepository
                 "WorkingSnapshotNotOpen",
                 $"Der Working Snapshot der Transaction '{transactionId.Value}' ist nicht bearbeitbar.");
     }
+
+    protected sealed record WorkingSnapshotGuard(
+        long WorkingSnapshotId,
+        string TransactionState,
+        string SnapshotState,
+        long ChangeVersion);
 
     private sealed class WorkingSnapshotMutationGuardRow
     {

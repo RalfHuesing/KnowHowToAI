@@ -1,7 +1,6 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Core.Domain.Validation;
 
 namespace KnowHowToAI.Core.Application.Transactions;
@@ -10,19 +9,16 @@ namespace KnowHowToAI.Core.Application.Transactions;
 public sealed class TransactionService
 {
     private readonly ITransactionRepository _transactionRepository;
-    private readonly ISnapshotRepository _snapshotRepository;
-    private readonly WorkingSnapshotValidationDataReader _validationDataReader;
+    private readonly IWorkingSnapshotValidationDataRepository _validationDataRepository;
     private readonly ValidationPolicy _validationPolicy;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
-        ISnapshotRepository snapshotRepository,
-        WorkingSnapshotValidationDataReader validationDataReader,
+        IWorkingSnapshotValidationDataRepository validationDataRepository,
         ValidationPolicy validationPolicy)
     {
         _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
-        _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
-        _validationDataReader = validationDataReader ?? throw new ArgumentNullException(nameof(validationDataReader));
+        _validationDataRepository = validationDataRepository ?? throw new ArgumentNullException(nameof(validationDataRepository));
         _validationPolicy = validationPolicy ?? throw new ArgumentNullException(nameof(validationPolicy));
     }
 
@@ -31,27 +27,11 @@ public sealed class TransactionService
         TransactionId transactionId,
         CancellationToken cancellationToken = default)
     {
-        var transaction = await _transactionRepository.FindAsync(transactionId, cancellationToken).ConfigureAwait(false);
-        if (transaction is null)
-            return Result<TransactionValidationReport>.Failure(CreateTransactionError(
-                TransactionValidationErrorCodes.TransactionNotFound,
-                "Die angefragte Transaction existiert nicht.",
-                transactionId));
+        var dataResult = await _validationDataRepository.ReadOpenWorkingAsync(transactionId, cancellationToken).ConfigureAwait(false);
+        if (!dataResult.IsSuccess)
+            return Result<TransactionValidationReport>.Failure(dataResult.Error!);
 
-        if (transaction.State != TransactionState.Open)
-            return Result<TransactionValidationReport>.Failure(CreateTransactionError(
-                TransactionValidationErrorCodes.TransactionClosed,
-                "Die angefragte Transaction ist nicht offen.",
-                transactionId));
-
-        var snapshot = await _snapshotRepository.FindAsync(transaction.WorkingSnapshotId, cancellationToken).ConfigureAwait(false);
-        if (snapshot is null || snapshot.State != SnapshotState.Working)
-            return Result<TransactionValidationReport>.Failure(CreateTransactionError(
-                TransactionValidationErrorCodes.WorkingSnapshotNotOpen,
-                "Der Working Snapshot der Transaction ist nicht bearbeitbar.",
-                transactionId));
-
-        var data = await _validationDataReader.ReadAsync(transaction.WorkingSnapshotId, cancellationToken).ConfigureAwait(false);
+        var data = dataResult.Value!;
 
         return Result<TransactionValidationReport>.Success(TransactionValidator.Validate(new TransactionValidationRequest(
             data.Nodes,
@@ -80,9 +60,4 @@ public sealed class TransactionService
                 _validationPolicy.PossibleEmbeddedHeadingWarning),
             cancellationToken);
 
-    private static DomainError CreateTransactionError(string code, string message, TransactionId transactionId) =>
-        new(code, message, new Dictionary<string, string>
-        {
-            [TransactionValidationErrorCodes.TransactionIdDetail] = transactionId.ToString()
-        });
 }
