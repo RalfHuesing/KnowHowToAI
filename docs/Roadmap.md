@@ -201,20 +201,20 @@ echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert we
   - [x] eindeutige, nicht leere Release-Namen und relationale Snapshot-Verweise absichern;
     committed Zielzustand und Unveränderlichkeit zusätzlich im Release-Use-Case M5.5
     garantieren
-- [ ] **M1.3: Migration Runner**
-  - [ ] `ISchemaMigrator` als Port und SQL-Server-Implementierung erstellen
+- [x] **M1.3: Migration Runner**
+  - [x] `ISchemaMigrator` als Port und SQL-Server-Implementierung erstellen
   - [x] reentrantes, selbst nicht journalisiertes Bootstrap für das Migration Journal mit
     Version, Name, SHA-256-Checksum und `AppliedAtUtc` bereitstellen
-  - [ ] Checksum deterministisch über den als UTF-8/LF normalisierten Skriptinhalt
+  - [x] Checksum deterministisch über den als UTF-8/LF normalisierten Skriptinhalt
     berechnen; das Journal, nicht `IF OBJECT_ID`, ist die Idempotenzquelle
-  - [ ] eingebettete Skripte strikt numerisch sortieren; doppelte Versionen ablehnen
-  - [ ] bereits angewendete Skripte nicht erneut ausführen; geänderte Checksum mit
+  - [x] eingebettete Skripte strikt numerisch sortieren; doppelte Versionen ablehnen
+  - [x] bereits angewendete Skripte nicht erneut ausführen; geänderte Checksum mit
     `MigrationChecksumMismatch` ablehnen
-  - [ ] ab dem ersten unterstützten/deployten Datenbankstand angewendete Migrationen
+  - [x] ab dem ersten unterstützten/deployten Datenbankstand angewendete Migrationen
     unverändert lassen und jede Schemaänderung ausschließlich als neue Migration ergänzen
-  - [ ] je Migration kurze SQL-Transaction verwenden und parallele Runner per
+  - [x] je Migration kurze SQL-Transaction verwenden und parallele Runner per
     SQL-Applikationssperre serialisieren
-  - [ ] Fehler mit Skriptname und Fehlercode, aber ohne Connection String/Credentials
+  - [x] Fehler mit Skriptname und Fehlercode, aber ohne Connection String/Credentials
     protokollieren; keine teilweise als erfolgreich markierte Migration
 - [ ] **M1.4: SQL-Integrationstest-Harness**
   - [ ] Verbindung ausschließlich über dokumentierte Environment-/Secret-Konfiguration
