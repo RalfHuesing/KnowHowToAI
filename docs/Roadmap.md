@@ -384,12 +384,12 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] harte Fehler, Warnungen, stale Contents und Refactoring-Kandidaten aggregieren
   - [x] deterministische Sortierung und deduplizierte Befunde
   - [x] Validation ist read-only und mehrfach identisch aufrufbar
-- [ ] **M3.5: `commit_transaction`**
-  - [ ] in einer kurzen SQL-Transaction Open-/Working-Zustand und harte Validatoren prüfen
-  - [ ] Current-Zeile sperren und `BaseSnapshotId == CurrentSnapshotId` vergleichen
-  - [ ] bei Konflikt keinerlei Statusänderung; `SnapshotConflict` enthält Base und Current
-  - [ ] bei Erfolg Snapshot, SystemState und Transaction atomar auf Committed setzen
-  - [ ] wiederholter Commit/Commit nach Discard liefert stabil `TransactionClosed`
+- [x] **M3.5: `commit_transaction`**
+  - [x] in einer kurzen SQL-Transaction Open-/Working-Zustand und harte Validatoren prüfen
+  - [x] Current-Zeile sperren und `BaseSnapshotId == CurrentSnapshotId` vergleichen
+  - [x] bei Konflikt keinerlei Statusänderung; `SnapshotConflict` enthält Base und Current
+  - [x] bei Erfolg Snapshot, SystemState und Transaction atomar auf Committed setzen
+  - [x] wiederholter Commit/Commit nach Discard liefert stabil `TransactionClosed`
 - [ ] **M3.6: `discard_transaction`**
   - [ ] Open Transaction und Working Snapshot atomar auf Discarded setzen
   - [ ] Current Snapshot unverändert lassen; Working-Daten zur Historie behalten

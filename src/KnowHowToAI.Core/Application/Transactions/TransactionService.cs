@@ -63,6 +63,23 @@ public sealed class TransactionService
             _validationPolicy.PossibleEmbeddedHeadingWarning)));
     }
 
+    /// <summary>
+    /// Committet den Working Snapshot. Die persistente Implementierung validiert unter
+    /// derselben kurzen SQL-Transaction, damit zwischen Validierung und Aktivierung
+    /// kein konkurrierender Write eingeschleust werden kann.
+    /// </summary>
+    public Task<CommitTransactionResult> CommitAsync(
+        TransactionId transactionId,
+        string? commitMessage,
+        CancellationToken cancellationToken = default) =>
+        _transactionRepository.CommitAsync(
+            new CommitTransactionRequest(
+                transactionId,
+                commitMessage,
+                _validationPolicy.ToQualityWarningThresholds(),
+                _validationPolicy.PossibleEmbeddedHeadingWarning),
+            cancellationToken);
+
     private static DomainError CreateTransactionError(string code, string message, TransactionId transactionId) =>
         new(code, message, new Dictionary<string, string>
         {
