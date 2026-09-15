@@ -11,23 +11,150 @@ namespace KnowHowToAI.Core.Tests.Application.Mutations.Roles;
 [Trait("Category", "Unit")]
 public sealed class RoleMutationServiceTests
 {
+    private static readonly SnapshotId SnapshotId = new(42);
+    private static readonly TransactionId TransactionId = new(Guid.Parse("3c7a4e9d-17bf-4317-9d78-f2ee938121c9"));
+    private static readonly NodeId NodeId = new(Guid.Parse("42d48a41-742a-483c-9bb7-91995e09612e"));
+    private static readonly ContentRevisionId ContentRevisionId = new(Guid.Parse("4e4675d3-20ec-4075-bfaf-6733069f4f3b"));
+    private static readonly RoleId DefaultRoleId = new("Default");
+    private static readonly RoleId DeveloperRoleId = new("Developer");
+    private static readonly RoleId EndUserRoleId = new("EndUser");
+
     [Fact]
     public async Task CreateRoleAsync_MissingTransaction_ReturnsStableErrorWithoutWriting()
     {
-        var service = new RoleMutationService(new RoleMutationRepositoryFake());
-        var transactionId = new TransactionId(Guid.Parse("3c7a4e9d-17bf-4317-9d78-f2ee938121c9"));
+        var repository = new InMemoryRoleMutationRepository(
+            State(),
+            new DomainError("TransactionNotFound", "Die Transaction existiert nicht.", new Dictionary<string, string> { ["transactionId"] = TransactionId.ToString() }));
+        var service = new RoleMutationService(repository);
 
-        var result = await service.CreateRoleAsync(transactionId, "Developer", null);
+        var result = await service.CreateRoleAsync(TransactionId, "Developer", null);
 
         Assert.False(result.IsSuccess);
         Assert.Equal("TransactionNotFound", result.Code);
-        Assert.Equal(transactionId.ToString(), result.Details["transactionId"]);
+        Assert.Equal(TransactionId.ToString(), result.Details["transactionId"]);
+        Assert.Equal(0, repository.ChangeVersion);
     }
 
-    private sealed class RoleMutationRepositoryFake : IRoleMutationRepository
+    [Fact]
+    public async Task CreateRoleAsync_ValidRole_NormalizesAndPersistsWorkingState()
     {
-        public Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(TransactionId transactionId, Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(new DomainError(
-                "TransactionNotFound", "Die Transaction existiert nicht.", new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() })));
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.CreateRoleAsync(TransactionId, " Developer ", " Beschreibung ");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(DeveloperRoleId, result.Value!.RoleId);
+        Assert.Equal("Developer", result.Value.Name);
+        Assert.Equal("Beschreibung", result.Value.Description);
+        Assert.Equal(1, repository.ChangeVersion);
+        Assert.Contains(repository.State.Roles, role => role == result.Value);
+    }
+
+    [Fact]
+    public async Task UpdateRoleAsync_ExistingRole_ChangesOnlyRequestedRole()
+    {
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), Role(DeveloperRoleId, "Alt")]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.UpdateRoleAsync(TransactionId, DeveloperRoleId, " Entwickler ", " Neu ");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Entwickler", result.Value!.Name);
+        Assert.Equal("Neu", result.Value.Description);
+        Assert.Equal("Default", repository.State.Roles.Single(role => role.RoleId == DefaultRoleId).Name);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task SetRoleResolutionAsync_ReplacesOneCompleteOrderAndPreservesOtherOrders()
+    {
+        var preservedResolution = new RoleResolution(SnapshotId, EndUserRoleId, DefaultRoleId, 1);
+        var repository = new InMemoryRoleMutationRepository(State(
+            [Role(DefaultRoleId), Role(DeveloperRoleId), Role(EndUserRoleId)],
+            [new RoleResolution(SnapshotId, DefaultRoleId, DefaultRoleId, 1), preservedResolution]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId, EndUserRoleId]);
+
+        Assert.True(result.IsSuccess);
+        Assert.Collection(
+            result.Value!,
+            resolution => Assert.Equal((DeveloperRoleId, 1), (resolution.CandidateRoleId, resolution.Priority)),
+            resolution => Assert.Equal((EndUserRoleId, 2), (resolution.CandidateRoleId, resolution.Priority)));
+        Assert.Equal(3, repository.State.Resolutions.Count);
+        Assert.Contains(preservedResolution, repository.State.Resolutions);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task DeleteRoleAsync_BlockingReferences_ReturnsDetailsWithoutChangingWorkingState()
+    {
+        var content = new NodeContent(SnapshotId, NodeId, DeveloperRoleId, ContentRevisionId, ContentMode.Independent, "Text", IsDeleted: false);
+        var dependency = new ContentDependency(SnapshotId, NodeId, DefaultRoleId, NodeId, DeveloperRoleId, ContentRevisionId);
+        var resolution = new RoleResolution(SnapshotId, DefaultRoleId, DeveloperRoleId, 1);
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), Role(DeveloperRoleId)], [resolution], [content], [dependency]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.DeleteRoleAsync(TransactionId, DeveloperRoleId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleMutationErrorCodes.RoleInUse, result.Code);
+        Assert.Equal("1", result.Details[RoleMutationErrorCodes.BlockingContentCountDetail]);
+        Assert.Equal("1", result.Details[RoleMutationErrorCodes.BlockingDependencyCountDetail]);
+        Assert.Equal("1", result.Details[RoleMutationErrorCodes.BlockingResolutionCountDetail]);
+        Assert.False(repository.State.Roles.Single(role => role.RoleId == DeveloperRoleId).IsDeleted);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task DeleteRoleAsync_UnreferencedRole_TombstonesRole()
+    {
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), Role(DeveloperRoleId)]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.DeleteRoleAsync(TransactionId, DeveloperRoleId);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value!.IsDeleted);
+        Assert.True(repository.State.Roles.Single(role => role.RoleId == DeveloperRoleId).IsDeleted);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
+    private static WorkingRoleMutationState State(
+        IReadOnlyList<Role>? roles = null,
+        IReadOnlyList<RoleResolution>? resolutions = null,
+        IReadOnlyList<NodeContent>? contents = null,
+        IReadOnlyList<ContentDependency>? dependencies = null) =>
+        new(SnapshotId, roles ?? [], resolutions ?? [], contents ?? [], dependencies ?? []);
+
+    private static Role Role(RoleId roleId, string? description = null) =>
+        new(SnapshotId, roleId, roleId.ToString(), description, IsDeleted: false);
+
+    private sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState state, DomainError? rejection = null) : IRoleMutationRepository
+    {
+        public WorkingRoleMutationState State { get; private set; } = state;
+
+        public long ChangeVersion { get; private set; }
+
+        public Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(
+            TransactionId transactionId,
+            Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate,
+            CancellationToken cancellationToken = default)
+        {
+            if (rejection is not null)
+                return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(rejection));
+
+            var previousState = State;
+            var decisionResult = mutate(previousState);
+            if (!decisionResult.IsSuccess)
+                return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(decisionResult.Error!, decisionResult.Warnings));
+
+            var decision = decisionResult.Value!;
+            State = decision.State;
+            ChangeVersion++;
+            return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Success(
+                new WorkingRoleMutationExecution<T>(decision.Value, State.SnapshotId, ChangeVersion, previousState, State)));
+        }
     }
 }

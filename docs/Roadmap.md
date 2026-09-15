@@ -456,9 +456,9 @@ Use Case berührten Fachmodule
   - [x] `delete_role` nur zulassen, nachdem Content-, Dependency- und Resolution-
     Referenzen innerhalb derselben Working Transaction entfernt/ersetzt wurden;
     andernfalls `RoleInUse` mit den blockierenden Referenzen liefern
-- [ ] **M4.5: Service-Tests**
-  - [ ] Use-Case-Tests mit In-Memory-Fakes für Orchestrierung und Fehlerweitergabe
-  - [ ] keine Wiederholung bereits in M2 bewiesener Parser-/Algorithmusvarianten
+- [x] **M4.5: Service-Tests**
+  - [x] Use-Case-Tests mit In-Memory-Fakes für Orchestrierung und Fehlerweitergabe
+  - [x] keine Wiederholung bereits in M2 bewiesener Parser-/Algorithmusvarianten
 
 **Abnahme:** Jeder fachliche V1-Write ist über genau einen transportneutralen Use Case
 erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
