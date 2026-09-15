@@ -44,6 +44,7 @@ internal static class ServiceRegistration
         services.AddSingleton<IDependencyRepository, SqlDependencyRepository>();
         services.AddSingleton<INodeMutationRepository, SqlNodeMutationRepository>();
         services.AddSingleton<IRoleRepository, SqlRoleRepository>();
+        services.AddSingleton<IRoleMutationRepository, SqlRoleMutationRepository>();
         services.AddSingleton<IReleaseRepository, SqlReleaseRepository>();
         services.AddHostedService<SchemaMigrationHostedService>();
 

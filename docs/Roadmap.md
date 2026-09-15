@@ -450,10 +450,10 @@ Use Case berührten Fachmodule
   - [x] replace_content, replace_text und delete_content
   - [x] Mode-/Dependency-Regeln, Revisionsvergabe und Normalisierung atomar anwenden
   - [x] Mutationsergebnis enthält Revision, Snapshot, Warnungen und Freshness
-- [ ] **M4.4: Rollen-Mutationen**
-  - [ ] create/update/delete Role nur innerhalb einer offenen Transaction
-  - [ ] vollständige Resolution Order atomar ersetzen; nie schrittweise Zwischenzustände
-  - [ ] `delete_role` nur zulassen, nachdem Content-, Dependency- und Resolution-
+- [x] **M4.4: Rollen-Mutationen**
+  - [x] create/update/delete Role nur innerhalb einer offenen Transaction
+  - [x] vollständige Resolution Order atomar ersetzen; nie schrittweise Zwischenzustände
+  - [x] `delete_role` nur zulassen, nachdem Content-, Dependency- und Resolution-
     Referenzen innerhalb derselben Working Transaction entfernt/ersetzt wurden;
     andernfalls `RoleInUse` mit den blockierenden Referenzen liefern
 - [ ] **M4.5: Service-Tests**
