@@ -153,6 +153,20 @@ public sealed class NodeMutationServiceTests
     }
 
     [Fact]
+    public void Normalize_SiblingsFromDifferentSnapshots_NormalizesEachSnapshotIndependently()
+    {
+        var otherSnapshotId = new SnapshotId(43);
+        var normalizedNodes = SiblingOrderNormalizer.Normalize(
+        [
+            Node(RootNodeId, sortOrder: 7),
+            new Node(otherSnapshotId, FirstNodeId, null, "Historische Root", null, 9, IsDeleted: false)
+        ]);
+
+        Assert.Equal(0, Assert.Single(normalizedNodes.Where(node => node.SnapshotId == SnapshotId)).SortOrder);
+        Assert.Equal(0, Assert.Single(normalizedNodes.Where(node => node.SnapshotId == otherSnapshotId)).SortOrder);
+    }
+
+    [Fact]
     public void Create_ExistingRoot_ReturnsRootAlreadyExistsWithoutGeneratingAnId()
     {
         var generator = new CountingIdentifierGenerator(ThirdNodeId);
@@ -203,6 +217,27 @@ public sealed class NodeMutationServiceTests
     }
 
     [Fact]
+    public void Create_Child_LeavesUnrelatedSiblingGroupsUntouched()
+    {
+        var generator = new CountingIdentifierGenerator(NodeIdFor(20));
+        var service = new NodeMutationService(generator);
+        Node[] nodes =
+        [
+            Node(RootNodeId),
+            Node(FirstNodeId, RootNodeId, sortOrder: 4),
+            Node(SecondNodeId, FirstNodeId, sortOrder: 8)
+        ];
+
+        var result = service.Create(
+            nodes,
+            new CreateNodeCommand(SnapshotId, RootNodeId, "Neues Child", null, 0),
+            nodes.Select(node => node.NodeId));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(8, Find(result.Value!.Nodes, SecondNodeId).SortOrder);
+    }
+
+    [Fact]
     public void Move_CycleCandidate_FailsWithoutChangingTheSourceNodes()
     {
         Node[] nodes =
@@ -218,6 +253,17 @@ public sealed class NodeMutationServiceTests
         Assert.Equal(HierarchyErrorCodes.HierarchyCycle, result.Code);
         Assert.Null(nodes[0].ParentNodeId);
         Assert.Equal(RootNodeId, nodes[1].ParentNodeId);
+    }
+
+    [Fact]
+    public void Move_RootWithoutChangingItsParent_RemainsValid()
+    {
+        var service = new NodeMutationService(new CountingIdentifierGenerator(ThirdNodeId));
+
+        var result = service.Move([Node(RootNodeId)], new MoveNodeCommand(RootNodeId, null, 0));
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.ChangedNode.ParentNodeId);
     }
 
     [Fact]

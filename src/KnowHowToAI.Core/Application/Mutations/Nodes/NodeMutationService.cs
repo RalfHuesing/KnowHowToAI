@@ -48,7 +48,11 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
             command.SortOrder,
             IsDeleted: false);
 
-        return FinalizeMutation(nodes.Append(createdNode), nodeId);
+        return FinalizeMutation(
+            nodes.Append(createdNode),
+            nodeId,
+            command.SnapshotId,
+            [command.ParentNodeId]);
     }
 
     public Result<HierarchyMutationResult> Move(IEnumerable<Node> existingNodes, MoveNodeCommand command)
@@ -71,7 +75,9 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
 
         return FinalizeMutation(
             Replace(nodes, node with { ParentNodeId = command.ParentNodeId, SortOrder = command.SortOrder }),
-            node.NodeId);
+            node.NodeId,
+            node.SnapshotId,
+            [node.ParentNodeId, command.ParentNodeId]);
     }
 
     public Result<HierarchyMutationResult> Reorder(IEnumerable<Node> existingNodes, ReorderNodeCommand command)
@@ -88,7 +94,11 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         if (node is null)
             return Result<HierarchyMutationResult>.Failure(CreateNodeNotFoundError(command.NodeId));
 
-        return FinalizeMutation(Replace(nodes, node with { SortOrder = command.SortOrder }), node.NodeId);
+        return FinalizeMutation(
+            Replace(nodes, node with { SortOrder = command.SortOrder }),
+            node.NodeId,
+            node.SnapshotId,
+            [node.ParentNodeId]);
     }
 
     public Result<NodeDeletionResult> Delete(
@@ -127,8 +137,11 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         var deletedNodeIds = command.DeleteSubtree
             ? FindActiveSubtreeNodeIds(nodes, node.NodeId)
             : new HashSet<NodeId> { node.NodeId };
-        var deletedNodes = SiblingOrderNormalizer.Normalize(nodes.Select(candidate =>
-            deletedNodeIds.Contains(candidate.NodeId) ? candidate with { IsDeleted = true } : candidate));
+        var deletedNodes = SiblingOrderNormalizer.Normalize(
+            nodes.Select(candidate =>
+                deletedNodeIds.Contains(candidate.NodeId) ? candidate with { IsDeleted = true } : candidate),
+            node.SnapshotId,
+            [node.ParentNodeId]);
         var deletedContents = existingContents.Select(content =>
             content.SnapshotId == node.SnapshotId && deletedNodeIds.Contains(content.NodeId)
                 ? content with { IsDeleted = true }
@@ -153,7 +166,10 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
     {
         if (parentNodeId is null)
         {
-            if (nodes.Any(node => !node.IsDeleted && node.ParentNodeId is null))
+            if (nodes.Any(candidate =>
+                !candidate.IsDeleted
+                && candidate.ParentNodeId is null
+                && (nodeId is null || candidate.NodeId != nodeId.Value)))
             {
                 return new DomainError(
                     HierarchyErrorCodes.RootAlreadyExists,
@@ -193,9 +209,13 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         return null;
     }
 
-    private static Result<HierarchyMutationResult> FinalizeMutation(IEnumerable<Node> nodes, NodeId changedNodeId)
+    private static Result<HierarchyMutationResult> FinalizeMutation(
+        IEnumerable<Node> nodes,
+        NodeId changedNodeId,
+        SnapshotId snapshotId,
+        IEnumerable<NodeId?> affectedParentNodeIds)
     {
-        var normalizedNodes = SiblingOrderNormalizer.Normalize(nodes);
+        var normalizedNodes = SiblingOrderNormalizer.Normalize(nodes, snapshotId, affectedParentNodeIds);
         var report = HierarchyValidator.Validate(normalizedNodes);
         if (!report.IsValid)
             return Result<HierarchyMutationResult>.Failure(report.Errors[0]);

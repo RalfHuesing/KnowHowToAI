@@ -37,6 +37,16 @@ public sealed class DependencyContractsTests
     }
 
     [Fact]
+    public void Validate_UnknownContentMode_ReturnsInvalidDependency()
+    {
+        var report = DependencyValidator.Validate(
+            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Unknown)],
+            []);
+
+        Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.InvalidDependency);
+    }
+
+    [Fact]
     public void Validate_DeletedSource_ReturnsInvalidDependency()
     {
         var report = DependencyValidator.Validate(

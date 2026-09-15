@@ -60,6 +60,17 @@ public static class DependencyValidator
                 && dependency.TargetNodeId == content.NodeId
                 && dependency.TargetRoleId == content.RoleId);
 
+            if (content.ContentMode is not (ContentMode.Independent or ContentMode.Derived))
+            {
+                errors.Add(CreateInvalidDependencyError(
+                    "Content benötigt einen gültigen Modus Independent oder Derived.",
+                    content.NodeId,
+                    content.RoleId,
+                    content.NodeId,
+                    content.RoleId));
+                continue;
+            }
+
             if (content.ContentMode == ContentMode.Independent && hasDependencies)
             {
                 errors.Add(CreateInvalidDependencyError(

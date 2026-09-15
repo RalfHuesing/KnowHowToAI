@@ -11,31 +11,51 @@ public static class SiblingOrderNormalizer
     {
         ArgumentNullException.ThrowIfNull(nodes);
 
+        return Normalize(nodes, static _ => true);
+    }
+
+    public static IReadOnlyList<Node> Normalize(
+        IEnumerable<Node> nodes,
+        SnapshotId snapshotId,
+        IEnumerable<NodeId?> parentNodeIds)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+        ArgumentNullException.ThrowIfNull(parentNodeIds);
+
+        var affectedGroups = parentNodeIds
+            .Select(parentNodeId => (SnapshotId: snapshotId, ParentNodeId: parentNodeId))
+            .ToHashSet();
+
+        return Normalize(nodes, affectedGroups.Contains);
+    }
+
+    private static IReadOnlyList<Node> Normalize(
+        IEnumerable<Node> nodes,
+        Func<(SnapshotId SnapshotId, NodeId? ParentNodeId), bool> shouldNormalize)
+    {
+        ArgumentNullException.ThrowIfNull(shouldNormalize);
+
         var normalizedNodes = nodes.ToArray();
-        var siblingIndexes = new Dictionary<NodeId, List<int>>();
-        var rootIndexes = new List<int>();
+        var siblingIndexes = new Dictionary<(SnapshotId SnapshotId, NodeId? ParentNodeId), List<int>>();
         for (var index = 0; index < normalizedNodes.Length; index++)
         {
             var node = normalizedNodes[index];
             if (node.IsDeleted)
                 continue;
 
-            if (node.ParentNodeId is not { } parentNodeId)
-            {
-                rootIndexes.Add(index);
+            var group = (node.SnapshotId, node.ParentNodeId);
+            if (!shouldNormalize(group))
                 continue;
-            }
 
-            if (!siblingIndexes.TryGetValue(parentNodeId, out var indexes))
+            if (!siblingIndexes.TryGetValue(group, out var indexes))
             {
                 indexes = [];
-                siblingIndexes.Add(parentNodeId, indexes);
+                siblingIndexes.Add(group, indexes);
             }
 
             indexes.Add(index);
         }
 
-        NormalizeGroup(normalizedNodes, rootIndexes);
         foreach (var indexes in siblingIndexes.Values)
             NormalizeGroup(normalizedNodes, indexes);
 
