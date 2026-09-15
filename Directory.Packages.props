@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core / Markdown / Logging -->
+    <PackageVersion Include="Markdig" Version="0.42.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
+
+    <!-- Storage / SQL Server -->
+    <PackageVersion Include="Dapper" Version="2.1.66" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+
+    <!-- Server / Hosting / MCP / Serilog -->
+    <PackageVersion Include="ModelContextProtocol" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+    <PackageVersion Include="Serilog" Version="4.4.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
+
+    <!-- Testing / xUnit v3 -->
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageVersion Include="xunit.v3.assert" Version="3.2.2" />
+    <PackageVersion Include="xunit.v3.core" Version="3.2.2" />
+  </ItemGroup>
+</Project>

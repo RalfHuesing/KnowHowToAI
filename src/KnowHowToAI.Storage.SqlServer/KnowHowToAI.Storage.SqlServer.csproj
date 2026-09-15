@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\KnowHowToAI.Core\KnowHowToAI.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KnowHowToAI.Core.Tests" />
+    <InternalsVisibleTo Include="KnowHowToAI.IntegrationTests" />
+    <InternalsVisibleTo Include="KnowHowToAI.Server" />
+  </ItemGroup>
+
+</Project>

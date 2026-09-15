@@ -6,21 +6,22 @@ Jeder Meilenstein und jede Teilaufgabe wird bei Abschluss sofort von `[ ]` auf `
 ---
 
 ## M0: Solution-Setup & Testinfrastruktur
-- [ ] **M0.1: Solution- & Projektstruktur anlegen**
-  - [ ] .NET Solution anlegen (`KnowHowToAI.sln` bzw. `KnowHowToAI.slnx`)
-  - [ ] Projekt `src/KnowHowToAI.Core` (Domänenmodelle, Invarianten, Interfaces, Schichtenentkopplung)
-  - [ ] Projekt `src/KnowHowToAI.Storage.SqlServer` (ADO.NET / Dapper, DDL-Runner, Snapshot-Engine)
-  - [ ] Projekt `src/KnowHowToAI.Server` (MCP STDIO Adapter, Tool-Hosting, CLI-Einstiegspunkt)
-  - [ ] Testprojekt `tests/KnowHowToAI.Core.Tests` (FastTests: Unit-Tests für Fachlogik)
-  - [ ] Testprojekt `tests/KnowHowToAI.IntegrationTests` (Integrationstests für SQL Server und MCP)
-- [ ] **M0.2: Zentrale Build- & Codeanalyse-Konfiguration**
-  - [ ] `Directory.Build.props` mit `TreatWarningsAsErrors=true`, `#nullable enable`, C# 12+ einrichten
-  - [ ] `.editorconfig` für Coding-Standards (`sealed` by default, Records, Formatierung) definieren
-  - [ ] AiNetLinter-Integration verifizieren (Solution-Target für Linter-MCP-Tools)
-- [ ] **M0.3: Entwickler- & Testskripte**
-  - [ ] `scripts/test-fast.ps1` für deterministische Unit-Tests (`Category=Unit`) bereitstellen
-  - [ ] `scripts/test-integration.ps1` für Datenbank- und E2E-Tests bereitstellen
-  - [ ] Initialer Build- und FastTest-Durchlauf fehlerfrei (`Incremental Gate` erfüllt)
+- [x] **M0.1: Solution- & Projektstruktur anlegen**
+  - [x] .NET Solution anlegen (`KnowHowToAI.sln` bzw. `KnowHowToAI.slnx`)
+  - [x] Projekt `src/KnowHowToAI.Core` (Domänenmodelle, Invarianten, Interfaces, Schichtenentkopplung)
+  - [x] Projekt `src/KnowHowToAI.Storage.SqlServer` (ADO.NET / Dapper, DDL-Runner, Snapshot-Engine)
+  - [x] Projekt `src/KnowHowToAI.Server` (MCP STDIO Adapter, Tool-Hosting, CLI-Einstiegspunkt)
+  - [x] Testprojekt `tests/KnowHowToAI.Core.Tests` (FastTests: Unit-Tests für Fachlogik)
+  - [x] Testprojekt `tests/KnowHowToAI.IntegrationTests` (Integrationstests für SQL Server und MCP)
+- [x] **M0.2: Zentrale Build- & Codeanalyse-Konfiguration**
+  - [x] `Directory.Build.props` mit `TreatWarningsAsErrors=true`, `#nullable enable`, C# 12+ einrichten
+  - [x] `Directory.Packages.props` mit Central Package Management (CPM) einrichten
+  - [x] `.editorconfig` für Coding-Standards (`sealed` by default, Formatierung) definieren
+  - [x] AiNetLinter-Integration verifizieren (`ainetlinter-rules.json` für Solution angepasst, Score 10.0)
+- [x] **M0.3: Entwickler- & Testskripte**
+  - [x] `scripts/test-fast.ps1` für deterministische Unit-Tests (`Category=Unit`) bereitstellen
+  - [x] `scripts/test-integration.ps1` für Datenbank- und E2E-Tests bereitstellen
+  - [x] Initialer Build- und FastTest-Durchlauf fehlerfrei (`Incremental Gate` erfüllt)
 
 ---
 
