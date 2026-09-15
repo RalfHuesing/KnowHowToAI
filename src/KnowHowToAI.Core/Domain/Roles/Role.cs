@@ -7,4 +7,4 @@ public sealed record Role(
     RoleId RoleId,
     string Name,
     string? Description,
-    bool IsDeleted);
+    bool IsDeleted) : ITombstoned;

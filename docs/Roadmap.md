@@ -273,11 +273,11 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
     erwartete Fachfehler nicht als Exceptions modellieren
   - [x] Uhrzeit und ID-Erzeugung über injizierbare Ports deterministisch testbar machen
   - [x] `CancellationToken` an allen asynchronen Application-/Storage-Grenzen führen
-- [ ] **M2.2: Read-Kontext**
-  - [ ] genau einen Selektor zulassen: `transactionId`, `snapshotId` oder keinen
+- [x] **M2.2: Read-Kontext**
+  - [x] genau einen Selektor zulassen: `transactionId`, `snapshotId` oder keinen
     (Current); Kombination mit `InvalidReadContext` ablehnen
-  - [ ] Transaction liest ausschließlich ihren Working Snapshot
-  - [ ] historische Reads akzeptieren nur vorhandene Snapshots; Tombstones werden
+  - [x] Transaction liest ausschließlich ihren Working Snapshot
+  - [x] historische Reads akzeptieren nur vorhandene Snapshots; Tombstones werden
     standardmäßig nicht als aktive Daten ausgeliefert
 - [ ] **M2.3: Content-Normalisierung und Revisionen**
   - [ ] Eingaben kanonisch auf LF normalisieren; keine semantische Änderung allein

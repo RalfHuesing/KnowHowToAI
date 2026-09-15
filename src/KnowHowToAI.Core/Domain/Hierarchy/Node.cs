@@ -9,4 +9,4 @@ public sealed record Node(
     string Title,
     string? Description,
     int SortOrder,
-    bool IsDeleted);
+    bool IsDeleted) : ITombstoned;

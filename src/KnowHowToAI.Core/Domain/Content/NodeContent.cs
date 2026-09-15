@@ -9,4 +9,4 @@ public sealed record NodeContent(
     ContentRevisionId ContentRevisionId,
     ContentMode ContentMode,
     string ContentMd,
-    bool IsDeleted);
+    bool IsDeleted) : ITombstoned;
