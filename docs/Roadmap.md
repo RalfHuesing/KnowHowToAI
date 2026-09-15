@@ -301,12 +301,12 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] `NodeTooLarge` mit Ist-Größe, Schwelle und Empfehlung für Child-Nodes liefern
   - [x] Warnungen für ungewöhnliche Hierarchietiefe und Child-Anzahl vorbereiten
   - [x] Warnungen blockieren weder Mutation noch Commit und verändern keinen Content
-- [ ] **M2.6: Hierarchie-Invarianten**
-  - [ ] maximal einen aktiven Root pro Snapshot; leerer Baum zulässig
-  - [ ] Parent muss aktiv im selben Snapshot existieren; Self-Parent und Zyklen ablehnen
-  - [ ] `NodeId` nie wiederverwenden; Titel leer/Whitespace ablehnen
-  - [ ] Geschwister deterministisch nach `SortOrder`, danach `NodeId` sortieren
-  - [ ] Create/Move/Reorder normalisiert betroffene Geschwister atomar auf lückenlose,
+- [x] **M2.6: Hierarchie-Invarianten**
+  - [x] maximal einen aktiven Root pro Snapshot; leerer Baum zulässig
+  - [x] Parent muss aktiv im selben Snapshot existieren; Self-Parent und Zyklen ablehnen
+  - [x] `NodeId` nie wiederverwenden; Titel leer/Whitespace ablehnen
+  - [x] Geschwister deterministisch nach `SortOrder`, danach `NodeId` sortieren
+  - [x] Create/Move/Reorder normalisiert betroffene Geschwister atomar auf lückenlose,
     eindeutige SortOrder-Werte
 - [ ] **M2.7: Rollenauflösung**
   - [ ] explizite, nicht rekursive Kandidatenliste exakt in Priority-Reihenfolge prüfen
