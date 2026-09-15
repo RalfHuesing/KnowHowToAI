@@ -1,0 +1,10 @@
+namespace KnowHowToAI.Core.Application.Transactions;
+
+/// <summary>Stabile Fehlercodes für die Validierung eines Working Snapshots.</summary>
+public static class TransactionValidationErrorCodes
+{
+    public const string TransactionNotFound = "TransactionNotFound";
+    public const string TransactionClosed = "TransactionClosed";
+    public const string WorkingSnapshotNotOpen = "WorkingSnapshotNotOpen";
+    public const string TransactionIdDetail = "transactionId";
+}

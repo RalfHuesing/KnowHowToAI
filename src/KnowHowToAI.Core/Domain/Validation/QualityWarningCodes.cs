@@ -5,6 +5,7 @@ public static class QualityWarningCodes
     public const string NodeTooLarge = "NodeTooLarge";
     public const string TooManyChildren = "TooManyChildren";
     public const string HierarchyTooDeep = "HierarchyTooDeep";
+    public const string StaleDerivedContent = "StaleDerivedContent";
 
     public const string ActualBytesDetail = "actualBytes";
     public const string ThresholdBytesDetail = "thresholdBytes";

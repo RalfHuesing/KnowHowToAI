@@ -380,10 +380,10 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] Mutationen derselben Transaction über die Transaction-Zeile serialisieren und
     `ChangeVersion` bei jeder erfolgreichen Zustandsänderung atomar erhöhen
   - [x] Soft-Delete/Tombstone-Semantik in sämtlichen Abfragen konsistent anwenden
-- [ ] **M3.4: `validate_transaction`**
-  - [ ] harte Fehler, Warnungen, stale Contents und Refactoring-Kandidaten aggregieren
-  - [ ] deterministische Sortierung und deduplizierte Befunde
-  - [ ] Validation ist read-only und mehrfach identisch aufrufbar
+- [x] **M3.4: `validate_transaction`**
+  - [x] harte Fehler, Warnungen, stale Contents und Refactoring-Kandidaten aggregieren
+  - [x] deterministische Sortierung und deduplizierte Befunde
+  - [x] Validation ist read-only und mehrfach identisch aufrufbar
 - [ ] **M3.5: `commit_transaction`**
   - [ ] in einer kurzen SQL-Transaction Open-/Working-Zustand und harte Validatoren prüfen
   - [ ] Current-Zeile sperren und `BaseSnapshotId == CurrentSnapshotId` vergleichen
