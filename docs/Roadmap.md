@@ -330,9 +330,9 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] `delete_content` tombstoned nur expliziten Rollen-Content
   - [x] `delete_node` mit aktiven Children ohne explizites `deleteSubtree=true` ablehnen;
     Subtree-Löschung tombstoned Nodes und deren Contents konsistent
-- [ ] **M2.10: FastTests für jeden Domain-Vertrag**
-  - [ ] Positiv-, Rand- und Negativfälle aus M2.1 bis M2.9
-  - [ ] Property-/Datentests für Hierarchiezyklen, Sortierung und Match-Anzahlen dort,
+- [x] **M2.10: FastTests für jeden Domain-Vertrag**
+  - [x] Positiv-, Rand- und Negativfälle aus M2.1 bis M2.9
+  - [x] Property-/Datentests für Hierarchiezyklen, Sortierung und Match-Anzahlen dort,
     wo sie gegenüber Einzelbeispielen zusätzlichen Fehlerraum abdecken
 
 **Abnahme:** Core enthält keine SQL-/MCP-Abhängigkeit; alle genannten Invarianten sind

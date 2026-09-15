@@ -38,6 +38,23 @@ public sealed class TextReplacerTests
         Assert.Equal("2", result.Details[TextOperationCodes.MatchCountDetail]);
     }
 
+    [Theory]
+    [InlineData("aaa", "a", 3)]
+    [InlineData("aaaa", "aa", 3)]
+    [InlineData("abababa", "aba", 3)]
+    [InlineData("abc", "", 4)]
+    public void Replace_EveryGeneratedMultipleMatchCase_ReturnsTheOrdinalMatchCount(
+        string content,
+        string oldText,
+        int expectedMatchCount)
+    {
+        var result = TextReplacer.Replace(new TextReplacementRequest(content, oldText, "neu", "Knoten", true));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(TextOperationCodes.MultipleTextMatches, result.Code);
+        Assert.Equal(expectedMatchCount.ToString(System.Globalization.CultureInfo.InvariantCulture), result.Details[TextOperationCodes.MatchCountDetail]);
+    }
+
     [Fact]
     public void Replace_ResultWithHeading_ReturnsStructureError()
     {

@@ -66,6 +66,23 @@ public sealed class ContentMutationServiceTests
         Assert.Equal("Beratung", Find(result.Value.Contents, ConsultantRoleId).ContentMd);
     }
 
+    [Fact]
+    public void DeleteContent_DeletedOrMissingExplicitContent_ReturnsContentNotFoundWithoutChangingOtherContents()
+    {
+        var service = CreateService();
+        var developerContent = Content(DeveloperRoleId, "Entwicklung") with { IsDeleted = true };
+        var consultantContent = Content(ConsultantRoleId, "Beratung");
+
+        var result = service.DeleteContent(
+            [developerContent, consultantContent],
+            new DeleteContentCommand(NodeId, DeveloperRoleId));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(TextOperationCodes.ContentNotFound, result.Code);
+        Assert.True(developerContent.IsDeleted);
+        Assert.False(consultantContent.IsDeleted);
+    }
+
     private static ContentMutationService CreateService() =>
         new(new ContentRevisionService(new FixedIdentifierGenerator(GeneratedRevisionId)));
 

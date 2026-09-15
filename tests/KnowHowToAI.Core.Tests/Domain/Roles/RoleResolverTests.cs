@@ -131,6 +131,21 @@ public sealed class RoleResolverTests
         Assert.Equal("1", result.Details[RoleResolutionErrorCodes.PriorityDetail]);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Resolve_NonPositiveCandidatePriority_ReturnsInvalidPriority(int priority)
+    {
+        var result = RoleResolver.Resolve(Request(
+            roles: [Role(Developer)],
+            resolutions: [Resolution(Developer, priority)],
+            contents: []));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleResolutionErrorCodes.InvalidPriority, result.Code);
+        Assert.Equal(priority.ToString(System.Globalization.CultureInfo.InvariantCulture), result.Details[RoleResolutionErrorCodes.PriorityDetail]);
+    }
+
     [Fact]
     public void Resolve_DeletedRequestedRole_ReturnsRequestedRoleDeleted()
     {

@@ -99,6 +99,38 @@ public sealed class NodeMutationServiceTests
         Assert.Equal(HierarchyErrorCodes.HierarchyCycle, error.Code);
     }
 
+    [Theory]
+    [MemberData(nameof(CycleLengths))]
+    public void Validate_CycleOfEveryGeneratedLength_ReturnsHierarchyCycle(int cycleLength)
+    {
+        var nodes = Enumerable.Range(1, cycleLength)
+            .Select(index => Node(
+                NodeIdFor(index),
+                parentNodeId: NodeIdFor(index == cycleLength ? 1 : index + 1)))
+            .ToArray();
+
+        var report = HierarchyValidator.Validate(nodes);
+
+        Assert.Contains(report.Errors, error => error.Code == HierarchyErrorCodes.HierarchyCycle);
+    }
+
+    [Theory]
+    [MemberData(nameof(SiblingOrderCases))]
+    public void Normalize_EveryGeneratedSiblingOrder_UsesNodeIdAsStableTieBreaker(
+        Node[] siblings,
+        NodeId[] expectedNodeOrder)
+    {
+        var normalized = SiblingOrderNormalizer.Normalize(siblings);
+
+        var orderedSiblings = normalized
+            .Where(node => node.ParentNodeId == RootNodeId)
+            .OrderBy(node => node.SortOrder)
+            .ToArray();
+
+        Assert.Equal(expectedNodeOrder, orderedSiblings.Select(node => node.NodeId));
+        Assert.Equal(Enumerable.Range(0, expectedNodeOrder.Length), orderedSiblings.Select(node => node.SortOrder));
+    }
+
     [Fact]
     public void Normalize_Siblings_OrdersBySortOrderThenNodeIdAndLeavesTombstonesUntouched()
     {
@@ -302,6 +334,37 @@ public sealed class NodeMutationServiceTests
         new(SnapshotId, nodeId, parentNodeId, title, null, sortOrder, isDeleted);
 
     private static NodeId NodeIdFor(int value) => new(new Guid(value, 0, 0, new byte[8]));
+
+    public static IEnumerable<object[]> CycleLengths()
+    {
+        for (var cycleLength = 2; cycleLength <= 8; cycleLength++)
+            yield return [cycleLength];
+    }
+
+    public static IEnumerable<object[]> SiblingOrderCases()
+    {
+        var equalOrderExpectedNodeOrder = new[] { FirstNodeId, SecondNodeId, ThirdNodeId };
+        yield return
+        [
+            new[]
+            {
+                Node(ThirdNodeId, RootNodeId, sortOrder: 5),
+                Node(FirstNodeId, RootNodeId, sortOrder: 5),
+                Node(SecondNodeId, RootNodeId, sortOrder: 5)
+            },
+            equalOrderExpectedNodeOrder
+        ];
+        yield return
+        [
+            new[]
+            {
+                Node(SecondNodeId, RootNodeId, sortOrder: 0),
+                Node(ThirdNodeId, RootNodeId, sortOrder: -2),
+                Node(FirstNodeId, RootNodeId, sortOrder: -2)
+            },
+            new[] { FirstNodeId, ThirdNodeId, SecondNodeId }
+        ];
+    }
 
     private sealed class CountingIdentifierGenerator(NodeId nodeId) : IIdentifierGenerator
     {
