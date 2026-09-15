@@ -180,24 +180,29 @@ echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert we
   - [x] versionierte Rollen und Role Resolution Orders
   - [x] versionierte Nodes, Contents und Content Dependencies
   - [x] initialen committed Snapshot und Rolle `Default` seeden
-- [ ] **M1.2: Schema vor Implementierungsbeginn härten**
-  - [ ] Zustände, Zeitstempel, Fremdschlüssel, Eindeutigkeiten und Indizes gegen das
+- [x] **M1.2: Schema vor Implementierungsbeginn härten**
+  - [x] Zustände, Zeitstempel, Fremdschlüssel, Eindeutigkeiten und Indizes gegen das
     Konzept auditieren; solange noch kein unterstützter Datenbankstand existiert, die
     Greenfield-Baseline direkt korrigieren statt künstliche Reparaturmigrationen anzulegen
-  - [ ] sicherstellen, dass eine Dependency auf einen aktiven expliziten Source-Content
-    derselben Snapshot-Version zeigt; Revisionsgleichheit zusätzlich fachlich prüfen
-  - [ ] die für Snapshot-Kopie, Root-Abfrage, Geschwistersortierung, Rollenauflösung,
-    Freshness und Search nötigen Indizes definieren
-  - [ ] `Priority > 0`, eindeutige Kandidaten und deterministische Reihenfolge absichern
-  - [ ] Status-/Zeitstempel-Kombinationen absichern: Working/Open ohne Commitzeit,
-    Committed mit Commitzeit, Discarded ohne Aktivierung als Current
-  - [ ] monotone `ChangeVersion` je offener Transaction für konsistente Cursor auf dem
+  - [x] Target und Source einer Dependency per zusammengesetztem Fremdschlüssel an
+    expliziten Content desselben Snapshots binden; Aktivstatus, Revisionsgleichheit und
+    Graphregeln bleiben bewusst fachliche Prüfungen in M2.8
+  - [x] die für Snapshot-Kopie, Root-Abfrage, Geschwistersortierung, Rollenauflösung und
+    Freshness nötigen Basisindizes definieren; Search-Abfragepläne mit den realen Queries
+    und Datenmengen in M5.3/M7.3 prüfen
+  - [x] `Priority > 0`, eindeutige Kandidaten und deterministische Reihenfolge absichern
+  - [x] lokal beweisbare Status-/Zeitstempel-Kombinationen absichern: Working/Open ohne
+    Commitzeit und Committed mit Commitzeit; ausschließlich committed als Current zu
+    aktivieren bleibt Teil des atomaren Commit-Use-Cases M3.5
+  - [x] monotone `ChangeVersion` je offener Transaction für konsistente Cursor auf dem
     veränderlichen Working Snapshot vorsehen
-  - [ ] festlegen und testen, dass Release-Namen eindeutig und Releases nach Erstellung
-    unveränderliche Verweise auf committed Snapshots sind
+  - [x] eindeutige, nicht leere Release-Namen und relationale Snapshot-Verweise absichern;
+    committed Zielzustand und Unveränderlichkeit zusätzlich im Release-Use-Case M5.5
+    garantieren
 - [ ] **M1.3: Migration Runner**
   - [ ] `ISchemaMigrator` als Port und SQL-Server-Implementierung erstellen
-  - [ ] Migration Journal mit Version, Name, SHA-256-Checksum und `AppliedAtUtc`
+  - [x] reentrantes, selbst nicht journalisiertes Bootstrap für das Migration Journal mit
+    Version, Name, SHA-256-Checksum und `AppliedAtUtc` bereitstellen
   - [ ] Checksum deterministisch über den als UTF-8/LF normalisierten Skriptinhalt
     berechnen; das Journal, nicht `IF OBJECT_ID`, ist die Idempotenzquelle
   - [ ] eingebettete Skripte strikt numerisch sortieren; doppelte Versionen ablehnen
@@ -432,6 +437,8 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [ ] SQL-Wildcards und Sonderzeichen sicher behandeln; keine dynamische SQL-Konkatenation
   - [ ] schlanke Snippets mit begrenzter Länge, Trefferfeld und Node-Metadaten
   - [ ] feste Maximalwerte, Paging und deterministisches Ranking/Tie-Breaking
+  - [ ] reale SQL-Abfragepläne und repräsentative Datenmengen messen; zusätzliche
+    Search-Indizes nur evidenzbasiert als neue Migration ergänzen
   - [ ] dokumentieren, dass V1 weder semantische noch linguistisch vollständige Suche
     verspricht
 - [ ] **M5.4: Historie und Diff**
