@@ -35,6 +35,7 @@ Nutzeranweisungen haben Vorrang.
 ## C#-Analyse und Dokumentation
 
 - Für C#-Symbole, Referenzen, Aufrufketten, Abhängigkeiten, Impact und Verstöße gilt `.agents/rules/AiNetLinter-McpWorkflow.mdc`. Dessen Schemas und absolute `targetPath`-Werte nutzen.
+- **Roadmap-Pflege**: `docs/Roadmap.md` ist die verbindliche Statusquelle. Erledigte Aufgaben nach jedem Teilschritt sofort auf `[x]` setzen; neue Erkenntnisse oder Teilaufgaben direkt darin nachführen und stets aktuell halten.
 - Nur implementiertes, belegbares Verhalten dokumentieren. CLI-, Konfigurations-, Regel- und MCP-Beschreibungen gegen aktuellen Code prüfen.
 - Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell `docs/Konzept.md` und Agentenregeln synchronisieren.
 - `README.md` nur bei ausdrücklichem Auftrag ändern; Fremdänderungen erhalten.
