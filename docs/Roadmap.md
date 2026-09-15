@@ -308,11 +308,11 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] Geschwister deterministisch nach `SortOrder`, danach `NodeId` sortieren
   - [x] Create/Move/Reorder normalisiert betroffene Geschwister atomar auf lückenlose,
     eindeutige SortOrder-Werte
-- [ ] **M2.7: Rollenauflösung**
-  - [ ] explizite, nicht rekursive Kandidatenliste exakt in Priority-Reihenfolge prüfen
-  - [ ] gelöschte/fehlende Rollen oder doppelte Kandidaten ablehnen
-  - [ ] keine impliziten Kandidaten ergänzen; fehlende Konfiguration transparent melden
-  - [ ] Ergebnis enthält immer `requestedRole`, nullable `resolvedRole`,
+- [x] **M2.7: Rollenauflösung**
+  - [x] explizite, nicht rekursive Kandidatenliste exakt in Priority-Reihenfolge prüfen
+  - [x] gelöschte/fehlende Rollen oder doppelte Kandidaten ablehnen
+  - [x] keine impliziten Kandidaten ergänzen; fehlende Konfiguration transparent melden
+  - [x] Ergebnis enthält immer `requestedRole`, nullable `resolvedRole`,
     `availability`, `fallbackUsed` und Content-Metadaten
 - [ ] **M2.8: Dependencies und transitive Freshness**
   - [ ] `Independent` hat keine Dependencies; `Derived` hat mindestens eine
