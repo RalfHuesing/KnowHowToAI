@@ -287,15 +287,15 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] bei identischem Text die Revision beibehalten; reine Aktualisierung von Mode
     oder Dependencies ändert die Textrevision nicht
   - [x] Löschen und erneutes Anlegen erzeugt auch bei gleichem Text eine neue Revision
-- [ ] **M2.4: Heading- und Strukturvalidator**
-  - [ ] Markdig-AST für ATX- und Setext-Headings verwenden
-  - [ ] rohe HTML-Elemente `<h1>` bis `<h6>` unabhängig von Groß-/Kleinschreibung
+- [x] **M2.4: Heading- und Strukturvalidator**
+  - [x] Markdig-AST für ATX- und Setext-Headings verwenden
+  - [x] rohe HTML-Elemente `<h1>` bis `<h6>` unabhängig von Groß-/Kleinschreibung
     ablehnen; `HeadingNotAllowed` mit Position und Art zurückgeben
-  - [ ] Heading-Syntax in Fenced/Indented Code, Inline-Code, Escapes und normalen
+  - [x] Heading-Syntax in Fenced/Indented Code, Inline-Code, Escapes und normalen
     Textvorkommen wie `C#` erlauben
-  - [ ] alleinstehende Strong-/Emphasis-Absätze und eine alleinstehende Wiederholung
+  - [x] alleinstehende Strong-/Emphasis-Absätze und eine alleinstehende Wiederholung
     des Node-Titels als `PossibleEmbeddedHeading` warnen, nicht hart ablehnen
-  - [ ] persistiertes System-Front-Matter mit `FrontMatterNotAllowed` ablehnen
+  - [x] persistiertes System-Front-Matter mit `FrontMatterNotAllowed` ablehnen
 - [ ] **M2.5: Größen- und Strukturwarnungen**
   - [ ] normalisierte UTF-8-Größe messen; Standardgrenze 4 KiB aus typed Options verwenden
   - [ ] `NodeTooLarge` mit Ist-Größe, Schwelle und Empfehlung für Child-Nodes liefern
