@@ -322,13 +322,13 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] `Stale`, wenn Source fehlt/gelöscht ist, ihre aktuelle Revision abweicht oder
     eine abgeleitete Source transitiv stale ist; sonst `Current`
   - [x] dieselbe Logik für Current, historischen und Working Snapshot verwenden
-- [ ] **M2.9: Textoperationen und Löschung**
-  - [ ] `replace_text` ändert nur expliziten Content der angefragten Rolle, niemals den
+- [x] **M2.9: Textoperationen und Löschung**
+  - [x] `replace_text` ändert nur expliziten Content der angefragten Rolle, niemals den
     per Fallback aufgelösten Content
-  - [ ] exakt ein ordinaler Match; 0 = `TextNotFound`, >1 = `MultipleTextMatches`
-  - [ ] Ergebnis erneut normalisieren und vollständig validieren
-  - [ ] `delete_content` tombstoned nur expliziten Rollen-Content
-  - [ ] `delete_node` mit aktiven Children ohne explizites `deleteSubtree=true` ablehnen;
+  - [x] exakt ein ordinaler Match; 0 = `TextNotFound`, >1 = `MultipleTextMatches`
+  - [x] Ergebnis erneut normalisieren und vollständig validieren
+  - [x] `delete_content` tombstoned nur expliziten Rollen-Content
+  - [x] `delete_node` mit aktiven Children ohne explizites `deleteSubtree=true` ablehnen;
     Subtree-Löschung tombstoned Nodes und deren Contents konsistent
 - [ ] **M2.10: FastTests für jeden Domain-Vertrag**
   - [ ] Positiv-, Rand- und Negativfälle aus M2.1 bis M2.9

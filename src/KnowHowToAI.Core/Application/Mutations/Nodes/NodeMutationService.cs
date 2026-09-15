@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 
 namespace KnowHowToAI.Core.Application.Mutations.Nodes;
@@ -90,6 +91,54 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         return FinalizeMutation(Replace(nodes, node with { SortOrder = command.SortOrder }), node.NodeId);
     }
 
+    public Result<NodeDeletionResult> Delete(
+        IEnumerable<Node> existingNodes,
+        IEnumerable<NodeContent> existingContents,
+        DeleteNodeCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(existingNodes);
+        ArgumentNullException.ThrowIfNull(existingContents);
+        ArgumentNullException.ThrowIfNull(command);
+
+        var nodes = existingNodes.ToArray();
+        var hierarchyError = FindHierarchyError(nodes);
+        if (hierarchyError is not null)
+            return Result<NodeDeletionResult>.Failure(hierarchyError);
+
+        var node = FindActiveNode(nodes, command.NodeId);
+        if (node is null)
+            return Result<NodeDeletionResult>.Failure(CreateNodeNotFoundError(command.NodeId));
+
+        var directlyAffectedChildren = nodes
+            .Where(candidate => !candidate.IsDeleted && candidate.ParentNodeId == node.NodeId)
+            .ToArray();
+        if (!command.DeleteSubtree && directlyAffectedChildren.Length > 0)
+        {
+            return Result<NodeDeletionResult>.Failure(new DomainError(
+                NodeDeletionErrorCodes.NodeHasActiveChildren,
+                "Eine Node mit aktiven Children erfordert eine explizite Subtree-Löschung.",
+                new Dictionary<string, string>
+                {
+                    [HierarchyErrorCodes.NodeIdDetail] = node.NodeId.ToString(),
+                    [NodeDeletionErrorCodes.ActiveChildCountDetail] = directlyAffectedChildren.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                }));
+        }
+
+        var deletedNodeIds = command.DeleteSubtree
+            ? FindActiveSubtreeNodeIds(nodes, node.NodeId)
+            : new HashSet<NodeId> { node.NodeId };
+        var deletedNodes = SiblingOrderNormalizer.Normalize(nodes.Select(candidate =>
+            deletedNodeIds.Contains(candidate.NodeId) ? candidate with { IsDeleted = true } : candidate));
+        var deletedContents = existingContents.Select(content =>
+            content.SnapshotId == node.SnapshotId && deletedNodeIds.Contains(content.NodeId)
+                ? content with { IsDeleted = true }
+                : content).ToArray();
+
+        return Result<NodeDeletionResult>.Success(new NodeDeletionResult(
+            deletedNodes,
+            Array.AsReadOnly(deletedContents)));
+    }
+
     private static DomainError? FindHierarchyError(IEnumerable<Node> nodes)
     {
         var report = HierarchyValidator.Validate(nodes);
@@ -157,6 +206,31 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
 
     private static Node? FindActiveNode(IEnumerable<Node> nodes, NodeId nodeId) =>
         nodes.FirstOrDefault(node => !node.IsDeleted && node.NodeId == nodeId);
+
+    private static ISet<NodeId> FindActiveSubtreeNodeIds(IEnumerable<Node> nodes, NodeId rootNodeId)
+    {
+        var childrenByParent = nodes
+            .Where(node => !node.IsDeleted && node.ParentNodeId is not null)
+            .GroupBy(node => node.ParentNodeId!.Value)
+            .ToDictionary(group => group.Key, group => group.Select(node => node.NodeId).ToArray());
+        var subtreeNodeIds = new HashSet<NodeId> { rootNodeId };
+        var pendingNodeIds = new Queue<NodeId>();
+        pendingNodeIds.Enqueue(rootNodeId);
+
+        while (pendingNodeIds.TryDequeue(out var parentNodeId))
+        {
+            if (!childrenByParent.TryGetValue(parentNodeId, out var childNodeIds))
+                continue;
+
+            foreach (var childNodeId in childNodeIds)
+            {
+                if (subtreeNodeIds.Add(childNodeId))
+                    pendingNodeIds.Enqueue(childNodeId);
+            }
+        }
+
+        return subtreeNodeIds;
+    }
 
     private static IReadOnlyList<Node> Replace(IEnumerable<Node> nodes, Node replacement) =>
         Array.AsReadOnly(nodes.Select(node => node.NodeId == replacement.NodeId ? replacement : node).ToArray());

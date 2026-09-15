@@ -1,6 +1,7 @@
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 
 namespace KnowHowToAI.Core.Tests.Domain.Hierarchy;
@@ -227,8 +228,70 @@ public sealed class NodeMutationServiceTests
         Assert.Equal(2, Find(result.Value.Nodes, SecondNodeId).SortOrder);
     }
 
+    [Fact]
+    public void Delete_NodeWithActiveChildrenWithoutSubtreeFlag_ReturnsErrorWithoutChangingTheSourceNodes()
+    {
+        Node[] nodes = [Node(RootNodeId), Node(FirstNodeId, RootNodeId)];
+        var service = new NodeMutationService(new CountingIdentifierGenerator(ThirdNodeId));
+
+        var result = service.Delete(nodes, [], new DeleteNodeCommand(RootNodeId, DeleteSubtree: false));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(NodeDeletionErrorCodes.NodeHasActiveChildren, result.Code);
+        Assert.Equal("1", result.Details[NodeDeletionErrorCodes.ActiveChildCountDetail]);
+        Assert.All(nodes, node => Assert.False(node.IsDeleted));
+    }
+
+    [Fact]
+    public void Delete_Subtree_TombstonesAllActiveNodesAndContentsInTheSameSnapshot()
+    {
+        var otherSnapshot = new SnapshotId(43);
+        Node[] nodes =
+        [
+            Node(RootNodeId),
+            Node(FirstNodeId, RootNodeId),
+            Node(SecondNodeId, FirstNodeId),
+            Node(ThirdNodeId, RootNodeId)
+        ];
+        NodeContent[] contents =
+        [
+            Content(SnapshotId, RootNodeId, "Root"),
+            Content(SnapshotId, FirstNodeId, "Child"),
+            Content(SnapshotId, SecondNodeId, "Grandchild"),
+            Content(SnapshotId, ThirdNodeId, "Other root"),
+            Content(otherSnapshot, RootNodeId, "Historical")
+        ];
+        var service = new NodeMutationService(new CountingIdentifierGenerator(NodeIdFor(20)));
+
+        var result = service.Delete(nodes, contents, new DeleteNodeCommand(FirstNodeId, DeleteSubtree: true));
+
+        Assert.True(result.IsSuccess);
+        Assert.False(Find(result.Value!.Nodes, RootNodeId).IsDeleted);
+        Assert.True(Find(result.Value.Nodes, FirstNodeId).IsDeleted);
+        Assert.True(Find(result.Value.Nodes, SecondNodeId).IsDeleted);
+        Assert.False(Find(result.Value.Nodes, ThirdNodeId).IsDeleted);
+        Assert.False(FindContent(result.Value.Contents, SnapshotId, RootNodeId).IsDeleted);
+        Assert.True(FindContent(result.Value.Contents, SnapshotId, FirstNodeId).IsDeleted);
+        Assert.True(FindContent(result.Value.Contents, SnapshotId, SecondNodeId).IsDeleted);
+        Assert.False(FindContent(result.Value.Contents, SnapshotId, ThirdNodeId).IsDeleted);
+        Assert.False(FindContent(result.Value.Contents, otherSnapshot, RootNodeId).IsDeleted);
+    }
+
     private static Node Find(IEnumerable<Node> nodes, NodeId nodeId) =>
         Assert.Single(nodes.Where(node => node.NodeId == nodeId));
+
+    private static NodeContent Content(SnapshotId snapshotId, NodeId nodeId, string content) =>
+        new(
+            snapshotId,
+            nodeId,
+            new RoleId("Developer"),
+            new ContentRevisionId(Guid.Parse("4a2c9f4a-0a77-44be-8f98-f403444d3e9f")),
+            ContentMode.Independent,
+            content,
+            IsDeleted: false);
+
+    private static NodeContent FindContent(IEnumerable<NodeContent> contents, SnapshotId snapshotId, NodeId nodeId) =>
+        Assert.Single(contents.Where(content => content.SnapshotId == snapshotId && content.NodeId == nodeId));
 
     private static Node Node(
         NodeId nodeId,
