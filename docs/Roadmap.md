@@ -412,6 +412,16 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
     Mischzustand; Wiederholung ohne Mutation bleibt identisch und read-only
   - [x] fehlende, geschlossene oder nicht mehr offene Working-Transaction liefert dabei
     weiterhin stabile Fehlercodes ohne Zustands- oder `ChangeVersion`-Änderung
+- [x] **M3.9: Deterministischer SQL-Überlappungsnachweis für die Validierungsansicht**
+  - [x] Test-Hook oder äquivalente kontrollierte SQL-Synchronisation nach Validation-Guard
+    beziehungsweise zwischen zwei gezielt gewählten Datenreads bereitstellen, ohne den
+    Produktionsvertrag zu verändern
+  - [x] Mutation und Validation kontrolliert verschränken und nachweisen, dass die
+    Validation ausschließlich einen vollständigen Vor- oder Nachzustand der fünf
+    versionierten Datenbereiche sieht, niemals einen Mischzustand
+  - [x] den Befund über mehrere zusammenhängende Befundarten und unveränderten
+    `ChangeVersion` bei reiner Validation absichern; Test deterministisch und ohne
+    Wall-Clock-Rennen ausführen
 
 **Abnahme:** Alle M3-Integrationstests grün; es bleibt zwischen MCP-Aufrufen keine
 offene SQL-Transaction oder Connection bestehen.

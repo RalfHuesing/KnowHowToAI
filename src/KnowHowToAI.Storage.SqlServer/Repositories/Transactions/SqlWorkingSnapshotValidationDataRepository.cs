@@ -13,6 +13,8 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Transactions;
 /// <summary>Liest die gesamte Validierungsansicht einer offenen Working-Transaction atomar.</summary>
 internal sealed class SqlWorkingSnapshotValidationDataRepository : SqlRepository, IWorkingSnapshotValidationDataRepository
 {
+    private readonly Func<CancellationToken, Task>? _afterGuardReadForTestAsync;
+
     private const string ListNodesSql = """
         SELECT SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted
         FROM dbo.KnowHowToAI_Node
@@ -50,9 +52,11 @@ internal sealed class SqlWorkingSnapshotValidationDataRepository : SqlRepository
 
     public SqlWorkingSnapshotValidationDataRepository(
         SqlConnectionFactory connectionFactory,
-        SqlStoragePolicy storagePolicy)
+        SqlStoragePolicy storagePolicy,
+        Func<CancellationToken, Task>? afterGuardReadForTestAsync = null)
         : base(connectionFactory, storagePolicy)
     {
+        _afterGuardReadForTestAsync = afterGuardReadForTestAsync;
     }
 
     public async Task<Result<WorkingSnapshotValidationData>> ReadOpenWorkingAsync(
@@ -70,6 +74,9 @@ internal sealed class SqlWorkingSnapshotValidationDataRepository : SqlRepository
             if (error is not null)
                 return await RollbackAndReturnAsync(databaseTransaction, Result<WorkingSnapshotValidationData>.Failure(error))
                     .ConfigureAwait(false);
+
+            if (_afterGuardReadForTestAsync is not null)
+                await _afterGuardReadForTestAsync(cancellationToken).ConfigureAwait(false);
 
             var parameters = new { snapshotId = guard!.WorkingSnapshotId };
             var nodes = (await connection.QueryAsync<NodeRow>(CreateCommand(ListNodesSql, parameters, cancellationToken, databaseTransaction))
