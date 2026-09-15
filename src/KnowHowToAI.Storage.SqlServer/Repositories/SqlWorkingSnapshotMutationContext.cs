@@ -45,6 +45,18 @@ internal sealed class SqlWorkingSnapshotMutationContext
                 _storagePolicy,
                 cancellationToken,
                 _transaction));
+
+    public Task<IEnumerable<T>> QueryAsync<T>(
+        string commandText,
+        object? parameters,
+        CancellationToken cancellationToken) =>
+        _connection.QueryAsync<T>(
+            SqlCommandFactory.Create(
+                commandText,
+                parameters,
+                _storagePolicy,
+                cancellationToken,
+                _transaction));
 }
 
 /// <summary>Beschreibt, ob die ausgeführte Repository-Operation Zustand geändert hat.</summary>

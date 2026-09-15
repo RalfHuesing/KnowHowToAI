@@ -81,6 +81,30 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
             [node.ParentNodeId, command.ParentNodeId]);
     }
 
+    public Result<HierarchyMutationResult> Update(IEnumerable<Node> existingNodes, UpdateNodeCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(existingNodes);
+        ArgumentNullException.ThrowIfNull(command);
+
+        var nodes = existingNodes.ToArray();
+        var existingError = FindHierarchyError(nodes);
+        if (existingError is not null)
+            return Result<HierarchyMutationResult>.Failure(existingError);
+
+        if (string.IsNullOrWhiteSpace(command.Title))
+            return Result<HierarchyMutationResult>.Failure(CreateTitleRequiredError());
+
+        var node = FindActiveNode(nodes, command.NodeId);
+        if (node is null)
+            return Result<HierarchyMutationResult>.Failure(CreateNodeNotFoundError(command.NodeId));
+
+        return FinalizeMutation(
+            Replace(nodes, node with { Title = command.Title, Description = command.Description }),
+            node.NodeId,
+            node.SnapshotId,
+            []);
+    }
+
     public Result<HierarchyMutationResult> Reorder(IEnumerable<Node> existingNodes, ReorderNodeCommand command)
     {
         ArgumentNullException.ThrowIfNull(existingNodes);

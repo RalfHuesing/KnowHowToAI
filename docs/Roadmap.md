@@ -443,9 +443,9 @@ Use Case berührten Fachmodule
   - [x] Export/Search Service sowie History/Release Service als getrennte Zuständigkeiten
   - [x] Validierung und Result-Mapping an einer eindeutigen Schicht, keine doppelte
     abweichende Fachlogik in Handlern und Repositories
-- [ ] **M4.2: Node-Mutationen**
-  - [ ] create/update/move/reorder/delete einschließlich Root- und Subtree-Semantik
-  - [ ] globale Auswirkung von Strukturänderungen in Ergebnissen/Warnungen sichtbar
+- [x] **M4.2: Node-Mutationen**
+  - [x] create/update/move/reorder/delete einschließlich Root- und Subtree-Semantik
+  - [x] globale Auswirkung von Strukturänderungen in Ergebnissen/Warnungen sichtbar
 - [ ] **M4.3: Content-Mutationen**
   - [ ] replace_content, replace_text und delete_content
   - [ ] Mode-/Dependency-Regeln, Revisionsvergabe und Normalisierung atomar anwenden

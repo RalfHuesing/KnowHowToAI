@@ -257,6 +257,19 @@ public sealed class NodeMutationServiceTests
     }
 
     [Fact]
+    public void Update_WhitespaceTitle_ReturnsTitleRequiredWithoutChangingTheSourceNode()
+    {
+        var service = new NodeMutationService(new CountingIdentifierGenerator(ThirdNodeId));
+
+        var result = service.Update(
+            [Node(RootNodeId)],
+            new UpdateNodeCommand { NodeId = RootNodeId, Title = " ", Description = "Neu" });
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(HierarchyErrorCodes.TitleRequired, result.Code);
+    }
+
+    [Fact]
     public void Move_RootWithoutChangingItsParent_RemainsValid()
     {
         var service = new NodeMutationService(new CountingIdentifierGenerator(ThirdNodeId));

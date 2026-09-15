@@ -1,17 +1,18 @@
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Hierarchy;
 
 namespace KnowHowToAI.Core.Application.Abstractions.Persistence;
 
 /// <summary>
-/// Write-Port für Node-Mutationen auf einem Working Snapshot.
-/// Speichert die vollständige normalisierte Hierarchie nach einer Mutation atomar.
+/// Write-Port für Node-Mutationen auf einem offenen Working Snapshot.
+/// Führt Lesen, fachliche Entscheidung und Persistenz unter derselben kurzen Sperre aus.
 /// </summary>
 public interface INodeMutationRepository
 {
-    /// <summary>Ersetzt die Hierarchie eines Working Snapshots vollständig durch die gegebene Liste.</summary>
-    Task SaveAsync(
-        SnapshotId snapshotId,
-        IReadOnlyList<Node> nodes,
+    /// <summary>Liest den vollständigen Node-Zustand und persistiert eine erfolgreiche Entscheidung atomar.</summary>
+    Task<Result<WorkingNodeMutationExecution<T>>> ExecuteAsync<T>(
+        TransactionId transactionId,
+        Func<WorkingNodeMutationState, Result<WorkingNodeMutationDecision<T>>> mutate,
         CancellationToken cancellationToken = default);
 }
