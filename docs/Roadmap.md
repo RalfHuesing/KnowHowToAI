@@ -367,12 +367,12 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] Connection Factory, parametrisierte Dapper-Zugriffe und zentrale Mappings
   - [x] kein dynamisches SQL aus Nutzereingaben; Cancellation und Timeouts durchreichen
   - [x] Repository liefert Daten/Fachzustände, aber keine MCP-Typen
-- [ ] **M3.2: `begin_transaction`**
-  - [ ] Current Snapshot unter geeigneter Sperre lesen und neuen Working Snapshot anlegen
-  - [ ] vollständige Kopie von Rollen, Role Resolutions, Nodes, NodeContents und
+- [x] **M3.2: `begin_transaction`**
+  - [x] Current Snapshot unter geeigneter Sperre lesen und neuen Working Snapshot anlegen
+  - [x] vollständige Kopie von Rollen, Role Resolutions, Nodes, NodeContents und
     ContentDependencies per `INSERT ... SELECT`
-  - [ ] Transaction mit Base-/Working-Snapshot und optionalen Audit-Metadaten anlegen
-  - [ ] gesamte Eröffnung atomar; bei Fehler weder halber Snapshot noch offene
+  - [x] Transaction mit Base-/Working-Snapshot und optionalen Audit-Metadaten anlegen
+  - [x] gesamte Eröffnung atomar; bei Fehler weder halber Snapshot noch offene
     Transaction
 - [ ] **M3.3: Mutationen auf Working Snapshot**
   - [ ] bei jeder Mutation Transaction vorhanden/offen und Snapshot `Working` prüfen
