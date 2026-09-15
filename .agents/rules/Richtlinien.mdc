@@ -10,7 +10,7 @@ Nutzeranweisungen haben Vorrang.
 
 ## Architektur & Domänen-Invarianten
 
-- **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, keine Abwärtskompatibilität zu Altversionen, kein Rückgriff auf alte Branches; einzige fachliche Wahrheit ist `docs/Konzept.md`.
+- **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, keine Abwärtskompatibilität zu Altversionen, kein Rückgriff auf alte Branches; einzige fachliche Wahrheit sind der verbindliche Index `docs/Konzept.md` und die dort verlinkten Konzeptmodule. Vor Implementierungen die dortige Lese-Matrix befolgen.
 - **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `MCP Adapter (STDIO in V1)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. MCP-Handler enthalten keine Geschäftslogik (reine Delegation). Keine Kopplung der Domänenlogik an Transport oder STDIO (spätere HTTP-/REST-Adapter architektonisch vorbereitet).
 - **Agentischer MCP-Fokus & Token-Effizienz**:
   - Tool-Payloads radikal token-sparsam halten (Progressive Disclosure, Metadata-First: `list_children` liefert Metadaten, kein Dump ganzer Bäume).
@@ -42,7 +42,7 @@ Nutzeranweisungen haben Vorrang.
 - Für C#-Symbole, Referenzen, Aufrufketten, Abhängigkeiten, Impact und Verstöße gilt `.agents/rules/AiNetLinter-McpWorkflow.mdc`. Dessen Schemas und absolute `targetPath`-Werte nutzen.
 - **Roadmap-Pflege**: `docs/Roadmap.md` ist die verbindliche Statusquelle. Erledigte Aufgaben nach jedem Teilschritt sofort auf `[x]` setzen; neue Erkenntnisse oder Teilaufgaben direkt darin nachführen und stets aktuell halten.
 - Nur implementiertes, belegbares Verhalten dokumentieren. CLI-, Konfigurations-, Regel- und MCP-Beschreibungen gegen aktuellen Code prüfen.
-- Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell `docs/Konzept.md` und Agentenregeln synchronisieren.
+- Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell den zuständigen Konzeptabschnitt, `docs/Konzept.md`, Roadmap und Agentenregeln synchronisieren; normative Aussagen nicht in mehreren Konzeptmodulen duplizieren.
 - Vor dem ersten unterstützten Datenbankstand darf die Greenfield-Baseline direkt korrigiert werden. Danach sind angewendete Migrationsskripte unveränderlich; Änderungen erfolgen ausschließlich durch neue, vorwärts gerichtete Migrationen mit neuer Versionsnummer.
 - `README.md` nur bei ausdrücklichem Auftrag ändern; Fremdänderungen erhalten.
 

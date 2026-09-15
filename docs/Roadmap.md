@@ -1,9 +1,10 @@
 # KnowHowTo AI – Implementierungs-Roadmap
 
 Diese Datei ist Ausführungsplan und verbindliche Statusquelle für V1. Die fachliche
-und architektonische Wahrheit bleibt `docs/Konzept.md`. Bei einem Widerspruch gilt
-das Konzept; der Widerspruch wird vor weiterer Implementierung geklärt und beide
-Dokumente werden anschließend synchronisiert.
+und architektonische Wahrheit bleiben der Index `docs/Konzept.md` und seine
+verlinkten Konzeptmodule. Bei einem Widerspruch gilt das Konzept; der Widerspruch
+wird vor weiterer Implementierung geklärt und die betroffenen Dokumente werden
+anschließend synchronisiert.
 
 ## Arbeitsweise für Agenten
 
@@ -128,6 +129,9 @@ verschiedene Policies erhalten, ohne Konfiguration in der Datenbank zu speichern
 **Statusziel:** Kompilierbares Greenfield-Gerüst. Fachfunktionen dürfen noch
 Placeholder sein.
 
+**Konzeptbezug:** [Grundlagen, Konfiguration und Systemgrenzen](konzept/01-Grundlagen-Hierarchie-Markdown.md),
+[V1-Architektur und Invarianten](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
+
 - [x] **M0.1: Solution- und Projektstruktur**
   - [x] `KnowHowToAI.slnx`
   - [x] `src/KnowHowToAI.Core` für Domain, Application-Verträge und Ports
@@ -167,6 +171,9 @@ Dieser Meilenstein behauptet ausdrücklich noch keine getestete Fachlogik.
 **Voraussetzung:** M0.
 **Statusziel:** Reproduzierbares, nebenläufig sicher migrierbares Schema auf einem
 echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert werden.
+
+**Konzeptbezug:** [Snapshots und historische Reproduzierbarkeit](konzept/03-Transaktionen-Snapshots-Releases.md),
+[relationales Datenmodell](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
 
 - [x] **M1.1: Initiales relationales Schema entwerfen**
   - [x] System-, Snapshot-, Transaction- und Release-Tabellen
@@ -225,6 +232,11 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
 
 **Voraussetzung:** M0; für reine Domain-Tests nicht M1.
 **Statusziel:** SQL- und transportfreie Fachlogik mit vollständigen FastTests.
+
+**Konzeptbezug:** [Hierarchie und Markdown](konzept/01-Grundlagen-Hierarchie-Markdown.md),
+[Rollen, Provenienz und Drift](konzept/02-Rollen-Provenienz-Drift.md),
+[Retrieval und Validierung](konzept/04-Export-Retrieval-Validierung.md),
+[V1-Invarianten](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
 
 - [ ] **M2.1: Grundtypen und Ergebnisvertrag**
   - [ ] starke/opaque IDs und unveränderliche Modelle für Snapshot, Transaction, Node,
@@ -307,6 +319,9 @@ durch FastTests belegt; Placeholder-Code und Placeholder-Tests sind entfernt.
 **Statusziel:** Kurze atomare SQL-Operationen implementieren das vollständige
 Snapshot-Modell ohne lang laufende SQL-Transaction.
 
+**Konzeptbezug:** [Transaktionen, Snapshots und Releases](konzept/03-Transaktionen-Snapshots-Releases.md),
+[Persistenzmodell](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
+
 - [ ] **M3.1: Repository-Ports und SQL-Grundlage**
   - [ ] Connection Factory, parametrisierte Dapper-Zugriffe und zentrale Mappings
   - [ ] kein dynamisches SQL aus Nutzereingaben; Cancellation und Timeouts durchreichen
@@ -356,6 +371,9 @@ offene SQL-Transaction oder Connection bestehen.
 **Voraussetzung:** M2, M3.
 **Statusziel:** Transportneutrale Use Cases orchestrieren Domain und Repository.
 
+**Konzeptbezug:** [MCP-Use-Cases](konzept/05-MCP-API.md) sowie die von jedem
+Use Case berührten Fachmodule
+
 - [ ] **M4.1: Services**
   - [ ] Transaction Service: begin/get/validate/commit/discard
   - [ ] Navigation Service: root/node/children/roles und Read-Kontext
@@ -389,6 +407,10 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
 
 **Voraussetzung:** M4.
 **Statusziel:** Vollständige, deterministische Read-Seite mit begrenzten Antworten.
+
+**Konzeptbezug:** [Transaktionen, Historie und Releases](konzept/03-Transaktionen-Snapshots-Releases.md),
+[Export, Retrieval und Validierung](konzept/04-Export-Retrieval-Validierung.md),
+[Historienmodell](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
 
 - [ ] **M5.1: Metadata-first Navigation**
   - [ ] `get_root`, `get_node`, `list_children`, `list_roles`
@@ -440,6 +462,9 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
 **Voraussetzung:** M4 und die jeweils veröffentlichten M5-Use-Cases.
 **Statusziel:** Dünner Adapter mit stabilen Schemas und sauberem STDIO-Protokoll.
 
+**Konzeptbezug:** [Transportgrenzen](konzept/01-Grundlagen-Hierarchie-Markdown.md),
+[MCP-API und Tool-Verträge](konzept/05-MCP-API.md)
+
 - [ ] **M6.1: Hosting und Konfiguration**
   - [ ] Generic Host, DI und validierte Connection-/Validator-Konfiguration
   - [ ] Schema-Migration gemäß `Migrations:ApplyOnStartup` kontrolliert ausführen
@@ -481,6 +506,9 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
 **Voraussetzung:** M1 bis M6.
 **Statusziel:** Nachweis, dass die Einzelverträge als Gesamtsystem funktionieren.
 
+**Konzeptbezug:** [V1-Invarianten und Gesamtmodell](konzept/06-Datenmodell-V1-Invarianten-Architektur.md),
+[Referenzabläufe und Architekturentscheidungen](konzept/07-Referenzablaeufe-Entscheidungen.md)
+
 - [ ] **M7.1: Referenzworkflow**
   - [ ] Rollen Consultant, Developer und EndUser samt Resolution Orders transaktional
     anlegen
@@ -505,7 +533,8 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
   - [ ] Konfigurationsbeispiel ohne Secrets, SQL-Berechtigungen und Startkommando
     dokumentieren
   - [ ] Release/Publish des Servers und Smoke-Test des veröffentlichten Artefakts
-  - [ ] bekannte V1-Grenzen aus `docs/Konzept.md` gegen Implementierung prüfen
+  - [ ] bekannte V1-Grenzen aus dem Konzeptindex und allen Pflichtmodulen gegen die
+    Implementierung prüfen
 - [ ] **M7.5: Abschlussgate**
   - [ ] `dotnet build KnowHowToAI.slnx` warnungsfrei
   - [ ] AiNetLinter `verify(..., scope: "solution")`: pass, Score 10.0, 0 Violations
