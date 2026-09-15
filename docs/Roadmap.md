@@ -150,17 +150,17 @@ Placeholder sein.
   - [x] `scripts/test-fast.ps1`
   - [x] `scripts/test-integration.ps1`
   - [x] Initialer Build und Placeholder-FastTest erfolgreich
-- [ ] **M0.4: Zentrale Anwendungskonfiguration**
-  - [ ] `appsettings.json` mit dem V1-Konfigurationsbaum und ausschließlich
+- [x] **M0.4: Zentrale Anwendungskonfiguration**
+  - [x] `appsettings.json` mit dem V1-Konfigurationsbaum und ausschließlich
     nicht-geheimen Defaults anlegen
-  - [ ] immutable typed Options ohne versteckte Fallbackwerte und zentrale
+  - [x] immutable typed Options ohne versteckte Fallbackwerte und zentrale
     Options-Validatoren definieren; Defaults ausschließlich aus `appsettings.json` laden
-  - [ ] alle Options mit verständlichen Startup-Fehlern validieren, einschließlich
+  - [x] alle Options mit verständlichen Startup-Fehlern validieren, einschließlich
     `Default <= Maximum`, positiver Timeouts und sinnvoller Mindest-/Höchstwerte
-  - [ ] Override-Reihenfolge und Environment-Variablennamen dokumentieren
-  - [ ] sicherstellen, dass Domain und Storage keine direkte Abhängigkeit von
+  - [x] Override-Reihenfolge und Environment-Variablennamen dokumentieren
+  - [x] sicherstellen, dass Domain und Storage keine direkte Abhängigkeit von
     `IConfiguration` oder `IOptions` erhalten; der Composition Root übergibt Records
-  - [ ] Tests für Defaults, Overrides, ungültige Werte und Secret-Redaction
+  - [x] Tests für Defaults, Overrides, ungültige Werte und Secret-Redaction
 
 **Abnahme:** Solution baut warnungsfrei; beide Testprojekte sind auffindbar;
 Konfigurationsdefaults, Overrides und ungültige Werte sind automatisiert belegt.
