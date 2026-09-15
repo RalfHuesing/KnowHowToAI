@@ -314,14 +314,14 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] keine impliziten Kandidaten ergänzen; fehlende Konfiguration transparent melden
   - [x] Ergebnis enthält immer `requestedRole`, nullable `resolvedRole`,
     `availability`, `fallbackUsed` und Content-Metadaten
-- [ ] **M2.8: Dependencies und transitive Freshness**
-  - [ ] `Independent` hat keine Dependencies; `Derived` hat mindestens eine
-  - [ ] Source muss aktiver expliziter Content sein; ein Fallback ist keine speicherbare
+- [x] **M2.8: Dependencies und transitive Freshness**
+  - [x] `Independent` hat keine Dependencies; `Derived` hat mindestens eine
+  - [x] Source muss aktiver expliziter Content sein; ein Fallback ist keine speicherbare
     Source-Revision
-  - [ ] Self-Dependency und direkte/transitive Zyklen mit `DependencyCycle` ablehnen
-  - [ ] `Stale`, wenn Source fehlt/gelöscht ist, ihre aktuelle Revision abweicht oder
+  - [x] Self-Dependency und direkte/transitive Zyklen mit `DependencyCycle` ablehnen
+  - [x] `Stale`, wenn Source fehlt/gelöscht ist, ihre aktuelle Revision abweicht oder
     eine abgeleitete Source transitiv stale ist; sonst `Current`
-  - [ ] dieselbe Logik für Current, historischen und Working Snapshot verwenden
+  - [x] dieselbe Logik für Current, historischen und Working Snapshot verwenden
 - [ ] **M2.9: Textoperationen und Löschung**
   - [ ] `replace_text` ändert nur expliziten Content der angefragten Rolle, niemals den
     per Fallback aufgelösten Content
