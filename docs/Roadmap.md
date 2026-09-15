@@ -422,6 +422,7 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] den Befund über mehrere zusammenhängende Befundarten und unveränderten
     `ChangeVersion` bei reiner Validation absichern; Test deterministisch und ohne
     Wall-Clock-Rennen ausführen
+- [ ] Review + Fixen der potentiellen Findings erforderlich
 
 **Abnahme:** Alle M3-Integrationstests grün; es bleibt zwischen MCP-Aufrufen keine
 offene SQL-Transaction oder Connection bestehen.
@@ -459,6 +460,7 @@ Use Case berührten Fachmodule
 - [x] **M4.5: Service-Tests**
   - [x] Use-Case-Tests mit In-Memory-Fakes für Orchestrierung und Fehlerweitergabe
   - [x] keine Wiederholung bereits in M2 bewiesener Parser-/Algorithmusvarianten
+- [ ] Review + Fixen der potentiellen Findings erforderlich
 
 **Abnahme:** Jeder fachliche V1-Write ist über genau einen transportneutralen Use Case
 erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
