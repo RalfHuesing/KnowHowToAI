@@ -265,14 +265,14 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
 [Retrieval und Validierung](konzept/04-Export-Retrieval-Validierung.md),
 [V1-Invarianten](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
 
-- [ ] **M2.1: Grundtypen und Ergebnisvertrag**
-  - [ ] starke/opaque IDs und unveränderliche Modelle für Snapshot, Transaction, Node,
+- [x] **M2.1: Grundtypen und Ergebnisvertrag**
+  - [x] starke/opaque IDs und unveränderliche Modelle für Snapshot, Transaction, Node,
     Role, NodeContent, Dependency und Release
-  - [ ] zentrale Enums für Zustände, `ContentMode`, `Availability` und `Freshness`
-  - [ ] `Result<T>` mit stabilem `code`, maschinenlesbaren `details` und `warnings`;
+  - [x] zentrale Enums für Zustände, `ContentMode`, `Availability` und `Freshness`
+  - [x] `Result<T>` mit stabilem `code`, maschinenlesbaren `details` und `warnings`;
     erwartete Fachfehler nicht als Exceptions modellieren
-  - [ ] Uhrzeit und ID-Erzeugung über injizierbare Ports deterministisch testbar machen
-  - [ ] `CancellationToken` an allen asynchronen Application-/Storage-Grenzen führen
+  - [x] Uhrzeit und ID-Erzeugung über injizierbare Ports deterministisch testbar machen
+  - [x] `CancellationToken` an allen asynchronen Application-/Storage-Grenzen führen
 - [ ] **M2.2: Read-Kontext**
   - [ ] genau einen Selektor zulassen: `transactionId`, `snapshotId` oder keinen
     (Current); Kombination mit `InvalidReadContext` ablehnen

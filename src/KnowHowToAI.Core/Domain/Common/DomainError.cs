@@ -1,3 +1,12 @@
 namespace KnowHowToAI.Core.Domain.Common;
 
-public sealed record DomainError;
+/// <summary>
+/// Stabile, maschinenlesbare Beschreibung eines erwarteten Fachfehlers.
+/// </summary>
+public sealed record DomainError : DomainIssue
+{
+    public DomainError(string code, string message, IReadOnlyDictionary<string, string>? details = null)
+        : base(code, message, details)
+    {
+    }
+}
