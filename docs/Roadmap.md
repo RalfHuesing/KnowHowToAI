@@ -436,12 +436,12 @@ offene SQL-Transaction oder Connection bestehen.
 **Konzeptbezug:** [MCP-Use-Cases](konzept/05-MCP-API.md) sowie die von jedem
 Use Case berührten Fachmodule
 
-- [ ] **M4.1: Services**
-  - [ ] Transaction Service: begin/get/validate/commit/discard
-  - [ ] Navigation Service: root/node/children/roles und Read-Kontext
-  - [ ] Mutation Service: Nodes, Content, Rollen und Resolution Orders
-  - [ ] Export/Search Service sowie History/Release Service als getrennte Zuständigkeiten
-  - [ ] Validierung und Result-Mapping an einer eindeutigen Schicht, keine doppelte
+- [x] **M4.1: Services**
+  - [x] Transaction Service: begin/get/validate/commit/discard
+  - [x] Navigation Service: root/node/children/roles und Read-Kontext
+  - [x] Mutation Service: Nodes, Content, Rollen und Resolution Orders
+  - [x] Export/Search Service sowie History/Release Service als getrennte Zuständigkeiten
+  - [x] Validierung und Result-Mapping an einer eindeutigen Schicht, keine doppelte
     abweichende Fachlogik in Handlern und Repositories
 - [ ] **M4.2: Node-Mutationen**
   - [ ] create/update/move/reorder/delete einschließlich Root- und Subtree-Semantik
