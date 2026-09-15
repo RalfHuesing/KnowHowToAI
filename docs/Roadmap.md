@@ -394,13 +394,13 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] Open Transaction und Working Snapshot atomar auf Discarded setzen
   - [x] Current Snapshot unverändert lassen; Working-Daten zur Historie behalten
   - [x] wiederholter Discard/Discard nach Commit liefert stabil `TransactionClosed`
-- [ ] **M3.7: SQL-Integrationstests**
-  - [ ] Begin kopiert alle fünf versionierten Datenbereiche vollständig
-  - [ ] eigene Writes sind im Working Read sichtbar, aber nicht im Current Read
-  - [ ] Commit und Discard inklusive Zuständen/Zeitstempeln
-  - [ ] zwei parallele Transactions: genau der erste Commit gewinnt
-  - [ ] Rollback bei injiziertem Fehler in Begin, Mutation und Commit
-  - [ ] historische committed Snapshots bleiben byte-/wertgleich reproduzierbar
+- [x] **M3.7: SQL-Integrationstests**
+  - [x] Begin kopiert alle fünf versionierten Datenbereiche vollständig
+  - [x] eigene Writes sind im Working Read sichtbar, aber nicht im Current Read
+  - [x] Commit und Discard inklusive Zuständen/Zeitstempeln
+  - [x] zwei parallele Transactions: genau der erste Commit gewinnt
+  - [x] Rollback bei injiziertem Fehler in Begin, Mutation und Commit
+  - [x] historische committed Snapshots bleiben byte-/wertgleich reproduzierbar
 
 **Abnahme:** Alle M3-Integrationstests grün; es bleibt zwischen MCP-Aufrufen keine
 offene SQL-Transaction oder Connection bestehen.

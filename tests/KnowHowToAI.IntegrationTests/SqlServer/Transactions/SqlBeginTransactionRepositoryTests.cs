@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
@@ -43,6 +44,74 @@ public sealed class SqlBeginTransactionRepositoryTests
         Assert.Equal(sourceCounts, workingCounts);
         await AssertSeedRowsCopiedAsync(database, workingSnapshot, seed);
         await AssertCurrentSnapshotAsync(database, seed.BaseSnapshotId);
+    }
+
+    [Fact]
+    public async Task BeginAsync_RollsBackWorkingSnapshotAndTransactionWhenCopyFails()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+        var seed = await SeedSourceSnapshotAsync(database);
+        var sourceCounts = await GetAreaCountsAsync(database, seed.BaseSnapshotId);
+        var transactionId = new TransactionId(Guid.Parse("01234567-89ab-cdef-0123-456789abcdea"));
+        await database.ExecuteAsync("""
+            CREATE TRIGGER dbo.KnowHowToAI_BeginFailureProbe
+            ON dbo.KnowHowToAI_NodeContent
+            AFTER INSERT
+            AS
+            BEGIN
+                THROW 51002, 'Injected begin failure.', 1;
+            END;
+            """);
+        var repository = new SqlTransactionRepository(
+            database.ConnectionFactory,
+            new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+
+        await Assert.ThrowsAsync<SqlException>(() => repository.BeginAsync(
+            new BeginTransactionRequest(transactionId, "Fehlschlag", "Integrationstest", "xUnit")));
+
+        Assert.Equal(sourceCounts, await GetAreaCountsAsync(database, seed.BaseSnapshotId));
+        await AssertCurrentSnapshotAsync(database, seed.BaseSnapshotId);
+        await AssertBeginFailureLeftNoPersistedStateAsync(database, transactionId);
+    }
+
+    [Fact]
+    public async Task CommitAsync_PreservesACompleteHistoricalSnapshotValueForValueAfterLaterCommit()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+        await SeedSourceSnapshotAsync(database);
+        var repository = new SqlTransactionRepository(
+            database.ConnectionFactory,
+            new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+        var first = await repository.BeginAsync(new BeginTransactionRequest(
+            new TransactionId(Guid.Parse("01234567-89ab-cdef-0123-456789abcdeb")),
+            "Historischer Ausgangsstand",
+            "Integrationstest",
+            "xUnit"));
+
+        var firstCommit = await repository.CommitAsync(CreateCommitRequest(first.TransactionId));
+        Assert.True(firstCommit.IsCommitted);
+        var beforeLaterCommit = await ReadVersionedSnapshotValueAsync(database, first.WorkingSnapshotId);
+
+        var second = await repository.BeginAsync(new BeginTransactionRequest(
+            new TransactionId(Guid.Parse("01234567-89ab-cdef-0123-456789abcdec")),
+            "Spätere Änderung",
+            "Integrationstest",
+            "xUnit"));
+        await database.ExecuteAsync("""
+            UPDATE dbo.KnowHowToAI_Role
+            SET Description = N'Nur im späteren Snapshot geändert'
+            WHERE SnapshotId = @snapshotId AND RoleId = N'Developer';
+            """,
+            new SqlParameter("@snapshotId", second.WorkingSnapshotId.Value));
+
+        var secondCommit = await repository.CommitAsync(CreateCommitRequest(second.TransactionId));
+
+        Assert.True(secondCommit.IsCommitted);
+        Assert.Equal(beforeLaterCommit, await ReadVersionedSnapshotValueAsync(database, first.WorkingSnapshotId));
+        Assert.Equal("Committed", await ReadSnapshotStateAsync(database, first.WorkingSnapshotId));
+        Assert.Equal("Nur im späteren Snapshot geändert", await ReadRoleDescriptionAsync(database, second.WorkingSnapshotId, "Developer"));
     }
 
     private static async Task<SeededSnapshot> SeedSourceSnapshotAsync(SqlTestDatabase database)
@@ -178,6 +247,86 @@ public sealed class SqlBeginTransactionRepositoryTests
 
         var actualSnapshotId = (long)(await command.ExecuteScalarAsync())!;
         Assert.Equal(expectedSnapshotId, new SnapshotId(actualSnapshotId));
+    }
+
+    private static CommitTransactionRequest CreateCommitRequest(TransactionId transactionId) =>
+        new(transactionId, null, new QualityWarningThresholds(4096, 25, 8), WarnOnPossibleEmbeddedHeading: true);
+
+    private static async Task AssertBeginFailureLeftNoPersistedStateAsync(
+        SqlTestDatabase database,
+        TransactionId transactionId)
+    {
+        await using var connection = await database.ConnectionFactory.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT
+                (SELECT COUNT_BIG(*) FROM dbo.KnowHowToAI_Transaction WHERE TransactionId = @transactionId),
+                (SELECT COUNT_BIG(*) FROM dbo.KnowHowToAI_Snapshot WHERE State = 'Working');
+            """;
+        command.Parameters.Add(new SqlParameter("@transactionId", transactionId.Value));
+
+        await using var reader = await command.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal(0L, reader.GetInt64(0));
+        Assert.Equal(0L, reader.GetInt64(1));
+    }
+
+    private static async Task<string> ReadVersionedSnapshotValueAsync(SqlTestDatabase database, SnapshotId snapshotId)
+    {
+        await using var connection = await database.ConnectionFactory.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT (
+                SELECT
+                    (SELECT RoleId, Name, Description, IsDeleted
+                     FROM dbo.KnowHowToAI_Role
+                     WHERE SnapshotId = @snapshotId ORDER BY RoleId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Roles,
+                    (SELECT RequestedRoleId, CandidateRoleId, Priority
+                     FROM dbo.KnowHowToAI_RoleResolution
+                     WHERE SnapshotId = @snapshotId ORDER BY RequestedRoleId, Priority FOR JSON PATH, INCLUDE_NULL_VALUES) AS RoleResolutions,
+                    (SELECT NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted
+                     FROM dbo.KnowHowToAI_Node
+                     WHERE SnapshotId = @snapshotId ORDER BY SortOrder, NodeId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Nodes,
+                    (SELECT NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+                     FROM dbo.KnowHowToAI_NodeContent
+                     WHERE SnapshotId = @snapshotId ORDER BY NodeId, RoleId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Contents,
+                    (SELECT TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
+                     FROM dbo.KnowHowToAI_ContentDependency
+                     WHERE SnapshotId = @snapshotId ORDER BY TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Dependencies
+                FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES
+            );
+            """;
+        command.Parameters.Add(new SqlParameter("@snapshotId", snapshotId.Value));
+
+        return (string)(await command.ExecuteScalarAsync())!;
+    }
+
+    private static async Task<string> ReadSnapshotStateAsync(SqlTestDatabase database, SnapshotId snapshotId)
+    {
+        await using var connection = await database.ConnectionFactory.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT State FROM dbo.KnowHowToAI_Snapshot WHERE SnapshotId = @snapshotId;";
+        command.Parameters.Add(new SqlParameter("@snapshotId", snapshotId.Value));
+
+        return (string)(await command.ExecuteScalarAsync())!;
+    }
+
+    private static async Task<string> ReadRoleDescriptionAsync(
+        SqlTestDatabase database,
+        SnapshotId snapshotId,
+        string roleId)
+    {
+        await using var connection = await database.ConnectionFactory.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT Description
+            FROM dbo.KnowHowToAI_Role
+            WHERE SnapshotId = @snapshotId AND RoleId = @roleId;
+            """;
+        command.Parameters.Add(new SqlParameter("@snapshotId", snapshotId.Value));
+        command.Parameters.Add(new SqlParameter("@roleId", roleId));
+
+        return (string)(await command.ExecuteScalarAsync())!;
     }
 
     private sealed record SeededSnapshot(
