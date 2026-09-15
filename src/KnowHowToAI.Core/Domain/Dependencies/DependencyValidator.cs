@@ -9,7 +9,7 @@ namespace KnowHowToAI.Core.Domain.Dependencies;
 /// </summary>
 public static class DependencyValidator
 {
-    public static ValidationReport Validate(
+    public static ValidationReport ValidateSnapshot(
         IEnumerable<NodeContent> contents,
         IEnumerable<ContentDependency> dependencies)
     {
@@ -22,9 +22,33 @@ public static class DependencyValidator
         var contentsByKey = IndexActiveContents(activeContents, errors);
 
         ValidateContentModes(activeContents, allDependencies, errors);
-        ValidateDependencySources(allDependencies, contentsByKey, errors);
+        ValidateDependencyTargets(allDependencies, contentsByKey, errors);
         ValidateCycles(allDependencies, contentsByKey, errors);
 
+        return new ValidationReport(errors, []);
+    }
+
+    /// <summary>
+    /// Prüft neue oder geänderte Provenienz vor dem Speichern. Ihre Quellen müssen aktiv und explizit sein.
+    /// </summary>
+    public static ValidationReport ValidateNewOrChangedDependencies(
+        IEnumerable<NodeContent> contents,
+        IEnumerable<ContentDependency> snapshotDependencies,
+        IEnumerable<ContentDependency> newOrChangedDependencies)
+    {
+        ArgumentNullException.ThrowIfNull(contents);
+        ArgumentNullException.ThrowIfNull(snapshotDependencies);
+        ArgumentNullException.ThrowIfNull(newOrChangedDependencies);
+
+        var allContents = contents.ToArray();
+        var allDependencies = snapshotDependencies.ToArray();
+        var errors = ValidateSnapshot(allContents, allDependencies).Errors.ToList();
+        var activeContentsByKey = allContents
+            .Where(content => !content.IsDeleted)
+            .GroupBy(content => (content.SnapshotId, content.NodeId, content.RoleId))
+            .ToDictionary(group => group.Key, group => group.First());
+
+        ValidateDependencySources(newOrChangedDependencies, activeContentsByKey, errors);
         return new ValidationReport(errors, []);
     }
 
@@ -93,7 +117,7 @@ public static class DependencyValidator
         }
     }
 
-    private static void ValidateDependencySources(
+    private static void ValidateDependencyTargets(
         IEnumerable<ContentDependency> dependencies,
         IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId), NodeContent> contentsByKey,
         ICollection<DomainError> errors)
@@ -101,13 +125,31 @@ public static class DependencyValidator
         foreach (var dependency in dependencies)
         {
             var targetKey = (dependency.SnapshotId, dependency.TargetNodeId, dependency.TargetRoleId);
-            var sourceKey = (dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceRoleId);
             if (!contentsByKey.TryGetValue(targetKey, out var target)
-                || target.ContentMode != ContentMode.Derived
-                || !contentsByKey.ContainsKey(sourceKey))
+                || target.ContentMode != ContentMode.Derived)
             {
                 errors.Add(CreateInvalidDependencyError(
-                    "Eine Abhängigkeit benötigt aktiven expliziten Derived-Content als Ziel und aktiven expliziten Content als Quelle.",
+                    "Eine Abhängigkeit benötigt aktiven expliziten Derived-Content als Ziel.",
+                    dependency.TargetNodeId,
+                    dependency.TargetRoleId,
+                    dependency.SourceNodeId,
+                    dependency.SourceRoleId));
+            }
+        }
+    }
+
+    private static void ValidateDependencySources(
+        IEnumerable<ContentDependency> dependencies,
+        IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId), NodeContent> contentsByKey,
+        ICollection<DomainError> errors)
+    {
+        foreach (var dependency in dependencies)
+        {
+            var sourceKey = (dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceRoleId);
+            if (!contentsByKey.ContainsKey(sourceKey))
+            {
+                errors.Add(CreateInvalidDependencyError(
+                    "Eine neue oder geänderte Abhängigkeit benötigt aktiven expliziten Content als Quelle.",
                     dependency.TargetNodeId,
                     dependency.TargetRoleId,
                     dependency.SourceNodeId,

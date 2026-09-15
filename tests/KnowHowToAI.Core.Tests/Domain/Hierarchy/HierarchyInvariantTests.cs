@@ -2,6 +2,7 @@ using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 
 namespace KnowHowToAI.Core.Tests.Domain.Hierarchy;
@@ -312,7 +313,7 @@ public sealed class NodeMutationServiceTests
         Node[] nodes = [Node(RootNodeId), Node(FirstNodeId, RootNodeId)];
         var service = new NodeMutationService(new CountingIdentifierGenerator(ThirdNodeId));
 
-        var result = service.Delete(nodes, [], new DeleteNodeCommand(RootNodeId, DeleteSubtree: false));
+        var result = service.Delete(nodes, [], [], new DeleteNodeCommand(RootNodeId, DeleteSubtree: false));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(NodeDeletionErrorCodes.NodeHasActiveChildren, result.Code);
@@ -341,7 +342,7 @@ public sealed class NodeMutationServiceTests
         ];
         var service = new NodeMutationService(new CountingIdentifierGenerator(NodeIdFor(20)));
 
-        var result = service.Delete(nodes, contents, new DeleteNodeCommand(FirstNodeId, DeleteSubtree: true));
+        var result = service.Delete(nodes, contents, [], new DeleteNodeCommand(FirstNodeId, DeleteSubtree: true));
 
         Assert.True(result.IsSuccess);
         Assert.False(Find(result.Value!.Nodes, RootNodeId).IsDeleted);
@@ -353,6 +354,58 @@ public sealed class NodeMutationServiceTests
         Assert.True(FindContent(result.Value.Contents, SnapshotId, SecondNodeId).IsDeleted);
         Assert.False(FindContent(result.Value.Contents, SnapshotId, ThirdNodeId).IsDeleted);
         Assert.False(FindContent(result.Value.Contents, otherSnapshot, RootNodeId).IsDeleted);
+    }
+
+    [Fact]
+    public void Delete_Subtree_DeletesTargetDependenciesAndPreservesSourceProvenanceAsStale()
+    {
+        var sourceContent = Content(SnapshotId, FirstNodeId, "Quelle");
+        var derivedContent = Content(SnapshotId, SecondNodeId, "Abgeleitet") with
+        {
+            RoleId = new RoleId("EndUser"),
+            ContentMode = ContentMode.Derived
+        };
+        var dependency = new ContentDependency(
+            SnapshotId,
+            derivedContent.NodeId,
+            derivedContent.RoleId,
+            sourceContent.NodeId,
+            sourceContent.RoleId,
+            sourceContent.ContentRevisionId);
+        var nodes = new[]
+        {
+            Node(RootNodeId),
+            Node(FirstNodeId, RootNodeId),
+            Node(SecondNodeId, RootNodeId)
+        };
+        var service = new NodeMutationService(new CountingIdentifierGenerator(NodeIdFor(20)));
+
+        var deletingTarget = service.Delete(
+            nodes,
+            [sourceContent, derivedContent],
+            [dependency],
+            new DeleteNodeCommand(SecondNodeId, DeleteSubtree: false));
+
+        Assert.True(deletingTarget.IsSuccess);
+        Assert.Empty(deletingTarget.Value!.Dependencies);
+        Assert.True(DependencyValidator.ValidateSnapshot(
+            deletingTarget.Value.Contents,
+            deletingTarget.Value.Dependencies).IsValid);
+
+        var deletingSource = service.Delete(
+            nodes,
+            [sourceContent, derivedContent],
+            [dependency],
+            new DeleteNodeCommand(FirstNodeId, DeleteSubtree: false));
+
+        Assert.True(deletingSource.IsSuccess);
+        Assert.Equal([dependency], deletingSource.Value!.Dependencies);
+        Assert.True(DependencyValidator.ValidateSnapshot(
+            deletingSource.Value.Contents,
+            deletingSource.Value.Dependencies).IsValid);
+        Assert.Equal(
+            Freshness.Stale,
+            FreshnessEvaluator.Evaluate(derivedContent, deletingSource.Value.Contents, deletingSource.Value.Dependencies));
     }
 
     private static Node Find(IEnumerable<Node> nodes, NodeId nodeId) =>

@@ -2,6 +2,7 @@ using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 
 namespace KnowHowToAI.Core.Tests.Application.Mutations.Content;
 
@@ -57,6 +58,7 @@ public sealed class ContentMutationServiceTests
 
         var result = service.DeleteContent(
             [developerContent, consultantContent],
+            [],
             new DeleteContentCommand(NodeId, DeveloperRoleId));
 
         Assert.True(result.IsSuccess);
@@ -75,12 +77,55 @@ public sealed class ContentMutationServiceTests
 
         var result = service.DeleteContent(
             [developerContent, consultantContent],
+            [],
             new DeleteContentCommand(NodeId, DeveloperRoleId));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(TextOperationCodes.ContentNotFound, result.Code);
         Assert.True(developerContent.IsDeleted);
         Assert.False(consultantContent.IsDeleted);
+    }
+
+    [Fact]
+    public void DeleteContent_DeletesTargetDependenciesAndPreservesSourceProvenanceAsStale()
+    {
+        var service = CreateService();
+        var sourceNodeId = new NodeId(Guid.Parse("17c9148d-063c-4c4c-8c24-48f6584b6351"));
+        var endUserRoleId = new RoleId("EndUser");
+        var source = Content(DeveloperRoleId, "Quelle") with { NodeId = sourceNodeId };
+        var derived = Content(endUserRoleId, "Abgeleitet") with { ContentMode = ContentMode.Derived };
+        var dependency = new ContentDependency(
+            SnapshotId,
+            derived.NodeId,
+            derived.RoleId,
+            source.NodeId,
+            source.RoleId,
+            source.ContentRevisionId);
+
+        var deletingTarget = service.DeleteContent(
+            [source, derived],
+            [dependency],
+            new DeleteContentCommand(derived.NodeId, derived.RoleId));
+
+        Assert.True(deletingTarget.IsSuccess);
+        Assert.Empty(deletingTarget.Value!.Dependencies);
+        Assert.True(DependencyValidator.ValidateSnapshot(
+            deletingTarget.Value.Contents,
+            deletingTarget.Value.Dependencies).IsValid);
+
+        var deletingSource = service.DeleteContent(
+            [source, derived],
+            [dependency],
+            new DeleteContentCommand(source.NodeId, source.RoleId));
+
+        Assert.True(deletingSource.IsSuccess);
+        Assert.Equal([dependency], deletingSource.Value!.Dependencies);
+        Assert.True(DependencyValidator.ValidateSnapshot(
+            deletingSource.Value.Contents,
+            deletingSource.Value.Dependencies).IsValid);
+        Assert.Equal(
+            Freshness.Stale,
+            FreshnessEvaluator.Evaluate(derived, deletingSource.Value.Contents, deletingSource.Value.Dependencies));
     }
 
     private static ContentMutationService CreateService() =>

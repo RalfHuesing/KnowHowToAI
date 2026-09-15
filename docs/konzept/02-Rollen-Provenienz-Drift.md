@@ -356,6 +356,13 @@ current Developer Revision:
 => EndUser = Stale
 ```
 
+Eine bestehende Provenienz bleibt auch dann erhalten, wenn ihre Source später
+tombstoned oder in einem historischen Zustand fehlt. Der Derived-Content wird dadurch
+`Stale`, der Snapshot bleibt aber valide. Ausschließlich beim Anlegen oder Ändern einer
+Dependency muss die Source als aktiver expliziter Content existieren. So werden weder
+neue ungültige Abhängigkeiten akzeptiert noch die Nachvollziehbarkeit bereits
+entstandener Ableitungen verloren.
+
 Der EndUser-Text wird **nicht automatisch verändert**.
 
 Das System signalisiert lediglich:

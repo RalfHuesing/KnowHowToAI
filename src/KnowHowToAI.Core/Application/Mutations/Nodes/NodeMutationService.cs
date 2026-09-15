@@ -1,6 +1,7 @@
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 
 namespace KnowHowToAI.Core.Application.Mutations.Nodes;
@@ -104,13 +105,16 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
     public Result<NodeDeletionResult> Delete(
         IEnumerable<Node> existingNodes,
         IEnumerable<NodeContent> existingContents,
+        IEnumerable<ContentDependency> existingDependencies,
         DeleteNodeCommand command)
     {
         ArgumentNullException.ThrowIfNull(existingNodes);
         ArgumentNullException.ThrowIfNull(existingContents);
+        ArgumentNullException.ThrowIfNull(existingDependencies);
         ArgumentNullException.ThrowIfNull(command);
 
         var nodes = existingNodes.ToArray();
+        var dependencies = existingDependencies.ToArray();
         var hierarchyError = FindHierarchyError(nodes);
         if (hierarchyError is not null)
             return Result<NodeDeletionResult>.Failure(hierarchyError);
@@ -146,10 +150,15 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
             content.SnapshotId == node.SnapshotId && deletedNodeIds.Contains(content.NodeId)
                 ? content with { IsDeleted = true }
                 : content).ToArray();
+        var deletedDependencies = Array.AsReadOnly(dependencies
+            .Where(dependency => dependency.SnapshotId != node.SnapshotId
+                || !deletedNodeIds.Contains(dependency.TargetNodeId))
+            .ToArray());
 
         return Result<NodeDeletionResult>.Success(new NodeDeletionResult(
             deletedNodes,
-            Array.AsReadOnly(deletedContents)));
+            Array.AsReadOnly(deletedContents),
+            deletedDependencies));
     }
 
     private static DomainError? FindHierarchyError(IEnumerable<Node> nodes)

@@ -18,7 +18,7 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Validate_IndependentContentWithDependency_ReturnsInvalidDependency()
     {
-        var report = DependencyValidator.Validate(
+        var report = DependencyValidator.ValidateSnapshot(
             [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Independent),
                 Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Independent)],
             [Dependency()]);
@@ -29,7 +29,7 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Validate_DerivedContentWithoutDependency_ReturnsInvalidDependency()
     {
-        var report = DependencyValidator.Validate(
+        var report = DependencyValidator.ValidateSnapshot(
             [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived)],
             []);
 
@@ -39,7 +39,7 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Validate_UnknownContentMode_ReturnsInvalidDependency()
     {
-        var report = DependencyValidator.Validate(
+        var report = DependencyValidator.ValidateSnapshot(
             [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Unknown)],
             []);
 
@@ -47,21 +47,28 @@ public sealed class DependencyContractsTests
     }
 
     [Fact]
-    public void Validate_DeletedSource_ReturnsInvalidDependency()
+    public void ValidateSnapshot_DeletedSource_RemainsValidAndMakesDerivedContentStale()
     {
-        var report = DependencyValidator.Validate(
-            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived),
-                Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Independent, isDeleted: true)],
-            [Dependency()]);
+        var target = Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived);
+        var contents = new[]
+        {
+            target,
+            Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Independent, isDeleted: true)
+        };
+        var dependencies = new[] { Dependency() };
 
-        Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.InvalidDependency);
+        var report = DependencyValidator.ValidateSnapshot(contents, dependencies);
+
+        Assert.True(report.IsValid);
+        Assert.Equal(Freshness.Stale, FreshnessEvaluator.Evaluate(target, contents, dependencies));
     }
 
     [Fact]
-    public void Validate_SourceResolvedOnlyByFallback_ReturnsInvalidDependency()
+    public void ValidateNewOrChangedDependencies_MissingExplicitSource_ReturnsInvalidDependency()
     {
-        var report = DependencyValidator.Validate(
+        var report = DependencyValidator.ValidateNewOrChangedDependencies(
             [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived)],
+            [Dependency()],
             [Dependency()]);
 
         Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.InvalidDependency);
@@ -70,7 +77,7 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Validate_SelfDependency_ReturnsDependencyCycle()
     {
-        var report = DependencyValidator.Validate(
+        var report = DependencyValidator.ValidateSnapshot(
             [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived)],
             [new ContentDependency(
                 SnapshotId,
@@ -86,7 +93,7 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Validate_TransitiveCycle_ReturnsDependencyCycle()
     {
-        var report = DependencyValidator.Validate(
+        var report = DependencyValidator.ValidateSnapshot(
             [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived),
                 Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Derived)],
             [Dependency(), new ContentDependency(

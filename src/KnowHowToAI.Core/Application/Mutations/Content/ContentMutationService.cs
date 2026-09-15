@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 
 namespace KnowHowToAI.Core.Application.Mutations.Content;
 
@@ -44,21 +45,31 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
             replacementResult.Warnings);
     }
 
-    public Result<ContentMutationResult> DeleteContent(
+    public Result<ContentDeletionResult> DeleteContent(
         IEnumerable<NodeContent> existingContents,
+        IEnumerable<ContentDependency> existingDependencies,
         DeleteContentCommand command)
     {
         ArgumentNullException.ThrowIfNull(existingContents);
+        ArgumentNullException.ThrowIfNull(existingDependencies);
         ArgumentNullException.ThrowIfNull(command);
 
         var contents = existingContents.ToArray();
+        var dependencies = existingDependencies.ToArray();
         var explicitContentResult = FindSingleActiveExplicitContent(contents, command.NodeId, command.RoleId);
         if (!explicitContentResult.IsSuccess)
-            return Result<ContentMutationResult>.Failure(explicitContentResult.Error!);
+            return Result<ContentDeletionResult>.Failure(explicitContentResult.Error!);
 
         var deletedContent = explicitContentResult.Value! with { IsDeleted = true };
-        return Result<ContentMutationResult>.Success(
-            new ContentMutationResult(deletedContent, Replace(contents, deletedContent)));
+        var updatedContents = Replace(contents, deletedContent);
+        var updatedDependencies = Array.AsReadOnly(dependencies
+            .Where(dependency => dependency.SnapshotId != deletedContent.SnapshotId
+                || dependency.TargetNodeId != deletedContent.NodeId
+                || dependency.TargetRoleId != deletedContent.RoleId)
+            .ToArray());
+
+        return Result<ContentDeletionResult>.Success(
+            new ContentDeletionResult(deletedContent, updatedContents, updatedDependencies));
     }
 
     private static Result<NodeContent> FindSingleActiveExplicitContent(

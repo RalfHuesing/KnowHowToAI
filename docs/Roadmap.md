@@ -64,7 +64,7 @@ empfohlenen Option ergänzt.
 | ADR-V1-004 | Minimale Release- und Historienfunktionen in V1 | entschieden |
 | ADR-V1-005 | 4-KiB-Default als konfigurierbares Soft-Limit; Überschriften bleiben harte Fehler | entschieden |
 | ADR-V1-006 | App-Konfiguration statt DB-Konfiguration; harte Invarianten sind nicht abschaltbar | entschieden |
-| ADR-V1-007 | Dependency-Löschsemantik: Anlage-/Änderungsvalidierung von Snapshot-Zustandsvalidierung trennen; empfohlen ist, bestehende Provenienz zu einer gelöschten Source für `Stale` zu erhalten (betrifft M2.8, M3.4/M3.5 und M4.3) | offen |
+| ADR-V1-007 | Dependency-Löschsemantik: Anlage-/Änderungsvalidierung von Snapshot-Zustandsvalidierung trennen. Neue oder geänderte Dependencies verlangen eine aktive explizite Source; bestehende Provenienz zu einer später gelöschten oder fehlenden Source bleibt erhalten und macht Derived Content transitiv `Stale` (betrifft M2.8, M3.4/M3.5 und M4.3). | entschieden |
 
 ## Konfigurationsmodell V1
 
@@ -336,16 +336,16 @@ resultierende Schema entspricht allen DDL- und Index-Erwartungen.
   - [x] Positiv-, Rand- und Negativfälle aus M2.1 bis M2.9
   - [x] Property-/Datentests für Hierarchiezyklen, Sortierung und Match-Anzahlen dort,
     wo sie gegenüber Einzelbeispielen zusätzlichen Fehlerraum abdecken
-- [ ] **M2.11: Audit-Nacharbeiten**
+- [x] **M2.11: Audit-Nacharbeiten**
   - [x] Geschwister ausschließlich innerhalb desselben Snapshots normalisieren und bei
     Create/Move/Reorder/Delete nicht betroffene Geschwistergruppen unverändert lassen
   - [x] unbekannte `ContentMode`-Werte als harte Dependency-Verletzung ablehnen
   - [x] obsolete Namespace- und Test-Placeholder aus bereits belegten M2-Bereichen entfernen
-  - [ ] ADR-V1-007 entscheiden und die Dependency-Prüfung so aufteilen, dass neue oder
+  - [x] ADR-V1-007 entscheiden und die Dependency-Prüfung so aufteilen, dass neue oder
     geänderte Dependencies weiterhin eine aktive explizite Source verlangen, eine später
     tombstoned/fehlende Source bei bestehender Provenienz aber den Derived-Content
     transitiv `Stale` machen kann, ohne einen ansonsten gültigen Snapshot zu blockieren
-  - [ ] den vollständigen Lösch-Lebenszyklus mit FastTests belegen: `delete_content` und
+  - [x] den vollständigen Lösch-Lebenszyklus mit FastTests belegen: `delete_content` und
     `delete_node` behandeln Target-/Source-Dependencies atomar, erhalten beabsichtigte
     Stale-Provenienz und liefern anschließend einen konsistent validierbaren Snapshot
 
