@@ -40,6 +40,7 @@ internal static class ServiceRegistration
         services.AddSingleton<IWorkingSnapshotValidationDataRepository, SqlWorkingSnapshotValidationDataRepository>();
         services.AddSingleton<IHierarchyRepository, SqlHierarchyRepository>();
         services.AddSingleton<IContentRepository, SqlContentRepository>();
+        services.AddSingleton<IContentMutationRepository, SqlContentMutationRepository>();
         services.AddSingleton<IDependencyRepository, SqlDependencyRepository>();
         services.AddSingleton<INodeMutationRepository, SqlNodeMutationRepository>();
         services.AddSingleton<IRoleRepository, SqlRoleRepository>();

@@ -146,10 +146,11 @@ public static class DependencyValidator
         foreach (var dependency in dependencies)
         {
             var sourceKey = (dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceRoleId);
-            if (!contentsByKey.ContainsKey(sourceKey))
+            if (!contentsByKey.TryGetValue(sourceKey, out var source)
+                || source.ContentRevisionId != dependency.SourceContentRevisionId)
             {
                 errors.Add(CreateInvalidDependencyError(
-                    "Eine neue oder geänderte Abhängigkeit benötigt aktiven expliziten Content als Quelle.",
+                    "Eine neue oder geänderte Abhängigkeit benötigt aktiven expliziten Content mit aktueller Source-Revision.",
                     dependency.TargetNodeId,
                     dependency.TargetRoleId,
                     dependency.SourceNodeId,

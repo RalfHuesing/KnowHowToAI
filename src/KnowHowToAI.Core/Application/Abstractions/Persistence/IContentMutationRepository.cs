@@ -1,22 +1,18 @@
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Content;
-using KnowHowToAI.Core.Domain.Dependencies;
+using KnowHowToAI.Core.Application.Mutations.Content;
 
 namespace KnowHowToAI.Core.Application.Abstractions.Persistence;
 
 /// <summary>
-/// Write-Port für Content-Mutationen auf einem Working Snapshot.
-/// Speichert Contents und die dazugehörigen Dependencies atomar.
+/// Write-Port für Content-Mutationen auf einem offenen Working Snapshot.
 /// </summary>
 public interface IContentMutationRepository
 {
     /// <summary>
-    /// Ersetzt den Content-Zustand eines Working Snapshots vollständig.
-    /// Contents und Dependencies werden in einer einzigen atomaren Operation geschrieben.
+    /// Liest, transformiert und speichert Contents samt Dependencies unter derselben kurzen Sperre.
     /// </summary>
-    Task SaveAsync(
-        SnapshotId snapshotId,
-        IReadOnlyList<NodeContent> contents,
-        IReadOnlyList<ContentDependency> dependencies,
+    Task<Result<WorkingContentMutationExecution<T>>> ExecuteAsync<T>(
+        TransactionId transactionId,
+        Func<WorkingContentMutationState, Result<WorkingContentMutationDecision<T>>> mutate,
         CancellationToken cancellationToken = default);
 }

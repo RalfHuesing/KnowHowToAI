@@ -446,10 +446,10 @@ Use Case berührten Fachmodule
 - [x] **M4.2: Node-Mutationen**
   - [x] create/update/move/reorder/delete einschließlich Root- und Subtree-Semantik
   - [x] globale Auswirkung von Strukturänderungen in Ergebnissen/Warnungen sichtbar
-- [ ] **M4.3: Content-Mutationen**
-  - [ ] replace_content, replace_text und delete_content
-  - [ ] Mode-/Dependency-Regeln, Revisionsvergabe und Normalisierung atomar anwenden
-  - [ ] Mutationsergebnis enthält Revision, Snapshot, Warnungen und Freshness
+- [x] **M4.3: Content-Mutationen**
+  - [x] replace_content, replace_text und delete_content
+  - [x] Mode-/Dependency-Regeln, Revisionsvergabe und Normalisierung atomar anwenden
+  - [x] Mutationsergebnis enthält Revision, Snapshot, Warnungen und Freshness
 - [ ] **M4.4: Rollen-Mutationen**
   - [ ] create/update/delete Role nur innerhalb einer offenen Transaction
   - [ ] vollständige Resolution Order atomar ersetzen; nie schrittweise Zwischenzustände

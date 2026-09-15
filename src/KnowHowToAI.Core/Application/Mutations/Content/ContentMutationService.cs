@@ -11,6 +11,55 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
 {
     private readonly ContentRevisionService _revisionService = revisionService ?? throw new ArgumentNullException(nameof(revisionService));
 
+    public Result<ContentMutationResult> ReplaceContent(
+        IEnumerable<NodeContent> existingContents,
+        IEnumerable<ContentDependency> existingDependencies,
+        ReplaceContentCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(existingContents);
+        ArgumentNullException.ThrowIfNull(existingDependencies);
+        ArgumentNullException.ThrowIfNull(command);
+
+        var contents = existingContents.ToArray();
+        var dependencies = existingDependencies.ToArray();
+        var existingContent = contents.SingleOrDefault(content =>
+            !content.IsDeleted && content.NodeId == command.NodeId && content.RoleId == command.RoleId);
+        var assignment = _revisionService.Assign(existingContent, command.ContentMd);
+        var structureReport = MarkdownStructureValidator.Validate(
+            assignment.NormalizedContentMd,
+            command.NodeTitle,
+            command.WarnOnPossibleEmbeddedHeading);
+        if (!structureReport.IsValid)
+            return Result<ContentMutationResult>.Failure(structureReport.Errors[0], structureReport.Warnings);
+
+        var changedContent = new NodeContent(
+            command.SnapshotId,
+            command.NodeId,
+            command.RoleId,
+            assignment.ContentRevisionId,
+            command.ContentMode,
+            assignment.NormalizedContentMd,
+            IsDeleted: false);
+        var updatedContents = existingContent is null
+            ? Array.AsReadOnly(contents.Append(changedContent).ToArray())
+            : Replace(contents, changedContent);
+        var unchangedDependencies = dependencies.Where(dependency =>
+            dependency.SnapshotId != command.SnapshotId
+            || dependency.TargetNodeId != command.NodeId
+            || dependency.TargetRoleId != command.RoleId);
+        var updatedDependencies = Array.AsReadOnly(unchangedDependencies.Concat(command.Dependencies).ToArray());
+        var dependencyReport = DependencyValidator.ValidateNewOrChangedDependencies(
+            updatedContents,
+            updatedDependencies,
+            command.Dependencies);
+        if (!dependencyReport.IsValid)
+            return Result<ContentMutationResult>.Failure(dependencyReport.Errors[0], structureReport.Warnings);
+
+        return Result<ContentMutationResult>.Success(
+            new ContentMutationResult(changedContent, updatedContents),
+            structureReport.Warnings);
+    }
+
     public Result<ContentMutationResult> ReplaceText(
         IEnumerable<NodeContent> existingContents,
         ReplaceTextCommand command)

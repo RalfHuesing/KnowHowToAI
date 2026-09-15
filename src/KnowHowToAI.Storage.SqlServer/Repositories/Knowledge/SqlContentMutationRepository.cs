@@ -1,10 +1,8 @@
-using Dapper;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
-using KnowHowToAI.Core.Application.Mutations.Nodes;
+using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
-using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -12,12 +10,16 @@ using KnowHowToAI.Storage.SqlServer.Repositories;
 
 namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
-/// <summary>Persistiert Node-Mutationen vollständig innerhalb der Working-Snapshot-Sperre.</summary>
-internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRepository
+/// <summary>Persistiert Content und Provenienz atomar innerhalb der Working-Snapshot-Sperre.</summary>
+internal sealed class SqlContentMutationRepository : SqlRepository, IContentMutationRepository
 {
     private const string ListNodesSql = """
         SELECT SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted
         FROM dbo.KnowHowToAI_Node WHERE SnapshotId = @snapshotId;
+        """;
+    private const string ListRolesSql = """
+        SELECT SnapshotId, RoleId, Name, Description, IsDeleted
+        FROM dbo.KnowHowToAI_Role WHERE SnapshotId = @snapshotId;
         """;
     private const string ListContentsSql = """
         SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
@@ -26,17 +28,6 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
     private const string ListDependenciesSql = """
         SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency WHERE SnapshotId = @snapshotId;
-        """;
-    private const string ListKnownNodeIdsSql = "SELECT DISTINCT NodeId FROM dbo.KnowHowToAI_Node;";
-    private const string InsertNodeSql = """
-        INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
-        VALUES (@snapshotId, @nodeId, @parentNodeId, @title, @description, @sortOrder, @isDeleted);
-        """;
-    private const string UpdateNodeSql = """
-        UPDATE dbo.KnowHowToAI_Node
-        SET ParentNodeId = @parentNodeId, Title = @title, Description = @description,
-            SortOrder = @sortOrder, IsDeleted = @isDeleted
-        WHERE SnapshotId = @snapshotId AND NodeId = @nodeId;
         """;
     private const string InsertContentSql = """
         INSERT INTO dbo.KnowHowToAI_NodeContent
@@ -57,18 +48,18 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         VALUES (@snapshotId, @targetNodeId, @targetRoleId, @sourceNodeId, @sourceRoleId, @sourceContentRevisionId);
         """;
 
-    public SqlNodeMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
+    public SqlContentMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
         : base(connectionFactory, storagePolicy)
     {
     }
 
-    public async Task<Result<WorkingNodeMutationExecution<T>>> ExecuteAsync<T>(
+    public async Task<Result<WorkingContentMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
-        Func<WorkingNodeMutationState, Result<WorkingNodeMutationDecision<T>>> mutate,
+        Func<WorkingContentMutationState, Result<WorkingContentMutationDecision<T>>> mutate,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(mutate);
-        WorkingNodeMutationState? previousState = null;
+        WorkingContentMutationState? previousState = null;
 
         try
         {
@@ -80,8 +71,8 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
                     var decisionResult = mutate(previousState);
                     if (!decisionResult.IsSuccess)
                     {
-                        return new SqlWorkingSnapshotMutationResult<Result<WorkingNodeMutationDecision<T>>>(
-                            Result<WorkingNodeMutationDecision<T>>.Failure(decisionResult.Error!),
+                        return new SqlWorkingSnapshotMutationResult<Result<WorkingContentMutationDecision<T>>>(
+                            Result<WorkingContentMutationDecision<T>>.Failure(decisionResult.Error!, decisionResult.Warnings),
                             StateChanged: false);
                     }
 
@@ -90,17 +81,17 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
                     if (stateChanged)
                         await SaveStateAsync(context, previousState, decision.State, token).ConfigureAwait(false);
 
-                    return new SqlWorkingSnapshotMutationResult<Result<WorkingNodeMutationDecision<T>>>(
-                        Result<WorkingNodeMutationDecision<T>>.Success(decision),
+                    return new SqlWorkingSnapshotMutationResult<Result<WorkingContentMutationDecision<T>>>(
+                        Result<WorkingContentMutationDecision<T>>.Success(decision),
                         stateChanged);
                 },
                 cancellationToken).ConfigureAwait(false);
 
             if (!execution.Value.IsSuccess)
-                return Result<WorkingNodeMutationExecution<T>>.Failure(execution.Value.Error!);
+                return Result<WorkingContentMutationExecution<T>>.Failure(execution.Value.Error!, execution.Value.Warnings);
 
             var decision = execution.Value.Value!;
-            return Result<WorkingNodeMutationExecution<T>>.Success(new WorkingNodeMutationExecution<T>(
+            return Result<WorkingContentMutationExecution<T>>.Success(new WorkingContentMutationExecution<T>(
                 decision.Value,
                 decision.State.SnapshotId,
                 execution.ChangeVersion,
@@ -109,46 +100,52 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         }
         catch (WorkingSnapshotMutationRejectedException exception)
         {
-            return Result<WorkingNodeMutationExecution<T>>.Failure(new DomainError(
+            return Result<WorkingContentMutationExecution<T>>.Failure(new DomainError(
                 exception.Code,
                 exception.Message,
                 new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() }));
         }
     }
 
-    private static async Task<WorkingNodeMutationState> ReadStateAsync(
+    private static async Task<WorkingContentMutationState> ReadStateAsync(
         SqlWorkingSnapshotMutationContext context,
         CancellationToken cancellationToken)
     {
         var parameters = new { snapshotId = context.WorkingSnapshotId.Value };
         var nodeRows = await context.QueryAsync<NodeRow>(ListNodesSql, parameters, cancellationToken).ConfigureAwait(false);
+        var roleRows = await context.QueryAsync<RoleRow>(ListRolesSql, parameters, cancellationToken).ConfigureAwait(false);
         var contentRows = await context.QueryAsync<NodeContentRow>(ListContentsSql, parameters, cancellationToken).ConfigureAwait(false);
         var dependencyRows = await context.QueryAsync<ContentDependencyRow>(ListDependenciesSql, parameters, cancellationToken).ConfigureAwait(false);
-        var knownNodeIds = await context.QueryAsync<Guid>(ListKnownNodeIdsSql, parameters: null, cancellationToken).ConfigureAwait(false);
-        return new WorkingNodeMutationState(
+        return new WorkingContentMutationState(
             context.WorkingSnapshotId,
             nodeRows.Select(SqlRowMapper.ToNode).ToArray(),
+            roleRows.Select(SqlRowMapper.ToRole).ToArray(),
             contentRows.Select(SqlRowMapper.ToNodeContent).ToArray(),
-            dependencyRows.Select(SqlRowMapper.ToContentDependency).ToArray(),
-            knownNodeIds.Select(id => new NodeId(id)).ToArray());
+            dependencyRows.Select(SqlRowMapper.ToContentDependency).ToArray());
     }
 
-    private static bool StateEquals(WorkingNodeMutationState left, WorkingNodeMutationState right) =>
-        SetEquals(left.Nodes, right.Nodes)
-        && SetEquals(left.Contents, right.Contents)
-        && SetEquals(left.Dependencies, right.Dependencies);
+    private static bool StateEquals(WorkingContentMutationState left, WorkingContentMutationState right) =>
+        SetEquals(left.Contents, right.Contents) && SetEquals(left.Dependencies, right.Dependencies);
 
     private static bool SetEquals<T>(IReadOnlyList<T> left, IReadOnlyList<T> right) where T : notnull =>
         left.Count == right.Count && new HashSet<T>(left).SetEquals(right);
 
     private static async Task SaveStateAsync(
         SqlWorkingSnapshotMutationContext context,
-        WorkingNodeMutationState previousState,
-        WorkingNodeMutationState currentState,
+        WorkingContentMutationState previousState,
+        WorkingContentMutationState currentState,
         CancellationToken cancellationToken)
     {
-        await SaveNodesAsync(context, previousState.Nodes, currentState.Nodes, cancellationToken).ConfigureAwait(false);
-        await SaveContentsAsync(context, previousState.Contents, currentState.Contents, cancellationToken).ConfigureAwait(false);
+        var previousByKey = previousState.Contents.ToDictionary(content => (content.NodeId, content.RoleId));
+        var inserts = currentState.Contents.Where(content => !previousByKey.ContainsKey((content.NodeId, content.RoleId)))
+            .Select(SqlMutationParameterMapper.ToContentParameters).ToArray();
+        var updates = currentState.Contents.Where(content => previousByKey.TryGetValue((content.NodeId, content.RoleId), out var previous) && previous != content)
+            .Select(SqlMutationParameterMapper.ToContentParameters).ToArray();
+        if (inserts.Length > 0)
+            await context.ExecuteAsync(InsertContentSql, inserts, cancellationToken).ConfigureAwait(false);
+        if (updates.Length > 0)
+            await context.ExecuteAsync(UpdateContentSql, updates, cancellationToken).ConfigureAwait(false);
+
         if (!SetEquals(previousState.Dependencies, currentState.Dependencies))
         {
             await context.ExecuteAsync(DeleteDependenciesSql, new { snapshotId = context.WorkingSnapshotId.Value }, cancellationToken).ConfigureAwait(false);
@@ -161,49 +158,5 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
             }
         }
     }
-
-    private static async Task SaveNodesAsync(
-        SqlWorkingSnapshotMutationContext context,
-        IReadOnlyList<Node> previousNodes,
-        IReadOnlyList<Node> currentNodes,
-        CancellationToken cancellationToken)
-    {
-        var previousById = previousNodes.ToDictionary(node => node.NodeId);
-        var inserts = currentNodes.Where(node => !previousById.ContainsKey(node.NodeId)).Select(ToNodeParameters).ToArray();
-        var updates = currentNodes.Where(node => previousById.TryGetValue(node.NodeId, out var previous) && previous != node)
-            .Select(ToNodeParameters).ToArray();
-        if (inserts.Length > 0)
-            await context.ExecuteAsync(InsertNodeSql, inserts, cancellationToken).ConfigureAwait(false);
-        if (updates.Length > 0)
-            await context.ExecuteAsync(UpdateNodeSql, updates, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task SaveContentsAsync(
-        SqlWorkingSnapshotMutationContext context,
-        IReadOnlyList<NodeContent> previousContents,
-        IReadOnlyList<NodeContent> currentContents,
-        CancellationToken cancellationToken)
-    {
-        var previousByKey = previousContents.ToDictionary(content => (content.NodeId, content.RoleId));
-        var inserts = currentContents.Where(content => !previousByKey.ContainsKey((content.NodeId, content.RoleId)))
-            .Select(SqlMutationParameterMapper.ToContentParameters).ToArray();
-        var updates = currentContents.Where(content => previousByKey.TryGetValue((content.NodeId, content.RoleId), out var previous) && previous != content)
-            .Select(SqlMutationParameterMapper.ToContentParameters).ToArray();
-        if (inserts.Length > 0)
-            await context.ExecuteAsync(InsertContentSql, inserts, cancellationToken).ConfigureAwait(false);
-        if (updates.Length > 0)
-            await context.ExecuteAsync(UpdateContentSql, updates, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static object ToNodeParameters(Node node) => new
-    {
-        snapshotId = node.SnapshotId.Value,
-        nodeId = node.NodeId.Value,
-        parentNodeId = node.ParentNodeId?.Value,
-        node.Title,
-        node.Description,
-        node.SortOrder,
-        node.IsDeleted
-    };
 
 }
