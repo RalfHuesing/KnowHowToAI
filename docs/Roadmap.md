@@ -139,6 +139,8 @@ Placeholder sein.
   - [x] `src/KnowHowToAI.Server` ausschließlich für Hosting, Konfiguration und MCP
   - [x] `tests/KnowHowToAI.Core.Tests` für FastTests
   - [x] `tests/KnowHowToAI.IntegrationTests` für echte SQL-/STDIO-Grenzen
+  - [x] initialen, ausdrücklich anpassbaren Namespace- und Ordnerrahmen aus dem
+    Konzept ableiten und in `docs/Projektstruktur.md` erläutern
 - [x] **M0.2: Zentrale Build- und Paketkonfiguration**
   - [x] .NET 10, Nullable und `TreatWarningsAsErrors` zentral aktivieren
   - [x] Central Package Management einrichten

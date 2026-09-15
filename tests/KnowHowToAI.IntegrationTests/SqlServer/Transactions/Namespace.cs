@@ -1,0 +1,1 @@
+namespace KnowHowToAI.IntegrationTests.SqlServer.Transactions;

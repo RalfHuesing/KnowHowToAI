@@ -1,4 +1,4 @@
-namespace KnowHowToAI.IntegrationTests;
+namespace KnowHowToAI.IntegrationTests.Smoke;
 
 public sealed class PlaceholderIntegrationTests
 {

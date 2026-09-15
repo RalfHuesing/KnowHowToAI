@@ -14,3 +14,4 @@ Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und M
 - **Architektur-, Coding-, MCP- & Git-Regeln**: [.agents/rules/Richtlinien.mdc](.agents/rules/Richtlinien.mdc)
 - **Teststrategie & Testebenen**: [.agents/rules/TestRichtlinien.mdc](.agents/rules/TestRichtlinien.mdc)
 - **C#-Codeanalyse & Linter-Workflow**: [.agents/rules/AiNetLinter-McpWorkflow.mdc](.agents/rules/AiNetLinter-McpWorkflow.mdc)
+- **Anpassbarer Projekt- und Namespace-Rahmen**: [docs/Projektstruktur.md](docs/Projektstruktur.md)

@@ -1,4 +1,4 @@
-namespace KnowHowToAI.Core.Tests;
+namespace KnowHowToAI.Core.Tests.Smoke;
 
 public sealed class PlaceholderFastTests
 {
