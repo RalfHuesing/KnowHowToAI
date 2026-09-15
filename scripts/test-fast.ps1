@@ -1,14 +1,14 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Fuehrt FastTests fuer KnowHowTo AI aus und schreibt das Ergebnis statisch nach TestResults/FastTests.trx.
+    Fuehrt FastTests fuer KnowHowTo AI aus und schreibt je Testprojekt eine statische TRX-Datei.
 
 .PARAMETER Filter
-    xUnit-Filter fuer dotnet test (Standard: Category!=Stress).
+    xUnit-Filter fuer dotnet test (Standard: Category=Unit).
 #>
 [CmdletBinding()]
 param(
-    [string]$Filter = 'Category!=Stress',
+    [string]$Filter = 'Category=Unit',
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$AdditionalArgs
 )
@@ -34,21 +34,31 @@ if (-not (Test-Path $resultsDir)) {
     New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 }
 
-$trxFile = 'FastTests.trx'
-$projectPath = Join-Path $repoRoot 'tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj'
-
-Write-Host "[INFO] FastTests (Filter: $Filter) -> TestResults/$trxFile" -ForegroundColor Cyan
-
-$allArgs = @(
-    'test',
-    $projectPath,
-    '--filter', $Filter,
-    '--logger', "trx;LogFileName=$trxFile",
-    '--results-directory', $resultsDir
+$testProjects = @(
+    'tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj',
+    'tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj'
 )
-if ($AdditionalArgs) {
-    $allArgs += $AdditionalArgs
-}
 
-& dotnet @allArgs
-exit $LASTEXITCODE
+foreach ($relativeProjectPath in $testProjects) {
+    $projectPath = Join-Path $repoRoot $relativeProjectPath
+    $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectPath)
+    $trxFile = "FastTests.$projectName.trx"
+
+    Write-Host "[INFO] FastTests (Filter: $Filter) -> TestResults/$trxFile" -ForegroundColor Cyan
+
+    $allArgs = @(
+        'test',
+        $projectPath,
+        '--filter', $Filter,
+        '--logger', "trx;LogFileName=$trxFile",
+        '--results-directory', $resultsDir
+    )
+    if ($AdditionalArgs) {
+        $allArgs += $AdditionalArgs
+    }
+
+    & dotnet @allArgs
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+}
