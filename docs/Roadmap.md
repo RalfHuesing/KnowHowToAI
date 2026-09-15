@@ -363,10 +363,10 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
 **Konzeptbezug:** [Transaktionen, Snapshots und Releases](konzept/03-Transaktionen-Snapshots-Releases.md),
 [Persistenzmodell](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
 
-- [ ] **M3.1: Repository-Ports und SQL-Grundlage**
-  - [ ] Connection Factory, parametrisierte Dapper-Zugriffe und zentrale Mappings
-  - [ ] kein dynamisches SQL aus Nutzereingaben; Cancellation und Timeouts durchreichen
-  - [ ] Repository liefert Daten/Fachzustände, aber keine MCP-Typen
+- [x] **M3.1: Repository-Ports und SQL-Grundlage**
+  - [x] Connection Factory, parametrisierte Dapper-Zugriffe und zentrale Mappings
+  - [x] kein dynamisches SQL aus Nutzereingaben; Cancellation und Timeouts durchreichen
+  - [x] Repository liefert Daten/Fachzustände, aber keine MCP-Typen
 - [ ] **M3.2: `begin_transaction`**
   - [ ] Current Snapshot unter geeigneter Sperre lesen und neuen Working Snapshot anlegen
   - [ ] vollständige Kopie von Rollen, Role Resolutions, Nodes, NodeContents und

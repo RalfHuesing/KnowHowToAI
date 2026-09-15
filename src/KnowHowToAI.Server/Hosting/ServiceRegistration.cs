@@ -3,6 +3,10 @@ using KnowHowToAI.Server.Configuration;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Migrations;
+using KnowHowToAI.Storage.SqlServer.Repositories.History;
+using KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
+using KnowHowToAI.Storage.SqlServer.Repositories.Snapshots;
+using KnowHowToAI.Storage.SqlServer.Repositories.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -31,6 +35,13 @@ internal static class ServiceRegistration
         services.AddSingleton<SqlConnectionFactory>();
         services.AddSingleton<EmbeddedMigrationCatalog>();
         services.AddSingleton<ISchemaMigrator, SqlSchemaMigrator>();
+        services.AddSingleton<ISnapshotRepository, SqlSnapshotRepository>();
+        services.AddSingleton<ITransactionRepository, SqlTransactionRepository>();
+        services.AddSingleton<IHierarchyRepository, SqlHierarchyRepository>();
+        services.AddSingleton<IContentRepository, SqlContentRepository>();
+        services.AddSingleton<IDependencyRepository, SqlDependencyRepository>();
+        services.AddSingleton<IRoleRepository, SqlRoleRepository>();
+        services.AddSingleton<IReleaseRepository, SqlReleaseRepository>();
         services.AddHostedService<SchemaMigrationHostedService>();
 
         return services;
