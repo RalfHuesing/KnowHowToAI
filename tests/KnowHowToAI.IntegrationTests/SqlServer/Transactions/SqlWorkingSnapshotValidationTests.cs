@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
@@ -103,6 +104,7 @@ public sealed class SqlWorkingSnapshotValidationTests
         IWorkingSnapshotValidationDataRepository? validationRepository = null) => new(
         new SqlTransactionRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
         validationRepository ?? CreateValidationRepository(database),
+        new IdentifierGenerator(),
         new ValidationPolicy
         {
             ContentSizeWarningBytes = 4096,
@@ -222,6 +224,15 @@ public sealed class SqlWorkingSnapshotValidationTests
             .Select(detail => string.Concat(detail.Key, "=", detail.Value))));
 
     private sealed record TransactionStateProbe(string TransactionState, string SnapshotState, long ChangeVersion);
+
+    private sealed class IdentifierGenerator : IIdentifierGenerator
+    {
+        public TransactionId CreateTransactionId() => new(Guid.Parse("70000000-0000-0000-0000-000000000001"));
+
+        public NodeId CreateNodeId() => new(Guid.Parse("70000000-0000-0000-0000-000000000002"));
+
+        public ContentRevisionId CreateContentRevisionId() => new(Guid.Parse("70000000-0000-0000-0000-000000000003"));
+    }
 
     private sealed class RecordingValidationDataRepository : IWorkingSnapshotValidationDataRepository
     {
