@@ -31,7 +31,13 @@ internal static class ConfigurationExtensions
             .Bind(configuration.GetSection(KnowHowToAIOptions.SectionName))
             .ValidateOnStart();
 
+        services
+            .AddOptions<DatabaseConnectionOptions>()
+            .Bind(configuration.GetSection(DatabaseConnectionOptions.SectionName))
+            .ValidateOnStart();
+
         services.AddSingleton<IValidateOptions<KnowHowToAIOptions>, KnowHowToAIOptionsValidator>();
+        services.AddSingleton<IValidateOptions<DatabaseConnectionOptions>, DatabaseConnectionOptionsValidator>();
 
         return services;
     }

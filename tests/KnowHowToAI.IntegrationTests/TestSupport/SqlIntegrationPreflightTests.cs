@@ -14,4 +14,14 @@ public sealed class SqlIntegrationPreflightTests
 
         Assert.Equal("KnowHowToAi", database.DatabaseName);
     }
+
+    [Fact]
+    public async Task DatabaseConnection_TargetsSqlServer2019OrLater()
+    {
+        await using var database = await SqlTestDatabase.ConnectAsync();
+
+        var majorVersion = await database.GetSqlServerMajorVersionAsync();
+
+        Assert.True(majorVersion >= 15, $"Preflight-Fehler: SQL Server >= 2019 wird benötigt; gefunden wurde Hauptversion {majorVersion}.");
+    }
 }

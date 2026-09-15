@@ -77,6 +77,17 @@ public sealed class SqlTestDatabase : IAsyncDisposable
             await ResetKnowHowToAISchemaAsync(CancellationToken.None).ConfigureAwait(false);
     }
 
+    public async Task<int> GetSqlServerMajorVersionAsync(CancellationToken cancellationToken = default)
+    {
+        await using var connection = await ConnectionFactory.OpenAsync(cancellationToken).ConfigureAwait(false);
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT CAST(SERVERPROPERTY('ProductMajorVersion') AS INT);";
+        var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return result is int majorVersion
+            ? majorVersion
+            : throw new InvalidOperationException("Preflight-Fehler: Die SQL-Server-Hauptversion konnte nicht ermittelt werden.");
+    }
+
     private async Task ResetKnowHowToAISchemaAsync(CancellationToken cancellationToken)
     {
         await using var connection = await ConnectionFactory.OpenAsync(cancellationToken).ConfigureAwait(false);

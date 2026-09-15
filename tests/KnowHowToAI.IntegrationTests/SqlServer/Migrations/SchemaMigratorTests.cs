@@ -45,6 +45,7 @@ public sealed class SqlSchemaMigratorTests
         Assert.Equal(catalog.Scripts.Count, applied);
         await AssertJournalHasEntriesAsync(db, catalog.Scripts.Count);
         await AssertExpectedSchemaAsync(db);
+        await SqlSchemaContractAssertions.AssertAsync(db);
         await AssertInitialStateIsSeededAsync(db);
     }
 
@@ -142,6 +143,33 @@ public sealed class SqlSchemaMigratorTests
         await AssertTableDoesNotExistAsync(db, "KnowHowToAI_RollbackProbe");
     }
 
+    [Fact]
+    public async Task CentralConstraints_AcceptValidDataAndRejectInvariantViolations()
+    {
+        await using var db = await SqlTestDatabase.ConnectFreshAsync();
+        var (migrator, _) = BuildMigrator(db);
+        await migrator.MigrateAsync();
+
+        await using var connection = await db.ConnectionFactory.OpenAsync();
+        var snapshotId = await ReadCurrentSnapshotIdAsync(connection);
+
+        await InsertRootNodeAsync(connection, snapshotId, Guid.Parse("0E19DE9B-56D6-4B2B-A822-F824A1C2B2E0"));
+
+        var duplicateRoot = await Assert.ThrowsAsync<SqlException>(() =>
+            InsertRootNodeAsync(connection, snapshotId, Guid.Parse("78D418D9-89A8-4A16-B5E5-9CD21A33CC44")));
+        Assert.Contains(duplicateRoot.Number, new[] { 2601, 2627 });
+
+        using var invalidSnapshot = connection.CreateCommand();
+        invalidSnapshot.CommandText = """
+            INSERT INTO dbo.KnowHowToAI_Snapshot (BaseSnapshotId, State, CreatedAtUtc, CommittedAtUtc)
+            VALUES (@baseSnapshotId, 'Invalid', SYSUTCDATETIME(), NULL);
+            """;
+        invalidSnapshot.Parameters.AddWithValue("@baseSnapshotId", snapshotId);
+
+        var invalidState = await Assert.ThrowsAsync<SqlException>(() => invalidSnapshot.ExecuteNonQueryAsync());
+        Assert.Equal(547, invalidState.Number);
+    }
+
     // ─── Private Helpers ───────────────────────────────────────────────────────
 
     private static async Task AssertJournalHasEntriesAsync(SqlTestDatabase db, int expectedCount)
@@ -151,6 +179,25 @@ public sealed class SqlSchemaMigratorTests
         cmd.CommandText = "SELECT COUNT(*) FROM dbo.KnowHowToAI_SchemaMigration;";
         var actual = (int)(await cmd.ExecuteScalarAsync())!;
         Assert.Equal(expectedCount, actual);
+    }
+
+    private static async Task<long> ReadCurrentSnapshotIdAsync(SqlConnection connection)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT CurrentSnapshotId FROM dbo.KnowHowToAI_SystemState WHERE Id = 1;";
+        return (long)(await command.ExecuteScalarAsync())!;
+    }
+
+    private static async Task InsertRootNodeAsync(SqlConnection connection, long snapshotId, Guid nodeId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, SortOrder, IsDeleted)
+            VALUES (@snapshotId, @nodeId, NULL, N'Root', 0, 0);
+            """;
+        command.Parameters.AddWithValue("@snapshotId", snapshotId);
+        command.Parameters.AddWithValue("@nodeId", nodeId);
+        await command.ExecuteNonQueryAsync();
     }
 
     private static async Task AssertExpectedSchemaAsync(SqlTestDatabase db)

@@ -1,4 +1,7 @@
 using KnowHowToAI.Server.Configuration;
+using KnowHowToAI.Server.Hosting;
+using KnowHowToAI.Storage.SqlServer.Configuration;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,7 +29,10 @@ public sealed class ConfigurationTests
                 // Environment-Variablen werden von CreateDefaultBuilder automatisch geladen.
             })
             .ConfigureServices((ctx, services) =>
-                services.AddKnowHowToAIOptions(ctx.Configuration))
+            {
+                services.AddKnowHowToAIOptions(ctx.Configuration);
+                services.AddSqlStorage();
+            })
             .Build();
         return host;
     }
@@ -76,6 +82,25 @@ public sealed class ConfigurationTests
         // Migrations
         Assert.Equal(60, options.Migrations.LockTimeoutSeconds);
         Assert.True(options.Migrations.ApplyOnStartup);
+    }
+
+    [Fact]
+    public void DatabaseConnection_IsBoundAndConvertedForSqlStorage()
+    {
+        using var host = Host.CreateDefaultBuilder()
+            .ConfigureServices((ctx, services) =>
+            {
+                services.AddKnowHowToAIOptions(ctx.Configuration);
+                services.AddSqlStorage();
+            })
+            .Build();
+
+        var connection = host.Services.GetRequiredService<SqlStorageConnectionString>();
+        var builder = new SqlConnectionStringBuilder(connection.Value);
+
+        Assert.Equal(Environment.ExpandEnvironmentVariables("%COMPUTERNAME%\\MSSQLSERVER2022"), builder.DataSource);
+        Assert.Equal("KnowHowToAi", builder.InitialCatalog);
+        Assert.False(builder.IntegratedSecurity);
     }
 
     // ---------------------------------------------------------------------------

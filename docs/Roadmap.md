@@ -237,15 +237,15 @@ echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert we
   - [x] veränderte Checksum wird abgelehnt
   - [x] parallele Runner wenden jede Migration genau einmal an
   - [x] Fehler in einer Migration hinterlässt weder Journal-Eintrag noch Teilschema
-- [ ] **M1.6: Audit-Nacharbeiten vor M2**
-  - [ ] die separate `DatabaseConnection`-Sektion am Composition Root binden und
+- [x] **M1.6: Audit-Nacharbeiten vor M2**
+  - [x] die separate `DatabaseConnection`-Sektion am Composition Root binden und
     validieren, in `SqlStorageConnectionString` überführen sowie Connection Factory,
     Migrationskatalog und `ISchemaMigrator` vollständig registrieren
-  - [ ] bei `Migrations:ApplyOnStartup = true` ausstehende Migrationen genau einmal vor
+  - [x] bei `Migrations:ApplyOnStartup = true` ausstehende Migrationen genau einmal vor
     der Betriebsbereitschaft ausführen, bei `false` sicher überspringen und Startfehler
     ohne Credentials ausgeben; beide Pfade durch Hosting-Integrationstests belegen
-  - [ ] den SQL-Preflight um den Nachweis SQL Server >= 2019 ergänzen
-  - [ ] die Schemaabnahme über bloße Tabellen- und Indexnamen hinaus auf Spalten,
+  - [x] den SQL-Preflight um den Nachweis SQL Server >= 2019 ergänzen
+  - [x] die Schemaabnahme über bloße Tabellen- und Indexnamen hinaus auf Spalten,
     Datentypen, Nullability, Defaults, Check Constraints, Fremdschlüssel sowie
     Indexschlüssel, -reihenfolge, Filter und Includes erweitern; zentrale Constraints
     zusätzlich durch repräsentative Akzeptanz- und Ablehnungsfälle belegen

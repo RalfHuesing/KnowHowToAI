@@ -115,6 +115,11 @@ Prozessstart in immutable typed Options gebunden und vollständig validiert. Ung
 Werte führen zu einem klaren Startfehler. V1 lädt Konfigurationsänderungen nicht live
 nach; sie werden nach einem Prozessneustart wirksam.
 
+Wenn `Migrations:ApplyOnStartup` aktiviert ist, führt der Composition Root ausstehende
+Schema-Migrationen genau einmal vor der Betriebsbereitschaft aus. Bei deaktivierter
+Option wird dieser Schritt sicher übersprungen. Ein Migrationsfehler verhindert den
+Start und darf keine Credentials in der Fehlermeldung enthalten.
+
 Domain, Application Services und Storage greifen nicht direkt auf `IConfiguration`
 oder frei verteilte Schlüssel zu. Der Composition Root übergibt fertig validierte
 Options-/Policy-Records. Dadurch bleiben Defaults, gültige Bereiche und Overrides an
