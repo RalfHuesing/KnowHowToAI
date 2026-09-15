@@ -1,0 +1,67 @@
+---
+description: Verbindliche Architektur-, Qualitäts-, Test- und Arbeitsregeln für KnowHowTo AI.
+globs: *
+alwaysApply: true
+---
+
+# KnowHowToAI-Richtlinien
+
+Nutzeranweisungen haben Vorrang.
+
+## Architektur & Domänen-Invarianten
+
+- **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `MCP Adapter (STDIO in V1)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. MCP-Handler enthalten keine Geschäftslogik (reine Delegation). Keine Kopplung der Domänenlogik an Transport oder STDIO (spätere HTTP-/REST-Adapter architektonisch vorbereitet).
+- **Agentischer MCP-Fokus & Token-Effizienz**:
+  - Tool-Payloads radikal token-sparsam halten (Progressive Disclosure, Metadata-First: `list_children` liefert Metadaten, kein Dump ganzer Bäume).
+  - Strukturierte, maschinenlesbare MCP-Antworten mit klaren, stabilen Fehlercodes (z. B. `TransactionNotFound`, `SnapshotConflict`, `HeadingNotAllowed`, `TextNotFound`, `MultipleTextMatches`).
+  - Symmetrische IDs (`NodeId`, `RoleId`, `TransactionId`, `SnapshotId`): Ausgaben von Tools müssen ohne Bereinigung oder Typkonvertierung als Eingabe für Folgetools nutzbar sein.
+  - Alle Schreiboperationen erfordern zwingend eine `TransactionId`. Leseoperationen akzeptieren optional `TransactionId` (Working Snapshot) oder `SnapshotId` (Historie; Default ist Current Snapshot). Rollen werden explizit übergeben.
+- **Snapshot- & Transaktionsmodell**:
+  - Tabellen-Präfix `KnowHowToAI_`.
+  - Vollständige Snapshot-Kopien pro Transaktion (Working Snapshot auf Basis des Current Snapshot).
+  - Keine lang laufenden offenen SQL-Transaktionen; KnowHowTo-AI-Transaktionen bestehen aus kurzen, atomaren SQL-Operationen.
+  - Committed Snapshots sind unveränderlich. Keine physischen Löschungen (Soft-Delete / Tombstone-Semantik).
+  - Kein automatisches 3-Wege-Merge oder Rebase in V1; konkurrierende Commits führen deterministisch zu `SnapshotConflict`.
+  - `delete_node` (global über alle Rollen) und `delete_content` (nur Rollen-Content) strikt unterscheiden.
+- **Wissens- & Content-Invarianten**:
+  - Markdown ist reines Inhaltsformat (`ContentMd`), nicht Dokumentstruktur. Die Struktur liegt vollständig im relationalen Modell.
+  - Node-Titel gehören in die Hierarchie, niemals in `ContentMd`.
+  - Gespeicherter Content darf absolut keine Überschriften enthalten (weder `#`-Markdown noch HTML-Headings).
+  - Heading-Validierung zwingend über echten Markdown-Parser (kein naives String-Matching auf `#`).
+  - Rollen frei definierbar; Fallback erfolgt deterministisch über explizite, nicht-rekursive Role Resolution Orders.
+  - Eigener Rollen-Content ist `Independent` oder `Derived`. Derived Content speichert Source-Revisions; Stale-Erkennung statt permanenter automatischer Synchronisation.
+- Bevorzuge direkte Lösungen und unveränderliche Datenmodelle (`record`, Immutability). Abstraktionen erfordern konkreten Mehrwert für Wiederverwendung, Verständlichkeit oder Testbarkeit.
+
+## C#-Analyse und Dokumentation
+
+- Für C#-Symbole, Referenzen, Aufrufketten, Abhängigkeiten, Impact und Verstöße gilt `.agents/rules/AiNetLinter-McpWorkflow.mdc`. Dessen Schemas und absolute `targetPath`-Werte nutzen.
+- Nur implementiertes, belegbares Verhalten dokumentieren. CLI-, Konfigurations-, Regel- und MCP-Beschreibungen gegen aktuellen Code prüfen.
+- Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell `docs/Konzept.md` und Agentenregeln synchronisieren.
+- `README.md` nur bei ausdrücklichem Auftrag ändern; Fremdänderungen erhalten.
+
+## Windows und Dateien
+
+- Für allgemeine Textsuche (Nicht-C#-Dateien, exakte Strings, Markdown, SQL, Configs) `rg` verwenden; für C#-Semantik und Code-Erkundung immer pro-aktiv den AiNetLinter MCP Server nutzen (siehe `AiNetLinter-McpWorkflow.mdc`).
+- Kein temporärer Dateisystem-Workflow für Wissensinhalte (kein DB -> Temp-Datei -> Edit -> DB); alle Lese- und Schreibvorgänge laufen direkt über die MCP-/Service-API.
+- Credentials gehören niemals in Diagnosen, Logs oder Toolantworten.
+
+## Code und Teststrategie
+
+- **C#-Coding-Prinzipien**: Konkrete Klassen standardmäßig `sealed` deklarieren; `#nullable enable` am Dateianfang; Methoden flach halten und ab 4 Parametern Parameter-Records nutzen; kein `async void`, keine blockierenden Task-Aufrufe (`.Result`, `.Wait()`), keine leeren `catch`-Blöcke.
+- Keine Compilerwarnungen einführen (`TreatWarningsAsErrors`). Erwartete Fehler als `Result<T>` modellieren; Exceptions bleiben echten exogenen Fehlern (z. B. SQL/IO) vorbehalten.
+- **Red-Test-First bei Bugs**: Bei Fehlern oder unerwartetem Verhalten zuerst einen isolierten fehlschlagenden xUnit-v3-Test schreiben; erst danach beheben (dauerhafter Regressionsschutz).
+- **Test-Design & Authoring**: Für Testebenen, Testgestaltung und Testumgebung gilt `.agents/rules/TestRichtlinien.mdc`. Ein grüner, scope-passender Testlauf bleibt gültiger Nachweis bis zur nächsten Code- oder Konfigurationsänderung; nicht blind wiederholen.
+- **Workflow- und MCP-Quality-Gates**:
+  - **Taskbeginn**: Saubere Codebasis voraussetzen; vor der ersten Änderung kein Build, Verify oder Test.
+  - **Incremental Gate**: Nach jedem kohärenten Coding-Slice mit Produktions- oder Testcode in dieser Reihenfolge: `dotnet build`, `verify(targetPath)` (sobald Solution/Target vorhanden), passender FastTests-Lauf (standardmäßig `pwsh scripts/test-fast.ps1 -Filter Category=Unit` bzw. `dotnet test --filter Category=Unit`). Kein bekannter roter Stand bleibt als Zwischen- oder Übergabestand bestehen.
+  - **Abschlussgate**: Vor Abschluss: `dotnet build`, `verify(targetPath, scope: "solution")`, vollständiger FastTests-Lauf (`pwsh scripts/test-fast.ps1`). Integrationstests (`scripts/test-integration.ps1`) nur bei Berührung von SQL/MCP-Infrastruktur oder ausdrücklichem Auftrag.
+  - Jeder fehlgeschlagene Schritt ist vor dem Weiterarbeiten zu beheben; danach das jeweilige Gate vollständig wiederholen. Das Abschlussgate gilt nur bei `verdict=pass`, `score=10.0` und `violationCount=0`. Advisory-Kandidaten bei `changes` erfordern Agentenurteil, beeinflussen das Verdict nicht und sind keine sichere Lösch- oder Änderungsanweisung.
+  - `dotnet build` muss alle Solution-Projekte fehler- und warnungsfrei bauen (`TreatWarningsAsErrors`).
+  - Für reine Dokumentations-, Markdown- oder Agentenregel-Änderungen sind Build und Tests nicht erforderlich; `git diff --check` und eine saubere Diff-Prüfung genügen.
+- Kommentare erklären nur nicht offensichtliches „Why“; keine Ticket-, Prompt- oder Refactoring-Historie im Produktionscode.
+
+## Git und parallele Agenten
+
+- **Immer automatischer Commit**: Jede erfolgreiche Änderung (Code, Tests, Docs, Agentenregeln) wird nach passenden Prüfungen immer unmittelbar und automatisch committet.
+- **Common Commit Standards**: Deutsche Conventional Commits im Imperativ (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`). Nur explizit betroffene Pfade stagen (kein `git add .`); atomare, in sich geschlossene Commits. Pushes und Historienänderungen nur auf ausdrückliche Anforderung.
+- **Strikt serielle Abarbeitung**: Pro Task höchstens ein aktiver Agent. Keine überlappenden Builds, Tests oder Linter-Läufe.

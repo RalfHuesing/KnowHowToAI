@@ -1,0 +1,23 @@
+---
+description: Testebenen, Testdesign und Testumgebung für KnowHowTo AI.
+globs: tests/**/*.cs
+alwaysApply: false
+---
+
+# KnowHowToAI-TestRichtlinien
+
+- **Test-Design & Ebenen**:
+  - FastTests (Unit-Tests) sind Standard für deterministische Fachlogik: Markdown-Heading-Parser/Validierung, Rollenauflösung (Role Resolution Order), Stale-Erkennung / Freshness-Zustände, Node-Hierarchie-Logik im Speicher, Text-Ersetzung (`replace_text`), Export-Assemblierung zu Markdown, `Result`-Inhalte und Mappings. Sie starten weder SQL Server noch MCP-Infrastruktur.
+  - Integrationstests belegen ausschließlich reale Grenzen oder Zusammensetzung: MS SQL Server (Snapshot-Kopien via `INSERT ... SELECT`, Transaktions-Commit/Discard, Concurrency/SnapshotConflict, Schemamigrationen, Soft-Delete), MCP-Transport über STDIO, Prozess-/Serverlebenszyklus und Konfigurationsbindung.
+  - Einen fachlichen Fall nicht zusätzlich über vollständigen Serverstart oder echte SQL-Datenbank testen, wenn er als Unit-Test belegbar ist. Pro Boundary genügen repräsentative Vertragstests; Varianten und Edge-Cases gehören in FastTests.
+  - Die Behauptung eines Tests bestimmt seine Ebene, nicht der Ordner des Produktionscodes. Ein echter End-to-End- oder SQL-Vertrag bleibt ein Integrationstest.
+- **Test-Methodik & Qualität**:
+  - **Red-Test-First bei Bugs**: Bei Fehlern oder unerwartetem Verhalten zuerst einen isolierten fehlschlagenden xUnit-v3-Test (Rot-Test / Reproduktionstest) schreiben. Erst danach gezielt beheben, bis der Test grün ist (dauerhafter Regressionsschutz).
+  - Jede Logikänderung erhält xUnit-v3-Tests, die Verhalten statt Implementierungsdetails prüfen.
+  - Tests niemals abschwächen oder auskommentieren; stets Ursache beheben.
+- **Infrastruktur & Isolation**:
+  - Tests parallelisierbar halten (globale Serialisierung nur bei belegtem Bedarf; gemeinsame Zustände via Lock, Fixture oder Semaphore sichern).
+  - Datenbank-Integrationstests isoliert halten (dedizierte Test-Datenbank, isolierte Transaktionen oder isolierte Snapshot-IDs; keine Test-Interferenzen).
+  - Testtemporärdateien (falls nötig) ausschließlich im ignorierten Repo-Temp (`temp/`) anlegen (nie im System-Temp).
+  - Verifikation ausschließlich über die vorhandene C#-Testinfrastruktur (keine Ad-hoc-Skripte committen).
+- **Abgrenzung**: Prüfzeitpunkt, Reihenfolge, Skripte und Quality-Gates stehen ausschließlich in `Richtlinien.mdc`.
