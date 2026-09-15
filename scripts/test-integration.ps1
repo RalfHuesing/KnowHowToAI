@@ -8,7 +8,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$Filter = 'Category!=Stress',
+    [string]$Filter = 'Category=Integration',
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$AdditionalArgs
 )
@@ -37,10 +37,10 @@ if (-not (Test-Path $resultsDir)) {
 $trxFile = 'IntegrationTests.trx'
 $projectPath = Join-Path $repoRoot 'tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj'
 
-Write-Host '[INFO] SQL-Preflight: DatabaseConnection aus appsettings.json sowie CREATE/DROP einer isolierten Testdatenbank' -ForegroundColor Cyan
+Write-Host '[INFO] SQL-Preflight: Verbindung zur manuell bereitgestellten DatabaseConnection aus appsettings.json' -ForegroundColor Cyan
 & dotnet test $projectPath '--filter' 'FullyQualifiedName~SqlIntegrationPreflightTests' '--nologo'
 if ($LASTEXITCODE -ne 0) {
-    throw 'SQL-Preflight fehlgeschlagen. Prüfe DatabaseConnection in src/KnowHowToAI.Server/appsettings.json sowie Erreichbarkeit und CREATE/DROP-Berechtigung des SQL Servers.'
+    throw 'SQL-Preflight fehlgeschlagen. Prüfe DatabaseConnection in src/KnowHowToAI.Server/appsettings.json sowie Erreichbarkeit der manuell bereitgestellten Datenbank.'
 }
 
 Write-Host "[INFO] IntegrationTests (Filter: $Filter) -> TestResults/$trxFile" -ForegroundColor Cyan

@@ -10,7 +10,7 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Migrations;
 /// Integrationsnachweise für M1.3 (Migration Runner) und M1.5 (Integrationsnachweise)
 /// gegen einen echten SQL Server mit der Appsettings-Sektion <c>DatabaseConnection</c>.
 /// </summary>
-[Trait("Category", "Integration")]
+[Trait("Category", "ManualDatabaseIntegration")]
 public sealed class SqlSchemaMigratorTests
 {
     // ─── Helper ────────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task FreshDatabase_AppliesAllMigrations()
     {
-        await using var db = await SqlTestDatabase.CreateAsync();
+        await using var db = await SqlTestDatabase.ConnectAsync();
         var (migrator, catalog) = BuildMigrator(db);
 
         var applied = await migrator.MigrateAsync();
@@ -51,7 +51,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task SecondRun_IsIdempotent()
     {
-        await using var db = await SqlTestDatabase.CreateAsync();
+        await using var db = await SqlTestDatabase.ConnectAsync();
         var (migrator, _) = BuildMigrator(db);
 
         var firstRun = await migrator.MigrateAsync();
@@ -66,7 +66,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task ModifiedChecksum_IsRejected()
     {
-        await using var db = await SqlTestDatabase.CreateAsync();
+        await using var db = await SqlTestDatabase.ConnectAsync();
         var (migrator, catalog) = BuildMigrator(db);
 
         // Ersten Lauf erfolgreich abschließen
@@ -90,7 +90,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task ParallelRunners_ApplyEachMigrationExactlyOnce()
     {
-        await using var db = await SqlTestDatabase.CreateAsync();
+        await using var db = await SqlTestDatabase.ConnectAsync();
 
         // Mehrere Runner parallel starten
         const int runnerCount = 4;
@@ -118,7 +118,7 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task FailedMigration_LeavesNoJournalEntryOrPartialSchema()
     {
-        await using var db = await SqlTestDatabase.CreateAsync();
+        await using var db = await SqlTestDatabase.ConnectAsync();
         var bootstrap = new EmbeddedMigrationCatalog().BootstrapScript;
         var failingScript = MigrationScript.Create(
             1,

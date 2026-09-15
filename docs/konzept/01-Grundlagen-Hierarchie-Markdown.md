@@ -103,6 +103,9 @@ Konfiguration wird in V1 wie folgt getrennt:
   Der versionierte Default `%COMPUTERNAME%\MSSQLSERVER2022` wird erst zur Laufzeit
   expandiert; der Platzhalter ist keine Konfigurationsquelle und überschreibt keine
   anderen Einstellungen.
+- Die Datenbank wird manuell bereitgestellt und als gegeben angenommen. Der
+  SQL-Integrationstest-Harness verbindet sich ausschließlich mit dieser Datenbank und
+  führt niemals `CREATE DATABASE` oder `DROP DATABASE` aus.
 
 Die Datenbankverbindung wird ausschließlich aus dieser AppSettings-Sektion gelesen.
 Die übrigen Defaults stehen zentral in `appsettings.json`. Überschreibungen für diese

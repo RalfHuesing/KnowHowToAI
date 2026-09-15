@@ -27,11 +27,12 @@ public sealed class SqlIntegrationTestSettingsTests
     }
 
     [Fact]
-    public void CreateMasterConnectionString_TrustsTheLocalDevelopmentCertificate()
+    public void CreateDatabaseConnectionString_UsesConfiguredDatabaseAndTrustsTheLocalDevelopmentCertificate()
     {
-        var connectionString = SqlIntegrationTestSettings.Load().CreateMasterConnectionString();
+        var connectionString = SqlIntegrationTestSettings.Load().CreateDatabaseConnectionString();
         var builder = new SqlConnectionStringBuilder(connectionString);
 
+        Assert.Equal("KnowHowToAi", builder.InitialCatalog);
         Assert.True(builder.TrustServerCertificate);
     }
 }

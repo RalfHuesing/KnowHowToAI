@@ -1,17 +1,17 @@
 namespace KnowHowToAI.IntegrationTests.TestSupport;
 
 /// <summary>
-/// Belegt vor den eigentlichen SQL-Tests die vollständige Voraussetzung einschließlich
-/// der Berechtigung zum Erzeugen und sicheren Entfernen einer isolierten Testdatenbank.
+/// Belegt vor den eigentlichen SQL-Tests, dass die manuell bereitgestellte Datenbank
+/// mit der dokumentierten App-Konfiguration erreichbar ist.
 /// </summary>
 [Trait("Category", "Integration")]
 public sealed class SqlIntegrationPreflightTests
 {
     [Fact]
-    public async Task DatabaseConnection_CreatesAndRemovesAnIsolatedTestDatabase()
+    public async Task DatabaseConnection_ConnectsToTheManuallyProvisionedDatabase()
     {
-        await using var database = await SqlTestDatabase.CreateAsync();
+        await using var database = await SqlTestDatabase.ConnectAsync();
 
-        Assert.StartsWith(SqlTestDatabase.DatabasePrefix, database.DatabaseName, StringComparison.Ordinal);
+        Assert.Equal("KnowHowToAi", database.DatabaseName);
     }
 }

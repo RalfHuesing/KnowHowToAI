@@ -45,12 +45,12 @@ internal sealed record SqlIntegrationTestSettings
         };
     }
 
-    public string CreateMasterConnectionString()
+    public string CreateDatabaseConnectionString()
     {
         var builder = new SqlConnectionStringBuilder
         {
             DataSource = Server,
-            InitialCatalog = "master",
+            InitialCatalog = Database,
             IntegratedSecurity = UseWindowsAuthentication,
             TrustServerCertificate = true
         };

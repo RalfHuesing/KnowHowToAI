@@ -22,7 +22,7 @@ alwaysApply: false
   - Tests niemals abschwächen oder auskommentieren; stets Ursache beheben.
 - **Infrastruktur & Isolation**:
   - Tests parallelisierbar halten (globale Serialisierung nur bei belegtem Bedarf; gemeinsame Zustände via Lock, Fixture oder Semaphore sichern).
-  - Datenbank-Integrationstests gegen einen echten unterstützten SQL Server ausführen. Pro Lauf eine eindeutig benannte Datenbank mit festem Testpräfix verwenden; vor automatischem Löschen den aufgelösten Datenbanknamen gegen dieses Präfix validieren. Keine Entwickler-, Shared- oder Produktionsdatenbank leeren oder wiederverwenden.
+- Datenbank-Integrationstests gegen einen echten unterstützten SQL Server und die manuell bereitgestellte konfigurierte Datenbank ausführen. Der Harness erzeugt oder entfernt niemals Datenbanken. Tests, die Schema oder Daten verändern, verlangen einen ausdrücklich manuell vorbereiteten Datenbankzustand und dürfen nicht Teil des Standard-Integrationstestlaufs sein.
   - Connection Strings ausschließlich aus dokumentierter Testkonfiguration/Secrets lesen, niemals in Testausgaben schreiben. Fehlende SQL-Voraussetzungen müssen im Integrationstest-Skript als klarer Preflight-Fehler sichtbar sein und dürfen nicht als grüner Skip erscheinen.
   - Migrationstests prüfen frische Installation, Wiederholung, Checksum-Abweichung, atomaren Fehlerfall und konkurrierende Runner. Snapshot-Tests prüfen alle versionierten Tabellen, nicht nur Nodes und Content.
   - MCP-Vertragstests starten einen echten Serverprozess und prüfen, dass `stdout` ausschließlich Protokollnachrichten enthält; Logs und Diagnosen gehören nach `stderr` oder in eine Datei.

@@ -223,11 +223,13 @@ echten SQL Server >= 2019. Erst danach darf die Snapshot-Engine implementiert we
   - [x] Verbindung ausschließlich aus der dokumentierten `DatabaseConnection`-Sektion
     in `appsettings.json` lesen und `%COMPUTERNAME%` im Serverwert erst zur Laufzeit
     auflösen
-  - [x] pro Testlauf eindeutig benannte isolierte Testdatenbank erzeugen und nur diese
-    wieder entfernen; Datenbanknamen vor Löschung gegen festen Testpräfix validieren
+  - [x] die manuell bereitgestellte Datenbank als gegeben annehmen und niemals eine
+    Datenbank erzeugen oder entfernen
   - [x] fehlende Voraussetzungen mit klarer Preflight-Meldung melden, niemals als
     scheinbar grünen Test überspringen
-  - [x] parallele Testausführung ohne gemeinsame mutable Daten ermöglichen
+  - [x] mutierende M1.5-Migrationstests ausschließlich als explizite
+    `ManualDatabaseIntegration` ausführen, weil sie einen manuell vorbereiteten
+    Datenbankzustand voraussetzen
 - [ ] **M1.5: Integrationsnachweise**
   - [ ] frische Datenbank wird vollständig erstellt und geseedet
   - [ ] zweiter Lauf ist ohne Schemaänderung erfolgreich
