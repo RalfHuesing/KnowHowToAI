@@ -374,12 +374,12 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] Transaction mit Base-/Working-Snapshot und optionalen Audit-Metadaten anlegen
   - [x] gesamte Eröffnung atomar; bei Fehler weder halber Snapshot noch offene
     Transaction
-- [ ] **M3.3: Mutationen auf Working Snapshot**
-  - [ ] bei jeder Mutation Transaction vorhanden/offen und Snapshot `Working` prüfen
-  - [ ] committed/discarded Snapshots nie verändern
-  - [ ] Mutationen derselben Transaction über die Transaction-Zeile serialisieren und
+- [x] **M3.3: Mutationen auf Working Snapshot**
+  - [x] bei jeder Mutation Transaction vorhanden/offen und Snapshot `Working` prüfen
+  - [x] committed/discarded Snapshots nie verändern
+  - [x] Mutationen derselben Transaction über die Transaction-Zeile serialisieren und
     `ChangeVersion` bei jeder erfolgreichen Zustandsänderung atomar erhöhen
-  - [ ] Soft-Delete/Tombstone-Semantik in sämtlichen Abfragen konsistent anwenden
+  - [x] Soft-Delete/Tombstone-Semantik in sämtlichen Abfragen konsistent anwenden
 - [ ] **M3.4: `validate_transaction`**
   - [ ] harte Fehler, Warnungen, stale Contents und Refactoring-Kandidaten aggregieren
   - [ ] deterministische Sortierung und deduplizierte Befunde

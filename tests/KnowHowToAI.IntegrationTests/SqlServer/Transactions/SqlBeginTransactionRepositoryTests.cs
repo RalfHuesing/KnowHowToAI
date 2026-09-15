@@ -3,10 +3,8 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
-using KnowHowToAI.Storage.SqlServer.Migrations;
 using KnowHowToAI.Storage.SqlServer.Repositories.Transactions;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KnowHowToAI.IntegrationTests.SqlServer.Transactions;
 
@@ -19,7 +17,7 @@ public sealed class SqlBeginTransactionRepositoryTests
     public async Task BeginAsync_CopiesAllVersionedAreasAndRegistersOpenTransaction()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
-        await CreateMigrator(database).MigrateAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
 
         var seed = await SeedSourceSnapshotAsync(database);
         var sourceCounts = await GetAreaCountsAsync(database, seed.BaseSnapshotId);
@@ -46,13 +44,6 @@ public sealed class SqlBeginTransactionRepositoryTests
         await AssertSeedRowsCopiedAsync(database, workingSnapshot, seed);
         await AssertCurrentSnapshotAsync(database, seed.BaseSnapshotId);
     }
-
-    private static SqlSchemaMigrator CreateMigrator(SqlTestDatabase database) => new(
-        database.ConnectionFactory,
-        new SqlStoragePolicy { CommandTimeoutSeconds = 30 },
-        new MigrationPolicy { LockTimeoutSeconds = 30, ApplyOnStartup = true },
-        new EmbeddedMigrationCatalog(),
-        NullLogger<SqlSchemaMigrator>.Instance);
 
     private static async Task<SeededSnapshot> SeedSourceSnapshotAsync(SqlTestDatabase database)
     {

@@ -1,6 +1,8 @@
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
+using KnowHowToAI.Storage.SqlServer.Migrations;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KnowHowToAI.IntegrationTests.TestSupport;
 
@@ -70,6 +72,13 @@ public sealed class SqlTestDatabase : IAsyncDisposable
             throw;
         }
     }
+
+    internal static SqlSchemaMigrator CreateMigrator(SqlTestDatabase database) => new(
+        database.ConnectionFactory,
+        new SqlStoragePolicy { CommandTimeoutSeconds = 30 },
+        new MigrationPolicy { LockTimeoutSeconds = 30, ApplyOnStartup = true },
+        new EmbeddedMigrationCatalog(),
+        NullLogger<SqlSchemaMigrator>.Instance);
 
     public async ValueTask DisposeAsync()
     {

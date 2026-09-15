@@ -1,5 +1,6 @@
 using Dapper;
 using KnowHowToAI.Storage.SqlServer.Configuration;
+using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.Storage.SqlServer.Connections;
 
@@ -14,10 +15,12 @@ internal static class SqlCommandFactory
         string commandText,
         object? parameters,
         SqlStoragePolicy policy,
-        CancellationToken cancellationToken) =>
+        CancellationToken cancellationToken,
+        SqlTransaction? transaction = null) =>
         new(
             commandText,
             parameters,
+            transaction,
             commandTimeout: policy.CommandTimeoutSeconds,
             cancellationToken: cancellationToken);
 }
