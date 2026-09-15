@@ -27,4 +27,12 @@ public interface ITransactionRepository
     Task<CommitTransactionResult> CommitAsync(
         CommitTransactionRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verwirft einen offenen Working Snapshot in einer kurzen atomaren SQL-Operation,
+    /// ohne den Current Snapshot zu verändern.
+    /// </summary>
+    Task<Result<KnowledgeTransaction>> DiscardAsync(
+        TransactionId transactionId,
+        CancellationToken cancellationToken = default);
 }

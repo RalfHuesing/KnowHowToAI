@@ -112,7 +112,7 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         WHERE TransactionId = @transactionId;
         """;
 
-    private const string LockCommitGuardSql = """
+    private const string LockOpenWorkingGuardSql = """
         SELECT transactionRow.BaseSnapshotId, transactionRow.WorkingSnapshotId,
                transactionRow.State AS TransactionState, snapshotRow.State AS SnapshotState
         FROM dbo.KnowHowToAI_Transaction AS transactionRow WITH (UPDLOCK, HOLDLOCK)
@@ -180,7 +180,19 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         WHERE TransactionId = @transactionId AND State = 'Open';
         """;
 
-    private const string ReadCommittedTransactionSql = """
+    private const string DiscardSnapshotSql = """
+        UPDATE dbo.KnowHowToAI_Snapshot
+        SET State = 'Discarded'
+        WHERE SnapshotId = @workingSnapshotId AND State = 'Working';
+        """;
+
+    private const string DiscardTransactionSql = """
+        UPDATE dbo.KnowHowToAI_Transaction
+        SET State = 'Discarded'
+        WHERE TransactionId = @transactionId AND State = 'Open';
+        """;
+
+    private const string ReadTransactionSql = """
         SELECT TransactionId, BaseSnapshotId, WorkingSnapshotId, State, ChangeVersion,
                CreatedAtUtc, CommittedAtUtc, Purpose, Actor, Client, CommitMessage
         FROM dbo.KnowHowToAI_Transaction
@@ -237,7 +249,7 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
 
         try
         {
-            var guardResult = await ReadCommitGuardAsync(connection, databaseTransaction, request.TransactionId, cancellationToken)
+            var guardResult = await ReadOpenWorkingGuardAsync(connection, databaseTransaction, request.TransactionId, cancellationToken)
                 .ConfigureAwait(false);
             if (guardResult.Error is not null)
                 return await RollbackAndReturnAsync(databaseTransaction, CreateRejectedResult(guardResult.Error)).ConfigureAwait(false);
@@ -277,14 +289,52 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         }
     }
 
-    private async Task<CommitGuardResult> ReadCommitGuardAsync(
+    public async Task<Result<KnowledgeTransaction>> DiscardAsync(
+        TransactionId transactionId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var databaseTransaction = (Microsoft.Data.SqlClient.SqlTransaction)await connection
+            .BeginTransactionAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        try
+        {
+            var guardResult = await ReadOpenWorkingGuardAsync(connection, databaseTransaction, transactionId, cancellationToken)
+                .ConfigureAwait(false);
+            if (guardResult.Error is not null)
+                return await RollbackAndReturnAsync(
+                    databaseTransaction,
+                    Result<KnowledgeTransaction>.Failure(guardResult.Error)).ConfigureAwait(false);
+
+            var parameters = new
+            {
+                transactionId = transactionId.Value,
+                workingSnapshotId = guardResult.Guard!.WorkingSnapshotId
+            };
+            await EnsureSingleRowAsync(connection, DiscardSnapshotSql, parameters, cancellationToken, databaseTransaction).ConfigureAwait(false);
+            await EnsureSingleRowAsync(connection, DiscardTransactionSql, parameters, cancellationToken, databaseTransaction).ConfigureAwait(false);
+            var row = await connection.QuerySingleAsync<TransactionRow>(
+                CreateCommand(ReadTransactionSql, new { transactionId = transactionId.Value }, cancellationToken, databaseTransaction))
+                .ConfigureAwait(false);
+            await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return Result<KnowledgeTransaction>.Success(SqlRowMapper.ToTransaction(row));
+        }
+        catch
+        {
+            await databaseTransaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private async Task<OpenWorkingGuardResult> ReadOpenWorkingGuardAsync(
         Microsoft.Data.SqlClient.SqlConnection connection,
         Microsoft.Data.SqlClient.SqlTransaction databaseTransaction,
         TransactionId transactionId,
         CancellationToken cancellationToken)
     {
-        var guard = await connection.QuerySingleOrDefaultAsync<CommitGuardRow>(
-            CreateCommand(LockCommitGuardSql, new { transactionId = transactionId.Value }, cancellationToken, databaseTransaction))
+        var guard = await connection.QuerySingleOrDefaultAsync<OpenWorkingGuardRow>(
+            CreateCommand(LockOpenWorkingGuardSql, new { transactionId = transactionId.Value }, cancellationToken, databaseTransaction))
             .ConfigureAwait(false);
         if (guard is null)
             return new(null, CreateTransactionError(
@@ -309,7 +359,7 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         Microsoft.Data.SqlClient.SqlConnection connection,
         Microsoft.Data.SqlClient.SqlTransaction databaseTransaction,
         CommitTransactionRequest request,
-        CommitGuardRow guard,
+        OpenWorkingGuardRow guard,
         CancellationToken cancellationToken)
     {
         var committedAtUtc = await connection.QuerySingleAsync<DateTime>(
@@ -323,7 +373,7 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         await EnsureSingleRowAsync(connection, ActivateCurrentSnapshotSql, parameters, cancellationToken, databaseTransaction).ConfigureAwait(false);
         await EnsureSingleRowAsync(connection, CommitTransactionSql, parameters, cancellationToken, databaseTransaction).ConfigureAwait(false);
         var row = await connection.QuerySingleAsync<TransactionRow>(
-            CreateCommand(ReadCommittedTransactionSql, new { transactionId = request.TransactionId.Value }, cancellationToken, databaseTransaction))
+            CreateCommand(ReadTransactionSql, new { transactionId = request.TransactionId.Value }, cancellationToken, databaseTransaction))
             .ConfigureAwait(false);
         return SqlRowMapper.ToTransaction(row);
     }
@@ -372,7 +422,7 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         var affectedRows = await connection.ExecuteAsync(
             CreateCommand(commandText, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false);
         if (affectedRows != 1)
-            throw new InvalidOperationException("Der atomare Commit konnte keinen eindeutigen Zustandswechsel durchführen.");
+            throw new InvalidOperationException("Der atomare Zustandswechsel konnte keinen eindeutigen Zustandswechsel durchführen.");
     }
 
     private static CommitTransactionResult CreateRejectedResult(
@@ -380,9 +430,9 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         TransactionValidationReport? report = null) =>
         new(null, report, error);
 
-    private static async Task<CommitTransactionResult> RollbackAndReturnAsync(
+    private static async Task<T> RollbackAndReturnAsync<T>(
         System.Data.Common.DbTransaction databaseTransaction,
-        CommitTransactionResult result)
+        T result)
     {
         await databaseTransaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
         return result;
@@ -408,9 +458,9 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
                 [TransactionValidationErrorCodes.CurrentSnapshotIdDetail] = currentSnapshotId.ToString(System.Globalization.CultureInfo.InvariantCulture)
             });
 
-    private sealed record CommitGuardResult(CommitGuardRow? Guard, DomainError? Error);
+    private sealed record OpenWorkingGuardResult(OpenWorkingGuardRow? Guard, DomainError? Error);
 
-    private sealed record CommitGuardRow(
+    private sealed record OpenWorkingGuardRow(
         long BaseSnapshotId,
         long WorkingSnapshotId,
         string TransactionState,

@@ -21,7 +21,7 @@ public sealed class SqlCommitTransactionRepositoryTests
     {
         await using var database = await CreateDatabaseAsync();
         var transaction = await BeginAsync(database, "10000000-0000-0000-0000-000000000001");
-        await ExecuteAsync(database, """
+        await database.ExecuteAsync("""
             INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
             VALUES (@snapshotId, @nodeId, NULL, N'Ungültig', NULL, 0, 0);
             INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
@@ -95,7 +95,7 @@ public sealed class SqlCommitTransactionRepositoryTests
         Assert.Equal(TransactionValidationErrorCodes.TransactionClosed, repeated.Error!.Code);
 
         var discarded = await BeginAsync(database, "10000000-0000-0000-0000-000000000008");
-        await ExecuteAsync(database, """
+        await database.ExecuteAsync("""
             UPDATE dbo.KnowHowToAI_Snapshot SET State = 'Discarded' WHERE SnapshotId = @workingSnapshotId;
             UPDATE dbo.KnowHowToAI_Transaction SET State = 'Discarded' WHERE TransactionId = @transactionId;
             """,
@@ -111,7 +111,7 @@ public sealed class SqlCommitTransactionRepositoryTests
     {
         await using var database = await CreateDatabaseAsync();
         var transaction = await BeginAsync(database, "10000000-0000-0000-0000-000000000007");
-        await ExecuteAsync(database, """
+        await database.ExecuteAsync("""
             CREATE TRIGGER dbo.KnowHowToAI_CommitFailureProbe
             ON dbo.KnowHowToAI_Snapshot
             AFTER UPDATE
@@ -148,7 +148,7 @@ public sealed class SqlCommitTransactionRepositoryTests
         var sourceRevisionId = Guid.Parse("10000000-0000-0000-0000-000000000023");
         var targetRevisionId = Guid.Parse("10000000-0000-0000-0000-000000000024");
         var outdatedSourceRevisionId = Guid.Parse("10000000-0000-0000-0000-000000000025");
-        await ExecuteAsync(database, """
+        await database.ExecuteAsync("""
             INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
             VALUES
                 (@snapshotId, @sourceNodeId, NULL, N'Quelle', NULL, 0, 0),
@@ -216,12 +216,4 @@ public sealed class SqlCommitTransactionRepositoryTests
         Assert.Equal(expected, reader.GetDateTime(2));
     }
 
-    private static async Task ExecuteAsync(SqlTestDatabase database, string commandText, params SqlParameter[] parameters)
-    {
-        await using var connection = await database.ConnectionFactory.OpenAsync();
-        await using var command = new SqlCommand(commandText, connection);
-        foreach (var parameter in parameters)
-            command.Parameters.Add(parameter);
-        await command.ExecuteNonQueryAsync();
-    }
 }

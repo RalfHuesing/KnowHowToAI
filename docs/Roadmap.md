@@ -390,10 +390,10 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] bei Konflikt keinerlei Statusänderung; `SnapshotConflict` enthält Base und Current
   - [x] bei Erfolg Snapshot, SystemState und Transaction atomar auf Committed setzen
   - [x] wiederholter Commit/Commit nach Discard liefert stabil `TransactionClosed`
-- [ ] **M3.6: `discard_transaction`**
-  - [ ] Open Transaction und Working Snapshot atomar auf Discarded setzen
-  - [ ] Current Snapshot unverändert lassen; Working-Daten zur Historie behalten
-  - [ ] wiederholter Discard/Discard nach Commit liefert stabil `TransactionClosed`
+- [x] **M3.6: `discard_transaction`**
+  - [x] Open Transaction und Working Snapshot atomar auf Discarded setzen
+  - [x] Current Snapshot unverändert lassen; Working-Daten zur Historie behalten
+  - [x] wiederholter Discard/Discard nach Commit liefert stabil `TransactionClosed`
 - [ ] **M3.7: SQL-Integrationstests**
   - [ ] Begin kopiert alle fünf versionierten Datenbereiche vollständig
   - [ ] eigene Writes sind im Working Read sichtbar, aber nicht im Current Read

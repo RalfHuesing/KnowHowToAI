@@ -97,6 +97,17 @@ public sealed class SqlTestDatabase : IAsyncDisposable
             : throw new InvalidOperationException("Preflight-Fehler: Die SQL-Server-Hauptversion konnte nicht ermittelt werden.");
     }
 
+    internal async Task ExecuteAsync(
+        string commandText,
+        params SqlParameter[] parameters)
+    {
+        await using var connection = await ConnectionFactory.OpenAsync().ConfigureAwait(false);
+        await using var command = new SqlCommand(commandText, connection);
+        foreach (var parameter in parameters)
+            command.Parameters.Add(parameter);
+        await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
+
     private async Task ResetKnowHowToAISchemaAsync(CancellationToken cancellationToken)
     {
         await using var connection = await ConnectionFactory.OpenAsync(cancellationToken).ConfigureAwait(false);
