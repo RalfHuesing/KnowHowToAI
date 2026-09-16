@@ -48,13 +48,17 @@ public sealed class StdioHostRunnerTests
     }
 
     [Fact]
-    public async Task UnexpectedStartFailure_ReturnsStartupFailure()
+    public async Task UnexpectedStartFailure_ReturnsStartupFailureWithoutLoggingSensitiveExceptionText()
     {
-        using var host = BuildHostWithStartFailure(new InvalidOperationException("ungültiger Zustand"));
+        const string secret = "correct-horse-battery-staple";
+        using var host = BuildHostWithStartFailure(new InvalidOperationException($"Password={secret}"));
+        var logger = new RecordingLogger();
 
-        var exitCode = await StdioHostRunner.RunAsync(host, NullLogger.Instance);
+        var exitCode = await StdioHostRunner.RunAsync(host, logger);
 
         Assert.Equal(ServerExitCodes.StartupFailure, exitCode);
+        Assert.DoesNotContain(secret, logger.RenderedEvents, StringComparison.Ordinal);
+        Assert.DoesNotContain("Password", logger.RenderedEvents, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -105,5 +109,24 @@ public sealed class StdioHostRunnerTests
             await trigger.WaitAsync(stoppingToken);
             throw new IOException("Client-Pipe defekt");
         }
+    }
+
+    private sealed class RecordingLogger : ILogger
+    {
+        private readonly List<string> _renderedEvents = [];
+
+        public string RenderedEvents => string.Join(Environment.NewLine, _renderedEvents);
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter) =>
+            _renderedEvents.Add($"{formatter(state, exception)}{Environment.NewLine}{exception}");
     }
 }

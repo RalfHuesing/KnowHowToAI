@@ -83,7 +83,7 @@ internal static class McpHistoryMapper
     // ── Snapshot-ID-Parsing ───────────────────────────────────────────────────
 
     /// <summary>
-    /// Parst einen Snapshot-ID-String exakt im Format der Tool-Ausgaben (GUID "D").
+    /// Parst einen Snapshot-ID-String exakt im dezimalen Format der Tool-Ausgaben.
     /// Ein nicht parsebarer Wert kann keinen existierenden Snapshot bezeichnen und
     /// führt zu <c>SnapshotNotFound</c> mit dem Rohwert in den Details.
     /// </summary>
@@ -110,12 +110,6 @@ internal static class McpHistoryMapper
             diff.Nodes.Count + diff.Roles.Count + diff.RoleResolutions.Count +
             diff.Contents.Count + diff.Dependencies.Count);
 
-        foreach (var e in diff.Nodes)
-        {
-            var side = e.After ?? e.Before;
-            entries.Add(new McpDiffEntryData(e.Kind.ToString(), "node", side!.NodeId.ToString()));
-        }
-
         foreach (var e in diff.Roles)
         {
             var side = e.After ?? e.Before;
@@ -129,6 +123,12 @@ internal static class McpHistoryMapper
                 e.Kind.ToString(), "roleResolution",
                 side!.RequestedRoleId.ToString(),
                 side.CandidateRoleId.ToString()));
+        }
+
+        foreach (var e in diff.Nodes)
+        {
+            var side = e.After ?? e.Before;
+            entries.Add(new McpDiffEntryData(e.Kind.ToString(), "node", side!.NodeId.ToString()));
         }
 
         foreach (var e in diff.Contents)
@@ -146,7 +146,9 @@ internal static class McpHistoryMapper
             entries.Add(new McpDiffEntryData(
                 e.Kind.ToString(), "dependency",
                 side!.TargetNodeId.ToString(),
-                side.TargetRoleId.ToString()));
+                side.TargetRoleId.ToString(),
+                side.SourceNodeId.ToString(),
+                side.SourceRoleId.ToString()));
         }
 
         return entries;

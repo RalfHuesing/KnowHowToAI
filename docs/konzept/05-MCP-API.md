@@ -190,6 +190,12 @@ create_release
 committed Snapshot. Da es keinen versionierten Snapshot-Inhalt verändert, benötigt
 diese Metadatenoperation keine KnowHowTo-AI-Transaction.
 
+`compare_snapshots` und `get_transaction_changes` liefern die paginierten Kategorien
+in der Reihenfolge aus Modul 46a. Jeder Eintrag enthält `kind`, `entityType` und die
+vollständigen fachlichen Schlüsselfelder. Dependency-Einträge identifizieren deshalb
+neben Target (`id`, `roleId`) auch Source (`sourceNodeId`, `sourceRoleId`); zwei
+Dependencies desselben Targets bleiben im MCP-Vertrag unterscheidbar.
+
 ---
 
 # 62. Schreiboperationen benötigen immer TransactionId

@@ -11,7 +11,11 @@ public sealed record McpDiffEntryData(
     [property: JsonPropertyName("entityType")] string EntityType,
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("roleId")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? RoleId = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? RoleId = null,
+    [property: JsonPropertyName("sourceNodeId")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SourceNodeId = null,
+    [property: JsonPropertyName("sourceRoleId")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SourceRoleId = null);
 
 /// <summary>
 /// Paginierter Netto-Diff zwischen zwei Snapshots (compare_snapshots, get_transaction_changes).

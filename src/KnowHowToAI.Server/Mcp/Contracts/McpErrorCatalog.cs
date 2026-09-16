@@ -10,13 +10,18 @@ public static class McpErrorCatalog
     private static readonly string[] ContextStateErrorCodes =
     [
         "InvalidReadContext", "SnapshotNotFound", "SnapshotNotCommitted", "TransactionNotFound",
-        "TransactionClosed", "SnapshotConflict", "InvalidCursor", "CursorExpired"
+        "TransactionClosed", "SnapshotConflict", "InvalidCursor", "CursorExpired",
+        "WorkingSnapshotNotOpen", "TransactionDiscarded"
     ];
 
     private static readonly string[] StructureRoleErrorCodes =
     [
         "NodeNotFound", "RootAlreadyExists", "ParentNodeNotFound", "InvalidHierarchy", "NodeHasChildren",
-        "RoleNotFound", "RoleInUse", "RoleResolutionNotConfigured", "InvalidRoleResolution"
+        "RoleNotFound", "RoleInUse", "RoleResolutionNotConfigured", "InvalidRoleResolution",
+        "DuplicateNodeId", "HierarchyCycle", "NodeIdAlreadyUsed", "SelfParentNotAllowed", "SnapshotMismatch",
+        "TitleRequired", "RoleNameRequired", "RoleIdRequired", "CandidateRoleDeleted",
+        "CandidateRoleNotFound", "DuplicateCandidateRole", "DuplicatePriority", "InvalidPriority",
+        "RequestedRoleDeleted", "RequestedRoleNotFound"
     ];
 
     private static readonly string[] ContentErrorCodes =
@@ -27,7 +32,8 @@ public static class McpErrorCatalog
 
     private static readonly string[] MigrationReleaseErrorCodes =
     [
-        "MigrationChecksumMismatch", "MigrationFailed", "ReleaseNotFound", "ReleaseNameConflict"
+        "MigrationChecksumMismatch", "MigrationFailed", "ReleaseNotFound", "ReleaseNameConflict",
+        "ReleaseNameRequired"
     ];
 
     private static readonly string[] WarningCodes =

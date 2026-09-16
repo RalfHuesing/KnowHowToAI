@@ -31,7 +31,9 @@ internal static class StdioHostRunner
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Der Server wurde wegen eines unbehandelten Fehlers beendet.");
+            logger.LogError(
+                "Der Server wurde wegen eines unbehandelten Fehlers beendet ({ExceptionType}).",
+                exception.GetType().Name);
             return ServerExitCodes.StartupFailure;
         }
     }

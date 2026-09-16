@@ -94,6 +94,28 @@ public sealed class StdioProtocolTests
         Assert.False(server.HasExited, "Prozess darf nach unbekanntem Tool nicht abgestürzt sein.");
     }
 
+    [Fact]
+    public async Task KnownToolCall_ReturnsStructuredDomainEnvelopeOverStdio()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        using var server = await StartServerAsync(cts.Token);
+        await InitializeServerAsync(server, cts.Token);
+
+        var callRequest = BuildRequest(
+            id: 2,
+            method: "tools/call",
+            new { name = "get_transaction", arguments = new { transactionId = "not-a-guid" } });
+
+        await server.WriteLineAsync(callRequest, cts.Token);
+
+        var response = await server.ReadLineAsync(cts.Token);
+
+        using var document = JsonDocument.Parse(response);
+        Assert.Equal(2, document.RootElement.GetProperty("id").GetInt32());
+        Assert.Contains("TransactionNotFound", response, StringComparison.Ordinal);
+        Assert.False(server.HasExited, "Prozess darf nach einem fachlich abgelehnten Tool-Aufruf nicht abstürzen.");
+    }
+
     // ── Ungültige JSON-Zeile ──────────────────────────────────────────────────
     //
     // Das MCP-SDK garantiert für unparseierbare stdin-Zeilen keine dedizierte

@@ -33,7 +33,7 @@ internal sealed class HistoryTools
     [McpServerTool(Name = "get_snapshot", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
     [Description("Liefert Zustand und Metadaten eines Snapshots anhand seiner ID.")]
     public async Task<McpToolEnvelope<McpSnapshotData>> GetSnapshot(
-        [Description("Snapshot-ID (GUID-String aus einer vorherigen Tool-Antwort).")] string snapshotId,
+        [Description("Snapshot-ID (positive Ganzzahl aus einer vorherigen Tool-Antwort).")] string snapshotId,
         CancellationToken cancellationToken = default)
     {
         var parsed = McpHistoryMapper.ParseSnapshotId(snapshotId);
@@ -48,8 +48,8 @@ internal sealed class HistoryTools
     [Description("Strukturierter Netto-Diff zwischen zwei committed Snapshots. " +
         "Paginiert; gibt nur geänderte Einträge zurück ohne Rekonstruktion eines Operation Logs.")]
     public async Task<McpToolEnvelope<McpSnapshotDiffData>> CompareSnapshots(
-        [Description("Basis-Snapshot-ID (GUID-String).")] string baseSnapshotId,
-        [Description("Ziel-Snapshot-ID (GUID-String).")] string targetSnapshotId,
+        [Description("Basis-Snapshot-ID (positive Ganzzahl).")] string baseSnapshotId,
+        [Description("Ziel-Snapshot-ID (positive Ganzzahl).")] string targetSnapshotId,
         [Description("Optionale Seitengröße; fehlend oder ≤ 0 ergibt die konfigurierte Standardseitengröße, " +
             "Werte oberhalb des Maximums werden geklemmt.")] int? limit = null,
         [Description("Optionaler opaker Folgecursor aus einer vorherigen Antwort.")] string? cursor = null,
@@ -99,7 +99,7 @@ internal sealed class HistoryTools
         "Qualitätsbefunde des referenzierten Snapshots erscheinen transparent als Warnungen.")]
     public async Task<McpToolEnvelope<McpReleaseData>> CreateRelease(
         [Description("Eindeutiger Release-Name (nicht leer oder Whitespace).")] string name,
-        [Description("Snapshot-ID des committed Ziel-Snapshots (GUID-String).")] string snapshotId,
+        [Description("Snapshot-ID des committed Ziel-Snapshots (positive Ganzzahl).")] string snapshotId,
         [Description("Optionale Release-Beschreibung.")] string? description = null,
         CancellationToken cancellationToken = default)
     {

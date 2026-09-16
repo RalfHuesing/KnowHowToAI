@@ -759,14 +759,18 @@ Codes dürfen ergänzt, bestehende nach Veröffentlichung nicht beiläufig umben
 
 - Kontext/Zustand: `InvalidReadContext`, `SnapshotNotFound`, `SnapshotNotCommitted`,
   `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`, `InvalidCursor`,
-  `CursorExpired`
+  `CursorExpired`, `WorkingSnapshotNotOpen`, `TransactionDiscarded`
 - Struktur/Rollen: `NodeNotFound`, `RootAlreadyExists`, `ParentNodeNotFound`,
   `InvalidHierarchy`, `NodeHasChildren`, `RoleNotFound`, `RoleInUse`,
-  `RoleResolutionNotConfigured`, `InvalidRoleResolution`
+  `RoleResolutionNotConfigured`, `InvalidRoleResolution`, `DuplicateNodeId`,
+  `HierarchyCycle`, `NodeIdAlreadyUsed`, `SelfParentNotAllowed`, `SnapshotMismatch`,
+  `TitleRequired`, `RoleNameRequired`, `RoleIdRequired`, `CandidateRoleDeleted`,
+  `CandidateRoleNotFound`, `DuplicateCandidateRole`, `DuplicatePriority`,
+  `InvalidPriority`, `RequestedRoleDeleted`, `RequestedRoleNotFound`
 - Content: `ExplicitContentNotFound`, `HeadingNotAllowed`, `FrontMatterNotAllowed`,
   `TextNotFound`, `MultipleTextMatches`, `InvalidDependency`, `DependencyCycle`
 - Migration/Release: `MigrationChecksumMismatch`, `MigrationFailed`,
-  `ReleaseNotFound`, `ReleaseNameConflict`
+  `ReleaseNotFound`, `ReleaseNameConflict`, `ReleaseNameRequired`
 
 Warncodes wie `NodeTooLarge`, `PossibleEmbeddedHeading`, `TooManyChildren`,
 `HierarchyTooDeep`, `LargeContentReplace` und `StaleDerivedContent` sind keine Fehler.
