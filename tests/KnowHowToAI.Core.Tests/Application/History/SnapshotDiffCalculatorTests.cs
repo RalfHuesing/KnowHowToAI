@@ -196,4 +196,38 @@ public sealed class SnapshotDiffCalculatorTests
         Assert.Single(page3.Contents);
         Assert.Null(page3.NextCursor); // Done!
     }
+
+    [Fact]
+    public void Compute_NodeMove_ClassifiesAsModifiedWithParentNodeIdChange()
+    {
+        var oldParentId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000001"));
+        var newParentId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000002"));
+        var movedNodeId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000003"));
+
+        var baseNodes = new List<Node>
+        {
+            new(BaseSnap, oldParentId, null, "Old Parent", null, 1, false),
+            new(BaseSnap, newParentId, null, "New Parent", null, 2, false),
+            new(BaseSnap, movedNodeId, oldParentId, "Moved Child", null, 1, false)
+        };
+
+        var targetNodes = new List<Node>
+        {
+            new(TargetSnap, oldParentId, null, "Old Parent", null, 1, false),
+            new(TargetSnap, newParentId, null, "New Parent", null, 2, false),
+            new(TargetSnap, movedNodeId, newParentId, "Moved Child", null, 1, false)
+        };
+
+        var baseData = new SnapshotData(baseNodes, [], [], [], []);
+        var targetData = new SnapshotData(targetNodes, [], [], [], []);
+
+        var request = new SnapshotDiffCalculationRequest(BaseSnap, TargetSnap, baseData, targetData, 50, 0);
+        var diff = SnapshotDiffCalculator.Compute(request);
+
+        var moveChange = Assert.Single(diff.Nodes);
+        Assert.Equal(DiffChangeKind.Modified, moveChange.Kind);
+        Assert.Equal(movedNodeId, moveChange.After!.NodeId);
+        Assert.Equal(oldParentId, moveChange.Before!.ParentNodeId);
+        Assert.Equal(newParentId, moveChange.After!.ParentNodeId);
+    }
 }

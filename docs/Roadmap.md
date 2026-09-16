@@ -512,11 +512,11 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] `list_releases` paginiert und deterministisch sortiert
   - [x] normaler Commit/Release darf stale oder übergroßen Content enthalten; Befunde
     werden transparent zurückgegeben, da komplexe Release Policies nicht V1 sind
-- [ ] **M5.6: Fast- und Integrationstests**
-  - [ ] Export-Golden-Cases für leere, gefilterte, fallback- und stale Bäume
-  - [ ] Search/Paging einschließlich Sonderzeichen und Größenlimits
-  - [ ] Snapshot-/Transaction-Diffs für create/update/move/delete und Rollenänderungen
-  - [ ] Release nur auf committed Snapshot, Namenskonflikt und historische Reproduktion
+- [x] **M5.6: Fast- und Integrationstests**
+  - [x] Export-Golden-Cases für leere, gefilterte, fallback- und stale Bäume
+  - [x] Search/Paging einschließlich Sonderzeichen und Größenlimits
+  - [x] Snapshot-/Transaction-Diffs für create/update/move/delete und Rollenänderungen
+  - [x] Release nur auf committed Snapshot, Namenskonflikt und historische Reproduktion
 
 **Abnahme:** Kein Listen-/Such-/Diff-Tool liefert unkontrolliert den Gesamtbestand;
 Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgabe.
