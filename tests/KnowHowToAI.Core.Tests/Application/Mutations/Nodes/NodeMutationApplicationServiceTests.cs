@@ -2,6 +2,8 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Transactions;
+using KnowHowToAI.Core.Tests.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
@@ -99,23 +101,162 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.All(repository.State.Contents, content => Assert.True(content.IsDeleted));
     }
 
-    [Fact]
-    public async Task CreateAsync_ClosedTransactionPassesThroughStableErrorWithoutChangingState()
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task CreateAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
     {
-        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId)))
-        {
-            Rejection = new DomainError("TransactionClosed", "Die Transaction ist geschlossen.")
-        };
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId))) { Rejection = rejection };
         var service = CreateService(repository, SecondChildNodeId);
 
-        var result = await service.CreateAsync(
-            TransactionId,
-            new CreateNodeRequest(RootNodeId, "Child", null, 0));
+        var result = await service.CreateAsync(TransactionId, new CreateNodeRequest(RootNodeId, "Child", null, 0));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("TransactionClosed", result.Code);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
         Assert.Equal(0, repository.ChangeVersion);
         Assert.Single(repository.State.Nodes);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task UpdateAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
+    {
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId))) { Rejection = rejection };
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.UpdateAsync(TransactionId, RootNodeId, "Neuer Titel", "Neue Beschreibung");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+        Assert.Equal(0, repository.ChangeVersion);
+        Assert.Equal("Titel", repository.State.Nodes.Single().Title);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task MoveAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
+    {
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId), Node(FirstChildNodeId, RootNodeId))) { Rejection = rejection };
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.MoveAsync(TransactionId, FirstChildNodeId, null, 1);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+        Assert.Equal(0, repository.ChangeVersion);
+        Assert.Equal(RootNodeId, Find(repository.State.Nodes, FirstChildNodeId).ParentNodeId);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task ReorderAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
+    {
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId), Node(FirstChildNodeId, RootNodeId, sortOrder: 0))) { Rejection = rejection };
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.ReorderAsync(TransactionId, FirstChildNodeId, 5);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+        Assert.Equal(0, repository.ChangeVersion);
+        Assert.Equal(0, Find(repository.State.Nodes, FirstChildNodeId).SortOrder);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task DeleteAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
+    {
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId), Node(FirstChildNodeId, RootNodeId))) { Rejection = rejection };
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: false);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+        Assert.Equal(0, repository.ChangeVersion);
+        Assert.False(Find(repository.State.Nodes, FirstChildNodeId).IsDeleted);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_IdenticalValues_DoesNotIncrementChangeVersion()
+    {
+        var node = Node(RootNodeId, sortOrder: 0) with { Title = "Titel", Description = "Beschreibung" };
+        var repository = new InMemoryNodeMutationRepository(State(node));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.UpdateAsync(TransactionId, RootNodeId, "Titel", "Beschreibung");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, result.Value!.ChangeVersion);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task MoveAsync_IdenticalParentAndSortOrder_DoesNotIncrementChangeVersion()
+    {
+        var root = Node(RootNodeId);
+        var child = Node(FirstChildNodeId, RootNodeId, sortOrder: 0);
+        var repository = new InMemoryNodeMutationRepository(State(root, child));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.MoveAsync(TransactionId, FirstChildNodeId, RootNodeId, 0);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, result.Value!.ChangeVersion);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task ReorderAsync_IdenticalSortOrder_DoesNotIncrementChangeVersion()
+    {
+        var root = Node(RootNodeId);
+        var child = Node(FirstChildNodeId, RootNodeId, sortOrder: 0);
+        var repository = new InMemoryNodeMutationRepository(State(root, child));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.ReorderAsync(TransactionId, FirstChildNodeId, 0);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, result.Value!.ChangeVersion);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ChangedValues_IncrementsChangeVersionExactlyOnce()
+    {
+        var node = Node(RootNodeId, sortOrder: 0) with { Title = "Alt", Description = null };
+        var repository = new InMemoryNodeMutationRepository(State(node));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var result = await service.UpdateAsync(TransactionId, RootNodeId, "Neu", null);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.ChangeVersion);
+        Assert.Equal(1, repository.ChangeVersion);
     }
 
     private static NodeMutationApplicationService CreateService(
@@ -180,11 +321,19 @@ public sealed class NodeMutationApplicationServiceTests
                 return Task.FromResult(Result<WorkingNodeMutationExecution<T>>.Failure(decisionResult.Error!));
 
             var decision = decisionResult.Value!;
+            var stateChanged = HasStateChanged(previousState, decision.State);
             State = decision.State;
-            ChangeVersion++;
+            if (stateChanged)
+                ChangeVersion++;
+
             return Task.FromResult(Result<WorkingNodeMutationExecution<T>>.Success(
                 new WorkingNodeMutationExecution<T>(decision.Value, State.SnapshotId, ChangeVersion, previousState, State)));
         }
+
+        private static bool HasStateChanged(WorkingNodeMutationState before, WorkingNodeMutationState after) =>
+            !before.Nodes.SequenceEqual(after.Nodes)
+            || !before.Contents.SequenceEqual(after.Contents)
+            || !before.Dependencies.SequenceEqual(after.Dependencies);
     }
 
     private sealed class FixedIdentifierGenerator(NodeId nodeId) : IIdentifierGenerator

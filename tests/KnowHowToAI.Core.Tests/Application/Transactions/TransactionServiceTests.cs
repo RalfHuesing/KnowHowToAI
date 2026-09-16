@@ -3,6 +3,7 @@ using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Tests.Application.Transactions;
@@ -51,33 +52,36 @@ public sealed class TransactionServiceTests
             result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
     }
 
-    [Fact]
-    public async Task DiscardAsync_ForwardsRepositoryDomainErrorUnchanged()
+    [Theory]
+    [InlineData(TransactionState.Committed)]
+    [InlineData(TransactionState.Discarded)]
+    public async Task GetAsync_ClosedTransaction_ReturnsTransactionMetadataSuccessfully(TransactionState state)
     {
-        var transactionId = new TransactionId(Guid.Parse("20d73a7b-1c4d-4742-919e-d6bf82043277"));
-        var expectedError = new DomainError("TransactionClosed", "Bereits geschlossen.");
-        var repository = new TransactionRepositoryFake
-        {
-            DiscardResult = Result<KnowledgeTransaction>.Failure(expectedError)
-        };
+        var transactionId = new TransactionId(Guid.Parse("12345678-1234-1234-1234-123456789abc"));
+        var closedTransaction = CreateTransaction(transactionId, state);
         var service = new TransactionService(
-            repository,
+            new TransactionRepositoryFake { FoundTransaction = closedTransaction },
             new ValidationDataRepositoryFake(),
             new FixedIdentifierGenerator(),
             ValidationPolicy());
 
-        var result = await service.DiscardAsync(transactionId);
+        var result = await service.GetAsync(transactionId);
 
-        Assert.False(result.IsSuccess);
-        Assert.Same(expectedError, result.Error);
-        Assert.Equal(transactionId, repository.DiscardedTransactionId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(state, result.Value!.State);
+        Assert.Equal(transactionId, result.Value.TransactionId);
     }
 
-    [Fact]
-    public async Task ValidateAsync_ForwardsOpenTransactionGuardErrorUnchanged()
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task ValidateAsync_MissingOrClosedTransaction_ReturnsStableError(string errorCode)
     {
         var transactionId = new TransactionId(Guid.Parse("071d5332-2a14-41c5-a3d0-4c6dfe8c41e9"));
-        var expectedError = new DomainError(TransactionValidationErrorCodes.TransactionClosed, "Bereits geschlossen.");
+        var expectedError = new DomainError(
+            errorCode,
+            "Guard fehlgeschlagen.",
+            new Dictionary<string, string> { [TransactionValidationErrorCodes.TransactionIdDetail] = transactionId.ToString() });
         var service = new TransactionService(
             new TransactionRepositoryFake(),
             new ValidationDataRepositoryFake
@@ -90,7 +94,108 @@ public sealed class TransactionServiceTests
         var result = await service.ValidateAsync(transactionId);
 
         Assert.False(result.IsSuccess);
-        Assert.Same(expectedError, result.Error);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(transactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_ValidSnapshot_ForwardsWarningsUnchanged()
+    {
+        var transactionId = new TransactionId(Guid.Parse("071d5332-2a14-41c5-a3d0-4c6dfe8c41e9"));
+        var service = new TransactionService(
+            new TransactionRepositoryFake(),
+            new ValidationDataRepositoryFake
+            {
+                ReadResult = Result<WorkingSnapshotValidationData>.Success(new WorkingSnapshotValidationData([], [], [], [], []))
+            },
+            new FixedIdentifierGenerator(),
+            ValidationPolicy());
+
+        var result = await service.ValidateAsync(transactionId);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task CommitAsync_MissingOrClosedTransaction_ReturnsRejection(string errorCode)
+    {
+        var transactionId = new TransactionId(Guid.Parse("4bd1a82e-17d7-4148-a8e2-089464e70dd7"));
+        var expectedError = new DomainError(
+            errorCode,
+            "Nicht bearbeitbar.",
+            new Dictionary<string, string> { [TransactionValidationErrorCodes.TransactionIdDetail] = transactionId.ToString() });
+        var service = new TransactionService(
+            new TransactionRepositoryFake
+            {
+                CommitResult = new CommitTransactionResult(null, null, expectedError)
+            },
+            new ValidationDataRepositoryFake(),
+            new FixedIdentifierGenerator(),
+            ValidationPolicy());
+
+        var result = await service.CommitAsync(transactionId, "Freigabe");
+
+        Assert.False(result.IsCommitted);
+        Assert.Null(result.Transaction);
+        Assert.Equal(errorCode, result.Error!.Code);
+        Assert.Equal(transactionId.ToString(), result.Error.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+    }
+
+    [Fact]
+    public async Task CommitAsync_SnapshotConflict_ReturnsConflictError()
+    {
+        var transactionId = new TransactionId(Guid.Parse("4bd1a82e-17d7-4148-a8e2-089464e70dd7"));
+        var conflictError = new DomainError(
+            TransactionValidationErrorCodes.SnapshotConflict,
+            "Konflikt.",
+            new Dictionary<string, string>
+            {
+                [TransactionValidationErrorCodes.TransactionIdDetail] = transactionId.ToString(),
+                [TransactionValidationErrorCodes.BaseSnapshotIdDetail] = "100",
+                [TransactionValidationErrorCodes.CurrentSnapshotIdDetail] = "101"
+            });
+        var service = new TransactionService(
+            new TransactionRepositoryFake
+            {
+                CommitResult = new CommitTransactionResult(null, null, conflictError)
+            },
+            new ValidationDataRepositoryFake(),
+            new FixedIdentifierGenerator(),
+            ValidationPolicy());
+
+        var result = await service.CommitAsync(transactionId, null);
+
+        Assert.False(result.IsCommitted);
+        Assert.Equal(TransactionValidationErrorCodes.SnapshotConflict, result.Error!.Code);
+    }
+
+    [Fact]
+    public async Task CommitAsync_SuccessWithWarnings_ForwardsTransactionAndWarnings()
+    {
+        var transactionId = new TransactionId(Guid.Parse("4bd1a82e-17d7-4148-a8e2-089464e70dd7"));
+        var committedTransaction = CreateTransaction(transactionId, TransactionState.Committed);
+        var warnings = new[] { new DomainWarning(QualityWarningCodes.NodeTooLarge, "Zu groß") };
+        var validationReport = new TransactionValidationReport([], warnings, [], []);
+        var service = new TransactionService(
+            new TransactionRepositoryFake
+            {
+                CommitResult = new CommitTransactionResult(committedTransaction, validationReport, null)
+            },
+            new ValidationDataRepositoryFake(),
+            new FixedIdentifierGenerator(),
+            ValidationPolicy());
+
+        var result = await service.CommitAsync(transactionId, "Freigabe");
+
+        Assert.True(result.IsCommitted);
+        Assert.NotNull(result.Transaction);
+        Assert.Equal(TransactionState.Committed, result.Transaction.State);
+        Assert.NotNull(result.ValidationReport);
+        Assert.Single(result.ValidationReport.Warnings);
+        Assert.Equal(QualityWarningCodes.NodeTooLarge, result.ValidationReport.Warnings[0].Code);
     }
 
     [Fact]
@@ -111,6 +216,69 @@ public sealed class TransactionServiceTests
         Assert.Equal(4096, repository.CommitRequest.QualityWarningThresholds.ContentSizeWarningBytes);
         Assert.True(repository.CommitRequest.WarnOnPossibleEmbeddedHeading);
     }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task DiscardAsync_MissingOrClosedTransaction_ReturnsStableError(string errorCode)
+    {
+        var transactionId = new TransactionId(Guid.Parse("20d73a7b-1c4d-4742-919e-d6bf82043277"));
+        var expectedError = new DomainError(
+            errorCode,
+            "Nicht verwerfbar.",
+            new Dictionary<string, string> { [TransactionValidationErrorCodes.TransactionIdDetail] = transactionId.ToString() });
+        var repository = new TransactionRepositoryFake
+        {
+            DiscardResult = Result<KnowledgeTransaction>.Failure(expectedError)
+        };
+        var service = new TransactionService(
+            repository,
+            new ValidationDataRepositoryFake(),
+            new FixedIdentifierGenerator(),
+            ValidationPolicy());
+
+        var result = await service.DiscardAsync(transactionId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(transactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+    }
+
+    [Fact]
+    public async Task DiscardAsync_OpenTransaction_ReturnsDiscardedTransaction()
+    {
+        var transactionId = new TransactionId(Guid.Parse("20d73a7b-1c4d-4742-919e-d6bf82043277"));
+        var discardedTx = CreateTransaction(transactionId, TransactionState.Discarded);
+        var repository = new TransactionRepositoryFake
+        {
+            DiscardResult = Result<KnowledgeTransaction>.Success(discardedTx)
+        };
+        var service = new TransactionService(
+            repository,
+            new ValidationDataRepositoryFake(),
+            new FixedIdentifierGenerator(),
+            ValidationPolicy());
+
+        var result = await service.DiscardAsync(transactionId);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TransactionState.Discarded, result.Value!.State);
+        Assert.Equal(transactionId, repository.DiscardedTransactionId);
+    }
+
+    private static KnowledgeTransaction CreateTransaction(TransactionId transactionId, TransactionState state) =>
+        new(
+            transactionId,
+            new SnapshotId(41),
+            new SnapshotId(42),
+            state,
+            ChangeVersion: 0,
+            CreatedAtUtc: DateTimeOffset.UnixEpoch,
+            CommittedAtUtc: state == TransactionState.Committed ? DateTimeOffset.UnixEpoch : null,
+            Purpose: null,
+            Actor: null,
+            Client: null,
+            CommitMessage: null);
 
     private static ValidationPolicy ValidationPolicy() => new()
     {
@@ -136,6 +304,10 @@ public sealed class TransactionServiceTests
         public TransactionId? DiscardedTransactionId { get; private set; }
 
         public CommitTransactionRequest? CommitRequest { get; private set; }
+
+        public KnowledgeTransaction? FoundTransaction { get; init; }
+
+        public CommitTransactionResult CommitResult { get; init; } = new(null, null, null);
 
         public Result<KnowledgeTransaction> DiscardResult { get; init; } =
             Result<KnowledgeTransaction>.Success(new KnowledgeTransaction(
@@ -169,12 +341,12 @@ public sealed class TransactionServiceTests
         }
 
         public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<KnowledgeTransaction?>(null);
+            Task.FromResult(FoundTransaction);
 
         public Task<CommitTransactionResult> CommitAsync(CommitTransactionRequest request, CancellationToken cancellationToken = default)
         {
             CommitRequest = request;
-            return Task.FromResult(new CommitTransactionResult(null, null, null));
+            return Task.FromResult(CommitResult);
         }
 
         public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default)

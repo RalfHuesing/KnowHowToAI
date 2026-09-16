@@ -505,18 +505,18 @@ Use Case berührten Fachmodule
     Komplexität innerhalb der AiNetLinter-Grenzen liegen
   - [ ] `NavigationServiceTests.cs` nach Use Case auf Dateien unter 500 Zeilen aufteilen,
     ohne Testfälle zu entfernen oder gemeinsame mutable globale Fixtures einzuführen
-- [ ] **M4.9: Service-Vertragsmatrix vervollständigen**
-  - [ ] für `create/update/move/reorder/delete_node`, `replace_content`, `replace_text`,
+- [x] **M4.9: Service-Vertragsmatrix vervollständigen**
+  - [x] für `create/update/move/reorder/delete_node`, `replace_content`, `replace_text`,
     `delete_content`, `create/update/delete_role` und `set_role_resolution` je einen
     fehlenden und einen geschlossenen Transaction-Fall ergänzen; stabilen Fehlercode,
     Details, unveränderten Working-Zustand und unveränderte `ChangeVersion` prüfen
-  - [ ] für jeden erfolgreichen Write belegen, dass ausschließlich der Working Snapshot
+  - [x] für jeden erfolgreichen Write belegen, dass ausschließlich der Working Snapshot
     geändert wird und Current bis zum Commit unverändert bleibt; vorhandene M3-SQL-
     Nachweise wiederverwenden und nur fehlende Boundary-Fälle als Integrationstest ergänzen
-  - [ ] No-op-Fälle für identische Node-/Content-/Rollenwerte prüfen: keine unnötige
+  - [x] No-op-Fälle für identische Node-/Content-/Rollenwerte prüfen: keine unnötige
     Revision und keine Erhöhung der `ChangeVersion`; fachlich echte Änderungen erhöhen
     sie genau einmal
-  - [ ] Transaction Service für fehlende/geschlossene Transaction bei get, validate,
+  - [x] Transaction Service für fehlende/geschlossene Transaction bei get, validate,
     commit und discard sowie für unveränderte Fehler-/Warnungsweitergabe vollständig testen
 
 **Abnahme:** Jeder fachliche V1-Write ist über genau einen transportneutralen Use Case

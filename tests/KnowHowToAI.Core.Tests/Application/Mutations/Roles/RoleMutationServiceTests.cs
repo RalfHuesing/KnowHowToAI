@@ -1,5 +1,7 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Transactions;
+using KnowHowToAI.Core.Tests.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
@@ -19,20 +21,127 @@ public sealed class RoleMutationServiceTests
     private static readonly RoleId DeveloperRoleId = new("Developer");
     private static readonly RoleId EndUserRoleId = new("EndUser");
 
-    [Fact]
-    public async Task CreateRoleAsync_MissingTransaction_ReturnsStableErrorWithoutWriting()
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task CreateRoleAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutWriting(string errorCode)
     {
-        var repository = new InMemoryRoleMutationRepository(
-            State(),
-            new DomainError("TransactionNotFound", "Die Transaction existiert nicht.", new Dictionary<string, string> { ["transactionId"] = TransactionId.ToString() }));
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryRoleMutationRepository(State(), rejection);
         var service = new RoleMutationService(repository);
 
         var result = await service.CreateRoleAsync(TransactionId, "Developer", null);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("TransactionNotFound", result.Code);
-        Assert.Equal(TransactionId.ToString(), result.Details["transactionId"]);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
         Assert.Equal(0, repository.ChangeVersion);
+        Assert.Empty(repository.State.Roles);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task UpdateRoleAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
+    {
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)]), rejection);
+        var service = new RoleMutationService(repository);
+
+        var result = await service.UpdateRoleAsync(TransactionId, DefaultRoleId, "Neu", null);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+        Assert.Equal(0, repository.ChangeVersion);
+        Assert.Equal(DefaultRoleId.ToString(), repository.State.Roles.Single().Name);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task DeleteRoleAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
+    {
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)]), rejection);
+        var service = new RoleMutationService(repository);
+
+        var result = await service.DeleteRoleAsync(TransactionId, DefaultRoleId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+        Assert.Equal(0, repository.ChangeVersion);
+        Assert.False(repository.State.Roles.Single().IsDeleted);
+    }
+
+    [Theory]
+    [InlineData(TransactionValidationErrorCodes.TransactionNotFound)]
+    [InlineData(TransactionValidationErrorCodes.TransactionClosed)]
+    public async Task SetRoleResolutionAsync_MissingOrClosedTransaction_ReturnsStableErrorWithoutChangingState(string errorCode)
+    {
+        var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
+            ? TransactionTestErrors.NotFound(TransactionId)
+            : TransactionTestErrors.Closed(TransactionId);
+        var initialResolution = new RoleResolution(SnapshotId, DefaultRoleId, DefaultRoleId, 1);
+        var repository = new InMemoryRoleMutationRepository(
+            State([Role(DefaultRoleId), Role(DeveloperRoleId)], [initialResolution]),
+            rejection);
+        var service = new RoleMutationService(repository);
+
+        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId]);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorCode, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details[TransactionValidationErrorCodes.TransactionIdDetail]);
+        Assert.Equal(0, repository.ChangeVersion);
+        Assert.Equal([initialResolution], repository.State.Resolutions);
+    }
+
+    [Fact]
+    public async Task UpdateRoleAsync_IdenticalValues_DoesNotIncrementChangeVersion()
+    {
+        var role = Role(DefaultRoleId, "Beschreibung");
+        var repository = new InMemoryRoleMutationRepository(State([role]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.UpdateRoleAsync(TransactionId, DefaultRoleId, DefaultRoleId.ToString(), "Beschreibung");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task SetRoleResolutionAsync_IdenticalOrder_DoesNotIncrementChangeVersion()
+    {
+        var resolution = new RoleResolution(SnapshotId, DefaultRoleId, DeveloperRoleId, 1);
+        var repository = new InMemoryRoleMutationRepository(
+            State([Role(DefaultRoleId), Role(DeveloperRoleId)], [resolution]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId]);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task UpdateRoleAsync_ChangedValues_IncrementsChangeVersionExactlyOnce()
+    {
+        var role = Role(DefaultRoleId, "Alt");
+        var repository = new InMemoryRoleMutationRepository(State([role]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.UpdateRoleAsync(TransactionId, DefaultRoleId, DefaultRoleId.ToString(), "Neu");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, repository.ChangeVersion);
     }
 
     [Fact]
@@ -168,10 +277,17 @@ public sealed class RoleMutationServiceTests
                 return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(decisionResult.Error!, decisionResult.Warnings));
 
             var decision = decisionResult.Value!;
+            var stateChanged = HasStateChanged(previousState, decision.State);
             State = decision.State;
-            ChangeVersion++;
+            if (stateChanged)
+                ChangeVersion++;
+
             return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Success(
                 new WorkingRoleMutationExecution<T>(decision.Value, State.SnapshotId, ChangeVersion, previousState, State)));
         }
+
+        private static bool HasStateChanged(WorkingRoleMutationState before, WorkingRoleMutationState after) =>
+            !before.Roles.SequenceEqual(after.Roles)
+            || !before.Resolutions.SequenceEqual(after.Resolutions);
     }
 }

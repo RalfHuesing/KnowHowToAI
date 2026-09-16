@@ -51,4 +51,60 @@ public sealed class SqlNodeMutationRepositoryTests
         var workingNode = Assert.Single(await hierarchyRepository.ListBySnapshotAsync(transaction.WorkingSnapshotId));
         Assert.Equal(nodeId, workingNode.NodeId);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_UpdatesAndTombstonesOnlyWorkingNodeLeavingBaseSnapshotIntact()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+        var nodeId = new NodeId(Guid.Parse("7a4e6123-5e92-49f3-8b7a-8f12c3d4e5f6"));
+        await InsertCurrentNodeAsync(database, nodeId);
+
+        var transaction = await new SqlTransactionRepository(
+            database.ConnectionFactory,
+            new SqlStoragePolicy { CommandTimeoutSeconds = 30 })
+            .BeginAsync(new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
+        var repository = new SqlNodeMutationRepository(
+            database.ConnectionFactory,
+            new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+
+        var result = await repository.ExecuteAsync(
+            transaction.TransactionId,
+            state =>
+            {
+                var existing = state.Nodes.Single(n => n.NodeId == nodeId);
+                var updated = existing with { Title = "Aktualisiert", IsDeleted = true };
+                return Result<WorkingNodeMutationDecision<NodeId>>.Success(
+                    new WorkingNodeMutationDecision<NodeId>(
+                        nodeId,
+                        state with { Nodes = state.Nodes.Select(n => n.NodeId == nodeId ? updated : n).ToArray() }));
+            });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.ChangeVersion);
+
+        var hierarchyRepository = new SqlHierarchyRepository(
+            database.ConnectionFactory,
+            new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+        var baseNode = Assert.Single(await hierarchyRepository.ListBySnapshotAsync(transaction.BaseSnapshotId));
+        Assert.Equal("Original", baseNode.Title);
+        Assert.False(baseNode.IsDeleted);
+
+        var workingNode = Assert.Single(await hierarchyRepository.ListBySnapshotAsync(transaction.WorkingSnapshotId));
+        Assert.Equal("Aktualisiert", workingNode.Title);
+        Assert.True(workingNode.IsDeleted);
+    }
+
+    private static async Task InsertCurrentNodeAsync(SqlTestDatabase database, NodeId nodeId)
+    {
+        await using var connection = await database.ConnectionFactory.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
+            SELECT CurrentSnapshotId, @nodeId, NULL, N'Original', NULL, 0, 0
+            FROM dbo.KnowHowToAI_SystemState WHERE Id = 1;
+            """;
+        command.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@nodeId", nodeId.Value));
+        await command.ExecuteNonQueryAsync();
+    }
 }
