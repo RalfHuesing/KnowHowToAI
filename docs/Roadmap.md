@@ -500,12 +500,12 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
     Search-Indizes nur evidenzbasiert als neue Migration ergänzen
   - [x] dokumentieren, dass V1 weder semantische noch linguistisch vollständige Suche
     verspricht
-- [ ] **M5.4: Historie und Diff**
-  - [ ] `get_snapshot` mit Zustand und Metadaten
-  - [ ] `compare_snapshots` als strukturierter Netto-Diff für Nodes, Rollen, Resolution
+- [x] **M5.4: Historie und Diff**
+  - [x] `get_snapshot` mit Zustand und Metadaten
+  - [x] `compare_snapshots` als strukturierter Netto-Diff für Nodes, Rollen, Resolution
     Orders, Contents und Dependencies; keine Rekonstruktion eines Operation Logs
-  - [ ] `get_transaction_changes` vergleicht Base und Working/Committed Snapshot
-  - [ ] große Diffs paginieren; Reihenfolge und Change-Arten stabil halten
+  - [x] `get_transaction_changes` vergleicht Base und Working/Committed Snapshot
+  - [x] große Diffs paginieren; Reihenfolge und Change-Arten stabil halten
 - [ ] **M5.5: Releases**
   - [ ] `create_release` registriert atomar einen unveränderlichen Namen/Verweis auf einen
     committed Snapshot; dies ist Metadatenregistrierung und keine Snapshot-Mutation

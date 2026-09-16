@@ -17,7 +17,9 @@ public sealed record SnapshotDiff(
     IReadOnlyList<RoleDiffEntry> Roles,
     IReadOnlyList<RoleResolutionDiffEntry> RoleResolutions,
     IReadOnlyList<ContentDiffEntry> Contents,
-    IReadOnlyList<DependencyDiffEntry> Dependencies);
+    IReadOnlyList<DependencyDiffEntry> Dependencies,
+    string? NextCursor = null,
+    int TotalCount = 0);
 
 public sealed record NodeDiffEntry(DiffChangeKind Kind, Node? Before, Node? After);
 public sealed record RoleDiffEntry(DiffChangeKind Kind, Role? Before, Role? After);

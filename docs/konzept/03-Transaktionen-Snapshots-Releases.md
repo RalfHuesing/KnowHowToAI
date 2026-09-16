@@ -468,3 +468,34 @@ versionierten Tabellen sind kein unterstützter V1-Workflow.
 Eine spätere Administrationsoberfläche ist vorgesehen, aber nicht Bestandteil von V1.
 
 ---
+
+# 46a. Strukturierter Netto-Diff und Historienvergleich
+
+KnowHowTo AI stellt mit `compare_snapshots` und `get_transaction_changes` strukturierte Netto-Diffs bereit:
+
+- `compare_snapshots` vergleicht zwei beliebige committed Snapshots.
+- `get_transaction_changes` vergleicht den Base-Snapshot einer Transaktion mit ihrem aktuellen Working- (bei Status `Open`) oder Committed-Snapshot (bei Status `Committed`).
+
+### Grundsatz: Netto-Zustandsdifferenz statt Operation-Log
+
+Der Diff rekonstruiert kein Event- oder Command-Log, sondern ermittelt rein deklarativ den Netto-Zustandsunterschied zwischen Base und Target:
+
+- `Added`: Das Objekt ist im Target-Snapshot aktiv, im Base-Snapshot jedoch nicht vorhanden oder als gelöscht markiert.
+- `Modified`: Das Objekt ist in beiden Snapshots aktiv vorhanden, aber mindestens ein versionsrelevantes Attribut hat sich geändert.
+- `Deleted`: Das Objekt war im Base-Snapshot aktiv vorhanden, ist im Target-Snapshot aber gelöscht (`IsDeleted = true`) oder nicht mehr zugeordnet.
+
+Unveränderte Objekte tauchen im Diff nicht auf.
+
+### Kategorien und deterministische Paginierung
+
+Ein Diff umfasst 5 strukturierte Kategorien in fester Reihenfolge:
+
+1. `Roles` (Sortierung: `RoleId` aufsteigend)
+2. `RoleResolutions` (Sortierung: `RequestedRoleId`, danach `CandidateRoleId` aufsteigend)
+3. `Nodes` (Sortierung: `SortOrder`, danach `NodeId.Value` aufsteigend)
+4. `Contents` (Sortierung: `NodeId.Value`, danach `RoleId.Value` aufsteigend)
+5. `Dependencies` (Sortierung: `TargetNodeId`, `TargetRoleId`, `SourceNodeId`, `SourceRoleId` aufsteigend)
+
+Um unkontrollierte Dumps des Gesamtbestands zu verhindern, werden große Diffs seitenweise über einen opaken `DiffCursor` paginiert (Standard: `RetrievalPolicy.DefaultPageSize`). Der Cursor ist an BaseSnapshotId, TargetSnapshotId und bei offenen Transaktionen an `ChangeVersion` gebunden. Eine zwischenzeitliche Mutation der Transaktion führt deterministisch zur Ablehnung mit `CursorExpired`.
+
+---

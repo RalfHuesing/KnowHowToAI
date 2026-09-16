@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
 
@@ -7,17 +8,32 @@ namespace KnowHowToAI.Core.Application.History;
 /// <summary>
 /// Transportneutrale Orchestrierung der Historien-Use-Cases (get_snapshot,
 /// compare_snapshots, get_transaction_changes). Alle Methoden sind read-only.
-/// Die eigentliche Diff-Logik wird in M5.4 implementiert.
 /// </summary>
 public sealed class HistoryService
 {
     private readonly HistoryRepositories _repos;
+    private readonly RetrievalPolicy _retrievalPolicy;
 
-    public HistoryService(HistoryRepositories repositories)
+    public HistoryService(HistoryRepositories repositories, RetrievalPolicy retrievalPolicy)
     {
-        _repos = repositories ?? throw new ArgumentNullException(nameof(repositories));
+        ArgumentNullException.ThrowIfNull(repositories);
+        ArgumentNullException.ThrowIfNull(retrievalPolicy);
+
+        _repos = repositories;
+        _retrievalPolicy = retrievalPolicy;
     }
 
+    public HistoryService(HistoryRepositories repositories)
+        : this(repositories, new RetrievalPolicy
+        {
+            DefaultPageSize = 50,
+            MaximumPageSize = 250,
+            SearchPageSize = 10,
+            SearchMaximumPageSize = 100,
+            SnippetMaximumCharacters = 100
+        })
+    {
+    }
 
     /// <summary>Liefert Metadaten eines Snapshots oder einen stabilen Fachfehler.</summary>
     public async Task<Result<Snapshot>> GetSnapshotAsync(
@@ -34,50 +50,51 @@ public sealed class HistoryService
     }
 
     /// <summary>
-    /// Vergleicht zwei Snapshots und liefert einen strukturierten Netto-Diff.
-    /// Beide Snapshots müssen committed sein. Implementierung folgt in M5.4.
+    /// Vergleicht zwei committed Snapshots und liefert einen strukturierten Netto-Diff.
     /// </summary>
     public async Task<Result<SnapshotDiff>> CompareSnapshotsAsync(
         SnapshotId baseSnapshotId,
         SnapshotId targetSnapshotId,
+        int? limit = null,
+        string? cursor = null,
         CancellationToken cancellationToken = default)
     {
-        var baseSnapshot = await _repos.Snapshots.FindAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
-        if (baseSnapshot is null)
-            return Result<SnapshotDiff>.Failure(new DomainError(
-                HistoryErrorCodes.SnapshotNotFound,
-                "Der Base-Snapshot existiert nicht.",
-                new Dictionary<string, string> { [HistoryErrorCodes.SnapshotIdDetail] = baseSnapshotId.ToString() }));
+        var baseResult = await ValidateCommittedSnapshotAsync(baseSnapshotId, "Base-Snapshot", cancellationToken).ConfigureAwait(false);
+        if (!baseResult.IsSuccess)
+            return Result<SnapshotDiff>.Failure(baseResult.Error!);
 
-        var targetSnapshot = await _repos.Snapshots.FindAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
-        if (targetSnapshot is null)
-            return Result<SnapshotDiff>.Failure(new DomainError(
-                HistoryErrorCodes.SnapshotNotFound,
-                "Der Target-Snapshot existiert nicht.",
-                new Dictionary<string, string> { [HistoryErrorCodes.SnapshotIdDetail] = targetSnapshotId.ToString() }));
+        var targetResult = await ValidateCommittedSnapshotAsync(targetSnapshotId, "Target-Snapshot", cancellationToken).ConfigureAwait(false);
+        if (!targetResult.IsSuccess)
+            return Result<SnapshotDiff>.Failure(targetResult.Error!);
 
-        if (baseSnapshot.State != SnapshotState.Committed)
-            return Result<SnapshotDiff>.Failure(new DomainError(
-                HistoryErrorCodes.SnapshotNotCommitted,
-                "Der Base-Snapshot ist nicht committed.",
-                new Dictionary<string, string> { [HistoryErrorCodes.SnapshotIdDetail] = baseSnapshotId.ToString() }));
+        var (offset, cursorError) = ValidateCursor(cursor, baseSnapshotId, targetSnapshotId, null);
+        if (cursorError is not null)
+            return Result<SnapshotDiff>.Failure(cursorError);
 
-        if (targetSnapshot.State != SnapshotState.Committed)
-            return Result<SnapshotDiff>.Failure(new DomainError(
-                HistoryErrorCodes.SnapshotNotCommitted,
-                "Der Target-Snapshot ist nicht committed.",
-                new Dictionary<string, string> { [HistoryErrorCodes.SnapshotIdDetail] = targetSnapshotId.ToString() }));
+        var effectiveLimit = Math.Min(limit ?? _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize);
 
-        // Diff-Berechnung folgt in M5.4
-        throw new NotImplementedException("CompareSnapshotsAsync wird in M5.4 implementiert.");
+        var baseData = await LoadSnapshotDataAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
+        var targetData = await LoadSnapshotDataAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
+
+        var diff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
+            baseSnapshotId,
+            targetSnapshotId,
+            baseData,
+            targetData,
+            effectiveLimit,
+            offset,
+            ChangeVersion: null));
+
+        return Result<SnapshotDiff>.Success(diff);
     }
 
     /// <summary>
     /// Liefert die Änderungen einer Transaction als strukturierten Netto-Diff.
-    /// Implementierung folgt in M5.4.
     /// </summary>
     public async Task<Result<TransactionDiff>> GetTransactionChangesAsync(
         TransactionId transactionId,
+        int? limit = null,
+        string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var transaction = await _repos.Transactions.FindAsync(transactionId, cancellationToken).ConfigureAwait(false);
@@ -87,7 +104,106 @@ public sealed class HistoryService
                 "Die angefragte Transaction existiert nicht.",
                 new Dictionary<string, string> { [HistoryErrorCodes.TransactionIdDetail] = transactionId.ToString() }));
 
-        // Diff-Berechnung folgt in M5.4
-        throw new NotImplementedException("GetTransactionChangesAsync wird in M5.4 implementiert.");
+        if (transaction.State == TransactionState.Discarded)
+            return Result<TransactionDiff>.Failure(new DomainError(
+                HistoryErrorCodes.TransactionDiscarded,
+                "Die Transaction wurde verworfen und besitzt keinen aktiven Diff.",
+                new Dictionary<string, string> { [HistoryErrorCodes.TransactionIdDetail] = transactionId.ToString() }));
+
+        var baseSnapshotId = transaction.BaseSnapshotId;
+        var targetSnapshotId = transaction.WorkingSnapshotId;
+
+        var expectedChangeVersion = transaction.State == TransactionState.Open ? transaction.ChangeVersion : (long?)null;
+        var (offset, cursorError) = ValidateCursor(cursor, baseSnapshotId, targetSnapshotId, expectedChangeVersion);
+        if (cursorError is not null)
+            return Result<TransactionDiff>.Failure(cursorError);
+
+        var effectiveLimit = Math.Min(limit ?? _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize);
+
+        var baseData = await LoadSnapshotDataAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
+        var targetData = await LoadSnapshotDataAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
+
+        var diff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
+            baseSnapshotId,
+            targetSnapshotId,
+            baseData,
+            targetData,
+            effectiveLimit,
+            offset,
+            expectedChangeVersion));
+
+        return Result<TransactionDiff>.Success(new TransactionDiff(transaction, diff));
+    }
+
+    private async Task<Result<Snapshot>> ValidateCommittedSnapshotAsync(
+        SnapshotId snapshotId,
+        string label,
+        CancellationToken cancellationToken)
+    {
+        var snapshot = await _repos.Snapshots.FindAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        if (snapshot is null)
+            return Result<Snapshot>.Failure(new DomainError(
+                HistoryErrorCodes.SnapshotNotFound,
+                $"Der {label} existiert nicht.",
+                new Dictionary<string, string> { [HistoryErrorCodes.SnapshotIdDetail] = snapshotId.ToString() }));
+
+        if (snapshot.State != SnapshotState.Committed)
+            return Result<Snapshot>.Failure(new DomainError(
+                HistoryErrorCodes.SnapshotNotCommitted,
+                $"Der {label} ist nicht committed.",
+                new Dictionary<string, string> { [HistoryErrorCodes.SnapshotIdDetail] = snapshotId.ToString() }));
+
+        return Result<Snapshot>.Success(snapshot);
+    }
+
+    private static (int Offset, DomainError? Error) ValidateCursor(
+        string? cursor,
+        SnapshotId baseSnapshotId,
+        SnapshotId targetSnapshotId,
+        long? expectedChangeVersion)
+    {
+        if (cursor is null)
+            return (0, null);
+
+        var parsedCursor = DiffCursor.TryDecode(cursor);
+        if (parsedCursor is null)
+        {
+            return (0, new DomainError(
+                HistoryErrorCodes.InvalidCursor,
+                "Der Cursor ist ungültig oder abgelaufen.",
+                new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
+        }
+
+        if (parsedCursor.BaseSnapshotId != baseSnapshotId || parsedCursor.TargetSnapshotId != targetSnapshotId)
+        {
+            return (0, new DomainError(
+                HistoryErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu diesem Snapshot-Vergleich.",
+                new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
+        }
+
+        if (expectedChangeVersion.HasValue && parsedCursor.ChangeVersion.HasValue)
+        {
+            if (parsedCursor.ChangeVersion.Value != expectedChangeVersion.Value)
+            {
+                return (0, new DomainError(
+                    HistoryErrorCodes.CursorExpired,
+                    "Der Cursor ist nach einer zwischenzeitlichen Mutation der Transaction abgelaufen.",
+                    new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
+            }
+        }
+
+        return (parsedCursor.NextOffset, null);
+    }
+
+    private async Task<SnapshotData> LoadSnapshotDataAsync(SnapshotId snapshotId, CancellationToken cancellationToken)
+    {
+        var nodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var contents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+
+        return new SnapshotData(nodes, roles, resolutions, contents, dependencies);
     }
 }
