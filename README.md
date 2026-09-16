@@ -66,10 +66,3 @@ keine Datenbanken.
 Die verbindliche technische Dokumentation (Ist-Stand) liegt unter
 [docs/README.md](docs/README.md) mit einer Lese-Matrix je Aufgabe. Die
 Entwicklungsgeschichte ist der Git-Historie zu entnehmen.
-
-## Projekthintergrund
-
-KnowHowTo AI wurde als Greenfield-Projekt (Hard Cut, Stand 0) in agentischer
-Entwicklung mit xUnit-v3-Testebenen und semantischen Linter-Gates umgesetzt; keine
-Legacy-Migrationspfade, keine Abwärtskompatibilität zu vor Veröffentlichung
-liegenden Zwischenständen.
