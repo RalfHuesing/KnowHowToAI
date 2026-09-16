@@ -44,7 +44,7 @@ public sealed class ContentMutationServiceTests
             new ReplaceTextCommand(NodeId, DeveloperRoleId, "Alt", "Neu", "Knoten", true));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(TextOperationCodes.ContentNotFound, result.Code);
+        Assert.Equal(TextOperationCodes.ExplicitContentNotFound, result.Code);
         Assert.Equal(NodeId.ToString(), result.Details[TextOperationCodes.NodeIdDetail]);
         Assert.Equal(DeveloperRoleId.ToString(), result.Details[TextOperationCodes.RoleIdDetail]);
     }
@@ -81,7 +81,7 @@ public sealed class ContentMutationServiceTests
             new DeleteContentCommand(NodeId, DeveloperRoleId));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(TextOperationCodes.ContentNotFound, result.Code);
+        Assert.Equal(TextOperationCodes.ExplicitContentNotFound, result.Code);
         Assert.True(developerContent.IsDeleted);
         Assert.False(consultantContent.IsDeleted);
     }

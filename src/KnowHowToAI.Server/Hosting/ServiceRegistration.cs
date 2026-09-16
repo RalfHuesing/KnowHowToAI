@@ -1,5 +1,9 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.Mutations;
+using KnowHowToAI.Core.Application.Mutations.Content;
+using KnowHowToAI.Core.Application.Mutations.Nodes;
+using KnowHowToAI.Core.Application.Mutations.Roles;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Retrieval.Export;
@@ -83,6 +87,12 @@ internal static class ServiceRegistration
             };
         });
         services.AddSingleton<TransactionService>();
+        services.AddSingleton<NodeMutationService>();
+        services.AddSingleton<ContentRevisionService>();
+        services.AddSingleton<ContentMutationService>();
+        services.AddSingleton<NodeMutationApplicationService>();
+        services.AddSingleton<ContentMutationApplicationService>();
+        services.AddSingleton<RoleMutationService>();
         services.AddSingleton(serviceProvider =>
         {
             var retrieval = serviceProvider

@@ -145,7 +145,7 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
 
     private static DomainError CreateContentNotFoundError(NodeId nodeId, RoleId roleId) =>
         new(
-            TextOperationCodes.ContentNotFound,
+            TextOperationCodes.ExplicitContentNotFound,
             "Für die angefragte Node und Rolle existiert kein aktiver expliziter Content.",
             new Dictionary<string, string>
             {

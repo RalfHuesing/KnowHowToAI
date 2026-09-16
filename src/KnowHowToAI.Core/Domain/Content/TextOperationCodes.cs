@@ -5,7 +5,7 @@ namespace KnowHowToAI.Core.Domain.Content;
 /// </summary>
 public static class TextOperationCodes
 {
-    public const string ContentNotFound = "ContentNotFound";
+    public const string ExplicitContentNotFound = "ExplicitContentNotFound";
     public const string MultipleTextMatches = "MultipleTextMatches";
     public const string TextNotFound = "TextNotFound";
 

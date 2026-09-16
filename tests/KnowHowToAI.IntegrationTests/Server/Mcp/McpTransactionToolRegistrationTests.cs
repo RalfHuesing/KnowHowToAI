@@ -7,8 +7,9 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Registrierungsvertragstests: die veröffentlichten V1-Tools (Transaktionen, Navigation,
-/// Search und Export) werden über die MCP-Server-Pipeline mit stabilen Namen,
-/// Beschreibungen, Input-Schemata und Annotations-Hinweisen bereitgestellt (M6.3, M6.4).
+/// Search, Export sowie Struktur-, Content- und Rollen-Mutationen) werden über die
+/// MCP-Server-Pipeline mit stabilen Namen, Beschreibungen, Input-Schemata und
+/// Annotations-Hinweisen bereitgestellt (M6.3, M6.4, M6.5).
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpTransactionToolRegistrationTests
@@ -17,6 +18,11 @@ public sealed class McpTransactionToolRegistrationTests
     [
         "begin_transaction",
         "commit_transaction",
+        "create_node",
+        "create_role",
+        "delete_content",
+        "delete_node",
+        "delete_role",
         "discard_transaction",
         "export_tree",
         "get_node",
@@ -24,7 +30,14 @@ public sealed class McpTransactionToolRegistrationTests
         "get_transaction",
         "list_children",
         "list_roles",
+        "move_node",
+        "reorder_node",
+        "replace_content",
+        "replace_text",
         "search",
+        "set_role_resolution",
+        "update_node",
+        "update_role",
         "validate_transaction"
     ];
 
@@ -38,6 +51,14 @@ public sealed class McpTransactionToolRegistrationTests
         "list_roles",
         "search",
         "validate_transaction"
+    ];
+
+    private static readonly string[] DestructiveToolNames =
+    [
+        "delete_content",
+        "delete_node",
+        "delete_role",
+        "discard_transaction"
     ];
 
     [Fact]
@@ -66,7 +87,10 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.All(ReadOnlyToolNames, name => Assert.True(annotations[name]!.ReadOnlyHint));
         Assert.NotEqual(true, annotations["begin_transaction"]!.ReadOnlyHint);
         Assert.False(annotations["begin_transaction"]!.DestructiveHint);
-        Assert.True(annotations["discard_transaction"]!.DestructiveHint);
+        Assert.All(DestructiveToolNames, name => Assert.True(annotations[name]!.DestructiveHint));
+        Assert.All(
+            ExpectedToolNames.Except(DestructiveToolNames),
+            name => Assert.NotEqual(true, annotations[name]!.DestructiveHint));
     }
 
     [Fact]
@@ -138,6 +162,72 @@ public sealed class McpTransactionToolRegistrationTests
             new[] { "includeDeleted", "roleId", "rootNodeId", "snapshotId", "transactionId" },
             SortedPropertyNames(schemas["export_tree"]));
         Assert.Equal(new[] { "roleId", "rootNodeId" }, SortedRequiredNames(schemas["export_tree"]));
+    }
+
+    [Fact]
+    public void MutationTools_InputSchemas_UseStableCamelCaseArgumentNames()
+    {
+        using var provider = BuildToolProvider();
+        var schemas = provider.GetServices<McpServerTool>()
+            .ToDictionary(
+                tool => tool.ProtocolTool.Name,
+                tool => JsonDocument.Parse(tool.ProtocolTool.InputSchema.GetRawText()).RootElement.Clone(),
+                StringComparer.Ordinal);
+
+        Assert.Equal(
+            new[] { "description", "parentNodeId", "sortOrder", "title", "transactionId" },
+            SortedPropertyNames(schemas["create_node"]));
+        Assert.Equal(new[] { "title", "transactionId" }, SortedRequiredNames(schemas["create_node"]));
+
+        Assert.Equal(
+            new[] { "description", "nodeId", "title", "transactionId" },
+            SortedPropertyNames(schemas["update_node"]));
+        Assert.Equal(new[] { "nodeId", "title", "transactionId" }, SortedRequiredNames(schemas["update_node"]));
+
+        Assert.Equal(
+            new[] { "nodeId", "parentNodeId", "sortOrder", "transactionId" },
+            SortedPropertyNames(schemas["move_node"]));
+        Assert.Equal(new[] { "nodeId", "sortOrder", "transactionId" }, SortedRequiredNames(schemas["move_node"]));
+
+        Assert.Equal(
+            new[] { "nodeId", "sortOrder", "transactionId" },
+            SortedPropertyNames(schemas["reorder_node"]));
+
+        Assert.Equal(
+            new[] { "deleteSubtree", "nodeId", "transactionId" },
+            SortedPropertyNames(schemas["delete_node"]));
+        Assert.Equal(new[] { "nodeId", "transactionId" }, SortedRequiredNames(schemas["delete_node"]));
+
+        Assert.Equal(
+            new[] { "contentMd", "contentMode", "nodeId", "roleId", "sources", "transactionId" },
+            SortedPropertyNames(schemas["replace_content"]));
+        Assert.Equal(
+            new[] { "contentMd", "contentMode", "nodeId", "roleId", "transactionId" },
+            SortedRequiredNames(schemas["replace_content"]));
+        var sourcesSchema = schemas["replace_content"].GetProperty("properties").GetProperty("sources");
+        Assert.Contains("array", sourcesSchema.GetRawText(), StringComparison.Ordinal);
+        Assert.Contains("contentRevisionId", schemas["replace_content"].GetRawText(), StringComparison.Ordinal);
+
+        Assert.Equal(
+            new[] { "newText", "nodeId", "oldText", "roleId", "transactionId" },
+            SortedPropertyNames(schemas["replace_text"]));
+        Assert.Equal(new[] { "nodeId", "roleId", "transactionId" }, SortedRequiredNames(schemas["delete_content"]));
+
+        Assert.Equal(
+            new[] { "description", "name", "transactionId" },
+            SortedPropertyNames(schemas["create_role"]));
+        Assert.Equal(new[] { "name", "transactionId" }, SortedRequiredNames(schemas["create_role"]));
+
+        Assert.Equal(
+            new[] { "description", "name", "roleId", "transactionId" },
+            SortedPropertyNames(schemas["update_role"]));
+
+        Assert.Equal(
+            new[] { "candidateRoleIds", "roleId", "transactionId" },
+            SortedPropertyNames(schemas["set_role_resolution"]));
+        Assert.Equal(
+            new[] { "candidateRoleIds", "roleId", "transactionId" },
+            SortedRequiredNames(schemas["set_role_resolution"]));
     }
 
     private static ServiceProvider BuildToolProvider() =>

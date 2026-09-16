@@ -84,6 +84,31 @@ reorder_node
 delete_node
 ```
 
+### Verbindliche Request-/Response-Felder der Struktur-Tools
+
+Alle Schreib-Tools erfordern eine offene KnowHowTo-AI-Transaction und ändern
+ausschließlich deren Working Snapshot (`delete_node` ist global über alle Rollen,
+Konzeptmodul 43). Fehlende oder geschlossene Transactions liefern
+`TransactionNotFound` beziehungsweise `TransactionClosed`.
+
+| Tool | Request-Felder | Response-Daten (`data`) |
+|---|---|---|
+| `create_node` | `transactionId` (erforderlich), `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds` |
+| `update_node` | `transactionId` (erforderlich), `nodeId`, `title` (erforderlich), optional `description` | dieselben Feldnamen wie `create_node` |
+| `move_node` | `transactionId` (erforderlich), `nodeId`, `sortOrder` (erforderlich), optional `parentNodeId` (ohne Wert wird die Node zur Root-Node) | dieselben Feldnamen wie `create_node` |
+| `reorder_node` | `transactionId` (erforderlich), `nodeId`, `sortOrder` (erforderlich) | dieselben Feldnamen wie `create_node` |
+| `delete_node` | `transactionId` (erforderlich), `nodeId` (erforderlich), optional `deleteSubtree` (Standard `false`) | dieselben Feldnamen wie `create_node` |
+
+Regeln:
+
+- Eine Node mit aktiven Children wird ohne `deleteSubtree: true` mit
+  `NodeHasChildren` abgelehnt; die Subtree-Löschung tombstoned Nodes und deren
+  Contents atomar.
+- `affectedNodeIds` umfasst die geänderte Node und alle durch Sortier­normalisierung
+  oder Verschieben betroffenen aktiven Nachfahren.
+- unbekannte oder nicht als GUID „D“ parsebare IDs führen zu `NodeNotFound`
+  beziehungsweise `ParentNodeNotFound` mit dem Rohwert in den Details.
+
 ## Rollen und Resolution Orders
 
 ```text
@@ -93,6 +118,24 @@ delete_role
 set_role_resolution
 ```
 
+### Verbindliche Request-/Response-Felder der Rollen-Tools
+
+| Tool | Request-Felder | Response-Daten (`data`) |
+|---|---|---|
+| `create_role` | `transactionId` (erforderlich), `name` (erforderlich; er bestimmt den `roleId`), optional `description` | `roleId`, `name`, optional `description` |
+| `update_role` | `transactionId` (erforderlich), `roleId`, `name` (erforderlich), optional `description` | dieselben Feldnamen wie `create_role` |
+| `delete_role` | `transactionId` (erforderlich), `roleId` (erforderlich) | dieselben Feldnamen wie `create_role` |
+| `set_role_resolution` | `transactionId` (erforderlich), `roleId` (erforderlich), `candidateRoleIds` (erforderlich; die Reihenfolge bestimmt die Priorität, 1 = höchste) | `requestedRoleId`, `items` (je `candidateRoleId`, `priority`) |
+
+Regeln:
+
+- `set_role_resolution` ersetzt die bisherige Resolution Order der angefragten
+  Rolle vollständig; sie bleibt nicht rekursiv (Konzeptmodul 20).
+- eine Rolle, die noch von Content, Dependencies oder Resolution Orders
+  referenziert wird, kann nicht gelöscht werden (`RoleInUse`).
+- doppelte Kandidaten führen zu `DuplicateCandidateRole`, unbekannte zu
+  `CandidateRoleNotFound`; für Content gilt weiterhin Modul 63 (explizite `roleId`).
+
 ## Content
 
 ```text
@@ -100,6 +143,30 @@ replace_content
 replace_text
 delete_content
 ```
+
+### Verbindliche Request-/Response-Felder der Content-Tools
+
+| Tool | Request-Felder | Response-Daten (`data`) |
+|---|---|---|
+| `replace_content` | `transactionId` (erforderlich), `nodeId`, `roleId`, `contentMode` (erforderlich; exakt `Independent` oder `Derived`), `contentMd` (erforderlich), optional `sources` (je `nodeId`, `roleId`, `contentRevisionId`) | `nodeId`, `roleId`, `contentRevisionId`, `contentMode`, `freshness`, `snapshotId`, `changeVersion` |
+| `replace_text` | `transactionId` (erforderlich), `nodeId`, `roleId`, `oldText`, `newText` (erforderlich) | dieselben Feldnamen wie `replace_content` |
+| `delete_content` | `transactionId` (erforderlich), `nodeId`, `roleId` (erforderlich) | dieselben Feldnamen wie `replace_content` |
+
+Regeln:
+
+- Content-Tools verändern ausschließlich den expliziten Rollen-Content der
+  übergebenen `roleId` und lassen die Node unverändert (Konzeptmodul 43);
+  `delete_content` tombstoned per Soft-Delete.
+- ein unbekannter `contentMode`-Wert ist eine harte Dependency-Verletzung und
+  führt zu `InvalidDependency`; derselbe Code gilt für nicht parsebare
+  Source-Revisions in `sources`.
+- Markdown- oder HTML-Überschriften im `contentMd` sind harte Fehler
+  (`HeadingNotAllowed`), heuristisch erkennbare Ersatztitel liefern die Warnung
+  `PossibleEmbeddedHeading` auf Envelope-Ebene.
+- `replace_text` verlangt exakt einen ordinalen Treffer; 0 Treffer liefern
+  `TextNotFound`, mehrere `MultipleTextMatches`.
+- bei Erfolg wird der Content-Text nicht zurückgegeben; die gültige Version ist
+  über `get_node` mit der gelieferten `contentRevisionId` abrufbar.
 
 ## Prüfung
 

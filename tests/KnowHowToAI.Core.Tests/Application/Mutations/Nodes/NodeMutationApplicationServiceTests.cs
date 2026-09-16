@@ -88,7 +88,7 @@ public sealed class NodeMutationApplicationServiceTests
         var rejected = await service.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: false);
 
         Assert.False(rejected.IsSuccess);
-        Assert.Equal(NodeDeletionErrorCodes.NodeHasActiveChildren, rejected.Code);
+        Assert.Equal(NodeDeletionErrorCodes.NodeHasChildren, rejected.Code);
         Assert.Equal(0, repository.ChangeVersion);
 
         var deleted = await service.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: true);

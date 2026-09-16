@@ -9,7 +9,7 @@ public static class HierarchyErrorCodes
     public const string HierarchyCycle = "HierarchyCycle";
     public const string NodeIdAlreadyUsed = "NodeIdAlreadyUsed";
     public const string NodeNotFound = "NodeNotFound";
-    public const string ParentNotFound = "ParentNotFound";
+    public const string ParentNodeNotFound = "ParentNodeNotFound";
     public const string RootAlreadyExists = "RootAlreadyExists";
     public const string SelfParentNotAllowed = "SelfParentNotAllowed";
     public const string SnapshotMismatch = "SnapshotMismatch";

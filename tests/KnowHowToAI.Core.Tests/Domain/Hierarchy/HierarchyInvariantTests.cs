@@ -55,7 +55,7 @@ public sealed class NodeMutationServiceTests
         ]);
 
         var error = Assert.Single(report.Errors);
-        Assert.Equal(HierarchyErrorCodes.ParentNotFound, error.Code);
+        Assert.Equal(HierarchyErrorCodes.ParentNodeNotFound, error.Code);
         Assert.Equal(RootNodeId.ToString(), error.Details[HierarchyErrorCodes.ParentNodeIdDetail]);
     }
 
@@ -74,7 +74,7 @@ public sealed class NodeMutationServiceTests
         var report = HierarchyValidator.Validate([Node(RootNodeId), otherSnapshotNode]);
 
         Assert.Equal(
-            [HierarchyErrorCodes.SnapshotMismatch, HierarchyErrorCodes.ParentNotFound],
+            [HierarchyErrorCodes.SnapshotMismatch, HierarchyErrorCodes.ParentNodeNotFound],
             report.Errors.Select(error => error.Code));
     }
 
@@ -329,7 +329,7 @@ public sealed class NodeMutationServiceTests
         var result = service.Delete(nodes, [], [], new DeleteNodeCommand(RootNodeId, DeleteSubtree: false));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(NodeDeletionErrorCodes.NodeHasActiveChildren, result.Code);
+        Assert.Equal(NodeDeletionErrorCodes.NodeHasChildren, result.Code);
         Assert.Equal("1", result.Details[NodeDeletionErrorCodes.ActiveChildCountDetail]);
         Assert.All(nodes, node => Assert.False(node.IsDeleted));
     }

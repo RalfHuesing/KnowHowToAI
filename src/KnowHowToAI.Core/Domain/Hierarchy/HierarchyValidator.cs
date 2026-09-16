@@ -119,7 +119,7 @@ public static class HierarchyValidator
             if (!nodesById.TryGetValue(parentNodeId, out var parent) || parent.SnapshotId != node.SnapshotId)
             {
                 errors.Add(new DomainError(
-                    HierarchyErrorCodes.ParentNotFound,
+                    HierarchyErrorCodes.ParentNodeNotFound,
                     "Der Parent muss aktiv im selben Snapshot vorhanden sein.",
                     new Dictionary<string, string>
                     {

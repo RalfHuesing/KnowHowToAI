@@ -153,7 +153,7 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         if (!command.DeleteSubtree && directlyAffectedChildren.Length > 0)
         {
             return Result<NodeDeletionResult>.Failure(new DomainError(
-                NodeDeletionErrorCodes.NodeHasActiveChildren,
+                NodeDeletionErrorCodes.NodeHasChildren,
                 "Eine Node mit aktiven Children erfordert eine explizite Subtree-Löschung.",
                 new Dictionary<string, string>
                 {
@@ -231,7 +231,7 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         if (parent is null || parent.SnapshotId != snapshotId)
         {
             return new DomainError(
-                HierarchyErrorCodes.ParentNotFound,
+                HierarchyErrorCodes.ParentNodeNotFound,
                 "Der Parent muss aktiv im selben Snapshot vorhanden sein.",
                 new Dictionary<string, string>
                 {

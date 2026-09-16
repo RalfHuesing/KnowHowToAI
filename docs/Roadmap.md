@@ -733,10 +733,10 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
 - [x] **M6.4: Navigation-, Search- und Export-Tools**
   - [x] `get_root`, `get_node`, `list_children`, `list_roles`, `search`
   - [x] `export_tree`
-- [ ] **M6.5: Struktur-, Content- und Rollen-Tools**
-  - [ ] `create_node`, `update_node`, `move_node`, `reorder_node`, `delete_node`
-  - [ ] `replace_content`, `replace_text`, `delete_content`
-  - [ ] `create_role`, `update_role`, `delete_role`, `set_role_resolution`
+- [x] **M6.5: Struktur-, Content- und Rollen-Tools**
+  - [x] `create_node`, `update_node`, `move_node`, `reorder_node`, `delete_node`
+  - [x] `replace_content`, `replace_text`, `delete_content`
+  - [x] `create_role`, `update_role`, `delete_role`, `set_role_resolution`
 - [ ] **M6.6: Historien- und Release-Tools**
   - [ ] `get_snapshot`, `compare_snapshots`, `get_transaction_changes`
   - [ ] `create_release`, `list_releases`
