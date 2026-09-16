@@ -8,6 +8,9 @@
     <ProjectReference Include="..\..\src\KnowHowToAI.Core\KnowHowToAI.Core.csproj" />
     <ProjectReference Include="..\..\src\KnowHowToAI.Storage.SqlServer\KnowHowToAI.Storage.SqlServer.csproj" />
     <ProjectReference Include="..\..\src\KnowHowToAI.Server\KnowHowToAI.Server.csproj" />
+    <!-- Geteilter Test-Support: der In-Memory-Navigation-Harness wird aus dem
+         Core-Testprojekt referenziert, statt ihn zu duplizieren (intern via InternalsVisibleTo). -->
+    <ProjectReference Include="..\KnowHowToAI.Core.Tests\KnowHowToAI.Core.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

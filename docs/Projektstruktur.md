@@ -73,13 +73,14 @@ SQL-Tabelle ist ausdrücklich nicht das Ziel. Dapper-Zeilenmodelle bleiben inter
 | `Configuration` | 8–12 | bindbare Options, zentrale Validatoren und Redaction |
 | `Hosting` | 3–6 | Composition Root, DI, Start und kontrollierter Shutdown |
 | `Mcp.Contracts.Transactions` | 6–10 | Request-/Response-DTOs der Transaction-Tools |
-| `Mcp.Contracts.Navigation` | 8–12 | Navigation, Search und Export-DTOs |
+| `Mcp.Contracts.Navigation` | 8–12 | Navigation-, Search- und Export-DTOs |
 | `Mcp.Contracts.Mutations.Nodes` | 8–12 | Request-/Response-DTOs der Node-Mutationen |
 | `Mcp.Contracts.Mutations.Content` | 6–10 | Request-/Response-DTOs der Content-Mutationen |
 | `Mcp.Contracts.Mutations.Roles` | 6–10 | Request-/Response-DTOs der Rollen-Mutationen |
 | `Mcp.Contracts.History` | 6–10 | Snapshot-, Diff- und Release-DTOs |
 | `Mcp.Tools.Transactions` | 3–5 | dünne Transaction-/Validation-Handler |
-| `Mcp.Tools.Navigation` | 3–5 | dünne Navigation-/Search-/Export-Handler |
+| `Mcp.Tools.Navigation` | 3–5 | dünne Navigation-Handler (get_root, get_node, list_children, list_roles) |
+| `Mcp.Tools.Retrieval` | 2–3 | dünne Search- und Export-Handler |
 | `Mcp.Tools.Mutations` | 5–8 | dünne Node-, Content- und Rollen-Handler |
 | `Mcp.Tools.History` | 3–5 | dünne Historien- und Release-Handler |
 | `Mcp.Mapping` | 3–6 | ausschließlich Transport-/Result-Mapping |
@@ -87,6 +88,13 @@ SQL-Tabelle ist ausdrücklich nicht das Ziel. Dapper-Zeilenmodelle bleiben inter
 Die absehbar größte Contract-Gruppe `Mutations` ist bereits parallel zu den
 Application-Features in `Nodes`, `Content` und `Roles` geteilt. Handler enthalten
 keine Fachlogik und dürfen keine SQL-Typen kennen.
+
+Die MCP-Handler-Signaturen sind flach (Selektor-, Rollen- und Paging-Parameter je
+Tool), weil der MCP-SDK-Schema-Generator Parameterlisten 1:1 in das Tool-Input-Schema
+übersetzt und Konzeptmodul 64 flache Selektor-Felder vorschreibt; gebündelte
+Parameter-Records würden zu verschachtelten JSON-Feldern führen. Für `Mcp/Tools`
+ist deshalb in `ainetlinter-rules.json` per `PathOverrides` ausschließlich die
+`MaxMethodParameterCount`-Grenze gelockt.
 
 ## Testprojekte
 

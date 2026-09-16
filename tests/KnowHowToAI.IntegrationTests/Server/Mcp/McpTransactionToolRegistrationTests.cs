@@ -6,9 +6,9 @@ using ModelContextProtocol.Server;
 namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
-/// Registrierungsvertragstests: die fünf Transaction-Tools werden über die
-/// MCP-Server-Pipeline mit stabilen Namen, Beschreibungen, Input-Schemata und
-/// Annotations-Hinweisen bereitgestellt (M6.3).
+/// Registrierungsvertragstests: die veröffentlichten V1-Tools (Transaktionen, Navigation,
+/// Search und Export) werden über die MCP-Server-Pipeline mit stabilen Namen,
+/// Beschreibungen, Input-Schemata und Annotations-Hinweisen bereitgestellt (M6.3, M6.4).
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpTransactionToolRegistrationTests
@@ -18,12 +18,30 @@ public sealed class McpTransactionToolRegistrationTests
         "begin_transaction",
         "commit_transaction",
         "discard_transaction",
+        "export_tree",
+        "get_node",
+        "get_root",
         "get_transaction",
+        "list_children",
+        "list_roles",
+        "search",
+        "validate_transaction"
+    ];
+
+    private static readonly string[] ReadOnlyToolNames =
+    [
+        "export_tree",
+        "get_node",
+        "get_root",
+        "get_transaction",
+        "list_children",
+        "list_roles",
+        "search",
         "validate_transaction"
     ];
 
     [Fact]
-    public void ServerAssembly_RegistersExactlyTheFiveTransactionTools()
+    public void ServerAssembly_RegistersExactlyTheReleasedV1Tools()
     {
         using var provider = BuildToolProvider();
 
@@ -45,8 +63,7 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.All(provider.GetServices<McpServerTool>(),
             tool => Assert.False(string.IsNullOrWhiteSpace(tool.ProtocolTool.Description)));
 
-        Assert.True(annotations["get_transaction"]!.ReadOnlyHint);
-        Assert.True(annotations["validate_transaction"]!.ReadOnlyHint);
+        Assert.All(ReadOnlyToolNames, name => Assert.True(annotations[name]!.ReadOnlyHint));
         Assert.NotEqual(true, annotations["begin_transaction"]!.ReadOnlyHint);
         Assert.False(annotations["begin_transaction"]!.DestructiveHint);
         Assert.True(annotations["discard_transaction"]!.DestructiveHint);
@@ -82,6 +99,47 @@ public sealed class McpTransactionToolRegistrationTests
             PropertyNames(schemas["discard_transaction"]));
     }
 
+    [Fact]
+    public void NavigationAndRetrievalTools_InputSchemas_UseStableCamelCaseArgumentNames()
+    {
+        using var provider = BuildToolProvider();
+        var schemas = provider.GetServices<McpServerTool>()
+            .ToDictionary(
+                tool => tool.ProtocolTool.Name,
+                tool => JsonDocument.Parse(tool.ProtocolTool.InputSchema.GetRawText()).RootElement.Clone(),
+                StringComparer.Ordinal);
+
+        Assert.Equal(
+            new[] { "includeDeleted", "roleId", "snapshotId", "transactionId" },
+            SortedPropertyNames(schemas["get_root"]));
+        Assert.Equal(new[] { "roleId" }, SortedRequiredNames(schemas["get_root"]));
+
+        Assert.Equal(
+            new[] { "includeDeleted", "nodeId", "roleId", "snapshotId", "transactionId" },
+            SortedPropertyNames(schemas["get_node"]));
+        Assert.Equal(new[] { "nodeId", "roleId" }, SortedRequiredNames(schemas["get_node"]));
+
+        Assert.Equal(
+            new[] { "cursor", "includeDeleted", "limit", "parentNodeId", "roleId", "snapshotId", "transactionId" },
+            SortedPropertyNames(schemas["list_children"]));
+        Assert.Equal(new[] { "roleId" }, SortedRequiredNames(schemas["list_children"]));
+
+        Assert.Equal(
+            new[] { "cursor", "includeDeleted", "limit", "snapshotId", "transactionId" },
+            SortedPropertyNames(schemas["list_roles"]));
+        Assert.DoesNotContain("required", schemas["list_roles"].EnumerateObject().Select(property => property.Name));
+
+        Assert.Equal(
+            new[] { "cursor", "includeDeleted", "limit", "roleId", "snapshotId", "text", "transactionId" },
+            SortedPropertyNames(schemas["search"]));
+        Assert.Equal(new[] { "text" }, SortedRequiredNames(schemas["search"]));
+
+        Assert.Equal(
+            new[] { "includeDeleted", "roleId", "rootNodeId", "snapshotId", "transactionId" },
+            SortedPropertyNames(schemas["export_tree"]));
+        Assert.Equal(new[] { "roleId", "rootNodeId" }, SortedRequiredNames(schemas["export_tree"]));
+    }
+
     private static ServiceProvider BuildToolProvider() =>
         new ServiceCollection()
             .AddMcpServer()
@@ -91,4 +149,13 @@ public sealed class McpTransactionToolRegistrationTests
 
     private static string[] PropertyNames(JsonElement schema) =>
         schema.GetProperty("properties").EnumerateObject().Select(property => property.Name).ToArray();
+
+    private static string[] RequiredNames(JsonElement schema) =>
+        schema.GetProperty("required").EnumerateArray().Select(value => value.GetString()!).ToArray();
+
+    private static string[] SortedPropertyNames(JsonElement schema) =>
+        PropertyNames(schema).OrderBy(name => name, StringComparer.Ordinal).ToArray();
+
+    private static string[] SortedRequiredNames(JsonElement schema) =>
+        RequiredNames(schema).OrderBy(name => name, StringComparer.Ordinal).ToArray();
 }

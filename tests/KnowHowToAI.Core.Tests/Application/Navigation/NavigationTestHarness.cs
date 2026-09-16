@@ -1,6 +1,8 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Retrieval.Export;
+using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
@@ -91,23 +93,54 @@ internal sealed class NavigationTestHarness
     public void AddContent(NodeContent content) => _contents.Add(content);
     public void AddDependency(ContentDependency dependency) => _dependencies.Add(dependency);
 
+    public SnapshotReadRepositories CreateRepositories() => new(
+        new SnapshotRepoFake(_snapshots, () => _currentSnapshotId),
+        new TransactionRepoFake(_transactions),
+        new HierarchyRepoFake(_nodes),
+        new ContentRepoFake(_contents),
+        new RoleRepoFake(_roles, _resolutions),
+        new DependencyRepoFake(_dependencies),
+        new WorkingSnapshotReadRepoFake(this));
+
     public NavigationService CreateService(int defaultPageSize = 10, int maximumPageSize = 100) => new(
-        new SnapshotReadRepositories(
-            new SnapshotRepoFake(_snapshots, () => _currentSnapshotId),
-            new TransactionRepoFake(_transactions),
-            new HierarchyRepoFake(_nodes),
-            new ContentRepoFake(_contents),
-            new RoleRepoFake(_roles, _resolutions),
-            new DependencyRepoFake(_dependencies),
-            new WorkingSnapshotReadRepoFake(this)),
-        new RetrievalPolicy
-        {
-            DefaultPageSize = defaultPageSize,
-            MaximumPageSize = maximumPageSize,
-            SearchPageSize = 10,
-            SearchMaximumPageSize = 100,
-            SnippetMaximumCharacters = 100
-        });
+        CreateRepositories(),
+        CreatePolicy(
+            defaultPageSize,
+            maximumPageSize,
+            searchPageSize: 10,
+            searchMaximumPageSize: 100,
+            snippetMaximumCharacters: 100));
+
+    public SearchService CreateSearchService(
+        IRetrievalRepository retrievalRepository,
+        int searchPageSize = 10,
+        int searchMaximumPageSize = 100) => new(
+        new SearchRepositories(
+            CreateRepositories().Snapshots,
+            CreateRepositories().Transactions,
+            retrievalRepository),
+        CreatePolicy(
+            defaultPageSize: 10,
+            maximumPageSize: 100,
+            searchPageSize,
+            searchMaximumPageSize,
+            snippetMaximumCharacters: 100));
+
+    public MarkdownExportService CreateExportService() => new(CreateRepositories());
+
+    private static RetrievalPolicy CreatePolicy(
+        int defaultPageSize,
+        int maximumPageSize,
+        int searchPageSize,
+        int searchMaximumPageSize,
+        int snippetMaximumCharacters) => new()
+    {
+        DefaultPageSize = defaultPageSize,
+        MaximumPageSize = maximumPageSize,
+        SearchPageSize = searchPageSize,
+        SearchMaximumPageSize = searchMaximumPageSize,
+        SnippetMaximumCharacters = snippetMaximumCharacters
+    };
 
     private sealed class SnapshotRepoFake(List<Snapshot> snapshots, Func<SnapshotId> currentSnapshotIdProvider)
         : ISnapshotRepository

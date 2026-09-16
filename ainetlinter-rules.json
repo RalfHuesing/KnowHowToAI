@@ -408,5 +408,11 @@
       }
     }
   },
-  "PathOverrides": {}
+  "PathOverrides": {
+    "**/Mcp/Tools/**": {
+      "Metrics": {
+        "MaxMethodParameterCount": 8
+      }
+    }
+  }
 }

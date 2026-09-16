@@ -730,9 +730,9 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
 - [x] **M6.3: Transaction- und Validation-Tools**
   - [x] `begin_transaction`, `get_transaction`, `validate_transaction`
   - [x] `commit_transaction`, `discard_transaction`
-- [ ] **M6.4: Navigation-, Search- und Export-Tools**
-  - [ ] `get_root`, `get_node`, `list_children`, `list_roles`, `search`
-  - [ ] `export_tree`
+- [x] **M6.4: Navigation-, Search- und Export-Tools**
+  - [x] `get_root`, `get_node`, `list_children`, `list_roles`, `search`
+  - [x] `export_tree`
 - [ ] **M6.5: Struktur-, Content- und Rollen-Tools**
   - [ ] `create_node`, `update_node`, `move_node`, `reorder_node`, `delete_node`
   - [ ] `replace_content`, `replace_text`, `delete_content`

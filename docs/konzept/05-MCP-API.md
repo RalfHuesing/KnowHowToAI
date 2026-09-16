@@ -50,6 +50,30 @@ list_roles
 search
 ```
 
+### Verbindliche Request-/Response-Felder der Read-Tools
+
+Alle Read-Tools verwenden die gemeinsamen Selektor-Felder `transactionId`,
+`snapshotId` und `includeDeleted` gemäß Abschnitt 64 sowie die einheitliche
+`limit`/`cursor`-Paging-Semantik. Rollen werden explizit als `roleId` übergeben.
+
+| Tool | Request-Felder | Response-Daten (`data`) |
+|---|---|---|
+| `get_root` | `roleId` (erforderlich), Selektor-Felder | Node-Felder: `nodeId`, `title`, optional `description`, `sortOrder`, `requestedRole`, optional `resolvedRole`, `fallbackUsed`, `availability`, `freshness`, optional `contentRevisionId` und `content`; ohne Root kein `data` |
+| `get_node` | `nodeId`, `roleId` (erforderlich), Selektor-Felder | dieselben Node-Felder wie `get_root` |
+| `list_children` | `roleId` (erforderlich), optional `parentNodeId`, Selektor-Felder, `limit`, `cursor` | optional `parentNodeId`, `items` (je `nodeId`, `title`, optional `description`, `sortOrder`, `childCount`, `contentSizeBytes`, `availability`, optional `resolvedRole`, `freshness`), optional `nextCursor` |
+| `list_roles` | Selektor-Felder, `limit`, `cursor` | `items` (je `roleId`, `name`, optional `description`), optional `nextCursor` |
+| `search` | `text` (erforderlich), optional `roleId`, Selektor-Felder, `limit`, `cursor` | `query`, `items` (je `nodeId`, `title`, optional `description`, optional `snippet`, `hitField`, `availability`, optional `resolvedRole`, `freshness`), optional `nextCursor` |
+
+## Export
+
+```text
+export_tree
+```
+
+| Tool | Request-Felder | Response-Daten (`data`) |
+|---|---|---|
+| `export_tree` | `rootNodeId`, `roleId` (erforderlich), Selektor-Felder | `markdown`; Export-Warnungen (`HierarchyTooDeep`, `StaleDerivedContent`) erscheinen als `warnings` auf Envelope-Ebene |
+
 ## Strukturänderungen
 
 ```text
@@ -81,12 +105,6 @@ delete_content
 
 ```text
 validate_transaction
-```
-
-## Export
-
-```text
-export_tree
 ```
 
 ## Historie

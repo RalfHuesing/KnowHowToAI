@@ -1,6 +1,9 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Retrieval.Export;
+using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Application.Runtime;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Server.Configuration;
@@ -80,6 +83,34 @@ internal static class ServiceRegistration
             };
         });
         services.AddSingleton<TransactionService>();
+        services.AddSingleton(serviceProvider =>
+        {
+            var retrieval = serviceProvider
+                .GetRequiredService<IOptions<KnowHowToAIOptions>>().Value.Retrieval;
+            return new RetrievalPolicy
+            {
+                DefaultPageSize = retrieval.DefaultPageSize,
+                MaximumPageSize = retrieval.MaximumPageSize,
+                SearchPageSize = retrieval.SearchPageSize,
+                SearchMaximumPageSize = retrieval.SearchMaximumPageSize,
+                SnippetMaximumCharacters = retrieval.SnippetMaximumCharacters
+            };
+        });
+        services.AddSingleton(serviceProvider => new SnapshotReadRepositories(
+            serviceProvider.GetRequiredService<ISnapshotRepository>(),
+            serviceProvider.GetRequiredService<ITransactionRepository>(),
+            serviceProvider.GetRequiredService<IHierarchyRepository>(),
+            serviceProvider.GetRequiredService<IContentRepository>(),
+            serviceProvider.GetRequiredService<IRoleRepository>(),
+            serviceProvider.GetRequiredService<IDependencyRepository>(),
+            serviceProvider.GetRequiredService<IWorkingSnapshotReadRepository>()));
+        services.AddSingleton(serviceProvider => new SearchRepositories(
+            serviceProvider.GetRequiredService<ISnapshotRepository>(),
+            serviceProvider.GetRequiredService<ITransactionRepository>(),
+            serviceProvider.GetRequiredService<IRetrievalRepository>()));
+        services.AddSingleton<NavigationService>();
+        services.AddSingleton<SearchService>();
+        services.AddSingleton<MarkdownExportService>();
 
         return services;
     }
