@@ -10,7 +10,7 @@ Nutzeranweisungen haben Vorrang.
 
 ## Architektur & Domänen-Invarianten
 
-- **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, keine Abwärtskompatibilität zu Altversionen, kein Rückgriff auf alte Branches; einzige fachliche Wahrheit sind der verbindliche Index `docs/Konzept.md` und die dort verlinkten Konzeptmodule. Vor Implementierungen die dortige Lese-Matrix befolgen.
+- **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, keine Abwärtskompatibilität zu Altversionen, kein Rückgriff auf alte Branches; einzige fachliche Wahrheit ist die verbindliche Ist-Dokumentation unter `docs/` (Einstieg: `docs/README.md`). Vor Implementierungen die dortige Lese-Matrix befolgen.
 - **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `MCP Adapter (STDIO in V1)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. MCP-Handler enthalten keine Geschäftslogik (reine Delegation). Keine Kopplung der Domänenlogik an Transport oder STDIO (spätere HTTP-/REST-Adapter architektonisch vorbereitet).
 - **Agentischer MCP-Fokus & Token-Effizienz**:
   - Tool-Payloads radikal token-sparsam halten (Progressive Disclosure, Metadata-First: `list_children` liefert Metadaten, kein Dump ganzer Bäume).
@@ -40,9 +40,9 @@ Nutzeranweisungen haben Vorrang.
 ## C#-Analyse und Dokumentation
 
 - Für C#-Symbole, Referenzen, Aufrufketten, Abhängigkeiten, Impact und Verstöße gilt `.agents/rules/AiNetLinter-McpWorkflow.mdc`. Dessen Schemas und absolute `targetPath`-Werte nutzen.
-- **Roadmap-Pflege**: `docs/Roadmap.md` ist die verbindliche Statusquelle. Erledigte Aufgaben nach jedem Teilschritt sofort auf `[x]` setzen; neue Erkenntnisse oder Teilaufgaben direkt darin nachführen und stets aktuell halten.
+- **Doku-Pflege**: `docs/` beschreibt ausschließlich den Ist-Zustand und wird im selben Commit wie der Code aktuell gehalten (Details: `.agents/rules/DokuRichtlinien.mdc`).
 - Nur implementiertes, belegbares Verhalten dokumentieren. CLI-, Konfigurations-, Regel- und MCP-Beschreibungen gegen aktuellen Code prüfen.
-- Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell den zuständigen Konzeptabschnitt, `docs/Konzept.md`, Roadmap und Agentenregeln synchronisieren; normative Aussagen nicht in mehreren Konzeptmodulen duplizieren.
+- Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell das zuständige Dokument unter `docs/` im selben Commit synchronisieren; normative Aussagen nicht zwischen Dokumenten duplizieren.
 - Vor dem ersten unterstützten Datenbankstand darf die Greenfield-Baseline direkt korrigiert werden. Danach sind angewendete Migrationsskripte unveränderlich; Änderungen erfolgen ausschließlich durch neue, vorwärts gerichtete Migrationen mit neuer Versionsnummer.
 - `README.md` nur bei ausdrücklichem Auftrag ändern; Fremdänderungen erhalten.
 
@@ -68,7 +68,7 @@ Nutzeranweisungen haben Vorrang.
 - **Test-Design & Authoring**: Für Testebenen, Testgestaltung und Testumgebung gilt `.agents/rules/TestRichtlinien.mdc`. Ein grüner, scope-passender Testlauf bleibt gültiger Nachweis bis zur nächsten Code- oder Konfigurationsänderung; nicht blind wiederholen.
 - **Workflow- und MCP-Quality-Gates**:
   - **Taskbeginn**: Zuerst `git status` und betroffene Dateien prüfen. Wenn für den berührten Scope kein aktueller grüner Nachweis vorliegt, vor der ersten Code-/Konfigurationsänderung den kleinsten aussagekräftigen Baseline-Test ausführen. Vorhandene fremde Änderungen und vorbestehende Fehler nicht ungefragt verändern; klar vom eigenen Delta trennen.
-  - **Minimaler Änderungsumfang**: Nur Dateien und Zeilen ändern, die für den Auftrag, seine Tests und zwingende Konsistenzfolgen wie Verträge, Konzept und Roadmap erforderlich sind. Keine sachfremde Umformatierung, Umbenennung, Neuordnung oder Refaktorierung.
+  - **Minimaler Änderungsumfang**: Nur Dateien und Zeilen ändern, die für den Auftrag, seine Tests und zwingende Konsistenzfolgen wie Verträge und Dokumentation erforderlich sind. Keine sachfremde Umformatierung, Umbenennung, Neuordnung oder Refaktorierung.
   - **Incremental Gate**: Nach jedem kohärenten Coding-Slice mit Produktions- oder Testcode in dieser Reihenfolge: `dotnet build`, `verify(targetPath)` (sobald Solution/Target vorhanden), passender FastTests-Lauf (standardmäßig `pwsh scripts/test-fast.ps1 -Filter Category=Unit` bzw. `dotnet test --filter Category=Unit`). Kein durch den Slice verursachter roter Stand bleibt als Zwischen- oder Übergabestand bestehen.
   - **Abschlussgate**: Vor Abschluss: `dotnet build`, `verify(targetPath, scope: "solution")`, vollständiger FastTests-Lauf (`pwsh scripts/test-fast.ps1`). Integrationstests (`scripts/test-integration.ps1`) nur bei Berührung von SQL/MCP-Infrastruktur oder ausdrücklichem Auftrag.
   - Einen selbst verursachten fehlgeschlagenen Schritt vor dem Weiterarbeiten beheben und das jeweilige Gate vollständig wiederholen. Bei einem belegbar vorbestehenden oder außerhalb des Scopes liegenden Fehler nicht eigenmächtig den Scope erweitern: Nachweis und Abgrenzung dokumentieren und nur weiterarbeiten, wenn das eigene Delta dennoch sicher prüfbar bleibt. Das Abschlussgate gilt nur bei `verdict=pass`, `score=10.0` und `violationCount=0`. Advisory-Kandidaten bei `changes` erfordern Agentenurteil, beeinflussen das Verdict nicht und sind keine sichere Lösch- oder Änderungsanweisung.

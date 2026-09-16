@@ -1,0 +1,14 @@
+---
+description: Verbindliche Regeln zur Pflege der Ist-Dokumentation unter docs/.
+globs: *
+alwaysApply: true
+---
+
+# Doku-Richtlinien
+
+- `docs/` beschreibt ausschließlich den Ist-Zustand des Systems. Einstieg, Verbindlichkeit und Lese-Matrix je Aufgabe stehen in `docs/README.md`. Ein Konzept-, Status- oder Roadmap-Dokument existiert nicht; die Entwicklungs- und Entscheidungsgeschichte liegt in der Git-Historie.
+- Jede Änderung an Verhalten, MCP-Verträgen, Fehler-/Warncodes, Datenmodell, Konfiguration, Architektur oder Projektstruktur wird im selben Commit wie der Code in das zuständige Dokument eingearbeitet. Ein grüner Code-Stand mit veralteter Doku ist kein abgeschlossener Slice.
+- Nur implementiertes, belegbares Verhalten dokumentieren. Beschreibungen vor dem Commit gegen den aktuellen Code prüfen.
+- Normative Aussagen stehen an genau einer Stelle; andere Dokumente verlinken darauf, statt sie zu kopieren. Neue Aussagen gehören in das fachlich zuständige Dokument; ein neues Dokument entsteht nur bei einer klar neuen Verantwortungsgrenze.
+- Produktions- und Testcode enthalten keine Referenzen auf Dokumentpfade, Abschnittsnummern oder frühere Roadmap-/Konzeptabschnitte. Kommentare erklären nur nicht offensichtliches „Why“; die Doku ist über `docs/` auffindbar.
+- Widersprüche zwischen Doku und Code werden vor weiterer Implementierung geklärt und an allen betroffenen Stellen beseitigt.

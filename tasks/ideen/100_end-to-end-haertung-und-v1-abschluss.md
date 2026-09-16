@@ -3,8 +3,8 @@
 **Voraussetzung:** M1 bis M6.
 **Statusziel:** Nachweis, dass die Einzelverträge als Gesamtsystem funktionieren.
 
-**Konzeptbezug:** [V1-Invarianten und Gesamtmodell](../../docs/konzept/06-Datenmodell-V1-Invarianten-Architektur.md),
-[Referenzabläufe und Architekturentscheidungen](../../docs/konzept/07-Referenzablaeufe-Entscheidungen.md)
+**Doku-Bezug:** [Datenmodell](../../docs/Datenmodell.md), [Invarianten](../../docs/Invarianten.md),
+[Entscheidungen](../../docs/Entscheidungen.md)
 
 ## Aufgaben
 
