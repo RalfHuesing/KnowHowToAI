@@ -79,14 +79,14 @@ public sealed class McpNavigationToolsTests
     [InlineData("not-a-guid")]
     [InlineData("")]
     [InlineData("17")]
-    public async Task GetNode_MalformedNodeId_IsRejectedAsNodeNotFound(string rawNodeId)
+    public async Task GetNode_MalformedNodeId_IsRejectedAsInvalidNodeId(string rawNodeId)
     {
         var tools = CreateTools(CreateHarnessWithRootAndChild());
 
         var envelope = await tools.GetNode(rawNodeId, RoleDeveloper.Value);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(NavigationErrorCodes.NodeNotFound, envelope.Code);
+        Assert.Equal(NavigationErrorCodes.InvalidNodeId, envelope.Code);
         Assert.Equal(rawNodeId, envelope.Details![NavigationErrorCodes.NodeIdDetail]);
     }
 

@@ -15,7 +15,7 @@ public static class McpErrorCatalog
 
     private static readonly string[] StructureRoleErrorCodes =
     [
-        "NodeNotFound", "RootAlreadyExists", "ParentNodeNotFound", "InvalidHierarchy", "NodeHasChildren",
+        "NodeNotFound", "InvalidNodeId", "RootAlreadyExists", "ParentNodeNotFound", "InvalidHierarchy", "NodeHasChildren",
         "RoleNotFound", "RoleInUse", "RoleResolutionNotConfigured", "InvalidRoleResolution",
         "DuplicateNodeId", "HierarchyCycle", "NodeIdAlreadyUsed", "SelfParentNotAllowed", "SnapshotMismatch",
         "TitleRequired", "RoleNameRequired", "RoleIdRequired", "CandidateRoleDeleted",

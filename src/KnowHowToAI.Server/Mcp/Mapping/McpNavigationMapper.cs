@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Mcp.Contracts;
@@ -38,16 +39,18 @@ internal static class McpNavigationMapper
 
     /// <summary>
     /// Parst einen Node-ID-String exakt im Format der Tool-Ausgaben (GUID "D").
-    /// Ein nicht parsebarer Wert kann keine existierende Node bezeichnen und führt
-    /// daher zu <c>NodeNotFound</c> mit dem Rohwert in den Details.
+    /// Ein nicht parsebarer Wert ist ein Parameterfehler und führt daher zu
+    /// <c>InvalidNodeId</c> mit Parametername und Rohwert in den Details.
     /// </summary>
-    public static Result<NodeId?> ParseOptionalNodeId(string? nodeId)
+    public static Result<NodeId?> ParseOptionalNodeId(
+        string? nodeId,
+        [CallerArgumentExpression(nameof(nodeId))] string? parameterName = null)
     {
         if (nodeId is null)
             return Result<NodeId?>.Success(null);
 
         if (!Guid.TryParseExact(nodeId, "D", out var parsed))
-            return Result<NodeId?>.Failure(CreateNodeNotFound(nodeId));
+            return Result<NodeId?>.Failure(CreateInvalidNodeId(nodeId, parameterName));
 
         return Result<NodeId?>.Success(new NodeId(parsed));
     }
@@ -86,10 +89,16 @@ internal static class McpNavigationMapper
             role.Description)).ToArray(),
         page.NextCursor);
 
-    private static DomainError CreateNodeNotFound(string nodeId) =>
-        new(NavigationErrorCodes.NodeNotFound,
-            "Die angefragte Node existiert nicht.",
-            new Dictionary<string, string> { [NavigationErrorCodes.NodeIdDetail] = nodeId });
+    private static DomainError CreateInvalidNodeId(string rawValue, string? parameterName)
+    {
+        var detailName = string.IsNullOrWhiteSpace(parameterName)
+            ? NavigationErrorCodes.NodeIdDetail
+            : parameterName;
+        return new DomainError(
+            NavigationErrorCodes.InvalidNodeId,
+            $"Der Wert des Parameters '{detailName}' ist keine gültige Node-ID (GUID im Format der Tool-Ausgaben).",
+            new Dictionary<string, string> { [detailName] = rawValue });
+    }
 
     private static IReadOnlyList<McpWarning> MapWarnings<T>(Result<T> result) =>
         result.Warnings.Select(McpResultMapper.ToWarning).ToArray();

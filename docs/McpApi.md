@@ -30,9 +30,12 @@ Session-Rollenstatus.
   aktuellen committed Snapshot, mit `transactionId` aus dem Working Snapshot, mit
   `snapshotId` aus dem historischen Snapshot. Beide Selektoren zugleich sind
   unzulässig und führen zu `InvalidReadContext`.
-- Ein nicht als GUID („D"-Format) parsebarer ID-String kann keine existierende
-  Entität bezeichnen und führt deterministisch zum passenden `…NotFound`-Fehler
-  mit dem Rohwert in `details`.
+- Ein nicht als GUID („D“-Format) parsebarer Node-ID-String (`nodeId`, `parentNodeId`,
+  `rootNodeId`) ist ein Parameterfehler und führt zu `InvalidNodeId` mit Parametername
+  und Rohwert in `details`. Nicht parsebare Selektor-Strings (`transactionId`,
+  `snapshotId`) und Transaction-/Snapshot-IDs der Mutation- und Historie-Tools können
+  keine existierende Entität bezeichnen und führen deterministisch zum passenden
+  `…NotFound`-Fehler mit dem Rohwert in `details`.
 
 ## Antwort-Envelope
 
@@ -129,8 +132,9 @@ Transaction; `delete_node` wirkt global über alle Rollen
 
 `affectedNodeIds` umfasst die geänderte Node und alle durch
 Sortiernormalisierung oder Verschieben betroffenen aktiven Nachfahren. Unbekannte
-oder nicht parsebare IDs führen zu `NodeNotFound` beziehungsweise
-`ParentNodeNotFound` mit dem Rohwert in den Details.
+IDs führen zu `NodeNotFound` beziehungsweise `ParentNodeNotFound` mit dem Rohwert
+in den Details; nicht parsebare ID-Strings sind Parameterfehler und führen zu
+`InvalidNodeId`.
 
 ## Request-/Response-Felder der Rollen-Tools
 
@@ -194,7 +198,7 @@ ergänzt werden; veröffentlichte Codes werden nicht beiläufig umbenannt.
 - Kontext/Zustand: `InvalidReadContext`, `SnapshotNotFound`, `SnapshotNotCommitted`,
   `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`, `InvalidCursor`,
   `CursorExpired`, `WorkingSnapshotNotOpen`, `TransactionDiscarded`
-- Struktur/Rollen: `NodeNotFound`, `RootAlreadyExists`, `ParentNodeNotFound`,
+- Struktur/Rollen: `NodeNotFound`, `InvalidNodeId`, `RootAlreadyExists`, `ParentNodeNotFound`,
   `InvalidHierarchy`, `NodeHasChildren`, `RoleNotFound`, `RoleInUse`,
   `RoleResolutionNotConfigured`, `InvalidRoleResolution`, `DuplicateNodeId`,
   `HierarchyCycle`, `NodeIdAlreadyUsed`, `SelfParentNotAllowed`, `SnapshotMismatch`,

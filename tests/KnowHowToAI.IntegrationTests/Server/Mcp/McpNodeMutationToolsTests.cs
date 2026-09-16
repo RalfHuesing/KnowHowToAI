@@ -77,7 +77,7 @@ public sealed class McpNodeMutationToolsTests
     [InlineData("not-a-guid")]
     [InlineData("")]
     [InlineData("17")]
-    public async Task CreateNode_MalformedParentNodeId_IsRejectedAsNodeNotFound(string rawParentNodeId)
+    public async Task CreateNode_MalformedParentNodeId_IsRejectedAsInvalidNodeId(string rawParentNodeId)
     {
         var tools = CreateTools(StateWithRootAndChildren());
 
@@ -85,8 +85,8 @@ public sealed class McpNodeMutationToolsTests
             TransactionId.ToString(), "Kind", parentNodeId: rawParentNodeId);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(HierarchyErrorCodes.NodeNotFound, envelope.Code);
-        Assert.Equal(rawParentNodeId, envelope.Details![NavigationErrorCodes.NodeIdDetail]);
+        Assert.Equal(NavigationErrorCodes.InvalidNodeId, envelope.Code);
+        Assert.Equal(rawParentNodeId, envelope.Details![NavigationErrorCodes.ParentNodeIdDetail]);
     }
 
     [Theory]

@@ -202,7 +202,7 @@ public sealed class McpRetrievalToolsTests
     [Theory]
     [InlineData("not-a-guid")]
     [InlineData("")]
-    public async Task ExportTree_MalformedNodeId_IsRejectedAsNodeNotFound(string rawNodeId)
+    public async Task ExportTree_MalformedNodeId_IsRejectedAsInvalidNodeId(string rawNodeId)
     {
         var harness = CreateExportHarness(withContent: true, chainLength: 1);
         var tools = CreateExportTools(harness);
@@ -210,8 +210,8 @@ public sealed class McpRetrievalToolsTests
         var envelope = await tools.ExportTree(rawNodeId, RoleDeveloper.Value);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(NavigationErrorCodes.NodeNotFound, envelope.Code);
-        Assert.Equal(rawNodeId, envelope.Details![NavigationErrorCodes.NodeIdDetail]);
+        Assert.Equal(NavigationErrorCodes.InvalidNodeId, envelope.Code);
+        Assert.Equal(rawNodeId, envelope.Details![NavigationErrorCodes.RootNodeIdDetail]);
     }
 
     [Fact]
