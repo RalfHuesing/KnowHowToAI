@@ -740,11 +740,11 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
 - [x] **M6.6: Historien- und Release-Tools**
   - [x] `get_snapshot`, `compare_snapshots`, `get_transaction_changes`
   - [x] `create_release`, `list_releases`
-- [ ] **M6.7: Vertrags- und STDIO-Integrationstests**
-  - [ ] jedes Tool-Schema mit gültigem Minimalrequest und repräsentativen Fehlern
-  - [ ] echter Serverprozess über STDIO: Initialize, Tool Call, Response, Shutdown
-  - [ ] beweisen, dass Startup-/SQL-/Logging-Ausgaben `stdout` nicht verunreinigen
-  - [ ] unbekannte Felder/Tools, ungültige JSON-Typen, Cancellation und Serverfehler
+- [x] **M6.7: Vertrags- und STDIO-Integrationstests**
+  - [x] jedes Tool-Schema mit gültigem Minimalrequest und repräsentativen Fehlern
+  - [x] echter Serverprozess über STDIO: Initialize, Tool Call, Response, Shutdown
+  - [x] beweisen, dass Startup-/SQL-/Logging-Ausgaben `stdout` nicht verunreinigen
+  - [x] unbekannte Felder/Tools, ungültige JSON-Typen, Cancellation und Serverfehler
     liefern protokollkonforme Antworten ohne Prozessabsturz
 
 **Abnahme:** Ein externer MCP-Client kann den vollständigen V1-Workflow ausschließlich
