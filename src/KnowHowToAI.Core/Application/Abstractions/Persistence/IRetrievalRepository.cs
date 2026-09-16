@@ -13,7 +13,7 @@ public interface IRetrievalRepository
     /// Sucht nach Nodes gemäß <paramref name="request"/>. Gibt maximal
     /// <see cref="SearchRequest.Limit"/> Ergebnisse zurück.
     /// </summary>
-    Task<IReadOnlyList<SearchHit>> SearchAsync(
+    Task<SearchRepositoryResult> SearchAsync(
         SearchRequest request,
         CancellationToken cancellationToken = default);
 }

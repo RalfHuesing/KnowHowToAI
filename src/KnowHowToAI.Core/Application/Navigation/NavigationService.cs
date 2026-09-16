@@ -10,7 +10,7 @@ namespace KnowHowToAI.Core.Application.Navigation;
 /// <summary>
 /// Transportneutrale Orchestrierung der Navigation-Use-Cases (get_root, get_node,
 /// list_children, list_roles). Liest ausschließlich, verändert keinen Snapshot-Zustand.
-/// Read-Kontext wird immer über <see cref="ReadContextResolver"/> aufgelöst.
+/// Working-Snapshot-Reads nutzen die konsistente atomare M5-Read-Sicht.
 /// </summary>
 public sealed class NavigationService
 {
@@ -36,27 +36,21 @@ public sealed class NavigationService
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var contextResult = await ResolveContextAsync(context, cancellationToken).ConfigureAwait(false);
-        if (!contextResult.IsSuccess)
-            return Result<NodeWithContent>.Failure(contextResult.Error!);
+        var loadResult = await LoadNavigationSnapshotDataAsync(context, cancellationToken).ConfigureAwait(false);
+        if (!loadResult.IsSuccess)
+            return Result<NodeWithContent>.Failure(loadResult.Error!);
 
-        var resolvedContext = contextResult.Value!;
-        var snapshotId = resolvedContext.SnapshotId;
-        var nodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var activeNodes = ActiveReadFilter.Apply(nodes, resolvedContext);
-        var root = activeNodes.FirstOrDefault(node => node.ParentNodeId is null);
+        var (_, snapshotData) = loadResult.Value!;
+        var root = snapshotData.Nodes.FirstOrDefault(node => node.ParentNodeId is null);
 
         if (root is null)
         {
-            var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-            var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-
             var validationResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
                 null,
                 roleId,
-                snapshotId,
-                roles,
-                resolutions,
+                snapshotData.SnapshotId,
+                snapshotData.Roles,
+                snapshotData.Resolutions,
                 Array.Empty<Domain.Content.NodeContent>(),
                 Array.Empty<ContentDependency>()));
 
@@ -74,7 +68,7 @@ public sealed class NavigationService
                     Freshness: Freshness.Unknown));
         }
 
-        return await BuildNodeWithContentAsync(root, roleId, snapshotId, resolvedContext, cancellationToken).ConfigureAwait(false);
+        return BuildNodeWithContent(root, roleId, snapshotData);
     }
 
     /// <summary>Liefert eine einzelne Node mit aufgelöstem Rollen-Content.</summary>
@@ -86,15 +80,12 @@ public sealed class NavigationService
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var contextResult = await ResolveContextAsync(context, cancellationToken).ConfigureAwait(false);
-        if (!contextResult.IsSuccess)
-            return Result<NodeWithContent>.Failure(contextResult.Error!);
+        var loadResult = await LoadNavigationSnapshotDataAsync(context, cancellationToken).ConfigureAwait(false);
+        if (!loadResult.IsSuccess)
+            return Result<NodeWithContent>.Failure(loadResult.Error!);
 
-        var resolvedContext = contextResult.Value!;
-        var snapshotId = resolvedContext.SnapshotId;
-        var nodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var activeNodes = ActiveReadFilter.Apply(nodes, resolvedContext);
-        var node = activeNodes.FirstOrDefault(n => n.NodeId == nodeId);
+        var (_, snapshotData) = loadResult.Value!;
+        var node = snapshotData.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
 
         if (node is null)
             return Result<NodeWithContent>.Failure(new DomainError(
@@ -102,7 +93,7 @@ public sealed class NavigationService
                 "Die angefragte Node existiert nicht.",
                 new Dictionary<string, string> { [NavigationErrorCodes.NodeIdDetail] = nodeId.ToString() }));
 
-        return await BuildNodeWithContentAsync(node, roleId, snapshotId, resolvedContext, cancellationToken).ConfigureAwait(false);
+        return BuildNodeWithContent(node, roleId, snapshotData);
     }
 
     /// <summary>
@@ -115,15 +106,14 @@ public sealed class NavigationService
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var contextResult = await ResolveContextAsync(query.Context, cancellationToken).ConfigureAwait(false);
-        if (!contextResult.IsSuccess)
-            return Result<ChildrenPage>.Failure(contextResult.Error!);
+        var loadResult = await LoadNavigationSnapshotDataAsync(query.Context, cancellationToken).ConfigureAwait(false);
+        if (!loadResult.IsSuccess)
+            return Result<ChildrenPage>.Failure(loadResult.Error!);
 
-        var resolvedContext = contextResult.Value!;
+        var (resolvedContext, snapshotData) = loadResult.Value!;
         var effectiveLimit = query.Limit is { } limit && limit > 0
             ? Math.Min(limit, _retrievalPolicy.MaximumPageSize)
             : _retrievalPolicy.DefaultPageSize;
-        var snapshotData = await LoadNavigationSnapshotDataAsync(resolvedContext, cancellationToken).ConfigureAwait(false);
 
         var roleValidation = ValidateRoleInSnapshot(query.RoleId, snapshotData);
         if (!roleValidation.IsSuccess)
@@ -168,17 +158,16 @@ public sealed class NavigationService
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var contextResult = await ResolveContextAsync(query.Context, cancellationToken).ConfigureAwait(false);
-        if (!contextResult.IsSuccess)
-            return Result<RolePage>.Failure(contextResult.Error!);
+        var loadResult = await LoadNavigationSnapshotDataAsync(query.Context, cancellationToken).ConfigureAwait(false);
+        if (!loadResult.IsSuccess)
+            return Result<RolePage>.Failure(loadResult.Error!);
 
-        var resolvedContext = contextResult.Value!;
+        var (resolvedContext, snapshotData) = loadResult.Value!;
         var effectiveLimit = query.Limit is { } limit && limit > 0
             ? Math.Min(limit, _retrievalPolicy.MaximumPageSize)
             : _retrievalPolicy.DefaultPageSize;
 
-        var roles = await _repos.Roles.ListBySnapshotAsync(resolvedContext.SnapshotId, cancellationToken).ConfigureAwait(false);
-        var activeRoles = ActiveReadFilter.Apply(roles, resolvedContext);
+        var activeRoles = ActiveReadFilter.Apply(snapshotData.Roles, resolvedContext);
         var orderedRoles = activeRoles
             .OrderBy(r => r.RoleId.Value, StringComparer.Ordinal)
             .ToArray();
@@ -210,26 +199,101 @@ public sealed class NavigationService
         IReadOnlyList<Role> Roles,
         IReadOnlyList<RoleResolution> Resolutions,
         IReadOnlyList<Domain.Content.NodeContent> Contents,
-        IReadOnlyList<ContentDependency> Dependencies);
+        IReadOnlyList<ContentDependency> Dependencies,
+        long? ChangeVersion = null);
 
-    private async Task<NavigationSnapshotData> LoadNavigationSnapshotDataAsync(
-        ResolvedReadContext context,
+    private async Task<Result<(ResolvedReadContext Context, NavigationSnapshotData Data)>> LoadNavigationSnapshotDataAsync(
+        ReadContext context,
         CancellationToken cancellationToken)
     {
-        var snapshotId = context.SnapshotId;
+        if (context.TransactionId is { } transactionId && context.SnapshotId is { } requestedSnapshotId)
+        {
+            return Result<(ResolvedReadContext Context, NavigationSnapshotData Data)>.Failure(new DomainError(
+                ReadContextErrorCodes.InvalidReadContext,
+                "Ein Read-Kontext darf nicht gleichzeitig eine Transaction und einen Snapshot selektieren.",
+                new Dictionary<string, string>
+                {
+                    ["transactionId"] = transactionId.ToString(),
+                    ["snapshotId"] = requestedSnapshotId.ToString()
+                }));
+        }
+
+        if (context.TransactionId is { } workingTransactionId && _repos.WorkingSnapshots is not null)
+        {
+            var workingResult = await _repos.WorkingSnapshots.ReadOpenWorkingAsync(workingTransactionId, cancellationToken).ConfigureAwait(false);
+            if (!workingResult.IsSuccess)
+                return Result<(ResolvedReadContext Context, NavigationSnapshotData Data)>.Failure(workingResult.Error!);
+
+            var workingData = workingResult.Value!;
+            var resolvedContext = new ResolvedReadContext(
+                workingData.Transaction.WorkingSnapshotId,
+                ReadContextSource.Transaction,
+                workingTransactionId,
+                context.IncludeDeleted,
+                workingData.ChangeVersion);
+
+            var snapshotData = new NavigationSnapshotData(
+                workingData.Transaction.WorkingSnapshotId,
+                ActiveReadFilter.Apply(workingData.Nodes, resolvedContext),
+                workingData.Roles,
+                workingData.RoleResolutions,
+                ActiveReadFilter.Apply(workingData.Contents, resolvedContext),
+                workingData.Dependencies,
+                workingData.ChangeVersion);
+
+            return Result<(ResolvedReadContext Context, NavigationSnapshotData Data)>.Success((resolvedContext, snapshotData));
+        }
+
+        var contextResult = await ReadContextReader.ResolveAsync(context, _repos.Snapshots, _repos.Transactions, cancellationToken).ConfigureAwait(false);
+        if (!contextResult.IsSuccess)
+            return Result<(ResolvedReadContext Context, NavigationSnapshotData Data)>.Failure(contextResult.Error!);
+
+        var normalContext = contextResult.Value!;
+        var snapshotId = normalContext.SnapshotId;
         var nodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var contents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
-        return new NavigationSnapshotData(
+        var normalData = new NavigationSnapshotData(
             snapshotId,
-            ActiveReadFilter.Apply(nodes, context),
+            ActiveReadFilter.Apply(nodes, normalContext),
             roles,
             resolutions,
-            ActiveReadFilter.Apply(contents, context),
-            dependencies);
+            ActiveReadFilter.Apply(contents, normalContext),
+            dependencies,
+            normalContext.ChangeVersion);
+
+        return Result<(ResolvedReadContext Context, NavigationSnapshotData Data)>.Success((normalContext, normalData));
+    }
+
+    private static Result<NodeWithContent> BuildNodeWithContent(
+        Node node,
+        RoleId roleId,
+        NavigationSnapshotData data)
+    {
+        var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
+            node.NodeId,
+            roleId,
+            data.SnapshotId,
+            data.Roles,
+            data.Resolutions,
+            data.Contents,
+            data.Dependencies));
+
+        if (!resolutionResult.IsSuccess)
+            return Result<NodeWithContent>.Failure(resolutionResult.Error!);
+
+        var resolution = resolutionResult.Value!;
+        return Result<NodeWithContent>.Success(new NodeWithContent(
+            node,
+            roleId,
+            resolution.ResolvedRole,
+            resolution.Availability,
+            resolution.FallbackUsed,
+            resolution.Content,
+            resolution.Freshness));
     }
 
     private static Result<int> ResolveStartIndex(
@@ -364,48 +428,6 @@ public sealed class NavigationService
         {
             [NavigationErrorCodes.CursorDetail] = cursor
         });
-
-    private Task<Result<ResolvedReadContext>> ResolveContextAsync(
-        ReadContext context,
-        CancellationToken cancellationToken) =>
-        ReadContextReader.ResolveAsync(context, _repos.Snapshots, _repos.Transactions, cancellationToken);
-
-    private async Task<Result<NodeWithContent>> BuildNodeWithContentAsync(
-        Node node,
-        RoleId roleId,
-        SnapshotId snapshotId,
-        ResolvedReadContext resolvedContext,
-        CancellationToken cancellationToken)
-    {
-        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var contents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-
-        var activeContents = ActiveReadFilter.Apply(contents, resolvedContext);
-
-        var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
-            node.NodeId,
-            roleId,
-            snapshotId,
-            roles,
-            resolutions,
-            activeContents,
-            dependencies));
-
-        if (!resolutionResult.IsSuccess)
-            return Result<NodeWithContent>.Failure(resolutionResult.Error!);
-
-        var resolution = resolutionResult.Value!;
-        return Result<NodeWithContent>.Success(new NodeWithContent(
-            node,
-            roleId,
-            resolution.ResolvedRole,
-            resolution.Availability,
-            resolution.FallbackUsed,
-            resolution.Content,
-            resolution.Freshness));
-    }
 
     private static Result<ResolvedNodeContent> ValidateRoleInSnapshot(RoleId roleId, NavigationSnapshotData data) =>
         NodeContentResolver.Resolve(new NodeContentResolutionRequest(

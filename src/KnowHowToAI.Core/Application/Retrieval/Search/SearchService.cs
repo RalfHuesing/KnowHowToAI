@@ -62,28 +62,58 @@ public sealed class SearchService
         if (cursorError is not null)
             return Result<SearchResultPage>.Failure(cursorError);
 
-        var effectiveLimit = query.Limit is { } limit && limit > 0
-            ? Math.Min(limit, _retrievalPolicy.SearchMaximumPageSize)
-            : _retrievalPolicy.SearchPageSize;
-
+        var effectiveLimit = ResolveEffectiveLimit(query.Limit);
         var request = new SearchRequest(
             resolvedContext.SnapshotId,
             query.Text,
             query.RoleId,
             effectiveLimit + 1,
             query.Cursor,
-            _retrievalPolicy.SnippetMaximumCharacters);
+            _retrievalPolicy.SnippetMaximumCharacters,
+            resolvedContext.TransactionId);
 
         var results = await _repos.Retrieval.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+        var effectiveChangeVersion = results.ChangeVersion ?? resolvedContext.ChangeVersion;
+
+        var lockedCursorError = ValidateLockedCursorChangeVersion(query.Cursor, resolvedContext.Source, effectiveChangeVersion);
+        if (lockedCursorError is not null)
+            return Result<SearchResultPage>.Failure(lockedCursorError);
+
         var hasNext = results.Count > effectiveLimit;
         var pageItems = results.Take(effectiveLimit).ToArray();
 
+        var effectiveContext = effectiveChangeVersion != resolvedContext.ChangeVersion
+            ? resolvedContext with { ChangeVersion = effectiveChangeVersion }
+            : resolvedContext;
+
         var nextCursor = hasNext && pageItems.Length > 0
-            ? CreateNextCursor(pageItems[^1], resolvedContext, query)
+            ? CreateNextCursor(pageItems[^1], effectiveContext, query)
             : null;
 
         return Result<SearchResultPage>.Success(
             new SearchResultPage(query.Text, Array.AsReadOnly(pageItems), nextCursor));
+    }
+
+    private int ResolveEffectiveLimit(int? limit) =>
+        limit is { } positiveLimit && positiveLimit > 0
+            ? Math.Min(positiveLimit, _retrievalPolicy.SearchMaximumPageSize)
+            : _retrievalPolicy.SearchPageSize;
+
+    private static DomainError? ValidateLockedCursorChangeVersion(
+        string? cursor,
+        ReadContextSource source,
+        long? effectiveChangeVersion)
+    {
+        if (cursor is null || source != ReadContextSource.Transaction || effectiveChangeVersion is null)
+            return null;
+
+        var parsedCursor = SearchCursor.TryDecode(cursor);
+        return parsedCursor is not null && parsedCursor.ChangeVersion != effectiveChangeVersion
+            ? new DomainError(
+                SearchErrorCodes.CursorExpired,
+                "Der Cursor ist nach einer zwischenzeitlichen Mutation der Transaktion abgelaufen.",
+                new Dictionary<string, string> { [SearchErrorCodes.CursorDetail] = cursor })
+            : null;
     }
 
     private Task<Result<ResolvedReadContext>> ResolveContextAsync(

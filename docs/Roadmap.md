@@ -603,18 +603,18 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
     Mutation bzw. Current-Wechsel mit `CursorExpired` ablehnen
   - [x] FastTests für Current, historischen Snapshot und Working Transaction sowie für
     Maximalgrenze, lückenlose Folgeseiten, manipulierten Cursor und Cursor-Ablauf ergänzen
-- [ ] **M5.9: Konsistente Read-Sicht für Working-Snapshots herstellen**
-  - [ ] einen Persistence-Port für eine zusammenhängende M5-Read-Sicht definieren, der
+- [x] **M5.9: Konsistente Read-Sicht für Working-Snapshots hergestellt**
+  - [x] einen Persistence-Port für eine zusammenhängende M5-Read-Sicht definieren, der
     Transaction, `ChangeVersion`, Nodes, Rollen, Resolution Orders, Contents und
     Dependencies aus genau einer kurzen, konsistenten SQL-Sicht zurückgibt
-  - [ ] die SQL-Implementierung mit derselben Transaction-Zeilensperre wie Working-
+  - [x] die SQL-Implementierung mit derselben Transaction-Zeilensperre wie Working-
     Mutationen serialisieren; vor dem ersten Read `Open`/Working prüfen und die gelesene
     `ChangeVersion` zusammen mit den Daten zurückgeben, ohne Connection oder SQL-
     Transaction über den Repository-Aufruf hinaus offen zu halten
-  - [ ] Navigation, Export und Transaction-Diff auf diese Sicht umstellen; Search-Hits,
+  - [x] Navigation, Export und Transaction-Diff auf diese Sicht umstellen; Search-Hits,
     Contents und Dependencies ebenfalls in einer kurzen konsistenten SQL-Transaction
     lesen, damit kein Ergebnis Daten aus zwei `ChangeVersion`-Ständen mischt
-  - [ ] deterministische Integrationstests mit Barrieren statt Zeitverzögerungen
+  - [x] deterministische Integrationstests mit Barrieren statt Zeitverzögerungen
     ergänzen: konkurrierende Mutation liegt vollständig vor oder nach dem Read; ein
     Mischzustand ist unmöglich und ein alter Folgecursor liefert `CursorExpired`
 - [ ] **M5.10: Rollenauflösung und Search-Semantik fehlertransparent machen**

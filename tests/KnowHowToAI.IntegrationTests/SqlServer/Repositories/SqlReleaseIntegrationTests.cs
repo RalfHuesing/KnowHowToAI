@@ -127,14 +127,14 @@ public sealed class SqlReleaseIntegrationTests
 
             -- Default content with current source revision
             INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
-            VALUES (@snap, @nodeId, 'default', @sourceRev, 1, 'Source content text', 0);
+            VALUES (@snap, @nodeId, N'Default', @sourceRev, 'Independent', 'Source content text', 0);
 
             -- EndUser derived content with dependency on OLD revision
             INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
-            VALUES (@snap, @nodeId, 'enduser', NEWID(), 2, 'Derived content text', 0);
+            VALUES (@snap, @nodeId, 'enduser', NEWID(), 'Derived', 'Derived content text', 0);
 
             INSERT INTO dbo.KnowHowToAI_ContentDependency (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
-            VALUES (@snap, @nodeId, 'enduser', @nodeId, 'default', @oldRev);
+            VALUES (@snap, @nodeId, 'enduser', @nodeId, N'Default', @oldRev);
             """, new { snap = snapshotId.Value, nodeId, sourceRev, oldRev });
     }
 

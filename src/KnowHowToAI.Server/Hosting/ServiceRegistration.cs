@@ -38,6 +38,7 @@ internal static class ServiceRegistration
         services.AddSingleton<ISchemaMigrator, SqlSchemaMigrator>();
         services.AddSingleton<ISnapshotRepository, SqlSnapshotRepository>();
         services.AddSingleton<ITransactionRepository, SqlTransactionRepository>();
+        services.AddSingleton<IWorkingSnapshotReadRepository, SqlWorkingSnapshotReadRepository>();
         services.AddSingleton<IWorkingSnapshotValidationDataRepository, SqlWorkingSnapshotValidationDataRepository>();
         services.AddSingleton<IHierarchyRepository, SqlHierarchyRepository>();
         services.AddSingleton<IContentRepository, SqlContentRepository>();

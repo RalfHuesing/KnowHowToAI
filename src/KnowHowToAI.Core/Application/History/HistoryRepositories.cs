@@ -12,4 +12,5 @@ public sealed record HistoryRepositories(
     IHierarchyRepository Hierarchy,
     IContentRepository Contents,
     IRoleRepository Roles,
-    IDependencyRepository Dependencies);
+    IDependencyRepository Dependencies,
+    IWorkingSnapshotReadRepository? WorkingSnapshots = null);

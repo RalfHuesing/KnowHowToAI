@@ -199,12 +199,13 @@ public sealed class SearchServiceTests
         public int CallCount { get; private set; }
         public SearchRequest? LastRequest { get; private set; }
         public List<SearchHit> ResultsToReturn { get; set; } = new();
+        public long? ChangeVersionToReturn { get; set; }
 
-        public Task<IReadOnlyList<SearchHit>> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default)
+        public Task<SearchRepositoryResult> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default)
         {
             CallCount++;
             LastRequest = request;
-            return Task.FromResult<IReadOnlyList<SearchHit>>(ResultsToReturn);
+            return Task.FromResult(new SearchRepositoryResult(ResultsToReturn, ChangeVersionToReturn));
         }
     }
 

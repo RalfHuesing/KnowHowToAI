@@ -22,7 +22,7 @@ public sealed class SqlRetrievalRepositoryTests
 
         var snapshotId = await GetCurrentSnapshotIdAsync(database);
         var nodeId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000001"));
-        await InsertNodeAsync(database, snapshotId, nodeId, "SQL Server Installation", "Guide", 0);
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(nodeId, "SQL Server Installation", "Guide", 0));
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var request = new SearchRequest(snapshotId, "Installation", null, 10, null, 100);
@@ -45,8 +45,8 @@ public sealed class SqlRetrievalRepositoryTests
         var node1 = new NodeId(Guid.Parse("20000000-0000-0000-0000-000000000001"));
         var node2 = new NodeId(Guid.Parse("20000000-0000-0000-0000-000000000002"));
 
-        await InsertNodeAsync(database, snapshotId, node1, "Save 100% money", "Promo", 1);
-        await InsertNodeAsync(database, snapshotId, node2, "Save 1000 money", "Promo", 2);
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(node1, "Save 100% money", "Promo", 1));
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(node2, "Save 1000 money", "Promo", 2, node1));
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var request = new SearchRequest(snapshotId, "100%", null, 10, null, 100);
@@ -66,7 +66,7 @@ public sealed class SqlRetrievalRepositoryTests
 
         var snapshotId = await GetCurrentSnapshotIdAsync(database);
         var nodeId = new NodeId(Guid.Parse("30000000-0000-0000-0000-000000000001"));
-        await InsertNodeAsync(database, snapshotId, nodeId, "Overview", "Contains details about database clustering options", 0);
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(nodeId, "Overview", "Contains details about database clustering options", 0));
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var request = new SearchRequest(snapshotId, "clustering", null, 10, null, 50);
@@ -89,7 +89,7 @@ public sealed class SqlRetrievalRepositoryTests
         var snapshotId = await GetCurrentSnapshotIdAsync(database);
         var nodeId = new NodeId(Guid.Parse("40000000-0000-0000-0000-000000000001"));
 
-        await InsertNodeAsync(database, snapshotId, nodeId, "Node Title", "Node Description", 0);
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(nodeId, "Node Title", "Node Description", 0));
         await InsertRoleAsync(database, snapshotId, RoleDev, "Developer");
         await InsertRoleAsync(database, snapshotId, RoleConsultant, "Consultant");
         await InsertRoleResolutionAsync(database, snapshotId, RoleConsultant, RoleDev, 1);
@@ -123,9 +123,9 @@ public sealed class SqlRetrievalRepositoryTests
         await InsertRoleAsync(database, snapshotId, RoleDev, "Developer");
         await InsertRoleResolutionAsync(database, snapshotId, RoleDev, RoleDev, 1);
 
-        await InsertNodeAsync(database, snapshotId, titleNode, "Alpha match in title", "Other text", 10);
-        await InsertNodeAsync(database, snapshotId, descNode, "Beta title", "Alpha match in description", 20);
-        await InsertNodeAsync(database, snapshotId, contentNode, "Gamma title", "Gamma desc", 30);
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(titleNode, "Alpha match in title", "Other text", 10));
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(descNode, "Beta title", "Alpha match in description", 20, titleNode));
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(contentNode, "Gamma title", "Gamma desc", 30, titleNode));
         await InsertContentAsync(database, snapshotId, contentNode, RoleDev, "Alpha match in content body");
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
@@ -155,19 +155,30 @@ public sealed class SqlRetrievalRepositoryTests
         return new SnapshotId(snapshotId);
     }
 
-    private static async Task InsertNodeAsync(SqlTestDatabase database, SnapshotId snapshotId, NodeId nodeId, string title, string? desc, int sortOrder)
+    private sealed record NodeSeed(
+        NodeId NodeId,
+        string Title,
+        string? Description,
+        int SortOrder,
+        NodeId? ParentNodeId = null);
+
+    private static async Task InsertNodeAsync(
+        SqlTestDatabase database,
+        SnapshotId snapshotId,
+        NodeSeed seed)
     {
         await using var connection = await database.ConnectionFactory.OpenAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
             INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
-            VALUES (@snapshotId, @nodeId, NULL, @title, @desc, @sortOrder, 0);
+            VALUES (@snapshotId, @nodeId, @parentNodeId, @title, @desc, @sortOrder, 0);
             """;
         command.Parameters.Add(new SqlParameter("@snapshotId", snapshotId.Value));
-        command.Parameters.Add(new SqlParameter("@nodeId", nodeId.Value));
-        command.Parameters.Add(new SqlParameter("@title", title));
-        command.Parameters.Add(new SqlParameter("@desc", (object?)desc ?? DBNull.Value));
-        command.Parameters.Add(new SqlParameter("@sortOrder", sortOrder));
+        command.Parameters.Add(new SqlParameter("@nodeId", seed.NodeId.Value));
+        command.Parameters.Add(new SqlParameter("@parentNodeId", (object?)seed.ParentNodeId?.Value ?? DBNull.Value));
+        command.Parameters.Add(new SqlParameter("@title", seed.Title));
+        command.Parameters.Add(new SqlParameter("@desc", (object?)seed.Description ?? DBNull.Value));
+        command.Parameters.Add(new SqlParameter("@sortOrder", seed.SortOrder));
         await command.ExecuteNonQueryAsync();
     }
 

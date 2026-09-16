@@ -12,4 +12,5 @@ public sealed record NavigationRepositories(
     IHierarchyRepository Hierarchy,
     IRoleRepository Roles,
     IContentRepository Contents,
-    IDependencyRepository Dependencies);
+    IDependencyRepository Dependencies,
+    IWorkingSnapshotReadRepository? WorkingSnapshots = null);

@@ -14,6 +14,7 @@ internal sealed class SqlSnapshotRepository : SqlRepository, ISnapshotRepository
     private const string SelectColumns = """
         SELECT SnapshotId, BaseSnapshotId, State, CreatedAtUtc, CommittedAtUtc
         FROM dbo.KnowHowToAI_Snapshot
+
         """;
 
     private const string FindSql = SelectColumns + "WHERE SnapshotId = @snapshotId;";

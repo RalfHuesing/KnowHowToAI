@@ -48,6 +48,8 @@ internal sealed class NavigationTestHarness
     public void SetTransaction(KnowledgeTransaction transaction)
     {
         _transactions[transaction.TransactionId] = transaction;
+        _snapshots.RemoveAll(s => s.SnapshotId == transaction.WorkingSnapshotId);
+        _snapshots.Add(new Snapshot(transaction.WorkingSnapshotId, transaction.BaseSnapshotId, SnapshotState.Working, transaction.CreatedAtUtc, null));
         EnsureDefaultRole(transaction.WorkingSnapshotId);
     }
 
@@ -96,7 +98,8 @@ internal sealed class NavigationTestHarness
             new HierarchyRepoFake(_nodes),
             new RoleRepoFake(_roles, _resolutions),
             new ContentRepoFake(_contents),
-            new DependencyRepoFake(_dependencies)),
+            new DependencyRepoFake(_dependencies),
+            new WorkingSnapshotReadRepoFake(this)),
         new RetrievalPolicy
         {
             DefaultPageSize = defaultPageSize,
@@ -157,5 +160,55 @@ internal sealed class NavigationTestHarness
     {
         public Task<IReadOnlyList<ContentDependency>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<ContentDependency>>(dependencies.Where(dependency => dependency.SnapshotId == snapshotId).ToArray());
+    }
+
+    private sealed class WorkingSnapshotReadRepoFake(NavigationTestHarness harness)
+        : IWorkingSnapshotReadRepository
+    {
+        public Task<Result<WorkingSnapshotReadData>> ReadOpenWorkingAsync(
+            TransactionId transactionId,
+            CancellationToken cancellationToken = default)
+        {
+            if (!harness._transactions.TryGetValue(transactionId, out var transaction))
+            {
+                return Task.FromResult(Result<WorkingSnapshotReadData>.Failure(new DomainError(
+                    ReadContextErrorCodes.TransactionNotFound,
+                    "Die angefragte Transaction existiert nicht.",
+                    new Dictionary<string, string> { [NavigationErrorCodes.TransactionIdDetail] = transactionId.ToString() })));
+            }
+
+            if (transaction.State != TransactionState.Open)
+            {
+                return Task.FromResult(Result<WorkingSnapshotReadData>.Failure(new DomainError(
+                    ReadContextErrorCodes.TransactionClosed,
+                    "Die angefragte Transaction ist nicht offen.",
+                    new Dictionary<string, string> { [NavigationErrorCodes.TransactionIdDetail] = transactionId.ToString() })));
+            }
+
+            var snapshot = harness._snapshots.FirstOrDefault(s => s.SnapshotId == transaction.WorkingSnapshotId);
+            if (snapshot is null || snapshot.State != SnapshotState.Working)
+            {
+                return Task.FromResult(Result<WorkingSnapshotReadData>.Failure(new DomainError(
+                    TransactionValidationErrorCodes.WorkingSnapshotNotOpen,
+                    "Der Working Snapshot der Transaction ist nicht bearbeitbar.",
+                    new Dictionary<string, string> { [NavigationErrorCodes.TransactionIdDetail] = transactionId.ToString() })));
+            }
+
+            var snapshotId = transaction.WorkingSnapshotId;
+            var snapNodes = harness._nodes.Where(n => n.SnapshotId == snapshotId).ToList();
+            var snapRoles = harness._roles.Where(r => r.SnapshotId == snapshotId).ToList();
+            var snapRes = harness._resolutions.Where(r => r.SnapshotId == snapshotId).ToList();
+            var snapCont = harness._contents.Where(c => c.SnapshotId == snapshotId).ToList();
+            var snapDep = harness._dependencies.Where(d => d.SnapshotId == snapshotId).ToList();
+
+            return Task.FromResult(Result<WorkingSnapshotReadData>.Success(new WorkingSnapshotReadData(
+                transaction,
+                transaction.ChangeVersion,
+                snapNodes,
+                snapRoles,
+                snapRes,
+                snapCont,
+                snapDep)));
+        }
     }
 }

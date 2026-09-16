@@ -67,7 +67,7 @@ public sealed class SqlRoleMutationRepositoryTests
 
         var roleRepository = new SqlRoleRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var baseRole = Assert.Single(await roleRepository.ListBySnapshotAsync(transaction.BaseSnapshotId));
-        Assert.Null(baseRole.Description);
+        Assert.Equal("Allgemeine, rollenunabhängige Standardinhalte", baseRole.Description);
 
         var workingRole = Assert.Single(await roleRepository.ListBySnapshotAsync(transaction.WorkingSnapshotId));
         Assert.Equal("Aktualisiert", workingRole.Description);

@@ -12,4 +12,5 @@ public sealed record SearchRequest(
     RoleId? RoleId,
     int Limit,
     string? Cursor,
-    int SnippetMaxChars);
+    int SnippetMaxChars,
+    TransactionId? TransactionId = null);

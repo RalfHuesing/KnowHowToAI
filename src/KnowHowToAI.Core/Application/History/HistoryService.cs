@@ -100,27 +100,71 @@ public sealed class HistoryService
 
         var baseSnapshotId = transaction.BaseSnapshotId;
         var targetSnapshotId = transaction.WorkingSnapshotId;
+        var effectiveLimit = ResolvePageSize(limit);
 
-        var expectedChangeVersion = transaction.State == TransactionState.Open ? transaction.ChangeVersion : (long?)null;
-        var (offset, cursorError) = ValidateCursor(cursor, baseSnapshotId, targetSnapshotId, expectedChangeVersion);
+        if (transaction.State == TransactionState.Open && _repos.WorkingSnapshots is not null)
+        {
+            return await ComputeWorkingTransactionChangesAsync(
+                transactionId,
+                effectiveLimit,
+                cursor,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        var expectedCommittedChangeVersion = transaction.State == TransactionState.Open ? transaction.ChangeVersion : (long?)null;
+        var (offset, cursorError) = ValidateCursor(cursor, baseSnapshotId, targetSnapshotId, expectedCommittedChangeVersion);
         if (cursorError is not null)
             return Result<TransactionDiff>.Failure(cursorError);
 
-        var effectiveLimit = ResolvePageSize(limit);
-
-        var baseData = await LoadSnapshotDataAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
-        var targetData = await LoadSnapshotDataAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
+        var normalBaseData = await LoadSnapshotDataAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
+        var normalTargetData = await LoadSnapshotDataAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
 
         var diff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
             baseSnapshotId,
             targetSnapshotId,
+            normalBaseData,
+            normalTargetData,
+            effectiveLimit,
+            offset,
+            expectedCommittedChangeVersion));
+
+        return Result<TransactionDiff>.Success(new TransactionDiff(transaction, diff));
+    }
+
+    private async Task<Result<TransactionDiff>> ComputeWorkingTransactionChangesAsync(
+        TransactionId transactionId,
+        int effectiveLimit,
+        string? cursor,
+        CancellationToken cancellationToken)
+    {
+        var workingResult = await _repos.WorkingSnapshots!.ReadOpenWorkingAsync(transactionId, cancellationToken).ConfigureAwait(false);
+        if (!workingResult.IsSuccess)
+            return Result<TransactionDiff>.Failure(workingResult.Error!);
+
+        var workingData = workingResult.Value!;
+        var expectedChangeVersion = workingData.ChangeVersion;
+        var (workingOffset, workingCursorError) = ValidateCursor(cursor, workingData.Transaction.BaseSnapshotId, workingData.Transaction.WorkingSnapshotId, expectedChangeVersion);
+        if (workingCursorError is not null)
+            return Result<TransactionDiff>.Failure(workingCursorError);
+
+        var baseData = await LoadSnapshotDataAsync(workingData.Transaction.BaseSnapshotId, cancellationToken).ConfigureAwait(false);
+        var targetData = new SnapshotData(
+            workingData.Nodes,
+            workingData.Roles,
+            workingData.RoleResolutions,
+            workingData.Contents,
+            workingData.Dependencies);
+
+        var workingDiff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
+            workingData.Transaction.BaseSnapshotId,
+            workingData.Transaction.WorkingSnapshotId,
             baseData,
             targetData,
             effectiveLimit,
-            offset,
+            workingOffset,
             expectedChangeVersion));
 
-        return Result<TransactionDiff>.Success(new TransactionDiff(transaction, diff));
+        return Result<TransactionDiff>.Success(new TransactionDiff(workingData.Transaction, workingDiff));
     }
 
     private async Task<Result<Snapshot>> ValidateCommittedSnapshotAsync(

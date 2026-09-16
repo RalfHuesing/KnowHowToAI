@@ -118,7 +118,7 @@ internal abstract class SqlRepository
                 guard.ChangeVersion);
     }
 
-    private static void ValidateWorkingSnapshotMutationGuard(
+    protected static void ValidateWorkingSnapshotMutationGuard(
         WorkingSnapshotGuard? guard,
         TransactionId transactionId)
     {

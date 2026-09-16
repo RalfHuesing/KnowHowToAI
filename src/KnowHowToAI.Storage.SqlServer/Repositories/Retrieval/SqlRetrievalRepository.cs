@@ -7,6 +7,7 @@ using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
+using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.Storage.SqlServer.Repositories.Retrieval;
 
@@ -110,20 +111,26 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         WHERE SnapshotId = @snapshotId;
         """;
 
-    public SqlRetrievalRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
+    private readonly Func<CancellationToken, Task>? _afterGuardReadForTestAsync;
+
+    public SqlRetrievalRepository(
+        SqlConnectionFactory connectionFactory,
+        SqlStoragePolicy storagePolicy,
+        Func<CancellationToken, Task>? afterGuardReadForTestAsync = null)
         : base(connectionFactory, storagePolicy)
     {
+        _afterGuardReadForTestAsync = afterGuardReadForTestAsync;
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<SearchHit>> SearchAsync(
+    public async Task<SearchRepositoryResult> SearchAsync(
         SearchRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         if (string.IsNullOrWhiteSpace(request.Text))
-            return Array.Empty<SearchHit>();
+            return new SearchRepositoryResult(Array.Empty<SearchHit>());
 
         var cursor = SearchCursor.TryDecode(request.Cursor);
         var escapedText = LikeEscaping.Escape(request.Text);
@@ -140,28 +147,65 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         };
 
         await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
-        var rows = (await connection.QueryAsync<SearchHitRow>(
-            CreateCommand(SearchSql, parameters, cancellationToken)).ConfigureAwait(false)).ToArray();
+        await using var databaseTransaction = (Microsoft.Data.SqlClient.SqlTransaction)await connection
+            .BeginTransactionAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        if (rows.Length == 0)
-            return Array.Empty<SearchHit>();
-
-        var derivedHitsExist = rows.Any(r => string.Equals(r.ContentMode, SqlPersistedValues.ContentDerived, StringComparison.Ordinal));
-        IReadOnlyList<NodeContent>? allContents = null;
-        IReadOnlyList<ContentDependency>? allDependencies = null;
-
-        if (derivedHitsExist)
+        try
         {
-            var contentRows = await connection.QueryAsync<NodeContentRow>(
-                CreateCommand(ListContentsSql, new { snapshotId = request.SnapshotId.Value }, cancellationToken)).ConfigureAwait(false);
-            allContents = contentRows.Select(SqlRowMapper.ToNodeContent).ToArray();
+            long? changeVersion = null;
+            if (request.TransactionId is { } transactionId)
+            {
+                var guard = await ReadWorkingSnapshotGuardAsync(connection, databaseTransaction, transactionId, cancellationToken)
+                    .ConfigureAwait(false);
+                ValidateWorkingSnapshotMutationGuard(guard, transactionId);
+                changeVersion = guard!.ChangeVersion;
 
-            var depRows = await connection.QueryAsync<ContentDependencyRow>(
-                CreateCommand(ListDependenciesSql, new { snapshotId = request.SnapshotId.Value }, cancellationToken)).ConfigureAwait(false);
-            allDependencies = depRows.Select(SqlRowMapper.ToContentDependency).ToArray();
+                if (_afterGuardReadForTestAsync is not null)
+                    await _afterGuardReadForTestAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            var rows = (await connection.QueryAsync<SearchHitRow>(
+                CreateCommand(SearchSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false)).ToArray();
+
+            if (rows.Length == 0)
+            {
+                await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return new SearchRepositoryResult(Array.Empty<SearchHit>(), changeVersion);
+            }
+
+            var derivedHitsExist = rows.Any(r => string.Equals(r.ContentMode, SqlPersistedValues.ContentDerived, StringComparison.Ordinal));
+            var (allContents, allDependencies) = derivedHitsExist
+                ? await LoadDerivedContentsAndDependenciesAsync(connection, databaseTransaction, request.SnapshotId.Value, cancellationToken).ConfigureAwait(false)
+                : (null, null);
+
+            await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+            var hits = rows.Select(r => MapRowToSearchHit(r, request, allContents, allDependencies)).ToArray();
+            return new SearchRepositoryResult(hits, changeVersion);
         }
+        catch
+        {
+            await databaseTransaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
+    }
 
-        return rows.Select(r => MapRowToSearchHit(r, request, allContents, allDependencies)).ToArray();
+    private async Task<(IReadOnlyList<NodeContent> Contents, IReadOnlyList<ContentDependency> Dependencies)> LoadDerivedContentsAndDependenciesAsync(
+        SqlConnection connection,
+        Microsoft.Data.SqlClient.SqlTransaction databaseTransaction,
+        long snapshotId,
+        CancellationToken cancellationToken)
+    {
+        var contentRows = await connection.QueryAsync<NodeContentRow>(
+            CreateCommand(ListContentsSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
+        var contents = contentRows.Select(SqlRowMapper.ToNodeContent).ToArray();
+
+        var depRows = await connection.QueryAsync<ContentDependencyRow>(
+            CreateCommand(ListDependenciesSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
+        var dependencies = depRows.Select(SqlRowMapper.ToContentDependency).ToArray();
+
+        return (contents, dependencies);
     }
 
     private static SearchHit MapRowToSearchHit(

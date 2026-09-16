@@ -38,12 +38,11 @@ public sealed class MarkdownExportService
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var contextResult = await ResolveContextAsync(context, cancellationToken).ConfigureAwait(false);
-        if (!contextResult.IsSuccess)
-            return Result<string>.Failure(contextResult.Error!);
+        var dataResult = await LoadExportDataAsync(context, roleId, cancellationToken).ConfigureAwait(false);
+        if (!dataResult.IsSuccess)
+            return Result<string>.Failure(dataResult.Error!);
 
-        var resolvedContext = contextResult.Value!;
-        var data = await LoadExportDataAsync(resolvedContext, roleId, cancellationToken).ConfigureAwait(false);
+        var data = dataResult.Value!;
         var rootNode = data.Nodes.FirstOrDefault(node => node.NodeId == rootNodeId);
         if (rootNode is null)
             return Result<string>.Failure(new DomainError(
@@ -90,32 +89,98 @@ public sealed class MarkdownExportService
         public bool HasStaleContent { get; set; }
     }
 
-    private async Task<ExportSnapshotData> LoadExportDataAsync(
-        ResolvedReadContext context,
+    private async Task<Result<ExportSnapshotData>> LoadExportDataAsync(
+        ReadContext context,
         RoleId roleId,
         CancellationToken cancellationToken)
     {
-        var snapshotId = context.SnapshotId;
-        var nodes = ActiveReadFilter.Apply(
-            await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
-            context);
-        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var contents = ActiveReadFilter.Apply(
-            await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
-            context);
-        var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        if (context.TransactionId is { } transactionId && context.SnapshotId is { } requestedSnapshotId)
+        {
+            return Result<ExportSnapshotData>.Failure(new DomainError(
+                ReadContextErrorCodes.InvalidReadContext,
+                "Ein Read-Kontext darf nicht gleichzeitig eine Transaction und einen Snapshot selektieren.",
+                new Dictionary<string, string>
+                {
+                    ["transactionId"] = transactionId.ToString(),
+                    ["snapshotId"] = requestedSnapshotId.ToString()
+                }));
+        }
+
+        if (context.TransactionId is { } workingTransactionId && _repos.WorkingSnapshots is not null)
+        {
+            return await LoadWorkingExportDataAsync(
+                workingTransactionId,
+                context.IncludeDeleted,
+                roleId,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        var contextResult = await ResolveContextAsync(context, cancellationToken).ConfigureAwait(false);
+        if (!contextResult.IsSuccess)
+            return Result<ExportSnapshotData>.Failure(contextResult.Error!);
+
+        return await LoadCommittedExportDataAsync(contextResult.Value!, roleId, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<Result<ExportSnapshotData>> LoadWorkingExportDataAsync(
+        TransactionId workingTransactionId,
+        bool includeDeleted,
+        RoleId roleId,
+        CancellationToken cancellationToken)
+    {
+        var workingResult = await _repos.WorkingSnapshots!.ReadOpenWorkingAsync(workingTransactionId, cancellationToken).ConfigureAwait(false);
+        if (!workingResult.IsSuccess)
+            return Result<ExportSnapshotData>.Failure(workingResult.Error!);
+
+        var workingData = workingResult.Value!;
+        var resolvedContext = new ResolvedReadContext(
+            workingData.Transaction.WorkingSnapshotId,
+            ReadContextSource.Transaction,
+            workingTransactionId,
+            includeDeleted,
+            workingData.ChangeVersion);
+
+        var nodes = ActiveReadFilter.Apply(workingData.Nodes, resolvedContext);
+        var contents = ActiveReadFilter.Apply(workingData.Contents, resolvedContext);
         var childrenByParent = nodes.Where(node => node.ParentNodeId.HasValue).ToLookup(node => node.ParentNodeId!.Value);
 
-        return new ExportSnapshotData(
-            snapshotId,
+        return Result<ExportSnapshotData>.Success(new ExportSnapshotData(
+            workingData.Transaction.WorkingSnapshotId,
             roleId,
             nodes,
+            workingData.Roles,
+            workingData.RoleResolutions,
+            contents,
+            workingData.Dependencies,
+            childrenByParent));
+    }
+
+    private async Task<Result<ExportSnapshotData>> LoadCommittedExportDataAsync(
+        ResolvedReadContext normalContext,
+        RoleId roleId,
+        CancellationToken cancellationToken)
+    {
+        var snapshotId = normalContext.SnapshotId;
+        var normalNodes = ActiveReadFilter.Apply(
+            await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
+            normalContext);
+        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var normalContents = ActiveReadFilter.Apply(
+            await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
+            normalContext);
+        var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var normalChildrenByParent = normalNodes.Where(node => node.ParentNodeId.HasValue).ToLookup(node => node.ParentNodeId!.Value);
+
+        return Result<ExportSnapshotData>.Success(new ExportSnapshotData(
+            snapshotId,
+            roleId,
+            normalNodes,
             roles,
             resolutions,
-            contents,
+            normalContents,
             dependencies,
-            childrenByParent);
+            normalChildrenByParent));
     }
 
     private static Result<bool> BuildExportContexts(
