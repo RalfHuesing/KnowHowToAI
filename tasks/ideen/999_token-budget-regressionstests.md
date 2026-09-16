@@ -1,7 +1,7 @@
 # Idee: Token-Budget-Regressionstests
 
-**Status:** Idee, kein Entschluss. Quer zu `mcp-markdown-output-renderer.md`,
-`mcp-handle-alias-ids.md` und `token-basierte-groessenmetriken.md` — macht
+**Status:** Idee, kein Entschluss. Quer zu `999_mcp-markdown-output-renderer.md`,
+`999_mcp-handle-alias-ids.md` und `999_token-basierte-groessenmetriken.md` — macht
 deren Nutzen messbar statt diskutabel.
 
 ## Ausgangslage
@@ -23,7 +23,7 @@ Tool-Kommunikation** (Requests + Responses) wird gezählt und gegen ein
 Budget asserted.
 
 - Zähler: Zeichen oder geschätzte Tokens (einheitlich, schätzbasiert —
-  siehe `token-basierte-groessenmetriken.md`; wichtig ist Konsistenz
+  siehe `999_token-basierte-groessenmetriken.md`; wichtig ist Konsistenz
   zwischen Runs, nicht Absolute-Wahrheit).
 - Budget pro Workflow als Test-Assertion → Token-Effizienz wird zur
   Engineerings-Metrik mit Regressionsschutz: Jede Vertrags- oder

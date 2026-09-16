@@ -1,7 +1,7 @@
 # Idee: Token-basierte Größenmetriken statt/neben Bytes
 
-**Status:** Idee, kein Entschluss. Verwandt mit `mcp-markdown-output-renderer.md`
-und `mcp-handle-alias-ids.md` — alles Aspekte von Token-Budget-Management an
+**Status:** Idee, kein Entschluss. Verwandt mit `999_mcp-markdown-output-renderer.md`
+und `999_mcp-handle-alias-ids.md` — alles Aspekte von Token-Budget-Management an
 der MCP-Kante.
 
 ## Ausgangslage

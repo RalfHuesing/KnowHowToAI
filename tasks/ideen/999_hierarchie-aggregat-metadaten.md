@@ -1,7 +1,7 @@
 # Idee: Hierarchie-Aggregat-Metadaten für Navigation
 
 **Status:** Idee, kein Entschluss. Erweitert Konzept Abschnitt 51
-(Navigation-Metadaten); verwandt mit `token-basierte-groessenmetriken.md`
+(Navigation-Metadaten); verwandt mit `999_token-basierte-groessenmetriken.md`
 (`estimatedTokens`-Feld als Teilmenge dieser Idee).
 
 ## Ausgangslage
@@ -25,7 +25,7 @@ Fan-outs einschätzen kann, *ohne* sie zu durchblättern:
 - `childCount` (direkte Kinder),
 - `subtreeSize` bzw. Größenklasse des Teilbaums,
 - optional Summe/Größenklassen der Contents im Teilbaum
-  (Konsistenz mit `token-basierte-groessenmetriken.md`),
+  (Konsistenz mit `999_token-basierte-groessenmetriken.md`),
 - optional charakteristische Stichworte/Top-Begriffe des Teilbaums (als
   spätere Ausbaustufe).
 

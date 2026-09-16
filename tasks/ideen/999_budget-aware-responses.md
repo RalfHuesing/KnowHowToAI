@@ -1,7 +1,7 @@
 # Idee: Budget-aware Responses (`maxTokens` als universeller Selektor)
 
 **Status:** Idee, kein Entschluss. Verwandt mit
-`section-adressierter-content-abruf.md` (Section-Abruf ist die feinere,
+`999_section-adressierter-content-abruf.md` (Section-Abruf ist die feinere,
 dies die generische Variante).
 
 ## Ausgangslage
@@ -31,13 +31,13 @@ plus Cursor/Continue-Hinweis für den Rest.
 - Garantierte Obergrenze pro Tool-Response — Token-Effizienz wird vom
   Agenten-Verhalten entkoppelt (träge Agenten profitieren gratis).
 - Vollständige Kontrollierbarkeit des Kontext-Budgets auf Server-Seite;
-  Komplement zu `token-basierte-groessenmetriken.md` (Metadaten vor dem
-  Abruf) und `section-adressierter-content-abruf.md` (gezielter Abruf).
+  Komplement zu `999_token-basierte-groessenmetriken.md` (Metadaten vor dem
+  Abruf) und `999_section-adressierter-content-abruf.md` (gezielter Abruf).
 
 ## Offene Fragen / Risiken
 
 - **Einheit:** Tokens (schätzbasiert, siehe
-  `token-basierte-groessenmetriken.md`) oder Zeichen (deterministisch)?
+  `999_token-basierte-groessenmetriken.md`) oder Zeichen (deterministisch)?
   Empfehlung aus jener Diskussion: deterministische Einheit, ggf. aus
   Token-Ziel abgeleitet.
 - **Vertragsänderung:** Neues optionales Feld an allen Read-Tools + Regeln

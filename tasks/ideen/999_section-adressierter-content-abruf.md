@@ -1,7 +1,7 @@
 # Idee: Section-adressierter Content-Abruf
 
-**Status:** Idee, kein Entschluss. Verwandt mit `budget-aware-responses.md` und
-`token-basierte-groessenmetriken.md` (dieselbe Zielrichtung: Agent liest nur,
+**Status:** Idee, kein Entschluss. Verwandt mit `999_budget-aware-responses.md` und
+`999_token-basierte-groessenmetriken.md` (dieselbe Zielrichtung: Agent liest nur,
 was er braucht).
 
 ## Ausgangslage

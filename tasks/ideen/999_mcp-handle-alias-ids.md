@@ -1,7 +1,7 @@
 # Idee: Handle-Alias-IDs an der MCP-Kante (GUID bleibt kanonisch)
 
 **Status:** Idee, kein Entschluss. Ergänzt / überschneidet sich mit
-`mcp-markdown-output-renderer.md` — beide leben als Präsentationsschicht
+`999_mcp-markdown-output-renderer.md` — beide leben als Präsentationsschicht
 an der MCP-Kante.
 
 ## Ausgangslage
