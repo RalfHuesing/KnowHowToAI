@@ -32,15 +32,6 @@ public sealed class SearchService
         _retrievalPolicy = retrievalPolicy;
     }
 
-    public SearchService(
-        ISnapshotRepository snapshotRepository,
-        ITransactionRepository transactionRepository,
-        IRetrievalRepository retrievalRepository,
-        RetrievalPolicy retrievalPolicy)
-        : this(new SearchRepositories(snapshotRepository, transactionRepository, retrievalRepository), retrievalPolicy)
-    {
-    }
-
     /// <summary>
     /// Sucht nach Nodes, die <paramref name="query"/> im Titel, in der Description
     /// oder in aktivem auflösbarem Content enthalten.

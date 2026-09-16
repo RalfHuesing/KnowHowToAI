@@ -194,9 +194,10 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
         CreateRetrievalPolicy());
 
     private static SearchService CreateSearchService(SqlTestDatabase database, IRetrievalRepository? retrieval = null) => new(
-        new SqlSnapshotRepository(database.ConnectionFactory, Policy),
-        new SqlTransactionRepository(database.ConnectionFactory, Policy),
-        retrieval ?? new SqlRetrievalRepository(database.ConnectionFactory, Policy),
+        new SearchRepositories(
+            new SqlSnapshotRepository(database.ConnectionFactory, Policy),
+            new SqlTransactionRepository(database.ConnectionFactory, Policy),
+            retrieval ?? new SqlRetrievalRepository(database.ConnectionFactory, Policy)),
         CreateRetrievalPolicy());
 
     private static RetrievalPolicy CreateRetrievalPolicy() => new()

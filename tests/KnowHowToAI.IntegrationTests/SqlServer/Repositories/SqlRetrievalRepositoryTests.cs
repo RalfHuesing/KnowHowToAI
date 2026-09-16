@@ -350,9 +350,10 @@ public sealed class SqlRetrievalRepositoryTests
     }
 
     private static SearchService CreateSearchService(SqlTestDatabase database) => new(
-        new SqlSnapshotRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
-        new SqlTransactionRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
-        new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
+        new SearchRepositories(
+            new SqlSnapshotRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
+            new SqlTransactionRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
+            new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 })),
         new RetrievalPolicy
         {
             DefaultPageSize = 10,
