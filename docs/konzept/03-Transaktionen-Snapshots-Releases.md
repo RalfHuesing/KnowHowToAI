@@ -404,6 +404,23 @@ Nicht jeder Commit muss automatisch ein Release sein.
 
 Ein Release verändert den referenzierten Snapshot nicht.
 
+### Atomare Registrierung und Metadatenverwaltung (`create_release`)
+
+`create_release` registriert atomar einen unveränderlichen Namen (`Name`), optional eine Beschreibung (`Description`) und einen Verweis auf einen `SnapshotId`. Da hierbei kein versionierter Wissenszustand mutiert wird, benötigt diese Operation keine KnowHowTo-AI-Transaction.
+
+Invarianten:
+- Der Name darf nicht leer oder reiner Whitespace sein (`ReleaseNameRequired`).
+- Der Name ist eindeutig über den gesamten Datenbestand (`ReleaseNameConflict`).
+- Der referenzierte Snapshot muss existieren (`SnapshotNotFound`) und den Zustand `Committed` aufweisen (`SnapshotNotCommitted`).
+
+### Deterministisches und paginiertes Listing (`list_releases`)
+
+`list_releases` liefert die registrierten Releases deterministisch sortiert nach `ReleaseId ASC`. Große Mengen werden seitenweise über einen opaken Keyset-Cursor (`ReleaseCursor`) paginiert, gesteuert über `RetrievalPolicy` (`DefaultPageSize`, `MaximumPageSize`).
+
+### Befundtransparenz ohne harte Release-Policies
+
+Ein normaler Commit und Release darf stale Derived Content oder übergroßen Content enthalten. In V1 existieren bewusst keine harten, blockierenden Release-Policies. Etwaige Qualitätsbefunde (Warnungen) des referenzierten Snapshots werden transparent als `Findings` zurückgegeben, ohne den Release-Vorgang abzubrechen.
+
 ---
 
 # 45. Historische Reproduzierbarkeit

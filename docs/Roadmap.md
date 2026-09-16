@@ -506,11 +506,11 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
     Orders, Contents und Dependencies; keine Rekonstruktion eines Operation Logs
   - [x] `get_transaction_changes` vergleicht Base und Working/Committed Snapshot
   - [x] große Diffs paginieren; Reihenfolge und Change-Arten stabil halten
-- [ ] **M5.5: Releases**
-  - [ ] `create_release` registriert atomar einen unveränderlichen Namen/Verweis auf einen
+- [x] **M5.5: Releases**
+  - [x] `create_release` registriert atomar einen unveränderlichen Namen/Verweis auf einen
     committed Snapshot; dies ist Metadatenregistrierung und keine Snapshot-Mutation
-  - [ ] `list_releases` paginiert und deterministisch sortiert
-  - [ ] normaler Commit/Release darf stale oder übergroßen Content enthalten; Befunde
+  - [x] `list_releases` paginiert und deterministisch sortiert
+  - [x] normaler Commit/Release darf stale oder übergroßen Content enthalten; Befunde
     werden transparent zurückgegeben, da komplexe Release Policies nicht V1 sind
 - [ ] **M5.6: Fast- und Integrationstests**
   - [ ] Export-Golden-Cases für leere, gefilterte, fallback- und stale Bäume

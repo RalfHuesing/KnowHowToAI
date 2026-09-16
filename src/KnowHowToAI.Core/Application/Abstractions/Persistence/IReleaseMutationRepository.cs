@@ -1,3 +1,4 @@
+using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
 
@@ -15,10 +16,7 @@ public interface IReleaseMutationRepository
     /// fehl, wenn der Name bereits vergeben ist. Der referenzierte Snapshot muss committed sein.
     /// </summary>
     Task<Result<Release>> CreateAsync(
-        ReleaseId releaseId,
-        string name,
-        SnapshotId snapshotId,
-        DateTimeOffset createdAtUtc,
+        CreateReleaseRecord request,
         CancellationToken cancellationToken = default);
 
     /// <summary>Paginierte, deterministisch sortierte Liste aller Releases.</summary>
