@@ -653,6 +653,55 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] SQL-Integrationstests für alle fünf Diff-Kategorien, historische Reproduktion
     nach späterem Commit sowie Release-Listing über mehrere Seiten ergänzen; feste IDs
     und Zeitwerte verwenden und keine Wall-Clock- oder Zufallsabhängigkeit einführen
+- [ ] **M5.13: Gemeinsamen Snapshot-Lader für Navigation und Export schaffen**
+  - [ ] einen gemeinsamen transportneutralen Baustein (z. B. statischer Helfer
+    `SnapshotReadDataLoader`) anlegen, der für einen `ReadContext` entweder die konsistente
+    Working-Sicht (`IWorkingSnapshotReadRepository.ReadOpenWorkingAsync`) oder
+    `ReadContextReader.ResolveAsync` plus die fünf Listen-Reads (Hierarchy, Roles,
+    Resolutions, Contents, Dependencies) nutzt und einheitlich einen Kontext mit den
+    gefilterten Active-Daten (`ActiveReadFilter`) zurückgibt
+  - [ ] `NavigationService.LoadNavigationSnapshotDataAsync` sowie die Lademethoden des
+    `MarkdownExportService` (`LoadExportDataAsync`, `LoadWorkingExportDataAsync`,
+    `LoadCommittedExportDataAsync`) vollständig durch diesen Baustein ersetzen; den inline
+    duplizierten `InvalidReadContext`-Check entfernen, weil `ReadContextResolver` ihn
+    bereits liefert
+  - [ ] die identischen Records `NavigationRepositories` und `HistoryRepositories` für
+    den neuen Baustein zusammenführen oder den Baustein direkt mit den Einzelports
+    parametrisieren; alle Konstruktionstellen vorher per Suche (`rg "NavigationRepositories("`
+    und `rg "HistoryRepositories("`) finden und anpassen; keine weiteren Kopien des Records anlegen
+  - [ ] Fehlercodes, Prüfungsreihenfolge, Freshness- und Paging-Ergebnisse dürfen sich nicht
+    ändern; bestehende Fast- und Integrationstests bleiben ohne fachliche Anpassung grün
+- [ ] **M5.14: Current-Snapshot-Read nur bei Current-Kontexten laden**
+  - [ ] `ReadContextReader.ResolveAsync` so ändern, dass `GetCurrentAsync` ausschließlich
+    aufgerufen wird, wenn `context.TransactionId` und `context.SnapshotId` beide `null`
+    sind; in den anderen Fällen `ReadContextCandidates.CurrentSnapshotId` mit einem neutralen
+    Platzhalter befüllen, den `ReadContextResolver` nur im Current-Zweig liest
+  - [ ] mit einem FastTest belegen, dass Transaction- und Snapshot-Reads ohne
+    Current-Abruf funktionieren und Current-Reads unverändert bleiben
+- [ ] **M5.15: Freshness-Ladekosten der Search messen und nur bei Engpass begrenzen**
+  - [ ] `SqlSearchAbnahmeTests` um eine Messvariante mit Derived-Content-Treffern ergänzen,
+    die die kompletten Kosten von `SqlRetrievalRepository.SearchAsync` einschließlich des
+    Ladens aller Contents und Dependencies (Freshness-Bewertung) erfasst; Messwerte unter
+    `docs/Search-Abnahme.md` dokumentieren
+  - [ ] nur bei belegtem Engpass die geladenen Contents/Dependencies auf die für die
+    transitive Freshness der Trefferseite benötigte Teilmenge begrenzen und Vorher-/Nachher-
+    Messwerte dokumentieren; ohne Engpass die Entscheidung explizit festhalten
+- [ ] **M5.16: Kosten des seitenweisen Diff-Blätterns messen**
+  - [ ] in `SqlDiffReleaseAbnahmeTests` einen Diff über die volle M5.12-Datenmenge
+    (mehrere hundert Einträge) vollständig seitenweise durchblättern und dabei gelesene
+    Zeilen und Laufzeit pro Seite messen, weil `HistoryService` pro Cursor-Seite beide
+    Snapshots vollständig lädt und den Diff neu berechnet
+  - [ ] nur bei belegtem Engpass optimieren (z. B. Kategorie-Offsets im `DiffCursor`
+    fortführen), sonst die Messung als V1-adequat dokumentieren; Ergebnis unter `docs/`
+    festhalten
+- [ ] **M5.17: Direktes SQL-Seeding gegen committed Snapshots in Repo-Tests entfernen**
+  - [ ] `SqlRetrievalRepositoryTests` von direkten INSERTs in den committed Current
+    Snapshot (`GetCurrentSnapshotIdAsync` plus `InsertNodeAsync`/`InsertRoleAsync`/
+    `InsertContentAsync`) auf Seeding über offene Working Transactions und
+    `commit_transaction` umstellen, wie es `TestSupport/WorkingTransactionSession` bereits
+    bereitstellt
+  - [ ] vorhandene Seeding-Helfer wiederverwenden statt sie zu duplizieren; Suchsemantik,
+    Treffer-Reihenfolge und Fehlercodes der Tests bleiben unverändert
 
 **Abnahme:** Kein Listen-/Such-/Diff-Tool liefert unkontrolliert den Gesamtbestand;
 Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgabe.

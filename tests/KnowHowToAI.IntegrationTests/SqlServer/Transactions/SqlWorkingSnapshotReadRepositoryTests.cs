@@ -156,7 +156,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
         Assert.False(mutationRepo.GuardAcquired.IsCompleted);
 
         allowReads.SetResult();
-        var searchResult = await searchTask;
+        var searchResult = (await searchTask).Value!;
         var mutationResult = await mutationTask;
 
         Assert.Single(searchResult);
@@ -166,7 +166,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
 
         var postMutationRequest = new SearchRequest(
             transaction.WorkingSnapshotId, "Quellinhalt nach Mutation", new RoleId("Default"), 10, null, 100, transaction.TransactionId);
-        var repeatedResult = await new SqlRetrievalRepository(database.ConnectionFactory, Policy).SearchAsync(postMutationRequest);
+        var repeatedResult = (await new SqlRetrievalRepository(database.ConnectionFactory, Policy).SearchAsync(postMutationRequest)).Value!;
         Assert.Single(repeatedResult);
         Assert.Equal(1, repeatedResult.ChangeVersion);
     }

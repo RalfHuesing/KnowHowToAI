@@ -142,8 +142,8 @@ public sealed partial class SqlSearchAbnahmeTests
         string? cursor = null;
         do
         {
-            var page = await repository.SearchAsync(
-                new SearchRequest(snapshotId, text, roleId, pageSize, cursor, 100)).ConfigureAwait(false);
+            var page = (await repository.SearchAsync(
+                new SearchRequest(snapshotId, text, roleId, pageSize, cursor, 100)).ConfigureAwait(false)).Value!;
             if (page.Count == 0)
                 break;
 
@@ -162,8 +162,8 @@ public sealed partial class SqlSearchAbnahmeTests
         SnapshotId snapshotId,
         SqlRetrievalRepository repository)
     {
-        var ersteSeite = await repository.SearchAsync(
-            new SearchRequest(snapshotId, "Ablauf", RoleEntwickler, 25, null, 100)).ConfigureAwait(false);
+        var ersteSeite = (await repository.SearchAsync(
+            new SearchRequest(snapshotId, "Ablauf", RoleEntwickler, 25, null, 100)).ConfigureAwait(false)).Value!;
         var letzterTreffer = ersteSeite[^1];
 
         return new List<SearchQueryMeasurement>

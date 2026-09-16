@@ -1,6 +1,7 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Retrieval.Search;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.IntegrationTests.TestSupport;
@@ -33,7 +34,7 @@ public sealed class SqlRetrievalRepositoryTests
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var request = new SearchRequest(snapshotId, "Installation", null, 10, null, 100);
 
-        var hits = await repository.SearchAsync(request);
+        var hits = (await repository.SearchAsync(request)).Value!;
 
         var hit = Assert.Single(hits);
         Assert.Equal(nodeId, hit.NodeId);
@@ -57,7 +58,7 @@ public sealed class SqlRetrievalRepositoryTests
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var request = new SearchRequest(snapshotId, "100%", null, 10, null, 100);
 
-        var hits = await repository.SearchAsync(request);
+        var hits = (await repository.SearchAsync(request)).Value!;
 
         var hit = Assert.Single(hits);
         Assert.Equal(node1, hit.NodeId);
@@ -77,7 +78,7 @@ public sealed class SqlRetrievalRepositoryTests
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var request = new SearchRequest(snapshotId, "clustering", null, 10, null, 50);
 
-        var hits = await repository.SearchAsync(request);
+        var hits = (await repository.SearchAsync(request)).Value!;
 
         var hit = Assert.Single(hits);
         Assert.Equal(nodeId, hit.NodeId);
@@ -104,7 +105,7 @@ public sealed class SqlRetrievalRepositoryTests
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var request = new SearchRequest(snapshotId, "architectural", RoleConsultant, 10, null, 50);
 
-        var hits = await repository.SearchAsync(request);
+        var hits = (await repository.SearchAsync(request)).Value!;
 
         var hit = Assert.Single(hits);
         Assert.Equal(nodeId, hit.NodeId);
@@ -137,7 +138,7 @@ public sealed class SqlRetrievalRepositoryTests
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
 
         // Page 1: limit 2
-        var page1 = await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", RoleDev, 2, null, 100));
+        var page1 = (await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", RoleDev, 2, null, 100))).Value!;
         Assert.Equal(2, page1.Count);
         Assert.Equal(titleNode, page1[0].NodeId);
         Assert.Equal("Title", page1[0].HitField);
@@ -146,7 +147,7 @@ public sealed class SqlRetrievalRepositoryTests
 
         // Page 2 using cursor
         var cursor = new SearchCursor(snapshotId, null, "Alpha", RoleDev, 2, page1[1].SortOrder, page1[1].NodeId).Encode();
-        var page2 = await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", RoleDev, 2, cursor, 100));
+        var page2 = (await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", RoleDev, 2, cursor, 100))).Value!;
         var hit = Assert.Single(page2);
         Assert.Equal(contentNode, hit.NodeId);
         Assert.Equal("Content", hit.HitField);
@@ -167,7 +168,7 @@ public sealed class SqlRetrievalRepositoryTests
         await InsertContentAsync(database, snapshotId, nodeId, RoleDev, "Explicit developer content");
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
-        var result = await repository.SearchAsync(new SearchRequest(snapshotId, "developer", RoleDev, 10, null, 50));
+        var result = (await repository.SearchAsync(new SearchRequest(snapshotId, "developer", RoleDev, 10, null, 50))).Value!;
 
         var hit = Assert.Single(result);
         Assert.Equal("Content", hit.HitField);
@@ -190,15 +191,40 @@ public sealed class SqlRetrievalRepositoryTests
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
 
-        var contentOnlyResult = await repository.SearchAsync(new SearchRequest(snapshotId, "internals", null, 10, null, 50));
+        var contentOnlyResult = (await repository.SearchAsync(new SearchRequest(snapshotId, "internals", null, 10, null, 50))).Value!;
         Assert.Empty(contentOnlyResult);
 
-        var titleResult = await repository.SearchAsync(new SearchRequest(snapshotId, "Overview", null, 10, null, 50));
+        var titleResult = (await repository.SearchAsync(new SearchRequest(snapshotId, "Overview", null, 10, null, 50))).Value!;
         var hit = Assert.Single(titleResult);
         Assert.Equal("Title", hit.HitField);
         Assert.Equal(Availability.None, hit.Availability);
         Assert.Null(hit.ResolvedRoleId);
         Assert.Null(hit.Snippet);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithClosedTransaction_ReturnsStableErrorInsteadOfThrowing()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var transactionRepository = new SqlTransactionRepository(
+            database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+        var transaction = await transactionRepository.BeginAsync(new BeginTransactionRequest(
+            new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
+        var discardResult = await transactionRepository.DiscardAsync(transaction.TransactionId);
+        Assert.True(discardResult.IsSuccess);
+
+        var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+
+        var result = await repository.SearchAsync(new SearchRequest(
+            transaction.WorkingSnapshotId, "text", null, 10, null, 50, transaction.TransactionId));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(SearchErrorCodes.TransactionClosed, result.Error!.Code);
+        Assert.Equal(
+            transaction.TransactionId.ToString(),
+            result.Error.Details[SearchErrorCodes.TransactionIdDetail]);
     }
 
     [Fact]

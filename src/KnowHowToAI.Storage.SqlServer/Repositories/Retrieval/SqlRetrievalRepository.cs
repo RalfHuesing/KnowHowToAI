@@ -136,14 +136,14 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
     }
 
     /// <inheritdoc />
-    public async Task<SearchRepositoryResult> SearchAsync(
+    public async Task<Result<SearchRepositoryResult>> SearchAsync(
         SearchRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         if (string.IsNullOrWhiteSpace(request.Text))
-            return new SearchRepositoryResult(Array.Empty<SearchHit>());
+            return Result<SearchRepositoryResult>.Success(new SearchRepositoryResult(Array.Empty<SearchHit>()));
 
         var cursor = SearchCursor.TryDecode(request.Cursor);
         var escapedText = LikeEscaping.Escape(request.Text);
@@ -166,8 +166,20 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
 
         try
         {
-            return await ExecuteSearchAsync(request, parameters, connection, databaseTransaction, cancellationToken)
+            var result = await ExecuteSearchAsync(request, parameters, connection, databaseTransaction, cancellationToken)
                 .ConfigureAwait(false);
+            return Result<SearchRepositoryResult>.Success(result);
+        }
+        catch (WorkingSnapshotMutationRejectedException exception)
+        {
+            await databaseTransaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            return Result<SearchRepositoryResult>.Failure(new DomainError(
+                exception.Code,
+                exception.Message,
+                new Dictionary<string, string>
+                {
+                    [SearchErrorCodes.TransactionIdDetail] = request.TransactionId!.Value.ToString()
+                }));
         }
         catch
         {

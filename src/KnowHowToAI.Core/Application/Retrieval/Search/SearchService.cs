@@ -78,7 +78,11 @@ public sealed class SearchService
             _retrievalPolicy.SnippetMaximumCharacters,
             resolvedContext.TransactionId);
 
-        var results = await _repos.Retrieval.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+        var searchResult = await _repos.Retrieval.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!searchResult.IsSuccess)
+            return Result<SearchResultPage>.Failure(searchResult.Error!);
+
+        var results = searchResult.Value!;
         var effectiveChangeVersion = results.ChangeVersion ?? resolvedContext.ChangeVersion;
 
         var roleValidationError = ValidateRequestedRoleResolution(query, resolvedContext, results);

@@ -329,12 +329,12 @@ public sealed class SearchServiceTests
             Resolutions.Add(new RoleResolution(CurrentSnapshotId, roleId, roleId, 1));
         }
 
-        public Task<SearchRepositoryResult> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default)
+        public Task<Result<SearchRepositoryResult>> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default)
         {
             CallCount++;
             LastRequest = request;
-            return Task.FromResult(new SearchRepositoryResult(
-                ResultsToReturn, ChangeVersionToReturn, Roles, Resolutions));
+            return Task.FromResult(Result<SearchRepositoryResult>.Success(new SearchRepositoryResult(
+                ResultsToReturn, ChangeVersionToReturn, Roles, Resolutions)));
         }
     }
 
