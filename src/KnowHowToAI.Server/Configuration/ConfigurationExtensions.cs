@@ -18,6 +18,9 @@ internal static class ConfigurationExtensions
     ///   3. Environment-Variablen mit Doppelunterstrich als Trennzeichen (z.B. KnowHowToAI__Retrieval__MaximumPageSize=200)
     ///   4. Kommandozeilenargumente
     ///
+    /// Die <c>Logging</c>-Sektion steuert den Protokollkanal (stderr, optional Datei) und wird
+    /// ebenfalls hier gebunden und validiert.
+    ///
     /// Die separate <c>DatabaseConnection</c>-Sektion wird bewusst nicht hier gebunden.
     /// Sie stammt ausschließlich aus der versionierten App-Konfiguration und erhält
     /// keine alternative Connection-String-Umgebungsvariable.
@@ -38,6 +41,12 @@ internal static class ConfigurationExtensions
 
         services.AddSingleton<IValidateOptions<KnowHowToAIOptions>, KnowHowToAIOptionsValidator>();
         services.AddSingleton<IValidateOptions<DatabaseConnectionOptions>, DatabaseConnectionOptionsValidator>();
+        services.AddSingleton<IValidateOptions<LoggingOptions>, LoggingOptionsValidator>();
+
+        services
+            .AddOptions<LoggingOptions>()
+            .Bind(configuration.GetSection(LoggingOptions.SectionName))
+            .ValidateOnStart();
 
         return services;
     }

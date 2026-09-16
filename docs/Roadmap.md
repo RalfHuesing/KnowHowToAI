@@ -716,12 +716,12 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
 **Konzeptbezug:** [Transportgrenzen](konzept/01-Grundlagen-Hierarchie-Markdown.md),
 [MCP-API und Tool-Verträge](konzept/05-MCP-API.md)
 
-- [ ] **M6.1: Hosting und Konfiguration**
-  - [ ] Generic Host, DI und validierte Connection-/Validator-Konfiguration
-  - [ ] Schema-Migration gemäß `Migrations:ApplyOnStartup` kontrolliert ausführen
-  - [ ] Logs ausschließlich nach `stderr` oder Datei; `stdout` ist exklusiv MCP
-  - [ ] Secrets und vollständige Content-Payloads nicht protokollieren
-  - [ ] Shutdown, Cancellation und defektes Client-Pipe-Verhalten sauber behandeln
+- [x] **M6.1: Hosting und Konfiguration**
+  - [x] Generic Host, DI und validierte Connection-/Validator-Konfiguration
+  - [x] Schema-Migration gemäß `Migrations:ApplyOnStartup` kontrolliert ausführen
+  - [x] Logs ausschließlich nach `stderr` oder Datei; `stdout` ist exklusiv MCP
+  - [x] Secrets und vollständige Content-Payloads nicht protokollieren
+  - [x] Shutdown, Cancellation und defektes Client-Pipe-Verhalten sauber behandeln
 - [ ] **M6.2: Gemeinsamer Tool-Vertrag**
   - [ ] JSON-Feldnamen, Nullability, Limits und Beispiele vor Handlercode festlegen
   - [ ] einheitliche Success-/Error-Struktur mit `code`, `message`, `details`, `warnings`

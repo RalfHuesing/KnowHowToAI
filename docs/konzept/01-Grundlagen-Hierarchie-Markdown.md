@@ -129,6 +129,27 @@ Da eine MCP-Serverinstanz genau eine KnowHowTo-AI-Datenbank bedient, kann jede
 Wissensbasis durch eine eigene App-Konfiguration abweichende Quality-Policies nutzen,
 ohne Betriebsparameter in der Datenbank zu speichern.
 
+## 3.2 Protokollierung
+
+Der Server läuft als STDIO-Prozess. Deshalb ist `stdout` exklusiv dem MCP-Protokoll
+vorbehalten: Protokollausgaben gehen ausschließlich nach `stderr` und optional in eine
+konfigurierbare, täglich rotierende Datei. Keine Start-, SQL- oder Diagnoseausgabe darf
+`stdout` verunreinigen.
+
+Geheimnisse wie Passwörter und Verbindungszeichenfolgen sowie vollständige
+Content-Payloads werden niemals protokolliert. Sensitive Werte erreichen Protokolle
+niemals als Freitext; sie werden als strukturierte Eigenschaften mit sensitivem Namen
+übergeben und vom Protokollierungsaufbau redigiert, bevor ein Kanal schreibt.
+Fehlermeldungen aus Betriebs- und Migrationspfaden spiegeln keine Credentials.
+
+Der MCP-Transport selbst schreibt Roh-Protokollnachrichten ausschließlich auf
+Trace-Ebene; der Betriebsdefault des Protokolllevels liegt darüber.
+
+Herunterfahren, Abbruch und eine defekte Client-Pipe werden kontrolliert behandelt:
+Das Ende des Client-Eingabestroms, SIGTERM/Ctrl+C und Schreibfehler auf der Pipe
+führen zu einem geordneten Herunterfahren mit stabilem Exitcode, ohne dass eine
+unbehandelte Exception den Prozess beendet. Ein Migrationsfehler verhindert den Start.
+
 ---
 
 # 4. Transport und Systemgrenzen
