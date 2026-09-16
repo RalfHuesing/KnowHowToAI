@@ -98,26 +98,26 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         ORDER BY HitRank ASC, SortOrder ASC, NodeId ASC;
         """;
 
-    private const string ListDependenciesSql = """
+    internal const string ListDependenciesSql = """
         SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency
         WHERE SnapshotId = @snapshotId;
         """;
 
-    private const string ListContentsSql = """
+    internal const string ListContentsSql = """
         SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
         FROM dbo.KnowHowToAI_NodeContent
         WHERE SnapshotId = @snapshotId;
         """;
 
-    private const string ListRolesSql = """
+    internal const string ListRolesSql = """
         SELECT SnapshotId, RoleId, Name, Description, IsDeleted
         FROM dbo.KnowHowToAI_Role
         WHERE SnapshotId = @snapshotId
         ORDER BY RoleId;
         """;
 
-    private const string ListRoleResolutionsSql = """
+    internal const string ListRoleResolutionsSql = """
         SELECT SnapshotId, RequestedRoleId, CandidateRoleId, Priority
         FROM dbo.KnowHowToAI_RoleResolution
         WHERE SnapshotId = @snapshotId

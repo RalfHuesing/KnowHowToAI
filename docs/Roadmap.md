@@ -678,12 +678,12 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
     Platzhalter befüllen, den `ReadContextResolver` nur im Current-Zweig liest
   - [x] mit einem FastTest belegen, dass Transaction- und Snapshot-Reads ohne
     Current-Abruf funktionieren und Current-Reads unverändert bleiben
-- [ ] **M5.15: Freshness-Ladekosten der Search messen und nur bei Engpass begrenzen**
-  - [ ] `SqlSearchAbnahmeTests` um eine Messvariante mit Derived-Content-Treffern ergänzen,
+- [x] **M5.15: Freshness-Ladekosten der Search messen und nur bei Engpass begrenzen**
+  - [x] `SqlSearchAbnahmeTests` um eine Messvariante mit Derived-Content-Treffern ergänzen,
     die die kompletten Kosten von `SqlRetrievalRepository.SearchAsync` einschließlich des
     Ladens aller Contents und Dependencies (Freshness-Bewertung) erfasst; Messwerte unter
     `docs/Search-Abnahme.md` dokumentieren
-  - [ ] nur bei belegtem Engpass die geladenen Contents/Dependencies auf die für die
+  - [x] nur bei belegtem Engpass die geladenen Contents/Dependencies auf die für die
     transitive Freshness der Trefferseite benötigte Teilmenge begrenzen und Vorher-/Nachher-
     Messwerte dokumentieren; ohne Engpass die Entscheidung explizit festhalten
 - [ ] **M5.16: Kosten des seitenweisen Diff-Blätterns messen**

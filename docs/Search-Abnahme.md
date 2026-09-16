@@ -93,3 +93,66 @@ Migration mit Search-Indizes wird daher **nicht** angelegt; Vorher-Messwerte sin
 die obigen Werte, ein Nachher entfällt entsprechend. Bei deutlich größerer
 Datenmenge (z. B. Faktor 100) sollte die Messung mit derselben Testklasse wiederholt
 werden; sie gibt die Messwerte pro Lauf automatisch neu aus.
+
+## M5.15 – Freshness-Ladekosten der Search
+
+Nachweis für `docs/Roadmap.md` M5.15: eine zusätzliche Messvariante in
+`SqlSearchAbnahmeTests` (Datei `SqlSearchAbnahmeTests.Freshness.cs`, Test
+`SearchMitDerivedTreffern_KompletteFreshnessLadeKosten_NachweisInReadsUndLaufzeit`,
+Kategorie `ManualDatabaseIntegration`) erfasst die **kompletten Kosten von
+`SqlRetrievalRepository.SearchAsync` bei Derived-Content-Treffern** – also alle
+fünf Statements, die der Repository-Pfad auf einer SQL-Verbindung ausführt:
+
+1. `ListRolesSql` + `ListRoleResolutionsSql` (Rollen-/Resolution-Stand),
+2. `SearchSql` (parametrisierte Such-Query),
+3. `ListContentsSql` + `ListDependenciesSql` (volles Laden aller Contents und
+   Dependencies, sobald die Trefferseite mindestens einen Derived-Content enthält;
+   Grundlage für die transitive Freshness-Bewertung via `FreshnessEvaluator`).
+
+Gemessen wird derselbe M5.12-Datensatz (401 Nodes, 440 Contents, 20 Dependencies);
+Suchtext `Berater-Sicht` mit Rolle `Berater` liefert 20 Derived-Content-Treffer
+(`HitField = Content`, `Availability = Explicit`, `Freshness = Current`). Der Test
+weist außerdem nach, dass das Repository tatsächlich die kompletten Bestände lädt
+(440 Contents, 20 Dependencies) und berechnet die Zeilenzahl der Freshness-Teilmenge
+(20 Dependencies der Treffer + 20 unmittelbare Source-Contents = 40 Zeilen).
+STATISTICS-Ausgaben werden wie in M5.12 zweisprachig geparst; die Messwerte werden
+laufend neu nach `temp/search-abnahme-freshness-messung.json` geschrieben
+(Umgebung: SQL Server 2022, Datenbank `KnowHowToAi`).
+
+### Messergebnis (Vorher: volles Laden, Stand M5.15)
+
+| Messgröße | Wert |
+| --- | --- |
+| Trefferseite | 20 Derived-Content-Treffer (eine Seite, `@limit = 25`) |
+| Geladene Contents / Dependencies | 440 / 20 (vollständig) |
+| Freshness-Teilmenge der Trefferseite | 40 Zeilen (20 Dependencies + 20 Source-Contents) |
+| logische Reads gesamt (alle 5 Statements) | 1819 |
+| Verteilung | NodeContent 916, RoleResolution 882, Node 15, Role 4, ContentDependency 2, Worktable/Workfile 0 |
+| CPU / verstrichen pro Statement | 0 / 0 ms (< 1 ms Auflösung) |
+| Wall-Clock SQL-Batch inkl. Kompilierung | 16,0 ms |
+| Wall-Clock `SearchAsync` Ende-zu-Ende | 33,3 ms |
+
+Vergleich mit der reinen Search-Query aus M5.12 (MitRolleErsteSeite: 1795 logische
+Reads): das **volle** Laden aller 440 Contents und 20 Dependencies kostet nur
+~24 zusätzliche logische Reads (~1,3 % der Gesamtkosten) – die Contents-Tabelle
+belegt bei dieser Datenmenge ~18 Seiten, die Dependency-Tabelle 2; die Ausführung
+bleibt unter der 1-ms-Auflösung. Die Kosten werden von der Search-Query selbst
+(Rollen-Auflösung über `RoleResolution`-Index-Seek und Key-Lookups auf
+`NodeContent`) bestimmt, nicht von der Freshness-Ladung.
+
+### Entscheidung: keine Begrenzung auf die Freshness-Teilmenge
+
+Ein belegter Engpass liegt **nicht** vor: das vollständige Laden kostet bei der
+repräsentativen Datenmenge 24 logische Reads und < 1 ms Ausführung; das Laden
+skaliert linear mit dem Gesamtbestand (ein Clustered-Index-Scan pro Tabelle), die
+absoluten Werte sind aber um mehr als zwei Größenordnungen von jedem Engpass
+entfernt. Eine Begrenzung auf die für die transitive Freshness der Trefferseite
+nötige Teilmenge (hier 40 von 460 Zeilen, ~9 %) würde die Gesamtkosten der Suche
+nicht messbar senken (1819 → ~1795 logische Reads), würde aber zusätzliche
+Queries mit Hit-abhängigen `NodeId/RoleId`-Filtern erfordern und den
+Repository-Pfad für einen nicht vorhandenen Nutzen verkomplizieren. Die
+Vorher-Messwerte oben sind damit zugleich die entscheidungsrelevanten Werte; ein
+Nachher-Messwert entfällt entsprechend. Die Messung wird bei deutlich größerem
+Content-Bestand (z. B. Faktor 100: ~44 000 Contents) mit derselben Testklasse
+wiederholt – erst wenn der Full-Scan-Anteil die Search-Kosten selbst erreicht,
+ist die Teilmenge-Begrenzung zu implementieren.
