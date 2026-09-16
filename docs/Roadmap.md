@@ -639,18 +639,18 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] einen deterministischen SQL-Rennentest ergänzen, der den Snapshot-Zustand genau
     zwischen Vorprüfung und Repository-Aufruf ändert und beweist, dass kein Release-
     Datensatz angelegt wird
-- [ ] **M5.12: Search-Abfrageplan und realistische SQL-Abnahme nachweisen**
-  - [ ] eine repräsentative, dokumentierte Testgröße für Nodes, Rollenauflösungen und
+- [x] **M5.12: Search-Abfrageplan und realistische SQL-Abnahme nachgewiesen**
+  - [x] eine repräsentative, dokumentierte Testgröße für Nodes, Rollenauflösungen und
     Contents festlegen und in einer dedizierten manuell bereitgestellten Testdatenbank
     ausschließlich über Working-Transaction/Commit-Pfade erzeugen; committed Snapshots
     in Tests nicht direkt per SQL verändern
-  - [ ] für die reale parametrisierte Search-Query tatsächlichen Ausführungsplan,
+  - [x] für die reale parametrisierte Search-Query tatsächlichen Ausführungsplan,
     logische Reads und Laufzeit erfassen und das Ergebnis mit Datenmenge und SQL-Server-
     Version unter `docs/` dokumentieren
-  - [ ] nur bei belegtem Engpass eine neue additive Migration mit Search-Indizes
+  - [x] nur bei belegtem Engpass eine neue additive Migration mit Search-Indizes
     anlegen; die bereits angewendete Greenfield-Baseline nicht verändern und Vorher-/
     Nachher-Messwerte dokumentieren
-  - [ ] SQL-Integrationstests für alle fünf Diff-Kategorien, historische Reproduktion
+  - [x] SQL-Integrationstests für alle fünf Diff-Kategorien, historische Reproduktion
     nach späterem Commit sowie Release-Listing über mehrere Seiten ergänzen; feste IDs
     und Zeitwerte verwenden und keine Wall-Clock- oder Zufallsabhängigkeit einführen
 

@@ -14,7 +14,7 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Retrieval;
 
 internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalRepository
 {
-    private const string SearchSql = """
+    internal const string SearchSql = """
         WITH RoleCandidates AS (
             SELECT rr.CandidateRoleId, rr.Priority
             FROM dbo.KnowHowToAI_RoleResolution rr
