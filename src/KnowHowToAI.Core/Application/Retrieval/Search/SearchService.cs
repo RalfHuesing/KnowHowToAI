@@ -2,38 +2,42 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Retrieval.Search;
 
 /// <summary>
 /// Transportneutraler Search-Use-Case (search): Textsuche über Titel, Description und Content.
-/// V1 bietet keine semantische oder linguistisch vollständige Suche (ADR-V1-006).
-/// Die eigentliche SQL-Suche wird in M5.3 implementiert.
+/// V1 bietet eine deterministische parametrisierte Substring-Suche (ADR-V1-006)
+/// und verspricht weder semantische noch linguistische Volltextsuche.
 /// </summary>
 public sealed class SearchService
 {
-    private readonly ISnapshotRepository _snapshotRepository;
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly IRetrievalRepository _retrievalRepository;
+    private readonly SearchRepositories _repos;
     private readonly RetrievalPolicy _retrievalPolicy;
+
+    public SearchService(
+        SearchRepositories repositories,
+        RetrievalPolicy retrievalPolicy)
+    {
+        _repos = repositories ?? throw new ArgumentNullException(nameof(repositories));
+        _retrievalPolicy = retrievalPolicy ?? throw new ArgumentNullException(nameof(retrievalPolicy));
+    }
 
     public SearchService(
         ISnapshotRepository snapshotRepository,
         ITransactionRepository transactionRepository,
         IRetrievalRepository retrievalRepository,
         RetrievalPolicy retrievalPolicy)
+        : this(new SearchRepositories(snapshotRepository, transactionRepository, retrievalRepository), retrievalPolicy)
     {
-        _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
-        _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
-        _retrievalRepository = retrievalRepository ?? throw new ArgumentNullException(nameof(retrievalRepository));
-        _retrievalPolicy = retrievalPolicy ?? throw new ArgumentNullException(nameof(retrievalPolicy));
     }
 
     /// <summary>
     /// Sucht nach Nodes, die <paramref name="query"/> im Titel, in der Description
     /// oder in aktivem auflösbarem Content enthalten.
     /// </summary>
-    public Task<Result<SearchResultPage>> SearchAsync(
+    public async Task<Result<SearchResultPage>> SearchAsync(
         SearchQuery query,
         ReadContext context,
         CancellationToken cancellationToken = default)
@@ -41,7 +45,132 @@ public sealed class SearchService
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(context);
 
-        // Implementierung folgt in M5.3
-        throw new NotImplementedException("SearchAsync wird in M5.3 implementiert.");
+        if (string.IsNullOrWhiteSpace(query.Text))
+        {
+            return Result<SearchResultPage>.Success(
+                new SearchResultPage(query.Text ?? string.Empty, Array.Empty<SearchHit>(), null));
+        }
+
+        var contextResult = await ResolveContextAsync(context, cancellationToken).ConfigureAwait(false);
+        if (!contextResult.IsSuccess)
+            return Result<SearchResultPage>.Failure(contextResult.Error!);
+
+        var resolvedContext = contextResult.Value!;
+        var cursorError = ValidateCursor(query.Cursor, resolvedContext, query);
+        if (cursorError is not null)
+            return Result<SearchResultPage>.Failure(cursorError);
+
+        var effectiveLimit = query.Limit is { } limit && limit > 0
+            ? Math.Min(limit, _retrievalPolicy.SearchMaximumPageSize)
+            : _retrievalPolicy.SearchPageSize;
+
+        var request = new SearchRequest(
+            resolvedContext.SnapshotId,
+            query.Text,
+            query.RoleId,
+            effectiveLimit + 1,
+            query.Cursor,
+            _retrievalPolicy.SnippetMaximumCharacters);
+
+        var results = await _repos.Retrieval.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+        var hasNext = results.Count > effectiveLimit;
+        var pageItems = results.Take(effectiveLimit).ToArray();
+
+        var nextCursor = hasNext && pageItems.Length > 0
+            ? CreateNextCursor(pageItems[^1], resolvedContext, query)
+            : null;
+
+        return Result<SearchResultPage>.Success(
+            new SearchResultPage(query.Text, Array.AsReadOnly(pageItems), nextCursor));
     }
+
+    private async Task<Result<ResolvedReadContext>> ResolveContextAsync(
+        ReadContext context,
+        CancellationToken cancellationToken)
+    {
+        KnowledgeTransaction? transaction = null;
+        Snapshot? snapshot = null;
+        var currentSnapshot = await _repos.Snapshots.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+
+        if (context.TransactionId is { } txId)
+            transaction = await _repos.Transactions.FindAsync(txId, cancellationToken).ConfigureAwait(false);
+
+        if (context.SnapshotId is { } snapId)
+            snapshot = await _repos.Snapshots.FindAsync(snapId, cancellationToken).ConfigureAwait(false);
+
+        return ReadContextResolver.Resolve(context, new ReadContextCandidates(currentSnapshot.SnapshotId, transaction, snapshot));
+    }
+
+    private static DomainError? ValidateCursor(string? cursor, ResolvedReadContext resolvedContext, SearchQuery query)
+    {
+        if (cursor is null)
+            return null;
+
+        var parsedCursor = SearchCursor.TryDecode(cursor);
+        if (parsedCursor is null)
+        {
+            return new DomainError(
+                SearchErrorCodes.InvalidCursor,
+                "Der Cursor ist ungültig oder abgelaufen.",
+                new Dictionary<string, string> { [SearchErrorCodes.CursorDetail] = cursor });
+        }
+
+        if (parsedCursor.SnapshotId != resolvedContext.SnapshotId)
+        {
+            if (resolvedContext.Source == ReadContextSource.Current)
+            {
+                return new DomainError(
+                    SearchErrorCodes.CursorExpired,
+                    "Der Cursor ist nach einer zwischenzeitlichen Aktualisierung des aktuellen Snapshots abgelaufen.",
+                    new Dictionary<string, string> { [SearchErrorCodes.CursorDetail] = cursor });
+            }
+
+            return new DomainError(
+                SearchErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu diesem Snapshot.",
+                new Dictionary<string, string> { [SearchErrorCodes.CursorDetail] = cursor });
+        }
+
+        if (!string.Equals(parsedCursor.QueryText, query.Text, StringComparison.Ordinal) || parsedCursor.RoleId != query.RoleId)
+        {
+            return new DomainError(
+                SearchErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu dieser Suchanfrage.",
+                new Dictionary<string, string> { [SearchErrorCodes.CursorDetail] = cursor });
+        }
+
+        if (resolvedContext.ChangeVersion.HasValue || parsedCursor.ChangeVersion.HasValue)
+        {
+            if (parsedCursor.ChangeVersion != resolvedContext.ChangeVersion)
+            {
+                return new DomainError(
+                    SearchErrorCodes.CursorExpired,
+                    "Der Cursor ist nach einer zwischenzeitlichen Mutation der Transaktion abgelaufen.",
+                    new Dictionary<string, string> { [SearchErrorCodes.CursorDetail] = cursor });
+            }
+        }
+
+        return null;
+    }
+
+    private static string CreateNextCursor(SearchHit lastHit, ResolvedReadContext resolvedContext, SearchQuery query)
+    {
+        var lastRank = GetHitRank(lastHit.HitField);
+        return new SearchCursor(
+            resolvedContext.SnapshotId,
+            resolvedContext.ChangeVersion,
+            query.Text,
+            query.RoleId,
+            lastRank,
+            lastHit.SortOrder,
+            lastHit.NodeId).Encode();
+    }
+
+    private static int GetHitRank(string hitField) => hitField switch
+    {
+        "Title" => 1,
+        "Description" => 2,
+        "Content" => 3,
+        _ => 3
+    };
 }

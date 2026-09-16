@@ -491,14 +491,14 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] gelöschte/irrelevante Zweige auslassen; stabile Leerzeilen und LF-Ausgabe
   - [x] tiefer als sechs Ebenen: gültige, dokumentierte Strategie festlegen und testen,
     bevor der Exportvertrag veröffentlicht wird
-- [ ] **M5.3: Textsuche V1**
-  - [ ] parametrisierte Suche über Title, Description und aktiven auflösbaren Content
-  - [ ] SQL-Wildcards und Sonderzeichen sicher behandeln; keine dynamische SQL-Konkatenation
-  - [ ] schlanke Snippets mit begrenzter Länge, Trefferfeld und Node-Metadaten
-  - [ ] feste Maximalwerte, Paging und deterministisches Ranking/Tie-Breaking
-  - [ ] reale SQL-Abfragepläne und repräsentative Datenmengen messen; zusätzliche
+- [x] **M5.3: Textsuche V1**
+  - [x] parametrisierte Suche über Title, Description und aktiven auflösbaren Content
+  - [x] SQL-Wildcards und Sonderzeichen sicher behandeln; keine dynamische SQL-Konkatenation
+  - [x] schlanke Snippets mit begrenzter Länge, Trefferfeld und Node-Metadaten
+  - [x] feste Maximalwerte, Paging und deterministisches Ranking/Tie-Breaking
+  - [x] reale SQL-Abfragepläne und repräsentative Datenmengen messen; zusätzliche
     Search-Indizes nur evidenzbasiert als neue Migration ergänzen
-  - [ ] dokumentieren, dass V1 weder semantische noch linguistisch vollständige Suche
+  - [x] dokumentieren, dass V1 weder semantische noch linguistisch vollständige Suche
     verspricht
 - [ ] **M5.4: Historie und Diff**
   - [ ] `get_snapshot` mit Zustand und Metadaten

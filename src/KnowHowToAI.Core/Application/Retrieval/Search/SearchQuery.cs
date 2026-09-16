@@ -27,4 +27,5 @@ public sealed record SearchHit(
     string HitField,
     Availability Availability,
     RoleId? ResolvedRoleId,
-    Freshness Freshness);
+    Freshness Freshness,
+    int SortOrder = 0);

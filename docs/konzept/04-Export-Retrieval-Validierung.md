@@ -190,13 +190,38 @@ Sie soll primär:
 
 - Node-Titel,
 - Descriptions,
-- geeignete Content-Felder
+- aktiven auflösbaren Content (gemäß Rollenauflösung)
 
 durchsuchen können.
 
-Suchergebnisse sollen zunächst Metadaten und kleine Trefferkontexte liefern, nicht automatisch den vollständigen Content sämtlicher Treffer.
+Suchergebnisse liefern schlanke Metadaten und kleine Trefferkontexte (Snippets), nicht automatisch den vollständigen Content sämtlicher Treffer (Metadata-First-Prinzip).
 
-Die konkrete Suchtechnologie wird nicht unnötig vorweggenommen.
+### Deterministisches Ranking und Tie-Breaking
+
+Treffer werden deterministisch nach Relevanzfeldern priorisiert:
+
+1. **Rang 1**: Treffer im `Title` (`HitField = "Title"`, Snippet entfällt bzw. ist `null`)
+2. **Rang 2**: Treffer in `Description` (`HitField = "Description"`, Snippet aus Description)
+3. **Rang 3**: Treffer im aktiven `Content` (`HitField = "Content"`, Snippet zentriert um Treffer)
+
+Bei gleichem Rang erfolgt die Sortierung stabil nach `SortOrder` aufsteigend, danach nach `NodeId.Value` aufsteigend.
+
+### Sicherheit & SQL-Wildcard-Behandlung
+
+Alle Abfragen werden ausnahmslos parametrisiert ausgeführt; es gibt keine dynamische SQL-Konkatenation.
+Sonderzeichen der SQL-LIKE-Syntax (`%`, `_`, `[`, `\`) werden mit `ESCAPE '\'` escaped.
+
+### Snippet-Generierung
+
+Snippets besitzen eine konfigurierbare Maximallänge (`SnippetMaximumCharacters`, Standard 100 Zeichen). Der Trefferkontext wird zentriert um den Suchbegriff extrahiert, Zeilenumbrüche werden auf Leerzeichen normalisiert und Auslassungen mit `...` gekennzeichnet.
+
+### Paging & Cursor-Bindung
+
+Die Suche verwendet Keyset-Paging über opake Cursors (`SearchCursor`). Der Cursor ist an `SnapshotId`, `SearchText`, `RoleId` und bei Working Reads an `ChangeVersion` gebunden. Eine zwischenzeitliche Mutation führt stabil zur Ablehnung mit `CursorExpired`.
+
+### Bewusste V1-Grenzen (ADR-V1-006)
+
+Die V1-Textsuche ist eine exakte parametrisierte Substring-Suche. Sie verspricht weder semantische noch linguistisch vollständige Suche (kein Stemming, keine Lemmatisierung, keine Tippfehlertoleranz).
 
 V1 benötigt keine Vektordatenbank.
 
