@@ -86,6 +86,69 @@ public sealed class ReadContextResolverTests
     }
 
     [Fact]
+    public void Resolve_TransactionSelector_ClosedTransaction_ReturnsTransactionClosed()
+    {
+        var closedTransaction = new KnowledgeTransaction(
+            TransactionId,
+            CurrentSnapshotId,
+            WorkingSnapshotId,
+            TransactionState.Committed,
+            5,
+            CreatedAtUtc,
+            CreatedAtUtc,
+            null,
+            null,
+            null,
+            null);
+
+        var result = ReadContextResolver.Resolve(
+            new ReadContext(TransactionId: TransactionId),
+            Candidates(transaction: closedTransaction));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReadContextErrorCodes.TransactionClosed, result.Code);
+        Assert.Equal(TransactionId.ToString(), result.Details["transactionId"]);
+    }
+
+    [Fact]
+    public void Resolve_SnapshotSelector_NotCommittedSnapshot_ReturnsSnapshotNotCommitted()
+    {
+        var workingSnapshot = new Snapshot(HistoricalSnapshotId, null, SnapshotState.Working, CreatedAtUtc, null);
+
+        var result = ReadContextResolver.Resolve(
+            new ReadContext(SnapshotId: HistoricalSnapshotId),
+            Candidates(snapshot: workingSnapshot));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReadContextErrorCodes.SnapshotNotCommitted, result.Code);
+        Assert.Equal(HistoricalSnapshotId.ToString(), result.Details["snapshotId"]);
+    }
+
+    [Fact]
+    public void Resolve_TransactionSelector_PropagatesChangeVersion()
+    {
+        var transaction = new KnowledgeTransaction(
+            TransactionId,
+            CurrentSnapshotId,
+            WorkingSnapshotId,
+            TransactionState.Open,
+            ChangeVersion: 12,
+            CreatedAtUtc,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+        var result = ReadContextResolver.Resolve(
+            new ReadContext(TransactionId: TransactionId),
+            Candidates(transaction: transaction));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(12, result.Value!.ChangeVersion);
+    }
+
+    [Fact]
     public void ActiveReadFilter_ExcludesTombstonesUnlessExplicitlyRequested()
     {
         var activeNode = new Node(CurrentSnapshotId, new NodeId(Guid.Parse("0a77f4a2-2c43-44be-8f98-f403444d3e9f")), null, "Aktiv", null, 0, false);

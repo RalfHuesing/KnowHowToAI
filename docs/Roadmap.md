@@ -476,13 +476,13 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
 [Export, Retrieval und Validierung](konzept/04-Export-Retrieval-Validierung.md),
 [Historienmodell](konzept/06-Datenmodell-V1-Invarianten-Architektur.md)
 
-- [ ] **M5.1: Metadata-first Navigation**
-  - [ ] `get_root`, `get_node`, `list_children`, `list_roles`
-  - [ ] `list_children` liefert standardmäßig keinen Content, sondern NodeId, Titel,
+- [x] **M5.1: Metadata-first Navigation**
+  - [x] `get_root`, `get_node`, `list_children`, `list_roles`
+  - [x] `list_children` liefert standardmäßig keinen Content, sondern NodeId, Titel,
     Description, ChildCount, ContentSize, Availability, ResolvedRole und Freshness
-  - [ ] deterministische Sortierung und Cursor-/Limit-Paging; ungültige/abgelaufene
+  - [x] deterministische Sortierung und Cursor-/Limit-Paging; ungültige/abgelaufene
     Cursor mit stabilem Fehler statt stiller Ergebnisverschiebung
-  - [ ] Cursor an Snapshot, Query/Filter und bei Working Reads an `ChangeVersion`
+  - [x] Cursor an Snapshot, Query/Filter und bei Working Reads an `ChangeVersion`
     binden; nach einer Mutation mit `CursorExpired` ablehnen
 - [ ] **M5.2: Markdown-Export**
   - [ ] ausgewählter Root wird H1, Nachfahren erhalten relative Heading-Level

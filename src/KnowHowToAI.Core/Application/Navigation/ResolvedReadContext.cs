@@ -9,4 +9,5 @@ public sealed record ResolvedReadContext(
     SnapshotId SnapshotId,
     ReadContextSource Source,
     TransactionId? TransactionId,
-    bool IncludeDeleted);
+    bool IncludeDeleted,
+    long? ChangeVersion = null);

@@ -10,11 +10,10 @@ namespace KnowHowToAI.Core.Application.Navigation;
 /// Wird von NavigationService für GetRootAsync und GetNodeAsync zurückgegeben.
 /// </summary>
 public sealed record NodeWithContent(
-    Node Node,
+    Node? Node,
     RoleId RequestedRoleId,
     RoleId? ResolvedRoleId,
     Availability Availability,
     bool FallbackUsed,
     NodeContent? Content,
     Freshness Freshness);
-

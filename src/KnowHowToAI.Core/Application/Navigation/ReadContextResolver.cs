@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Navigation;
 
@@ -47,11 +48,21 @@ public static class ReadContextResolver
                     ["transactionId"] = requestedTransactionId.ToString()
                 }));
 
+        if (transaction.State != TransactionState.Open)
+            return Result<ResolvedReadContext>.Failure(new DomainError(
+                ReadContextErrorCodes.TransactionClosed,
+                "Die angefragte Transaction ist bereits geschlossen.",
+                new Dictionary<string, string>
+                {
+                    ["transactionId"] = requestedTransactionId.ToString()
+                }));
+
         return Result<ResolvedReadContext>.Success(new ResolvedReadContext(
             transaction.WorkingSnapshotId,
             ReadContextSource.Transaction,
             transaction.TransactionId,
-            context.IncludeDeleted));
+            context.IncludeDeleted,
+            transaction.ChangeVersion));
     }
 
     private static Result<ResolvedReadContext> ResolveSnapshot(
@@ -64,6 +75,15 @@ public static class ReadContextResolver
             return Result<ResolvedReadContext>.Failure(new DomainError(
                 ReadContextErrorCodes.SnapshotNotFound,
                 "Der angefragte Snapshot existiert nicht.",
+                new Dictionary<string, string>
+                {
+                    ["snapshotId"] = requestedSnapshotId.ToString()
+                }));
+
+        if (snapshot.State != SnapshotState.Committed)
+            return Result<ResolvedReadContext>.Failure(new DomainError(
+                ReadContextErrorCodes.SnapshotNotCommitted,
+                "Der angefragte Snapshot ist nicht committed.",
                 new Dictionary<string, string>
                 {
                     ["snapshotId"] = requestedSnapshotId.ToString()
