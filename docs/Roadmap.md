@@ -478,20 +478,20 @@ Use Case berührten Fachmodule
     Zustand und SQL-Persistenz genau eine Ausprägung derselben `RoleId` enthalten;
     Reaktivierung mit FastTest absichern
   - [x] größere Befunde als ausführbare Nacharbeiten M4.7 bis M4.9 dokumentieren
-- [ ] **M4.7: Rollenauflösung in Application-Reads zentralisieren und Fehler erhalten**
-  - [ ] einen gemeinsamen transportneutralen Resolver anlegen, der `RoleResolver.Resolve`
+- [x] **M4.7: Rollenauflösung in Application-Reads zentralisieren und Fehler erhalten**
+  - [x] einen gemeinsamen transportneutralen Resolver anlegen, der `RoleResolver.Resolve`
     aufruft, den expliziten `NodeContent` bestimmt und dessen transitive Freshness mit
     `FreshnessEvaluator` berechnet; als Ergebnis `Result<...>` einschließlich
     `requestedRole`, nullable `resolvedRole`, `availability` und `fallbackUsed` liefern
-  - [ ] `NavigationService` und `MarkdownExportService` auf diesen Resolver umstellen;
+  - [x] `NavigationService` und `MarkdownExportService` auf diesen Resolver umstellen;
     die privaten, derzeit duplizierten `ResolveContent`-/Freshness-Helfer entfernen
-  - [ ] Fehler von `RoleResolver` niemals in `Availability.None` umwandeln: fehlende oder
+  - [x] Fehler von `RoleResolver` niemals in `Availability.None` umwandeln: fehlende oder
     gelöschte Requested-/Candidate-Rollen und ungültige Resolution Orders mit dem
     ursprünglichen stabilen Fehlercode und den Details weitergeben
-  - [ ] `get_root` auch im leeren Snapshot gegen die angefragte Rolle validieren;
+  - [x] `get_root` auch im leeren Snapshot gegen die angefragte Rolle validieren;
     `Availability.None` bedeutet nur „kein Root/kein auflösbarer Content“, nicht
     „Rollenauflösung war fachlich ungültig“
-  - [ ] FastTests für gültigen expliziten Content, Fallback, nicht konfigurierte Order,
+  - [x] FastTests für gültigen expliziten Content, Fallback, nicht konfigurierte Order,
     fehlende/gelöschte Requested Role sowie fehlende/gelöschte Candidate Role ergänzen
 - [ ] **M4.8: Read-Kontext-Auflösung vereinheitlichen und Navigation zerlegen**
   - [x] einen gemeinsamen Application-Baustein erstellen, der Current Snapshot sowie

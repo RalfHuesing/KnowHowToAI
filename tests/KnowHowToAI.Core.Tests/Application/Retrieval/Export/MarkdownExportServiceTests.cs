@@ -330,6 +330,39 @@ public sealed class MarkdownExportServiceTests
         Assert.Equal(expected, output);
     }
 
+    [Fact]
+    public async Task ExportTreeAsync_RequestedRoleNotFound_ReturnsRequestedRoleNotFound()
+    {
+        var harness = new ExportTestHarness(CurrentSnapshotId);
+        harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
+        var missingRole = new RoleId("MissingRole");
+        var service = harness.CreateService();
+
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), missingRole);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleNotFound, result.Code);
+        Assert.Equal(missingRole.ToString(), result.Details[RoleResolutionErrorCodes.RequestedRoleIdDetail]);
+    }
+
+    [Fact]
+    public async Task ExportTreeAsync_CandidateRoleDeleted_ReturnsCandidateRoleDeleted()
+    {
+        var harness = new ExportTestHarness(CurrentSnapshotId);
+        harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
+        var archivedRole = new RoleId("Archived");
+        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
+        harness.AddRole(new Role(CurrentSnapshotId, archivedRole, "Archived", null, true));
+        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, archivedRole, 1));
+        var service = harness.CreateService();
+
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleResolutionErrorCodes.CandidateRoleDeleted, result.Code);
+        Assert.Equal(archivedRole.ToString(), result.Details[RoleResolutionErrorCodes.CandidateRoleIdDetail]);
+    }
+
     // ── Test Harness & Fakes ────────────────────────────────────────────────
 
     private sealed class ExportTestHarness

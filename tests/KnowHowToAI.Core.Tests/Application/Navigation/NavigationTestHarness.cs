@@ -23,23 +23,69 @@ internal sealed class NavigationTestHarness
     private readonly List<NodeContent> _contents = [];
     private readonly List<ContentDependency> _dependencies = [];
 
+    private static readonly RoleId DefaultRoleId = new("Developer");
+
     public NavigationTestHarness(SnapshotId currentSnapshotId)
     {
         _currentSnapshotId = currentSnapshotId;
         _snapshots.Add(new Snapshot(currentSnapshotId, null, SnapshotState.Committed, FixedTimestamp, FixedTimestamp));
+        EnsureDefaultRole(currentSnapshotId);
     }
 
     public void SetCurrentSnapshot(SnapshotId snapshotId)
     {
         _currentSnapshotId = snapshotId;
         _snapshots.Add(new Snapshot(snapshotId, null, SnapshotState.Committed, FixedTimestamp, FixedTimestamp));
+        EnsureDefaultRole(snapshotId);
     }
 
-    public void AddHistoricalSnapshot(Snapshot snapshot) => _snapshots.Add(snapshot);
-    public void SetTransaction(KnowledgeTransaction transaction) => _transactions[transaction.TransactionId] = transaction;
+    public void AddHistoricalSnapshot(Snapshot snapshot)
+    {
+        _snapshots.Add(snapshot);
+        EnsureDefaultRole(snapshot.SnapshotId);
+    }
+
+    public void SetTransaction(KnowledgeTransaction transaction)
+    {
+        _transactions[transaction.TransactionId] = transaction;
+        EnsureDefaultRole(transaction.WorkingSnapshotId);
+    }
+
     public void AddNode(Node node) => _nodes.Add(node);
-    public void AddRole(Role role) => _roles.Add(role);
-    public void AddRoleResolution(RoleResolution resolution) => _resolutions.Add(resolution);
+
+    public void AddRole(Role role)
+    {
+        _roles.RemoveAll(r => r.SnapshotId == role.SnapshotId && r.RoleId == role.RoleId);
+        _roles.Add(role);
+    }
+
+    public void AddRoleResolution(RoleResolution resolution)
+    {
+        _resolutions.RemoveAll(r => r.SnapshotId == resolution.SnapshotId
+            && r.RequestedRoleId == resolution.RequestedRoleId
+            && r.CandidateRoleId == resolution.CandidateRoleId);
+        _resolutions.Add(resolution);
+    }
+
+    public void ClearRoles(SnapshotId snapshotId)
+    {
+        _roles.RemoveAll(r => r.SnapshotId == snapshotId);
+        _resolutions.RemoveAll(r => r.SnapshotId == snapshotId);
+    }
+
+    private void EnsureDefaultRole(SnapshotId snapshotId)
+    {
+        if (!_roles.Any(r => r.SnapshotId == snapshotId && r.RoleId == DefaultRoleId))
+        {
+            _roles.Add(new Role(snapshotId, DefaultRoleId, "Developer", null, false));
+        }
+
+        if (!_resolutions.Any(r => r.SnapshotId == snapshotId && r.RequestedRoleId == DefaultRoleId && r.CandidateRoleId == DefaultRoleId))
+        {
+            _resolutions.Add(new RoleResolution(snapshotId, DefaultRoleId, DefaultRoleId, 1));
+        }
+    }
+
     public void AddContent(NodeContent content) => _contents.Add(content);
     public void AddDependency(ContentDependency dependency) => _dependencies.Add(dependency);
 

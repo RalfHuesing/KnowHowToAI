@@ -47,6 +47,22 @@ public sealed class NavigationService
         var root = activeNodes.FirstOrDefault(node => node.ParentNodeId is null);
 
         if (root is null)
+        {
+            var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+            var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+
+            var validationResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
+                null,
+                roleId,
+                snapshotId,
+                roles,
+                resolutions,
+                Array.Empty<Domain.Content.NodeContent>(),
+                Array.Empty<ContentDependency>()));
+
+            if (!validationResult.IsSuccess)
+                return Result<NodeWithContent>.Failure(validationResult.Error!);
+
             return Result<NodeWithContent>.Success(
                 new NodeWithContent(
                     Node: null,
@@ -56,6 +72,7 @@ public sealed class NavigationService
                     FallbackUsed: false,
                     Content: null,
                     Freshness: Freshness.Unknown));
+        }
 
         return await BuildNodeWithContentAsync(root, roleId, snapshotId, resolvedContext, cancellationToken).ConfigureAwait(false);
     }
@@ -103,11 +120,15 @@ public sealed class NavigationService
             return Result<ChildrenPage>.Failure(contextResult.Error!);
 
         var resolvedContext = contextResult.Value!;
-        var snapshotId = resolvedContext.SnapshotId;
         var effectiveLimit = query.Limit is { } limit && limit > 0
             ? Math.Min(limit, _retrievalPolicy.MaximumPageSize)
             : _retrievalPolicy.DefaultPageSize;
         var snapshotData = await LoadNavigationSnapshotDataAsync(resolvedContext, cancellationToken).ConfigureAwait(false);
+
+        var roleValidation = ValidateRoleInSnapshot(query.RoleId, snapshotData);
+        if (!roleValidation.IsSuccess)
+            return Result<ChildrenPage>.Failure(roleValidation.Error!);
+
         var children = snapshotData.Nodes
             .Where(node => node.ParentNodeId == query.ParentNodeId)
             .OrderBy(node => node.SortOrder)
@@ -120,9 +141,9 @@ public sealed class NavigationService
         var page = children.Skip(startIndexResult.Value).Take(effectiveLimit + 1).ToArray();
         var hasNext = page.Length > effectiveLimit;
         var pageItems = page.Take(effectiveLimit).ToArray();
-        var summaries = pageItems
-            .Select(node => BuildChildSummary(node, query.RoleId, snapshotData))
-            .ToArray();
+        var summariesResult = BuildChildSummaries(pageItems, query.RoleId, snapshotData);
+        if (!summariesResult.IsSuccess)
+            return Result<ChildrenPage>.Failure(summariesResult.Error!);
 
         var nextCursor = hasNext && pageItems.Length > 0
             ? new NavigationCursor(
@@ -135,7 +156,7 @@ public sealed class NavigationService
                 pageItems[^1].SortOrder).Encode()
             : null;
 
-        return Result<ChildrenPage>.Success(new ChildrenPage(query.ParentNodeId, Array.AsReadOnly(summaries), nextCursor));
+        return Result<ChildrenPage>.Success(new ChildrenPage(query.ParentNodeId, summariesResult.Value!, nextCursor));
     }
 
     /// <summary>Liefert alle aktiven Rollen des aufgelösten Snapshots.</summary>
@@ -159,6 +180,7 @@ public sealed class NavigationService
     // ── Private Helpers ──────────────────────────────────────────────────────
 
     private sealed record NavigationSnapshotData(
+        SnapshotId SnapshotId,
         IReadOnlyList<Node> Nodes,
         IReadOnlyList<Role> Roles,
         IReadOnlyList<RoleResolution> Resolutions,
@@ -177,8 +199,9 @@ public sealed class NavigationService
         var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
         return new NavigationSnapshotData(
+            snapshotId,
             ActiveReadFilter.Apply(nodes, context),
-            ActiveReadFilter.Apply(roles, context),
+            roles,
             resolutions,
             ActiveReadFilter.Apply(contents, context),
             dependencies);
@@ -272,41 +295,82 @@ public sealed class NavigationService
         var contents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
-        var activeRoles = ActiveReadFilter.Apply(roles, resolvedContext);
         var activeContents = ActiveReadFilter.Apply(contents, resolvedContext);
 
-        var resolution = NodeContentResolver.ResolveOrUnavailable(new NodeContentResolutionRequest(
-            node.NodeId, roleId, snapshotId, activeRoles, resolutions, activeContents));
-        var freshness = resolution.Content is not null
-            ? EvaluateFreshness(resolution.Content, activeContents, dependencies)
-            : Freshness.Unknown;
+        var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
+            node.NodeId,
+            roleId,
+            snapshotId,
+            roles,
+            resolutions,
+            activeContents,
+            dependencies));
 
+        if (!resolutionResult.IsSuccess)
+            return Result<NodeWithContent>.Failure(resolutionResult.Error!);
+
+        var resolution = resolutionResult.Value!;
         return Result<NodeWithContent>.Success(new NodeWithContent(
             node,
             roleId,
-            resolution.ResolvedRoleId,
+            resolution.ResolvedRole,
             resolution.Availability,
             resolution.FallbackUsed,
             resolution.Content,
-            freshness));
+            resolution.Freshness));
     }
 
-    private static ChildNodeSummary BuildChildSummary(
+    private static Result<ResolvedNodeContent> ValidateRoleInSnapshot(RoleId roleId, NavigationSnapshotData data) =>
+        NodeContentResolver.Resolve(new NodeContentResolutionRequest(
+            null,
+            roleId,
+            data.SnapshotId,
+            data.Roles,
+            data.Resolutions,
+            Array.Empty<Domain.Content.NodeContent>(),
+            Array.Empty<ContentDependency>()));
+
+    private static Result<IReadOnlyList<ChildNodeSummary>> BuildChildSummaries(
+        Node[] pageItems,
+        RoleId roleId,
+        NavigationSnapshotData data)
+    {
+        var summaries = new List<ChildNodeSummary>(pageItems.Length);
+        foreach (var node in pageItems)
+        {
+            var summaryResult = BuildChildSummary(node, roleId, data);
+            if (!summaryResult.IsSuccess)
+                return Result<IReadOnlyList<ChildNodeSummary>>.Failure(summaryResult.Error!);
+            summaries.Add(summaryResult.Value!);
+        }
+
+        return Result<IReadOnlyList<ChildNodeSummary>>.Success(summaries.AsReadOnly());
+    }
+
+    private static Result<ChildNodeSummary> BuildChildSummary(
         Node node,
         RoleId roleId,
         NavigationSnapshotData data)
     {
         var childCount = data.Nodes.Count(n => n.ParentNodeId == node.NodeId);
-        var resolution = NodeContentResolver.ResolveOrUnavailable(new NodeContentResolutionRequest(
-            node.NodeId, roleId, node.SnapshotId, data.Roles, data.Resolutions, data.Contents));
+        var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
+            node.NodeId,
+            roleId,
+            data.SnapshotId,
+            data.Roles,
+            data.Resolutions,
+            data.Contents,
+            data.Dependencies));
+
+        if (!resolutionResult.IsSuccess)
+            return Result<ChildNodeSummary>.Failure(resolutionResult.Error!);
+
+        var resolution = resolutionResult.Value!;
         var contentSizeBytes = resolution.Content is not null
             ? System.Text.Encoding.UTF8.GetByteCount(resolution.Content.ContentMd)
             : 0;
-        var freshness = resolution.Content is not null
-            ? EvaluateFreshness(resolution.Content, data.Contents, data.Dependencies)
-            : Freshness.Unknown;
 
-        return new ChildNodeSummary(
+        return Result<ChildNodeSummary>.Success(new ChildNodeSummary(
             node.NodeId,
             node.Title,
             node.Description,
@@ -314,15 +378,7 @@ public sealed class NavigationService
             childCount,
             contentSizeBytes,
             resolution.Availability,
-            resolution.ResolvedRoleId,
-            freshness);
-    }
-
-    private static Freshness EvaluateFreshness(
-        Domain.Content.NodeContent content,
-        IReadOnlyList<Domain.Content.NodeContent> allContents,
-        IReadOnlyList<ContentDependency> dependencies)
-    {
-        return FreshnessEvaluator.Evaluate(content, allContents, dependencies);
+            resolution.ResolvedRole,
+            resolution.Freshness));
     }
 }

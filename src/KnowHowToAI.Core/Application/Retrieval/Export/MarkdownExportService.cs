@@ -52,7 +52,9 @@ public sealed class MarkdownExportService
                 new Dictionary<string, string> { [NavigationErrorCodes.NodeIdDetail] = rootNodeId.ToString() }));
 
         var resolvedNodes = new Dictionary<NodeId, ExportNodeContext>();
-        BuildExportContexts(rootNode, data, resolvedNodes);
+        var buildResult = BuildExportContexts(rootNode, data, resolvedNodes);
+        if (!buildResult.IsSuccess)
+            return Result<string>.Failure(buildResult.Error!);
 
         if (!resolvedNodes.TryGetValue(rootNodeId, out var rootContext) || !rootContext.IsExportable)
             return Result<string>.Success(string.Empty);
@@ -97,9 +99,7 @@ public sealed class MarkdownExportService
         var nodes = ActiveReadFilter.Apply(
             await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
             context);
-        var roles = ActiveReadFilter.Apply(
-            await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
-            context);
+        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var contents = ActiveReadFilter.Apply(
             await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
@@ -118,33 +118,37 @@ public sealed class MarkdownExportService
             childrenByParent);
     }
 
-    private static bool BuildExportContexts(
+    private static Result<bool> BuildExportContexts(
         Node node,
         ExportSnapshotData data,
         Dictionary<NodeId, ExportNodeContext> contexts)
     {
-        var resolution = NodeContentResolver.ResolveOrUnavailable(new NodeContentResolutionRequest(
+        var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
             node.NodeId,
             data.RoleId,
             data.SnapshotId,
             data.Roles,
             data.Resolutions,
-            data.Contents));
-        var freshness = resolution.Content is not null
-            ? FreshnessEvaluator.Evaluate(resolution.Content, data.Contents, data.Dependencies)
-            : Freshness.Unknown;
+            data.Contents,
+            data.Dependencies));
+        if (!resolutionResult.IsSuccess)
+            return Result<bool>.Failure(resolutionResult.Error!);
 
+        var resolution = resolutionResult.Value!;
         var hasExportableChild = false;
         foreach (var child in data.ChildrenByParent[node.NodeId])
         {
-            var childExportable = BuildExportContexts(child, data, contexts);
-            if (childExportable)
+            var childResult = BuildExportContexts(child, data, contexts);
+            if (!childResult.IsSuccess)
+                return childResult;
+
+            if (childResult.Value)
                 hasExportableChild = true;
         }
 
-        var ctx = new ExportNodeContext(resolution.Content, freshness, hasExportableChild);
+        var ctx = new ExportNodeContext(resolution.Content, resolution.Freshness, hasExportableChild);
         contexts[node.NodeId] = ctx;
-        return ctx.IsExportable;
+        return Result<bool>.Success(ctx.IsExportable);
     }
 
     private static RenderedExport RenderExport(
