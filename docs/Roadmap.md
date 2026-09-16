@@ -422,7 +422,8 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] den Befund über mehrere zusammenhängende Befundarten und unveränderten
     `ChangeVersion` bei reiner Validation absichern; Test deterministisch und ohne
     Wall-Clock-Rennen ausführen
-- [ ] Review + Fixen der potentiellen Findings erforderlich
+- [ ] M3 wurde von einem Flash LLM umgesetzt. Mache ein Review/Audit der Umsetzung ob es konzept getreu und "ordentlich" umgesetzt wurde. Mini findings direkt selbst fixen alles andere als weitere Roadmap punkte ergänzen und so formuliert das es ein flash llm umsetzen kann ohne hohe reasoning fähigkeiten zu haben + commit.
+
 
 **Abnahme:** Alle M3-Integrationstests grün; es bleibt zwischen MCP-Aufrufen keine
 offene SQL-Transaction oder Connection bestehen.
@@ -460,7 +461,7 @@ Use Case berührten Fachmodule
 - [x] **M4.5: Service-Tests**
   - [x] Use-Case-Tests mit In-Memory-Fakes für Orchestrierung und Fehlerweitergabe
   - [x] keine Wiederholung bereits in M2 bewiesener Parser-/Algorithmusvarianten
-- [ ] Review + Fixen der potentiellen Findings erforderlich
+- [ ] M4 wurde von einem Flash LLM umgesetzt. Mache ein Review/Audit der Umsetzung ob es konzept getreu und "ordentlich" umgesetzt wurde. Mini findings direkt selbst fixen alles andere als weitere Roadmap punkte ergänzen und so formuliert das es ein flash llm umsetzen kann ohne hohe reasoning fähigkeiten zu haben + commit.
 
 **Abnahme:** Jeder fachliche V1-Write ist über genau einen transportneutralen Use Case
 erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
@@ -517,6 +518,7 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] Search/Paging einschließlich Sonderzeichen und Größenlimits
   - [x] Snapshot-/Transaction-Diffs für create/update/move/delete und Rollenänderungen
   - [x] Release nur auf committed Snapshot, Namenskonflikt und historische Reproduktion
+- [ ] M5 wurde von einem Flash LLM umgesetzt. Mache ein Review/Audit der Umsetzung ob es konzept getreu und "ordentlich" umgesetzt wurde. Mini findings direkt selbst fixen alles andere als weitere Roadmap punkte ergänzen und so formuliert das es ein flash llm umsetzen kann ohne hohe reasoning fähigkeiten zu haben + commit.
 
 **Abnahme:** Kein Listen-/Such-/Diff-Tool liefert unkontrolliert den Gesamtbestand;
 Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgabe.
