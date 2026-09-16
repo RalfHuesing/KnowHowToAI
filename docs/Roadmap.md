@@ -722,11 +722,11 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
   - [x] Logs ausschließlich nach `stderr` oder Datei; `stdout` ist exklusiv MCP
   - [x] Secrets und vollständige Content-Payloads nicht protokollieren
   - [x] Shutdown, Cancellation und defektes Client-Pipe-Verhalten sauber behandeln
-- [ ] **M6.2: Gemeinsamer Tool-Vertrag**
-  - [ ] JSON-Feldnamen, Nullability, Limits und Beispiele vor Handlercode festlegen
-  - [ ] einheitliche Success-/Error-Struktur mit `code`, `message`, `details`, `warnings`
-  - [ ] IDs aus Antworten ohne Umformatierung als Folgeparameter verwendbar
-  - [ ] `transactionId` und `snapshotId` gegenseitig ausschließen
+- [x] **M6.2: Gemeinsamer Tool-Vertrag**
+  - [x] JSON-Feldnamen, Nullability, Limits und Beispiele vor Handlercode festlegen
+  - [x] einheitliche Success-/Error-Struktur mit `code`, `message`, `details`, `warnings`
+  - [x] IDs aus Antworten ohne Umformatierung als Folgeparameter verwendbar
+  - [x] `transactionId` und `snapshotId` gegenseitig ausschließen
 - [ ] **M6.3: Transaction- und Validation-Tools**
   - [ ] `begin_transaction`, `get_transaction`, `validate_transaction`
   - [ ] `commit_transaction`, `discard_transaction`

@@ -161,4 +161,77 @@ MultipleTextMatches
 InvalidDependency
 ```
 
+### Gemeinsamer Antwort-Envelope
+
+Jedes Tool gibt genau ein JSON-Objekt zurück. Erfolg und Fehler unterscheiden sich
+ausschließlich über `code`; die Feldnamen sind im Server-Code über JSON-Attribute
+fixiert und damit unabhängig von Serialisierungsoptionen camelCase.
+
+| Feld | JSON-Name | Typ | Nullability |
+|---|---|---|---|
+| Ergebniscode | `code` | string | immer gesetzt: `Success` oder stabiler Fehlercode aus dem Katalog der Roadmap |
+| Meldung | `message` | string | nur bei Fehlern gesetzt und dort erforderlich; bei `Success` nie vorhanden |
+| Details | `details` | Objekt string → string | nur bei Fehlern gesetzt, wenn strukturierte Zusatzdaten vorliegen |
+| Warnungen | `warnings` | Array | nur gesetzt, wenn mindestens eine Warnung vorliegt; bei Erfolg und Fehler möglich |
+| Daten | `data` | Objekt | nur bei Erfolg gesetzt, wenn das Tool einen Payload liefert |
+
+Regeln:
+
+- Leere `warnings` und `details` sowie nicht vorhandene Werte werden weggelassen,
+  nie als `null` serialisiert.
+- Warnungen tragen stabile Warncodes aus dem Katalog der Roadmap und sind keine
+  Fehler.
+- Read-Tools verwenden die gemeinsamen Selektor-Felder `transactionId`
+  (optionaler String), `snapshotId` (optionaler String) und `includeDeleted`
+  (optionales Boolean, Standard `false`). Beide Selektoren zugleich sind unzulässig
+  und führen zu `InvalidReadContext`.
+- IDs werden als Strings exakt im Format der Tool-Ausgaben übergeben und sind
+  ohne Bereinigung oder Umformatierung als Folgeparameter verwendbar
+  (Round-Trip-Garantie).
+- `limit` gilt einheitlich für Listen-, Search- und Diff-Tools: fehlend oder ≤ 0
+  ergibt die konfigurierte Standardseitengröße (`RetrievalPolicy.DefaultPageSize`),
+  Werte oberhalb des Maximums werden auf `RetrievalPolicy.MaximumPageSize` geklemmt.
+  Cursor-Strings bleiben opak und werden unverändert weitergereicht.
+
+Beispiele (verbindlich, in Vertragstests fixiert):
+
+Erfolg mit Payload:
+
+```json
+{
+  "code": "Success",
+  "data": {
+    "transactionId": "0d0b1f5a-4e12-4c1e-9f31-5d3e2a8d7b90"
+  }
+}
+```
+
+Erfolg mit Warnung:
+
+```json
+{
+  "code": "Success",
+  "data": {
+    "transactionId": "0d0b1f5a-4e12-4c1e-9f31-5d3e2a8d7b90"
+  },
+  "warnings": [
+    {
+      "code": "NodeTooLarge",
+      "message": "Der normalisierte Content übersteigt die Warnschwelle.",
+      "details": { "actualBytes": "5123", "thresholdBytes": "4096" }
+    }
+  ]
+}
+```
+
+Fehler:
+
+```json
+{
+  "code": "TransactionNotFound",
+  "message": "Die angefragte Transaction existiert nicht.",
+  "details": { "transactionId": "0d0b1f5a-4e12-4c1e-9f31-5d3e2a8d7b90" }
+}
+```
+
 ---
