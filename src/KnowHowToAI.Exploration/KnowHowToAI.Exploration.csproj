@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,23 +14,13 @@
   <ItemGroup>
     <ProjectReference Include="..\KnowHowToAI.Core\KnowHowToAI.Core.csproj" />
     <ProjectReference Include="..\KnowHowToAI.Storage.SqlServer\KnowHowToAI.Storage.SqlServer.csproj" />
+    <ProjectReference Include="..\KnowHowToAI.Server\KnowHowToAI.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ModelContextProtocol" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Options" />
-    <PackageReference Include="Serilog" />
-    <PackageReference Include="Serilog.Extensions.Hosting" />
-    <PackageReference Include="Serilog.Sinks.Console" />
-    <PackageReference Include="Serilog.Sinks.File" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <InternalsVisibleTo Include="KnowHowToAI.IntegrationTests" />
-    <InternalsVisibleTo Include="KnowHowToAI.Exploration" />
   </ItemGroup>
 
 </Project>
-
