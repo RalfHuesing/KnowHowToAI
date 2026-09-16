@@ -1,4 +1,8 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Runtime;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Server.Configuration;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
@@ -52,6 +56,30 @@ internal static class ServiceRegistration
         services.AddSingleton<IReleaseMutationRepository>(sp => sp.GetRequiredService<SqlReleaseRepository>());
         services.AddSingleton<IRetrievalRepository, SqlRetrievalRepository>();
         services.AddHostedService<SchemaMigrationHostedService>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registriert die Application-Services der Wissens-Engine samt ihrer
+    /// konfigurierten Policies und Laufzeitports im DI-Container.
+    /// </summary>
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IIdentifierGenerator, GuidIdentifierGenerator>();
+        services.AddSingleton(serviceProvider =>
+        {
+            var validation = serviceProvider
+                .GetRequiredService<IOptions<KnowHowToAIOptions>>().Value.Validation;
+            return new ValidationPolicy
+            {
+                ContentSizeWarningBytes = validation.ContentSizeWarningBytes,
+                ChildCountWarning = validation.ChildCountWarning,
+                HierarchyDepthWarning = validation.HierarchyDepthWarning,
+                PossibleEmbeddedHeadingWarning = validation.PossibleEmbeddedHeadingWarning
+            };
+        });
+        services.AddSingleton<TransactionService>();
 
         return services;
     }

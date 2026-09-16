@@ -11,7 +11,34 @@ begin_transaction
 commit_transaction
 discard_transaction
 get_transaction
+validate_transaction
 ```
+
+### Verbindliche Request-/Response-Felder der Transaktions-Tools
+
+Alle Feldnamen sind über JSON-Attribute fixiert und camelCase. IDs sind Strings im
+Format der Tool-Ausgaben und ohne Umformatierung als Folgeparameter verwendbar.
+
+| Tool | Request-Felder | Response-Daten (`data`) |
+|---|---|---|
+| `begin_transaction` | `purpose` (optional), `actor` (optional), `client` (optional) | `transactionId`, `baseSnapshotId`, `workingSnapshotId`, `state`, `createdAtUtc`; optional `committedAtUtc`, `purpose`, `actor`, `client`, `commitMessage` |
+| `get_transaction` | `transactionId` (erforderlich) | dieselben Feldnamen wie `begin_transaction` |
+| `validate_transaction` | `transactionId` (erforderlich) | `isValid`, `errors` (je `code`, `message`, optionales `details`), `warnings` (McpWarning), `staleContents` (je `nodeId`, `roleId`, `contentRevisionId`), `refactoringCandidates` (je `nodeId`, `reasonCodes`) |
+| `commit_transaction` | `transactionId` (erforderlich), `commitMessage` (optional) | dieselben Feldnamen wie `begin_transaction`; Validierungsbefunde erscheinen zusätzlich als `warnings` auf Envelope-Ebene, auch bei fachlicher Ablehnung |
+| `discard_transaction` | `transactionId` (erforderlich) | kein `data` |
+
+Regeln:
+
+- `validate_transaction` ist read-only, wiederholbar und meldet auch harte
+  Fehlerbefunde als Erfolg mit `isValid: false` im Payload; die Befund-Codes
+  entsprechen dem Katalog der Roadmap.
+- Ein nicht als GUID „D“ parsebarer `transactionId` kann keine existierende
+  Transaction bezeichnen und führt deterministisch zu `TransactionNotFound` mit dem
+  Rohwert unter `details.transactionId`.
+- Fehlende, geschlossene oder nicht mehr offene Transactions liefern stabile
+  `TransactionNotFound`- beziehungsweise `TransactionClosed`-Fehler; ein Commit bei
+  zwischenzeitlich fortgeschriebenem Current Snapshot liefert `SnapshotConflict`
+  mit `baseSnapshotId` und `currentSnapshotId` in den Details.
 
 ## Navigation und Lesen
 

@@ -33,9 +33,11 @@ internal static class Program
 
         builder.Services.AddKnowHowToAIOptions(builder.Configuration);
         builder.Services.AddSqlStorage();
+        builder.Services.AddApplicationServices();
         builder.Services
             .AddMcpServer()
-            .WithStdioServerTransport();
+            .WithStdioServerTransport()
+            .WithToolsFromAssembly();
 
         return builder.Build();
     }

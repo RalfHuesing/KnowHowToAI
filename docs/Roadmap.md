@@ -727,9 +727,9 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
   - [x] einheitliche Success-/Error-Struktur mit `code`, `message`, `details`, `warnings`
   - [x] IDs aus Antworten ohne Umformatierung als Folgeparameter verwendbar
   - [x] `transactionId` und `snapshotId` gegenseitig ausschließen
-- [ ] **M6.3: Transaction- und Validation-Tools**
-  - [ ] `begin_transaction`, `get_transaction`, `validate_transaction`
-  - [ ] `commit_transaction`, `discard_transaction`
+- [x] **M6.3: Transaction- und Validation-Tools**
+  - [x] `begin_transaction`, `get_transaction`, `validate_transaction`
+  - [x] `commit_transaction`, `discard_transaction`
 - [ ] **M6.4: Navigation-, Search- und Export-Tools**
   - [ ] `get_root`, `get_node`, `list_children`, `list_roles`, `search`
   - [ ] `export_tree`
