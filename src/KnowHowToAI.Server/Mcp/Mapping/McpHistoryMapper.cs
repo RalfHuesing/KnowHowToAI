@@ -9,7 +9,7 @@ namespace KnowHowToAI.Server.Mcp.Mapping;
 /// <summary>
 /// Bildet die transportneutralen Ergebnisse der History- und Release-Use-Cases auf
 /// den gemeinsamen MCP-Antwort-Envelope und die History-DTOs ab.
-/// Enthält keine Fachlogik (verbindlich: docs/konzept/05-MCP-API.md, Abschnitte 61 und 64).
+/// Enthält keine Fachlogik.
 /// </summary>
 internal static class McpHistoryMapper
 {

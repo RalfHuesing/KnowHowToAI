@@ -10,8 +10,7 @@ namespace KnowHowToAI.Server.Mcp.Tools.History;
 
 /// <summary>
 /// Dünne MCP-Handler der Historien- und Release-Use-Cases: ausschließlich
-/// Mapping und Delegation an die transportneutralen Services (verbindlich:
-/// docs/konzept/05-MCP-API.md, Abschnitte 61 und 64).
+/// Mapping und Delegation an die transportneutralen Services.
 /// </summary>
 [McpServerToolType]
 internal sealed class HistoryTools

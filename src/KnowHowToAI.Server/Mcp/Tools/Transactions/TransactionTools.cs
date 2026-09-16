@@ -9,8 +9,7 @@ namespace KnowHowToAI.Server.Mcp.Tools.Transactions;
 
 /// <summary>
 /// Dünne MCP-Handler der Transaktions-Engine: ausschließlich Mapping und Delegation
-/// an den transportneutralen <see cref="TransactionService"/> (verbindlich:
-/// docs/konzept/05-MCP-API.md, Abschnitte 61 und 64).
+/// an den transportneutralen <see cref="TransactionService"/>.
 /// </summary>
 [McpServerToolType]
 internal sealed class TransactionTools

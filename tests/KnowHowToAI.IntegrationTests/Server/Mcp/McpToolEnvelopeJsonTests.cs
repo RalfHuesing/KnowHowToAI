@@ -7,7 +7,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Vertragstests für den gemeinsamen MCP-Antwort-Envelope: JSON-Feldnamen,
-/// Nullability und Feldgrenzen (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// Nullability und Feldgrenzen.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpToolEnvelopeJsonTests

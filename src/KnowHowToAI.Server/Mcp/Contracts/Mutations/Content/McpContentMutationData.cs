@@ -4,8 +4,7 @@ namespace KnowHowToAI.Server.Mcp.Contracts.Mutations.Content;
 
 /// <summary>
 /// Ergebnis einer Content-Mutation im MCP-Vertrag: der gespeicherte Rollen-Content
-/// samt Revisions- und Freshness-Metadaten, ohne Rückgabe des Content-Textes
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// samt Revisions- und Freshness-Metadaten, ohne Rückgabe des Content-Textes.
 /// </summary>
 public sealed record McpContentMutationData(
     [property: JsonPropertyName("nodeId")] string NodeId,

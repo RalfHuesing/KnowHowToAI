@@ -12,8 +12,7 @@ namespace KnowHowToAI.Server.Mcp.Tools.Mutations;
 
 /// <summary>
 /// Dünne MCP-Handler der Rollen- und Resolution-Order-Mutationen: ausschließlich
-/// Mapping und Delegation an den transportneutralen <see cref="RoleMutationService"/>
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitte 62 und 64).
+/// Mapping und Delegation an den transportneutralen <see cref="RoleMutationService"/>.
 /// </summary>
 [McpServerToolType]
 internal sealed class RoleMutationTools

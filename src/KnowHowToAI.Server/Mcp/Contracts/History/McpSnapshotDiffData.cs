@@ -19,8 +19,7 @@ public sealed record McpDiffEntryData(
 
 /// <summary>
 /// Paginierter Netto-Diff zwischen zwei Snapshots (compare_snapshots, get_transaction_changes).
-/// Enthält ausschließlich geänderte Einträge ohne Rekonstruktion eines Operation Logs
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 61).
+/// Enthält ausschließlich geänderte Einträge ohne Rekonstruktion eines Operation Logs.
 /// </summary>
 public sealed record McpSnapshotDiffData(
     [property: JsonPropertyName("baseSnapshotId")] string BaseSnapshotId,

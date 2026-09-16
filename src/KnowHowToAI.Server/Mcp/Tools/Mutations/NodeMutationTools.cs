@@ -10,8 +10,7 @@ namespace KnowHowToAI.Server.Mcp.Tools.Mutations;
 
 /// <summary>
 /// Dünne MCP-Handler der globalen Strukturänderungen: ausschließlich Mapping und
-/// Delegation an den transportneutralen <see cref="NodeMutationApplicationService"/>
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitte 62 und 64).
+/// Delegation an den transportneutralen <see cref="NodeMutationApplicationService"/>.
 /// </summary>
 [McpServerToolType]
 internal sealed class NodeMutationTools

@@ -5,25 +5,25 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Synchronisationstest: der im Code angelegte stabile Fehler- und Warncode-Katalog
-/// muss exakt dem verbindlichen Katalog in docs/Roadmap.md entsprechen.
+/// muss exakt dem Katalog in der Dokumentation (docs/McpApi.md) entsprechen.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpErrorCatalogTests
 {
-    private const string SectionStartMarker = "## Stabiler Fehlercode-Katalog";
-    private const string SectionEndMarker = "## Bewusst außerhalb von V1";
+    private const string CatalogStartMarker = "<!-- mcp-catalog-start -->";
+    private const string CatalogEndMarker = "<!-- mcp-catalog-end -->";
     private const string WarningMarker = "Warncodes wie";
 
     [Fact]
-    public void ErrorAndWarningCodes_MatchTheBindingRoadmapCatalog()
+    public void ErrorAndWarningCodes_MatchTheDocumentedCatalog()
     {
-        var (roadmapErrorCodes, roadmapWarningCodes) = ReadRoadmapCatalog();
+        var (documentedErrorCodes, documentedWarningCodes) = ReadDocumentedCatalog();
 
         Assert.Equal(
-            roadmapErrorCodes.OrderBy(code => code, StringComparer.Ordinal),
+            documentedErrorCodes.OrderBy(code => code, StringComparer.Ordinal),
             McpErrorCatalog.KnownErrorCodes.OrderBy(code => code, StringComparer.Ordinal));
         Assert.Equal(
-            roadmapWarningCodes.OrderBy(code => code, StringComparer.Ordinal),
+            documentedWarningCodes.OrderBy(code => code, StringComparer.Ordinal),
             McpErrorCatalog.KnownWarningCodes.OrderBy(code => code, StringComparer.Ordinal));
     }
 
@@ -38,16 +38,16 @@ public sealed class McpErrorCatalogTests
             McpErrorCatalog.KnownWarningCodes.Distinct().Count());
     }
 
-    private static (IReadOnlyList<string> ErrorCodes, IReadOnlyList<string> WarningCodes) ReadRoadmapCatalog()
+    private static (IReadOnlyList<string> ErrorCodes, IReadOnlyList<string> WarningCodes) ReadDocumentedCatalog()
     {
-        var roadmap = File.ReadAllText(FindRoadmapPath());
-        var sectionStart = roadmap.IndexOf(SectionStartMarker, StringComparison.Ordinal);
-        var sectionEnd = roadmap.IndexOf(SectionEndMarker, StringComparison.Ordinal);
-        Assert.True(sectionStart >= 0 && sectionEnd > sectionStart, "Roadmap-Katalogabschnitt nicht gefunden.");
+        var documentation = File.ReadAllText(FindCatalogPath());
+        var sectionStart = documentation.IndexOf(CatalogStartMarker, StringComparison.Ordinal);
+        var sectionEnd = documentation.IndexOf(CatalogEndMarker, StringComparison.Ordinal);
+        Assert.True(sectionStart >= 0 && sectionEnd > sectionStart, "Doku-Katalogabschnitt nicht gefunden.");
 
-        var section = roadmap[sectionStart..sectionEnd];
+        var section = documentation[sectionStart..sectionEnd];
         var warningIndex = section.IndexOf(WarningMarker, StringComparison.Ordinal);
-        Assert.True(warningIndex > 0, "Warncode-Marker im Roadmap-Katalog nicht gefunden.");
+        Assert.True(warningIndex > 0, "Warncode-Marker im Doku-Katalog nicht gefunden.");
 
         return (ExtractCodes(section[..warningIndex]), ExtractCodes(section[warningIndex..]));
     }
@@ -55,16 +55,16 @@ public sealed class McpErrorCatalogTests
     private static IReadOnlyList<string> ExtractCodes(string text) =>
         [.. Regex.Matches(text, "`([A-Za-z][A-Za-z0-9]+)`").Select(match => match.Groups[1].Value).Distinct()];
 
-    private static string FindRoadmapPath()
+    private static string FindCatalogPath()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null
-               && !File.Exists(Path.Combine(directory.FullName, "docs", "Roadmap.md")))
+               && !File.Exists(Path.Combine(directory.FullName, "docs", "McpApi.md")))
         {
             directory = directory.Parent;
         }
 
         Assert.NotNull(directory);
-        return Path.Combine(directory.FullName, "docs", "Roadmap.md");
+        return Path.Combine(directory.FullName, "docs", "McpApi.md");
     }
 }

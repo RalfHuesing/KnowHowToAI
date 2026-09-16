@@ -5,7 +5,7 @@ namespace KnowHowToAI.Server.Mcp.Contracts.History;
 /// <summary>
 /// Release-Metadaten im MCP-Vertrag (create_release, list_releases).
 /// Alle IDs sind Strings im Format der Tool-Ausgaben und ohne Umformatierung
-/// als Folgeparameter verwendbar (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// als Folgeparameter verwendbar.
 /// </summary>
 public sealed record McpReleaseData(
     [property: JsonPropertyName("releaseId")] string ReleaseId,

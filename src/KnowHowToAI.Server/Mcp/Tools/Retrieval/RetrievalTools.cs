@@ -14,8 +14,7 @@ namespace KnowHowToAI.Server.Mcp.Tools.Retrieval;
 
 /// <summary>
 /// Dünne MCP-Handler der Retrieval-Use-Cases (search, export_tree): ausschließlich
-/// Mapping und Delegation an die transportneutralen Services (verbindlich:
-/// docs/konzept/05-MCP-API.md, Abschnitte 61 und 64).
+/// Mapping und Delegation an die transportneutralen Services.
 /// </summary>
 [McpServerToolType]
 internal sealed class RetrievalTools

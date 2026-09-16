@@ -4,8 +4,7 @@ namespace KnowHowToAI.Server.Mcp.Contracts.Transactions;
 
 /// <summary>
 /// Metadaten einer KnowHowTo-AI-Transaction im MCP-Vertrag. Alle IDs sind Strings
-/// im Format der Tool-Ausgaben und ohne Umformatierung als Folgeparameter verwendbar
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// im Format der Tool-Ausgaben und ohne Umformatierung als Folgeparameter verwendbar.
 /// </summary>
 public sealed record McpTransactionData(
     [property: JsonPropertyName("transactionId")] string TransactionId,

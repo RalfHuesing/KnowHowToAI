@@ -4,8 +4,7 @@ namespace KnowHowToAI.Server.Mcp.Contracts.Mutations.Nodes;
 
 /// <summary>
 /// Ergebnis einer globalen Strukturänderung im MCP-Vertrag. Alle IDs sind Strings
-/// im Format der Tool-Ausgaben und ohne Umformatierung als Folgeparameter verwendbar
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// im Format der Tool-Ausgaben und ohne Umformatierung als Folgeparameter verwendbar.
 /// </summary>
 public sealed record McpNodeMutationData(
     [property: JsonPropertyName("nodeId")] string NodeId,

@@ -5,8 +5,7 @@ namespace KnowHowToAI.Server.Mcp.Contracts;
 
 /// <summary>
 /// Gemeinsamer Antwort-Envelope aller MCP-Tools. Fixiert JSON-Feldnamen,
-/// Nullability und Feldgrenzen vor jedem Handlercode
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// Nullability und Feldgrenzen vor jedem Handlercode.
 /// </summary>
 /// <typeparam name="TData">Referenztyp des fachlichen Payloads oder <c>object</c> für payload-freie Tools.</typeparam>
 public sealed record McpToolEnvelope<TData> where TData : class

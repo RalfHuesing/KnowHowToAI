@@ -8,9 +8,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// STDIO-Integrationstests: starten einen echten Serverprozess und prüfen,
 /// dass stdout ausschließlich MCP-Protokollnachrichten enthält, Startup-/SQL-/
 /// Logging-Ausgaben stdout nicht verunreinigen, protokollkonforme Antworten
-/// auf bekannte Anfragen geliefert werden und der Prozess kontrolliert endet
-/// (verbindlich: docs/Roadmap.md M6.7, docs/konzept/05-MCP-API.md Abschnitt 64,
-/// .agents/rules/TestRichtlinien.mdc MCP-Vertragstests).
+/// auf bekannte Anfragen geliefert werden und der Prozess kontrolliert endet.
 /// </summary>
 [Trait("Category", "Integration")]
 public sealed class StdioProtocolTests

@@ -4,8 +4,7 @@ namespace KnowHowToAI.Server.Mcp.Contracts.Mutations.Roles;
 
 /// <summary>
 /// Ergebnis von set_role_resolution im MCP-Vertrag: die vollständige, nicht rekursive
-/// Resolution Order der angefragten Rolle nach der Mutation
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// Resolution Order der angefragten Rolle nach der Mutation.
 /// </summary>
 public sealed record McpRoleResolutionData(
     [property: JsonPropertyName("requestedRoleId")] string RequestedRoleId,

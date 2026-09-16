@@ -11,8 +11,7 @@ namespace KnowHowToAI.Server.Mcp.Tools.Mutations;
 
 /// <summary>
 /// Dünne MCP-Handler der Content-Mutationen: ausschließlich Mapping und Delegation
-/// an den transportneutralen <see cref="ContentMutationApplicationService"/>
-/// (verbindlich: docs/konzept/05-MCP-API.md, Abschnitte 62, 63 und 64).
+/// an den transportneutralen <see cref="ContentMutationApplicationService"/>.
 /// </summary>
 [McpServerToolType]
 internal sealed class ContentMutationTools

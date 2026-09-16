@@ -5,7 +5,7 @@ namespace KnowHowToAI.Server.Mcp.Contracts.Navigation;
 /// <summary>
 /// Node mit aufgelöstem Rollen-Content im MCP-Vertrag (get_root, get_node).
 /// Alle IDs sind Strings im Format der Tool-Ausgaben und ohne Umformatierung
-/// als Folgeparameter verwendbar (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// als Folgeparameter verwendbar.
 /// </summary>
 public sealed record McpNodeData(
     [property: JsonPropertyName("nodeId")] string NodeId,

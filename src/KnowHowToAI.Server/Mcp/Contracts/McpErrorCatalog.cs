@@ -2,7 +2,6 @@ namespace KnowHowToAI.Server.Mcp.Contracts;
 
 /// <summary>
 /// Zentraler, stabiler Fehler- und Warncode-Katalog für V1
-/// (verbindlich: docs/Roadmap.md, Abschnitt 'Stabiler Fehlercode-Katalog für V1').
 /// Neue Codes dürfen ergänzt werden; veröffentlichte Codes werden nicht beiläufig umbenannt.
 /// </summary>
 public static class McpErrorCatalog

@@ -11,8 +11,7 @@ namespace KnowHowToAI.Server.Mcp.Tools.Navigation;
 
 /// <summary>
 /// Dünne MCP-Handler der Navigation-Use-Cases: ausschließlich Mapping und Delegation
-/// an den transportneutralen <see cref="NavigationService"/> (verbindlich:
-/// docs/konzept/05-MCP-API.md, Abschnitte 61 und 64).
+/// an den transportneutralen <see cref="NavigationService"/>.
 /// </summary>
 [McpServerToolType]
 internal sealed class NavigationTools

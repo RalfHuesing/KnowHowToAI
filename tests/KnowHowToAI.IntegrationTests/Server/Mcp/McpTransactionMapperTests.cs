@@ -11,7 +11,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// <summary>
 /// Mapping-Vertragstests der Transaction-Tools: Domain-Ergebnisse auf den
 /// gemeinsamen Envelope und die Transaktions-DTOs, ID-Round-Trip und
-/// Befundtransparenz (verbindlich: docs/konzept/05-MCP-API.md, Abschnitt 64).
+/// Befundtransparenz.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpTransactionMapperTests
