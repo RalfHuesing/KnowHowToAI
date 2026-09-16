@@ -617,16 +617,16 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] deterministische Integrationstests mit Barrieren statt Zeitverzögerungen
     ergänzen: konkurrierende Mutation liegt vollständig vor oder nach dem Read; ein
     Mischzustand ist unmöglich und ein alter Folgecursor liefert `CursorExpired`
-- [ ] **M5.10: Rollenauflösung und Search-Semantik fehlertransparent machen**
-  - [ ] zuerst M4.7 abschließen und den dort geforderten gemeinsamen `Result`-basierten
+- [x] **M5.10: Rollenauflösung und Search-Semantik fehlertransparent machen**
+  - [x] zuerst M4.7 abschließen und den dort geforderten gemeinsamen `Result`-basierten
     Resolver in Navigation und Export verwenden; Fehler der Rollenauflösung niemals als
     `Availability.None`, leeren Export oder still ausgelassenen Node behandeln
-  - [ ] für Search ohne `RoleId` ausschließlich die rollenunabhängigen Felder `Title`
+  - [x] für Search ohne `RoleId` ausschließlich die rollenunabhängigen Felder `Title`
     und `Description` durchsuchen; keinen alphabetisch zufälligen Rollen-Content wählen
-  - [ ] für Search mit `RoleId` die angefragte aktive Rolle und ihre vollständige
+  - [x] für Search mit `RoleId` die angefragte aktive Rolle und ihre vollständige
     Resolution Order validieren; dieselben stabilen Fehlercodes und dieselbe erste
     Content-Auswahl wie `RoleResolver` liefern
-  - [ ] Fast- und SQL-Vertragstests für expliziten Content, Fallback, keine konfigurierte
+  - [x] Fast- und SQL-Vertragstests für expliziten Content, Fallback, keine konfigurierte
     Order, fehlende/gelöschte Requested-/Candidate-Rolle sowie Search ohne Rolle ergänzen
 - [ ] **M5.11: Release-Registrierung im SQL-Repository atomar absichern**
   - [ ] `SqlReleaseRepository.CreateAsync` so ändern, dass Existenz und Zustand

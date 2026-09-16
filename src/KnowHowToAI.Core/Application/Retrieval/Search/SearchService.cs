@@ -2,6 +2,7 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Retrieval.Search;
@@ -10,6 +11,11 @@ namespace KnowHowToAI.Core.Application.Retrieval.Search;
 /// Transportneutraler Search-Use-Case (search): Textsuche über Titel, Description und Content.
 /// V1 bietet eine deterministische parametrisierte Substring-Suche (ADR-V1-006)
 /// und verspricht weder semantische noch linguistische Volltextsuche.
+/// Ohne <c>RoleId</c> werden ausschließlich die rollenunabhängigen Felder Title und
+/// Description durchsucht. Mit <c>RoleId</c> werden die angefragte aktive Rolle und ihre
+/// vollständige Resolution Order über <see cref="RoleResolver.ValidateOrder"/> geprüft;
+/// Fehler werden mit denselben stabilen Fehlercodes wie die Rollenauflösung gemeldet und
+/// niemals als leeres Ergebnis behandelt.
 /// </summary>
 public sealed class SearchService
 {
@@ -75,6 +81,10 @@ public sealed class SearchService
         var results = await _repos.Retrieval.SearchAsync(request, cancellationToken).ConfigureAwait(false);
         var effectiveChangeVersion = results.ChangeVersion ?? resolvedContext.ChangeVersion;
 
+        var roleValidationError = ValidateRequestedRoleResolution(query, resolvedContext, results);
+        if (roleValidationError is not null)
+            return Result<SearchResultPage>.Failure(roleValidationError);
+
         var lockedCursorError = ValidateLockedCursorChangeVersion(query.Cursor, resolvedContext.Source, effectiveChangeVersion);
         if (lockedCursorError is not null)
             return Result<SearchResultPage>.Failure(lockedCursorError);
@@ -92,6 +102,22 @@ public sealed class SearchService
 
         return Result<SearchResultPage>.Success(
             new SearchResultPage(query.Text, Array.AsReadOnly(pageItems), nextCursor));
+    }
+
+    private static DomainError? ValidateRequestedRoleResolution(
+        SearchQuery query,
+        ResolvedReadContext resolvedContext,
+        SearchRepositoryResult results)
+    {
+        if (query.RoleId is not { } requestedRole)
+            return null;
+
+        var validation = RoleResolver.ValidateOrder(
+            resolvedContext.SnapshotId,
+            requestedRole,
+            results.Roles ?? Array.Empty<Role>(),
+            results.Resolutions ?? Array.Empty<RoleResolution>());
+        return validation.IsSuccess ? null : validation.Error;
     }
 
     private int ResolveEffectiveLimit(int? limit) =>

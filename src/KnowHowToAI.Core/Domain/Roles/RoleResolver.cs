@@ -15,10 +15,13 @@ public static class RoleResolver
         ArgumentNullException.ThrowIfNull(request.ResolutionOrder);
         ArgumentNullException.ThrowIfNull(request.Contents);
 
-        var roles = request.Roles.Where(role => role.SnapshotId == request.SnapshotId).ToArray();
-        var requestedRoleError = ValidateRequestedRole(request.RequestedRole, roles);
-        if (requestedRoleError is not null)
-            return Result<RoleResolutionResult>.Failure(requestedRoleError);
+        var validation = ValidateOrder(
+            request.SnapshotId,
+            request.RequestedRole,
+            request.Roles,
+            request.ResolutionOrder);
+        if (!validation.IsSuccess)
+            return Result<RoleResolutionResult>.Failure(validation.Error!);
 
         var candidates = request.ResolutionOrder
             .Where(resolution => resolution.SnapshotId == request.SnapshotId
@@ -26,18 +29,43 @@ public static class RoleResolver
             .OrderBy(resolution => resolution.Priority)
             .ToArray();
 
-        var validationError = ValidateCandidates(candidates, roles);
-        if (validationError is not null)
-            return Result<RoleResolutionResult>.Failure(validationError);
-
-        if (candidates.Length == 0)
-            return Result<RoleResolutionResult>.Success(CreateUnavailableResult(request.RequestedRole, isConfigured: false));
-
         var match = FindFirstContentMatch(request, candidates);
         if (match.Candidate is null || match.Content is null)
-            return Result<RoleResolutionResult>.Success(CreateUnavailableResult(request.RequestedRole, isConfigured: true));
+            return Result<RoleResolutionResult>.Success(
+                CreateUnavailableResult(request.RequestedRole, isConfigured: candidates.Length > 0));
 
         return Result<RoleResolutionResult>.Success(CreateResolvedResult(request.RequestedRole, match.Candidate, match.Content));
+    }
+
+    /// <summary>
+    /// Prueft die angefragte Rolle und ihre vollstaendige Resolution Order mit denselben
+    /// Regeln und Fehlercodes wie <see cref="Resolve"/> - unabhaengig vom Content eines
+    /// konkreten Node, zum Beispiel fuer Suchanfragen.
+    /// </summary>
+    public static Result<bool> ValidateOrder(
+        SnapshotId snapshotId,
+        RoleId requestedRole,
+        IEnumerable<Role> roles,
+        IEnumerable<RoleResolution> resolutions)
+    {
+        ArgumentNullException.ThrowIfNull(roles);
+        ArgumentNullException.ThrowIfNull(resolutions);
+
+        var snapshotRoles = roles.Where(role => role.SnapshotId == snapshotId).ToArray();
+        var requestedRoleError = ValidateRequestedRole(requestedRole, snapshotRoles);
+        if (requestedRoleError is not null)
+            return Result<bool>.Failure(requestedRoleError);
+
+        var candidates = resolutions
+            .Where(resolution => resolution.SnapshotId == snapshotId
+                && resolution.RequestedRoleId == requestedRole)
+            .OrderBy(resolution => resolution.Priority)
+            .ToArray();
+
+        var candidateError = ValidateCandidates(candidates, snapshotRoles);
+        return candidateError is not null
+            ? Result<bool>.Failure(candidateError)
+            : Result<bool>.Success(true);
     }
 
     private static DomainError? ValidateRequestedRole(RoleId requestedRoleId, IReadOnlyCollection<Role> roles)

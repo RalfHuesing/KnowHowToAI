@@ -4,6 +4,7 @@ using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
+using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -23,20 +24,18 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
                AND r.IsDeleted = 0
             WHERE rr.SnapshotId = @snapshotId
               AND rr.RequestedRoleId = @roleId
-              AND @roleId IS NOT NULL
         ),
         ResolvedContent AS (
             SELECT nc.NodeId, nc.RoleId, nc.ContentRevisionId, nc.ContentMode, nc.ContentMd,
                    ROW_NUMBER() OVER (
                        PARTITION BY nc.NodeId
-                       ORDER BY CASE WHEN @roleId IS NOT NULL THEN rc.Priority ELSE 1 END, nc.RoleId
+                       ORDER BY rc.Priority, nc.RoleId
                    ) AS RowNum
             FROM dbo.KnowHowToAI_NodeContent nc
-            LEFT JOIN RoleCandidates rc
+            INNER JOIN RoleCandidates rc
                 ON rc.CandidateRoleId = nc.RoleId
             WHERE nc.SnapshotId = @snapshotId
               AND nc.IsDeleted = 0
-              AND (@roleId IS NULL OR rc.CandidateRoleId IS NOT NULL)
         ),
         ActiveResolvedContent AS (
             SELECT NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd
@@ -111,6 +110,20 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         WHERE SnapshotId = @snapshotId;
         """;
 
+    private const string ListRolesSql = """
+        SELECT SnapshotId, RoleId, Name, Description, IsDeleted
+        FROM dbo.KnowHowToAI_Role
+        WHERE SnapshotId = @snapshotId
+        ORDER BY RoleId;
+        """;
+
+    private const string ListRoleResolutionsSql = """
+        SELECT SnapshotId, RequestedRoleId, CandidateRoleId, Priority
+        FROM dbo.KnowHowToAI_RoleResolution
+        WHERE SnapshotId = @snapshotId
+        ORDER BY RequestedRoleId, Priority;
+        """;
+
     private readonly Func<CancellationToken, Task>? _afterGuardReadForTestAsync;
 
     public SqlRetrievalRepository(
@@ -153,42 +166,59 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
 
         try
         {
-            long? changeVersion = null;
-            if (request.TransactionId is { } transactionId)
-            {
-                var guard = await ReadWorkingSnapshotGuardAsync(connection, databaseTransaction, transactionId, cancellationToken)
-                    .ConfigureAwait(false);
-                ValidateWorkingSnapshotMutationGuard(guard, transactionId);
-                changeVersion = guard!.ChangeVersion;
-
-                if (_afterGuardReadForTestAsync is not null)
-                    await _afterGuardReadForTestAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            var rows = (await connection.QueryAsync<SearchHitRow>(
-                CreateCommand(SearchSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false)).ToArray();
-
-            if (rows.Length == 0)
-            {
-                await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-                return new SearchRepositoryResult(Array.Empty<SearchHit>(), changeVersion);
-            }
-
-            var derivedHitsExist = rows.Any(r => string.Equals(r.ContentMode, SqlPersistedValues.ContentDerived, StringComparison.Ordinal));
-            var (allContents, allDependencies) = derivedHitsExist
-                ? await LoadDerivedContentsAndDependenciesAsync(connection, databaseTransaction, request.SnapshotId.Value, cancellationToken).ConfigureAwait(false)
-                : (null, null);
-
-            await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-
-            var hits = rows.Select(r => MapRowToSearchHit(r, request, allContents, allDependencies)).ToArray();
-            return new SearchRepositoryResult(hits, changeVersion);
+            return await ExecuteSearchAsync(request, parameters, connection, databaseTransaction, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch
         {
             await databaseTransaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
             throw;
         }
+    }
+
+    private async Task<SearchRepositoryResult> ExecuteSearchAsync(
+        SearchRequest request,
+        object parameters,
+        SqlConnection connection,
+        Microsoft.Data.SqlClient.SqlTransaction databaseTransaction,
+        CancellationToken cancellationToken)
+    {
+        long? changeVersion = null;
+        if (request.TransactionId is { } transactionId)
+        {
+            var guard = await ReadWorkingSnapshotGuardAsync(connection, databaseTransaction, transactionId, cancellationToken)
+                .ConfigureAwait(false);
+            ValidateWorkingSnapshotMutationGuard(guard, transactionId);
+            changeVersion = guard!.ChangeVersion;
+
+            if (_afterGuardReadForTestAsync is not null)
+                await _afterGuardReadForTestAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        (IReadOnlyList<Role> Roles, IReadOnlyList<RoleResolution> Resolutions)? roleData = request.RoleId is not null
+            ? await LoadRoleResolutionDataAsync(connection, databaseTransaction, request.SnapshotId.Value, cancellationToken)
+                .ConfigureAwait(false)
+            : null;
+
+        var rows = (await connection.QueryAsync<SearchHitRow>(
+            CreateCommand(SearchSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false)).ToArray();
+
+        if (rows.Length == 0)
+        {
+            await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new SearchRepositoryResult(
+                Array.Empty<SearchHit>(), changeVersion, roleData?.Roles, roleData?.Resolutions);
+        }
+
+        var derivedHitsExist = rows.Any(r => string.Equals(r.ContentMode, SqlPersistedValues.ContentDerived, StringComparison.Ordinal));
+        var (allContents, allDependencies) = derivedHitsExist
+            ? await LoadDerivedContentsAndDependenciesAsync(connection, databaseTransaction, request.SnapshotId.Value, cancellationToken).ConfigureAwait(false)
+            : (null, null);
+
+        await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+        var hits = rows.Select(r => MapRowToSearchHit(r, request, allContents, allDependencies)).ToArray();
+        return new SearchRepositoryResult(hits, changeVersion, roleData?.Roles, roleData?.Resolutions);
     }
 
     private async Task<(IReadOnlyList<NodeContent> Contents, IReadOnlyList<ContentDependency> Dependencies)> LoadDerivedContentsAndDependenciesAsync(
@@ -206,6 +236,23 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         var dependencies = depRows.Select(SqlRowMapper.ToContentDependency).ToArray();
 
         return (contents, dependencies);
+    }
+
+    private async Task<(IReadOnlyList<Role> Roles, IReadOnlyList<RoleResolution> Resolutions)> LoadRoleResolutionDataAsync(
+        SqlConnection connection,
+        Microsoft.Data.SqlClient.SqlTransaction databaseTransaction,
+        long snapshotId,
+        CancellationToken cancellationToken)
+    {
+        var roleRows = await connection.QueryAsync<RoleRow>(
+            CreateCommand(ListRolesSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
+        var roles = roleRows.Select(SqlRowMapper.ToRole).ToArray();
+
+        var resolutionRows = await connection.QueryAsync<RoleResolutionRow>(
+            CreateCommand(ListRoleResolutionsSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
+        var resolutions = resolutionRows.Select(SqlRowMapper.ToRoleResolution).ToArray();
+
+        return (roles, resolutions);
     }
 
     private static SearchHit MapRowToSearchHit(

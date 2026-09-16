@@ -1,8 +1,14 @@
+using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
+using KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 using KnowHowToAI.Storage.SqlServer.Repositories.Retrieval;
+using KnowHowToAI.Storage.SqlServer.Repositories.Snapshots;
+using KnowHowToAI.Storage.SqlServer.Repositories.Transactions;
 using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.IntegrationTests.SqlServer.Repositories;
@@ -146,6 +152,176 @@ public sealed class SqlRetrievalRepositoryTests
         Assert.Equal("Content", hit.HitField);
     }
 
+    [Fact]
+    public async Task SearchAsync_WithRoleExplicitContentHit_ReturnsExplicitAvailabilityAndRoleData()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var snapshotId = await GetCurrentSnapshotIdAsync(database);
+        var nodeId = new NodeId(Guid.Parse("45000000-0000-0000-0000-000000000001"));
+
+        await InsertRoleAsync(database, snapshotId, RoleDev, "Developer");
+        await InsertRoleResolutionAsync(database, snapshotId, RoleDev, RoleDev, 1);
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(nodeId, "Node Title", "Node Description", 0));
+        await InsertContentAsync(database, snapshotId, nodeId, RoleDev, "Explicit developer content");
+
+        var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+        var result = await repository.SearchAsync(new SearchRequest(snapshotId, "developer", RoleDev, 10, null, 50));
+
+        var hit = Assert.Single(result);
+        Assert.Equal("Content", hit.HitField);
+        Assert.Equal(Availability.Explicit, hit.Availability);
+        Assert.Equal(RoleDev, hit.ResolvedRoleId);
+        Assert.Contains(result.Roles!, role => role.RoleId == RoleDev && !role.IsDeleted);
+        Assert.Contains(result.Resolutions!, resolution => resolution.RequestedRoleId == RoleDev);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithoutRole_DoesNotSearchContent()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var snapshotId = await GetCurrentSnapshotIdAsync(database);
+        var nodeId = new NodeId(Guid.Parse("46000000-0000-0000-0000-000000000001"));
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(nodeId, "Overview", "Describes clustering options", 0));
+        await InsertContentAsync(database, snapshotId, nodeId, new RoleId("Default"), "Content about clustering internals");
+
+        var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+
+        var contentOnlyResult = await repository.SearchAsync(new SearchRequest(snapshotId, "internals", null, 10, null, 50));
+        Assert.Empty(contentOnlyResult);
+
+        var titleResult = await repository.SearchAsync(new SearchRequest(snapshotId, "Overview", null, 10, null, 50));
+        var hit = Assert.Single(titleResult);
+        Assert.Equal("Title", hit.HitField);
+        Assert.Equal(Availability.None, hit.Availability);
+        Assert.Null(hit.ResolvedRoleId);
+        Assert.Null(hit.Snippet);
+    }
+
+    [Fact]
+    public async Task Search_WithUnknownRequestedRole_ReturnsRequestedRoleNotFound()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var service = CreateSearchService(database);
+        var result = await service.SearchAsync(new SearchQuery("text", RoleId: new RoleId("Missing")), new ReadContext());
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleNotFound, result.Error!.Code);
+        Assert.Equal(
+            "Missing",
+            result.Error.Details[RoleResolutionErrorCodes.RequestedRoleIdDetail]);
+    }
+
+    [Fact]
+    public async Task Search_WithDeletedRequestedRole_ReturnsRequestedRoleDeleted()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var snapshotId = await GetCurrentSnapshotIdAsync(database);
+        var deletedRole = new RoleId("Ghost");
+        await InsertRoleAsync(database, snapshotId, deletedRole, "Ghost", isDeleted: true);
+        await InsertRoleResolutionAsync(database, snapshotId, deletedRole, new RoleId("Default"), 1);
+
+        var service = CreateSearchService(database);
+        var result = await service.SearchAsync(new SearchQuery("text", RoleId: deletedRole), new ReadContext());
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleDeleted, result.Error!.Code);
+    }
+
+    [Fact]
+    public async Task Search_WithDeletedCandidateRole_ReturnsCandidateRoleDeleted()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var snapshotId = await GetCurrentSnapshotIdAsync(database);
+        var deletedRole = new RoleId("Ghost");
+        await InsertRoleAsync(database, snapshotId, deletedRole, "Ghost", isDeleted: true);
+        await InsertRoleResolutionAsync(database, snapshotId, new RoleId("Default"), deletedRole, 2);
+
+        var service = CreateSearchService(database);
+        var result = await service.SearchAsync(new SearchQuery("text", RoleId: new RoleId("Default")), new ReadContext());
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleResolutionErrorCodes.CandidateRoleDeleted, result.Error!.Code);
+    }
+
+    [Fact]
+    public async Task Search_WithoutConfiguredResolutionOrder_ReturnsSuccessWithoutContentHits()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var snapshotId = await GetCurrentSnapshotIdAsync(database);
+        var roleWithoutOrder = new RoleId("NoOrder");
+        var nodeId = new NodeId(Guid.Parse("47000000-0000-0000-0000-000000000001"));
+        await InsertRoleAsync(database, snapshotId, roleWithoutOrder, "NoOrder");
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(nodeId, "Neuland Overview", null, 0));
+        await InsertContentAsync(database, snapshotId, nodeId, roleWithoutOrder, "Content about clustering internals");
+
+        var service = CreateSearchService(database);
+        var contentResult = await service.SearchAsync(new SearchQuery("internals", RoleId: roleWithoutOrder), new ReadContext());
+        Assert.True(contentResult.IsSuccess);
+        Assert.Empty(contentResult.Value!.Items);
+
+        var titleResult = await service.SearchAsync(new SearchQuery("Neuland", RoleId: roleWithoutOrder), new ReadContext());
+        Assert.True(titleResult.IsSuccess);
+        Assert.Single(titleResult.Value!.Items);
+    }
+
+    [Fact]
+    public async Task Search_WithFallbackAndExplicitContent_ResolvesFirstCandidateContent()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var snapshotId = await GetCurrentSnapshotIdAsync(database);
+        var fallbackNode = new NodeId(Guid.Parse("48000000-0000-0000-0000-000000000001"));
+        var explicitNode = new NodeId(Guid.Parse("48000000-0000-0000-0000-000000000002"));
+        var defaultRole = new RoleId("Default");
+
+        await InsertRoleAsync(database, snapshotId, RoleDev, "Developer");
+        await InsertRoleResolutionAsync(database, snapshotId, RoleDev, defaultRole, 1);
+        await InsertRoleResolutionAsync(database, snapshotId, RoleDev, RoleDev, 2);
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(fallbackNode, "Fallback Node", null, 10));
+        await InsertNodeAsync(database, snapshotId, new NodeSeed(explicitNode, "Explicit Node", null, 20, fallbackNode));
+        await InsertContentAsync(database, snapshotId, fallbackNode, defaultRole, "Shared content marker");
+        await InsertContentAsync(database, snapshotId, explicitNode, RoleDev, "Shared content marker");
+
+        var service = CreateSearchService(database);
+        var result = await service.SearchAsync(new SearchQuery("marker", RoleId: RoleDev), new ReadContext());
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value!.Items.Count);
+        var fallbackHit = Assert.Single(result.Value.Items, hit => hit.NodeId == fallbackNode);
+        Assert.Equal("Content", fallbackHit.HitField);
+        Assert.Equal(Availability.Fallback, fallbackHit.Availability);
+        Assert.Equal(defaultRole, fallbackHit.ResolvedRoleId);
+        var explicitHit = Assert.Single(result.Value.Items, hit => hit.NodeId == explicitNode);
+        Assert.Equal(Availability.Explicit, explicitHit.Availability);
+        Assert.Equal(RoleDev, explicitHit.ResolvedRoleId);
+    }
+
+    private static SearchService CreateSearchService(SqlTestDatabase database) => new(
+        new SqlSnapshotRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
+        new SqlTransactionRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
+        new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 }),
+        new RetrievalPolicy
+        {
+            DefaultPageSize = 10,
+            MaximumPageSize = 100,
+            SearchPageSize = 10,
+            SearchMaximumPageSize = 100,
+            SnippetMaximumCharacters = 100
+        });
+
     private static async Task<SnapshotId> GetCurrentSnapshotIdAsync(SqlTestDatabase database)
     {
         await using var connection = await database.ConnectionFactory.OpenAsync();
@@ -182,17 +358,23 @@ public sealed class SqlRetrievalRepositoryTests
         await command.ExecuteNonQueryAsync();
     }
 
-    private static async Task InsertRoleAsync(SqlTestDatabase database, SnapshotId snapshotId, RoleId roleId, string name)
+    private static async Task InsertRoleAsync(
+        SqlTestDatabase database,
+        SnapshotId snapshotId,
+        RoleId roleId,
+        string name,
+        bool isDeleted = false)
     {
         await using var connection = await database.ConnectionFactory.OpenAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
             INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, RoleId, Name, Description, IsDeleted)
-            VALUES (@snapshotId, @roleId, @name, NULL, 0);
+            VALUES (@snapshotId, @roleId, @name, NULL, @isDeleted);
             """;
         command.Parameters.Add(new SqlParameter("@snapshotId", snapshotId.Value));
         command.Parameters.Add(new SqlParameter("@roleId", roleId.Value));
         command.Parameters.Add(new SqlParameter("@name", name));
+        command.Parameters.Add(new SqlParameter("@isDeleted", isDeleted));
         await command.ExecuteNonQueryAsync();
     }
 

@@ -199,6 +199,22 @@ Sie soll primär:
 
 durchsuchen können.
 
+Rollenbezug der Suche:
+
+- Ohne `roleId` werden ausschließlich die rollenunabhängigen Felder `Title` und
+  `Description` durchsucht. Es findet keine stille Auswahl eines beliebigen
+  Rollen-Contents statt; Treffer ohne Rolle haben `Availability = None`.
+- Mit `roleId` werden die angefragte aktive Rolle und ihre vollständige Resolution
+  Order mit denselben Regeln und stabilen Fehlercodes wie die Rollenauflösung geprüft
+  (`RequestedRoleNotFound`, `RequestedRoleDeleted`, `CandidateRoleNotFound`,
+  `CandidateRoleDeleted`, `DuplicateCandidateRole`, `DuplicatePriority`,
+  `InvalidPriority`). Ein Auflösungsfehler ist ein Fachfehler, niemals ein leeres
+  Suchergebnis.
+- Mit `roleId` wird für jeden Node exakt die erste Content-Auswahl der Role Resolution
+  Order verwendet (`Explicit` für die angefragte Rolle, `Fallback` für die erste
+  Kandidatenrolle mit aktivem Content). Ohne konfigurierte Order wird nur in `Title`
+  und `Description` gefunden.
+
 Suchergebnisse liefern schlanke Metadaten und kleine Trefferkontexte (Snippets), nicht automatisch den vollständigen Content sämtlicher Treffer (Metadata-First-Prinzip).
 
 ### Deterministisches Ranking und Tie-Breaking
