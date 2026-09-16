@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Mutations;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
@@ -121,6 +122,8 @@ internal static class ServiceRegistration
         services.AddSingleton<NavigationService>();
         services.AddSingleton<SearchService>();
         services.AddSingleton<MarkdownExportService>();
+        services.AddSingleton<HistoryService>();
+        services.AddSingleton<ReleaseService>();
 
         return services;
     }

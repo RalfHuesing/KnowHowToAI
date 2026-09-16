@@ -7,9 +7,10 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Registrierungsvertragstests: die veröffentlichten V1-Tools (Transaktionen, Navigation,
-/// Search, Export sowie Struktur-, Content- und Rollen-Mutationen) werden über die
-/// MCP-Server-Pipeline mit stabilen Namen, Beschreibungen, Input-Schemata und
-/// Annotations-Hinweisen bereitgestellt (M6.3, M6.4, M6.5).
+/// Search, Export, Struktur-, Content- und Rollen-Mutationen sowie Historien- und
+/// Release-Tools) werden über die MCP-Server-Pipeline mit stabilen Namen,
+/// Beschreibungen, Input-Schemata und Annotations-Hinweisen bereitgestellt
+/// (M6.3, M6.4, M6.5, M6.6).
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpTransactionToolRegistrationTests
@@ -18,7 +19,9 @@ public sealed class McpTransactionToolRegistrationTests
     [
         "begin_transaction",
         "commit_transaction",
+        "compare_snapshots",
         "create_node",
+        "create_release",
         "create_role",
         "delete_content",
         "delete_node",
@@ -27,8 +30,11 @@ public sealed class McpTransactionToolRegistrationTests
         "export_tree",
         "get_node",
         "get_root",
+        "get_snapshot",
         "get_transaction",
+        "get_transaction_changes",
         "list_children",
+        "list_releases",
         "list_roles",
         "move_node",
         "reorder_node",
@@ -43,11 +49,15 @@ public sealed class McpTransactionToolRegistrationTests
 
     private static readonly string[] ReadOnlyToolNames =
     [
+        "compare_snapshots",
         "export_tree",
         "get_node",
         "get_root",
+        "get_snapshot",
         "get_transaction",
+        "get_transaction_changes",
         "list_children",
+        "list_releases",
         "list_roles",
         "search",
         "validate_transaction"
@@ -228,6 +238,49 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.Equal(
             new[] { "candidateRoleIds", "roleId", "transactionId" },
             SortedRequiredNames(schemas["set_role_resolution"]));
+    }
+
+    [Fact]
+    public void HistoryAndReleaseTools_InputSchemas_UseStableCamelCaseArgumentNames()
+    {
+        using var provider = BuildToolProvider();
+        var schemas = provider.GetServices<McpServerTool>()
+            .ToDictionary(
+                tool => tool.ProtocolTool.Name,
+                tool => JsonDocument.Parse(tool.ProtocolTool.InputSchema.GetRawText()).RootElement.Clone(),
+                StringComparer.Ordinal);
+
+        // get_snapshot
+        Assert.Equal(new[] { "snapshotId" }, SortedPropertyNames(schemas["get_snapshot"]));
+        Assert.Equal(new[] { "snapshotId" }, SortedRequiredNames(schemas["get_snapshot"]));
+
+        // compare_snapshots
+        Assert.Equal(
+            new[] { "baseSnapshotId", "cursor", "limit", "targetSnapshotId" },
+            SortedPropertyNames(schemas["compare_snapshots"]));
+        Assert.Equal(
+            new[] { "baseSnapshotId", "targetSnapshotId" },
+            SortedRequiredNames(schemas["compare_snapshots"]));
+
+        // get_transaction_changes
+        Assert.Equal(
+            new[] { "cursor", "limit", "transactionId" },
+            SortedPropertyNames(schemas["get_transaction_changes"]));
+        Assert.Equal(new[] { "transactionId" }, SortedRequiredNames(schemas["get_transaction_changes"]));
+
+        // create_release
+        Assert.Equal(
+            new[] { "description", "name", "snapshotId" },
+            SortedPropertyNames(schemas["create_release"]));
+        Assert.Equal(
+            new[] { "name", "snapshotId" },
+            SortedRequiredNames(schemas["create_release"]));
+
+        // list_releases
+        Assert.Equal(
+            new[] { "cursor", "limit" },
+            SortedPropertyNames(schemas["list_releases"]));
+        Assert.DoesNotContain("required", schemas["list_releases"].EnumerateObject().Select(property => property.Name));
     }
 
     private static ServiceProvider BuildToolProvider() =>

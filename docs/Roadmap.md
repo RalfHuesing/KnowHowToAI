@@ -737,9 +737,9 @@ Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgab
   - [x] `create_node`, `update_node`, `move_node`, `reorder_node`, `delete_node`
   - [x] `replace_content`, `replace_text`, `delete_content`
   - [x] `create_role`, `update_role`, `delete_role`, `set_role_resolution`
-- [ ] **M6.6: Historien- und Release-Tools**
-  - [ ] `get_snapshot`, `compare_snapshots`, `get_transaction_changes`
-  - [ ] `create_release`, `list_releases`
+- [x] **M6.6: Historien- und Release-Tools**
+  - [x] `get_snapshot`, `compare_snapshots`, `get_transaction_changes`
+  - [x] `create_release`, `list_releases`
 - [ ] **M6.7: Vertrags- und STDIO-Integrationstests**
   - [ ] jedes Tool-Schema mit gültigem Minimalrequest und repräsentativen Fehlern
   - [ ] echter Serverprozess über STDIO: Initialize, Tool Call, Response, Shutdown
