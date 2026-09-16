@@ -412,6 +412,7 @@ Invarianten:
 - Der Name darf nicht leer oder reiner Whitespace sein (`ReleaseNameRequired`).
 - Der Name ist eindeutig über den gesamten Datenbestand (`ReleaseNameConflict`).
 - Der referenzierte Snapshot muss existieren (`SnapshotNotFound`) und den Zustand `Committed` aufweisen (`SnapshotNotCommitted`).
+- Existenz- und Zustandsprüfung erfolgen im SQL-Repository im selben kurzen, gesperrten SQL-Vorgang wie das Insert (`UPDLOCK, HOLDLOCK` auf der Snapshot-Zeile und dem Release-Namen): Zwischen einer vorherigen Service-Prüfung und der Registrierung kann sich der Snapshot-Zustand nicht mehr einschleichen; fehlgeschlagene Aufrufe legen keinen Release-Datensatz an.
 
 ### Deterministisches und paginiertes Listing (`list_releases`)
 

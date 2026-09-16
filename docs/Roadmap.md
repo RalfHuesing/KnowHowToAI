@@ -628,15 +628,15 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
     Content-Auswahl wie `RoleResolver` liefern
   - [x] Fast- und SQL-Vertragstests für expliziten Content, Fallback, keine konfigurierte
     Order, fehlende/gelöschte Requested-/Candidate-Rolle sowie Search ohne Rolle ergänzen
-- [ ] **M5.11: Release-Registrierung im SQL-Repository atomar absichern**
-  - [ ] `SqlReleaseRepository.CreateAsync` so ändern, dass Existenz und Zustand
+- [x] **M5.11: Release-Registrierung im SQL-Repository atomar abgesichert**
+  - [x] `SqlReleaseRepository.CreateAsync` so ändern, dass Existenz und Zustand
     `Committed` im selben kurzen SQL-Vorgang wie das Insert geprüft werden; zwischen
     Service-Vorprüfung und Insert darf kein Release auf einen inzwischen verworfenen
     Working Snapshot entstehen
-  - [ ] die Fälle fehlender Snapshot, nicht committed Snapshot und doppelter Name
+  - [x] die Fälle fehlender Snapshot, nicht committed Snapshot und doppelter Name
     weiterhin eindeutig auf `SnapshotNotFound`, `SnapshotNotCommitted` und
     `ReleaseNameConflict` abbilden; keine SQL-Fehlermeldung oder Verbindungsdaten leaken
-  - [ ] einen deterministischen SQL-Rennentest ergänzen, der den Snapshot-Zustand genau
+  - [x] einen deterministischen SQL-Rennentest ergänzen, der den Snapshot-Zustand genau
     zwischen Vorprüfung und Repository-Aufruf ändert und beweist, dass kein Release-
     Datensatz angelegt wird
 - [ ] **M5.12: Search-Abfrageplan und realistische SQL-Abnahme nachweisen**

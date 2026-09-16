@@ -2,14 +2,17 @@ using Dapper;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Validation;
+using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Repositories.History;
 using KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 using KnowHowToAI.Storage.SqlServer.Repositories.Snapshots;
 using KnowHowToAI.Storage.SqlServer.Repositories.Transactions;
+using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.IntegrationTests.SqlServer.Repositories;
 
@@ -106,6 +109,94 @@ public sealed class SqlReleaseIntegrationTests
         Assert.Equal("v2.0.0", serviceReleaseResult.Value.Release.Name);
         Assert.NotEmpty(serviceReleaseResult.Value.Findings);
         Assert.Contains(serviceReleaseResult.Value.Findings, f => f.Code == QualityWarningCodes.StaleDerivedContent);
+    }
+
+    [Fact]
+    public async Task CreateAsync_SnapshotDiscardedBetweenPreCheckAndRepositoryCall_RejectsWithoutReleaseRecord()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var policy = new SqlStoragePolicy { CommandTimeoutSeconds = 30 };
+        var snapshotRepo = new SqlSnapshotRepository(database.ConnectionFactory, policy);
+        var releaseRepo = new SqlReleaseRepository(database.ConnectionFactory, policy);
+        var now = new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero);
+        var transaction = await new SqlTransactionRepository(database.ConnectionFactory, policy)
+            .BeginAsync(new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
+        var snapshotId = transaction.WorkingSnapshotId;
+
+        // Service-Vorprüfung: der referenzierte Snapshot ist committed.
+        await SetSnapshotStateAsync(database, snapshotId, "Committed", DateTime.UtcNow);
+        var preCheck = await snapshotRepo.FindAsync(snapshotId);
+        Assert.NotNull(preCheck);
+        Assert.Equal(SnapshotState.Committed, preCheck.State);
+
+        // Rennen: der Snapshot-Zustand ändert sich genau zwischen Vorprüfung und Repository-Aufruf.
+        await SetSnapshotStateAsync(database, snapshotId, "Discarded", null);
+
+        var result = await releaseRepo.CreateAsync(new CreateReleaseRecord(
+            "v1.0.0",
+            snapshotId,
+            now,
+            "Zu spät verworfen"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReleaseErrorCodes.SnapshotNotCommitted, result.Error!.Code);
+        Assert.Equal(0, await CountReleasesAsync(database));
+    }
+
+    [Fact]
+    public async Task CreateAsync_MissingSnapshotWorkingSnapshotAndDuplicateName_MapDistinctErrorCodes()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        var policy = new SqlStoragePolicy { CommandTimeoutSeconds = 30 };
+        var snapshotRepo = new SqlSnapshotRepository(database.ConnectionFactory, policy);
+        var releaseRepo = new SqlReleaseRepository(database.ConnectionFactory, policy);
+        var now = new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero);
+
+        // 1. Fehlender Snapshot
+        var missing = await releaseRepo.CreateAsync(new CreateReleaseRecord("v1.0.0", new SnapshotId(987654321), now));
+        Assert.False(missing.IsSuccess);
+        Assert.Equal(ReleaseErrorCodes.SnapshotNotFound, missing.Error!.Code);
+        Assert.Equal("987654321", missing.Error.Details[ReleaseErrorCodes.SnapshotIdDetail]);
+
+        // 2. Nicht committed: Working Snapshot einer offenen Transaction
+        var transaction = await new SqlTransactionRepository(database.ConnectionFactory, policy)
+            .BeginAsync(new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
+        var working = await releaseRepo.CreateAsync(new CreateReleaseRecord("v1.0.0", transaction.WorkingSnapshotId, now));
+        Assert.False(working.IsSuccess);
+        Assert.Equal(ReleaseErrorCodes.SnapshotNotCommitted, working.Error!.Code);
+        Assert.Equal(transaction.WorkingSnapshotId.ToString(), working.Error.Details[ReleaseErrorCodes.SnapshotIdDetail]);
+
+        // 3. Doppelter Name nach erfolgreichem Release
+        var initialSnapshot = await snapshotRepo.GetCurrentAsync();
+        var created = await releaseRepo.CreateAsync(new CreateReleaseRecord("v1.0.0", initialSnapshot.SnapshotId, now));
+        Assert.True(created.IsSuccess);
+        var duplicate = await releaseRepo.CreateAsync(new CreateReleaseRecord("v1.0.0", initialSnapshot.SnapshotId, now));
+        Assert.False(duplicate.IsSuccess);
+        Assert.Equal(ReleaseErrorCodes.ReleaseNameConflict, duplicate.Error!.Code);
+        Assert.Equal("v1.0.0", duplicate.Error.Details[ReleaseErrorCodes.ReleaseNameDetail]);
+
+        Assert.Equal(1, await CountReleasesAsync(database));
+    }
+
+    private static Task SetSnapshotStateAsync(
+        SqlTestDatabase database,
+        SnapshotId snapshotId,
+        string state,
+        DateTime? committedAtUtc) =>
+        database.ExecuteAsync(
+            "UPDATE dbo.KnowHowToAI_Snapshot SET State = @state, CommittedAtUtc = @committedAtUtc WHERE SnapshotId = @snapshotId;",
+            new SqlParameter("@state", state),
+            new SqlParameter("@committedAtUtc", committedAtUtc ?? (object)DBNull.Value),
+            new SqlParameter("@snapshotId", snapshotId.Value));
+
+    private static async Task<int> CountReleasesAsync(SqlTestDatabase database)
+    {
+        await using var connection = await database.ConnectionFactory.OpenAsync();
+        return await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM dbo.KnowHowToAI_Release;");
     }
 
     private static async Task SeedStaleDerivedContentInDatabaseAsync(SqlTestDatabase db, SnapshotId snapshotId)
