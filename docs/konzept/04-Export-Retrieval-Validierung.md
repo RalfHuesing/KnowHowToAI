@@ -71,6 +71,14 @@ wird:
 ...
 ```
 
+### Strategie für Hierarchietiefen größer als sechs Ebenen
+
+Standard-Markdown (CommonMark) unterstützt ATX-Überschriften syntaktisch bis maximal Level 6 (`######`).
+Übersteigt die relative Tiefe im exportierten Teilbaum sechs Ebenen:
+
+1. **Clamping auf Level 6**: Alle Überschriften ab relativer Tiefe 6 erhalten das maximale Level 6 (`######`). Dadurch bleibt die Ausgabe in sämtlichen Markdown- und HTML-Parsern standardkonform und syntaktisch valide (keine Pseudotags oder als Fließtext degradierte `#######`).
+2. **Transparente Qualitätswarnung**: Der Exporter fügt dem Ergebnis die Qualitätswarnung `HierarchyTooDeep` mit der tatsächlichen Tiefe hinzu.
+
 ---
 # 49. Rollenauflösung beim Export
 

@@ -484,12 +484,12 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
     Cursor mit stabilem Fehler statt stiller Ergebnisverschiebung
   - [x] Cursor an Snapshot, Query/Filter und bei Working Reads an `ChangeVersion`
     binden; nach einer Mutation mit `CursorExpired` ablehnen
-- [ ] **M5.2: Markdown-Export**
-  - [ ] ausgewählter Root wird H1, Nachfahren erhalten relative Heading-Level
-  - [ ] Rollenauflösung und Freshness pro Node; Node ohne Content nur bei exportiertem
+- [x] **M5.2: Markdown-Export**
+  - [x] ausgewählter Root wird H1, Nachfahren erhalten relative Heading-Level
+  - [x] Rollenauflösung und Freshness pro Node; Node ohne Content nur bei exportiertem
     Nachfahren aufnehmen
-  - [ ] gelöschte/irrelevante Zweige auslassen; stabile Leerzeilen und LF-Ausgabe
-  - [ ] tiefer als sechs Ebenen: gültige, dokumentierte Strategie festlegen und testen,
+  - [x] gelöschte/irrelevante Zweige auslassen; stabile Leerzeilen und LF-Ausgabe
+  - [x] tiefer als sechs Ebenen: gültige, dokumentierte Strategie festlegen und testen,
     bevor der Exportvertrag veröffentlicht wird
 - [ ] **M5.3: Textsuche V1**
   - [ ] parametrisierte Suche über Title, Description und aktiven auflösbaren Content
