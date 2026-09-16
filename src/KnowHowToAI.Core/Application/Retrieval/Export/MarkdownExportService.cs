@@ -7,7 +7,6 @@ using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Validation;
-using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Retrieval.Export;
 
@@ -44,104 +43,22 @@ public sealed class MarkdownExportService
             return Result<string>.Failure(contextResult.Error!);
 
         var resolvedContext = contextResult.Value!;
-        var snapshotId = resolvedContext.SnapshotId;
-
-        var allNodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allRoles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allResolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allContents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allDependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-
-        var activeNodes = ActiveReadFilter.Apply(allNodes, resolvedContext);
-        var activeRoles = ActiveReadFilter.Apply(allRoles, resolvedContext);
-        var activeContents = ActiveReadFilter.Apply(allContents, resolvedContext);
-
-        var rootNode = activeNodes.FirstOrDefault(n => n.NodeId == rootNodeId);
+        var data = await LoadExportDataAsync(resolvedContext, roleId, cancellationToken).ConfigureAwait(false);
+        var rootNode = data.Nodes.FirstOrDefault(node => node.NodeId == rootNodeId);
         if (rootNode is null)
-        {
             return Result<string>.Failure(new DomainError(
                 NavigationErrorCodes.NodeNotFound,
                 "Die angefragte Node existiert nicht.",
                 new Dictionary<string, string> { [NavigationErrorCodes.NodeIdDetail] = rootNodeId.ToString() }));
-        }
-
-        var childrenByParent = activeNodes
-            .Where(n => n.ParentNodeId.HasValue)
-            .ToLookup(n => n.ParentNodeId!.Value);
 
         var resolvedNodes = new Dictionary<NodeId, ExportNodeContext>();
-        BuildExportContexts(rootNode, childrenByParent, snapshotId, roleId, activeRoles, allResolutions, activeContents, allDependencies, resolvedNodes);
+        BuildExportContexts(rootNode, data, resolvedNodes);
 
         if (!resolvedNodes.TryGetValue(rootNodeId, out var rootContext) || !rootContext.IsExportable)
-        {
             return Result<string>.Success(string.Empty);
-        }
 
-        var warnings = new List<DomainWarning>();
-        var sb = new StringBuilder();
-        var maxDepthObserved = 1;
-        var hasStaleContent = false;
-
-        void RenderNode(Node node, int depth)
-        {
-            if (depth > maxDepthObserved)
-                maxDepthObserved = depth;
-
-            var nodeCtx = resolvedNodes[node.NodeId];
-            if (nodeCtx.Freshness == Freshness.Stale)
-                hasStaleContent = true;
-
-            var effectiveHeadingLevel = Math.Min(depth, MaximumHeadingLevel);
-            var headingPrefix = new string('#', effectiveHeadingLevel);
-
-            if (sb.Length > 0)
-                sb.Append("\n\n");
-
-            sb.Append(headingPrefix);
-            sb.Append(' ');
-            sb.Append(node.Title);
-
-            if (!string.IsNullOrWhiteSpace(nodeCtx.Content?.ContentMd))
-            {
-                var normalizedContent = NormalizeContent(nodeCtx.Content.ContentMd);
-                sb.Append("\n\n");
-                sb.Append(normalizedContent);
-            }
-
-            var exportableChildren = childrenByParent[node.NodeId]
-                .Where(child => resolvedNodes.TryGetValue(child.NodeId, out var ctx) && ctx.IsExportable)
-                .OrderBy(child => child.SortOrder)
-                .ThenBy(child => child.NodeId.Value);
-
-            foreach (var child in exportableChildren)
-            {
-                RenderNode(child, depth + 1);
-            }
-        }
-
-        RenderNode(rootNode, 1);
-        sb.Append('\n');
-
-        if (maxDepthObserved > MaximumHeadingLevel)
-        {
-            warnings.Add(new DomainWarning(
-                QualityWarningCodes.HierarchyTooDeep,
-                $"Der exportierte Teilbaum überschreitet mit relativer Tiefe {maxDepthObserved} das Maximum von {MaximumHeadingLevel} Überschriftsebenen.",
-                new Dictionary<string, string>
-                {
-                    [QualityWarningCodes.ActualDepthDetail] = maxDepthObserved.ToString(),
-                    [QualityWarningCodes.ThresholdDepthDetail] = MaximumHeadingLevel.ToString()
-                }));
-        }
-
-        if (hasStaleContent)
-        {
-            warnings.Add(new DomainWarning(
-                QualityWarningCodes.StaleDerivedContent,
-                "Der exportierte Teilbaum enthält veralteten abgeleiteten Inhalt."));
-        }
-
-        return Result<string>.Success(sb.ToString(), warnings);
+        var rendered = RenderExport(rootNode, data.ChildrenByParent, resolvedNodes);
+        return Result<string>.Success(rendered.Markdown, BuildWarnings(rendered));
     }
 
     private sealed record ExportNodeContext(
@@ -152,81 +69,160 @@ public sealed class MarkdownExportService
         public bool IsExportable => Content is not null || HasExportableDescendant;
     }
 
+    private sealed record ExportSnapshotData(
+        SnapshotId SnapshotId,
+        RoleId RoleId,
+        IReadOnlyList<Node> Nodes,
+        IReadOnlyList<Role> Roles,
+        IReadOnlyList<RoleResolution> Resolutions,
+        IReadOnlyList<NodeContent> Contents,
+        IReadOnlyList<ContentDependency> Dependencies,
+        ILookup<NodeId, Node> ChildrenByParent);
+
+    private sealed record RenderedExport(string Markdown, int MaximumDepth, bool HasStaleContent);
+
+    private sealed class ExportRenderState
+    {
+        public StringBuilder Markdown { get; } = new();
+        public int MaximumDepth { get; set; } = 1;
+        public bool HasStaleContent { get; set; }
+    }
+
+    private async Task<ExportSnapshotData> LoadExportDataAsync(
+        ResolvedReadContext context,
+        RoleId roleId,
+        CancellationToken cancellationToken)
+    {
+        var snapshotId = context.SnapshotId;
+        var nodes = ActiveReadFilter.Apply(
+            await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
+            context);
+        var roles = ActiveReadFilter.Apply(
+            await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
+            context);
+        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var contents = ActiveReadFilter.Apply(
+            await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
+            context);
+        var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var childrenByParent = nodes.Where(node => node.ParentNodeId.HasValue).ToLookup(node => node.ParentNodeId!.Value);
+
+        return new ExportSnapshotData(
+            snapshotId,
+            roleId,
+            nodes,
+            roles,
+            resolutions,
+            contents,
+            dependencies,
+            childrenByParent);
+    }
+
     private static bool BuildExportContexts(
         Node node,
-        ILookup<NodeId, Node> childrenByParent,
-        SnapshotId snapshotId,
-        RoleId roleId,
-        IReadOnlyList<Role> roles,
-        IReadOnlyList<RoleResolution> resolutions,
-        IReadOnlyList<NodeContent> contents,
-        IReadOnlyList<ContentDependency> dependencies,
+        ExportSnapshotData data,
         Dictionary<NodeId, ExportNodeContext> contexts)
     {
-        var (content, _, _, _) = ResolveContent(node.NodeId, roleId, snapshotId, roles, resolutions, contents);
-        var freshness = content is not null
-            ? FreshnessEvaluator.Evaluate(content, contents, dependencies)
+        var resolution = NodeContentResolver.ResolveOrUnavailable(new NodeContentResolutionRequest(
+            node.NodeId,
+            data.RoleId,
+            data.SnapshotId,
+            data.Roles,
+            data.Resolutions,
+            data.Contents));
+        var freshness = resolution.Content is not null
+            ? FreshnessEvaluator.Evaluate(resolution.Content, data.Contents, data.Dependencies)
             : Freshness.Unknown;
 
         var hasExportableChild = false;
-        foreach (var child in childrenByParent[node.NodeId])
+        foreach (var child in data.ChildrenByParent[node.NodeId])
         {
-            var childExportable = BuildExportContexts(child, childrenByParent, snapshotId, roleId, roles, resolutions, contents, dependencies, contexts);
+            var childExportable = BuildExportContexts(child, data, contexts);
             if (childExportable)
                 hasExportableChild = true;
         }
 
-        var ctx = new ExportNodeContext(content, freshness, hasExportableChild);
+        var ctx = new ExportNodeContext(resolution.Content, freshness, hasExportableChild);
         contexts[node.NodeId] = ctx;
         return ctx.IsExportable;
     }
 
-    private async Task<Result<ResolvedReadContext>> ResolveContextAsync(
+    private static RenderedExport RenderExport(
+        Node rootNode,
+        ILookup<NodeId, Node> childrenByParent,
+        IReadOnlyDictionary<NodeId, ExportNodeContext> contexts)
+    {
+        var state = new ExportRenderState();
+        RenderNode(rootNode, 1, childrenByParent, contexts, state);
+        state.Markdown.Append('\n');
+        return new RenderedExport(state.Markdown.ToString(), state.MaximumDepth, state.HasStaleContent);
+    }
+
+    private static void RenderNode(
+        Node node,
+        int depth,
+        ILookup<NodeId, Node> childrenByParent,
+        IReadOnlyDictionary<NodeId, ExportNodeContext> contexts,
+        ExportRenderState state)
+    {
+        state.MaximumDepth = Math.Max(state.MaximumDepth, depth);
+        var nodeContext = contexts[node.NodeId];
+        state.HasStaleContent |= nodeContext.Freshness == Freshness.Stale;
+
+        if (state.Markdown.Length > 0)
+            state.Markdown.Append("\n\n");
+
+        state.Markdown.Append(new string('#', Math.Min(depth, MaximumHeadingLevel)));
+        state.Markdown.Append(' ');
+        state.Markdown.Append(node.Title);
+        AppendContent(state.Markdown, nodeContext.Content);
+
+        var children = childrenByParent[node.NodeId]
+            .Where(child => contexts.TryGetValue(child.NodeId, out var childContext) && childContext.IsExportable)
+            .OrderBy(child => child.SortOrder)
+            .ThenBy(child => child.NodeId.Value);
+        foreach (var child in children)
+            RenderNode(child, depth + 1, childrenByParent, contexts, state);
+    }
+
+    private static void AppendContent(StringBuilder markdown, NodeContent? content)
+    {
+        if (string.IsNullOrWhiteSpace(content?.ContentMd))
+            return;
+
+        markdown.Append("\n\n");
+        markdown.Append(NormalizeContent(content.ContentMd));
+    }
+
+    private static IReadOnlyList<DomainWarning> BuildWarnings(RenderedExport rendered)
+    {
+        var warnings = new List<DomainWarning>();
+        if (rendered.MaximumDepth > MaximumHeadingLevel)
+        {
+            warnings.Add(new DomainWarning(
+                QualityWarningCodes.HierarchyTooDeep,
+                $"Der exportierte Teilbaum überschreitet mit relativer Tiefe {rendered.MaximumDepth} das Maximum von {MaximumHeadingLevel} Überschriftsebenen.",
+                new Dictionary<string, string>
+                {
+                    [QualityWarningCodes.ActualDepthDetail] = rendered.MaximumDepth.ToString(),
+                    [QualityWarningCodes.ThresholdDepthDetail] = MaximumHeadingLevel.ToString()
+                }));
+        }
+
+        if (rendered.HasStaleContent)
+        {
+            warnings.Add(new DomainWarning(
+                QualityWarningCodes.StaleDerivedContent,
+                "Der exportierte Teilbaum enthält veralteten abgeleiteten Inhalt."));
+        }
+
+        return Array.AsReadOnly(warnings.ToArray());
+    }
+
+    private Task<Result<ResolvedReadContext>> ResolveContextAsync(
         ReadContext context,
-        CancellationToken cancellationToken)
-    {
-        KnowledgeTransaction? transaction = null;
-        Snapshot? snapshot = null;
-        var currentSnapshot = await _repos.Snapshots.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
-
-        if (context.TransactionId is { } txId)
-            transaction = await _repos.Transactions.FindAsync(txId, cancellationToken).ConfigureAwait(false);
-
-        if (context.SnapshotId is { } snapId)
-            snapshot = await _repos.Snapshots.FindAsync(snapId, cancellationToken).ConfigureAwait(false);
-
-        return ReadContextResolver.Resolve(context, new ReadContextCandidates(currentSnapshot.SnapshotId, transaction, snapshot));
-    }
-
-    private static (NodeContent? content, RoleId? resolvedRoleId, Availability availability, bool fallback)
-        ResolveContent(
-            NodeId nodeId,
-            RoleId requestedRoleId,
-            SnapshotId snapshotId,
-            IReadOnlyList<Role> roles,
-            IReadOnlyList<RoleResolution> resolutions,
-            IReadOnlyList<NodeContent> contents)
-    {
-        var nodeContents = contents.Where(c => c.NodeId == nodeId).ToArray();
-
-        var resolutionResult = RoleResolver.Resolve(new RoleResolutionRequest(
-            snapshotId,
-            nodeId,
-            requestedRoleId,
-            roles,
-            resolutions,
-            nodeContents));
-
-        if (!resolutionResult.IsSuccess)
-            return (null, null, Availability.None, false);
-
-        var resolved = resolutionResult.Value!;
-        if (resolved.Availability == Availability.None)
-            return (null, null, Availability.None, false);
-
-        var content = nodeContents.FirstOrDefault(c => c.RoleId == resolved.ResolvedRole);
-        return (content, resolved.ResolvedRole, resolved.Availability, resolved.FallbackUsed);
-    }
+        CancellationToken cancellationToken) =>
+        ReadContextReader.ResolveAsync(context, _repos.Snapshots, _repos.Transactions, cancellationToken);
 
     private static string NormalizeContent(string contentMd)
     {

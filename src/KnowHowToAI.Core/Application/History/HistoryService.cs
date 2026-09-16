@@ -23,18 +23,6 @@ public sealed class HistoryService
         _retrievalPolicy = retrievalPolicy;
     }
 
-    public HistoryService(HistoryRepositories repositories)
-        : this(repositories, new RetrievalPolicy
-        {
-            DefaultPageSize = 50,
-            MaximumPageSize = 250,
-            SearchPageSize = 10,
-            SearchMaximumPageSize = 100,
-            SnippetMaximumCharacters = 100
-        })
-    {
-    }
-
     /// <summary>Liefert Metadaten eines Snapshots oder einen stabilen Fachfehler.</summary>
     public async Task<Result<Snapshot>> GetSnapshotAsync(
         SnapshotId snapshotId,
@@ -71,7 +59,7 @@ public sealed class HistoryService
         if (cursorError is not null)
             return Result<SnapshotDiff>.Failure(cursorError);
 
-        var effectiveLimit = Math.Min(limit ?? _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize);
+        var effectiveLimit = ResolvePageSize(limit);
 
         var baseData = await LoadSnapshotDataAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
         var targetData = await LoadSnapshotDataAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
@@ -118,7 +106,7 @@ public sealed class HistoryService
         if (cursorError is not null)
             return Result<TransactionDiff>.Failure(cursorError);
 
-        var effectiveLimit = Math.Min(limit ?? _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize);
+        var effectiveLimit = ResolvePageSize(limit);
 
         var baseData = await LoadSnapshotDataAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
         var targetData = await LoadSnapshotDataAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
@@ -182,9 +170,9 @@ public sealed class HistoryService
                 new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
         }
 
-        if (expectedChangeVersion.HasValue && parsedCursor.ChangeVersion.HasValue)
+        if (expectedChangeVersion.HasValue)
         {
-            if (parsedCursor.ChangeVersion.Value != expectedChangeVersion.Value)
+            if (parsedCursor.ChangeVersion != expectedChangeVersion)
             {
                 return (0, new DomainError(
                     HistoryErrorCodes.CursorExpired,
@@ -192,9 +180,21 @@ public sealed class HistoryService
                     new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
             }
         }
+        else if (parsedCursor.ChangeVersion.HasValue)
+        {
+            return (0, new DomainError(
+                HistoryErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu diesem Snapshot-Vergleich.",
+                new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
+        }
 
         return (parsedCursor.NextOffset, null);
     }
+
+    private int ResolvePageSize(int? requestedLimit) =>
+        requestedLimit is > 0
+            ? Math.Min(requestedLimit.Value, _retrievalPolicy.MaximumPageSize)
+            : _retrievalPolicy.DefaultPageSize;
 
     private async Task<SnapshotData> LoadSnapshotDataAsync(SnapshotId snapshotId, CancellationToken cancellationToken)
     {

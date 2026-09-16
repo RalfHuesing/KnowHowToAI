@@ -45,34 +45,36 @@ public sealed record SearchCursor(
 
         try
         {
-            byte[] bytes;
-            try
-            {
-                bytes = Base64Url.DecodeFromChars(cursor);
-            }
-            catch (FormatException)
-            {
-                bytes = Convert.FromBase64String(cursor);
-            }
-
+            var bytes = Base64Url.DecodeFromChars(cursor);
             var dto = JsonSerializer.Deserialize<SearchCursorDto>(bytes);
-            if (dto is null || string.IsNullOrWhiteSpace(dto.QueryText))
+            if (!IsValid(dto))
                 return null;
 
+            var validDto = dto!;
             return new SearchCursor(
-                new SnapshotId(dto.SnapshotId),
-                dto.ChangeVersion,
-                dto.QueryText,
-                dto.RoleId is not null ? new RoleId(dto.RoleId) : null,
-                dto.LastRank,
-                dto.LastSortOrder,
-                new NodeId(dto.LastNodeId));
+                new SnapshotId(validDto.SnapshotId),
+                validDto.ChangeVersion,
+                validDto.QueryText,
+                validDto.RoleId is not null ? new RoleId(validDto.RoleId) : null,
+                validDto.LastRank,
+                validDto.LastSortOrder,
+                new NodeId(validDto.LastNodeId));
         }
         catch
         {
             return null;
         }
     }
+
+    private static bool IsValid(SearchCursorDto? dto) =>
+        dto is not null
+        && dto.SnapshotId > 0
+        && dto.ChangeVersion is null or >= 0
+        && !string.IsNullOrWhiteSpace(dto.QueryText)
+        && (dto.RoleId is null || !string.IsNullOrWhiteSpace(dto.RoleId))
+        && dto.LastRank is >= 1 and <= 3
+        && dto.LastSortOrder >= 0
+        && dto.LastNodeId != Guid.Empty;
 
     private sealed record SearchCursorDto(
         long SnapshotId,

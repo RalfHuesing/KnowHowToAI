@@ -4,7 +4,6 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
-using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Navigation;
 
@@ -108,91 +107,19 @@ public sealed class NavigationService
         var effectiveLimit = query.Limit is { } limit && limit > 0
             ? Math.Min(limit, _retrievalPolicy.MaximumPageSize)
             : _retrievalPolicy.DefaultPageSize;
-
-        var allNodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allRoles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allResolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allContents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var allDependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-
-        var activeNodes = ActiveReadFilter.Apply(allNodes, resolvedContext);
-        var activeRoles = ActiveReadFilter.Apply(allRoles, resolvedContext);
-        var activeContents = ActiveReadFilter.Apply(allContents, resolvedContext);
-
-        var children = activeNodes
+        var snapshotData = await LoadNavigationSnapshotDataAsync(resolvedContext, cancellationToken).ConfigureAwait(false);
+        var children = snapshotData.Nodes
             .Where(node => node.ParentNodeId == query.ParentNodeId)
             .OrderBy(node => node.SortOrder)
             .ThenBy(node => node.NodeId.Value)
             .ToArray();
+        var startIndexResult = ResolveStartIndex(query, resolvedContext, children);
+        if (!startIndexResult.IsSuccess)
+            return Result<ChildrenPage>.Failure(startIndexResult.Error!);
 
-        var startIndex = 0;
-        if (query.Cursor is not null)
-        {
-            var parsedCursor = NavigationCursor.TryDecode(query.Cursor);
-            if (parsedCursor is null)
-                return Result<ChildrenPage>.Failure(new DomainError(
-                    NavigationErrorCodes.InvalidCursor,
-                    "Der Cursor ist ungültig oder abgelaufen.",
-                    new Dictionary<string, string> { [NavigationErrorCodes.CursorDetail] = query.Cursor }));
-
-            // 1. Snapshot-Bindung prüfen
-            if (parsedCursor.SnapshotId != resolvedContext.SnapshotId)
-            {
-                if (resolvedContext.Source == ReadContextSource.Current)
-                {
-                    return Result<ChildrenPage>.Failure(new DomainError(
-                        NavigationErrorCodes.CursorExpired,
-                        "Der Cursor ist nach einer zwischenzeitlichen Aktualisierung des aktuellen Snapshots abgelaufen.",
-                        new Dictionary<string, string> { [NavigationErrorCodes.CursorDetail] = query.Cursor }));
-                }
-
-                return Result<ChildrenPage>.Failure(new DomainError(
-                    NavigationErrorCodes.InvalidCursor,
-                    "Der Cursor gehört nicht zu diesem Snapshot.",
-                    new Dictionary<string, string> { [NavigationErrorCodes.CursorDetail] = query.Cursor }));
-            }
-
-            // 2. Query/Filter-Bindung prüfen
-            if (parsedCursor.ParentNodeId != query.ParentNodeId
-                || parsedCursor.RoleId != query.RoleId
-                || parsedCursor.IncludeDeleted != resolvedContext.IncludeDeleted)
-            {
-                return Result<ChildrenPage>.Failure(new DomainError(
-                    NavigationErrorCodes.InvalidCursor,
-                    "Der Cursor gehört nicht zu diesem Ergebnis.",
-                    new Dictionary<string, string> { [NavigationErrorCodes.CursorDetail] = query.Cursor }));
-            }
-
-            // 3. Working Reads: ChangeVersion-Bindung prüfen
-            if (resolvedContext.ChangeVersion.HasValue || parsedCursor.ChangeVersion.HasValue)
-            {
-                if (parsedCursor.ChangeVersion != resolvedContext.ChangeVersion)
-                {
-                    return Result<ChildrenPage>.Failure(new DomainError(
-                        NavigationErrorCodes.CursorExpired,
-                        "Der Cursor ist nach einer zwischenzeitlichen Mutation der Transaktion abgelaufen.",
-                        new Dictionary<string, string> { [NavigationErrorCodes.CursorDetail] = query.Cursor }));
-                }
-            }
-
-            // 4. Startpunkt im sortierten Resultset ermitteln
-            var foundIndex = Array.FindIndex(children, node => node.NodeId == parsedCursor.LastNodeId);
-            if (foundIndex < 0)
-            {
-                return Result<ChildrenPage>.Failure(new DomainError(
-                    NavigationErrorCodes.InvalidCursor,
-                    "Der Cursor gehört nicht zu diesem Ergebnis.",
-                    new Dictionary<string, string> { [NavigationErrorCodes.CursorDetail] = query.Cursor }));
-            }
-
-            startIndex = foundIndex + 1;
-        }
-
-        var page = children.Skip(startIndex).Take(effectiveLimit + 1).ToArray();
+        var page = children.Skip(startIndexResult.Value).Take(effectiveLimit + 1).ToArray();
         var hasNext = page.Length > effectiveLimit;
         var pageItems = page.Take(effectiveLimit).ToArray();
-
-        var snapshotData = new NavigationSnapshotData(activeNodes, activeRoles, allResolutions, activeContents, allDependencies);
         var summaries = pageItems
             .Select(node => BuildChildSummary(node, query.RoleId, snapshotData))
             .ToArray();
@@ -238,22 +165,100 @@ public sealed class NavigationService
         IReadOnlyList<Domain.Content.NodeContent> Contents,
         IReadOnlyList<ContentDependency> Dependencies);
 
-    private async Task<Result<ResolvedReadContext>> ResolveContextAsync(
-        ReadContext context,
+    private async Task<NavigationSnapshotData> LoadNavigationSnapshotDataAsync(
+        ResolvedReadContext context,
         CancellationToken cancellationToken)
     {
-        KnowledgeTransaction? transaction = null;
-        Snapshot? snapshot = null;
-        var currentSnapshot = await _repos.Snapshots.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+        var snapshotId = context.SnapshotId;
+        var nodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var contents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
-        if (context.TransactionId is { } txId)
-            transaction = await _repos.Transactions.FindAsync(txId, cancellationToken).ConfigureAwait(false);
-
-        if (context.SnapshotId is { } snapId)
-            snapshot = await _repos.Snapshots.FindAsync(snapId, cancellationToken).ConfigureAwait(false);
-
-        return ReadContextResolver.Resolve(context, new ReadContextCandidates(currentSnapshot.SnapshotId, transaction, snapshot));
+        return new NavigationSnapshotData(
+            ActiveReadFilter.Apply(nodes, context),
+            ActiveReadFilter.Apply(roles, context),
+            resolutions,
+            ActiveReadFilter.Apply(contents, context),
+            dependencies);
     }
+
+    private static Result<int> ResolveStartIndex(
+        ListChildrenQuery query,
+        ResolvedReadContext context,
+        Node[] children)
+    {
+        if (query.Cursor is null)
+            return Result<int>.Success(0);
+
+        var cursor = NavigationCursor.TryDecode(query.Cursor);
+        if (cursor is null)
+            return Result<int>.Failure(CreateCursorError(
+                NavigationErrorCodes.InvalidCursor,
+                "Der Cursor ist ungültig oder abgelaufen.",
+                query.Cursor));
+
+        var bindingError = ValidateCursorBinding(cursor, query, context);
+        if (bindingError is not null)
+            return Result<int>.Failure(bindingError);
+
+        var foundIndex = Array.FindIndex(children, node =>
+            node.NodeId == cursor.LastNodeId && node.SortOrder == cursor.LastSortOrder);
+        return foundIndex >= 0
+            ? Result<int>.Success(foundIndex + 1)
+            : Result<int>.Failure(CreateCursorError(
+                NavigationErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu diesem Ergebnis.",
+                query.Cursor));
+    }
+
+    private static DomainError? ValidateCursorBinding(
+        NavigationCursor cursor,
+        ListChildrenQuery query,
+        ResolvedReadContext context)
+    {
+        if (cursor.SnapshotId != context.SnapshotId)
+        {
+            return context.Source == ReadContextSource.Current
+                ? CreateCursorError(
+                    NavigationErrorCodes.CursorExpired,
+                    "Der Cursor ist nach einer zwischenzeitlichen Aktualisierung des aktuellen Snapshots abgelaufen.",
+                    query.Cursor!)
+                : CreateCursorError(
+                    NavigationErrorCodes.InvalidCursor,
+                    "Der Cursor gehört nicht zu diesem Snapshot.",
+                    query.Cursor!);
+        }
+
+        if (cursor.ParentNodeId != query.ParentNodeId
+            || cursor.RoleId != query.RoleId
+            || cursor.IncludeDeleted != context.IncludeDeleted)
+        {
+            return CreateCursorError(
+                NavigationErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu diesem Ergebnis.",
+                query.Cursor!);
+        }
+
+        return cursor.ChangeVersion != context.ChangeVersion
+            ? CreateCursorError(
+                NavigationErrorCodes.CursorExpired,
+                "Der Cursor ist nach einer zwischenzeitlichen Mutation der Transaktion abgelaufen.",
+                query.Cursor!)
+            : null;
+    }
+
+    private static DomainError CreateCursorError(string code, string message, string cursor) =>
+        new(code, message, new Dictionary<string, string>
+        {
+            [NavigationErrorCodes.CursorDetail] = cursor
+        });
+
+    private Task<Result<ResolvedReadContext>> ResolveContextAsync(
+        ReadContext context,
+        CancellationToken cancellationToken) =>
+        ReadContextReader.ResolveAsync(context, _repos.Snapshots, _repos.Transactions, cancellationToken);
 
     private async Task<Result<NodeWithContent>> BuildNodeWithContentAsync(
         Node node,
@@ -270,14 +275,20 @@ public sealed class NavigationService
         var activeRoles = ActiveReadFilter.Apply(roles, resolvedContext);
         var activeContents = ActiveReadFilter.Apply(contents, resolvedContext);
 
-        var (resolvedContent, resolvedRoleId, availability, fallback) =
-            ResolveContent(node.NodeId, roleId, snapshotId, activeRoles, resolutions, activeContents);
-        var freshness = resolvedContent is not null
-            ? EvaluateFreshness(resolvedContent, activeContents, dependencies)
+        var resolution = NodeContentResolver.ResolveOrUnavailable(new NodeContentResolutionRequest(
+            node.NodeId, roleId, snapshotId, activeRoles, resolutions, activeContents));
+        var freshness = resolution.Content is not null
+            ? EvaluateFreshness(resolution.Content, activeContents, dependencies)
             : Freshness.Unknown;
 
         return Result<NodeWithContent>.Success(new NodeWithContent(
-            node, roleId, resolvedRoleId, availability, fallback, resolvedContent, freshness));
+            node,
+            roleId,
+            resolution.ResolvedRoleId,
+            resolution.Availability,
+            resolution.FallbackUsed,
+            resolution.Content,
+            freshness));
     }
 
     private static ChildNodeSummary BuildChildSummary(
@@ -286,13 +297,13 @@ public sealed class NavigationService
         NavigationSnapshotData data)
     {
         var childCount = data.Nodes.Count(n => n.ParentNodeId == node.NodeId);
-        var (resolvedContent, resolvedRoleId, availability, _) =
-            ResolveContent(node.NodeId, roleId, node.SnapshotId, data.Roles, data.Resolutions, data.Contents);
-        var contentSizeBytes = resolvedContent is not null
-            ? System.Text.Encoding.UTF8.GetByteCount(resolvedContent.ContentMd)
+        var resolution = NodeContentResolver.ResolveOrUnavailable(new NodeContentResolutionRequest(
+            node.NodeId, roleId, node.SnapshotId, data.Roles, data.Resolutions, data.Contents));
+        var contentSizeBytes = resolution.Content is not null
+            ? System.Text.Encoding.UTF8.GetByteCount(resolution.Content.ContentMd)
             : 0;
-        var freshness = resolvedContent is not null
-            ? EvaluateFreshness(resolvedContent, data.Contents, data.Dependencies)
+        var freshness = resolution.Content is not null
+            ? EvaluateFreshness(resolution.Content, data.Contents, data.Dependencies)
             : Freshness.Unknown;
 
         return new ChildNodeSummary(
@@ -302,39 +313,9 @@ public sealed class NavigationService
             node.SortOrder,
             childCount,
             contentSizeBytes,
-            availability,
-            resolvedRoleId,
+            resolution.Availability,
+            resolution.ResolvedRoleId,
             freshness);
-    }
-
-    private static (Domain.Content.NodeContent? content, RoleId? resolvedRoleId, Availability availability, bool fallback)
-        ResolveContent(
-            NodeId nodeId,
-            RoleId requestedRoleId,
-            SnapshotId snapshotId,
-            IReadOnlyList<Role> roles,
-            IReadOnlyList<RoleResolution> resolutions,
-            IReadOnlyList<Domain.Content.NodeContent> contents)
-    {
-        var nodeContents = contents.Where(c => c.NodeId == nodeId).ToArray();
-
-        var resolutionResult = RoleResolver.Resolve(new RoleResolutionRequest(
-            snapshotId,
-            nodeId,
-            requestedRoleId,
-            roles,
-            resolutions,
-            nodeContents));
-
-        if (!resolutionResult.IsSuccess)
-            return (null, null, Availability.None, false);
-
-        var resolved = resolutionResult.Value!;
-        if (resolved.Availability == Availability.None)
-            return (null, null, Availability.None, false);
-
-        var content = nodeContents.FirstOrDefault(c => c.RoleId == resolved.ResolvedRole);
-        return (content, resolved.ResolvedRole, resolved.Availability, resolved.FallbackUsed);
     }
 
     private static Freshness EvaluateFreshness(

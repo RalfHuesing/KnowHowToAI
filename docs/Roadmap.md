@@ -494,13 +494,13 @@ Use Case berührten Fachmodule
   - [ ] FastTests für gültigen expliziten Content, Fallback, nicht konfigurierte Order,
     fehlende/gelöschte Requested Role sowie fehlende/gelöschte Candidate Role ergänzen
 - [ ] **M4.8: Read-Kontext-Auflösung vereinheitlichen und Navigation zerlegen**
-  - [ ] einen gemeinsamen Application-Baustein erstellen, der Current Snapshot sowie
+  - [x] einen gemeinsamen Application-Baustein erstellen, der Current Snapshot sowie
     optional Transaction/historischen Snapshot lädt und genau einmal
     `ReadContextResolver.Resolve` aufruft
-  - [ ] `NavigationService`, `SearchService` und `MarkdownExportService` auf diesen
+  - [x] `NavigationService`, `SearchService` und `MarkdownExportService` auf diesen
     Baustein umstellen und ihre identischen privaten `ResolveContextAsync`-Methoden
     entfernen; Current-, Snapshot- und Transaction-Fehler unverändert weiterreichen
-  - [ ] `ListChildrenAsync` in getrennte Helfer für Limit, Cursor-Prüfung, Startposition
+  - [x] `ListChildrenAsync` in getrennte Helfer für Limit, Cursor-Prüfung, Startposition
     und Seitenbildung aufteilen, bis Methodenzeilen sowie zyklomatische und kognitive
     Komplexität innerhalb der AiNetLinter-Grenzen liegen
   - [ ] `NavigationServiceTests.cs` nach Use Case auf Dateien unter 500 Zeilen aufteilen,
@@ -574,7 +574,85 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] Search/Paging einschließlich Sonderzeichen und Größenlimits
   - [x] Snapshot-/Transaction-Diffs für create/update/move/delete und Rollenänderungen
   - [x] Release nur auf committed Snapshot, Namenskonflikt und historische Reproduktion
-- [ ] M5 wurde von einem Flash LLM umgesetzt. Mache ein Review/Audit der Umsetzung ob es konzept getreu und "ordentlich" umgesetzt wurde. Mini findings direkt selbst fixen alles andere als weitere Roadmap punkte ergänzen und so formuliert das es ein flash llm umsetzen kann ohne hohe reasoning fähigkeiten zu haben + commit.
+- [x] **M5.7: Review/Audit der M5-Umsetzung**
+  - [x] Navigation, Export, Search, Historie, Diff und Releases gegen die Konzeptmodule
+    02 bis 06, die M5-Abnahme und die Test-/Qualitätsrichtlinien prüfen
+  - [x] versteckte Policy-Fallback-Konstruktoren entfernen; nichtpositive explizite
+    Limits bei History und Releases wie bei Navigation/Search auf den konfigurierten
+    Default zurückführen
+  - [x] Working-Diff-Cursor ohne oder mit abweichender `ChangeVersion` als
+    `CursorExpired` ablehnen; Cursor nur im dokumentierten opaken Base64Url-Format
+    akzeptieren und strukturell ungültige Cursorwerte zurückweisen
+  - [x] Release-Findings vor der persistierenden Registrierung bestimmen, damit nach
+    erfolgreichem Insert keine nachgelagerte Findings-Abfrage den Aufruf scheitern lässt
+  - [x] den im M5-Slice neu eingeführten Snippet-Default im Konzept mit dem seit M0
+    verbindlichen Appsettings-Default von 300 Zeichen synchronisieren und die falsche
+    Zuordnung der Search-Grenzen zu ADR-V1-006 entfernen
+  - [x] M5-bedingte AiNetLinter-Verstöße durch kleinere Use-Case-Helfer, gemeinsame
+    Read-Kontext-/Content-Auflösung und ausgelagerten Navigation-Testsupport beseitigen
+  - [x] größere Befunde als ausführbare Nacharbeiten M5.8 bis M5.12 dokumentieren
+- [ ] **M5.8: `list_roles` begrenzen und paginieren**
+  - [ ] `ListRolesQuery` mit `ReadContext`, optionalem `limit` und opakem `cursor`
+    sowie `RolePage` mit `Items` und `NextCursor` einführen; die bisherige unpaginierte
+    `IReadOnlyList<Role>`-Antwort ersetzen
+  - [ ] Rollen deterministisch nach `RoleId.Value` ordinal aufsteigend sortieren und
+    höchstens `MaximumPageSize` Einträge ausgeben; ohne positives Limit
+    `DefaultPageSize` verwenden
+  - [ ] den Cursor an `SnapshotId`, `IncludeDeleted` und bei Transaction-Reads an
+    `ChangeVersion` binden; falsche Query-/Snapshot-Bindung mit `InvalidCursor` und
+    Mutation bzw. Current-Wechsel mit `CursorExpired` ablehnen
+  - [ ] FastTests für Current, historischen Snapshot und Working Transaction sowie für
+    Maximalgrenze, lückenlose Folgeseiten, manipulierten Cursor und Cursor-Ablauf ergänzen
+- [ ] **M5.9: Konsistente Read-Sicht für Working-Snapshots herstellen**
+  - [ ] einen Persistence-Port für eine zusammenhängende M5-Read-Sicht definieren, der
+    Transaction, `ChangeVersion`, Nodes, Rollen, Resolution Orders, Contents und
+    Dependencies aus genau einer kurzen, konsistenten SQL-Sicht zurückgibt
+  - [ ] die SQL-Implementierung mit derselben Transaction-Zeilensperre wie Working-
+    Mutationen serialisieren; vor dem ersten Read `Open`/Working prüfen und die gelesene
+    `ChangeVersion` zusammen mit den Daten zurückgeben, ohne Connection oder SQL-
+    Transaction über den Repository-Aufruf hinaus offen zu halten
+  - [ ] Navigation, Export und Transaction-Diff auf diese Sicht umstellen; Search-Hits,
+    Contents und Dependencies ebenfalls in einer kurzen konsistenten SQL-Transaction
+    lesen, damit kein Ergebnis Daten aus zwei `ChangeVersion`-Ständen mischt
+  - [ ] deterministische Integrationstests mit Barrieren statt Zeitverzögerungen
+    ergänzen: konkurrierende Mutation liegt vollständig vor oder nach dem Read; ein
+    Mischzustand ist unmöglich und ein alter Folgecursor liefert `CursorExpired`
+- [ ] **M5.10: Rollenauflösung und Search-Semantik fehlertransparent machen**
+  - [ ] zuerst M4.7 abschließen und den dort geforderten gemeinsamen `Result`-basierten
+    Resolver in Navigation und Export verwenden; Fehler der Rollenauflösung niemals als
+    `Availability.None`, leeren Export oder still ausgelassenen Node behandeln
+  - [ ] für Search ohne `RoleId` ausschließlich die rollenunabhängigen Felder `Title`
+    und `Description` durchsuchen; keinen alphabetisch zufälligen Rollen-Content wählen
+  - [ ] für Search mit `RoleId` die angefragte aktive Rolle und ihre vollständige
+    Resolution Order validieren; dieselben stabilen Fehlercodes und dieselbe erste
+    Content-Auswahl wie `RoleResolver` liefern
+  - [ ] Fast- und SQL-Vertragstests für expliziten Content, Fallback, keine konfigurierte
+    Order, fehlende/gelöschte Requested-/Candidate-Rolle sowie Search ohne Rolle ergänzen
+- [ ] **M5.11: Release-Registrierung im SQL-Repository atomar absichern**
+  - [ ] `SqlReleaseRepository.CreateAsync` so ändern, dass Existenz und Zustand
+    `Committed` im selben kurzen SQL-Vorgang wie das Insert geprüft werden; zwischen
+    Service-Vorprüfung und Insert darf kein Release auf einen inzwischen verworfenen
+    Working Snapshot entstehen
+  - [ ] die Fälle fehlender Snapshot, nicht committed Snapshot und doppelter Name
+    weiterhin eindeutig auf `SnapshotNotFound`, `SnapshotNotCommitted` und
+    `ReleaseNameConflict` abbilden; keine SQL-Fehlermeldung oder Verbindungsdaten leaken
+  - [ ] einen deterministischen SQL-Rennentest ergänzen, der den Snapshot-Zustand genau
+    zwischen Vorprüfung und Repository-Aufruf ändert und beweist, dass kein Release-
+    Datensatz angelegt wird
+- [ ] **M5.12: Search-Abfrageplan und realistische SQL-Abnahme nachweisen**
+  - [ ] eine repräsentative, dokumentierte Testgröße für Nodes, Rollenauflösungen und
+    Contents festlegen und in einer dedizierten manuell bereitgestellten Testdatenbank
+    ausschließlich über Working-Transaction/Commit-Pfade erzeugen; committed Snapshots
+    in Tests nicht direkt per SQL verändern
+  - [ ] für die reale parametrisierte Search-Query tatsächlichen Ausführungsplan,
+    logische Reads und Laufzeit erfassen und das Ergebnis mit Datenmenge und SQL-Server-
+    Version unter `docs/` dokumentieren
+  - [ ] nur bei belegtem Engpass eine neue additive Migration mit Search-Indizes
+    anlegen; die bereits angewendete Greenfield-Baseline nicht verändern und Vorher-/
+    Nachher-Messwerte dokumentieren
+  - [ ] SQL-Integrationstests für alle fünf Diff-Kategorien, historische Reproduktion
+    nach späterem Commit sowie Release-Listing über mehrere Seiten ergänzen; feste IDs
+    und Zeitwerte verwenden und keine Wall-Clock- oder Zufallsabhängigkeit einführen
 
 **Abnahme:** Kein Listen-/Such-/Diff-Tool liefert unkontrolliert den Gesamtbestand;
 Export ist die ausdrücklich angeforderte Ausnahme für potenziell große Ausgabe.

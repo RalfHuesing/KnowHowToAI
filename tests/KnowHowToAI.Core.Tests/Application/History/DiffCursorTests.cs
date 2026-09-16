@@ -56,4 +56,12 @@ public sealed class DiffCursorTests
         var result = DiffCursor.TryDecode(invalidCursor);
         Assert.Null(result);
     }
+
+    [Fact]
+    public void TryDecode_NegativeChangeVersion_ReturnsNull()
+    {
+        var encoded = new DiffCursor(new SnapshotId(1), new SnapshotId(2), -1, 0).Encode();
+
+        Assert.Null(DiffCursor.TryDecode(encoded));
+    }
 }

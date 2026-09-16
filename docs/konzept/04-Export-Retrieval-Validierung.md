@@ -213,13 +213,13 @@ Sonderzeichen der SQL-LIKE-Syntax (`%`, `_`, `[`, `\`) werden mit `ESCAPE '\'` e
 
 ### Snippet-Generierung
 
-Snippets besitzen eine konfigurierbare Maximallänge (`SnippetMaximumCharacters`, Standard 100 Zeichen). Der Trefferkontext wird zentriert um den Suchbegriff extrahiert, Zeilenumbrüche werden auf Leerzeichen normalisiert und Auslassungen mit `...` gekennzeichnet.
+Snippets besitzen eine konfigurierbare Maximallänge (`SnippetMaximumCharacters`, Standard 300 Zeichen). Der Trefferkontext wird zentriert um den Suchbegriff extrahiert, Zeilenumbrüche werden auf Leerzeichen normalisiert und Auslassungen mit `...` gekennzeichnet.
 
 ### Paging & Cursor-Bindung
 
 Die Suche verwendet Keyset-Paging über opake Cursors (`SearchCursor`). Der Cursor ist an `SnapshotId`, `SearchText`, `RoleId` und bei Working Reads an `ChangeVersion` gebunden. Eine zwischenzeitliche Mutation führt stabil zur Ablehnung mit `CursorExpired`.
 
-### Bewusste V1-Grenzen (ADR-V1-006)
+### Bewusste V1-Grenzen
 
 Die V1-Textsuche ist eine exakte parametrisierte Substring-Suche. Sie verspricht weder semantische noch linguistisch vollständige Suche (kein Stemming, keine Lemmatisierung, keine Tippfehlertoleranz).
 

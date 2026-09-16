@@ -155,6 +155,22 @@ public sealed class ReleaseServiceTests
         Assert.Equal(ReleaseErrorCodes.InvalidCursor, result.Error!.Code);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task ListReleasesAsync_NonPositiveLimit_UsesConfiguredDefault(int limit)
+    {
+        var harness = new ReleaseTestHarness();
+        harness.SeedReleases(count: 5);
+        var service = harness.CreateService(defaultPageSize: 2);
+
+        var result = await service.ListReleasesAsync(limit, cursor: null);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value!.Items.Count);
+        Assert.NotNull(result.Value.NextCursor);
+    }
+
     private sealed class ReleaseTestHarness
     {
         public InMemoryReleaseMutationRepository ReleaseRepo { get; } = new();
@@ -265,12 +281,11 @@ public sealed class ReleaseServiceTests
 
         public Task<IReadOnlyList<Release>> ListAsync(int limit, long? afterReleaseId, CancellationToken cancellationToken = default)
         {
-            var query = ExistingReleases.AsEnumerable();
+            IEnumerable<Release> query = ExistingReleases.OrderBy(release => release.ReleaseId.Value);
             if (afterReleaseId.HasValue)
-                query = query.Where(r => r.ReleaseId.Value > afterReleaseId.Value);
+                query = query.Where(release => release.ReleaseId.Value > afterReleaseId.Value);
 
-            var items = query.OrderBy(r => r.ReleaseId.Value).Take(limit).ToArray();
-            return Task.FromResult<IReadOnlyList<Release>>(items);
+            return Task.FromResult<IReadOnlyList<Release>>(query.Take(limit).ToList());
         }
     }
 

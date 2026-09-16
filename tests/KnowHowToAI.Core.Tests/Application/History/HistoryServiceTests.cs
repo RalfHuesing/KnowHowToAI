@@ -194,6 +194,38 @@ public sealed class HistoryServiceTests
         Assert.Equal(HistoryErrorCodes.CursorExpired, result.Error!.Code);
     }
 
+    [Fact]
+    public async Task GetTransactionChangesAsync_WorkingCursorWithoutChangeVersion_ReturnsCursorExpired()
+    {
+        var harness = new HistoryTestHarness();
+        var service = harness.CreateService();
+        var cursor = new DiffCursor(CommittedSnap1, WorkingSnap, ChangeVersion: null, NextOffset: 0).Encode();
+
+        var result = await service.GetTransactionChangesAsync(OpenTxId, cursor: cursor);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(HistoryErrorCodes.CursorExpired, result.Error!.Code);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task CompareSnapshotsAsync_NonPositiveLimit_UsesConfiguredDefault(int limit)
+    {
+        var harness = new HistoryTestHarness();
+        for (var index = 0; index < 12; index++)
+        {
+            var nodeId = new NodeId(Guid.Parse($"00000000-0000-0000-0000-{index + 1:000000000000}"));
+            harness.Nodes.Add(new Node(CommittedSnap2, nodeId, null, $"Node {index}", null, index, false));
+        }
+
+        var result = await harness.CreateService().CompareSnapshotsAsync(CommittedSnap1, CommittedSnap2, limit);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(10, result.Value!.Nodes.Count);
+        Assert.NotNull(result.Value.NextCursor);
+    }
+
     private sealed class HistoryTestHarness
     {
         public List<Snapshot> Snapshots { get; } = new();

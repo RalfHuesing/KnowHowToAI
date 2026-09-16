@@ -40,14 +40,6 @@ public sealed class ReleaseService
         _validationPolicy = validationPolicy;
     }
 
-    public ReleaseService(
-        HistoryRepositories historyRepositories,
-        IReleaseMutationRepository releaseMutationRepository,
-        IClock clock)
-        : this(historyRepositories, releaseMutationRepository, clock, new RetrievalPolicy(), new ValidationPolicy())
-    {
-    }
-
     /// <summary>
     /// Registriert atomar einen unveränderlichen Release-Verweis auf einen committed Snapshot.
     /// Schlägt mit <c>ReleaseNameRequired</c>, <c>SnapshotNotFound</c>, <c>SnapshotNotCommitted</c> oder
@@ -79,14 +71,13 @@ public sealed class ReleaseService
                 "Releases können nur auf committed Snapshots angelegt werden.",
                 new Dictionary<string, string> { [ReleaseErrorCodes.SnapshotIdDetail] = snapshotId.ToString() }));
 
+        var findings = await EvaluateFindingsAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var createResult = await _releaseMutationRepository.CreateAsync(
             new CreateReleaseRecord(name.Trim(), snapshotId, _clock.UtcNow, description?.Trim()),
             cancellationToken).ConfigureAwait(false);
 
         if (!createResult.IsSuccess)
             return Result<CreateReleaseResult>.Failure(createResult.Error!);
-
-        var findings = await EvaluateFindingsAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
         return Result<CreateReleaseResult>.Success(new CreateReleaseResult(createResult.Value!, findings));
     }
@@ -97,7 +88,9 @@ public sealed class ReleaseService
         string? cursor,
         CancellationToken cancellationToken = default)
     {
-        var effectiveLimit = Math.Min(limit ?? _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize);
+        var effectiveLimit = limit is > 0
+            ? Math.Min(limit.Value, _retrievalPolicy.MaximumPageSize)
+            : _retrievalPolicy.DefaultPageSize;
 
         long? afterReleaseId = null;
         if (cursor is not null)

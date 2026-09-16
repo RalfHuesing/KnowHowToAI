@@ -20,11 +20,10 @@ public sealed class ReleaseCursorTests
     }
 
     [Fact]
-    public void TryDecode_PlainNumericString_DecodesAsFallback()
+    public void TryDecode_PlainNumericString_ReturnsNullBecauseCursorMustBeOpaque()
     {
         var decoded = ReleaseCursor.TryDecode("123");
-        Assert.NotNull(decoded);
-        Assert.Equal(123, decoded.AfterReleaseId);
+        Assert.Null(decoded);
     }
 
     [Theory]

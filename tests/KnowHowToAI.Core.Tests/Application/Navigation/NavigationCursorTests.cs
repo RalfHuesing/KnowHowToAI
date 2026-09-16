@@ -72,4 +72,19 @@ public sealed class NavigationCursorTests
         var decoded = NavigationCursor.TryDecode(invalidCursor);
         Assert.Null(decoded);
     }
+
+    [Fact]
+    public void TryDecode_EmptyLastNodeId_ReturnsNull()
+    {
+        var encoded = new NavigationCursor(
+            SnapshotId,
+            ChangeVersion: null,
+            ParentNodeId: null,
+            RoleId,
+            IncludeDeleted: false,
+            new NodeId(Guid.Empty),
+            LastSortOrder: 0).Encode();
+
+        Assert.Null(NavigationCursor.TryDecode(encoded));
+    }
 }

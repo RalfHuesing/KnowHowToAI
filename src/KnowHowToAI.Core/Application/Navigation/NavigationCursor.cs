@@ -44,18 +44,15 @@ public sealed record NavigationCursor(
 
         try
         {
-            byte[] bytes;
-            try
-            {
-                bytes = System.Buffers.Text.Base64Url.DecodeFromChars(cursor);
-            }
-            catch (FormatException)
-            {
-                bytes = Convert.FromBase64String(cursor);
-            }
-
+            var bytes = System.Buffers.Text.Base64Url.DecodeFromChars(cursor);
             var dto = JsonSerializer.Deserialize<NavigationCursorDto>(bytes);
-            if (dto is null || string.IsNullOrWhiteSpace(dto.RoleId))
+            if (dto is null
+                || dto.SnapshotId <= 0
+                || dto.ChangeVersion is < 0
+                || string.IsNullOrWhiteSpace(dto.RoleId)
+                || dto.ParentNodeId == Guid.Empty
+                || dto.LastNodeId == Guid.Empty
+                || dto.LastSortOrder < 0)
                 return null;
 
             return new NavigationCursor(

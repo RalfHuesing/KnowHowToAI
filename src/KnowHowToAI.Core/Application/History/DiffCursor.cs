@@ -40,18 +40,13 @@ public sealed record DiffCursor(
 
         try
         {
-            byte[] bytes;
-            try
-            {
-                bytes = Base64Url.DecodeFromChars(cursor);
-            }
-            catch (FormatException)
-            {
-                bytes = Convert.FromBase64String(cursor);
-            }
-
+            var bytes = Base64Url.DecodeFromChars(cursor);
             var dto = JsonSerializer.Deserialize<DiffCursorDto>(bytes);
-            if (dto is null || dto.BaseSnapshotId <= 0 || dto.TargetSnapshotId <= 0 || dto.NextOffset < 0)
+            if (dto is null
+                || dto.BaseSnapshotId <= 0
+                || dto.TargetSnapshotId <= 0
+                || dto.ChangeVersion is < 0
+                || dto.NextOffset < 0)
                 return null;
 
             return new DiffCursor(

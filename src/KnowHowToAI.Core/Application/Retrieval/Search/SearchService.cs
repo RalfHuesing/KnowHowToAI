@@ -20,8 +20,10 @@ public sealed class SearchService
         SearchRepositories repositories,
         RetrievalPolicy retrievalPolicy)
     {
-        _repos = repositories ?? throw new ArgumentNullException(nameof(repositories));
-        _retrievalPolicy = retrievalPolicy ?? throw new ArgumentNullException(nameof(retrievalPolicy));
+        ArgumentNullException.ThrowIfNull(repositories);
+        ArgumentNullException.ThrowIfNull(retrievalPolicy);
+        _repos = repositories;
+        _retrievalPolicy = retrievalPolicy;
     }
 
     public SearchService(
@@ -84,22 +86,10 @@ public sealed class SearchService
             new SearchResultPage(query.Text, Array.AsReadOnly(pageItems), nextCursor));
     }
 
-    private async Task<Result<ResolvedReadContext>> ResolveContextAsync(
+    private Task<Result<ResolvedReadContext>> ResolveContextAsync(
         ReadContext context,
-        CancellationToken cancellationToken)
-    {
-        KnowledgeTransaction? transaction = null;
-        Snapshot? snapshot = null;
-        var currentSnapshot = await _repos.Snapshots.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
-
-        if (context.TransactionId is { } txId)
-            transaction = await _repos.Transactions.FindAsync(txId, cancellationToken).ConfigureAwait(false);
-
-        if (context.SnapshotId is { } snapId)
-            snapshot = await _repos.Snapshots.FindAsync(snapId, cancellationToken).ConfigureAwait(false);
-
-        return ReadContextResolver.Resolve(context, new ReadContextCandidates(currentSnapshot.SnapshotId, transaction, snapshot));
-    }
+        CancellationToken cancellationToken) =>
+        ReadContextReader.ResolveAsync(context, _repos.Snapshots, _repos.Transactions, cancellationToken);
 
     private static DomainError? ValidateCursor(string? cursor, ResolvedReadContext resolvedContext, SearchQuery query)
     {

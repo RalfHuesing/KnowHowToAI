@@ -1,5 +1,4 @@
 using System.Buffers.Text;
-using System.Globalization;
 using System.Text.Json;
 
 namespace KnowHowToAI.Core.Application.History;
@@ -19,7 +18,7 @@ public sealed record ReleaseCursor(long AfterReleaseId)
     }
 
     /// <summary>
-    /// Versucht, einen Cursor-String zu parsen (unterstützt opaken Base64Url-String sowie numerischen Fallback).
+    /// Versucht, einen opaken Base64Url-Cursor zu parsen.
     /// Liefert <c>null</c>, wenn der String ungültig, manipuliert oder nicht dekodierbar ist.
     /// </summary>
     public static ReleaseCursor? TryDecode(string? cursor)
@@ -27,21 +26,9 @@ public sealed record ReleaseCursor(long AfterReleaseId)
         if (string.IsNullOrWhiteSpace(cursor))
             return null;
 
-        if (long.TryParse(cursor, NumberStyles.None, CultureInfo.InvariantCulture, out var directId) && directId > 0)
-            return new ReleaseCursor(directId);
-
         try
         {
-            byte[] bytes;
-            try
-            {
-                bytes = Base64Url.DecodeFromChars(cursor);
-            }
-            catch (FormatException)
-            {
-                bytes = Convert.FromBase64String(cursor);
-            }
-
+            var bytes = Base64Url.DecodeFromChars(cursor);
             var dto = JsonSerializer.Deserialize<ReleaseCursorDto>(bytes);
             if (dto is null || dto.AfterReleaseId <= 0)
                 return null;

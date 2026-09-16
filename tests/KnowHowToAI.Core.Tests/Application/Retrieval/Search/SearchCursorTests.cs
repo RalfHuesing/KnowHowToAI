@@ -67,4 +67,21 @@ public sealed class SearchCursorTests
         var result = SearchCursor.TryDecode(invalidCursor);
         Assert.Null(result);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void TryDecode_InvalidHitRank_ReturnsNull(int rank)
+    {
+        var encoded = new SearchCursor(
+            new SnapshotId(1),
+            null,
+            "query",
+            null,
+            rank,
+            0,
+            new NodeId(Guid.Parse("11111111-2222-3333-4444-555555555555"))).Encode();
+
+        Assert.Null(SearchCursor.TryDecode(encoded));
+    }
 }
