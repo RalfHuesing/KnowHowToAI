@@ -1,6 +1,7 @@
 using Dapper;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
@@ -79,7 +80,7 @@ public sealed class SqlReleaseIntegrationTests
         Assert.Equal("v1.2.0", remainingRelease.Name);
 
         // 6. Test ReleaseService transparent findings on committed snapshot with stale content
-        var historyRepos = new HistoryRepositories(
+        var historyRepos = new SnapshotReadRepositories(
             snapshotRepo,
             new SqlTransactionRepository(database.ConnectionFactory, policy),
             new SqlHierarchyRepository(database.ConnectionFactory, policy),

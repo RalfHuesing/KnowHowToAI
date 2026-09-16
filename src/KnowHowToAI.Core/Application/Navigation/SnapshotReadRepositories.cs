@@ -3,14 +3,16 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 namespace KnowHowToAI.Core.Application.Navigation;
 
 /// <summary>
-/// Faesst alle Read-Ports zusammen, die der NavigationService benoetigt.
-/// Reduziert die Konstruktor-Parameteranzahl gemaess MaxConstructorDependencies-Regel.
+/// Bündelt alle Read-Ports der Snapshot-Sichten (Navigation, History, Export)
+/// für den gemeinsamen Snapshot-Lader. Löst die identischen Records
+/// NavigationRepositories und HistoryRepositories ab und reduziert die
+/// Konstruktor-Parameteranzahl gemaess MaxConstructorDependencies-Regel.
 /// </summary>
-public sealed record NavigationRepositories(
+public sealed record SnapshotReadRepositories(
     ISnapshotRepository Snapshots,
     ITransactionRepository Transactions,
     IHierarchyRepository Hierarchy,
-    IRoleRepository Roles,
     IContentRepository Contents,
+    IRoleRepository Roles,
     IDependencyRepository Dependencies,
     IWorkingSnapshotReadRepository? WorkingSnapshots = null);

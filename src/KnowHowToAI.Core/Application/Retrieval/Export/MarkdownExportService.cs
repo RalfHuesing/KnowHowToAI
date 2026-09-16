@@ -19,9 +19,9 @@ namespace KnowHowToAI.Core.Application.Retrieval.Export;
 public sealed class MarkdownExportService
 {
     private const int MaximumHeadingLevel = 6;
-    private readonly HistoryRepositories _repos;
+    private readonly SnapshotReadRepositories _repos;
 
-    public MarkdownExportService(HistoryRepositories repositories)
+    public MarkdownExportService(SnapshotReadRepositories repositories)
     {
         _repos = repositories ?? throw new ArgumentNullException(nameof(repositories));
     }
@@ -94,93 +94,24 @@ public sealed class MarkdownExportService
         RoleId roleId,
         CancellationToken cancellationToken)
     {
-        if (context.TransactionId is { } transactionId && context.SnapshotId is { } requestedSnapshotId)
-        {
-            return Result<ExportSnapshotData>.Failure(new DomainError(
-                ReadContextErrorCodes.InvalidReadContext,
-                "Ein Read-Kontext darf nicht gleichzeitig eine Transaction und einen Snapshot selektieren.",
-                new Dictionary<string, string>
-                {
-                    ["transactionId"] = transactionId.ToString(),
-                    ["snapshotId"] = requestedSnapshotId.ToString()
-                }));
-        }
+        var loadResult = await SnapshotReadDataLoader.LoadAsync(context, _repos, cancellationToken).ConfigureAwait(false);
+        if (!loadResult.IsSuccess)
+            return Result<ExportSnapshotData>.Failure(loadResult.Error!);
 
-        if (context.TransactionId is { } workingTransactionId && _repos.WorkingSnapshots is not null)
-        {
-            return await LoadWorkingExportDataAsync(
-                workingTransactionId,
-                context.IncludeDeleted,
-                roleId,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        var contextResult = await ResolveContextAsync(context, cancellationToken).ConfigureAwait(false);
-        if (!contextResult.IsSuccess)
-            return Result<ExportSnapshotData>.Failure(contextResult.Error!);
-
-        return await LoadCommittedExportDataAsync(contextResult.Value!, roleId, cancellationToken).ConfigureAwait(false);
-    }
-
-    private async Task<Result<ExportSnapshotData>> LoadWorkingExportDataAsync(
-        TransactionId workingTransactionId,
-        bool includeDeleted,
-        RoleId roleId,
-        CancellationToken cancellationToken)
-    {
-        var workingResult = await _repos.WorkingSnapshots!.ReadOpenWorkingAsync(workingTransactionId, cancellationToken).ConfigureAwait(false);
-        if (!workingResult.IsSuccess)
-            return Result<ExportSnapshotData>.Failure(workingResult.Error!);
-
-        var workingData = workingResult.Value!;
-        var resolvedContext = new ResolvedReadContext(
-            workingData.Transaction.WorkingSnapshotId,
-            ReadContextSource.Transaction,
-            workingTransactionId,
-            includeDeleted,
-            workingData.ChangeVersion);
-
-        var nodes = ActiveReadFilter.Apply(workingData.Nodes, resolvedContext);
-        var contents = ActiveReadFilter.Apply(workingData.Contents, resolvedContext);
-        var childrenByParent = nodes.Where(node => node.ParentNodeId.HasValue).ToLookup(node => node.ParentNodeId!.Value);
+        var data = loadResult.Value!;
+        var childrenByParent = data.Nodes
+            .Where(node => node.ParentNodeId.HasValue)
+            .ToLookup(node => node.ParentNodeId!.Value);
 
         return Result<ExportSnapshotData>.Success(new ExportSnapshotData(
-            workingData.Transaction.WorkingSnapshotId,
+            data.SnapshotId,
             roleId,
-            nodes,
-            workingData.Roles,
-            workingData.RoleResolutions,
-            contents,
-            workingData.Dependencies,
+            data.Nodes,
+            data.Roles,
+            data.Resolutions,
+            data.Contents,
+            data.Dependencies,
             childrenByParent));
-    }
-
-    private async Task<Result<ExportSnapshotData>> LoadCommittedExportDataAsync(
-        ResolvedReadContext normalContext,
-        RoleId roleId,
-        CancellationToken cancellationToken)
-    {
-        var snapshotId = normalContext.SnapshotId;
-        var normalNodes = ActiveReadFilter.Apply(
-            await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
-            normalContext);
-        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var normalContents = ActiveReadFilter.Apply(
-            await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false),
-            normalContext);
-        var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var normalChildrenByParent = normalNodes.Where(node => node.ParentNodeId.HasValue).ToLookup(node => node.ParentNodeId!.Value);
-
-        return Result<ExportSnapshotData>.Success(new ExportSnapshotData(
-            snapshotId,
-            roleId,
-            normalNodes,
-            roles,
-            resolutions,
-            normalContents,
-            dependencies,
-            normalChildrenByParent));
     }
 
     private static Result<bool> BuildExportContexts(
@@ -287,11 +218,6 @@ public sealed class MarkdownExportService
 
         return Array.AsReadOnly(warnings.ToArray());
     }
-
-    private Task<Result<ResolvedReadContext>> ResolveContextAsync(
-        ReadContext context,
-        CancellationToken cancellationToken) =>
-        ReadContextReader.ResolveAsync(context, _repos.Snapshots, _repos.Transactions, cancellationToken);
 
     private static string NormalizeContent(string contentMd)
     {

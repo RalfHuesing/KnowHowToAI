@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
@@ -256,7 +257,7 @@ public sealed class HistoryServiceTests
         }
 
         public HistoryService CreateService() => new(
-            new HistoryRepositories(
+            new SnapshotReadRepositories(
                 new FakeSnapshotRepository(Snapshots),
                 new FakeTransactionRepository(Transactions),
                 new FakeHierarchyRepository(Nodes),

@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Validation;
@@ -14,14 +15,14 @@ namespace KnowHowToAI.Core.Application.History;
 /// </summary>
 public sealed class ReleaseService
 {
-    private readonly HistoryRepositories _historyRepos;
+    private readonly SnapshotReadRepositories _historyRepos;
     private readonly IReleaseMutationRepository _releaseMutationRepository;
     private readonly IClock _clock;
     private readonly RetrievalPolicy _retrievalPolicy;
     private readonly ValidationPolicy _validationPolicy;
 
     public ReleaseService(
-        HistoryRepositories historyRepositories,
+        SnapshotReadRepositories historyRepositories,
         IReleaseMutationRepository releaseMutationRepository,
         IClock clock,
         RetrievalPolicy retrievalPolicy,

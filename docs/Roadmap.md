@@ -653,23 +653,23 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] SQL-Integrationstests für alle fünf Diff-Kategorien, historische Reproduktion
     nach späterem Commit sowie Release-Listing über mehrere Seiten ergänzen; feste IDs
     und Zeitwerte verwenden und keine Wall-Clock- oder Zufallsabhängigkeit einführen
-- [ ] **M5.13: Gemeinsamen Snapshot-Lader für Navigation und Export schaffen**
-  - [ ] einen gemeinsamen transportneutralen Baustein (z. B. statischer Helfer
+- [x] **M5.13: Gemeinsamen Snapshot-Lader für Navigation und Export schaffen**
+  - [x] einen gemeinsamen transportneutralen Baustein (z. B. statischer Helfer
     `SnapshotReadDataLoader`) anlegen, der für einen `ReadContext` entweder die konsistente
     Working-Sicht (`IWorkingSnapshotReadRepository.ReadOpenWorkingAsync`) oder
     `ReadContextReader.ResolveAsync` plus die fünf Listen-Reads (Hierarchy, Roles,
     Resolutions, Contents, Dependencies) nutzt und einheitlich einen Kontext mit den
     gefilterten Active-Daten (`ActiveReadFilter`) zurückgibt
-  - [ ] `NavigationService.LoadNavigationSnapshotDataAsync` sowie die Lademethoden des
+  - [x] `NavigationService.LoadNavigationSnapshotDataAsync` sowie die Lademethoden des
     `MarkdownExportService` (`LoadExportDataAsync`, `LoadWorkingExportDataAsync`,
     `LoadCommittedExportDataAsync`) vollständig durch diesen Baustein ersetzen; den inline
     duplizierten `InvalidReadContext`-Check entfernen, weil `ReadContextResolver` ihn
     bereits liefert
-  - [ ] die identischen Records `NavigationRepositories` und `HistoryRepositories` für
+  - [x] die identischen Records `NavigationRepositories` und `HistoryRepositories` für
     den neuen Baustein zusammenführen oder den Baustein direkt mit den Einzelports
     parametrisieren; alle Konstruktionstellen vorher per Suche (`rg "NavigationRepositories("`
     und `rg "HistoryRepositories("`) finden und anpassen; keine weiteren Kopien des Records anlegen
-  - [ ] Fehlercodes, Prüfungsreihenfolge, Freshness- und Paging-Ergebnisse dürfen sich nicht
+  - [x] Fehlercodes, Prüfungsreihenfolge, Freshness- und Paging-Ergebnisse dürfen sich nicht
     ändern; bestehende Fast- und Integrationstests bleiben ohne fachliche Anpassung grün
 - [ ] **M5.14: Current-Snapshot-Read nur bei Current-Kontexten laden**
   - [ ] `ReadContextReader.ResolveAsync` so ändern, dass `GetCurrentAsync` ausschließlich

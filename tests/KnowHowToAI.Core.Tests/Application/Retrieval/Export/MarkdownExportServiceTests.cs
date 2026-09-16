@@ -389,7 +389,7 @@ public sealed class MarkdownExportServiceTests
         public void AddDependency(ContentDependency dependency) => _dependencies.Add(dependency);
 
         public MarkdownExportService CreateService() => new(
-            new HistoryRepositories(
+            new SnapshotReadRepositories(
                 new SnapshotRepoFake(_snapshots, () => _currentSnapshotId),
                 new TransactionRepoFake(_transactions),
                 new HierarchyRepoFake(_nodes),

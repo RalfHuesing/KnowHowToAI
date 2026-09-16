@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
@@ -11,10 +12,10 @@ namespace KnowHowToAI.Core.Application.History;
 /// </summary>
 public sealed class HistoryService
 {
-    private readonly HistoryRepositories _repos;
+    private readonly SnapshotReadRepositories _repos;
     private readonly RetrievalPolicy _retrievalPolicy;
 
-    public HistoryService(HistoryRepositories repositories, RetrievalPolicy retrievalPolicy)
+    public HistoryService(SnapshotReadRepositories repositories, RetrievalPolicy retrievalPolicy)
     {
         ArgumentNullException.ThrowIfNull(repositories);
         ArgumentNullException.ThrowIfNull(retrievalPolicy);

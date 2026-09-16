@@ -3,6 +3,7 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Mutations.Content;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
@@ -77,7 +78,7 @@ public sealed class SqlDiffReleaseAbnahmeTests
         var policy = new SqlStoragePolicy { CommandTimeoutSeconds = 60 };
         var snapshotRepository = new SqlSnapshotRepository(database.ConnectionFactory, policy);
         var releaseRepository = new SqlReleaseRepository(database.ConnectionFactory, policy);
-        var historyRepositories = new HistoryRepositories(
+        var historyRepositories = new SnapshotReadRepositories(
             snapshotRepository,
             new SqlTransactionRepository(database.ConnectionFactory, policy),
             new SqlHierarchyRepository(database.ConnectionFactory, policy),
@@ -228,7 +229,7 @@ public sealed class SqlDiffReleaseAbnahmeTests
     private static HistoryService CreateHistoryService(SqlTestDatabase database)
     {
         var policy = new SqlStoragePolicy { CommandTimeoutSeconds = 60 };
-        var historyRepositories = new HistoryRepositories(
+        var historyRepositories = new SnapshotReadRepositories(
             new SqlSnapshotRepository(database.ConnectionFactory, policy),
             new SqlTransactionRepository(database.ConnectionFactory, policy),
             new SqlHierarchyRepository(database.ConnectionFactory, policy),

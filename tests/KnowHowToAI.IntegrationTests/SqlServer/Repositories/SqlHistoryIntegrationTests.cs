@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
@@ -29,7 +30,7 @@ public sealed class SqlHistoryIntegrationTests
         var roleRepo = new SqlRoleRepository(database.ConnectionFactory, policy);
         var depRepo = new SqlDependencyRepository(database.ConnectionFactory, policy);
 
-        var historyRepos = new HistoryRepositories(
+        var historyRepos = new SnapshotReadRepositories(
             snapshotRepo,
             transactionRepo,
             hierarchyRepo,

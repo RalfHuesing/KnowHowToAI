@@ -1,6 +1,7 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
@@ -230,7 +231,7 @@ public sealed class ReleaseServiceTests
         }
 
         public ReleaseService CreateService(int defaultPageSize = 10) => new(
-            new HistoryRepositories(
+            new SnapshotReadRepositories(
                 new DelegatingSnapshotRepository(Snapshots),
                 new ThrowingTransactionRepository(),
                 new DelegatingHierarchyRepository(Nodes),

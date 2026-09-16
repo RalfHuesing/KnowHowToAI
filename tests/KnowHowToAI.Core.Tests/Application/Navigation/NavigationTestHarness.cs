@@ -92,12 +92,12 @@ internal sealed class NavigationTestHarness
     public void AddDependency(ContentDependency dependency) => _dependencies.Add(dependency);
 
     public NavigationService CreateService(int defaultPageSize = 10, int maximumPageSize = 100) => new(
-        new NavigationRepositories(
+        new SnapshotReadRepositories(
             new SnapshotRepoFake(_snapshots, () => _currentSnapshotId),
             new TransactionRepoFake(_transactions),
             new HierarchyRepoFake(_nodes),
-            new RoleRepoFake(_roles, _resolutions),
             new ContentRepoFake(_contents),
+            new RoleRepoFake(_roles, _resolutions),
             new DependencyRepoFake(_dependencies),
             new WorkingSnapshotReadRepoFake(this)),
         new RetrievalPolicy

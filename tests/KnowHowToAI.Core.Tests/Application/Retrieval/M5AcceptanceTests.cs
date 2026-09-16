@@ -196,7 +196,7 @@ public sealed class M5AcceptanceTests
         public void AddRoleResolution(RoleResolution res) => Resolutions.Add(res);
         public void AddContent(NodeContent c) => Contents.Add(c);
 
-        public HistoryRepositories CreateHistoryRepositories() => new(
+        public SnapshotReadRepositories CreateSnapshotReadRepositories() => new(
             new DelegatingSnapshotRepo(Snapshots),
             new ThrowingTxRepo(),
             new DelegatingHierarchyRepo(Nodes),
@@ -204,13 +204,13 @@ public sealed class M5AcceptanceTests
             new DelegatingRoleRepo(Roles, Resolutions),
             new DelegatingDepRepo(Dependencies));
 
-        public MarkdownExportService CreateExportService() => new(CreateHistoryRepositories());
+        public MarkdownExportService CreateExportService() => new(CreateSnapshotReadRepositories());
 
         public HistoryService CreateHistoryService(RetrievalPolicy? policy = null) =>
-            new(CreateHistoryRepositories(), policy ?? StandardPolicy());
+            new(CreateSnapshotReadRepositories(), policy ?? StandardPolicy());
 
         public ReleaseService CreateReleaseService(RetrievalPolicy? policy = null) => new(
-            CreateHistoryRepositories(),
+            CreateSnapshotReadRepositories(),
             ReleaseRepo,
             new FrozenClock(FixedNow),
             policy ?? StandardPolicy(),
@@ -224,13 +224,13 @@ public sealed class M5AcceptanceTests
 
         public NavigationService CreateNavigationService(RetrievalPolicy? policy = null)
         {
-            var repos = CreateHistoryRepositories();
-            var navRepos = new NavigationRepositories(
+            var repos = CreateSnapshotReadRepositories();
+            var navRepos = new SnapshotReadRepositories(
                 repos.Snapshots,
                 repos.Transactions,
                 repos.Hierarchy,
-                repos.Roles,
                 repos.Contents,
+                repos.Roles,
                 repos.Dependencies);
             return new NavigationService(navRepos, policy ?? StandardPolicy());
         }

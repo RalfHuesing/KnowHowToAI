@@ -183,12 +183,12 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
             .BeginAsync(new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
 
     private static NavigationService CreateNavigationService(SqlTestDatabase database) => new(
-        new NavigationRepositories(
+        new SnapshotReadRepositories(
             new SqlSnapshotRepository(database.ConnectionFactory, Policy),
             new SqlTransactionRepository(database.ConnectionFactory, Policy),
             new SqlHierarchyRepository(database.ConnectionFactory, Policy),
-            new SqlRoleRepository(database.ConnectionFactory, Policy),
             new SqlContentRepository(database.ConnectionFactory, Policy),
+            new SqlRoleRepository(database.ConnectionFactory, Policy),
             new SqlDependencyRepository(database.ConnectionFactory, Policy),
             new SqlWorkingSnapshotReadRepository(database.ConnectionFactory, Policy)),
         CreateRetrievalPolicy());
