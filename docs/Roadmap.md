@@ -493,7 +493,7 @@ Use Case berührten Fachmodule
     „Rollenauflösung war fachlich ungültig“
   - [x] FastTests für gültigen expliziten Content, Fallback, nicht konfigurierte Order,
     fehlende/gelöschte Requested Role sowie fehlende/gelöschte Candidate Role ergänzen
-- [ ] **M4.8: Read-Kontext-Auflösung vereinheitlichen und Navigation zerlegen**
+- [x] **M4.8: Read-Kontext-Auflösung vereinheitlichen und Navigation zerlegen**
   - [x] einen gemeinsamen Application-Baustein erstellen, der Current Snapshot sowie
     optional Transaction/historischen Snapshot lädt und genau einmal
     `ReadContextResolver.Resolve` aufruft
@@ -503,7 +503,7 @@ Use Case berührten Fachmodule
   - [x] `ListChildrenAsync` in getrennte Helfer für Limit, Cursor-Prüfung, Startposition
     und Seitenbildung aufteilen, bis Methodenzeilen sowie zyklomatische und kognitive
     Komplexität innerhalb der AiNetLinter-Grenzen liegen
-  - [ ] `NavigationServiceTests.cs` nach Use Case auf Dateien unter 500 Zeilen aufteilen,
+  - [x] `NavigationServiceTests.cs` nach Use Case auf Dateien unter 500 Zeilen aufteilen,
     ohne Testfälle zu entfernen oder gemeinsame mutable globale Fixtures einzuführen
 - [x] **M4.9: Service-Vertragsmatrix vervollständigen**
   - [x] für `create/update/move/reorder/delete_node`, `replace_content`, `replace_text`,
