@@ -39,6 +39,24 @@ public sealed class SqlWorkingSnapshotMutationTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_UnchangedStateKeepsChangeVersion()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+        var transaction = await BeginAsync(database);
+        var repository = CreateMutationRepository(database);
+
+        var changed = await repository.TombstoneRoleAsync(transaction.TransactionId, new RoleId("Default"));
+        var unchanged = await repository.TombstoneRoleAsync(transaction.TransactionId, new RoleId("Default"));
+
+        Assert.Equal(1, changed.Value);
+        Assert.Equal(1, changed.ChangeVersion);
+        Assert.Equal(0, unchanged.Value);
+        Assert.Equal(1, unchanged.ChangeVersion);
+        Assert.Equal(1, await ReadChangeVersionAsync(database, transaction.TransactionId));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_RejectsMissingTransaction()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();

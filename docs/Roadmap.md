@@ -422,7 +422,15 @@ Snapshot-Modell ohne lang laufende SQL-Transaction.
   - [x] den Befund über mehrere zusammenhängende Befundarten und unveränderten
     `ChangeVersion` bei reiner Validation absichern; Test deterministisch und ohne
     Wall-Clock-Rennen ausführen
-- [ ] M3 wurde von einem Flash LLM umgesetzt. Mache ein Review/Audit der Umsetzung ob es konzept getreu und "ordentlich" umgesetzt wurde. Mini findings direkt selbst fixen alles andere als weitere Roadmap punkte ergänzen und so formuliert das es ein flash llm umsetzen kann ohne hohe reasoning fähigkeiten zu haben + commit.
+- [x] **M3.10: Review/Audit der M3-Umsetzung**
+  - [x] Snapshot-Kopie, Working-Guards, Mutationsserialisierung, atomaren Commit/Discard,
+    Konflikterkennung und Connection-Lebensdauer gegen Konzeptmodule 03 und 06 prüfen
+  - [x] Validation-Sicht, Domain-Mapping, parametrisierte SQL-Zugriffe, Cancellation und
+    Soft-Delete-/Dependency-Semantik gegen die betroffenen Invarianten prüfen
+  - [x] als Mini-Nacharbeit per SQL-Regressionstest belegen, dass eine erfolgreiche
+    Mutation ohne Zustandsänderung die `ChangeVersion` nicht erhöht
+  - [x] keine konzeptwidrigen oder größeren offenen Findings; deshalb sind keine
+    zusätzlichen M3-Nacharbeitspunkte erforderlich
 
 
 **Abnahme:** Alle M3-Integrationstests grün; es bleibt zwischen MCP-Aufrufen keine
