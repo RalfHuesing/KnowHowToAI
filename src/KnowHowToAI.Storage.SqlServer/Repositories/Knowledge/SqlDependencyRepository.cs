@@ -11,7 +11,7 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
 internal sealed class SqlDependencyRepository : SqlRepository, IDependencyRepository
 {
-    private const string ListSql = """
+    internal const string ListSql = """
         SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId,
                SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency

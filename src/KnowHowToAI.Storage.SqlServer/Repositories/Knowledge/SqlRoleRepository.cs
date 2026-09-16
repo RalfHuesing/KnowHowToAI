@@ -11,14 +11,14 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
 internal sealed class SqlRoleRepository : SqlRepository, IRoleRepository
 {
-    private const string ListRolesSql = """
+    internal const string ListRolesSql = """
         SELECT SnapshotId, RoleId, Name, Description, IsDeleted
         FROM dbo.KnowHowToAI_Role
         WHERE SnapshotId = @snapshotId
         ORDER BY RoleId;
         """;
 
-    private const string ListResolutionsSql = """
+    internal const string ListResolutionsSql = """
         SELECT SnapshotId, RequestedRoleId, CandidateRoleId, Priority
         FROM dbo.KnowHowToAI_RoleResolution
         WHERE SnapshotId = @snapshotId

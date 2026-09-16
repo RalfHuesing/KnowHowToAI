@@ -11,7 +11,7 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
 internal sealed class SqlContentRepository : SqlRepository, IContentRepository
 {
-    private const string ListSql = """
+    internal const string ListSql = """
         SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
         FROM dbo.KnowHowToAI_NodeContent
         WHERE SnapshotId = @snapshotId

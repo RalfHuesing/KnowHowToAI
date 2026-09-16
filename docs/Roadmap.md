@@ -686,12 +686,12 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] nur bei belegtem Engpass die geladenen Contents/Dependencies auf die für die
     transitive Freshness der Trefferseite benötigte Teilmenge begrenzen und Vorher-/Nachher-
     Messwerte dokumentieren; ohne Engpass die Entscheidung explizit festhalten
-- [ ] **M5.16: Kosten des seitenweisen Diff-Blätterns messen**
-  - [ ] in `SqlDiffReleaseAbnahmeTests` einen Diff über die volle M5.12-Datenmenge
+- [x] **M5.16: Kosten des seitenweisen Diff-Blätterns messen**
+  - [x] in `SqlDiffReleaseAbnahmeTests` einen Diff über die volle M5.12-Datenmenge
     (mehrere hundert Einträge) vollständig seitenweise durchblättern und dabei gelesene
     Zeilen und Laufzeit pro Seite messen, weil `HistoryService` pro Cursor-Seite beide
     Snapshots vollständig lädt und den Diff neu berechnet
-  - [ ] nur bei belegtem Engpass optimieren (z. B. Kategorie-Offsets im `DiffCursor`
+  - [x] nur bei belegtem Engpass optimieren (z. B. Kategorie-Offsets im `DiffCursor`
     fortführen), sonst die Messung als V1-adequat dokumentieren; Ergebnis unter `docs/`
     festhalten
 - [ ] **M5.17: Direktes SQL-Seeding gegen committed Snapshots in Repo-Tests entfernen**

@@ -11,7 +11,7 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
 internal sealed class SqlHierarchyRepository : SqlRepository, IHierarchyRepository
 {
-    private const string ListSql = """
+    internal const string ListSql = """
         SELECT SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted
         FROM dbo.KnowHowToAI_Node
         WHERE SnapshotId = @snapshotId

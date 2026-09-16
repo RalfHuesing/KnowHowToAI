@@ -12,7 +12,9 @@ ungekürzte STATISTICS-Ausgaben enthalten).
 - `tests/KnowHowToAI.IntegrationTests/SqlServer/Abnahme/SqlSearchAbnahmeTests.cs` –
   Testgröße, Suchsemantik und Messung der Search-Query.
 - `tests/KnowHowToAI.IntegrationTests/SqlServer/Abnahme/SqlDiffReleaseAbnahmeTests.cs` –
-  Diff-Kategorien, historische Reproduktion, Release-Listing über mehrere Seiten.
+  Diff-Kategorien, historische Reproduktion, Release-Listing über mehrere Seiten;
+  `SqlDiffReleaseAbnahmeTests.DiffPaging.cs` – seitenweises Diff-Blättern über die
+  volle Datenmenge mit Pro-Seiten-Messung (M5.16).
 - `tests/KnowHowToAI.IntegrationTests/TestSupport/WorkingTransactionSession.cs` und
   `SequentialIdentifierGenerator.cs` – gemeinsames Seeding ausschließlich über die
   produktiven Mutation-Pfade (`begin_transaction`, Node-/Content-/Role-Mutation,
@@ -156,3 +158,71 @@ Nachher-Messwert entfällt entsprechend. Die Messung wird bei deutlich größere
 Content-Bestand (z. B. Faktor 100: ~44 000 Contents) mit derselben Testklasse
 wiederholt – erst wenn der Full-Scan-Anteil die Search-Kosten selbst erreicht,
 ist die Teilmenge-Begrenzung zu implementieren.
+
+## M5.16 – Kosten des seitenweisen Diff-Blätterns
+
+Nachweis für `docs/Roadmap.md` M5.16: der Test
+`DiffPaging_UeberVolleM512Datenmenge_KostenProSeiteNachgewiesen` in
+`tests/KnowHowToAI.IntegrationTests/SqlServer/Abnahme/SqlDiffReleaseAbnahmeTests.DiffPaging.cs`
+(Kategorie `ManualDatabaseIntegration`) blaettert einen Snapshot-Diff über die volle
+M5.12-Datenmenge vollständig seitenweise durch und misst gelesene Zeilen und Laufzeit
+pro Cursor-Seite. Der Diff-Pfad ist bewusst teuer pro Seite: `HistoryService`
+lädt pro Cursor-Seite **beide** Snapshots vollständig (je fünf Statements über
+`SqlHierarchyRepository`, `SqlRoleRepository`, `SqlContentRepository`,
+`SqlDependencyRepository`) und berechnet den Diff über `SnapshotDiffCalculator`
+neu; der `DiffCursor` führt nur den fortlaufenden Item-Offset weiter.
+
+### Testgröße und Messmethodik
+
+Basissnapshot in M5.12-Groesse (401 Nodes, 440 Contents, 20 Dependencies, 3 Rollen,
+2 Resolution Orders), Aenderungs-Snapshot mit 373 Diff-Eintraegen (210 Nodes:
+150 Modified/40 Added/20 Deleted, 162 Contents: 100 Modified/40 Added/22 Deleted,
+1 Deleted Dependency). Durchblättern mit Seitengroesse 50 → 8 Seiten (7 × 50,
+letzte Seite 23). Gemessen wird je Seite:
+
+1. `CompareSnapshotsAsync` Ende-zu-Ende (Wall-Clock, StopWatch),
+2. ein STATISTICS-IO/TIME-Batch mit dem unveränderten SQL-Text der fünf
+   `ListBySnapshot`-Statements (je einmal für Base- und Target-Snapshot; die
+   SQL-Konstanten sind dafür `internal` sichtbar gemacht), mit gelesenen Zeilen
+   pro Statement und logischen Reads pro Tabelle (zweisprachig geparst),
+3. einmalig der Ist-Plan via `SET STATISTICS PROFILE`
+   (`sys.dm_exec_query_stats` bleibt wegen fehlender
+   VIEW SERVER PERFORMANCE STATE-Berechtigung ungenutzt).
+
+### Messergebnis (Umgebung: SQL Server 2022, Datenbank `KnowHowToAi`)
+
+| Seite | Items | logische Reads gesamt | Verteilung (Node/NodeContent/Role/Resolution/Dependency) | SQL-Batch Wall-Clock | `CompareSnapshotsAsync` Wall-Clock |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 50 | 69 | 23 / 34 / 4 / 4 / 4 | 7,7 ms (inkl. Kompilierung) | 9,9 ms |
+| 2–8 | je 50 (Seite 8: 23) | je 69 | identisch zur Seite 1 | je 2,2–2,9 ms | je 3,5–6,2 ms |
+
+Gelesene Zeilen pro Statement und Seite – über alle 8 Seiten konstant
+(belegt die vollständige Wiederholungsladung je Cursor-Seite):
+
+| Snapshot | Nodes | Roles | Resolutions | Contents | Dependencies |
+| --- | --- | --- | --- | --- | --- |
+| Base | 401 | 4 | 5 | 440 | 20 |
+| Target | 441 (inkl. 20 Tombstones) | 4 | 5 | 480 (inkl. 22 Tombstones) | 19 |
+
+Gesamt über den vollständigen Durchlauf (8 Seiten): 552 logische Reads,
+~38 ms `CompareSnapshotsAsync` inklusive aller Snapshot-Ladungen. Ausführung
+und CPU liegen je Statement unter der 1-ms-Auflösung. Ist-Plan: durchgehend
+Clustered Index Seek auf `SnapshotId` (PK je Tabelle) plus Sort; kein Scan.
+
+### Entscheidung: V1-adequat, keine Kategorie-Offsets im `DiffCursor`
+
+Ein belegter Engpass liegt **nicht** vor: die Kosten pro Cursor-Seite sind
+konstant (69 logische Reads, ~3 ms SQL-Ausführung) und unabhängig vom Offset,
+weil alle fünf Statements mit Clustered Index Seek auf `SnapshotId` zugreifen und
+die Seitenmenge im Speicher per Offset geschnitten wird. Kategorie-Offsets im
+`DiffCursor` würden die SQL-Ladung nicht reduzieren (sie hängt nicht vom Offset
+ab) und sparten ausschließlich die In-Memory-Diff-Berechnung ein, die bei 373
+Eintraegen unterhalb der Messauflösung liegt – die Statistik-IO-Verteilung wäre
+identisch. Der vollständige 8-Seiten-Durchlauf kostet ~38 ms; selbst bei
+deutlich größeren Snapshots skaliert nur der konstante Pro-Seiten-Anteil mit
+der Snapshotgroesse, nicht die Seitenzahl. Vorher-Messwerte sind die obigen
+Werte; ein Nachher entfällt entsprechend. Die Messung wird bei deutlich
+größerer Datenmenge (z. B. Faktor 100) mit derselben Testklasse wiederholt;
+erst wenn die Pro-Seiten-Ladung den dominanten Kostenanteil realer Workloads
+erreicht, ist die Kategorie-Offset-Optimierung zu implementieren. Die Messwerte
+werden vom Test laufend neu nach `temp/diff-abnahme-messung.json` geschrieben.

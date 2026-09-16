@@ -26,7 +26,7 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Abnahme;
 /// </summary>
 [Trait("Category", "ManualDatabaseIntegration")]
 [Collection("ManualDatabaseIntegration")]
-public sealed class SqlDiffReleaseAbnahmeTests
+public sealed partial class SqlDiffReleaseAbnahmeTests
 {
     private static readonly TransactionId ErsteTransactionId = new(Guid.Parse("51210000-0000-0000-0000-000000000001"));
     private static readonly TransactionId AenderungsTransactionId = new(Guid.Parse("51210000-0000-0000-0000-000000000002"));
