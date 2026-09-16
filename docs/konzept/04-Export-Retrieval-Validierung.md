@@ -180,6 +180,11 @@ Freshness
 
 Der Agent kann dadurch entscheiden, welche Nodes er tatsächlich laden muss.
 
+### Paginierung von list_children und list_roles
+
+Große Mengen an Kind-Nodes oder Rollen werden seitenweise über opake Keyset-Cursors (`NavigationCursor`, `RoleCursor`) paginiert, gesteuert über `RetrievalPolicy` (`DefaultPageSize`, `MaximumPageSize`).
+`list_roles` sortiert deterministisch nach `RoleId.Value` ordinal aufsteigend. Der Cursor ist an `SnapshotId`, `IncludeDeleted` und bei Working Reads an `ChangeVersion` gebunden. Eine zwischenzeitliche Mutation oder ein Wechsel des Current Snapshots führt zu `CursorExpired`; falsche Snapshot- oder Filterbindung zu `InvalidCursor`.
+
 ---
 
 # 52. Search

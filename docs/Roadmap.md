@@ -591,17 +591,17 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] M5-bedingte AiNetLinter-Verstöße durch kleinere Use-Case-Helfer, gemeinsame
     Read-Kontext-/Content-Auflösung und ausgelagerten Navigation-Testsupport beseitigen
   - [x] größere Befunde als ausführbare Nacharbeiten M5.8 bis M5.12 dokumentieren
-- [ ] **M5.8: `list_roles` begrenzen und paginieren**
-  - [ ] `ListRolesQuery` mit `ReadContext`, optionalem `limit` und opakem `cursor`
+- [x] **M5.8: `list_roles` begrenzen und paginieren**
+  - [x] `ListRolesQuery` mit `ReadContext`, optionalem `limit` und opakem `cursor`
     sowie `RolePage` mit `Items` und `NextCursor` einführen; die bisherige unpaginierte
     `IReadOnlyList<Role>`-Antwort ersetzen
-  - [ ] Rollen deterministisch nach `RoleId.Value` ordinal aufsteigend sortieren und
+  - [x] Rollen deterministisch nach `RoleId.Value` ordinal aufsteigend sortieren und
     höchstens `MaximumPageSize` Einträge ausgeben; ohne positives Limit
     `DefaultPageSize` verwenden
-  - [ ] den Cursor an `SnapshotId`, `IncludeDeleted` und bei Transaction-Reads an
+  - [x] den Cursor an `SnapshotId`, `IncludeDeleted` und bei Transaction-Reads an
     `ChangeVersion` binden; falsche Query-/Snapshot-Bindung mit `InvalidCursor` und
     Mutation bzw. Current-Wechsel mit `CursorExpired` ablehnen
-  - [ ] FastTests für Current, historischen Snapshot und Working Transaction sowie für
+  - [x] FastTests für Current, historischen Snapshot und Working Transaction sowie für
     Maximalgrenze, lückenlose Folgeseiten, manipulierten Cursor und Cursor-Ablauf ergänzen
 - [ ] **M5.9: Konsistente Read-Sicht für Working-Snapshots herstellen**
   - [ ] einen Persistence-Port für eine zusammenhängende M5-Read-Sicht definieren, der

@@ -159,22 +159,47 @@ public sealed class NavigationService
         return Result<ChildrenPage>.Success(new ChildrenPage(query.ParentNodeId, summariesResult.Value!, nextCursor));
     }
 
-    /// <summary>Liefert alle aktiven Rollen des aufgelösten Snapshots.</summary>
-    public async Task<Result<IReadOnlyList<Role>>> ListRolesAsync(
-        ReadContext context,
+    /// <summary>
+    /// Paginierte, deterministisch sortierte Rollen (RoleId.Value ordinal aufsteigend).
+    /// </summary>
+    public async Task<Result<RolePage>> ListRolesAsync(
+        ListRolesQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(query);
 
-        var contextResult = await ResolveContextAsync(context, cancellationToken).ConfigureAwait(false);
+        var contextResult = await ResolveContextAsync(query.Context, cancellationToken).ConfigureAwait(false);
         if (!contextResult.IsSuccess)
-            return Result<IReadOnlyList<Role>>.Failure(contextResult.Error!);
+            return Result<RolePage>.Failure(contextResult.Error!);
 
         var resolvedContext = contextResult.Value!;
-        var snapshotId = resolvedContext.SnapshotId;
-        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var effectiveLimit = query.Limit is { } limit && limit > 0
+            ? Math.Min(limit, _retrievalPolicy.MaximumPageSize)
+            : _retrievalPolicy.DefaultPageSize;
+
+        var roles = await _repos.Roles.ListBySnapshotAsync(resolvedContext.SnapshotId, cancellationToken).ConfigureAwait(false);
         var activeRoles = ActiveReadFilter.Apply(roles, resolvedContext);
-        return Result<IReadOnlyList<Role>>.Success(activeRoles);
+        var orderedRoles = activeRoles
+            .OrderBy(r => r.RoleId.Value, StringComparer.Ordinal)
+            .ToArray();
+
+        var startIndexResult = ResolveRoleStartIndex(query, resolvedContext, orderedRoles);
+        if (!startIndexResult.IsSuccess)
+            return Result<RolePage>.Failure(startIndexResult.Error!);
+
+        var page = orderedRoles.Skip(startIndexResult.Value).Take(effectiveLimit + 1).ToArray();
+        var hasNext = page.Length > effectiveLimit;
+        var pageItems = page.Take(effectiveLimit).ToArray();
+
+        var nextCursor = hasNext && pageItems.Length > 0
+            ? new RoleCursor(
+                resolvedContext.SnapshotId,
+                resolvedContext.ChangeVersion,
+                resolvedContext.IncludeDeleted,
+                pageItems[^1].RoleId).Encode()
+            : null;
+
+        return Result<RolePage>.Success(new RolePage(pageItems, nextCursor));
     }
 
     // ── Private Helpers ──────────────────────────────────────────────────────
@@ -257,6 +282,68 @@ public sealed class NavigationService
         if (cursor.ParentNodeId != query.ParentNodeId
             || cursor.RoleId != query.RoleId
             || cursor.IncludeDeleted != context.IncludeDeleted)
+        {
+            return CreateCursorError(
+                NavigationErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu diesem Ergebnis.",
+                query.Cursor!);
+        }
+
+        return cursor.ChangeVersion != context.ChangeVersion
+            ? CreateCursorError(
+                NavigationErrorCodes.CursorExpired,
+                "Der Cursor ist nach einer zwischenzeitlichen Mutation der Transaktion abgelaufen.",
+                query.Cursor!)
+            : null;
+    }
+
+    private static Result<int> ResolveRoleStartIndex(
+        ListRolesQuery query,
+        ResolvedReadContext context,
+        Role[] roles)
+    {
+        if (query.Cursor is null)
+            return Result<int>.Success(0);
+
+        var cursor = RoleCursor.TryDecode(query.Cursor);
+        if (cursor is null)
+            return Result<int>.Failure(CreateCursorError(
+                NavigationErrorCodes.InvalidCursor,
+                "Der Cursor ist ungültig oder abgelaufen.",
+                query.Cursor));
+
+        var bindingError = ValidateRoleCursorBinding(cursor, query, context);
+        if (bindingError is not null)
+            return Result<int>.Failure(bindingError);
+
+        var foundIndex = Array.FindIndex(roles, r => r.RoleId == cursor.LastRoleId);
+        return foundIndex >= 0
+            ? Result<int>.Success(foundIndex + 1)
+            : Result<int>.Failure(CreateCursorError(
+                NavigationErrorCodes.InvalidCursor,
+                "Der Cursor gehört nicht zu diesem Ergebnis.",
+                query.Cursor));
+    }
+
+    private static DomainError? ValidateRoleCursorBinding(
+        RoleCursor cursor,
+        ListRolesQuery query,
+        ResolvedReadContext context)
+    {
+        if (cursor.SnapshotId != context.SnapshotId)
+        {
+            return context.Source == ReadContextSource.Current
+                ? CreateCursorError(
+                    NavigationErrorCodes.CursorExpired,
+                    "Der Cursor ist nach einer zwischenzeitlichen Aktualisierung des aktuellen Snapshots abgelaufen.",
+                    query.Cursor!)
+                : CreateCursorError(
+                    NavigationErrorCodes.InvalidCursor,
+                    "Der Cursor gehört nicht zu diesem Snapshot.",
+                    query.Cursor!);
+        }
+
+        if (cursor.IncludeDeleted != context.IncludeDeleted)
         {
             return CreateCursorError(
                 NavigationErrorCodes.InvalidCursor,

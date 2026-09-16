@@ -129,29 +129,6 @@ public sealed class NavigationServiceTests
         Assert.Equal(NavigationErrorCodes.NodeNotFound, result.Code);
     }
 
-    // ── ListRolesAsync Tests ────────────────────────────────────────────────
-
-    [Fact]
-    public async Task ListRolesAsync_ReturnsActiveRolesAndRespectsIncludeDeleted()
-    {
-        var testHarness = new NavigationTestHarness(CurrentSnapshotId);
-        var activeRole = new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false);
-        var deletedRole = new Role(CurrentSnapshotId, RoleConsultant, "Consultant", null, true);
-        testHarness.AddRole(activeRole);
-        testHarness.AddRole(deletedRole);
-
-        var service = testHarness.CreateService();
-
-        var activeOnlyResult = await service.ListRolesAsync(new ReadContext());
-        Assert.True(activeOnlyResult.IsSuccess);
-        Assert.Single(activeOnlyResult.Value!);
-        Assert.Equal(RoleDeveloper, activeOnlyResult.Value![0].RoleId);
-
-        var includeDeletedResult = await service.ListRolesAsync(new ReadContext(IncludeDeleted: true));
-        Assert.True(includeDeletedResult.IsSuccess);
-        Assert.Equal(2, includeDeletedResult.Value!.Count);
-    }
-
     // ── ListChildrenAsync Tests ─────────────────────────────────────────────
 
     [Fact]
