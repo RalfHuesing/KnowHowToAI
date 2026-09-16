@@ -694,13 +694,13 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
   - [x] nur bei belegtem Engpass optimieren (z. B. Kategorie-Offsets im `DiffCursor`
     fortführen), sonst die Messung als V1-adequat dokumentieren; Ergebnis unter `docs/`
     festhalten
-- [ ] **M5.17: Direktes SQL-Seeding gegen committed Snapshots in Repo-Tests entfernen**
-  - [ ] `SqlRetrievalRepositoryTests` von direkten INSERTs in den committed Current
+- [x] **M5.17: Direktes SQL-Seeding gegen committed Snapshots in Repo-Tests entfernen**
+  - [x] `SqlRetrievalRepositoryTests` von direkten INSERTs in den committed Current
     Snapshot (`GetCurrentSnapshotIdAsync` plus `InsertNodeAsync`/`InsertRoleAsync`/
     `InsertContentAsync`) auf Seeding über offene Working Transactions und
     `commit_transaction` umstellen, wie es `TestSupport/WorkingTransactionSession` bereits
     bereitstellt
-  - [ ] vorhandene Seeding-Helfer wiederverwenden statt sie zu duplizieren; Suchsemantik,
+  - [x] vorhandene Seeding-Helfer wiederverwenden statt sie zu duplizieren; Suchsemantik,
     Treffer-Reihenfolge und Fehlercodes der Tests bleiben unverändert
 
 **Abnahme:** Kein Listen-/Such-/Diff-Tool liefert unkontrolliert den Gesamtbestand;
