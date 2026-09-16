@@ -7,6 +7,12 @@ namespace KnowHowToAI.Core.Application.Navigation;
 /// <summary>Lädt die Kandidaten zur Auflösung eines transportneutralen Read-Kontexts.</summary>
 public static class ReadContextReader
 {
+    /// <summary>
+    /// Neutraler Platzhalter für <see cref="ReadContextCandidates.CurrentSnapshotId"/>,
+    /// wenn kein Current-Kontext vorliegt; der Resolver liest ihn nur im Current-Zweig.
+    /// </summary>
+    private static readonly SnapshotId NeutralCurrentSnapshotId = new(0);
+
     public static async Task<Result<ResolvedReadContext>> ResolveAsync(
         ReadContext context,
         ISnapshotRepository snapshotRepository,
@@ -17,7 +23,9 @@ public static class ReadContextReader
         ArgumentNullException.ThrowIfNull(snapshotRepository);
         ArgumentNullException.ThrowIfNull(transactionRepository);
 
-        var currentSnapshot = await snapshotRepository.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+        var currentSnapshotId = context.TransactionId is null && context.SnapshotId is null
+            ? (await snapshotRepository.GetCurrentAsync(cancellationToken).ConfigureAwait(false)).SnapshotId
+            : NeutralCurrentSnapshotId;
         KnowledgeTransaction? transaction = null;
         Snapshot? snapshot = null;
 
@@ -29,6 +37,6 @@ public static class ReadContextReader
 
         return ReadContextResolver.Resolve(
             context,
-            new ReadContextCandidates(currentSnapshot.SnapshotId, transaction, snapshot));
+            new ReadContextCandidates(currentSnapshotId, transaction, snapshot));
     }
 }

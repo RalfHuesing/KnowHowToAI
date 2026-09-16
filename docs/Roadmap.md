@@ -671,12 +671,12 @@ erreichbar und benötigt eine offene KnowHowTo-AI-Transaction.
     und `rg "HistoryRepositories("`) finden und anpassen; keine weiteren Kopien des Records anlegen
   - [x] Fehlercodes, Prüfungsreihenfolge, Freshness- und Paging-Ergebnisse dürfen sich nicht
     ändern; bestehende Fast- und Integrationstests bleiben ohne fachliche Anpassung grün
-- [ ] **M5.14: Current-Snapshot-Read nur bei Current-Kontexten laden**
-  - [ ] `ReadContextReader.ResolveAsync` so ändern, dass `GetCurrentAsync` ausschließlich
+- [x] **M5.14: Current-Snapshot-Read nur bei Current-Kontexten laden**
+  - [x] `ReadContextReader.ResolveAsync` so ändern, dass `GetCurrentAsync` ausschließlich
     aufgerufen wird, wenn `context.TransactionId` und `context.SnapshotId` beide `null`
     sind; in den anderen Fällen `ReadContextCandidates.CurrentSnapshotId` mit einem neutralen
     Platzhalter befüllen, den `ReadContextResolver` nur im Current-Zweig liest
-  - [ ] mit einem FastTest belegen, dass Transaction- und Snapshot-Reads ohne
+  - [x] mit einem FastTest belegen, dass Transaction- und Snapshot-Reads ohne
     Current-Abruf funktionieren und Current-Reads unverändert bleiben
 - [ ] **M5.15: Freshness-Ladekosten der Search messen und nur bei Engpass begrenzen**
   - [ ] `SqlSearchAbnahmeTests` um eine Messvariante mit Derived-Content-Treffern ergänzen,
