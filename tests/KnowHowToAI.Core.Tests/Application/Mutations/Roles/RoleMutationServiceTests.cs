@@ -52,6 +52,23 @@ public sealed class RoleMutationServiceTests
     }
 
     [Fact]
+    public async Task CreateRoleAsync_PreviouslyDeletedRole_ReactivatesSinglePersistedRole()
+    {
+        var deletedRole = Role(DeveloperRoleId) with { IsDeleted = true };
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), deletedRole]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.CreateRoleAsync(TransactionId, " Developer ", " Neu ");
+
+        Assert.True(result.IsSuccess);
+        Assert.False(result.Value!.IsDeleted);
+        Assert.Equal("Neu", result.Value.Description);
+        Assert.Equal(1, repository.State.Roles.Count(role => role.RoleId == DeveloperRoleId));
+        Assert.Equal(result.Value, repository.State.Roles.Single(role => role.RoleId == DeveloperRoleId));
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
+    [Fact]
     public async Task UpdateRoleAsync_ExistingRole_ChangesOnlyRequestedRole()
     {
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), Role(DeveloperRoleId, "Alt")]));
