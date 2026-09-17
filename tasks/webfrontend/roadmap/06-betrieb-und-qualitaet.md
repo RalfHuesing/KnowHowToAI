@@ -69,6 +69,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: reale Deploymentkette besteht definierte Browser- und MCP-Smokes.
 
   - [ ] **M6.4-T2 – Netzwerk- und Hostkonfiguration härten**
+    - Voraussetzung: O-022 zur produktiven Secretquelle und O-024 zur Betriebsbeobachtung sind durch den Benutzer entschieden.
     - Umfang: Host/Port, `AllowedHosts`, Firewallsegment, TLS, CORS-Default, Secrets/Connection String und Logging.
     - Grenze: weiterhin keine Anwendungsauthentifizierung; kein Internet-Exposure.
     - Dokumentation: Konfiguration, Betrieb und bekannte Sicherheitsgrenze aktualisieren.
@@ -79,6 +80,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M6.5 abschließen**
 
   - [ ] **M6.5-T1 – Backup, Restore und Neustart abnehmen**
+    - Voraussetzung: O-023 definiert RPO, RTO und Aufbewahrung.
     - Umfang: SQL konsistent sichern/wiederherstellen; Neustart mit committed und offenen Working Transactions.
     - Prüfen: Migration beim Start und dokumentiertes Recoveryverfahren.
     - Abnahme: definierter Datenstand ist auf einer frischen Zielumgebung fachlich rekonstruierbar.

@@ -63,6 +63,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: jede Leseansicht verwendet denselben expliziten Kontext.
 
   - [ ] **M3.4-T2 – Read-only Node-Detailansicht implementieren**
+    - Voraussetzung: O-020 zur sicheren Markdown-/HTML- und Fremdressourcen-Policy ist geschlossen.
     - Umfang: Titel, Description, Position, Rolle, aufgelöster Content, Fallback/Provenienz, Revision und Freshness.
     - Darstellung: gerendertes Markdown plus klar getrennte Metadaten; keine Bearbeitungscontrols.
     - Tests: eigener Content, Fallback, leerer Content, stale/derived und fehlender Node.

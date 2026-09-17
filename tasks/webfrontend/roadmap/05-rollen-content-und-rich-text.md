@@ -17,6 +17,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M5.1 abschließen**
 
   - [ ] **M5.1-T1 – Rich-Text-Editor mit Markdownmodell integrieren**
+    - Voraussetzung: O-020 zur sicheren Content-/Fremdressourcen-Policy und O-027 zum Undo-Umfang sind geschlossen.
     - Umfang: gewählten Editor laden, Markdown einlesen/ausgeben, Toolbar auf erlaubte Strukturen begrenzen und Headings deaktivieren.
     - Unterstützen: Formatierung, Links, Listen, Tabellen, Code und Zitate; Bilder folgen niedrig priorisiert in M8.
     - Tests: Komponenten-Smoke, Editorinitialisierung, Wechsel zwischen Nodes und große Inhalte.
@@ -54,6 +55,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M5.3 abschließen**
 
   - [ ] **M5.3-T1 – Rollen-Content erstellen, ersetzen und löschen**
+    - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction ist durch den Benutzer entschieden.
     - Umfang: Node/Rolle auswählen, Content im Editor bearbeiten und über die vorhandenen Mutations-Use-Cases persistieren.
     - Kontext: explizite `TransactionId`, Revision und `ChangeVersion` verwenden.
     - Tests: Create, Replace, Delete, leerer Content, parallele Änderung und Serverfehler.

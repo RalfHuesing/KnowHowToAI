@@ -17,7 +17,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M4.1 abschließen**
 
   - [ ] **M4.1-T1 – Transaction beginnen, auflisten und fortsetzen**
-    - Voraussetzung: O-007 zum Transaction-`Actor` ohne Auth ist durch den Benutzer entschieden.
+    - Voraussetzung: O-007 zum Transaction-`Actor`, O-025 zur Zusammenarbeit in derselben Transaction und O-026 zur Transaction-Lebensdauer sind durch den Benutzer entschieden.
     - Umfang: Beginnen mit Optionen, alle offenen Transactions auflisten, explizit auswählen und als Working Read Context öffnen. Ohne Auth existiert kein belastbares „eigene Transactions“.
     - UI-Regel: pro Browserarbeitskontext genau eine aktive Transaction; Wechsel ist bewusst und sichtbar.
     - Tests: neue/vorhandene Transaction, leere Liste, ungültige ID, Refresh und Reconnect.
@@ -60,18 +60,21 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M4.3 abschließen**
 
   - [ ] **M4.3-T1 – Nodes erstellen und Stammdaten bearbeiten**
+    - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction und O-027 zum Undo-Umfang sind durch den Benutzer entschieden.
     - Umfang: Node unter gewähltem Parent erstellen sowie Titel und Description bearbeiten.
     - Regeln: Änderungen nur in aktiver Transaction; serverseitige Normalisierung/Validierung bleibt maßgeblich.
     - Tests: gültige Werte, Duplikate, Grenzlängen, ungültiger Parent und gleichzeitige Aktualisierung.
     - Abnahme: Ergebnis ist unmittelbar im Working Tree sichtbar.
 
   - [ ] **M4.3-T2 – Nodes kontrolliert löschen**
+    - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction und O-027 zum Undo-Umfang sind durch den Benutzer entschieden.
     - Umfang: Löschaktion, Auswirkungsübersicht, Bestätigung und serverseitige Fehlerdarstellung.
     - Prüfen: Teilbaum, Referenzen/Dependencies, bereits gelöschter Node und Rootschutz gemäß Ist-Regeln.
     - Tests: Erfolgs- und Ablehnungsfälle sowie Diffdarstellung.
     - Abnahme: keine Löschung erfolgt ohne sichtbare Ziel- und Auswirkungsprüfung.
 
   - [ ] **M4.3-T3 – Nodes per Drag-and-drop verschieben und sortieren**
+    - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction und O-027 zum Undo-Umfang sind durch den Benutzer entschieden.
     - Umfang: Move/Reorder im Tree mit Zielvorschau, Einfügeposition und anschließender Working-Tree-Aktualisierung.
     - Regeln: UI optimiert nur die Interaktion; serverseitige Hierarchievalidierung entscheidet.
     - Prüfen: Zyklus, ungültiges Ziel, Root, Paging-Grenze, gleiches Ziel und Tastaturalternative.

@@ -4,6 +4,16 @@ Diese Datei enthält ausschließlich noch nicht entschiedene Punkte. Nach einer 
 
 Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutzerentscheidung offen ist. Bei Spike-Entscheidungen ist der angegebene Task selbst für die Entscheidung und ihre Dokumentation zuständig.
 
+Bearbeitungsreihenfolge für den Entscheidungsworkshop:
+
+1. Rahmen für Komponenten: O-018, O-013, O-021, O-020.
+2. Technische Spikes: O-001, O-003, O-002, O-015.
+3. Host und reale MCP-Clients: O-022, O-019.
+4. Produkt- und Arbeitsverhalten: O-009, O-014, O-008, O-007, O-025, O-026, O-027.
+5. Betrieb und Last: O-012, O-017, O-023, O-024.
+6. Niedrige Priorität: O-010, O-011, O-004, O-016.
+7. Spätere Vorhaben: O-005, O-006.
+
 | ID | Priorität | Klärung | Blockiert | Offene Frage und Startempfehlung |
 |---|---|---|---|---|
 | O-001 | Hoch | Spike | M0.3-T1 | UI-Komponentenpaket; einheitliches, aktiv gepflegtes Blazor-Paket anhand der dokumentierten Kriterien auswählen |
@@ -22,6 +32,14 @@ Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutz
 | O-014 | Hoch | Benutzer | M2.1-T2 | UI-Sprache und Lokalisierung; Empfehlung: zunächst ausschließlich Deutsch, Texte dennoch zentral und nicht in Fachlogik verteilen |
 | O-015 | Mittel | Spike | M0.3-T4 | Testwerkzeuge für Razor-Komponenten und Browser-E2E; Empfehlung: bUnit und Microsoft Playwright nach Kompatibilitätsprüfung |
 | O-016 | Niedrig | Benutzer | M8.6-T1 | Assetgrenzen: erlaubte Bildtypen, maximale Dateigröße und Pixelzahl; Empfehlung: PNG/JPEG/WebP/SVG, 10 MiB, 40 Megapixel, SVG nur nach sicherer Sanitization |
-| O-017 | Hoch | Benutzer | M6.3-T1 bis T2 | Messbare Performanceziele und Referenzdatenmenge für Baum, Suche und Nodewechsel; Empfehlung: 100.000 Nodes, 1.000 direkte Kinder, P95-Serverantwort unter 500 ms und sichtbare UI-Reaktion unter 1 s im Intranet |
+| O-017 | Hoch | Benutzer | M6.3-T1 bis T2 | Messbare Performanceziele einschließlich Referenzdaten, gleichzeitiger Blazor-Circuits und paralleler MCP-Aufrufe; Empfehlung: 100.000 Nodes, 1.000 direkte Kinder, 20 Circuits, 10 parallele MCP-Aufrufe, P95-Serverantwort unter 500 ms und sichtbare UI-Reaktion unter 1 s im Intranet |
 | O-018 | Hoch | Benutzer | M0.3-T1 bis T3 | Dürfen kommerzielle UI-/Tree-/Editor-Komponenten beschafft werden und welches Budget/Lizenzmodell gilt; Empfehlung: vorhandene Firmenlizenzen nutzen, sonst OSS oder kostenfreie kommerzielle Nutzung bevorzugen |
 | O-019 | Hoch | Benutzer | M1.3-T3 | Verbindliche MCP-Zielclients und Versionen für die HTTP-Abnahme; Empfehlung: jeden tatsächlich täglich eingesetzten Client mindestens mit Tool Discovery, Read und vollständiger Transaction prüfen |
+| O-020 | Hoch | Benutzer | M0.3-T3, M3.4-T2, M5.1-T1 | Markdown-/HTML- und Fremdressourcen-Policy: Raw HTML, URL-Schemata, externe Links/Bilder und Paste-Sanitization; Empfehlung: Raw HTML nicht rendern, nur sichere `https`-/`mailto`-Links, keine extern geladenen Bilder, eingefügte Formatierung auf den erlaubten Markdownumfang reduzieren |
+| O-021 | Hoch | Benutzer | M0.3-T1 bis T2, M2.4-T1 | Verbindliches Barrierefreiheitsziel; Empfehlung: WCAG 2.2 AA für alle Kernworkflows, automatisierte axe-Smokes plus manuelle Tastaturprüfung, zunächst keine formale Zertifizierung |
+| O-022 | Hoch | Benutzer | M1.1-T1, M6.4-T2 | Produktive Datenbankidentität und Secretquelle; Empfehlung: dediziertes Windows-Servicekonto mit integrierter SQL-Authentifizierung und minimalen Rechten, keine produktiven Kennwörter im Repository; bei zwingender SQL-Authentifizierung externer Secret Provider statt Klartext-Appsettings |
+| O-023 | Hoch | Benutzer | M6.5-T1 | Recoveryziele und Aufbewahrung für den Wissensbunker; Empfehlung: RPO höchstens 15 Minuten, RTO höchstens 4 Stunden, tägliches Full Backup plus Transaktionslog-Backups, 30 tägliche und 12 monatliche Wiederherstellungspunkte |
+| O-024 | Mittel | Benutzer | M6.4-T2 | Betriebsbeobachtung: Logziel/-aufbewahrung, Liveness/Readiness, Alarmierung und verantwortliche Stelle; Empfehlung: strukturierte Rolling Files für 30 Tage, kritische Start-/Betriebsfehler zusätzlich ins Windows Event Log, schmale `/health/live`- und `/health/ready`-Endpunkte, zunächst kein Metriksystem |
+| O-025 | Hoch | Benutzer | M4.1-T1, M4.3-T1 bis T3, M5.3-T1 | Gleichzeitiges Arbeiten mehrerer UI-/MCP-Clients in derselben offenen Transaction; Empfehlung: zulassen, keine Locks, jede Mutation mit `ChangeVersion`, stale Writes deterministisch ablehnen und zum Neuladen auffordern |
+| O-026 | Mittel | Benutzer | M4.1-T1 | Lebensdauer offener Transactions; Empfehlung: keine automatische Verfallszeit oder Löschung, Alter deutlich anzeigen und ausschließlich explizit committen oder verwerfen |
+| O-027 | Mittel | Benutzer | M4.3-T1 bis T3, M5.1-T1 | Undo-/Wiederherstellungsumfang; Empfehlung: lokales Editor-Undo nur bis zum Speichern, kein globaler Undo-Stack für persistierte Mutationen, Korrektur durch Gegenänderung oder vollständiges Discard der Transaction |
