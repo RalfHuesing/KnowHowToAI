@@ -28,7 +28,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="KnowHowToAI.IntegrationTests" />
-    <InternalsVisibleTo Include="KnowHowToAI.Exploration" />
   </ItemGroup>
 
 </Project>

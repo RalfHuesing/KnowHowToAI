@@ -3,7 +3,6 @@
     <Project Path="src/KnowHowToAI.Core/KnowHowToAI.Core.csproj" />
     <Project Path="src/KnowHowToAI.Storage.SqlServer/KnowHowToAI.Storage.SqlServer.csproj" />
     <Project Path="src/KnowHowToAI.Server/KnowHowToAI.Server.csproj" />
-    <Project Path="src/KnowHowToAI.Exploration/KnowHowToAI.Exploration.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj" />

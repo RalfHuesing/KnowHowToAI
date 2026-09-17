@@ -5,6 +5,14 @@ Aussagekraft des Exploration-Harness (`src/KnowHowToAI.Exploration`). Verwandt
 mit `999_token-basierte-groessenmetriken.md` (Größenmetriken) und dem
 Harness-README (In-Process-Dogfooding).
 
+> **Nachtrag 2026-09-17 (Entschluss):** Umsetzung als Ausprägung 3 erfolgt —
+> `scripts/eval-run.ps1`, Prompts unter `.agents/prompts/evals/`, Wegwerf-Läufe
+> unter `tasks/eval-<name>/`. Der Exploration-Harness wurde im selben Zug
+> **vollständig entfernt** (Projekt, Linter-Ausschluss, InternalsVisibleTo);
+> Bytegrößen-Metriken lassen sich künftig bei Bedarf aus den
+> JSONL-Transkripten der Eval-Läufe ableiten. Die unten stehende Textpassage
+> „bleibt unersetzt" ist damit überholt.
+
 ## Ausgangslage
 
 Die Testlandschaft deckt zwei Ebenen verlässlich ab — und lässt genau die

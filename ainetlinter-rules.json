@@ -319,8 +319,7 @@
     ],
     "ExcludeDirectoryPatterns": [
       "obj/",
-      "bin/",
-      "KnowHowToAI.Exploration/"
+      "bin/"
     ],
     "SkipGeneratedCodeAttribute": true
   },
