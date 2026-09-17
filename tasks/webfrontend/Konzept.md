@@ -394,8 +394,12 @@ Komponentenauswahlkriterien: aktive Pflege, kompatible Lizenz, .NET-10-/Blazor-K
 - Eine Deployment-Einheit und eine gemeinsame Basiskonfiguration.
 - Bindung an die festgelegte Intranet-Adresse; kein Internet-Exposure.
 - Der erste Stand besitzt keine Authentifizierung. Netzwerksegmentierung, Firewall und Hostzugriff bilden bis zum Security-Schritt die Betriebsgrenze.
+- `AllowedHosts` wird auf die tatsächlichen Intranet-Hostnamen begrenzt; keine pauschale Wildcard.
+- UI, REST und MCP liegen im selben Origin. CORS wird nicht allgemein geöffnet; serverseitige n8n-Aufrufe benötigen kein CORS.
+- Reverse Proxy und Netzwerk müssen die langlebigen Verbindungen von Blazor Interactive Server unterstützen.
+- Blazor-Circuit-State ist flüchtiger UI-Zustand. Fachlicher Arbeitsstand bleibt über SQL, `TransactionId`, `SnapshotId` und `ChangeVersion` rekonstruierbar.
 - TLS ist auch im Firmennetz anzustreben, spätestens bevor sensible Kundendaten oder nicht vertrauenswürdige Netzsegmente angebunden werden.
-- Späterer Mehrinstanzbetrieb darf keine In-Memory-Fachzustände voraussetzen.
+- Späterer Mehrinstanzbetrieb darf keine In-Memory-Fachzustände voraussetzen; Skalierungsanforderungen der Blazor-Circuits werden dann separat behandelt.
 
 ## 11. Umsetzungsschnitte
 
