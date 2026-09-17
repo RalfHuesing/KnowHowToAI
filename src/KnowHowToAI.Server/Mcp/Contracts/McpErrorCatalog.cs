@@ -9,7 +9,7 @@ public static class McpErrorCatalog
     private static readonly string[] ContextStateErrorCodes =
     [
         "InvalidReadContext", "SnapshotNotFound", "SnapshotNotCommitted", "TransactionNotFound",
-        "TransactionClosed", "SnapshotConflict", "InvalidCursor", "CursorExpired",
+        "TransactionClosed", "SnapshotConflict", "SnapshotMutationConflict", "InvalidCursor", "CursorExpired",
         "WorkingSnapshotNotOpen", "TransactionDiscarded"
     ];
 

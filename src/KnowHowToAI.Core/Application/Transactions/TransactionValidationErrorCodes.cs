@@ -7,6 +7,7 @@ public static class TransactionValidationErrorCodes
     public const string TransactionClosed = "TransactionClosed";
     public const string WorkingSnapshotNotOpen = "WorkingSnapshotNotOpen";
     public const string SnapshotConflict = "SnapshotConflict";
+    public const string SnapshotMutationConflict = "SnapshotMutationConflict";
     public const string TransactionIdDetail = "transactionId";
     public const string BaseSnapshotIdDetail = "baseSnapshotId";
     public const string CurrentSnapshotIdDetail = "currentSnapshotId";

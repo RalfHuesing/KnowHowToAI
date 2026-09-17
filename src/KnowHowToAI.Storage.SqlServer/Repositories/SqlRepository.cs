@@ -1,4 +1,5 @@
 using Dapper;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
@@ -88,6 +89,13 @@ internal abstract class SqlRepository
 
             await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new SqlWorkingSnapshotMutationExecution<TResult>(mutation.Value, changeVersion);
+        }
+        catch (SqlException exception) when (exception.Number is 2601 or 2627)
+        {
+            await databaseTransaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            throw new WorkingSnapshotMutationRejectedException(
+                TransactionValidationErrorCodes.SnapshotMutationConflict,
+                "Die Zustandsänderung verletzt eine Eindeutigkeitsregel des Working Snapshots.");
         }
         catch
         {

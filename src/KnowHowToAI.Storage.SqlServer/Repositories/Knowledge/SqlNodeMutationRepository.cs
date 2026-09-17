@@ -169,13 +169,44 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         CancellationToken cancellationToken)
     {
         var previousById = previousNodes.ToDictionary(node => node.NodeId);
-        var inserts = currentNodes.Where(node => !previousById.ContainsKey(node.NodeId)).Select(ToNodeParameters).ToArray();
-        var updates = currentNodes.Where(node => previousById.TryGetValue(node.NodeId, out var previous) && previous != node)
-            .Select(ToNodeParameters).ToArray();
+        var changingNodes = currentNodes
+            .Where(node => previousById.TryGetValue(node.NodeId, out var previous) && previous != node)
+            .ToArray();
+        var inserts = currentNodes
+            .Where(node => !previousById.ContainsKey(node.NodeId))
+            .Select(node => ToNodeParameters(node))
+            .ToArray();
+
+        if (changingNodes.Length > 0)
+        {
+            await WriteChangedNodesAsync(context, changingNodes, cancellationToken).ConfigureAwait(false);
+        }
+
         if (inserts.Length > 0)
             await context.ExecuteAsync(InsertNodeSql, inserts, cancellationToken).ConfigureAwait(false);
-        if (updates.Length > 0)
-            await context.ExecuteAsync(UpdateNodeSql, updates, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Schreibt geänderte Node-Zeilen zweiphasig: der gefilterte Unique-Index
+    /// UQ_KnowHowToAI_Node_ActiveSiblingSortOrder verbietet beim zeilenweisen
+    /// Schreiben vorübergehende Doppelte — eine Renummerierung (neue Node vorn,
+    /// Verschieben, Rotieren) kollidiert sonst mit dem noch nicht verschobenen
+    /// Nachbarn. Alle geänderten Zeilen weichen deshalb zunächst auf eindeutige
+    /// Park-SortOrders außerhalb des gültigen Bereichs aus, bevor die Zielwerte
+    /// geschrieben werden; danach folgen die neuen Zeilen.
+    /// </summary>
+    private static async Task WriteChangedNodesAsync(
+        SqlWorkingSnapshotMutationContext context,
+        IReadOnlyList<Node> changingNodes,
+        CancellationToken cancellationToken)
+    {
+        var parkedRows = changingNodes
+            .Select((node, index) => ToNodeParameters(node, ParkedSortOrderBase + index))
+            .ToArray();
+        var finalRows = changingNodes.Select(node => ToNodeParameters(node)).ToArray();
+
+        await context.ExecuteAsync(UpdateNodeSql, parkedRows, cancellationToken).ConfigureAwait(false);
+        await context.ExecuteAsync(UpdateNodeSql, finalRows, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task SaveContentsAsync(
@@ -195,14 +226,20 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
             await context.ExecuteAsync(UpdateContentSql, updates, cancellationToken).ConfigureAwait(false);
     }
 
-    private static object ToNodeParameters(Node node) => new
+    /// <summary>Basis der Park-SortOrders im Zweiphasen-Schreiben; liegt oberhalb jedes
+    /// realen Geschwisterfensters und wird in Phase 2 stets überschrieben.</summary>
+    private const int ParkedSortOrderBase = 1_000_000_000;
+
+    private static object ToNodeParameters(Node node) => ToNodeParameters(node, node.SortOrder);
+
+    private static object ToNodeParameters(Node node, int sortOrder) => new
     {
         snapshotId = node.SnapshotId.Value,
         nodeId = node.NodeId.Value,
         parentNodeId = node.ParentNodeId?.Value,
         node.Title,
         node.Description,
-        node.SortOrder,
+        sortOrder,
         node.IsDeleted
     };
 

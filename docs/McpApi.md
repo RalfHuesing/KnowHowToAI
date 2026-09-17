@@ -207,8 +207,9 @@ von einem Synchronisationstest gegen diesen Abschnitt geprüft. Neue Codes dürf
 ergänzt werden; veröffentlichte Codes werden nicht beiläufig umbenannt.
 
 - Kontext/Zustand: `InvalidReadContext`, `SnapshotNotFound`, `SnapshotNotCommitted`,
-  `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`, `InvalidCursor`,
-  `CursorExpired`, `WorkingSnapshotNotOpen`, `TransactionDiscarded`
+  `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`,
+  `SnapshotMutationConflict`, `InvalidCursor`, `CursorExpired`,
+  `WorkingSnapshotNotOpen`, `TransactionDiscarded`
 - Struktur/Rollen: `NodeNotFound`, `InvalidNodeId`, `RootAlreadyExists`, `ParentNodeNotFound`,
   `InvalidHierarchy`, `NodeHasChildren`, `RoleNotFound`, `RoleInUse`,
   `RoleResolutionNotConfigured`, `InvalidRoleResolution`, `DuplicateNodeId`,
