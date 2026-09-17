@@ -48,7 +48,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-003 | Sachlich-seriöses, modernes Erscheinungsbild einer aktuellen Business-Webanwendung |
 | K-004 | Ein ASP.NET-Core-Host für Blazor, Assets und MCP HTTP; um weitere Endpunktgruppen erweiterbar |
 | K-005 | Keine allgemeine REST-/OpenAPI-Integration im ersten Schritt; n8n bleibt eine vorbereitete spätere Option |
-| K-006 | MCP-Zieltransport ist stateless Streamable HTTP; STDIO wird in eigenem Hard-Cut-Schnitt entfernt |
+| K-006 | Streamable HTTP ist danach der einzige MCP-Transport und ersetzt STDIO vollständig; kein Doppel- oder Fallbackbetrieb |
 | K-007 | Erstimplementierung explizit ohne Authentifizierung und Autorisierung; Security ist ein separates Vorhaben |
 | K-008 | Etablierte Standardkomponenten vor Eigenentwicklung |
 | K-009 | Rich-Text-/WYSIWYG-Bearbeitung mit Markdown als kanonischem Speicherformat und Bildunterstützung |

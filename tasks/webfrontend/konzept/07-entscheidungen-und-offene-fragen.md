@@ -9,7 +9,7 @@
 | K-003 | Gesetzt | Sachlich-seriöses, modernes Business-UI | [Visueller Stil](02-bedienkonzept-und-ui.md#visueller-stil) |
 | K-004 | Gesetzt | Ein ASP.NET-Core-Projekt und eine Deployment-Einheit für UI, Assets und MCP; weitere Adapter bleiben ergänzbar | [Projektstruktur](05-architektur-api-und-mcp.md#projekt--und-namespace-struktur) |
 | K-005 | Gesetzt | Keine allgemeine REST-/OpenAPI-API im ersten Schritt; n8n bleibt eine vorbereitete spätere Option | [Spätere REST-/n8n-Option](05-architektur-api-und-mcp.md#spätere-rest-n8n-option) |
-| K-006 | Gesetzt | MCP-Zieltransport Streamable HTTP; STDIO per eigenem Hard Cut entfernen | [MCP-Transport](05-architektur-api-und-mcp.md#mcp-transport) |
+| K-006 | Gesetzt | Streamable HTTP ersetzt STDIO vollständig und ist danach der einzige MCP-Transport; kein Doppel- oder Fallbackbetrieb | [MCP-Transport](05-architektur-api-und-mcp.md#mcp-transport) |
 | K-007 | Gesetzt | Erster Stand explizit ohne Authentifizierung und Autorisierung | [Auth-Abgrenzung](06-betrieb-sicherheit-und-risiken.md#explizite-auth-abgrenzung) |
 | K-008 | Gesetzt | Etablierte Standardkomponenten vor Eigenentwicklung | [Komponentenstrategie](02-bedienkonzept-und-ui.md#komponentenstrategie) |
 | K-009 | Gesetzt | Rich Text/WYSIWYG mit Markdown als kanonischem Format und Bildern | [Rich-Text-Editor](03-content-und-assets.md#rich-text-editor) |

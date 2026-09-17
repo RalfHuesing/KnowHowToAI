@@ -47,9 +47,9 @@ Referenzen: [Zielbild](../konzept/05-architektur-api-und-mcp.md#zielbild-des-ers
     - Abnahme: alle bestehenden MCP-Kategorien sind über HTTP erreichbar.
 
   - [ ] **M1.3-T2 – MCP-Vertragsregression vollständig abdecken**
-    - Umfang: bestehende STDIO-Vertragstests transportneutral machen oder für HTTP spiegeln, ohne Fachtests zu duplizieren.
+    - Umfang: bestehende STDIO-Vertragstests transportneutral machen oder durch HTTP-Tests ersetzen, ohne Fachtests zu duplizieren.
     - Prüfen: Paging, Cursor, Read Context, Transactions, Mutationen, Export, Historie und Fehlerkatalog.
-    - Abnahme: HTTP weist fachliche Parität zum bisherigen MCP-Vertrag nach.
+    - Abnahme: HTTP weist fachliche Parität zum bisherigen MCP-Vertrag nach; kein neuer Test setzt STDIO voraus.
 
   - [ ] **M1.3-T3 – Reale Zielclients abnehmen**
     - Umfang: mindestens die tatsächlich verwendeten MCP-Clients gegen den zentralen HTTP-Endpunkt testen.
@@ -63,13 +63,13 @@ Referenzen: [Zielbild](../konzept/05-architektur-api-und-mcp.md#zielbild-des-ers
 
   - [ ] **M1.4-T1 – STDIO-Transport entfernen und Ist-Dokumentation umstellen**
     - Voraussetzung: M1.3 vollständig abgenommen.
-    - Umfang: STDIO-Runner, Konfiguration, Pakete und ausschließlich transportgebundene Tests entfernen.
+    - Umfang: STDIO-Runner, Startmodus, Konfiguration, Pakete, Deployment-/Startanweisungen und ausschließlich transportgebundene Tests entfernen.
     - Erhalten: transportneutrale MCP-Contracts, Mapper, Tools und Application Services.
     - Dokumentation: Architektur, MCP-API, Konfiguration und Betrieb vollständig auf HTTP aktualisieren.
-    - Abnahme: Repository enthält keinen produktiven STDIO-Pfad; Build, Tests und Linter sind grün.
+    - Abnahme: Repository und ausgeliefertes Produkt enthalten keinerlei STDIO-Unterstützung, Fallback oder Kompatibilitätsmodus; Build, Tests und Linter sind grün.
 
 ## Milestone-Abnahme
 
 - Eine EXE bedient auf einem Port Blazor-Shell, notwendige Web-Endpunkte und stateless MCP HTTP.
 - Bestehende MCP-Funktionen sind fachlich erhalten und mit realen Zielclients geprüft.
-- STDIO ist nach Hard Cut vollständig entfernt.
+- Streamable HTTP ist der einzige MCP-Transport; STDIO ist vollständig und ohne Fallback entfernt.

@@ -82,7 +82,7 @@ Eine spätere REST-API kann im selben Prozess und Port unter `/api/v1` ergänzt 
 
 ## MCP-Transport
 
-STDIO war für V1 fachlich korrekt: Der Client startet den Server lokal als Child Process. Das transportneutrale Domain-/Application-Design bleibt gültig.
+Streamable HTTP ersetzt STDIO vollständig. Das transportneutrale Domain-/Application-Design bleibt beim Transportwechsel erhalten.
 
 Ziel für den zentralen Betrieb:
 
@@ -91,7 +91,10 @@ Ziel für den zentralen Betrieb:
 - Stateless Transport, weil `TransactionId`, `SnapshotId`, Cursor und Rolle fachlichen Zustand explizit adressieren.
 - Kein Transport-Sessionzustand als fachliche Quelle.
 - Bestehende Tool-Namen und Verträge werden beim Transportwechsel fachlich beibehalten.
-- STDIO wird nach Client-Abnahme in einem eigenen Hard-Cut-Schnitt entfernt; kein dauerhafter Doppelbetrieb.
+- Nach erfolgreicher HTTP-Client-Abnahme wird STDIO per Hard Cut vollständig entfernt.
+- Kein STDIO-Runner, Startmodus, Konfigurationsschlüssel, Paket, Deploymentpfad oder transportgebundener Test bleibt bestehen.
+- Kein Doppelbetrieb, Kompatibilitätsmodus oder STDIO-Fallback; Streamable HTTP ist anschließend der einzige unterstützte MCP-Transport.
+- Eine vorübergehende Koexistenz ist ausschließlich innerhalb der noch nicht abgeschlossenen Umstellung zulässig und wird nicht als Produktstand freigegeben.
 
 ## DI- und Zustandsgrenzen
 
