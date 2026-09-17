@@ -10,6 +10,8 @@ Ziel: Das Kernfrontend ist unter realistischen Daten-, Parallelitäts- und Intra
 
 Referenzen: [Betriebsabnahme](../konzept/06-betrieb-sicherheit-und-risiken.md#betriebsabnahme), [Risiken](../konzept/06-betrieb-sicherheit-und-risiken.md#risiken-und-gegenmaßnahmen)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M6.1 – Browser-End-to-End-Abnahme
 
 - [ ] **M6.1 abschließen**
@@ -44,12 +46,14 @@ Referenzen: [Betriebsabnahme](../konzept/06-betrieb-sicherheit-und-risiken.md#be
 - [ ] **M6.3 abschließen**
 
   - [ ] **M6.3-T1 – Tiefe und breite Wissensbäume messen und optimieren**
+    - Voraussetzung: O-017 definiert Referenzdatenmenge und messbare Zielwerte.
     - Umfang: realistische Datenprofile, Tree-Lazy-Loading, Paging, Virtualisierung, Breadcrumbs und Nodewechsel.
     - Messen: Serverlatenz, SQL-Aufwand, übertragene Daten, Renderzeit und Speicher pro Circuit.
     - Regel: Grenzwerte vor der Optimierung festlegen; keine rein synthetische Mikrooptimierung.
-    - Abnahme: vereinbarte Interaktionszeiten sind belegt oder konkrete Folge-Tasks dokumentiert.
+    - Abnahme: die in O-017 festgelegten Interaktionszeiten sind belegt; bis dahin bleibt der Task offen.
 
   - [ ] **M6.3-T2 – Search, Diff und große Inhalte messen und optimieren**
+    - Voraussetzung: O-017 definiert Referenzdatenmenge und messbare Zielwerte.
     - Umfang: große Trefferlisten, große Diffs und umfangreiches Markdown innerhalb der Limits.
     - Prüfen: Paging, Abbruch, Timeouts, Speicher und blockierte UI-Circuits.
     - Abnahme: große zulässige Vorgänge bleiben bedienbar und ressourcenbegrenzt.
@@ -59,6 +63,7 @@ Referenzen: [Betriebsabnahme](../konzept/06-betrieb-sicherheit-und-risiken.md#be
 - [ ] **M6.4 abschließen**
 
   - [ ] **M6.4-T1 – Reverse-Proxy-Betrieb abnehmen**
+    - Voraussetzung: O-012 zur Zieldeploymenttopologie ist durch den Benutzer entschieden.
     - Umfang: vorgesehener Proxy mit Blazor-WebSockets, Reconnect, MCP Streamable HTTP und Download.
     - Prüfen: Forwarded Headers, Host, TLS-Terminierung, Body-/Timeoutlimits und Streamingpuffer.
     - Abnahme: reale Deploymentkette besteht definierte Browser- und MCP-Smokes.

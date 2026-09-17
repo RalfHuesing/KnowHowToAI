@@ -10,12 +10,15 @@ Ziel: Benutzer können Working Transactions sicher führen und die Node-Struktur
 
 Referenzen: [Transaction-Arbeitsbereich](../konzept/02-bedienkonzept-und-ui.md#transaction-arbeitsbereich), [Wissensbaum](../konzept/02-bedienkonzept-und-ui.md#wissensbaum), [DI-Grenzen](../konzept/05-architektur-api-und-mcp.md#di--und-zustandsgrenzen)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M4.1 – Transaction-Arbeitskontext
 
 - [ ] **M4.1 abschließen**
 
   - [ ] **M4.1-T1 – Transaction beginnen, auflisten und fortsetzen**
-    - Umfang: Beginnen mit Optionen, eigene offene Transactions auflisten, explizit auswählen und als Working Read Context öffnen.
+    - Voraussetzung: O-007 zum Transaction-`Actor` ohne Auth ist durch den Benutzer entschieden.
+    - Umfang: Beginnen mit Optionen, alle offenen Transactions auflisten, explizit auswählen und als Working Read Context öffnen. Ohne Auth existiert kein belastbares „eigene Transactions“.
     - UI-Regel: pro Browserarbeitskontext genau eine aktive Transaction; Wechsel ist bewusst und sichtbar.
     - Tests: neue/vorhandene Transaction, leere Liste, ungültige ID, Refresh und Reconnect.
     - Abnahme: Working Context bleibt nach Navigation rekonstruierbar.
@@ -45,6 +48,12 @@ Referenzen: [Transaction-Arbeitsbereich](../konzept/02-bedienkonzept-und-ui.md#t
     - Schutz: Doppelaktion, stale `ChangeVersion` und ungültiger Status.
     - Tests: Erfolg, Validierungsfehler, Konflikt, Wiederholung und Discard.
     - Abnahme: Transaction-Lebenszyklus ist vollständig ohne MCP bedienbar.
+
+  - [ ] **M4.2-T4 – Release aus committed Snapshot anlegen**
+    - Umfang: Release-Name und optionale Beschreibung erfassen, einen committed Snapshot explizit auswählen und `ReleaseService.CreateReleaseAsync` aufrufen.
+    - Regeln: keine Transaction erforderlich; Working oder nicht vorhandene Snapshots bleiben unzulässig; Warnungen blockieren das Release nicht.
+    - Tests: Erfolg, Namenskonflikt, fehlender/uncommitted Snapshot, Findingsanzeige und Navigation zum erzeugten Release.
+    - Abnahme: der bestehende Release-Use-Case ist vollständig ohne MCP nutzbar.
 
 ## M4.3 – Node-Pflege
 

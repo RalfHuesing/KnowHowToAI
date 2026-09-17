@@ -22,9 +22,10 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | [Bedienkonzept und UI](konzept/02-bedienkonzept-und-ui.md) | visueller Stil, Layout, Dashboard, Wissensbaum, Editor, Transactions, Historie, Rollen |
 | [Content und Assets](konzept/03-content-und-assets.md) | Rich Text, freier Markdown-Content einschließlich TODOs, Bilder und Asset-Modell |
 | [Publikation und PDF](konzept/04-publikation-und-pdf.md) | einfacher Teilbaumexport mit einem Template, Pandoc und WeasyPrint |
-| [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) | gemeinsamer Host, interne Blazor-Aufrufe, MCP HTTP, optionale spätere REST-API, Projektstruktur, Ports und DI-Grenzen |
+| [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) | gemeinsamer Host, interne Blazor-Aufrufe, MCP HTTP, optionale spätere REST-API, Ports und Schichtengrenzen |
 | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) | Intranetbetrieb, ausdrücklich keine Auth im ersten Schritt, Betriebsgrenzen, Risiken |
 | [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) | ausschließlich noch nicht entschiedene Auswahl- und Zukunftsfragen |
+| [Projektstruktur und Codekonventionen](konzept/08-projektstruktur-und-codekonventionen.md) | verbindliche Projekte, Ordner, Namespaces, Features, Klassen, Routen und Teststruktur |
 | [Roadmap](Roadmap.md) | Index, Ausführungsregeln und getrennte Milestone-Dateien mit abhakbaren Agent-Tasks |
 
 ## Lese-Matrix
@@ -35,9 +36,10 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | UI, Layout, Navigation, Editor | [Bedienkonzept](konzept/02-bedienkonzept-und-ui.md), [Content und Assets](konzept/03-content-und-assets.md) |
 | Bilder oder freie TODO-Texte | [Content und Assets](konzept/03-content-und-assets.md) |
 | Einfacher PDF-Teilbaumexport | [Publikation und PDF](konzept/04-publikation-und-pdf.md) |
-| Blazor, MCP HTTP, spätere REST-/n8n-Integration, Projektstruktur | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) |
+| Blazor, MCP HTTP, spätere REST-/n8n-Integration, Hosts und Schichtengrenzen | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) |
 | Deployment, Netzwerk, Auth-Abgrenzung | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) |
-| Implementierung eines Agent-Tasks | [Roadmap](Roadmap.md), zugehörige Milestone-Datei, dort referenzierte Konzeptabschnitte und die Lese-Matrix in [`docs/`](../../docs/README.md) |
+| Ordner, Namespace, neue Klasse, Razor-Komponente oder Testprojekt | [Projektstruktur und Codekonventionen](konzept/08-projektstruktur-und-codekonventionen.md) |
+| Implementierung eines Agent-Tasks | [Roadmap](Roadmap.md), zugehörige Milestone-Datei, [Projektstruktur](konzept/08-projektstruktur-und-codekonventionen.md), dort referenzierte Konzeptabschnitte und die Lese-Matrix in [`docs/`](../../docs/README.md) |
 
 ## Gesetzte Leitentscheidungen
 
@@ -56,5 +58,6 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-011 | TODOs sind normaler Content ohne Sondermodell, Sondervalidierung oder Exportfilter |
 | K-012 | PDF ist ein niedrig priorisierter Teilbaumexport mit genau einem Template, Pandoc und WeasyPrint |
 | K-013 | Bilder und Assetverwaltung sind niedrig priorisiert und folgen erst nach dem einfachen PDF-Export |
+| K-014 | Web, MCP und PDF bleiben in `KnowHowToAI.Server`; die verbindliche Feature-, Namespace- und Teststruktur steht in einem eigenen Strukturkonzept |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

@@ -12,13 +12,16 @@ Ziel: Der Benutzer lädt vom aktuellen Node aus dessen gesamten Teilbaum im einz
 
 Referenz: [Publikation und PDF](../konzept/04-publikation-und-pdf.md)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M7.1 – Werkzeuge und Template
 
 - [ ] **M7.1 abschließen**
 
   - [ ] **M7.1-T1 – Einzelnen PDF-Templateordner anlegen**
+    - Voraussetzung: O-011 zum PDF-Basislayout ist durch den Benutzer entschieden.
     - Umfang: genau ein HTML-Template, CSS, Logo und optionale Fonts als Deploymentdateien.
-    - Prüfen: Inhaltsverzeichnis, Seitenformat, Seitenumbrüche, Header/Footer nur soweit mit dem einfachen Ziel nötig.
+    - Prüfen: alle in O-011 entschiedenen Layoutbestandteile sowie lange Titel, Tabellen, Codeblöcke und Seitenumbrüche.
     - Ausschluss: Profilverwaltung, mehrere Templates und UI-Konfiguration.
     - Abnahme: ein repräsentatives statisches Beispieldokument besitzt ein brauchbares Layout.
 
@@ -51,7 +54,7 @@ Referenz: [Publikation und PDF](../konzept/04-publikation-und-pdf.md)
   - [ ] **M7.3-T1 – PDF-Exportaktion und Download implementieren**
     - Umfang: `PDF-Export` am aktuellen Node, Rolle und Read Context; Busy-Indikator ohne erfundene Prozentanzeige.
     - Ausgabe: kontrollierter Download mit geeignetem Dateinamen und `application/pdf`.
-    - Zustände: läuft, Erfolg, fachlicher Fehler, Toolfehler, Timeout und Benutzerabbruch soweit technisch möglich.
+    - Zustände: läuft, Erfolg, fachlicher Fehler, Toolfehler und Timeout. Der erste Stand besitzt keinen separaten Abbrechen-Button; Request-Abbruch wird bis zur Prozessgrenze weitergereicht.
     - Abnahme: ein Klick erzeugt und lädt das Dokument; UI-Circuit bleibt bedienbar beziehungsweise sauber blockiert.
 
 ## M7.4 – Abnahmetests

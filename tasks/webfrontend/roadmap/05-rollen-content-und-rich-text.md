@@ -10,6 +10,8 @@ Ziel: Rollenabhängiger Markdown-Content kann vollständig und komfortabel ohne 
 
 Referenzen: [Node-Ansicht und Editor](../konzept/02-bedienkonzept-und-ui.md#node-ansicht-und-editor), [Rich-Text-Editor](../konzept/03-content-und-assets.md#rich-text-editor), [Freier Content](../konzept/03-content-und-assets.md#freier-content-einschließlich-todos), [Rollenverwaltung](../konzept/02-bedienkonzept-und-ui.md#rollenverwaltung)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M5.1 – Editorbasis
 
 - [ ] **M5.1 abschließen**
@@ -25,11 +27,11 @@ Referenzen: [Node-Ansicht und Editor](../konzept/02-bedienkonzept-und-ui.md#node
     - Prüfen: Whitespace, Escaping, Tabellen, Codeblöcke, Links, Unicode und wiederholtes Öffnen/Speichern.
     - Abnahme: bekannte Normalisierung ist dokumentiert; semantisch verlusthafte Fälle werden abgelehnt oder behoben.
 
-  - [ ] **M5.1-T3 – Optionalen Markdown-Quellmodus integrieren**
-    - Voraussetzung: Editorentscheidung unterstützt einen sicheren Roundtrip.
+  - [ ] **M5.1-T3 – Entscheidung zum Markdown-Quellmodus umsetzen**
+    - Voraussetzung: O-010 ist durch den Benutzer entschieden; bei Aufnahme unterstützt die Editorentscheidung einen sicheren Roundtrip.
     - Umfang: kontrollierter Wechsel WYSIWYG/Quelle, Synchronisierung und Fehleranzeige.
     - Prüfen: ungültige oder verbotene Headings, ungespeicherter Zustand und Fokus.
-    - Abnahme: Quellmodus verändert gültigen Content nicht unbemerkt.
+    - Abnahme: O-010 ist aus den offenen Fragen entfernt; bei Aufnahme verändert der Quellmodus gültigen Content nicht unbemerkt, bei Ablehnung sind Quellmodus-Komponenten und -Abhängigkeiten nicht vorhanden.
 
 ## M5.2 – Rollenverwaltung
 

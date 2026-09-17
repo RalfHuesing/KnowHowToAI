@@ -36,7 +36,7 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 - Circuit-Verlust darf keine fachlichen Änderungen verlieren, die bereits in der Working Transaction persistiert sind.
 - Unpersistierter Editorzustand wird vor Navigation, Reconnect und Deployment bewusst behandelt.
 - Bei späterem Mehrinstanzbetrieb werden Session Affinity oder eine alternative Renderstrategie separat bewertet.
-- Lang laufende Publikationen blockieren keinen UI-Circuit; bei Bedarf werden sie als Hintergrundjob modelliert.
+- Der initiale PDF-Export läuft requestgebunden außerhalb des UI-Circuit-Zustands mit Busy-Anzeige, CancellationToken und hartem Prozess-Timeout; ein Hintergrundjob gehört nicht zum ersten Stand.
 
 ## Risiken und Gegenmaßnahmen
 

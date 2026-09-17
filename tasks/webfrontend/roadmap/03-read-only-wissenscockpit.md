@@ -10,6 +10,8 @@ Ziel: Menschen können den gesamten vorhandenen Wissensstand, seine Struktur, Ro
 
 Referenzen: [Dashboard](../konzept/02-bedienkonzept-und-ui.md#dashboard), [Wissensbaum](../konzept/02-bedienkonzept-und-ui.md#wissensbaum), [Historie und Releases](../konzept/02-bedienkonzept-und-ui.md#historie-und-releases), [Blazor-interne Aufrufe](../konzept/05-architektur-api-und-mcp.md#blazor-interne-aufrufe)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M3.1 – Web-Lesegrenze
 
 - [ ] **M3.1 abschließen**
@@ -25,7 +27,8 @@ Referenzen: [Dashboard](../konzept/02-bedienkonzept-und-ui.md#dashboard), [Wisse
 - [ ] **M3.2 abschließen**
 
   - [ ] **M3.2-T1 – Wissensdashboard implementieren**
-    - Umfang: Current Snapshot, letzter Release, offene Transactions, stale Content und Findings als kompakte Einstiegsübersicht.
+    - Umfang: Current Snapshot, letzter Release, alle offenen Transactions, Current-Qualität über alle Rollen und zuletzt geänderte Nodes als kompakte Einstiegsübersicht.
+    - Semantik: harte Fehler gehören zu offenen Transactions; letzte Nodeänderungen stammen aus dem Diff zum direkten committed Vorgänger; ohne Vorgänger bleibt diese Liste leer.
     - Interaktion: Karten und Listen verlinken auf vorhandene Detailkontexte; keine Mutation.
     - Zustände: Laden, leer, partieller Fehler und große Mengen.
     - Tests: ViewModel-/Komponententests und Browser-Smoke.
@@ -53,6 +56,7 @@ Referenzen: [Dashboard](../konzept/02-bedienkonzept-und-ui.md#dashboard), [Wisse
 - [ ] **M3.4 abschließen**
 
   - [ ] **M3.4-T1 – Globalen Rollen- und Lesekontext-Selektor implementieren**
+    - Voraussetzung: O-008 zum Verhalten ohne gewählte Rolle ist durch den Benutzer entschieden.
     - Umfang: Rolle sowie Current Snapshot, historischer Snapshot, Release oder vorhandene Working Transaction auswählen.
     - Prüfen: Kontext ist global sichtbar, URL-/Navigationsverhalten ist definiert und ungültige Kombinationen werden erklärt.
     - Tests: Kontextwechsel, leere Rollenliste, nicht mehr vorhandener Kontext und Reconnect.
@@ -75,6 +79,13 @@ Referenzen: [Dashboard](../konzept/02-bedienkonzept-und-ui.md#dashboard), [Wisse
     - Tests: Application-/Web-Mapping, Komponenten und Browser-Smoke.
     - Abnahme: Benutzer findet Content ohne Kenntnis der Baumposition.
 
+  - [ ] **M3.5-T2 – Wissensfilter implementieren**
+    - Umfang: Filter für Rolle, Availability, Freshness und Findings auf der paginierten Such-/Filtertrefferliste; Trefferauswahl fokussiert den Node im unveränderten Knowledge Tree.
+    - Semantik: Werte derselben Gruppe werden ODER-verknüpft, unterschiedliche Gruppen UND-verknüpft; kein Filter ist der Default.
+    - Prüfen: Paging bleibt stabil, Filterwechsel verwirft alte Cursor und leere Ergebnisse werden erklärt.
+    - Tests: Query-/Repositoryverhalten, Web-Mapping, Komponenten und Browser-Smoke.
+    - Abnahme: Filtersemantik aus dem Bedienkonzept ist vollständig serverseitig paginiert umgesetzt; der Tree wird nicht clientseitig beschnitten.
+
 ## M3.6 – Historie und Releases
 
 - [ ] **M3.6 abschließen**
@@ -90,7 +101,7 @@ Referenzen: [Dashboard](../konzept/02-bedienkonzept-und-ui.md#dashboard), [Wisse
     - Prüfen: Paging, große Diffs, stabile Sortierung und verständliche leere Ergebnisse.
     - Nicht enthalten: Merge oder Reapply.
     - Tests: repräsentative Diffarten und Browserdarstellung.
-    - Abnahme: Benutzer kann Unterschiede fachlich nachvollziehen.
+    - Abnahme: Benutzer kann Unterschiede fachlich nachvollziehen und die Historie eines Nodes über auf diesen Node gefilterte Snapshot-Diffs verfolgen.
 
 ## M3.7 – Markdown-Export
 

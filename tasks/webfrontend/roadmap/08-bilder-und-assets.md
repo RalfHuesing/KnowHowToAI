@@ -12,6 +12,8 @@ Ziel: Bilder sind stabil referenzierbar, historisch reproduzierbar und in Editor
 
 Referenz: [Bilder und Assets](../konzept/03-content-und-assets.md#bilder-und-assets)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M8.1 – Daten- und Anwendungsmodell
 
 - [ ] **M8.1 abschließen**
@@ -102,6 +104,7 @@ Referenz: [Bilder und Assets](../konzept/03-content-und-assets.md#bilder-und-ass
 - [ ] **M8.6 abschließen**
 
   - [ ] **M8.6-T1 – Assetgrenzen und Schadinhaltsschutz absichern**
+    - Voraussetzung: O-016 zu erlaubten Typen, Dateigröße und Pixelzahl ist durch den Benutzer entschieden.
     - Umfang: erlaubte MIME-/Bildtypen, Magic Bytes, Maximalgröße, Bilddimensionen, Decodierbarkeit und Ressourcenlimits.
     - Prüfen: umbenannte Dateien, beschädigte Bilder, Dekompressionsbomben und aktive Inhalte.
     - Tests: positive Formate und repräsentative Ablehnungsfälle.

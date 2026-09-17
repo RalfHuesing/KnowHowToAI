@@ -19,7 +19,7 @@ Verbindlicher initialer Umfang:
 
 - Blazor-Weboberfläche für Menschen.
 - MCP über Streamable HTTP für externe Agenten.
-- Kontrollierte HTTP-Endpunkte, die das Webfrontend technisch benötigt, beispielsweise Assets, Uploads oder Downloads.
+- Kontrollierte HTTP-Endpunkte werden erst in dem Milestone ergänzt, der den jeweiligen Browser-Upload oder -Download tatsächlich benötigt.
 - Keine allgemeine REST-/JSON-API und kein OpenAPI-Vertrag für n8n im ersten Schritt.
 
 ## Blazor-interne Aufrufe
@@ -109,33 +109,12 @@ Eine gemeinsame EXE ist unkritisch, wenn Lebensdauern korrekt behandelt werden:
 
 ## Projekt- und Namespace-Struktur
 
-```text
-src/KnowHowToAI.Server/
-├─ Program.cs
-├─ appsettings.json
-├─ Configuration/
-├─ Hosting/
-├─ Mcp/
-│  ├─ Contracts/
-│  ├─ Mapping/
-│  └─ Tools/
-├─ Web/
-│  ├─ Components/Layout/
-│  ├─ Components/Pages/
-│  ├─ Components/Shared/
-│  ├─ Endpoints/
-│  ├─ Features/<Feature>/
-│  └─ State/
-└─ wwwroot/
-```
+Die verbindliche Zuordnung aller Projekte, Ordner, Namespaces, Featurebereiche, Klassentypen, Routen und Testprojekte steht ausschließlich in [Projektstruktur und Codekonventionen](08-projektstruktur-und-codekonventionen.md).
 
-- Namespaces: zunächst `KnowHowToAI.Server.Mcp` und `.Web`.
+Architekturgrenzen:
+
+- `KnowHowToAI.Server` bleibt eine Deployment-Einheit und enthält Composition Root, MCP-, Blazor-, PDF- und technisch notwendige HTTP-Adapter.
+- Domain und transportneutrale Application-Use-Cases verbleiben in `KnowHowToAI.Core`.
+- SQL-Persistenz verbleibt in `KnowHowToAI.Storage.SqlServer`.
+- Ein allgemeiner Ordner oder Namespace `Api` entsteht erst mit einer tatsächlich beschlossenen externen Integrations-API.
 - Bestehende Schreibweise `Mcp` bleibt; keine parallele `MCP`-Struktur.
-- `Web/Endpoints` enthält ausschließlich technisch notwendige Browser-Endpunkte wie Uploads oder Downloads.
-- Ein Namespace und Ordner `KnowHowToAI.Server.Api` wird erst mit einer echten externen REST-API angelegt.
-- `KnowHowToAI.Server` wird ASP.NET-Core-Webhost und Composition Root.
-- Projekt-SDK wird `Microsoft.NET.Sdk.Web`.
-- Eine `appsettings.json` enthält die gemeinsame Basiskonfiguration. Umgebungsoverrides sind Betriebsmechanik, keine zweite Fachkonfiguration.
-- Features werden innerhalb `Mcp` und `Web` weiter unterteilt; keine God Components oder Sammelordner.
-- Domain, Application und Storage verbleiben in den vorhandenen Projekten.
-- Ein separates Clientprojekt wird erst bei bewusster Wahl von Interactive WebAssembly erforderlich.

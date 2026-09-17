@@ -10,6 +10,8 @@ Ziel: `KnowHowToAI.Server` stellt Blazor und die bestehenden MCP-Funktionen zent
 
 Referenzen: [Zielbild](../konzept/05-architektur-api-und-mcp.md#zielbild-des-ersten-schritts), [Blazor-interne Aufrufe](../konzept/05-architektur-api-und-mcp.md#blazor-interne-aufrufe), [MCP-Transport](../konzept/05-architektur-api-und-mcp.md#mcp-transport), [Projektstruktur](../konzept/05-architektur-api-und-mcp.md#projekt--und-namespace-struktur)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M1.1 – ASP.NET-Core-Host
 
 - [ ] **M1.1 abschließen**
@@ -21,9 +23,9 @@ Referenzen: [Zielbild](../konzept/05-architektur-api-und-mcp.md#zielbild-des-ers
     - Abnahme: bestehende fachliche Tests bleiben grün; Host läuft ohne Blazor- oder MCP-Funktionsausbau.
 
   - [ ] **M1.1-T2 – Endpunktrouting und Hostkonfiguration absichern**
-    - Umfang: gemeinsamer Origin und Port, feste Route `/mcp`, Assetpräfix und reserviertes `/api` konfigurieren.
+    - Umfang: gemeinsamen Origin und Port, feste Route `/mcp` und reserviertes `/api` konfigurieren.
     - Prüfen: Fallback verschluckt keine reservierte Route; Limits, Streaming und Timeouts sind endpunktbezogen konfigurierbar.
-    - Tests: Routing-Smokes für `/`, `/mcp`, `/assets` und reserviertes `/api`.
+    - Tests: Routing-Smokes für `/`, `/mcp` und reserviertes `/api`.
     - Abnahme: Routingregeln aus dem Konzept sind automatisiert belegt.
 
 ## M1.2 – Blazor-Grundhost
@@ -52,6 +54,7 @@ Referenzen: [Zielbild](../konzept/05-architektur-api-und-mcp.md#zielbild-des-ers
     - Abnahme: HTTP weist fachliche Parität zum bisherigen MCP-Vertrag nach; kein neuer Test setzt STDIO voraus.
 
   - [ ] **M1.3-T3 – Reale Zielclients abnehmen**
+    - Voraussetzung: O-019 legt die verbindlichen MCP-Zielclients und Versionen fest.
     - Umfang: mindestens die tatsächlich verwendeten MCP-Clients gegen den zentralen HTTP-Endpunkt testen.
     - Prüfen: Konfiguration, Verbindung, Tool Discovery, langer Read, Transaction-Workflow und Fehlermeldungen.
     - Ergebnis: clientspezifische Konfiguration und bestätigte Einschränkungen dokumentieren.

@@ -21,10 +21,25 @@ Milestone Mx
 - Wird beim Start erkennbar, dass ein Leaf-Task diese Grenze überschreitet, wird er vor der Implementierung in weitere sequenzielle Leaf-Tasks geteilt.
 - Ein Task übernimmt keine unerwähnten Nachbarfeatures. Notwendige Folgethemen werden als neue Tasks dokumentiert.
 
+## Gesamtausführung durch einen Agenten
+
+Ein Agent mit dem Auftrag „alles umsetzen“ arbeitet deterministisch:
+
+1. Milestone-Dateien in numerischer Reihenfolge öffnen.
+2. Darin den ersten nicht erledigten Leaf-Task in Dokumentreihenfolge wählen.
+3. Abhängigkeiten, referenzierte Konzepte, [Projektstruktur](konzept/08-projektstruktur-und-codekonventionen.md) und erforderliche `docs/` vollständig lesen.
+4. Prüfen, ob eine [offene Frage](konzept/07-entscheidungen-und-offene-fragen.md) den Task blockiert. Bei Blockade nicht raten, sondern den Benutzer fragen und den Punkt zuerst dokumentarisch schließen.
+5. Genau den Leaf-Task implementieren, prüfen, dokumentieren, abhaken und atomar committen.
+6. Erfüllte Arbeitspaket- und Milestone-Checkboxen im selben Commit schließen.
+7. Mit dem nächsten Leaf-Task fortfahren, bis die Roadmap abgeschlossen oder eine explizite Blockade erreicht ist.
+
+Bereits vorhandenes Verhalten wird nicht blind neu implementiert. Der Agent verifiziert es gegen die Task-Abnahme, ergänzt fehlende Nachweise und markiert den Task erst danach als erledigt.
+
 ## Verbindliche Arbeitsregeln
 
 - Milestones und Tasks werden in dokumentierter Reihenfolge umgesetzt; Abweichungen benötigen eine festgehaltene Begründung.
 - Vor jedem Task gelten `AGENTS.md`, die Projektregeln und die Lese-Matrix in [`docs/`](../../docs/README.md).
+- [Projektstruktur und Codekonventionen](konzept/08-projektstruktur-und-codekonventionen.md) ist für jeden Task mit Produktions-, Test- oder Projektstrukturänderung Pflichtlektüre.
 - Der Agent liest die im Milestone und Task verlinkten Konzept- und Ist-Dokumente vollständig im relevanten Umfang.
 - Ein Leaf-Task endet mit funktionsfähigem Code, risikogerechten Tests, aktualisierter `docs/`-Ist-Dokumentation, aktualisierten Roadmap-Checkboxen und einem atomaren Commit.
 - Parent-Checkboxen werden erst gesetzt, wenn alle direkten Kinder und das jeweilige Abnahmekriterium erfüllt sind.

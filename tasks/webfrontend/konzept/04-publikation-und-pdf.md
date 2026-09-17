@@ -14,10 +14,10 @@ Die UI exportiert den aktuell ausgewählten Node einschließlich seines gesamten
 
 ## Genau ein Template
 
-Es gibt zunächst genau ein serverseitiges PDF-Template in einem konfigurierten Ordner, beispielsweise:
+Es gibt genau ein serverseitiges PDF-Template im konfigurierten Standardordner:
 
 ```text
-templates/pdf/default/
+src/KnowHowToAI.Server/Pdf/Templates/Default/
 ├─ template.html
 ├─ document.css
 ├─ logo.svg
@@ -28,6 +28,7 @@ templates/pdf/default/
 - Keine Auswahl mehrerer Templates oder Kundenprofile.
 - Template, CSS, Logo und Fonts werden als Deploymentdateien gepflegt.
 - Der Server validiert beim Start, dass die benötigten Dateien und Werkzeuge vorhanden sind.
+- Pfade, Timeout und Parallelitätsgrenze stehen in [Projektstruktur und Codekonventionen](08-projektstruktur-und-codekonventionen.md#konfigurationsstruktur).
 
 ## Technische Pipeline
 
@@ -39,10 +40,10 @@ ausgewählter Node + Rolle + Read Context
   → PDF-Download
 ```
 
-Pandoc wird mit WeasyPrint als PDF-Engine verwendet, sinngemäß:
+Pandoc wird mit WeasyPrint als PDF-Engine verwendet:
 
 ```text
-pandoc --pdf-engine=weasyprint ...
+pandoc --pdf-engine=weasyprint --template=<template.html> --css=<document.css> --output=<output.pdf> <input.md>
 ```
 
 - Der erste PDF-Stand benötigt noch keine verwalteten Content-Bilder.
@@ -57,7 +58,7 @@ pandoc --pdf-engine=weasyprint ...
 3. Server erzeugt das PDF.
 4. Browser lädt die Datei als `application/pdf` herunter.
 
-Für den ersten Stand genügt ein Busy-/Progress-Indikator ohne Prozentwert. Ein persistierter Hintergrundjob mit echtem Fortschritt wird erst eingeführt, wenn reale Exportzeiten ihn rechtfertigen.
+Der erste Stand verwendet einen Busy-Indikator ohne Prozentwert und keinen persistierten Hintergrundjob. Request-Abbruch wird an den Renderer weitergereicht; der konfigurierte Prozess-Timeout bleibt die harte Obergrenze. Ein späterer Hintergrundjob erfordert eine neue dokumentierte Entscheidung.
 
 ## Kein initialer Publikationsworkflow
 

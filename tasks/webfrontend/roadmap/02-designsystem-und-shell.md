@@ -10,17 +10,20 @@ Ziel: Alle Fachfeatures erhalten eine konsistente, moderne und belastbare UI-Gru
 
 Referenzen: [Visueller Stil](../konzept/02-bedienkonzept-und-ui.md#visueller-stil), [Grundlayout](../konzept/02-bedienkonzept-und-ui.md#grundlayout), [Blazor-Betrieb](../konzept/06-betrieb-sicherheit-und-risiken.md#blazor-betrieb)
 
+Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
+
 ## M2.1 – Komponentenbasis und Theme
 
 - [ ] **M2.1 abschließen**
 
   - [ ] **M2.1-T1 – Gewähltes Komponentenpaket integrieren**
-    - Umfang: Pakete, Services, statische Ressourcen, Basislayout und Theme-Einstieg produktiv einbinden.
+    - Umfang: Pakete, Services, statische Ressourcen, Basislayout und Theme-Einstieg produktiv einbinden; `KnowHowToAI.Web.Tests` mit dem in O-015 gewählten Komponenten-Testwerkzeug anlegen.
     - Nicht enthalten: Knowledge Tree und Rich-Text-Editor.
     - Tests: Host-/Render-Smoke sowie Nachweis ohne externe Cloudabhängigkeit.
     - Abnahme: Beispielseite rendert die benötigten Basiskomponenten im Serverbetrieb.
 
   - [ ] **M2.1-T2 – Design-Tokens und Business-Theme definieren**
+    - Voraussetzung: O-009 zu Branding und O-014 zur UI-Sprache sind durch den Benutzer entschieden.
     - Umfang: Farben, Typografie, Abstände, Raster, Rahmen, Elevation, Fokusdarstellung und Iconkonvention.
     - Zustände: neutral, aktiv, Erfolg, Warnung, Fehler, deaktiviert und ungespeichert.
     - Prüfen: Light Theme als erster Stand, ausreichende Kontraste und konsistente Dichte.
@@ -71,9 +74,9 @@ Referenzen: [Visueller Stil](../konzept/02-bedienkonzept-und-ui.md#visueller-sti
     - Abnahme: der Benutzer erkennt Verbindungszustand und sichere nächste Aktion.
 
   - [ ] **M2.4-T3 – Komponenten- und visuelle Smoke-Testbasis etablieren**
-    - Umfang: Testhost, zentrale Shellzustände, repräsentative Viewports und stabile Screenshot-/Markup-Smokes.
+    - Umfang: `KnowHowToAI.BrowserTests` mit dem in O-015 gewählten Werkzeug anlegen; Testhost, zentrale Shellzustände, repräsentative Viewports und stabile Screenshot-/Markup-Smokes einrichten.
     - Nicht enthalten: flächendeckende Pixeltests.
-    - Abnahme: spätere Milestones können neue UI-Zustände mit geringem Aufwand regressionssicher ergänzen.
+    - Abnahme: beide Testprojekte sind in Solution und Testskripte integriert; spätere Milestones können neue UI-Zustände regressionssicher ergänzen.
 
 ## Milestone-Abnahme
 
