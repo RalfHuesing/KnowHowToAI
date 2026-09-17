@@ -23,7 +23,10 @@ Die Konfiguration ist strikt nach Verantwortlichkeit getrennt:
    `UseWindowsAuthentication`. Der Serverwert darf Windows-Umgebungsplatzhalter
    enthalten (Default `%COMPUTERNAME%\MSSQLSERVER2022`, erst zur Laufzeit
    expandiert). Es gibt **keine** alternative Connection-String-Umgebungsvariable,
-   User Secrets oder Secretstore für die Verbindung.
+   User Secrets oder Secretstore für die Verbindung. Alle produktiven Verbindungen
+   tragen den festen `ApplicationName` `KnowHowToAi` (in `SqlConnectionFactory`
+   gesetzt, bestehende Werte im Connection String werden überschrieben) — das
+   erlaubt eindeutige Zuordnung in SQL Profiler und `sys.dm_exec_sessions`.
 
 ## Schlüssel, Defaults und Bereiche
 
