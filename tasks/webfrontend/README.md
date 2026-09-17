@@ -25,7 +25,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) | gemeinsamer Host, interne Blazor-Aufrufe, MCP HTTP, optionale spätere REST-API, Projektstruktur, Ports und DI-Grenzen |
 | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) | Intranetbetrieb, ausdrücklich keine Auth im ersten Schritt, Betriebsgrenzen, Risiken |
 | [Entscheidungen und offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) | Entscheidungsregister, offene Auswahlentscheidungen und Nicht-Ziele |
-| [Roadmap](Roadmap.md) | Milestones, Abhängigkeiten, abhakbare Arbeitspakete und Abnahmekriterien |
+| [Roadmap](Roadmap.md) | Index, Ausführungsregeln und getrennte Milestone-Dateien mit abhakbaren Agent-Tasks |
 
 ## Lese-Matrix
 
@@ -37,7 +37,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | Einfacher PDF-Teilbaumexport | [Publikation und PDF](konzept/04-publikation-und-pdf.md) |
 | Blazor, MCP HTTP, spätere REST-/n8n-Integration, Projektstruktur | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) |
 | Deployment, Netzwerk, Auth-Abgrenzung | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) |
-| Implementierung eines Milestones | [Roadmap](Roadmap.md), dort referenzierte Konzeptabschnitte und die Lese-Matrix in [`docs/`](../../docs/README.md) |
+| Implementierung eines Agent-Tasks | [Roadmap](Roadmap.md), zugehörige Milestone-Datei, dort referenzierte Konzeptabschnitte und die Lese-Matrix in [`docs/`](../../docs/README.md) |
 
 ## Gesetzte Leitentscheidungen
 
