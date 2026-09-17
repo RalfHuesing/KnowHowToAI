@@ -129,14 +129,20 @@ Transaction; `delete_node` wirkt global über alle Rollen
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `create_node` | `transactionId`, `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds` |
+| `create_node` | `transactionId`, `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0), optional `contentMd` (setzt im selben Aufruf den Rollen-Content; dann `roleId` erforderlich, optional `contentMode`, Standard `Independent`, optional `sources`) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds`; bei `contentMd` zusätzlich `roleId`, `contentRevisionId`, `contentMode`, `freshness` |
 | `update_node` | `transactionId`, `nodeId`, `title` (erforderlich), optional `description` | dieselben Feldnamen wie `create_node` |
 | `move_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `parentNodeId` (ohne Wert wird die Node zur Root-Node) | dieselben Feldnamen wie `create_node` |
 | `reorder_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich) | dieselben Feldnamen wie `create_node` |
 | `delete_node` | `transactionId`, `nodeId` (erforderlich), optional `deleteSubtree` (Standard `false`) | dieselben Feldnamen wie `create_node` |
 
 `affectedNodeIds` umfasst die geänderte Node und alle durch
-Sortiernormalisierung oder Verschieben betroffenen aktiven Nachfahren. Unbekannte
+Sortiernormalisierung oder Verschieben betroffenen aktiven Nachfahren. Mit
+gesetztem `contentMd` führt `create_node` intern den Content-Schritt mit
+`replace_content`-Semantik im selben Working Snapshot aus; `snapshotId` und
+`changeVersion` der Antwort stammen aus diesem Content-Schritt, die Warnungen
+sind die Vereinigung beider Schritte. Scheitert der Content-Schritt, bleibt die
+angelegte Node im Working Snapshot erhalten und kann im selben Aufrufzyklus
+korrigiert oder die Transaction verworfen werden. Unbekannte
 IDs führen zu `NodeNotFound` beziehungsweise `ParentNodeNotFound` mit dem Rohwert
 in den Details; nicht parsebare ID-Strings sind Parameterfehler und führen zu
 `InvalidNodeId`.

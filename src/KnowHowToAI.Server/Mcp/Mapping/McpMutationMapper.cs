@@ -36,6 +36,22 @@ internal static class McpMutationMapper
             : McpToolEnvelope<McpContentMutationData>.Failure(result.Error!, warnings);
     }
 
+    /// <summary>
+    /// Führt das Node-Mutationsergebnis und das Content-Mutationsergebnis des
+    /// kombinierten create_node-Aufrufs zu einem Envelope zusammen; Snapshot und
+    /// ChangeVersion stammen aus dem späteren Content-Schritt, die Warnungen
+    /// sind die Vereinigung beider Ergebnisse.
+    /// </summary>
+    public static McpToolEnvelope<McpNodeMutationData> ToMergedEnvelope(
+        Result<NodeMutationResult> node,
+        Result<ContentMutationUseCaseResult> content)
+    {
+        var warnings = MapWarnings(node).Concat(MapWarnings(content)).ToArray();
+        return content.IsSuccess
+            ? McpToolEnvelope<McpNodeMutationData>.Success(ToMergedData(node.Value!, content.Value!), warnings)
+            : McpToolEnvelope<McpNodeMutationData>.Failure(content.Error!, warnings);
+    }
+
     public static McpToolEnvelope<McpRoleData> ToEnvelope(Result<Role> result) =>
         result.IsSuccess
             ? McpToolEnvelope<McpRoleData>.Success(ToRoleData(result.Value!))
@@ -131,6 +147,18 @@ internal static class McpMutationMapper
         result.SnapshotId.ToString(),
         result.ChangeVersion,
         result.AffectedNodeIds.Select(static nodeId => nodeId.ToString()).ToArray());
+
+    private static McpNodeMutationData ToMergedData(NodeMutationResult node, ContentMutationUseCaseResult content) => new(
+        node.Node.NodeId.ToString(),
+        node.Node.ParentNodeId?.ToString(),
+        node.Node.Title,
+        content.SnapshotId.ToString(),
+        content.ChangeVersion,
+        node.AffectedNodeIds.Select(static nodeId => nodeId.ToString()).ToArray(),
+        content.Content.RoleId.ToString(),
+        content.Content.ContentRevisionId.ToString(),
+        content.Content.ContentMode.ToString(),
+        content.Freshness.ToString());
 
     private static McpContentMutationData ToData(ContentMutationUseCaseResult result) => new(
         result.Content.NodeId.ToString(),

@@ -1,4 +1,6 @@
+using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
+using KnowHowToAI.Core.Application.Mutations.Roles;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Transactions;
@@ -7,6 +9,7 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Hierarchy;
+using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Server.Mcp.Tools.Mutations;
 
@@ -127,6 +130,70 @@ public sealed class McpNodeMutationToolsTests
     }
 
     [Fact]
+    public async Task CreateNode_WithContent_CreatesNodeAndContentAndMergesData()
+    {
+        var nodeRepository = StateWithRootAndChildren();
+        var contentRepository = ContentStateForCreatedNode();
+        var tools = CreateTools(nodeRepository, contentRepository);
+
+        var envelope = await tools.CreateNode(
+            TransactionId.ToString(), "Neues Kapitel",
+            parentNodeId: RootNodeId.ToString(), sortOrder: 99,
+            contentMd: "Kapitelinhalt ohne Überschrift.", roleId: "Developer");
+
+        Assert.True(envelope.IsSuccess);
+        Assert.Equal(GeneratedNodeId.ToString(), envelope.Data!.NodeId);
+        Assert.Equal("Neues Kapitel", envelope.Data.Title);
+        Assert.Equal("Developer", envelope.Data.RoleId);
+        Assert.Equal(ContentRevisionIdFor(10).ToString(), envelope.Data.ContentRevisionId);
+        Assert.Equal("Independent", envelope.Data.ContentMode);
+        Assert.Equal("Current", envelope.Data.Freshness);
+        Assert.Equal(1, contentRepository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task CreateNode_WithContentButMissingRoleId_IsRejectedWithoutCreatingNode()
+    {
+        var nodeRepository = EmptyState();
+        var tools = CreateTools(nodeRepository, ContentStateForCreatedNode());
+
+        var envelope = await tools.CreateNode(TransactionId.ToString(), "Kapitel", contentMd: "Inhalt.");
+
+        Assert.False(envelope.IsSuccess);
+        Assert.Equal(RoleMutationErrorCodes.RoleIdRequired, envelope.Code);
+        Assert.Equal(0, nodeRepository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task CreateNode_WithInvalidContentMode_IsRejectedWithoutCreatingNode()
+    {
+        var nodeRepository = EmptyState();
+        var tools = CreateTools(nodeRepository, ContentStateForCreatedNode());
+
+        var envelope = await tools.CreateNode(
+            TransactionId.ToString(), "Kapitel", contentMd: "Inhalt.", roleId: "Developer", contentMode: "Bogus");
+
+        Assert.False(envelope.IsSuccess);
+        Assert.Equal(DependencyErrorCodes.InvalidDependency, envelope.Code);
+        Assert.Equal(0, nodeRepository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task CreateNode_WithoutContent_IgnoresContentParametersAndOmitsContentFields()
+    {
+        var tools = CreateTools(EmptyState());
+
+        var envelope = await tools.CreateNode(TransactionId.ToString(), "Hauptkapitel", roleId: "Developer");
+
+        Assert.True(envelope.IsSuccess);
+        Assert.Equal(GeneratedNodeId.ToString(), envelope.Data!.NodeId);
+        Assert.Null(envelope.Data.RoleId);
+        Assert.Null(envelope.Data.ContentRevisionId);
+        Assert.Null(envelope.Data.ContentMode);
+        Assert.Null(envelope.Data.Freshness);
+    }
+
+    [Fact]
     public async Task UpdateNode_ChangesTitleAndDescription()
     {
         var tools = CreateTools(StateWithRootAndChildren());
@@ -234,17 +301,38 @@ public sealed class McpNodeMutationToolsTests
         Assert.All(repository.State.Contents, content => Assert.True(content.IsDeleted));
     }
 
-    private static NodeMutationTools CreateTools(InMemoryNodeMutationRepository repository) =>
-        new(new NodeMutationApplicationService(
-            repository,
-            new NodeMutationService(new FixedIdentifierGenerator()),
-            new ValidationPolicy
-            {
-                ContentSizeWarningBytes = 4096,
-                ChildCountWarning = 2,
-                HierarchyDepthWarning = 8,
-                PossibleEmbeddedHeadingWarning = true
-            }));
+    private static NodeMutationTools CreateTools(
+        InMemoryNodeMutationRepository repository,
+        InMemoryContentMutationRepository? contentRepository = null) =>
+        new(
+            new NodeMutationApplicationService(
+                repository,
+                new NodeMutationService(new FixedIdentifierGenerator()),
+                new ValidationPolicy
+                {
+                    ContentSizeWarningBytes = 4096,
+                    ChildCountWarning = 2,
+                    HierarchyDepthWarning = 8,
+                    PossibleEmbeddedHeadingWarning = true
+                }),
+            new ContentMutationApplicationService(
+                contentRepository ?? new InMemoryContentMutationRepository(new WorkingContentMutationState(SnapshotId, [], [], [], [])),
+                new ContentMutationService(new ContentRevisionService(new RevisionIdentifierGenerator())),
+                new ValidationPolicy
+                {
+                    ContentSizeWarningBytes = 4096,
+                    ChildCountWarning = 2,
+                    HierarchyDepthWarning = 8,
+                    PossibleEmbeddedHeadingWarning = true
+                }));
+
+    private static InMemoryContentMutationRepository ContentStateForCreatedNode() =>
+        new(new WorkingContentMutationState(
+            SnapshotId,
+            [Node(GeneratedNodeId)],
+            [Role(new RoleId("Developer"))],
+            [],
+            []));
 
     private static InMemoryNodeMutationRepository EmptyState() => new(new WorkingNodeMutationState(SnapshotId, [], [], [], []));
 
@@ -258,6 +346,9 @@ public sealed class McpNodeMutationToolsTests
     private static Node Node(NodeId nodeId, NodeId? parentNodeId = null) =>
         new(SnapshotId, nodeId, parentNodeId, "Titel", null, 0, IsDeleted: false);
 
+    private static Role Role(RoleId roleId) =>
+        new(SnapshotId, roleId, roleId.Value, null, IsDeleted: false);
+
     private static NodeContent Content(NodeId nodeId) =>
         new(
             SnapshotId,
@@ -270,6 +361,8 @@ public sealed class McpNodeMutationToolsTests
 
     private static NodeId NodeIdFor(int value) => new(new Guid(value, 0, 0, new byte[8]));
 
+    private static ContentRevisionId ContentRevisionIdFor(int value) => new(new Guid(value, 0, 0, new byte[8]));
+
     private sealed class FixedIdentifierGenerator : IIdentifierGenerator
     {
         public TransactionId CreateTransactionId() => throw new NotSupportedException();
@@ -277,5 +370,14 @@ public sealed class McpNodeMutationToolsTests
         public NodeId CreateNodeId() => GeneratedNodeId;
 
         public ContentRevisionId CreateContentRevisionId() => throw new NotSupportedException();
+    }
+
+    private sealed class RevisionIdentifierGenerator : IIdentifierGenerator
+    {
+        public TransactionId CreateTransactionId() => throw new NotSupportedException();
+
+        public NodeId CreateNodeId() => throw new NotSupportedException();
+
+        public ContentRevisionId CreateContentRevisionId() => ContentRevisionIdFor(10);
     }
 }
