@@ -2,7 +2,7 @@
 
 ## Zielbetrieb
 
-- Ein ASP.NET-Core-Prozess hostet Blazor, REST, Assets und MCP.
+- Ein ASP.NET-Core-Prozess hostet Blazor, technisch notwendige Web-Endpunkte, Assets und MCP.
 - Eine Deployment-Einheit, eine Basiskonfiguration, standardmäßig ein HTTP(S)-Port.
 - Zentraler Betrieb unter festgelegtem Hostnamen im Firmennetz.
 - Kein Internet-Exposure.
@@ -22,9 +22,9 @@ Bis dahin gilt:
 - Firewall und Netzwerksegmentierung bilden die Zugriffsschranke.
 - `AllowedHosts` enthält nur tatsächliche Intranet-Hostnamen; keine Wildcard.
 - Kein direkter Endkundenzugang.
-- Keine Veröffentlichung von UI, REST, Assets, OpenAPI oder MCP im Internet.
-- UI, REST und MCP liegen im selben Origin.
-- CORS wird nicht pauschal geöffnet; serverseitige n8n-Aufrufe benötigen kein CORS.
+- Keine Veröffentlichung von UI, Assets oder MCP im Internet.
+- UI, Assets und MCP liegen im selben Origin.
+- CORS wird nicht pauschal geöffnet; eine spätere externe Integrations-API benötigt ein eigenes Zugriffskonzept.
 - Jeder erreichbare Client besitzt technisch Vollzugriff auf die angebotenen Endpunkte; dies wird nicht durch Content-Rollen eingeschränkt.
 
 Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für Authentifizierung, Autorisierung, Audit und gegebenenfalls Mandantentrennung.
@@ -42,9 +42,9 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 
 | Risiko | Gegenmaßnahme |
 |---|---|
-| UI umgeht Domainregeln | Ausschließlich Application Services; End-to-End-Vertragstests für UI-nahe Services, REST und MCP |
+| UI umgeht Domainregeln | Ausschließlich Application Services; End-to-End-Vertragstests für UI-nahe Services und MCP |
 | Benutzer verliert Arbeitskontext | Snapshot/Transaction/Rolle permanent sichtbar; Navigation und Circuit-Verlust absichern |
-| Route-Kollision zwischen Blazor, API und MCP | Feste Präfixe; `/mcp` explizit; Routing-Smoke-Tests |
+| Route-Kollision zwischen Blazor, Web-Endpunkten und MCP | Feste Präfixe; `/mcp` explizit; Routing-Smoke-Tests; `/api` für spätere Integration reserviert |
 | Unterschiedliche DI-Scopes erzeugen versteckten Zustand | Stateless Application Services; fachlichen Kontext explizit übergeben |
 | Proxy blockiert WebSockets oder Streaming | Intranet-Deploymenttest mit realem Proxy; Timeouts und Upgrade-Verhalten prüfen |
 | Firmennetz wird mit Authentifizierung verwechselt | Kein Internet-Exposure; Netzgrenzen dokumentieren; Auth als separates Pflichtvorhaben vor Scope-Erweiterung |
@@ -54,15 +54,14 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 | Bilder blähen Snapshots auf | Immutable, per Hash deduplizierte Assets; Snapshot referenziert statt kopiert |
 | Content-Rollen werden als Rechte missverstanden | UI-Texte und Architektur trennen Zielgruppe strikt von Zugriffsschutz |
 | Mehrere Clients committen parallel | `SnapshotConflict` sichtbar behandeln; geführtes manuelles Reapply statt implizitem Merge |
-| REST, MCP und UI weichen semantisch ab | Gemeinsame Application Services und transportübergreifende Vertragstests |
+| MCP und UI weichen semantisch ab | Gemeinsame Application Services und Adaptertests gegen dieselben Use Cases |
 | Frontend wird zum zweiten Produktkern | Fachlogik ausschließlich in Core/Application; dünne Adapter |
 
 ## Betriebsabnahme
 
 - Alle Oberflächen sind unter einem Host und Port erreichbar.
-- Root, `/api/v1`, `/openapi`, `/mcp` und `/assets` kollidieren nicht.
+- Root, `/mcp` und `/assets` kollidieren nicht; reserviertes `/api` wird nicht vom Blazor-Fallback verschluckt.
 - Blazor funktioniert über den vorgesehenen Reverse Proxy per WebSocket und nach Reconnect.
 - MCP-Streaming funktioniert über denselben Proxy.
-- REST-Aufruf aus realem n8n-Netzsegment funktioniert ohne CORS-Sonderfreigabe.
 - Nicht freigegebene Netzsegmente erreichen den Host nicht.
 - Neustart des Prozesses lässt committed und offene persistierte Arbeitsstände fachlich rekonstruierbar.

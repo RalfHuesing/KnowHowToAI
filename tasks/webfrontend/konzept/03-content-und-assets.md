@@ -32,7 +32,7 @@ Der erste schreibende Frontend-Schnitt verwendet einen etablierten Rich-Text-/WY
 - Upload, Drag-and-drop und Einfügen aus der Zwischenablage.
 - Keine Data-URLs und keine unkontrollierten lokalen Dateipfade im Markdown.
 - Markdown referenziert stabile Asset-Identitäten oder kontrollierte, serverseitig auflösbare URLs.
-- Browser, REST, MCP, Markdown-Export und PDF verwenden dieselbe Asset-Auflösung.
+- Browser, MCP, Markdown-Export und PDF verwenden dieselbe Asset-Auflösung; spätere Adapter binden dieselbe Auflösung ein.
 
 ### Zielmodell
 

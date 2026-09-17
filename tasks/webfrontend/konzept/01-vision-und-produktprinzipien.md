@@ -34,7 +34,7 @@ Das Frontend ist die vollumfängliche menschliche Arbeits- und Publikationsoberf
 7. **Intranet-first:** Regulärer Betrieb zentral im Firmennetz; lokale Entwicklung und Tests bleiben möglich.
 8. **KI optional:** Alle Kernworkflows funktionieren deterministisch ohne LLM.
 9. **Standardkomponenten vor Eigenbau:** Auswahl nach Eignung, Wartung, Lizenz, Barrierefreiheit und Integrationskosten.
-10. **Explizite Integrationsgrenzen:** Browser, n8n und MCP-Clients verwenden dokumentierte Adapter desselben Hosts.
+10. **Bedarf vor Vorratsbau:** Der erste Schritt implementiert Weboberfläche und HTTP-MCP; weitere Integrationsadapter entstehen erst bei einem konkreten Anwendungsfall.
 
 ## Bestehende Kernleitplanken
 
@@ -49,7 +49,7 @@ Das Frontend erhält die implementierten Invarianten:
 - Releases sind unveränderliche Verweise auf committed Snapshots.
 - Rollen-Fallback, Provenienz und transitive Stale-Erkennung bleiben transparent.
 - Reads bleiben metadata-first und paginiert.
-- Fachlogik verbleibt in Domain und Application; UI, REST und MCP sind Adapter.
+- Fachlogik verbleibt in Domain und Application; UI und MCP sind Adapter. Spätere REST- oder Automationsadapter verwenden dieselben Application Services.
 - Content-Rollen sind Zielgruppenrollen, keine Benutzerrechte.
 
 Verbindlicher Ist-Stand: [`docs/`](../../../docs/README.md).
@@ -64,7 +64,7 @@ Verbindlicher Ist-Stand: [`docs/`](../../../docs/README.md).
 | Redakteur | Per normaler Suche gefundene TODO-Texte, stale Content und Qualitätswarnungen bearbeiten |
 | Endkunde | Erhält rollenbezogene PDF-Ausgaben; kein direkter Erstzugriff |
 | Externer Agent | Liest und schreibt über MCP innerhalb expliziter Transactions |
-| n8n/Integration | Verwendet stabile REST-Endpunkte für automatisierte Workflows |
+| Spätere n8n-/Systemintegration | Kann bei bestätigtem Bedarf einen eigenen REST-/OpenAPI-Adapter erhalten |
 | Späterer integrierter Agent | Bearbeitet explizite Such- und Überarbeitungsaufträge aus der UI |
 
 ## Erfolgskriterien des ersten nutzbaren Frontends
@@ -72,9 +72,9 @@ Verbindlicher Ist-Stand: [`docs/`](../../../docs/README.md).
 - Struktur, Rollen, offene Transactions und Releases sind ohne MCP-Client verständlich.
 - Nodes und Rollen-Content lassen sich transaktional anlegen, bearbeiten, verschieben, validieren und committen.
 - Fallback, Freshness, Findings und Arbeitsstand sind jederzeit sichtbar.
-- UI-, REST- und MCP-Reads liefern denselben fachlichen Zustand.
+- UI- und MCP-Reads liefern denselben fachlichen Zustand.
 - Durch UI oder Agent committed Änderungen erscheinen ohne Synchronisationsschritt beim jeweils anderen Client.
 - Kein Webworkflow umgeht Domainregeln oder schreibt direkt in committed Snapshots.
 - Das Frontend bleibt ohne integriertes LLM vollständig verwendbar.
-- n8n kann dokumentierte REST-Endpunkte verwenden.
 - MCP-Clients greifen zentral über `/mcp` auf dieselben Tools zu.
+- Die Application-Grenzen erlauben später REST-/OpenAPI-Endpunkte, ohne Fachlogik aus UI oder MCP zu kopieren.

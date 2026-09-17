@@ -17,8 +17,8 @@ Referenzen: [Komponentenstrategie](konzept/02-bedienkonzept-und-ui.md#komponente
 
 - [ ] M0 abschließen
   - [ ] Aktuellen Build-, Test- und Linter-Baseline-Nachweis herstellen.
-  - [ ] Kombinierten ASP.NET-Core-Host mit Blazor, Minimal API und `/mcp` in einem technischen Spike validieren.
-  - [ ] Routing auf einem gemeinsamen Port inklusive Blazor-Circuit, REST und MCP-Streaming validieren.
+  - [ ] Kombinierten ASP.NET-Core-Host mit Blazor und `/mcp` in einem technischen Spike validieren.
+  - [ ] Routing auf einem gemeinsamen Port inklusive Blazor-Circuit, MCP-Streaming und zweckgebundener Asset-Endpunkte validieren.
   - [ ] UI-Komponentenpaket anhand realer Layout-, Formular-, Tabellen- und Dialoganforderungen auswählen.
   - [ ] Baumkomponente mit Lazy Loading, Virtualisierung, Drag-and-drop und Tastaturbedienung auswählen.
   - [ ] Rich-Text-Komponente mit Markdown-Roundtrip, Heading-Sperre, Tabellen, Code und Upload-Hook auswählen.
@@ -30,22 +30,22 @@ Abnahme: Alle hoch priorisierten Komponenten- und Architekturfragen sind entschi
 
 ## M1 – Gemeinsamer Webhost und MCP HTTP
 
-Abhängigkeit: M0. Referenzen: [Zielbild](konzept/05-architektur-api-und-mcp.md#zielbild), [MCP-Transport](konzept/05-architektur-api-und-mcp.md#mcp-transport), [Projektstruktur](konzept/05-architektur-api-und-mcp.md#projekt--und-namespace-struktur)
+Abhängigkeit: M0. Referenzen: [Zielbild](konzept/05-architektur-api-und-mcp.md#zielbild-des-ersten-schritts), [Blazor-interne Aufrufe](konzept/05-architektur-api-und-mcp.md#blazor-interne-aufrufe), [MCP-Transport](konzept/05-architektur-api-und-mcp.md#mcp-transport), [Projektstruktur](konzept/05-architektur-api-und-mcp.md#projekt--und-namespace-struktur)
 
 - [ ] M1 abschließen
   - [ ] `KnowHowToAI.Server` auf `Microsoft.NET.Sdk.Web` und `WebApplication` umstellen.
   - [ ] Bestehende Konfiguration, Migrationen, Logging und Application-Service-Registrierung unverändert integrieren.
   - [ ] Blazor-Interactive-Server-Shell unter `/` bereitstellen.
-  - [ ] REST-Route Group `/api/v1` und OpenAPI-Dokument-Endpunkt anlegen.
   - [ ] Asset-Route reservieren, ohne vorgezogenes Asset-Fachmodell.
+  - [ ] Blazor-Komponenten für fachliche Aufrufe direkt an Application Services anbinden; keinen internen HTTP-Loopback einführen.
   - [ ] `ModelContextProtocol.AspNetCore` integrieren und stateless Streamable HTTP auf `/mcp` mappen.
   - [ ] Bestehende MCP-Tools und Fehlerverträge unverändert über HTTP abnehmen.
-  - [ ] Routing-Smoke-Tests für `/`, `/api/v1`, `/openapi`, `/mcp` und `/assets` erstellen.
+  - [ ] Routing-Smoke-Tests für `/`, `/mcp` und `/assets` erstellen; `/api` als spätere Routingkonvention freihalten.
   - [ ] Reale Zielclients gegen MCP HTTP testen.
   - [ ] STDIO-Konfiguration, Runner und nicht mehr benötigte Pakete per Hard Cut entfernen.
   - [ ] `docs/Architektur.md`, `docs/McpApi.md`, Betrieb und Konfiguration auf den Ist-Stand aktualisieren.
 
-Abnahme: Eine EXE bedient auf einem Port Blazor-Shell, OpenAPI und stateless MCP HTTP; alle bisherigen MCP-Funktionen bestehen ihre Abnahme ohne STDIO.
+Abnahme: Eine EXE bedient auf einem Port Blazor-Shell, notwendige Web-Endpunkte und stateless MCP HTTP; alle bisherigen MCP-Funktionen bestehen ihre Abnahme ohne STDIO.
 
 ## M2 – Designsystem und Anwendungsshell
 
@@ -75,10 +75,10 @@ Abhängigkeit: M2. Referenzen: [Dashboard](konzept/02-bedienkonzept-und-ui.md#da
   - [ ] Suche mit Paging und Rollenauflösung implementieren.
   - [ ] Snapshot-, Release- und Diff-Ansichten implementieren.
   - [ ] Bestehenden Markdown-Export zugänglich machen.
-  - [ ] Korrespondierende versionierte REST-Leseendpunkte implementieren und in OpenAPI dokumentieren.
-  - [ ] UI-, REST- und MCP-Ergebnisse mit transportübergreifenden Tests vergleichen.
+  - [ ] UI-Lesepfade direkt über transportneutrale Application Services implementieren.
+  - [ ] UI- und MCP-Ergebnisse über Use-Case- und Adaptertests fachlich vergleichen.
 
-Abnahme: Der gesamte bestehende Wissensstand ist ohne MCP-Client navigierbar und lesbar; REST und UI zeigen denselben Zustand wie MCP.
+Abnahme: Der gesamte bestehende Wissensstand ist ohne MCP-Client navigierbar und lesbar; UI und MCP zeigen denselben fachlichen Zustand.
 
 ## M4 – Transactions und Strukturpflege
 
@@ -92,7 +92,7 @@ Abhängigkeit: M3. Referenzen: [Transaction-Arbeitsbereich](konzept/02-bedienkon
   - [ ] Zielvorschau und serverseitige Strukturvalidierung anzeigen.
   - [ ] Strukturierten Transaction-Diff und Findings vor Commit darstellen.
   - [ ] `SnapshotConflict` mit Base/Current-Vergleich und geführtem Reapply behandeln.
-  - [ ] Korrespondierende REST-Schreibendpunkte mit expliziter `TransactionId` implementieren.
+  - [ ] UI-Schreibpfade direkt über Application Services mit expliziter `TransactionId` implementieren.
   - [ ] Browsernavigation, Reconnect und Prozessneustart gegen persistierte Working Transactions testen.
 
 Abnahme: Die komplette Node-Struktur ist ohne Agent sicher und transaktional pflegbar.
@@ -111,7 +111,7 @@ Abhängigkeit: M4. Referenzen: [Node-Ansicht und Editor](konzept/02-bedienkonzep
   - [ ] Fallback-Auswirkung vor Änderungen visualisieren.
   - [ ] Heading- und Content-Validierung unmittelbar und nach Serverantwort darstellen.
   - [ ] TODO-Texte ohne Sonderbehandlung speichern, suchen, anzeigen und exportieren.
-  - [ ] REST-Endpunkte und OpenAPI für Rollen- und Contentpflege vervollständigen.
+  - [ ] Web-Mapping und UI-State für Rollen- und Contentpflege dünn und transportneutral halten.
 
 Abnahme: Rollenabhängiger Markdown-Content ist vollständig ohne Agent und ohne Wegwerfeditor pflegbar.
 
@@ -125,7 +125,7 @@ Abhängigkeit: M5. Referenz: [Bilder und Assets](konzept/03-content-und-assets.m
   - [ ] Upload, Download und kontrollierte Asset-URLs bereitstellen.
   - [ ] Upload, Drag-and-drop und Zwischenablage im Rich-Text-Editor integrieren.
   - [ ] Markdown-Assetreferenzen roundtrip-sicher speichern.
-  - [ ] Assetauflösung in Browser, REST, MCP und Markdown-Export vereinheitlichen.
+  - [ ] Assetauflösung in Browser, MCP und Markdown-Export vereinheitlichen und für spätere Adapter wiederverwendbar halten.
   - [ ] Verwaiste, referenzierte und historische Assets korrekt behandeln.
   - [ ] Größen-, Typ-, Bilddimensions- und Schadinhaltgrenzen testen.
 
@@ -137,9 +137,9 @@ Abhängigkeit: M1 bis M6. Referenzen: [Betriebsabnahme](konzept/06-betrieb-siche
 
 - [ ] M7 abschließen
   - [ ] Vollständige Browser-End-to-End-Tests für zentrale Lese- und Schreibabläufe.
-  - [ ] Transportübergreifende REST-/MCP-Vertragstests vervollständigen.
+  - [ ] Vertrags- und Use-Case-Tests für UI-nahe Services und MCP vervollständigen.
   - [ ] Reale tiefe und breite Wissensbäume messen; Lazy Loading und Virtualisierung nachweisen.
-  - [ ] Gleichzeitige UI-, REST- und MCP-Transactions sowie `SnapshotConflict` testen.
+  - [ ] Gleichzeitige UI- und MCP-Transactions sowie `SnapshotConflict` testen.
   - [ ] Deployment hinter vorgesehenem Reverse Proxy mit WebSockets und MCP-Streaming abnehmen.
   - [ ] Host-, Port-, Firewall-, TLS- und CORS-Konfiguration dokumentieren und prüfen.
   - [ ] Backup-/Restore- und Prozessneustart-Szenarien inklusive Assets prüfen.
@@ -177,3 +177,4 @@ Nicht als Checkboxen dieser Roadmap ausführen:
 - Semantic Search und Embeddings.
 - Kollaboratives Live-Editing oder automatisches Merge/Rebase.
 - Presentation Views mit alternativen Navigationsstrukturen.
+- Allgemeine REST-/OpenAPI-Integrations-API für n8n oder andere Systeme; erst bei einem konkreten Automationsfall.
