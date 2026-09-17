@@ -42,6 +42,13 @@ Das Frontend macht den Wissensbestand sichtbar, direkt pflegbar und publizierbar
 - Rollenbezogene Teilbäume sollen mit einem Klick als gestaltetes PDF exportierbar sein, z. B. `Kundenanpassungen / Max Schulze GmbH` für die Rolle `Endkunde`.
 - PDF-Ausgaben benötigen definierbares Layout, Inhaltsverzeichnis, Logo und weitere Publikationsparameter.
 - Integrierte KI ist eine spätere Option, kein Bestandteil des ersten Frontends.
+- Das Frontend wird als Blazor Web App umgesetzt.
+- Es entsteht eine vollumfängliche Weboberfläche für die KnowHowTo-AI-Datenbank, keine reine Admin- oder Zusatzansicht.
+- Der Zielbetrieb ist ein zentraler Server im vertrauenswürdigen Firmennetz; mehrere Menschen und Agenten greifen darauf zu.
+- Authentifizierung und Autorisierung sind nicht Bestandteil des ersten Umsetzungsschritts.
+- Etablierte Standardkomponenten werden verwendet, wenn sie die Anforderungen erfüllen; allgemeine UI-, Editor-, Baum-, Upload- und PDF-Technik wird nicht selbst entwickelt.
+- Ein Rich-Text-/WYSIWYG-Editor mit Markdown als kanonischem Speicherformat und Bildunterstützung ist vorgesehen.
+- Blazor-UI, allgemeine HTTP-API und MCP sollen langfristig in einem ASP.NET-Core-Host mit einer gemeinsamen Konfiguration betrieben werden.
 
 ### 3.2 Aus dem implementierten Kern
 
@@ -67,8 +74,10 @@ Diese Leitplanken bleiben erhalten:
 4. **Sicheres Editieren:** Kein stilles Direkt-Speichern in den Current Snapshot; jeder Edit gehört zu einer sichtbaren Transaction.
 5. **Reproduzierbare Publikation:** Offizielle Exporte referenzieren einen committed Snapshot oder Release sowie eine versionierte Publikationsdefinition.
 6. **Progressive Disclosure:** Erst Struktur und Metadaten, Content nur bei Bedarf.
-7. **Local-first, zentral erweiterbar:** Erster Betrieb lokal und einfach; Architektur darf spätere zentrale Nutzung nicht blockieren.
+7. **Intranet-first:** Der reguläre Betrieb erfolgt zentral im Firmennetz; lokale Entwicklung und Tests bleiben möglich.
 8. **KI optional:** Alle Kernworkflows funktionieren deterministisch ohne LLM.
+9. **Standardkomponenten vor Eigenbau:** Etablierte Komponenten werden anhand fachlicher Eignung, Wartung, Lizenz, Barrierefreiheit und Integrationskosten ausgewählt.
+10. **Offene Integrationsgrenzen:** Browser, n8n und MCP-Clients verwenden explizite, dokumentierte Endpunkte desselben Hosts.
 
 ## 5. Zielgruppen und Hauptabläufe
 
@@ -125,13 +134,27 @@ Der Selektor für Snapshot/Transaction und Rolle ist global sichtbar. Ein Benutz
 - Struktur: Titel, Description, Parent, SortOrder, stabile NodeId.
 - Rollen-Tabs oder Rollen-Selektor mit Kennzeichnung `Explicit`, `Fallback`, `None`.
 - Anzeige von `requestedRole`, `resolvedRole`, Content Mode, Revision und Freshness.
-- Markdown-Editor ohne Heading-Funktion; verbotene Headings werden unmittelbar markiert.
+- Rich-Text-/WYSIWYG-Editor mit Markdown als kanonischem Ein-/Ausgabeformat.
+- Die verwendete Standardkomponente muss Markdown verlustarm roundtrippen; ein HTML-first-Editor mit nachträglicher, verlustbehafteter Konvertierung reicht nicht.
+- Heading-Funktionen werden deaktiviert; verbotene Markdown-/HTML-Headings werden unmittelbar markiert und serverseitig weiterhin abgelehnt.
+- Formatierungen, Links, Listen, Tabellen, Code, Zitate und Bilder werden über bedienbare Editorfunktionen angeboten.
+- Ein optionaler Markdown-Quellmodus bleibt für präzise Nachbearbeitung erhalten.
 - Vorschau erzeugt die Node-Überschrift aus der Struktur, nicht aus `ContentMd`.
 - Derived Content zeigt seine Source-Revisions und deren aktuellen/stale Zustand.
 - Versionsvergleich zum Base Snapshot und zu auswählbaren historischen Snapshots.
 - Explizite Aktion zum Löschen von Rollen-Content, getrennt vom globalen Löschen eines Nodes.
 
-### 6.5 Transaction-Arbeitsbereich
+### 6.5 Bilder und Assets
+
+- Bilder werden über Upload, Drag-and-drop und Zwischenablage in den Editor eingefügt.
+- Keine Data-URLs und keine unkontrollierten lokalen Dateipfade im Markdown.
+- Markdown referenziert stabile Asset-Identitäten bzw. vom Server auflösbare URLs.
+- Assets besitzen mindestens ID, Revision/Hash, MIME-Type, Dateiname, Größe und Erstellungsmetadaten.
+- Assets sind unveränderlich oder revisioniert und werden in Snapshots/Releases reproduzierbar referenziert.
+- Browseransicht, REST-Ausgabe, MCP, HTML-Vorschau und PDF-Export verwenden dieselbe Asset-Auflösung.
+- Das konkrete Speichermedium wird separat entschieden. Große Binärdaten dürfen nicht bei jeder Snapshot-Kopie dupliziert werden.
+
+### 6.6 Transaction-Arbeitsbereich
 
 - Transaction beginnen oder vorhandene Transaction fortsetzen.
 - Zweck, Akteur, Client und Commit Message sichtbar pflegen.
@@ -141,7 +164,7 @@ Der Selektor für Snapshot/Transaction und Rolle ist global sichtbar. Ein Benutz
 - Discard mit klarer Auswirkung auf den Working Snapshot.
 - Bei `SnapshotConflict`: betroffenen Base/Current-Stand zeigen; kein vorgetäuschtes automatisches Merge.
 
-### 6.6 Historie und Releases
+### 6.7 Historie und Releases
 
 - Snapshots mit Zustand, Zeit, zugehöriger Transaction und Metadaten auflisten.
 - Beliebige committed Snapshots vergleichen.
@@ -149,7 +172,7 @@ Der Selektor für Snapshot/Transaction und Rolle ist global sichtbar. Ein Benutz
 - Release aus einem committed Snapshot anlegen.
 - Node-Historie als aus Snapshot-Diffs abgeleitete Sicht; kein erfundenes Operation Log.
 
-### 6.7 Rollenverwaltung
+### 6.8 Rollenverwaltung
 
 - Rollen erstellen, umbenennen und löschen.
 - Resolution Order per sortierbarer Liste bearbeiten.
@@ -248,7 +271,7 @@ Eine Hierarchie wie `Kundenanpassungen / Max Schulze GmbH` passt fachlich in das
 | Content-Rolle `Endkunde` | Zielgruppengerechte Darstellung |
 | Berechtigung/Mandant | Wer Wissen lesen oder ändern darf |
 
-Die Content-Rolle `Endkunde` schützt keine Kundendaten. Solange das System lokal und nur durch den Eigentümer genutzt wird, kann Authentifizierung außerhalb des ersten MVP bleiben. Vor Netzwerkfreigabe oder direktem Kundenzugriff sind Authentifizierung, Autorisierung, Audit und Mandantentrennung zwingend zu konzipieren. Die bestehende Alternative für harte Isolation ist eine eigene Datenbank bzw. Serverinstanz pro Wissensbasis.
+Die Content-Rolle `Endkunde` schützt keine Kundendaten. Für den ersten Schritt ist der Betrieb ohne Authentifizierung entschieden. Daraus folgt eine harte Betriebsgrenze: ausschließlich in einem kontrollierten, vertrauenswürdigen Firmennetz, keine Veröffentlichung im Internet und kein direkter Endkundenzugriff. Netzwerkzugriff bedeutet sonst Vollzugriff auf Lese- und Schreibendpunkte. Authentifizierung, Autorisierung, Audit und Mandantentrennung werden vor einer Erweiterung dieses Nutzerkreises als eigener Schritt umgesetzt. Die bestehende Alternative für harte Isolation ist eine eigene Datenbank bzw. Serverinstanz pro Wissensbasis.
 
 ## 10. Technisches Zielbild
 
@@ -256,48 +279,140 @@ Die Content-Rolle `Endkunde` schützt keine Kundendaten. Solange das System loka
 
 ```text
 Browser
-  → Web UI / HTTP API
+  → Blazor Web UI (/)
       → Application Services
           → Domain
               → Repository
                   → SQL Server
 
-MCP Client
-  → MCP Adapter
+n8n / sonstige Systeme
+  → REST API (/api/v1, OpenAPI)
+      → dieselben Application Services
+
+MCP-Clients
+  → MCP Streamable HTTP (/mcp)
       → dieselben Application Services
 ```
 
 - Das Webfrontend greift nicht direkt auf SQL zu.
-- Der MCP-Server wird nicht aus dem Webfrontend per STDIO ferngesteuert.
-- HTTP-/UI-DTOs sind Transportverträge und werden von Domain-Typen getrennt.
+- Das Webfrontend steuert weder MCP noch REST per internem HTTP-Loopback an; serverseitige Blazor-Komponenten verwenden dieselben Application Services direkt.
+- REST und MCP sind eigenständige Adapter für externe Clients.
+- REST-, MCP- und UI-Modelle sind Transport-/Darstellungsverträge und werden von Domain-Typen getrennt.
 - Fachliche Validierung bleibt serverseitig; clientseitige Prüfungen verbessern nur die Bedienung.
 - Paging, opake Cursors und `ChangeVersion` werden bis in die UI respektiert.
 
-### 10.2 Empfohlener erster Stack
+### 10.2 HTTP-Endpunkte und n8n
 
-Diskussionsvorschlag, noch keine Entscheidung:
+Blazor Web App, Minimal APIs und MCP-over-HTTP nutzen dasselbe ASP.NET-Core-Endpoint-Routing. Blazor erzeugt jedoch keine fachliche API automatisch. Die drei Oberflächen werden explizit registriert:
 
-- ASP.NET Core als Webhost und HTTP-Adapter.
-- Blazor Web App für einen durchgängigen C#/.NET-Stack und geringe Betriebskomplexität.
-- Etablierter Markdown-Editor mit kontrollierter Toolbar ohne Heading-Aktionen.
-- Browserfähige Drag-and-drop-Baumkomponente mit Lazy Loading.
-- HTML/CSS als Layoutzwischenstufe; etablierter serverseitiger HTML-zu-PDF-Renderer.
+```text
+/                  Blazor Web App
+/api/v1/...        REST/JSON für n8n und andere Integrationen
+/openapi/v1.json   generierter OpenAPI-Vertrag
+/mcp               MCP Streamable HTTP
+/assets/...        kontrollierte Asset-Auslieferung
+```
 
-Ein getrenntes SPA-Framework ist sinnvoll, wenn UI-Komplexität, Offline-Fähigkeit oder ein eigenständiges Frontend-Team dies später rechtfertigen. Für den lokalen Greenfield-Start ist es zusätzliche Betriebs- und Toolchain-Komplexität.
+- REST wird als versionierte Minimal API nach Features organisiert.
+- OpenAPI wird aus den REST-Endpunkten generiert; eine interaktive API-Oberfläche ist optional.
+- n8n verwendet für normale Workflows die REST-API per HTTP Request. MCP ist kein Ersatz für stabile Integrationsendpunkte.
+- Eingehende n8n-Aufrufe verwenden REST. Vom Server aktiv ausgelöste n8n-Workflows können später über konfigurierbare Webhooks angebunden werden.
+- REST und MCP dürfen vorhandene Application Services nur mappen und delegieren; keine doppelte Geschäftslogik.
+- Transaktionale Schreibendpunkte erwarten eine explizite `TransactionId`; ein HTTP-Request wird nicht zu einer lang laufenden SQL-Transaction.
 
-### 10.3 Betrieb
+### 10.3 MCP-Transport
 
-- Standardmäßig nur an `localhost` binden.
-- Dieselbe Datenbankkonfiguration und dieselben Application Policies wie der MCP-Host verwenden.
-- MCP- und Webhost können zunächst getrennte Prozesse sein; die Core-/Storage-Schichten werden geteilt.
-- Ein gemeinsamer Host ist erst sinnvoll, wenn Lebenszyklus, Logging und Sicherheitsgrenzen klar sind.
-- Remote-Betrieb erfordert TLS, Authentifizierung, Autorisierung, Secret-Management und belastbares Audit.
+STDIO war für den lokalen V1-MCP-Server fachlich korrekt: Der MCP-Client startet den Server als lokalen Child Process. Es ist kein Fehler im Domain-/Application-Design, weil diese Schichten bereits transportneutral sind.
+
+Für den zentralen Firmennetzbetrieb wird MCP auf **Streamable HTTP** umgestellt:
+
+- ASP.NET-Core-Integration über das offizielle `ModelContextProtocol.AspNetCore`-Paket.
+- Endpoint `/mcp` im selben Host wie Blazor und REST.
+- Stateless Transport als Ziel, weil alle fachlich relevanten Zustände bereits explizit durch `TransactionId`, `SnapshotId`, Cursor und Rolle adressiert werden.
+- Kein Transport-Sessionzustand als versteckte fachliche Quelle.
+- STDIO-Ablösung erfolgt als eigener Hard-Cut-Schritt; kein dauerhafter Doppelbetrieb aus Kompatibilitätsgründen.
+
+### 10.4 Projekt- und Namespace-Struktur
+
+Ein deploybares Projekt bleibt für den aktuellen Umfang sinnvoll:
+
+```text
+src/KnowHowToAI.Server/
+├─ Program.cs
+├─ appsettings.json
+├─ Configuration/
+├─ Hosting/
+├─ Mcp/
+│  ├─ Contracts/
+│  ├─ Mapping/
+│  └─ Tools/
+├─ Api/
+│  ├─ Contracts/
+│  ├─ Mapping/
+│  └─ Endpoints/<Feature>/
+├─ Web/
+│  ├─ Components/Layout/
+│  ├─ Components/Pages/
+│  ├─ Components/Shared/
+│  ├─ Features/<Feature>/
+│  └─ State/
+└─ wwwroot/
+```
+
+Namespaces folgen `KnowHowToAI.Server.Mcp`, `.Api` und `.Web`. Die bestehende Schreibweise `Mcp` bleibt bestehen; `MCP` wird nicht als abweichende Parallelstruktur eingeführt.
+
+- `KnowHowToAI.Server` wird ASP.NET-Core-Webhost und Composition Root.
+- Das Projekt wechselt bei Implementierung auf `Microsoft.NET.Sdk.Web`.
+- Eine `appsettings.json` enthält die gemeinsame Basiskonfiguration für Datenbank, Policies, Web, REST und MCP. Umgebungsspezifische Overrides bleiben eine Betriebsoption, keine zweite fachliche Konfiguration.
+- Features werden innerhalb `Api` und `Web` weiter unterteilt; ein Projekt bedeutet keine flachen Sammelordner oder God Components.
+- Domain-, Application- und Storage-Code verbleiben in den vorhandenen Projekten.
+- Ein separates Web-Client-Projekt ist erst erforderlich, falls später bewusst Interactive WebAssembly gewählt wird.
+
+### 10.5 Festgelegter und noch zu wählender Stack
+
+Festgelegt:
+
+- ASP.NET Core als gemeinsamer Webhost.
+- Blazor Web App mit Interactive Server für den ersten Stand.
+- Minimal APIs plus OpenAPI für allgemeine Integrationen.
+- MCP Streamable HTTP als Zieltransport für den zentralen Betrieb.
+- Einsatz etablierter Komponenten statt Eigenbau.
+
+Noch anhand von Spikes auszuwählen:
+
+- Markdown-nativer Rich-Text-/WYSIWYG-Editor mit Bild-Upload-Hooks und kontrollierbarer Toolbar.
+- Baumkomponente mit Lazy Loading, Drag-and-drop und virtueller Darstellung.
+- Upload-/Asset-Komponenten.
+- HTML/CSS-basierter serverseitiger PDF-Renderer.
+- optionales UI-Komponentenpaket für Layout, Formulare, Tabellen und Dialoge.
+
+Komponentenauswahlkriterien: aktive Pflege, kompatible Lizenz, .NET-10-/Blazor-Kompatibilität, Barrierefreiheit, Internationalisierung, Testbarkeit, Theme-Fähigkeit, keine erzwungene Cloud-Abhängigkeit und kein proprietäres Contentformat.
+
+### 10.6 Betrieb
+
+- Ein ASP.NET-Core-Prozess hostet Blazor, REST, Assets und MCP.
+- Eine Deployment-Einheit und eine gemeinsame Basiskonfiguration.
+- Bindung an die festgelegte Intranet-Adresse; kein Internet-Exposure.
+- Der erste Stand besitzt keine Authentifizierung. Netzwerksegmentierung, Firewall und Hostzugriff bilden bis zum Security-Schritt die Betriebsgrenze.
+- TLS ist auch im Firmennetz anzustreben, spätestens bevor sensible Kundendaten oder nicht vertrauenswürdige Netzsegmente angebunden werden.
+- Späterer Mehrinstanzbetrieb darf keine In-Memory-Fachzustände voraussetzen.
 
 ## 11. Umsetzungsschnitte
 
+### Schnitt 0: Gemeinsamer Webhost und MCP-Transport
+
+- `KnowHowToAI.Server` auf `Microsoft.NET.Sdk.Web` und `WebApplication` umstellen.
+- Gemeinsamen Host mit Blazor-Shell, REST-/OpenAPI-Grundstruktur und Asset-Route aufsetzen.
+- Offizielles ASP.NET-Core-MCP-Paket integrieren und `/mcp` als Streamable HTTP mappen.
+- Bestehende Tool-Verträge und Application Services unverändert weiterverwenden.
+- Relevante MCP-Clients gegen Streamable HTTP abnehmen.
+- STDIO im selben kohärenten Slice per Hard Cut entfernen.
+
+**Nutzen:** Eine zentrale Deployment-Einheit und eine gemeinsame HTTP-Basis für Menschen, Integrationen und Agenten.
+
 ### Schnitt 1: Lesbares System
 
-- Localhost-Webhost.
+- ASP.NET-Core-Host mit Blazor Interactive Server.
 - Dashboard mit Current Snapshot, Transactions und Releases.
 - Lazy Knowledge Tree, Suche, Rollenumschaltung und read-only Node-Ansicht.
 - Snapshot-/Release-Navigation sowie vorhandener Markdown-Export.
@@ -307,10 +422,11 @@ Ein getrenntes SPA-Framework ist sinnvoll, wenn UI-Komplexität, Offline-Fähigk
 ### Schnitt 2: Menschliches Editieren
 
 - Transaction beginnen/fortsetzen/verwerfen/committen.
-- Node- und Content-Editor.
+- Node-Editor und ausgewählte Markdown-native Rich-Text-Komponente.
 - Nodes erstellen, verschieben, sortieren und löschen.
 - Validierung, Findings und strukturierter Transaction-Diff.
 - Rollen und Resolution Orders pflegen.
+- REST-Endpunkte für die freigegebenen Lese- und Schreibworkflows.
 
 **Nutzen:** Vollständige manuelle Pflege ohne Agent.
 
@@ -355,15 +471,16 @@ Ein getrenntes SPA-Framework ist sinnvoll, wenn UI-Komplexität, Offline-Fähigk
 
 | Priorität | Frage | Empfehlung für den Start |
 |---|---|---|
-| Hoch | Desktop-/UI-Technik | ASP.NET Core + Blazor Web App als lokaler modularer Monolith |
 | Hoch | Arbeitsmodell | Pro Browserarbeitskontext genau eine aktive Transaction; bewusster Wechsel erlaubt |
 | Hoch | Redaktionelle Hinweise | Strukturiert speichern, nicht in exportierbarem Markdown |
 | Hoch | Publikationskonfiguration | Versioniertes Profil mit unveränderlich referenzierten Assets |
-| Hoch | Kundenisolation | Zunächst lokale Einzelnutzung; vor Mehrbenutzerbetrieb separates Security-Konzept |
+| Hoch | Rich-Text-Komponente | Markdown-nativ, verlustarmer Roundtrip, Upload-Hooks, Headings deaktivierbar, aktiv gepflegt |
+| Hoch | Asset-Speicher | Immutable/revisioniert und dedupliziert; SQL-Metadaten, Binärspeicher nach Messung/Spike |
+| Hoch | MCP-Cutover | Nach HTTP-Abnahme Hard Cut von STDIO auf Streamable HTTP |
+| Hoch | Unauthentifizierter Intranetbetrieb | Zulässige Netzsegmente und Firewallgrenzen vor Deployment explizit festlegen |
 | Mittel | Offizieller Exportstand | Nur committed Snapshot/Release; Working nur als Wasserzeichen-Vorschau |
 | Mittel | Navigation für Zielgruppen | Kanonischen Baum behalten; später Presentation Views auf denselben NodeIds |
 | Mittel | PDF-Renderer | Nach Spike anhand CSS-Unterstützung, TOC, Header/Footer, Lizenz und Deployment wählen |
-| Mittel | Asset-Speicher | Binäre Assets mit Hash/Version außerhalb von `ContentMd`, Referenz im Publikationsprofil |
 | Niedrig | Integrierte KI | Erst nach stabilen manuellen Workflows und klarer Agent-Task-Semantik |
 
 ## 14. Risiken und Gegenmaßnahmen
@@ -379,6 +496,10 @@ Ein getrenntes SPA-Framework ist sinnvoll, wenn UI-Komplexität, Offline-Fähigk
 | Content-Rollen werden als Rechte missverstanden | UI-Texte und Architektur trennen Zielgruppe strikt von Zugriffsschutz |
 | Mehrere Clients committen parallel | `SnapshotConflict` sichtbar behandeln; später geführtes manuelles Reapply statt implizitem Merge |
 | Frontend wird zum zweiten Produktkern | Fachlogik und Validierung ausschließlich in Core; dünne Adapter |
+| Firmennetz wird fälschlich als sichere Authentifizierung behandelt | Kein Internet-Exposure; Netzgrenzen dokumentieren; Authentifizierung als eigener zwingender Ausbau vor größerem Nutzerkreis |
+| Rich-Text-Editor verändert Markdown unbemerkt | Roundtrip-Tests mit realen Inhalten; Markdown-natives Modell; Quellmodus; keine HTML-first-Konvertierung |
+| Bilder blähen Snapshots auf | Immutable, per Hash deduplizierte Assets; Snapshots referenzieren Assets statt Binärdaten zu kopieren |
+| REST, MCP und UI entwickeln abweichende Semantik | Gemeinsame Application Services und transportübergreifende Vertragstests |
 
 ## 15. Erfolgskriterien des ersten nutzbaren Frontends
 
@@ -389,6 +510,8 @@ Ein getrenntes SPA-Framework ist sinnvoll, wenn UI-Komplexität, Offline-Fähigk
 - Eine vom Agenten committed Änderung erscheint ohne Synchronisationsschritt im Frontend.
 - Kein Webworkflow schreibt direkt in committed Snapshots oder umgeht Domainregeln.
 - Das Frontend bleibt ohne integriertes LLM vollständig verwendbar.
+- Ein n8n-Workflow kann einen dokumentierten REST-Endpunkt aufrufen und erhält denselben fachlichen Stand wie UI und MCP.
+- Ein MCP-Client kann zentral über `/mcp` auf dieselben Tools zugreifen, sobald der separate Transport-Schnitt umgesetzt ist.
 
 ## 16. Nächster Klärungsschritt
 
@@ -405,4 +528,12 @@ Baum ansehen
 → Ergebnis über MCP lesen
 ```
 
-Parallel werden zwei kleine technische Spikes getrennt bewertet: Baum/Markdown-Bedienung und reproduzierbarer PDF-Renderer. Beide dürfen keine Vorentscheidung für zusätzliche Fachlogik im Frontend erzeugen.
+Parallel werden technische Spikes getrennt bewertet:
+
+1. Markdown-nativer Rich-Text-Editor inklusive Heading-Sperre, Tabellen, Code und Bild-Upload.
+2. Lazy Tree mit Drag-and-drop und großen/tiefen Strukturen.
+3. Asset-Modell und reproduzierbare Referenzierung aus Markdown, Snapshots und Releases.
+4. Reproduzierbarer PDF-Renderer.
+5. ASP.NET-Core-Host mit Blazor, Minimal API/OpenAPI und MCP Streamable HTTP in einem Prozess.
+
+Die Spikes prüfen Integrationsrisiken und Komponenten; Fachlogik bleibt in Core/Application.
