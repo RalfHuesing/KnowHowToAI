@@ -8,12 +8,10 @@ alwaysApply: false
 
 - **Test-Design & Ebenen**:
   - FastTests sind Standard für deterministische Fachlogik, Mappings, Razor-Komponenten und flüchtigen UI-State mit Test Doubles. Sie starten weder SQL Server, echten Server/Browser noch externe Prozesse.
-  - Integrationstests belegen reale Grenzen oder Zusammensetzung: MS SQL Server (Migration Journal/Checksums, Snapshot-Kopien via `INSERT ... SELECT`, Commit/Discard, Concurrency/SnapshotConflict, Constraints, Indizes und Soft-Delete), den jeweils einzigen unterstützten MCP-Transport, ASP.NET-Core-Host/HTTP, externe Prozesse und Konfigurationsbindung.
+  - Integrationstests belegen reale SQL-, MCP-, Host-/HTTP-, Prozess- und Konfigurationsgrenzen.
   - Browser-E2E-Tests belegen wenige vollständige, geschäftskritische Benutzerabläufe gegen den real gestarteten Server; fachliche Varianten bleiben FastTests, HTTP-/Prozessdetails Integrationstests.
-  - Einen fachlichen Fall nicht zusätzlich über vollständigen Serverstart oder echte SQL-Datenbank testen, wenn er als Unit-Test belegbar ist. Pro Boundary genügen repräsentative Vertragstests; Varianten und Edge-Cases gehören in FastTests.
-  - Die Behauptung eines Tests bestimmt seine Ebene, nicht der Ordner des Produktionscodes. Ein echter End-to-End- oder SQL-Vertrag bleibt ein Integrationstest.
+  - Die geprüfte Behauptung bestimmt die Ebene: Varianten/Edge-Cases als FastTests, pro realer Boundary nur repräsentative Verträge; keine unnötige Wiederholung über Server oder SQL.
 - **Test-Methodik & Qualität**:
-  - **Red-Test-First bei Bugs**: Bei Fehlern oder unerwartetem Verhalten zuerst einen isolierten fehlschlagenden xUnit-v3-Test (Rot-Test / Reproduktionstest) schreiben. Erst danach gezielt beheben, bis der Test grün ist (dauerhafter Regressionsschutz).
   - Jede Logikänderung erhält xUnit-v3-Tests, die Verhalten statt Implementierungsdetails prüfen.
   - Für jede harte Invariante mindestens Akzeptanz- und Ablehnungsfall testen. Für Warnungen zusätzlich belegen, dass die Mutation erfolgreich bleibt und weder Eingabe noch persistierter Content still verändert wird.
   - Tests folgen Arrange/Act/Assert, erhalten verhaltensbeschreibende Namen und prüfen bei Fehlern mindestens stabilen Code und relevante strukturierte Details statt kompletter Meldungstexte.
@@ -26,7 +24,7 @@ alwaysApply: false
   - Datenbank-Integrationstests gegen einen echten unterstützten SQL Server und die manuell bereitgestellte konfigurierte Datenbank ausführen. Der Harness erzeugt oder entfernt niemals Datenbanken. Tests, die Schema oder Daten verändern, verlangen einen ausdrücklich manuell vorbereiteten Datenbankzustand und dürfen nicht Teil des Standard-Integrationstestlaufs sein.
   - Connection Strings ausschließlich aus dokumentierter Testkonfiguration/Secrets lesen, niemals in Testausgaben schreiben. Fehlende SQL-Voraussetzungen müssen im Integrationstest-Skript als klarer Preflight-Fehler sichtbar sein und dürfen nicht als grüner Skip erscheinen.
   - Migrationstests prüfen frische Installation, Wiederholung, Checksum-Abweichung, atomaren Fehlerfall und konkurrierende Runner. Snapshot-Tests prüfen alle versionierten Tabellen, nicht nur Nodes und Content.
-  - MCP-Vertragstests starten einen echten Serverprozess und verwenden ausschließlich den laut Ist-Dokumentation unterstützten Transport. Ein Hard Cut entfernt Alttransport, dessen Konfiguration und transportgebundene Tests erst im selben grünen Slice, der die Vertragsparität des Zieltransports belegt; kein dauerhafter Doppelbetrieb.
+  - MCP-Vertragstests starten einen echten Server und verwenden ausschließlich den laut Ist-Dokumentation unterstützten Transport. Beim Hard Cut werden Alttransport, Konfiguration und Tests im selben grünen Slice nach belegter Zieltransport-Parität entfernt; kein Doppelbetrieb.
   - HTTP-Grenztests prüfen Route, Methode, Status, Content-Type, strukturierte Fehler und Abbruch. Browser-E2E verwendet robuste Rollen-/Label-/Test-ID-Locators; Screenshots dienen der Diagnose, nicht als alleinige Verhaltensassertion.
   - Externe Prozessadapter werden in FastTests über ihre Core-Grenze ersetzt; wenige Integrationstests prüfen Argumentescaping, Exitcode, Timeout, Abbruch, Outputlimit und Bereinigung gegen das reale Werkzeug.
   - Testtemporärdateien (falls nötig) ausschließlich im ignorierten Repo-Temp (`temp/`) anlegen (nie im System-Temp).

@@ -1,16 +1,15 @@
 ---
 description: Verbindlicher MCP-First Workflow für C#/.NET-Codeanalyse mit AiNetLinter.
-globs: *
-alwaysApply: true
+globs: "**/*.cs"
+alwaysApply: false
 ---
 
 # AiNetLinter MCP-First Workflow (C# Semantik)
 
 Bei C#-Aufgaben (Code-Erkundung, Symbole, Methoden, Aufrufer, Hierarchien, Impact, Linter) **immer pro-aktiv** die semantischen MCP-Tools des für das aktuelle Projekt konfigurierten AiNetLinter-Servers anstelle manueller Textsuch-Kaskaden (`rg` + seitenweises Dateilesen) verwenden. Sie liefern präzisen AST-Kontext in 1 Turn.
 
-## 🎯 Werkzeug-Wahl & Fallback-Strategie
+## Werkzeug-Wahl & Fallback
 
-- **Pro-aktiver MCP-Einsatz für C#-Semantik (Priorität 1):** Für Symbole, Typen, Aufrufe, Hierarchien, Referenzen, Auswirkungsanalysen (Impact) und Code-Audits immer pro-aktiv und als primäres Werkzeug `AiNetLinter` MCP-Tools nutzen.
 - **Wann `rg` / lokale Textsuche sinnvoll und erlaubt ist:**
   - `rg` ist keineswegs verboten, sondern eine wertvolle Ergänzung.
   - **Nicht-C#-Dateien:** JSON, YAML, `.csproj`, Markdown, Scripts, Configs, Logs.

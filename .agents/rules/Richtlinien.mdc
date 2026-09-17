@@ -13,43 +13,34 @@ Nutzeranweisungen haben Vorrang.
 - **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, Abwärtskompatibilität oder Rückgriffe auf alte Branches. `docs/` ist die verbindliche Ist-Dokumentation; ein ausdrücklich beauftragtes Planungsartefakt unter `tasks/` definiert nur das umzusetzende Delta und wird nie vorzeitig als Ist-Zustand behandelt. Vor Implementierungen die Lese-Matrix in `docs/README.md` befolgen.
 - **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `Adapter (MCP/Web/technisches HTTP)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. Adapter enthalten nur Transport, Mapping oder Darstellung; keine Geschäftslogik und keine Kopplung von Core/Storage an Blazor, HTTP oder einen MCP-Transport. UI und MCP verwenden dieselben Application-Use-Cases.
 - **Agentischer MCP-Fokus & Token-Effizienz**:
-  - Tool-Payloads radikal token-sparsam halten (Progressive Disclosure, Metadata-First: `list_children` liefert Metadaten, kein Dump ganzer Bäume).
-  - Strukturierte, maschinenlesbare MCP-Antworten mit klaren, stabilen Fehlercodes (z. B. `TransactionNotFound`, `SnapshotConflict`, `HeadingNotAllowed`, `TextNotFound`, `MultipleTextMatches`).
-  - Symmetrische IDs (`NodeId`, `RoleId`, `TransactionId`, `SnapshotId`, `ReleaseId`): Ausgaben müssen ohne Bereinigung oder Typkonvertierung als Eingabe für Folgeaufrufe nutzbar sein.
-  - Alle Änderungen des versionierten Wissenszustands erfordern zwingend eine `TransactionId`. Die atomare Registrierung eines unveränderlichen Releases auf einen bereits committed Snapshot ist Metadatenverwaltung und die einzige V1-Ausnahme.
+  - Progressive Disclosure und Metadata-First; keine Dumps ganzer Bäume.
+  - Maschinenlesbare Antworten mit stabilen Fehlercodes und ohne Konvertierung wiederverwendbaren `NodeId`, `RoleId`, `TransactionId`, `SnapshotId` und `ReleaseId`.
+  - Änderungen am versionierten Wissen erfordern eine `TransactionId`; einzige Ausnahme ist das atomare Registrieren eines Releases auf einen committed Snapshot.
   - Core-Leseoperationen akzeptieren entweder `TransactionId` (Working Snapshot), `SnapshotId` (Historie) oder keinen Selektor (Current Snapshot), niemals mehrere Selektoren. Adapter dürfen `ReleaseId` akzeptieren, müssen es aber vor dem Core-Aufruf auf dessen unveränderlichen Snapshot auflösen. Rollen werden explizit übergeben.
 - **Snapshot- & Transaktionsmodell**:
   - Tabellen-Präfix `KnowHowToAI_`.
   - Vollständige Snapshot-Kopien pro Transaktion (Working Snapshot auf Basis des Current Snapshot), einschließlich Rollen und Role Resolution Orders.
   - Keine lang laufenden offenen SQL-Transaktionen; KnowHowTo-AI-Transaktionen bestehen aus kurzen, atomaren SQL-Operationen.
-  - Committed und historische Snapshots sind unveränderlich und werden nie physisch verändert. Fachobjekte wie Nodes, Rollen und Content werden im Working Snapshot per Soft-Delete/Tombstone entfernt. Reine Zuordnungszeilen ohne eigene Identität (Role Resolution, Content Dependency) dürfen im Working Snapshot atomar ersetzt werden, weil der Base Snapshot die Historie vollständig erhält.
-  - Kein automatisches 3-Wege-Merge oder Rebase in V1; konkurrierende Commits führen deterministisch zu `SnapshotConflict`.
-  - `delete_node` (global über alle Rollen) und `delete_content` (nur Rollen-Content) strikt unterscheiden.
+  - Committed/historische Snapshots sind unveränderlich. Fachobjekte werden im Working Snapshot per Tombstone entfernt; identitätslose Zuordnungen dürfen dort atomar ersetzt werden, da der Base Snapshot die Historie erhält.
+  - Kein automatisches Merge/Rebase; konkurrierende Commits ergeben `SnapshotConflict`.
+  - Globale Node-Löschung und rollenbezogene Content-Löschung strikt unterscheiden.
   - Pro Snapshot existiert höchstens ein aktiver persistierter Root-Node; der initiale leere Snapshot darf noch keinen Root besitzen.
 - **Wissens- & Content-Invarianten**:
   - Markdown ist reines Inhaltsformat (`ContentMd`), nicht Dokumentstruktur. Die Struktur liegt vollständig im relationalen Modell.
-  - Node-Titel gehören als Strukturelement ausschließlich in die Hierarchie. Normale sprachliche Erwähnungen des Titels im Fließtext sind erlaubt. Eine absichtlich als Überschrift oder alleinstehender Ersatztitel gespeicherte Wiederholung ist fachlich unzulässig; soweit sie syntaktisch nicht zweifelsfrei erkennbar ist, wird sie wegen möglicher Fehlalarme als Qualitätswarnung gemeldet.
-  - Gespeicherter Content darf absolut keine Markdown- oder HTML-Überschriften enthalten. Markdown-/HTML-Headings sind harte Fehler; heuristisch erkannte überschriftenähnliche Ersatzformatierungen liefern eine Warnung, weil sie nicht ohne Fehlalarme als Überschrift beweisbar sind.
-  - Heading-Validierung zwingend über echten Markdown-Parser (kein naives String-Matching auf `#`).
-  - Rollen frei definierbar; Fallback erfolgt deterministisch über explizite, nicht-rekursive Role Resolution Orders.
-  - Rollen und Role Resolution Orders werden wie anderer versionierter Zustand ausschließlich in einer Working Transaction geändert.
+  - Node-Titel liegen in der Hierarchie. Gewöhnliche Erwähnungen im Fließtext sind erlaubt; absichtliche Überschriften/Ersatztitel nicht. Parser-sichere Markdown-/HTML-Headings sind harte Fehler, nur heuristisch erkennbare Fälle Warnungen; kein String-Matching auf `#`.
+  - Rollen sind frei definierbar; Fallback erfolgt deterministisch über explizite, nicht-rekursive Resolution Orders. Änderungen erfolgen nur in einer Working Transaction.
   - Eigener Rollen-Content ist `Independent` oder `Derived`. Derived Content speichert explizite Source-Revisions; Freshness wird transitiv ausgewertet und Dependency-Zyklen sind unzulässig.
-  - Die über App-Konfiguration änderbare Standardwarnschwelle pro normalisiertem Content beträgt 4 KiB UTF-8 (`NodeTooLarge`). Sie ist kein hartes Speicher- oder Commitlimit; Refactoring erfolgt bewusst in Child-Nodes und einer eigenen Transaction.
+  - Die konfigurierte Contentgröße erzeugt nur `NodeTooLarge`, kein Speicher-/Commitlimit; Refactoring erfolgt bewusst über Child-Nodes in einer eigenen Transaction.
 - **Einfachheit & Wiederverwendung**: Bevorzuge direkte, konkrete, lesbare und gut debuggable Lösungen sowie unveränderliche Datenmodelle (`record`, Immutability). Prüfe vor neuen Helfern, Mappings, Modellen, Services oder Abstraktionen vorhandene Projektbausteine und geeignete Funktionen des unterstützten Ziel-Frameworks; verwende sie, wenn Semantik und Vertrag passen. Keine spekulativen Wrapper, Schichten, Entwurfsmuster oder Interfaces. Abstraktionen erfordern belegten Mehrwert für Boundary, Testbarkeit, Verständlichkeit oder tatsächliche Wiederverwendung. Keine Kompaktheit um ihrer selbst willen; Guard Clauses nutzen, wenn sie Verschachtelung reduzieren.
 
-## C#-Analyse und Dokumentation
+## Struktur, Migrationen und Dokumentation
 
-- Für C#-Symbole, Referenzen, Aufrufketten, Abhängigkeiten, Impact und Verstöße gilt `.agents/rules/AiNetLinter-McpWorkflow.mdc`. Dessen Schemas und absolute `targetPath`-Werte nutzen.
 - Bei Tasks der Webfrontend-Roadmap ist `tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md` verbindlich; fehlt eine Zuordnung, zuerst das Konzept präzisieren, keine Parallelstruktur improvisieren.
-- **Doku-Pflege**: `docs/` beschreibt ausschließlich den Ist-Zustand und wird im selben Commit wie der Code aktuell gehalten (Details: `.agents/rules/DokuRichtlinien.mdc`).
-- Nur implementiertes, belegbares Verhalten dokumentieren. CLI-, Konfigurations-, Regel- und MCP-Beschreibungen gegen aktuellen Code prüfen.
-- Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell das zuständige Dokument unter `docs/` im selben Commit synchronisieren; normative Aussagen nicht zwischen Dokumenten duplizieren.
 - Vor dem ersten unterstützten Datenbankstand darf die Greenfield-Baseline direkt korrigiert werden. Danach sind angewendete Migrationsskripte unveränderlich; Änderungen erfolgen ausschließlich durch neue, vorwärts gerichtete Migrationen mit neuer Versionsnummer.
 - `README.md` nur bei ausdrücklichem Auftrag ändern; Fremdänderungen erhalten.
 
 ## Windows und Dateien
 
-- Für allgemeine Textsuche (Nicht-C#-Dateien, exakte Strings, Markdown, SQL, Configs) `rg` verwenden; für C#-Semantik und Code-Erkundung immer pro-aktiv den AiNetLinter MCP Server nutzen (siehe `AiNetLinter-McpWorkflow.mdc`).
 - Kein temporärer Dateisystem-Workflow für Wissensinhalte (kein DB -> Temp-Datei -> Edit -> DB); alle Lese- und Schreibvorgänge laufen direkt über die MCP-/Service-API.
 - Credentials gehören niemals in Diagnosen, Logs oder Toolantworten.
 
@@ -57,7 +48,7 @@ Nutzeranweisungen haben Vorrang.
 
 - Die Wissensdatenbank enthält keine Betriebs-, Retrieval- oder Quality-Konfiguration. Fachlicher versionierter Zustand wie Rollen und Resolution Orders bleibt davon unberührt und gehört weiterhin in Snapshots.
 - Es existiert genau eine JSON-Konfigurationsdatei: `src/KnowHowToAI.Server/appsettings.json`; keine umgebungs- oder testspezifischen Appsettings. Die Datenbankverbindung kommt ausschließlich aus deren versionierter `DatabaseConnection`-Sektion; ihr Serverwert darf einen zur Laufzeit expandierten Windows-Platzhalter enthalten und besitzt keine Connection-String-Umgebungsvariable. Übrige Overrides folgen `appsettings.json` < Environment < Kommandozeile.
-- Der Server bindet Konfiguration beim Start einmalig an immutable typed Options und validiert Werte sowie feldübergreifende Beziehungen fail-fast. Kein Live-Reload in V1.
+- Der Server bindet Konfiguration beim Start einmalig an immutable typed Options und validiert Werte sowie feldübergreifende Beziehungen fail-fast; kein Live-Reload.
 - Domain, Application und Storage kennen weder `IConfiguration` noch frei verteilte Konfigurationsschlüssel. Der Composition Root übergibt validierte Policy-Records.
 - Keine Magic Numbers: konfigurierbare Werte kommen aus Options; unverhandelbare Invarianten, technische Validierungsbereiche und Fehlercodes stehen jeweils an einer zentralen Code-Stelle. Dieselbe Vorgabe gilt für Tests.
 
@@ -65,9 +56,9 @@ Nutzeranweisungen haben Vorrang.
 
 - **C#-Coding-Prinzipien**: Konkrete Klassen standardmäßig `sealed` deklarieren, außer Vererbung ist Teil eines belegten Designs. Nullable wird zentral über `Directory.Build.props` aktiviert; keine redundanten `#nullable enable`-Direktiven pro Datei. Methoden flach halten und fachlich zusammengehörige oder häufig gemeinsam weitergereichte Parameter in Parameter-Records bündeln, nicht allein wegen einer starren Parameteranzahl. Kein `async void`, keine blockierenden Task-Aufrufe (`.Result`, `.Wait()`), keine leeren `catch`-Blöcke; `CancellationToken` an asynchronen Application-/IO-Grenzen weiterreichen.
 - Keine Compilerwarnungen einführen (`TreatWarningsAsErrors`). Erwartete Fehler als `Result<T>` modellieren; Exceptions bleiben echten exogenen Fehlern (z. B. SQL/IO) vorbehalten.
-- **Red-Test-First bei Bugs**: Bei Fehlern oder unerwartetem Verhalten zuerst einen isolierten fehlschlagenden xUnit-v3-Test schreiben; erst danach beheben (dauerhafter Regressionsschutz).
+- **Red-Test-First bei Bugs**: Unerwartetes Verhalten zuerst mit einem isolierten fehlschlagenden Test reproduzieren, dann beheben.
 - **Test-Design & Authoring**: Für Testebenen, Testgestaltung und Testumgebung gilt `.agents/rules/TestRichtlinien.mdc`. Ein grüner, scope-passender Testlauf bleibt gültiger Nachweis bis zur nächsten Code- oder Konfigurationsänderung; nicht blind wiederholen.
-- **Workflow- und MCP-Quality-Gates**:
+- **Quality-Gates**:
   - **Taskbeginn**: Zuerst `git status` und betroffene Dateien prüfen. Wenn für den berührten Scope kein aktueller grüner Nachweis vorliegt, vor der ersten Code-/Konfigurationsänderung den kleinsten aussagekräftigen Baseline-Test ausführen. Vorhandene fremde Änderungen und vorbestehende Fehler nicht ungefragt verändern; klar vom eigenen Delta trennen.
   - **Minimaler Änderungsumfang**: Nur Dateien und Zeilen ändern, die für den Auftrag, seine Tests und zwingende Konsistenzfolgen wie Verträge und Dokumentation erforderlich sind. Keine sachfremde Umformatierung, Umbenennung, Neuordnung oder Refaktorierung.
   - **Incremental Gate**: Nach jedem kohärenten Coding-Slice mit Produktions- oder Testcode in dieser Reihenfolge: `dotnet build`, `verify(targetPath)` (sobald Solution/Target vorhanden), passender FastTests-Lauf (standardmäßig `pwsh scripts/test-fast.ps1 -Filter Category=Unit` bzw. `dotnet test --filter Category=Unit`). Kein durch den Slice verursachter roter Stand bleibt als Zwischen- oder Übergabestand bestehen.
