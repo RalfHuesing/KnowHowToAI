@@ -2,6 +2,8 @@
 
 Diese Datei enthält ausschließlich noch nicht entschiedene Punkte. Nach einer Entscheidung wird der Eintrag entfernt und das Ergebnis im fachlich zuständigen Konzeptdokument sowie bei Bedarf in den Leitentscheidungen des [Konzeptindex](../README.md#gesetzte-leitentscheidungen) festgehalten.
 
+Gesprächsstand, Empfehlungen und Recherche: [Entscheidungsworkshop](../Entscheidungsworkshop.md).
+
 Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutzerentscheidung offen ist. Bei Spike-Entscheidungen ist der angegebene Task selbst für die Entscheidung und ihre Dokumentation zuständig.
 
 Bearbeitungsreihenfolge für den Entscheidungsworkshop:

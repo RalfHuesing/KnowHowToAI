@@ -27,6 +27,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) | ausschließlich noch nicht entschiedene Auswahl- und Zukunftsfragen |
 | [Projektstruktur und Codekonventionen](konzept/08-projektstruktur-und-codekonventionen.md) | verbindliche Projekte, Ordner, Namespaces, Features, Klassen, Routen und Teststruktur |
 | [Roadmap](Roadmap.md) | Index, Ausführungsregeln und getrennte Milestone-Dateien mit abhakbaren Agent-Tasks |
+| [Entscheidungsworkshop](Entscheidungsworkshop.md) | pausierter Gesprächsstand, Empfehlungen, Recherche, Reihenfolge und Wiedereinstieg; nicht selbst verbindlich |
 
 ## Lese-Matrix
 
@@ -38,6 +39,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | Einfacher PDF-Teilbaumexport | [Publikation und PDF](konzept/04-publikation-und-pdf.md) |
 | Blazor, MCP HTTP, spätere REST-/n8n-Integration, Hosts und Schichtengrenzen | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) |
 | Deployment, Netzwerk, Auth-Abgrenzung | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) |
+| Offene Entscheidung mit dem Benutzer klären | [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md), [Entscheidungsworkshop](Entscheidungsworkshop.md) |
 | Ordner, Namespace, neue Klasse, Razor-Komponente oder Testprojekt | [Projektstruktur und Codekonventionen](konzept/08-projektstruktur-und-codekonventionen.md) |
 | Implementierung eines Agent-Tasks | [Roadmap](Roadmap.md), zugehörige Milestone-Datei, [Projektstruktur](konzept/08-projektstruktur-und-codekonventionen.md), dort referenzierte Konzeptabschnitte und die Lese-Matrix in [`docs/`](../../docs/README.md) |
 
