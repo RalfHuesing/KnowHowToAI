@@ -97,6 +97,11 @@ Regeln:
 
 - `validate_transaction` ist read-only und wiederholbar; harte Fehlerbefunde
   erscheinen als Erfolg mit `isValid: false` im Payload.
+- `warnings` in `validate_transaction` und auf Envelope-Ebene bei
+  `commit_transaction` beziehen sich auf den gesamten Snapshot — sie umfassen
+  auch Befunde von Nodes, die die Transaction nicht geändert hat; die
+  Zuordnung läuft über die mitgelieferte `nodeId` beziehungsweise die
+  Warnungs-Details.
 - Fehlende, geschlossene oder nicht mehr offene Transactions liefern stabil
   `TransactionNotFound` beziehungsweise `TransactionClosed`; ein Commit bei
   zwischenzeitlich fortgeschriebenem Current Snapshot liefert `SnapshotConflict`

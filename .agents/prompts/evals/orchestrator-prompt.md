@@ -50,6 +50,11 @@ Anweisung für den gesamten Ablauf.
 ## Regeln
 
 - Eval-Läufe sind Hinweise, keine Regression-Gates (nichtdeterministisch).
+- Import-/Integrations-Tasks: die Frage, ob ein Eltern-Node mit Flat-Import-Content
+  beim strukturierten Nachziehen **dublettenfrei** bleiben soll (Eltern-Content
+  ersetzen/leeren), ist Teil der Task-Instruction oder wird im Journal explizit
+  als offene Konventionsfrage dokumentiert — stillschweigende Dubletten sind ein
+  Befund.
 - DB-Mutationen des Eval-Agenten vermerken; Cleanup nur auf Ralfs Anweisung oder
   wenn die Task es selbst vorsieht.
 - Nach jedem Lauf: Lessons Learned in den Skill `knowhowtoai-development` bzw. diesen

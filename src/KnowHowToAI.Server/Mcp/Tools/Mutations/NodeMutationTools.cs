@@ -28,7 +28,9 @@ internal sealed class NodeMutationTools
         [Description("Titel der neuen Node.")] string title,
         [Description("Optionale Beschreibung der Node.")] string? description = null,
         [Description("Optionale Node-ID des Parents (GUID-String); ohne Wert wird eine Root-Node angelegt.")] string? parentNodeId = null,
-        [Description("Optionale Sortierposition innerhalb der Geschwistergruppe (Standard 0).")] int sortOrder = 0,
+        [Description("Optionale 0-basierte Sortierposition; wird auf die lückenlose Reihenfolge " +
+            "0..N-1 der Geschwistergruppe normalisiert (außerhalb liegende Werte ans Ende, " +
+            "negative an den Anfang).")] int sortOrder = 0,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -71,7 +73,8 @@ internal sealed class NodeMutationTools
     public async Task<McpToolEnvelope<McpNodeMutationData>> MoveNode(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
-        [Description("Sortierposition innerhalb der neuen Geschwistergruppe.")] int sortOrder,
+        [Description("0-basierte Sortierposition; wird auf die lückenlose Reihenfolge 0..N-1 " +
+            "der (neuen) Geschwistergruppe normalisiert.")] int sortOrder,
         [Description("Optionale Node-ID des neuen Parents (GUID-String); ohne Wert wird die Node zur Root-Node.")] string? parentNodeId = null,
         CancellationToken cancellationToken = default)
     {
@@ -97,7 +100,8 @@ internal sealed class NodeMutationTools
     public async Task<McpToolEnvelope<McpNodeMutationData>> ReorderNode(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
-        [Description("Neue Sortierposition innerhalb der Geschwistergruppe.")] int sortOrder,
+        [Description("Neue 0-basierte Sortierposition; wird auf die lückenlose Reihenfolge " +
+            "0..N-1 der Geschwistergruppe normalisiert.")] int sortOrder,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);

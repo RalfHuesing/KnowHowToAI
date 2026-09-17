@@ -47,8 +47,10 @@ internal sealed class TransactionTools
     }
 
     [McpServerTool(Name = "validate_transaction", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
-    [Description("Prüft den vollständigen Zustand des Working Snapshots einer offenen Transaction, "
-        + "ohne ihn zu verändern. isValid zeigt, ob der Commit derzeit zulässig wäre.")]
+    [Description("Prüft den vollständigen Zustand des Working Snapshots einer offenen Transaction, " +
+        "ohne ihn zu verändern. isValid zeigt, ob der Commit derzeit zulässig wäre. Warnungen " +
+        "umfassen den gesamten Snapshot, auch Befunde von Nodes, die diese Transaction nicht " +
+        "geändert hat — Zuordnung über die mitgelieferte nodeId.")]
     public async Task<McpToolEnvelope<McpValidationReportData>> ValidateTransaction(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         CancellationToken cancellationToken = default)
@@ -61,8 +63,9 @@ internal sealed class TransactionTools
     }
 
     [McpServerTool(Name = "commit_transaction", Destructive = false, Idempotent = false, OpenWorld = false)]
-    [Description("Validiert den Working Snapshot atomar und aktiviert ihn als neuen committed "
-        + "Stand. Qualitätsbefunde bleiben als Warnungen sichtbar und blockieren den Commit nicht.")]
+    [Description("Validiert den Working Snapshot atomar und aktiviert ihn als neuen committed " +
+        "Stand. Qualitätsbefunde bleiben als Warnungen sichtbar und blockieren den Commit nicht; " +
+        "sie umfassen den gesamten Snapshot, auch unveränderte Nodes (Zuordnung über nodeId).")]
     public async Task<McpToolEnvelope<McpTransactionData>> CommitTransaction(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Optionale Freigabemeldung, die mit der Transaction historisiert wird.")] string? commitMessage = null,

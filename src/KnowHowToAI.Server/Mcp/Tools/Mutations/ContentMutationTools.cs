@@ -23,13 +23,16 @@ internal sealed class ContentMutationTools
 
     [McpServerTool(Name = "replace_content", Destructive = false, Idempotent = false, OpenWorld = false)]
     [Description("Ersetzt oder legt den expliziten Rollen-Content einer Node vollständig an; " +
-        "bei Derived werden die Source-Revisions unter sources übergeben.")]
+        "bei Derived werden die Source-Revisions unter sources übergeben. Überschriften sind " +
+        "in contentMd verboten (HeadingNotAllowed) — Gliederung über Listen und Fließtext; " +
+        "freistehende fette Ersatztitel lösen die Warnung PossibleEmbeddedHeading aus (kein Fehler).")]
     public async Task<McpToolEnvelope<McpContentMutationData>> ReplaceContent(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
         [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
         [Description("Content-Modus: exakt 'Independent' oder 'Derived'.")] string contentMode,
-        [Description("Vollständiger Markdown-Inhalt ohne Überschriften.")] string contentMd,
+        [Description("Vollständiger Markdown-Inhalt ohne Überschriften; Gliederung über Listen " +
+            "und Fließtext, Ersatztitel ggf. als freistehender Fettabsatz (Warnung PossibleEmbeddedHeading).")] string contentMd,
         [Description("Optionale Source-Revisions für Derived Content (je nodeId, roleId, contentRevisionId).")] McpContentSourceData[]? sources = null,
         CancellationToken cancellationToken = default)
     {
