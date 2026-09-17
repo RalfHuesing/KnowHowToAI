@@ -65,4 +65,7 @@ nunit-*.xml
 # Temporäres Verzeichnis für autonome Agenten
 /temp/
 
+# Wegwerf-Eval-Läufe (tasks/eval-<name>/) — werden manuell gelöscht
+/tasks/eval-*/
+
 
