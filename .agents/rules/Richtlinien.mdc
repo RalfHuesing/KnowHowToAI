@@ -10,14 +10,14 @@ Nutzeranweisungen haben Vorrang.
 
 ## Architektur & Domänen-Invarianten
 
-- **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, keine Abwärtskompatibilität zu Altversionen, kein Rückgriff auf alte Branches; einzige fachliche Wahrheit ist die verbindliche Ist-Dokumentation unter `docs/` (Einstieg: `docs/README.md`). Vor Implementierungen die dortige Lese-Matrix befolgen.
-- **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `MCP Adapter (STDIO in V1)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. MCP-Handler enthalten keine Geschäftslogik (reine Delegation). Keine Kopplung der Domänenlogik an Transport oder STDIO (spätere HTTP-/REST-Adapter architektonisch vorbereitet).
+- **Greenfield & Hard Cut**: Vollständiger Neustart bei Stand 0. Keine Legacy-Migrationspfade, Abwärtskompatibilität oder Rückgriffe auf alte Branches. `docs/` ist die verbindliche Ist-Dokumentation; ein ausdrücklich beauftragtes Planungsartefakt unter `tasks/` definiert nur das umzusetzende Delta und wird nie vorzeitig als Ist-Zustand behandelt. Vor Implementierungen die Lese-Matrix in `docs/README.md` befolgen.
+- **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `Adapter (MCP/Web/technisches HTTP)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. Adapter enthalten nur Transport, Mapping oder Darstellung; keine Geschäftslogik und keine Kopplung von Core/Storage an Blazor, HTTP oder einen MCP-Transport. UI und MCP verwenden dieselben Application-Use-Cases.
 - **Agentischer MCP-Fokus & Token-Effizienz**:
   - Tool-Payloads radikal token-sparsam halten (Progressive Disclosure, Metadata-First: `list_children` liefert Metadaten, kein Dump ganzer Bäume).
   - Strukturierte, maschinenlesbare MCP-Antworten mit klaren, stabilen Fehlercodes (z. B. `TransactionNotFound`, `SnapshotConflict`, `HeadingNotAllowed`, `TextNotFound`, `MultipleTextMatches`).
-  - Symmetrische IDs (`NodeId`, `RoleId`, `TransactionId`, `SnapshotId`): Ausgaben von Tools müssen ohne Bereinigung oder Typkonvertierung als Eingabe für Folgetools nutzbar sein.
+  - Symmetrische IDs (`NodeId`, `RoleId`, `TransactionId`, `SnapshotId`, `ReleaseId`): Ausgaben müssen ohne Bereinigung oder Typkonvertierung als Eingabe für Folgeaufrufe nutzbar sein.
   - Alle Änderungen des versionierten Wissenszustands erfordern zwingend eine `TransactionId`. Die atomare Registrierung eines unveränderlichen Releases auf einen bereits committed Snapshot ist Metadatenverwaltung und die einzige V1-Ausnahme.
-  - Leseoperationen akzeptieren entweder `TransactionId` (Working Snapshot), `SnapshotId` (Historie) oder keinen Selektor (Current Snapshot), niemals beide Selektoren zugleich. Rollen werden explizit übergeben.
+  - Core-Leseoperationen akzeptieren entweder `TransactionId` (Working Snapshot), `SnapshotId` (Historie) oder keinen Selektor (Current Snapshot), niemals mehrere Selektoren. Adapter dürfen `ReleaseId` akzeptieren, müssen es aber vor dem Core-Aufruf auf dessen unveränderlichen Snapshot auflösen. Rollen werden explizit übergeben.
 - **Snapshot- & Transaktionsmodell**:
   - Tabellen-Präfix `KnowHowToAI_`.
   - Vollständige Snapshot-Kopien pro Transaktion (Working Snapshot auf Basis des Current Snapshot), einschließlich Rollen und Role Resolution Orders.
@@ -40,6 +40,7 @@ Nutzeranweisungen haben Vorrang.
 ## C#-Analyse und Dokumentation
 
 - Für C#-Symbole, Referenzen, Aufrufketten, Abhängigkeiten, Impact und Verstöße gilt `.agents/rules/AiNetLinter-McpWorkflow.mdc`. Dessen Schemas und absolute `targetPath`-Werte nutzen.
+- Bei Tasks der Webfrontend-Roadmap ist `tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md` verbindlich; fehlt eine Zuordnung, zuerst das Konzept präzisieren, keine Parallelstruktur improvisieren.
 - **Doku-Pflege**: `docs/` beschreibt ausschließlich den Ist-Zustand und wird im selben Commit wie der Code aktuell gehalten (Details: `.agents/rules/DokuRichtlinien.mdc`).
 - Nur implementiertes, belegbares Verhalten dokumentieren. CLI-, Konfigurations-, Regel- und MCP-Beschreibungen gegen aktuellen Code prüfen.
 - Bei Änderungen an CLI, Konfiguration, Regeln, MCP-Verträgen oder Datenmodell das zuständige Dokument unter `docs/` im selben Commit synchronisieren; normative Aussagen nicht zwischen Dokumenten duplizieren.
@@ -55,7 +56,7 @@ Nutzeranweisungen haben Vorrang.
 ## Konfiguration
 
 - Die Wissensdatenbank enthält keine Betriebs-, Retrieval- oder Quality-Konfiguration. Fachlicher versionierter Zustand wie Rollen und Resolution Orders bleibt davon unberührt und gehört weiterhin in Snapshots.
-- Die Datenbankverbindung wird ausschließlich aus der eigenen versionierten `DatabaseConnection`-Sektion in `appsettings.json` gelesen; ihr Serverwert darf einen zur Laufzeit expandierten Windows-Platzhalter enthalten. Für sie gibt es keine Connection-String-Umgebungsvariable. Die übrigen Policy-Defaults folgen der dokumentierten Priorität `appsettings.json` < umgebungsspezifische Appsettings < Environment < Kommandozeile.
+- Es existiert genau eine JSON-Konfigurationsdatei: `src/KnowHowToAI.Server/appsettings.json`; keine umgebungs- oder testspezifischen Appsettings. Die Datenbankverbindung kommt ausschließlich aus deren versionierter `DatabaseConnection`-Sektion; ihr Serverwert darf einen zur Laufzeit expandierten Windows-Platzhalter enthalten und besitzt keine Connection-String-Umgebungsvariable. Übrige Overrides folgen `appsettings.json` < Environment < Kommandozeile.
 - Der Server bindet Konfiguration beim Start einmalig an immutable typed Options und validiert Werte sowie feldübergreifende Beziehungen fail-fast. Kein Live-Reload in V1.
 - Domain, Application und Storage kennen weder `IConfiguration` noch frei verteilte Konfigurationsschlüssel. Der Composition Root übergibt validierte Policy-Records.
 - Keine Magic Numbers: konfigurierbare Werte kommen aus Options; unverhandelbare Invarianten, technische Validierungsbereiche und Fehlercodes stehen jeweils an einer zentralen Code-Stelle. Dieselbe Vorgabe gilt für Tests.
@@ -70,7 +71,7 @@ Nutzeranweisungen haben Vorrang.
   - **Taskbeginn**: Zuerst `git status` und betroffene Dateien prüfen. Wenn für den berührten Scope kein aktueller grüner Nachweis vorliegt, vor der ersten Code-/Konfigurationsänderung den kleinsten aussagekräftigen Baseline-Test ausführen. Vorhandene fremde Änderungen und vorbestehende Fehler nicht ungefragt verändern; klar vom eigenen Delta trennen.
   - **Minimaler Änderungsumfang**: Nur Dateien und Zeilen ändern, die für den Auftrag, seine Tests und zwingende Konsistenzfolgen wie Verträge und Dokumentation erforderlich sind. Keine sachfremde Umformatierung, Umbenennung, Neuordnung oder Refaktorierung.
   - **Incremental Gate**: Nach jedem kohärenten Coding-Slice mit Produktions- oder Testcode in dieser Reihenfolge: `dotnet build`, `verify(targetPath)` (sobald Solution/Target vorhanden), passender FastTests-Lauf (standardmäßig `pwsh scripts/test-fast.ps1 -Filter Category=Unit` bzw. `dotnet test --filter Category=Unit`). Kein durch den Slice verursachter roter Stand bleibt als Zwischen- oder Übergabestand bestehen.
-  - **Abschlussgate**: Vor Abschluss: `dotnet build`, `verify(targetPath, scope: "solution")`, vollständiger FastTests-Lauf (`pwsh scripts/test-fast.ps1`). Integrationstests (`scripts/test-integration.ps1`) nur bei Berührung von SQL/MCP-Infrastruktur oder ausdrücklichem Auftrag.
+  - **Abschlussgate**: Vor Abschluss: `dotnet build`, `verify(targetPath, scope: "solution")`, vollständiger FastTests-Lauf (`pwsh scripts/test-fast.ps1`). Integrationstests (`scripts/test-integration.ps1`) bei Berührung von SQL, Serverhost, MCP-/HTTP-Grenzen, externen Prozessen oder auf ausdrücklichen Auftrag.
   - Einen selbst verursachten fehlgeschlagenen Schritt vor dem Weiterarbeiten beheben und das jeweilige Gate vollständig wiederholen. Bei einem belegbar vorbestehenden oder außerhalb des Scopes liegenden Fehler nicht eigenmächtig den Scope erweitern: Nachweis und Abgrenzung dokumentieren und nur weiterarbeiten, wenn das eigene Delta dennoch sicher prüfbar bleibt. Das Abschlussgate gilt nur bei `verdict=pass`, `score=10.0` und `violationCount=0`. Advisory-Kandidaten bei `changes` erfordern Agentenurteil, beeinflussen das Verdict nicht und sind keine sichere Lösch- oder Änderungsanweisung.
   - `dotnet build` muss alle Solution-Projekte fehler- und warnungsfrei bauen (`TreatWarningsAsErrors`).
   - Für reine Dokumentations-, Markdown- oder Agentenregel-Änderungen sind Build und Tests nicht erforderlich; `git diff --check` und eine saubere Diff-Prüfung genügen.
