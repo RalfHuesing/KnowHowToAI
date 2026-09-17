@@ -27,6 +27,13 @@ param(
     [int]$MaxTurns = 40
 )
 
+# ── Eval-Modell (fix hinterlegt, bewusst günstig) ────────────────────────────
+# Wird an `hermes chat` durchgereicht. Reasoning: 'medium' reicht für
+# mechanische MCP-Eval-Tasks; 'high' nur bei Bedarf hier ändern.
+$EvalModel = 'z-ai/glm-5.3-flash'
+$EvalProvider = 'openrouter'
+$EvalReasoning = 'medium'
+
 $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $EvalDir = Join-Path $RepoRoot "tasks/eval-$Name"
@@ -80,10 +87,9 @@ Set-Content -Path $promptPath -Value $prompt -Encoding utf8
 Write-Host "  Geschrieben: $promptPath ($((Get-Item $promptPath).Length) Bytes)"
 
 # ── 5. Eval-Agent starten ────────────────────────────────────────────────────
-Write-Step "Eval-Agent starten (hermes chat -q, MaxTurns=$MaxTurns)"
+Write-Step "Eval-Agent starten (hermes chat -q, Modell=$EvalModel, Reasoning=$EvalReasoning, MaxTurns=$MaxTurns)"
 $runLog = Join-Path $EvalDir "run.log"
-$promptArg = Get-Content -Raw $promptPath
-& hermes chat -q $promptArg --max-turns $MaxTurns --source "eval-mcp-$Name" *> $runLog
+& hermes chat --query-file $promptPath -m $EvalModel --provider $EvalProvider --reasoning $EvalReasoning --max-turns $MaxTurns --source "eval-mcp-$Name" *> $runLog
 $hermesExit = $LASTEXITCODE
 Write-Host "  hermes exit: $hermesExit  Log: $runLog"
 
