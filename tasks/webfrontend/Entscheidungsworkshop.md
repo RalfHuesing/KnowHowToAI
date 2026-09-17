@@ -1,10 +1,8 @@
-# Entscheidungsworkshop: Arbeitsstand und Wiedereinstieg
+# Entscheidungsworkshop: Arbeitsstand und Fortsetzung
 
 Stand: 2026-09-17
 
-Fortsetzung: frühestens 2026-09-18
-
-Status: pausiert; seit Beginn des Workshops wurde noch keine offene Produktentscheidung getroffen.
+Status: aktiv; O-018 ist entschieden, 27 Punkte sind offen.
 
 ## Verbindlichkeit
 
@@ -18,20 +16,20 @@ Status: pausiert; seit Beginn des Workshops wurde noch keine offene Produktentsc
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Mit O-018 beginnen: Zulässigkeit und Budget kommerzieller Komponenten.
+3. Mit O-028 fortfahren: Copyrightinhaber der fehlenden MIT-Lizenzdatei.
 4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung behandeln.
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
 Erste noch unbeantwortete Frage:
 
-> Ist der Einsatz kostenpflichtiger UI-Komponenten grundsätzlich erlaubt – und falls ja, welcher Budget- oder Lizenzrahmen gilt?
+> Unter welchem vollständigen Namen oder Firmennamen soll der Copyright-Hinweis der MIT-`LICENSE` geführt werden?
 
 ## Entscheidungsreihenfolge
 
 | Block | IDs | Ziel |
 |---|---|---|
-| A – Auswahlrahmen | O-018, O-013, O-021, O-020 | Lizenz, Zielbrowser, Barrierefreiheit und sichere Contentdarstellung vor Komponenten-Spikes festlegen |
+| A – Auswahlrahmen | O-028, O-013, O-021, O-020 | Lizenzdatei, Zielbrowser, Barrierefreiheit und sichere Contentdarstellung vor Komponenten-Spikes festlegen |
 | B – Technische Spikes | O-001, O-003, O-002, O-015 | UI-Paket, Tree, Editor und Testwerkzeuge evidenzbasiert auswählen |
 | C – Host und MCP | O-022, O-019 | produktive Datenbankidentität und reale HTTP-MCP-Clients festlegen |
 | D – Produktverhalten | O-009, O-014, O-008, O-007, O-025, O-026, O-027 | Branding, Sprache, Arbeitskontext und Mehrclientverhalten definieren |
@@ -41,20 +39,19 @@ Erste noch unbeantwortete Frage:
 
 ## Technische Vorbewertung vom 2026-09-17
 
-### Allgemeines Blazor-Komponentenpaket – O-001
+### UI-Komponentenbasis – O-001
 
 Startreihenfolge für M0.3-T1:
 
-1. **Microsoft Fluent UI Blazor** zuerst prüfen.
-   - Passender sachlicher Enterprise-Stil und zentrale Design Tokens.
-   - Aktive .NET-10-Unterstützung.
-   - Open Source; Support ausdrücklich best effort, kein offiziell zugesicherter ASP.NET-Core-Releasebestandteil.
-2. **MudBlazor** als OSS-Vergleich.
-   - Große Komponentenbreite, aktive Releases und .NET-10-Target.
-   - Material-Design-Prägung und aktuelle Interactive-Server-Integrationsfälle im Spike ausdrücklich prüfen.
-3. **Kommerzielle Suite** nur in den Vergleich aufnehmen, wenn O-018 dies erlaubt.
+1. **Native Blazor-/HTML-/CSS-Basis** zuerst prototypisieren.
+   - Basisshell, Formulare und Gestaltung ohne allgemeines UI-Paket abdecken.
+   - Kleines, transparentes CSS und Frameworkfunktionen vor zusätzlicher Abhängigkeit verwenden.
+2. **Microsoft Fluent UI Blazor** und **MudBlazor** nur als OSS-Vergleich heranziehen, wenn der Prototyp einen konkreten Mehrwert für wiederkehrende komplexere Controls zeigt.
+   - Lizenz einschließlich transitiver Abhängigkeiten und NOTICE-Pflichten prüfen.
+   - Paket-/Bundle-Gewicht, JS-Interop, Buildaufwand, Theme-Einschränkungen und Interactive-Server-Verhalten gegen die native Lösung messen.
+3. **Kommerzielle, kostenpflichtige oder nutzungsbeschränkte Suites** sind durch O-018 ausgeschlossen.
 
-Nicht vor dem Spike festlegen. Abnahme muss Layout, Dialoge, Formulare, Tabellen, Benachrichtigungen, Theme, Tastatur, WCAG-Ziel, Testbarkeit, Interactive Server und Self-Hosting statischer Ressourcen umfassen.
+Nicht vor dem Spike festlegen. „Keine allgemeine Komponentenbibliothek“ ist ein valides Ergebnis. Abnahme muss Layout, Dialoge, Formulare, Tabellen, Benachrichtigungen, Theme, Tastatur, WCAG-Ziel, Testbarkeit, Interactive Server und Self-Hosting statischer Ressourcen umfassen.
 
 Quellen:
 
@@ -74,11 +71,11 @@ Der Tree ist das größte Komponentenrisiko. Er muss gleichzeitig bieten:
 - tiefe und breite Strukturen, Fokusführung und WCAG-Ziel;
 - Blazor Interactive Server ohne interne Web-API-Pflicht.
 
-Aktuelle Kandidatenlage:
+Aktuelle Bewertung:
 
-- **Syncfusion TreeView** dokumentiert Load-on-demand, Drag-and-drop, Virtualisierung und WCAG 2.2 AA. Risiko: Die dokumentierte Virtualisierung sammelt zunächst alle Daten und virtualisiert nur das Rendering; das genügt für 100.000 Nodes nicht automatisch. Kombination mit echtem serverseitigem Paging muss im Spike bewiesen werden.
-- **Telerik TreeView** dokumentiert Load-on-demand, Drag-and-drop und WCAG 2.2 AA. Echte Virtualisierung/paginierte Geschwisterlisten müssen separat belegt werden.
-- Tree-Komponenten allgemeiner OSS-Suiten bleiben im Vergleich, werden aber nur gewählt, wenn alle Kernanforderungen ohne umfangreichen Eigenbau erfüllt sind.
+- Die technische Vorrecherche zu **Syncfusion TreeView** und **Telerik TreeView** dient nur noch als Anforderungsspiegel. Beide kommerziellen Produktlinien sind durch O-018 als Abhängigkeit ausgeschlossen; auch kostenlose Sonderprogramme oder Community-Lizenzen ändern den grundsätzlichen Auswahlrahmen nicht.
+- Fokussierte permissiv lizenzierte OSS-Komponenten und eine eigene schlanke Tree-Darstellung bleiben Kandidaten. Gewählt wird nur eine OSS-Komponente, die Kernanforderungen ohne umfangreiche Anpassung erfüllt und gegenüber einer Eigenlösung materiellen Mehrwert belegt.
+- Der Spike muss insbesondere echtes serverseitiges Paging beweisen; reine Rendering-Virtualisierung eines zuvor vollständig geladenen Baums genügt für 100.000 Nodes nicht.
 
 Quellen:
 
@@ -153,13 +150,19 @@ Quellen:
 - [Cursor MCP](https://docs.cursor.com/context/model-context-protocol)
 - [Hermes MCP-Konfigurationsreferenz](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/reference/mcp-config-reference.md)
 
-## Benutzerentscheidungen mit Empfehlung
+## Getroffene Benutzerentscheidungen
+
+| ID | Entscheidung | Umsetzungsauswirkung |
+|---|---|---|
+| O-018 | Keine kostenpflichtigen Komponenten. Direkte und transitive Abhängigkeiten müssen kostenlos nutzbar und mit der MIT-Distribution vereinbar sein. Einfache UI/CSS wird pragmatisch selbst umgesetzt; spezialisierte OSS-Komponenten nur bei belegtem Mehrwert. | Kommerzielle Suites entfallen; Lizenzprüfung bleibt Pflicht; „keine allgemeine UI-Bibliothek“ ist für O-001 zulässig. |
+
+## Offene Benutzerentscheidungen mit Empfehlung
 
 ### Block A – Auswahlrahmen
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-018 | kommerzielle Komponenten und Budget/Lizenz | Allgemeine UI und Editor bevorzugt OSS; kommerziellen Tree erlauben, wenn der Spike keine tragfähige OSS-Lösung findet | bestimmt Kandidaten und Beschaffungs-/Lizenzprüfung |
+| O-028 | Copyrightinhaber der MIT-Lizenz | vollständigen Namen der natürlichen oder juristischen Person verwenden, welche die Rechte hält; Startjahr 2026 | ermöglicht eine eindeutige Root-`LICENSE` und die Lizenzbaseline in M0.1-T2 |
 | O-013 | Browser, Versionen, Viewports | Edge Stable verbindlich, Chrome Stable kompatibel; automatisiert Edge/Chromium; volle Bearbeitung ab 1280×720, lesbar ab 1024 px; kein Mobile/Safari/Firefox im ersten Stand | begrenzt CSS, Testmatrix und Komponentenwahl realistisch |
 | O-021 | Accessibility | WCAG 2.2 AA für Kernworkflows, axe-Smokes und manuelle Tastaturabnahme; keine formale Zertifizierung im ersten Stand | verhindert spätere unplanbare Nachrüstung |
 | O-020 | Raw HTML, Links, Bilder, Paste | Raw HTML nicht ausführen; sichere URL-Schemata; externe Bilder nicht automatisch laden; Paste auf erlaubtes Markdown reduzieren | schützt Browser/PDF vor XSS, Tracking und lokalen/externen Ressourcenzugriffen |
@@ -210,8 +213,8 @@ Quellen:
 
 ## Noch zu recherchieren oder im Spike zu beweisen
 
-- Exakte Lizenz- und Preisbedingungen der zugelassenen kommerziellen Anbieter nach O-018.
-- Fluent UI versus MudBlazor mit realem Interactive-Server-Prototyp, Theme und Accessibility.
+- Lizenzinventar aller direkten und transitiven Abhängigkeiten jedes in die engere Wahl genommenen OSS-Kandidaten einschließlich einzuhaltender Copyright-/NOTICE-Pflichten.
+- Native Blazor-/HTML-/CSS-Basis versus gegebenenfalls Fluent UI oder MudBlazor mit realem Interactive-Server-Prototyp, Theme, Accessibility und messbarem Abhängigkeitsgewicht.
 - Tree-Paging mit 1.000 Geschwistern und 100.000 Gesamt-Nodes; keine Scheindemonstration mit vollständig geladenem In-Memory-Baum.
 - Milkdown-Roundtrip gegen den tatsächlich erlaubten Markdownumfang und Blazor-JS-Lifecycle.
 - Paste-Sanitization und Raw-HTML-Verhalten nach O-020.
@@ -229,6 +232,7 @@ Quellen:
 - TODO-Texte sind normaler Content ohne Sondermodell oder Exportfilter.
 - PDF und Assets bleiben niedrig priorisiert; Assets folgen nach dem einfachen PDF-Export.
 - Markdown ist kanonisch; Dokumentstruktur liegt im Node-Baum und Headings sind im gespeicherten Content verboten.
+- Keine kostenpflichtigen Komponenten; kleine UI-/CSS-Lösungen vor umfangreichen Bibliotheken, spezialisierte OSS-Komponenten nur bei belegtem Mehrwert und kompatibler Lizenz.
 
 ## Relevante Konzept-Commits
 

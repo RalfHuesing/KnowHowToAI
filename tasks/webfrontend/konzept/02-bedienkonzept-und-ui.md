@@ -17,10 +17,12 @@ Offene Vorgaben zu Branding, UI-Sprache und Zielbrowsern stehen in [Offene Frage
 
 ## Komponentenstrategie
 
-- Etablierte Blazor- oder browserbasierte Komponenten für Layout, Formulare, Dialoge, Tabellen, Baum, Editor und Upload verwenden.
-- Eigenentwicklung nur für KnowHowTo-spezifische Interaktion oder bei nachgewiesener Lücke.
-- Auswahlkriterien: aktive Pflege, kompatible Lizenz, .NET-10-/Blazor-Kompatibilität, Barrierefreiheit, Internationalisierung, Testbarkeit, Theme-Fähigkeit, keine erzwungene Cloud und kein proprietäres Contentformat.
-- Komponenten werden vor Festlegung mit realistischen Daten und Randfällen gespikt.
+- Kostenpflichtige Komponenten und Abonnements sind ausgeschlossen. Alle direkten und transitiven externen Abhängigkeiten müssen kostenlos nutzbar und mit der Distribution des MIT-lizenzierten Projekts vereinbar sein.
+- Standardmäßig zulässig sind permissive Lizenzen wie MIT, 0BSD, BSD-2-Clause, BSD-3-Clause, ISC und Apache-2.0 unter Einhaltung ihrer Copyright-, Lizenz- und NOTICE-Pflichten. Andere Lizenzen erfordern vor Aufnahme eine dokumentierte Einzelfallprüfung und ausdrückliche Benutzerentscheidung; Copyleft-, Source-available-, nutzungsbeschränkte oder kommerziell doppelt lizenzierte Komponenten sind nicht der Default.
+- Für einfache Layouts, Formulare und Gestaltung werden Blazor, semantisches HTML und überschaubares eigenes CSS bevorzugt. Eine kleine projektspezifische Lösung ist einer umfangreichen Suite oder zusätzlichen Toolchain vorzuziehen, wenn sie gleich verständlich, testbar und wartbar ist.
+- Für nachweislich komplexe Controls wie Knowledge Tree oder Markdown-Rich-Text-Editor werden fokussierte, etablierte Open-Source-Komponenten bevorzugt, wenn sie Risiko und Eigenaufwand materiell senken. Eine allgemeine Suite wird nicht allein für ein einzelnes Control eingeführt.
+- Auswahlkriterien: fachliche Passung, aktive Pflege, Lizenz aller transitiven Abhängigkeiten, Paket- und Bundle-Gewicht, zusätzliche Build-Toolchain, JS-Interop, .NET-10-/Blazor-Kompatibilität, Barrierefreiheit, Internationalisierung, Testbarkeit, Theme-Fähigkeit, keine erzwungene Cloud/CDN-Nutzung und kein proprietäres Contentformat.
+- Komponenten werden vor Festlegung mit realistischen Daten und Randfällen gespikt. „Keine allgemeine Komponentenbibliothek“ ist ein zulässiges Ergebnis.
 
 ## Grundlayout
 

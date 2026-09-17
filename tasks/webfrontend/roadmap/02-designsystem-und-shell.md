@@ -16,8 +16,8 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M2.1 abschließen**
 
-  - [ ] **M2.1-T1 – Gewähltes Komponentenpaket integrieren**
-    - Umfang: Pakete, Services, statische Ressourcen, Basislayout und Theme-Einstieg produktiv einbinden; `KnowHowToAI.Web.Tests` mit dem in O-015 gewählten Komponenten-Testwerkzeug anlegen.
+  - [ ] **M2.1-T1 – Gewählte UI-Komponentenbasis integrieren**
+    - Umfang: die in O-001 gewählte native oder bibliotheksgestützte Basis, erforderliche Services, statische Ressourcen, Basislayout und Theme-Einstieg produktiv einbinden; `KnowHowToAI.Web.Tests` mit dem in O-015 gewählten Komponenten-Testwerkzeug anlegen.
     - Nicht enthalten: Knowledge Tree und Rich-Text-Editor.
     - Tests: Host-/Render-Smoke sowie Nachweis ohne externe Cloudabhängigkeit.
     - Abnahme: Beispielseite rendert die benötigten Basiskomponenten im Serverbetrieb.

@@ -27,7 +27,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) | ausschließlich noch nicht entschiedene Auswahl- und Zukunftsfragen |
 | [Projektstruktur und Codekonventionen](konzept/08-projektstruktur-und-codekonventionen.md) | verbindliche Projekte, Ordner, Namespaces, Features, Klassen, Routen und Teststruktur |
 | [Roadmap](Roadmap.md) | Index, Ausführungsregeln und getrennte Milestone-Dateien mit abhakbaren Agent-Tasks |
-| [Entscheidungsworkshop](Entscheidungsworkshop.md) | pausierter Gesprächsstand, Empfehlungen, Recherche, Reihenfolge und Wiedereinstieg; nicht selbst verbindlich |
+| [Entscheidungsworkshop](Entscheidungsworkshop.md) | aktueller Gesprächsstand, Empfehlungen, Recherche, Reihenfolge und Wiedereinstieg; nicht selbst verbindlich |
 
 ## Lese-Matrix
 
@@ -54,12 +54,13 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-005 | Keine allgemeine REST-/OpenAPI-Integration im ersten Schritt; n8n bleibt eine vorbereitete spätere Option |
 | K-006 | Streamable HTTP ist danach der einzige MCP-Transport und ersetzt STDIO vollständig; kein Doppel- oder Fallbackbetrieb |
 | K-007 | Erstimplementierung explizit ohne Authentifizierung und Autorisierung; Security ist ein separates Vorhaben |
-| K-008 | Etablierte Standardkomponenten vor Eigenentwicklung |
+| K-008 | Pragmatische Komponentenstrategie: einfache UI mit Blazor, HTML und überschaubarem CSS selbst umsetzen; spezialisierte Open-Source-Komponenten nur für nachweislich komplexe Controls |
 | K-009 | Rich-Text-/WYSIWYG-Bearbeitung mit Markdown als kanonischem Speicherformat und Bildunterstützung |
 | K-010 | Eine globale Hierarchie und dieselbe versionierte Wissensbasis für UI, MCP und spätere Adapter |
 | K-011 | TODOs sind normaler Content ohne Sondermodell, Sondervalidierung oder Exportfilter |
 | K-012 | PDF ist ein niedrig priorisierter Teilbaumexport mit genau einem Template, Pandoc und WeasyPrint |
 | K-013 | Bilder und Assetverwaltung sind niedrig priorisiert und folgen erst nach dem einfachen PDF-Export |
 | K-014 | Web, MCP und PDF bleiben in `KnowHowToAI.Server`; die verbindliche Feature-, Namespace- und Teststruktur steht in einem eigenen Strukturkonzept |
+| K-015 | Keine kostenpflichtigen Komponenten; jede direkte und transitive Abhängigkeit muss kostenlos nutzbar und mit der MIT-Distribution vereinbar sein, Lizenzpflichten werden eingehalten |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

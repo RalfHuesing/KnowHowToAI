@@ -20,6 +20,13 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: Baseline ist grün oder jede bestehende Abweichung ist vor weiterer Arbeit geklärt und separat behoben.
     - Abschluss: betroffene Ist-Dokumentation nur bei tatsächlicher Änderung aktualisieren; Task und Parentstatus committen.
 
+  - [ ] **M0.1-T2 – MIT-Lizenz und Abhängigkeitsbaseline herstellen**
+    - Voraussetzung: O-028 zum Copyrightinhaber ist durch den Benutzer entschieden.
+    - Umfang: MIT-`LICENSE` im Repository-Root anlegen; vollständigen direkten und transitiven Abhängigkeitsgraph aller Solution-Projekte einschließlich Build- und Testwerkzeugen ermitteln.
+    - Ergebnis: reproduzierbares Inventar mit Paket, Version, Quelle, Lizenz und einzuhaltenden Copyright-/Lizenz-/NOTICE-Pflichten in `THIRD-PARTY-NOTICES.md`; erforderliche Originalhinweise beilegen.
+    - Abnahme: keine Abhängigkeit ist kostenpflichtig, lizenzseitig ungeklärt oder mit der MIT-Distribution unvereinbar; Abweichungen werden ersetzt oder vor Fortsetzung dem Benutzer vorgelegt.
+    - Abschluss: Lizenz-/Inventardateien und die dauerhaft erforderliche Aktualisierungsanweisung dokumentieren und atomar committen.
+
 ## M0.2 – Host- und Routing-Spike
 
 - [ ] **M0.2 abschließen**
@@ -41,33 +48,33 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M0.3 abschließen**
 
-  - [ ] **M0.3-T1 – Allgemeines Blazor-Komponentenpaket auswählen**
-    - Voraussetzung: O-013 zu unterstützten Browsern, O-018 zum Lizenz-/Kostenrahmen und O-021 zum Barrierefreiheitsziel sind durch den Benutzer entschieden.
-    - Umfang: Layout, Navigation, Formulare, Dialoge, Tabellen, Benachrichtigungen, Theme und Barrierefreiheit anhand eines kleinen Prototyps vergleichen.
-    - Prüfen: .NET-/Blazor-Kompatibilität, aktive Pflege, Lizenz, keine erzwungene Cloud, Testbarkeit und Bundle-/Betriebsauswirkungen.
+  - [ ] **M0.3-T1 – UI-Komponentenbasis auswählen**
+    - Voraussetzung: O-013 zu unterstützten Browsern und O-021 zum Barrierefreiheitsziel sind durch den Benutzer entschieden.
+    - Umfang: native Blazor-/HTML-/CSS-Lösung und höchstens leichte OSS-Bibliotheken für Layout, Navigation, Formulare, Dialoge, Tabellen, Benachrichtigungen, Theme und Barrierefreiheit anhand eines kleinen Prototyps vergleichen.
+    - Prüfen: fachlicher Mehrwert gegenüber Eigenlösung, .NET-/Blazor-Kompatibilität, aktive Pflege, kostenlose MIT-distributionskompatible Lizenz einschließlich transitiver Abhängigkeiten und NOTICE-Pflichten, Paket-/Bundle-Gewicht, zusätzliche Toolchain, JS-Interop, keine erzwungene Cloud/CDN-Nutzung sowie Testbarkeit und Betriebsauswirkungen.
     - Nicht enthalten: Knowledge Tree und Rich-Text-Editor; diese werden separat entschieden.
-    - Abnahme: O-001 ist mit Entscheidung, Begründung, Lizenz und verworfenen Alternativen geschlossen; Browserunterstützung erfüllt O-013.
+    - Abnahme: O-001 ist mit Entscheidung, Begründung, Lizenzprüfung und verworfenen Alternativen geschlossen; Browserunterstützung erfüllt O-013. „Keine allgemeine Komponentenbibliothek“ ist ausdrücklich zulässig.
 
   - [ ] **M0.3-T2 – Knowledge-Tree-Komponente auswählen**
-    - Voraussetzung: O-013 zu unterstützten Browsern, O-018 zum Lizenz-/Kostenrahmen und O-021 zum Barrierefreiheitsziel sind durch den Benutzer entschieden.
+    - Voraussetzung: O-013 zu unterstützten Browsern und O-021 zum Barrierefreiheitsziel sind durch den Benutzer entschieden.
     - Umfang: tiefe und breite Beispieldaten mit Lazy Loading, Paging, Virtualisierung, Auswahl, Tastaturbedienung sowie Drag-and-drop testen.
-    - Prüfen: Zielvorschau, kontrolliertes Reordering und Integration in das gewählte Blazor-Paket.
+    - Prüfen: Zielvorschau, kontrolliertes Reordering, Integration in die gewählte UI-Basis sowie kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten.
     - Abnahme: O-003 ist geschlossen; Grenzen der Komponente sind dokumentiert.
 
   - [ ] **M0.3-T3 – Markdown-fähigen Rich-Text-Editor auswählen**
-    - Voraussetzung: O-013 zu unterstützten Browsern, O-018 zum Lizenz-/Kostenrahmen und O-020 zur Content-Sicherheits-/Fremdressourcen-Policy sind durch den Benutzer entschieden.
+    - Voraussetzung: O-013 zu unterstützten Browsern und O-020 zur Content-Sicherheits-/Fremdressourcen-Policy sind durch den Benutzer entschieden.
     - Umfang: realistische KnowHowTo-Inhalte mit Listen, Tabellen, Code, Links, Zitaten und Bildern roundtrippen.
-    - Prüfen: Markdown als kanonisches Format, deaktivierbare Headings, Upload-Hooks, optionaler Quellmodus, Lizenz und Wartung.
+    - Prüfen: Markdown als kanonisches Format, deaktivierbare Headings, Upload-Hooks, optionaler Quellmodus, kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten sowie Wartung.
     - Abnahme: O-002 ist geschlossen und alle im Contentkonzept geforderten Markdownstrukturen bestehen den Roundtrip; ein Kandidat mit semantischem Verlust wird nicht gewählt.
 
   - [ ] **M0.3-T4 – Web-Komponenten- und Browser-Testwerkzeuge auswählen**
     - Umfang: Kandidaten für Razor-Komponententests und echte Browser-E2E gegen .NET 10, xUnit v3, CI-/lokalen Betrieb und die gewählten UI-Komponenten prüfen.
-    - Prüfen: Interaktion, JS-Interop, Screenshots, Browserinstallation, Headless-Betrieb, Lizenz und Wartung.
+    - Prüfen: Interaktion, JS-Interop, Screenshots, Browserinstallation, Headless-Betrieb, kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten sowie Wartung.
     - Nicht enthalten: Testprojekte oder produktive Testfälle; diese folgen in M2.
     - Abnahme: O-015 ist geschlossen; Werkzeuge und verworfene Alternativen sind im Strukturkonzept dokumentiert.
 
 ## Milestone-Abnahme
 
 - O-001 bis O-003 und O-015 sind geschlossen; die niedrig priorisierte Assetentscheidung O-004 bleibt bis M8 offen.
-- Jede gewählte Abhängigkeit besitzt eine geprüfte Lizenz- und Wartungsbewertung.
+- Jede gewählte direkte und transitive Abhängigkeit ist kostenlos nutzbar, mit der MIT-Distribution vereinbar und besitzt eine dokumentierte Lizenz-, Pflicht- und Wartungsbewertung.
 - Kein Kernmilestone M1 bis M6 hängt von einer unbekannten Kernkomponente oder unbestätigten Hostannahme ab.

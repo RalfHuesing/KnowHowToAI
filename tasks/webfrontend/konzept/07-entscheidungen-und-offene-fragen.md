@@ -8,7 +8,7 @@ Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutz
 
 Bearbeitungsreihenfolge für den Entscheidungsworkshop:
 
-1. Rahmen für Komponenten: O-018, O-013, O-021, O-020.
+1. Lizenz- und Komponentenrahmen: O-028, O-013, O-021, O-020.
 2. Technische Spikes: O-001, O-003, O-002, O-015.
 3. Host und reale MCP-Clients: O-022, O-019.
 4. Produkt- und Arbeitsverhalten: O-009, O-014, O-008, O-007, O-025, O-026, O-027.
@@ -18,9 +18,9 @@ Bearbeitungsreihenfolge für den Entscheidungsworkshop:
 
 | ID | Priorität | Klärung | Blockiert | Offene Frage und Startempfehlung |
 |---|---|---|---|---|
-| O-001 | Hoch | Spike | M0.3-T1 | UI-Komponentenpaket; einheitliches, aktiv gepflegtes Blazor-Paket anhand der dokumentierten Kriterien auswählen |
-| O-002 | Hoch | Spike | M0.3-T3 | Rich-Text-Komponente; Markdown-nativ, verlustarmer Roundtrip, deaktivierbare Headings und spätere Upload-Hooks |
-| O-003 | Hoch | Spike | M0.3-T2 | Baumkomponente; Lazy Loading, Virtualisierung, Drag-and-drop und Tastaturbedienung |
+| O-001 | Hoch | Spike | M0.3-T1 | UI-Komponentenbasis; native Blazor-/HTML-/CSS-Lösung gegen leichte MIT-distributionskompatible OSS-Bibliotheken bewerten; keine allgemeine Bibliothek ist ein zulässiges Ergebnis |
+| O-002 | Hoch | Spike | M0.3-T3 | Rich-Text-Komponente gemäß K-015; Markdown-nativ, verlustarmer Roundtrip, deaktivierbare Headings und spätere Upload-Hooks |
+| O-003 | Hoch | Spike | M0.3-T2 | Baumkomponente gemäß K-015; Lazy Loading, Virtualisierung, Drag-and-drop und Tastaturbedienung |
 | O-004 | Niedrig | Spike | M8.1-T1 | Asset-Speicher; immutable/dedupliziert, SQL-Metadaten und Binärspeicheroptionen bewerten |
 | O-005 | Mittel | Benutzer, später | außerhalb dieser Roadmap | Presentation Views; kanonischen Baum behalten und Views auf denselben `NodeId`s modellieren |
 | O-006 | Niedrig | Benutzer, später | außerhalb dieser Roadmap | Integrierte KI; erst nach stabilen manuellen Workflows konkretisieren |
@@ -32,10 +32,9 @@ Bearbeitungsreihenfolge für den Entscheidungsworkshop:
 | O-012 | Hoch | Benutzer | M6.4-T1 | Zieldeployment: Betriebssystem, Prozesshost/Service, Reverse Proxy, Hostname und TLS-Terminierung; Empfehlung: Windows Service hinter IIS oder vorhandenem Unternehmensproxy |
 | O-013 | Hoch | Benutzer | M0.3-T1 bis T3 | Unterstützte Browser, Versionen und Viewports; Empfehlung: aktuelle und vorherige Hauptversion von Edge/Chrome, volle Bearbeitung ab 1280×720, lesbare reduzierte Ansicht ab 1024 px, keine mobile Optimierung |
 | O-014 | Hoch | Benutzer | M2.1-T2 | UI-Sprache und Lokalisierung; Empfehlung: zunächst ausschließlich Deutsch, Texte dennoch zentral und nicht in Fachlogik verteilen |
-| O-015 | Mittel | Spike | M0.3-T4 | Testwerkzeuge für Razor-Komponenten und Browser-E2E; Empfehlung: bUnit und Microsoft Playwright nach Kompatibilitätsprüfung |
+| O-015 | Mittel | Spike | M0.3-T4 | Testwerkzeuge gemäß K-015 für Razor-Komponenten und Browser-E2E; Empfehlung: bUnit und Microsoft Playwright nach Kompatibilitätsprüfung |
 | O-016 | Niedrig | Benutzer | M8.6-T1 | Assetgrenzen: erlaubte Bildtypen, maximale Dateigröße und Pixelzahl; Empfehlung: PNG/JPEG/WebP/SVG, 10 MiB, 40 Megapixel, SVG nur nach sicherer Sanitization |
 | O-017 | Hoch | Benutzer | M6.3-T1 bis T2 | Messbare Performanceziele einschließlich Referenzdaten, gleichzeitiger Blazor-Circuits und paralleler MCP-Aufrufe; Empfehlung: 100.000 Nodes, 1.000 direkte Kinder, 20 Circuits, 10 parallele MCP-Aufrufe, P95-Serverantwort unter 500 ms und sichtbare UI-Reaktion unter 1 s im Intranet |
-| O-018 | Hoch | Benutzer | M0.3-T1 bis T3 | Dürfen kommerzielle UI-/Tree-/Editor-Komponenten beschafft werden und welches Budget/Lizenzmodell gilt; Empfehlung: vorhandene Firmenlizenzen nutzen, sonst OSS oder kostenfreie kommerzielle Nutzung bevorzugen |
 | O-019 | Hoch | Benutzer | M1.3-T3 | Verbindliche MCP-Zielclients und Versionen für die HTTP-Abnahme; Empfehlung: jeden tatsächlich täglich eingesetzten Client mindestens mit Tool Discovery, Read und vollständiger Transaction prüfen |
 | O-020 | Hoch | Benutzer | M0.3-T3, M3.4-T2, M5.1-T1 | Markdown-/HTML- und Fremdressourcen-Policy: Raw HTML, URL-Schemata, externe Links/Bilder und Paste-Sanitization; Empfehlung: Raw HTML nicht rendern, nur sichere `https`-/`mailto`-Links, keine extern geladenen Bilder, eingefügte Formatierung auf den erlaubten Markdownumfang reduzieren |
 | O-021 | Hoch | Benutzer | M0.3-T1 bis T2, M2.4-T1 | Verbindliches Barrierefreiheitsziel; Empfehlung: WCAG 2.2 AA für alle Kernworkflows, automatisierte axe-Smokes plus manuelle Tastaturprüfung, zunächst keine formale Zertifizierung |
@@ -45,3 +44,4 @@ Bearbeitungsreihenfolge für den Entscheidungsworkshop:
 | O-025 | Hoch | Benutzer | M4.1-T1, M4.3-T1 bis T3, M5.3-T1 | Gleichzeitiges Arbeiten mehrerer UI-/MCP-Clients in derselben offenen Transaction; Empfehlung: zulassen, keine Locks, jede Mutation mit `ChangeVersion`, stale Writes deterministisch ablehnen und zum Neuladen auffordern |
 | O-026 | Mittel | Benutzer | M4.1-T1 | Lebensdauer offener Transactions; Empfehlung: keine automatische Verfallszeit oder Löschung, Alter deutlich anzeigen und ausschließlich explizit committen oder verwerfen |
 | O-027 | Mittel | Benutzer | M4.3-T1 bis T3, M5.1-T1 | Undo-/Wiederherstellungsumfang; Empfehlung: lokales Editor-Undo nur bis zum Speichern, kein globaler Undo-Stack für persistierte Mutationen, Korrektur durch Gegenänderung oder vollständiges Discard der Transaction |
+| O-028 | Hoch | Benutzer | M0.1-T2 | Copyrightinhaber für die fehlende MIT-`LICENSE` im Repository; Empfehlung: vollständiger Name der natürlichen oder juristischen Person, welche die Rechte hält, mit Startjahr 2026 |

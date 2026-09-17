@@ -32,6 +32,9 @@ Verboten:
 ## Zielstruktur der Solution
 
 ```text
+LICENSE
+THIRD-PARTY-NOTICES.md
+
 src/
 ├─ KnowHowToAI.Core/
 ├─ KnowHowToAI.Storage.SqlServer/
@@ -43,6 +46,9 @@ tests/
 ├─ KnowHowToAI.Web.Tests/
 └─ KnowHowToAI.BrowserTests/
 ```
+
+- `LICENSE` enthält den unveränderten MIT-Lizenztext mit dem in O-028 festgelegten Copyrightinhaber.
+- `THIRD-PARTY-NOTICES.md` inventarisiert direkte und transitive externe Abhängigkeiten mit Version, Quelle, Lizenz und einzuhaltenden Hinweisen. Jede Abhängigkeitsänderung aktualisiert das Inventar im selben Commit.
 
 | Projekt | Verantwortung |
 |---|---|
