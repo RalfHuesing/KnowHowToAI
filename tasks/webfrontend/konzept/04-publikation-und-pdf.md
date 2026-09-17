@@ -1,65 +1,71 @@
 # Publikation und PDF
 
-## Anwendungsfall
+Priorität: niedrig.
+
+## Ziel
+
+Die UI exportiert den aktuell ausgewählten Node einschließlich seines gesamten Teilbaums als PDF.
+
+- Auswahl des Root-Nodes exportiert die gesamte Wissenshierarchie.
+- Auswahl eines inneren Nodes exportiert nur diesen Node und seine Nachfahren.
+- Export verwendet den aktuell gewählten Lesekontext und die angefragte Rolle.
+- Rollen-Fallback und Strukturregeln entsprechen dem bestehenden `export_tree`-Verhalten.
+- Content wird unverändert exportiert. TODO-Texte sind normaler Inhalt und erscheinen im PDF.
+
+## Genau ein Template
+
+Es gibt zunächst genau ein serverseitiges PDF-Template in einem konfigurierten Ordner, beispielsweise:
 
 ```text
-Teilbaum: Kundenanpassungen / Max Schulze GmbH
-Rolle: Endkunde
-Stand: Release 2026.09
-Profil: Max-Schulze-Endkundendokumentation
-Ausgabe: PDF
+templates/pdf/default/
+├─ template.html
+├─ document.css
+├─ logo.svg
+└─ fonts/
 ```
 
-Ein Klick erzeugt ein reproduzierbares Dokument aus dem gewählten Wissensstand.
+- Keine Profilverwaltung in der UI.
+- Keine Auswahl mehrerer Templates oder Kundenprofile.
+- Template, CSS, Logo und Fonts werden als Deploymentdateien gepflegt.
+- Der Server validiert beim Start, dass die benötigten Dateien und Werkzeuge vorhanden sind.
 
-## Publikationsprofil
-
-Ein Profil definiert mindestens:
-
-- Name und Dokumenttitel.
-- Root Node oder Auswahl mehrerer Teilbäume.
-- Angefragte Rolle und Verhalten bei Fallback oder fehlendem Content.
-- Snapshot oder Release als Datenquelle; Working Transaction nur für Vorschauen.
-- Logo, Farben, Schriften, Seitenformat, Ränder, Kopf- und Fußzeilen.
-- Deckblatt, Inhaltsverzeichnis und Seitennummerierung.
-- Maximale oder dargestellte Hierarchietiefe.
-- Ein-/Ausschlussregeln für leere Struktur-Nodes, stale Content und Findings.
-- Ausgabeformat und Dateinamensschema.
-
-Profile und Assets sind versioniert oder werden unveränderlich referenziert. Nur damit ist ein Release-Dokument später reproduzierbar.
-
-## Pipeline
+## Technische Pipeline
 
 ```text
-Snapshot/Release
-  → rollenbezogene Baumauflösung
-  → neutrales Dokumentmodell
-  → Template/Layout
-  → HTML-Vorschau
-  → PDF-Renderer
-  → Exportprotokoll
+ausgewählter Node + Rolle + Read Context
+  → export_tree als Markdown
+  → Pandoc mit HTML-Template und CSS
+  → WeasyPrint als PDF-Engine
+  → PDF-Download
 ```
 
-- Das neutrale Dokumentmodell trennt Wissensselektion von PDF-Technik.
-- HTML und später DOCX können denselben aufgelösten Dokumentstand verwenden.
-- Bilder werden über die zentrale Asset-Auflösung eingebunden.
-- Der Renderer ist eine etablierte Komponente; Auswahl nach CSS-, TOC-, Header/Footer-, Font-, Lizenz- und Deployment-Unterstützung.
+Pandoc wird mit WeasyPrint als PDF-Engine verwendet, sinngemäß:
 
-## Freigabe
+```text
+pandoc --pdf-engine=weasyprint ...
+```
 
-- Arbeitsvorschau darf eine Working Transaction verwenden und ist deutlich gekennzeichnet.
-- Offizielle Publikation verwendet committed Snapshot oder Release.
-- Optionale Policy: Export blockieren oder bestätigen lassen bei stale Content, harten Findings oder offenen Editorial Notes.
-- Exportprotokoll enthält SnapshotId, optional Release, Profilversion, Assetrevisionen, Findings und Erzeugungszeit.
+- Bilder werden vor der Konvertierung über die zentrale Asset-Auflösung bereitgestellt.
+- Pandoc- und WeasyPrint-Prozesse erhalten Timeout, kontrollierte Arbeitsverzeichnisse und begrenzten Zugriff auf lokale oder externe Ressourcen.
+- Fehlerausgabe wird diagnostisch protokolliert, aber nicht ungefiltert an den Browser gegeben.
 
-## Kundenwissen und Zielgruppen
+## UI-Ablauf
 
-Eine Hierarchie wie `Kundenanpassungen / Max Schulze GmbH` passt in den globalen Baum. Drei Konzepte bleiben getrennt:
+1. Benutzer steht auf einem Node und wählt Rolle sowie Lesekontext.
+2. Benutzer klickt `PDF-Export`.
+3. Server erzeugt das PDF.
+4. Browser lädt die Datei als `application/pdf` herunter.
 
-| Konzept | Bedeutung |
-|---|---|
-| Hierarchie | Fachliche Ablage und Navigation des Kundenwissens |
-| Content-Rolle `Endkunde` | Zielgruppengerechte Darstellung |
-| Zugriffsschutz | Wer Wissen lesen oder ändern darf; nicht durch Content-Rollen gelöst |
+Für den ersten Stand genügt ein Busy-/Progress-Indikator ohne Prozentwert. Ein persistierter Hintergrundjob mit echtem Fortschritt wird erst eingeführt, wenn reale Exportzeiten ihn rechtfertigen.
 
-Unterschiedliche Publikationsnavigationen werden später als Presentation Views auf denselben stabilen `NodeId`s modelliert; der kanonische Baum bleibt erhalten.
+## Kein initialer Publikationsworkflow
+
+Nicht Bestandteil des ersten PDF-Exports:
+
+- Mehrere Publikationsprofile.
+- UI zur Template- oder Profilverwaltung.
+- Versionierte Profilkonfiguration.
+- Freigabe-, Stale-, Finding- oder TODO-Policies.
+- Gespeicherte Exporthistorie.
+- Alternative Ausgabeformate wie DOCX.
+- Garantie byteidentischer Wiederholung nach einer Templateänderung.

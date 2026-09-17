@@ -23,8 +23,7 @@ Referenzen: [Komponentenstrategie](konzept/02-bedienkonzept-und-ui.md#komponente
   - [ ] Baumkomponente mit Lazy Loading, Virtualisierung, Drag-and-drop und Tastaturbedienung auswählen.
   - [ ] Rich-Text-Komponente mit Markdown-Roundtrip, Heading-Sperre, Tabellen, Code und Upload-Hook auswählen.
   - [ ] Asset-Speicheroptionen und Deduplizierungsmodell entscheiden.
-  - [ ] PDF-Renderer mit TOC, Header/Footer, Fonts und realistischem Deployment evaluieren.
-  - [ ] Entscheidungen O-001 bis O-007 im [Entscheidungsregister](konzept/07-entscheidungen-und-offene-fragen.md) schließen.
+  - [ ] Entscheidungen O-001 bis O-004 im [Entscheidungsregister](konzept/07-entscheidungen-und-offene-fragen.md) schließen.
   - [ ] Keine produktive Abhängigkeit ohne Lizenz- und Wartungsprüfung aufnehmen.
 
 Abnahme: Alle hoch priorisierten Komponenten- und Architekturfragen sind entschieden; kein Implementierungsmilestone hängt von einem unbekannten Kernbaustein ab.
@@ -100,7 +99,7 @@ Abnahme: Die komplette Node-Struktur ist ohne Agent sicher und transaktional pfl
 
 ## M5 – Rollen-Content und Rich Text
 
-Abhängigkeit: M4. Referenzen: [Node-Ansicht und Editor](konzept/02-bedienkonzept-und-ui.md#node-ansicht-und-editor), [Rich-Text-Editor](konzept/03-redaktion-und-assets.md#rich-text-editor), [Rollenverwaltung](konzept/02-bedienkonzept-und-ui.md#rollenverwaltung)
+Abhängigkeit: M4. Referenzen: [Node-Ansicht und Editor](konzept/02-bedienkonzept-und-ui.md#node-ansicht-und-editor), [Rich-Text-Editor](konzept/03-content-und-assets.md#rich-text-editor), [Freier Content](konzept/03-content-und-assets.md#freier-content-einschließlich-todos), [Rollenverwaltung](konzept/02-bedienkonzept-und-ui.md#rollenverwaltung)
 
 - [ ] M5 abschließen
   - [ ] Gewählten Rich-Text-Editor ohne Heading-Funktionen integrieren.
@@ -111,13 +110,14 @@ Abhängigkeit: M4. Referenzen: [Node-Ansicht und Editor](konzept/02-bedienkonzep
   - [ ] Rollen und Resolution Orders vollständig pflegen.
   - [ ] Fallback-Auswirkung vor Änderungen visualisieren.
   - [ ] Heading- und Content-Validierung unmittelbar und nach Serverantwort darstellen.
+  - [ ] TODO-Texte ohne Sonderbehandlung speichern, suchen, anzeigen und exportieren.
   - [ ] REST-Endpunkte und OpenAPI für Rollen- und Contentpflege vervollständigen.
 
 Abnahme: Rollenabhängiger Markdown-Content ist vollständig ohne Agent und ohne Wegwerfeditor pflegbar.
 
 ## M6 – Bilder und Assetverwaltung
 
-Abhängigkeit: M5. Referenz: [Bilder und Assets](konzept/03-redaktion-und-assets.md#bilder-und-assets)
+Abhängigkeit: M5. Referenz: [Bilder und Assets](konzept/03-content-und-assets.md#bilder-und-assets)
 
 - [ ] M6 abschließen
   - [ ] Entschiedenes Asset-Datenmodell und notwendige Migrationen implementieren.
@@ -131,44 +131,12 @@ Abhängigkeit: M5. Referenz: [Bilder und Assets](konzept/03-redaktion-und-assets
 
 Abnahme: Bilder sind versionierbar, dedupliziert, historisch reproduzierbar und in allen Ausgabekanälen konsistent.
 
-## M7 – Redaktioneller Workflow
+## M7 – Betriebs- und Qualitätshärtung
 
-Abhängigkeit: M5; nutzt optional M6. Referenzen: [Redaktionelle Hinweise](konzept/03-redaktion-und-assets.md#redaktionelle-hinweise), [Agentenaufträge](konzept/03-redaktion-und-assets.md#agentenauftraege)
+Abhängigkeit: M1 bis M6. Referenzen: [Betriebsabnahme](konzept/06-betrieb-sicherheit-und-risiken.md#betriebsabnahme), [Risiken](konzept/06-betrieb-sicherheit-und-risiken.md#risiken-und-gegenmaßnahmen)
 
 - [ ] M7 abschließen
-  - [ ] Versionierungsmodell für Editorial Notes entscheiden und dokumentieren.
-  - [ ] Editorial-Note-Datenmodell, Persistenz und Application Services implementieren.
-  - [ ] TODO, Question, Review und AgentTask mit Statusworkflow implementieren.
-  - [ ] Hinweise an Node und optional Rolle anzeigen und bearbeiten.
-  - [ ] Arbeitslisten für TODOs, stale Content, fehlende Inhalte und Refactoring-Kandidaten bereitstellen.
-  - [ ] MCP- und REST-Zugriff für redaktionelle Aufgaben implementieren.
-  - [ ] Auflösung und zugehörige fachliche Transaction nachvollziehbar verbinden.
-
-Abnahme: Mensch und externer Agent können redaktionelle Arbeit gezielt finden, bearbeiten und nachvollziehbar abschließen.
-
-## M8 – Publikationsprofile und PDF
-
-Abhängigkeit: M6 und M7. Referenzen: [Publikationsprofil](konzept/04-publikation-und-pdf.md#publikationsprofil), [Pipeline](konzept/04-publikation-und-pdf.md#pipeline), [Freigabe](konzept/04-publikation-und-pdf.md#freigabe)
-
-- [ ] M8 abschließen
-  - [ ] Versioniertes Publikationsprofil und Profilassets modellieren.
-  - [ ] Rollenbezogene Selektion für einen oder mehrere Teilbäume implementieren.
-  - [ ] Neutrales Dokumentmodell erzeugen.
-  - [ ] Layout, Logo, Fonts, Deckblatt, TOC, Header/Footer und Seitenzahlen implementieren.
-  - [ ] HTML-Vorschau für Working Transaction bereitstellen und kennzeichnen.
-  - [ ] Offiziellen PDF-Export auf committed Snapshot/Release begrenzen.
-  - [ ] Stale-, Finding- und Editorial-Note-Freigaberegeln implementieren.
-  - [ ] Exportprotokoll mit Snapshot, Release, Profil- und Assetrevisionen erzeugen.
-  - [ ] Reproduzierbarkeit durch deterministische Vergleichstests nachweisen.
-
-Abnahme: Ein Endkunden-Teilbaum lässt sich mit einem Klick reproduzierbar im definierten Corporate Layout als PDF erzeugen.
-
-## M9 – Betriebs- und Qualitätshärtung
-
-Abhängigkeit: M1 bis M8. Referenzen: [Betriebsabnahme](konzept/06-betrieb-sicherheit-und-risiken.md#betriebsabnahme), [Risiken](konzept/06-betrieb-sicherheit-und-risiken.md#risiken-und-gegenmaßnahmen)
-
-- [ ] M9 abschließen
-  - [ ] Vollständige Browser-End-to-End-Tests für zentrale Lese-, Schreib- und Publikationsabläufe.
+  - [ ] Vollständige Browser-End-to-End-Tests für zentrale Lese- und Schreibabläufe.
   - [ ] Transportübergreifende REST-/MCP-Vertragstests vervollständigen.
   - [ ] Reale tiefe und breite Wissensbäume messen; Lazy Loading und Virtualisierung nachweisen.
   - [ ] Gleichzeitige UI-, REST- und MCP-Transactions sowie `SnapshotConflict` testen.
@@ -179,6 +147,25 @@ Abhängigkeit: M1 bis M8. Referenzen: [Betriebsabnahme](konzept/06-betrieb-siche
   - [ ] Verbindliche `docs/` vollständig gegen implementierten Ist-Stand prüfen.
 
 Abnahme: Der definierte Intranetbetrieb ist reproduzierbar deploybar, performant und gegen die bekannten Risiken getestet.
+
+## M8 – Einfacher PDF-Teilbaumexport
+
+Priorität: niedrig; Umsetzung nach dem gehärteten Kernfrontend. Abhängigkeit: M6 und M7. Referenz: [Publikation und PDF](konzept/04-publikation-und-pdf.md)
+
+- [ ] M8 abschließen
+  - [ ] Genau einen konfigurierten Templateordner mit HTML, CSS, Logo und Fonts anlegen.
+  - [ ] Pandoc und WeasyPrint als Serverabhängigkeiten installieren und beim Start validieren.
+  - [ ] Gewählten Node, Rolle und Read Context an `export_tree` übergeben.
+  - [ ] Root-Auswahl als Gesamtexport und innere Node als Teilbaumexport implementieren.
+  - [ ] Markdown per Pandoc und `--pdf-engine=weasyprint` in PDF umwandeln.
+  - [ ] Assetreferenzen für WeasyPrint kontrolliert auflösen.
+  - [ ] UI-Aktion `PDF-Export` mit Busy-/Progress-Indikator implementieren.
+  - [ ] PDF als Browserdownload mit geeignetem Dateinamen und `application/pdf` liefern.
+  - [ ] TODOs und sonstigen Content ohne Filter oder Sonderbehandlung exportieren.
+  - [ ] Prozess-Timeout, Arbeitsverzeichnis, Ressourcenbeschränkung und Fehlerdiagnose absichern.
+  - [ ] Root-, Teilbaum-, Rollen-, Bild- und Fehlerfälle als Integrationstests abdecken.
+
+Abnahme: Der Benutzer kann vom aktuellen Node aus mit einem Klick den gesamten darunterliegenden Teilbaum im einzigen konfigurierten Layout als PDF herunterladen.
 
 ## Separate spätere Vorhaben
 

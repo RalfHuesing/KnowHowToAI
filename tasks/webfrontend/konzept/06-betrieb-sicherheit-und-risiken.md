@@ -48,12 +48,10 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 | Unterschiedliche DI-Scopes erzeugen versteckten Zustand | Stateless Application Services; fachlichen Kontext explizit übergeben |
 | Proxy blockiert WebSockets oder Streaming | Intranet-Deploymenttest mit realem Proxy; Timeouts und Upgrade-Verhalten prüfen |
 | Firmennetz wird mit Authentifizierung verwechselt | Kein Internet-Exposure; Netzgrenzen dokumentieren; Auth als separates Pflichtvorhaben vor Scope-Erweiterung |
-| TODOs gelangen in Kundendokumente | Strukturierte Editorial Notes; Publikation schließt sie standardmäßig aus |
 | Tiefe Bäume werden langsam | Lazy Loading, Paging, virtuelle Darstellung, Suche und Breadcrumbs |
 | Drag-and-drop erzeugt falsche Struktur | Zielvorschau, serverseitige Validierung, Transaction-Diff vor Commit |
 | Rich-Text-Editor verändert Markdown | Roundtrip-Tests, Markdown-natives Modell, Quellmodus, keine HTML-first-Konvertierung |
 | Bilder blähen Snapshots auf | Immutable, per Hash deduplizierte Assets; Snapshot referenziert statt kopiert |
-| PDF ist nicht reproduzierbar | Snapshot/Release, Profilversion und Assetrevisionen protokollieren |
 | Content-Rollen werden als Rechte missverstanden | UI-Texte und Architektur trennen Zielgruppe strikt von Zugriffsschutz |
 | Mehrere Clients committen parallel | `SnapshotConflict` sichtbar behandeln; geführtes manuelles Reapply statt implizitem Merge |
 | REST, MCP und UI weichen semantisch ab | Gemeinsame Application Services und transportübergreifende Vertragstests |

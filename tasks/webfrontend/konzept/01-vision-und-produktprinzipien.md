@@ -19,7 +19,7 @@ Der MCP-Server bietet sichere fachliche Primitive, aber keine menschlich erfassb
 - Manuelle Nachbearbeitung ist unnötig indirekt.
 - Transactions, Releases, Snapshots, Rollenauflösung, Stale-Zustände und Findings benötigen visuelle Arbeitsoberflächen.
 - Verschieben und Sortieren von Nodes ist visuell einfacher und sicherer.
-- Zielgruppengerechte Dokumente benötigen einen reproduzierbaren Publikationsprozess.
+- Zielgruppengerechte Dokumente benötigen einen einfachen PDF-Export ab einem gewählten Node.
 
 Das Frontend ist die vollumfängliche menschliche Arbeits- und Publikationsoberfläche der KnowHowTo-AI-Datenbank, keine reine Administration.
 
@@ -29,7 +29,7 @@ Das Frontend ist die vollumfängliche menschliche Arbeits- und Publikationsoberf
 2. **Menschen und Agenten als gleichwertige Clients:** Beide verwenden dieselben Regeln, Transactions, Validatoren und Identitäten.
 3. **Expliziter Arbeitsstand:** Current Snapshot, historischer Snapshot oder Working Transaction sind jederzeit sichtbar.
 4. **Sicheres Editieren:** Kein stilles Schreiben in den Current Snapshot; jeder Edit gehört zu einer sichtbaren Transaction.
-5. **Reproduzierbare Publikation:** Offizielle Exporte referenzieren committed Snapshot oder Release sowie eine versionierte Publikationsdefinition.
+5. **Einfacher Teilbaumexport:** PDF exportiert den gewählten Node und alle Nachfahren mit genau einem serverseitigen Template.
 6. **Progressive Disclosure:** Erst Struktur und Metadaten, Content nur bei Bedarf.
 7. **Intranet-first:** Regulärer Betrieb zentral im Firmennetz; lokale Entwicklung und Tests bleiben möglich.
 8. **KI optional:** Alle Kernworkflows funktionieren deterministisch ohne LLM.
@@ -58,14 +58,14 @@ Verbindlicher Ist-Stand: [`docs/`](../../../docs/README.md).
 
 | Akteur | Hauptaufgaben |
 |---|---|
-| Wissensautor | Navigieren, suchen, Nodes strukturieren, Content bearbeiten, Hinweise erfassen |
+| Wissensautor | Navigieren, suchen, Nodes strukturieren und freien Content bearbeiten |
 | Consultant | Fachwissen und Kundenanpassungen pflegen, Rollen-Content ableiten, Publikationen vorbereiten |
 | Entwickler | Technisches Wissen lesen und ergänzen, historische Stände und Diffs prüfen |
-| Redakteur | Stale Content, TODOs und Qualitätswarnungen bearbeiten |
-| Endkunde | Erhält freigegebene, rollenbezogene Publikationen; kein direkter Erstzugriff |
+| Redakteur | Per normaler Suche gefundene TODO-Texte, stale Content und Qualitätswarnungen bearbeiten |
+| Endkunde | Erhält rollenbezogene PDF-Ausgaben; kein direkter Erstzugriff |
 | Externer Agent | Liest und schreibt über MCP innerhalb expliziter Transactions |
 | n8n/Integration | Verwendet stabile REST-Endpunkte für automatisierte Workflows |
-| Späterer integrierter Agent | Bearbeitet ausgewählte redaktionelle Aufträge aus der UI |
+| Späterer integrierter Agent | Bearbeitet explizite Such- und Überarbeitungsaufträge aus der UI |
 
 ## Erfolgskriterien des ersten nutzbaren Frontends
 

@@ -20,8 +20,8 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 |---|---|
 | [Vision und Produktprinzipien](konzept/01-vision-und-produktprinzipien.md) | Zweck, Nutzen, Zielgruppen, bestehende Kernleitplanken, Erfolgskriterien |
 | [Bedienkonzept und UI](konzept/02-bedienkonzept-und-ui.md) | visueller Stil, Layout, Dashboard, Wissensbaum, Editor, Transactions, Historie, Rollen |
-| [Redaktion und Assets](konzept/03-redaktion-und-assets.md) | Rich Text, Markdown, Bilder, Asset-Modell, TODOs und Agentenaufträge |
-| [Publikation und PDF](konzept/04-publikation-und-pdf.md) | Publikationsprofile, Pipeline, Freigabe und Reproduzierbarkeit |
+| [Content und Assets](konzept/03-content-und-assets.md) | Rich Text, freier Markdown-Content einschließlich TODOs, Bilder und Asset-Modell |
+| [Publikation und PDF](konzept/04-publikation-und-pdf.md) | einfacher Teilbaumexport mit einem Template, Pandoc und WeasyPrint |
 | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) | gemeinsamer Host, REST/OpenAPI, n8n, MCP HTTP, Projektstruktur, Ports und DI-Grenzen |
 | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) | Intranetbetrieb, ausdrücklich keine Auth im ersten Schritt, Betriebsgrenzen, Risiken |
 | [Entscheidungen und offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) | Entscheidungsregister, offene Auswahlentscheidungen und Nicht-Ziele |
@@ -32,9 +32,9 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | Aufgabe | Lesen |
 |---|---|
 | Scope, Produktziel, Priorisierung | dieses Dokument, [Vision](konzept/01-vision-und-produktprinzipien.md), [Roadmap](Roadmap.md) |
-| UI, Layout, Navigation, Editor | [Bedienkonzept](konzept/02-bedienkonzept-und-ui.md), [Redaktion und Assets](konzept/03-redaktion-und-assets.md) |
-| Bilder, TODOs, redaktionelle Abläufe | [Redaktion und Assets](konzept/03-redaktion-und-assets.md) |
-| PDF, Templates, Endkundenausgabe | [Publikation und PDF](konzept/04-publikation-und-pdf.md) |
+| UI, Layout, Navigation, Editor | [Bedienkonzept](konzept/02-bedienkonzept-und-ui.md), [Content und Assets](konzept/03-content-und-assets.md) |
+| Bilder oder freie TODO-Texte | [Content und Assets](konzept/03-content-und-assets.md) |
+| Einfacher PDF-Teilbaumexport | [Publikation und PDF](konzept/04-publikation-und-pdf.md) |
 | Blazor, REST, n8n, MCP, Projektstruktur | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) |
 | Deployment, Netzwerk, Auth-Abgrenzung | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) |
 | Implementierung eines Milestones | [Roadmap](Roadmap.md), dort referenzierte Konzeptabschnitte und die Lese-Matrix in [`docs/`](../../docs/README.md) |
@@ -53,5 +53,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-008 | Etablierte Standardkomponenten vor Eigenentwicklung |
 | K-009 | Rich-Text-/WYSIWYG-Bearbeitung mit Markdown als kanonischem Speicherformat und Bildunterstützung |
 | K-010 | Eine globale Hierarchie und dieselbe versionierte Wissensbasis für UI, REST und MCP |
+| K-011 | TODOs sind normaler Content ohne Sondermodell, Sondervalidierung oder Exportfilter |
+| K-012 | PDF ist ein niedrig priorisierter Teilbaumexport mit genau einem Template, Pandoc und WeasyPrint |
 
 Details und noch offene Entscheidungen: [Entscheidungsregister](konzept/07-entscheidungen-und-offene-fragen.md).

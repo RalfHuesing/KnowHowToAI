@@ -26,7 +26,7 @@ Die Oberfläche ist sachlich, seriös und modern. Sie entspricht der Erwartung a
 ┌ Navigation/Baum ─────┬ Node-Editor/Ansicht ─────┬ Kontext/Status ────┐
 │ Suche und Filter     │ Titel, Beschreibung          │ Rolle/Fallback       │
 │ Lazy Tree           │ Rollen-Content              │ Freshness/Quellen    │
-│ Drag-and-drop       │ Rich Text + Vorschau        │ Findings/TODOs       │
+│ Drag-and-drop       │ Rich Text + Vorschau        │ Findings/Quellen     │
 │ Badges              │ Diff bei Änderung          │ Historie             │
 └──────────────────────┴────────────────────────────┴─────────────────────┘
 Kontextleiste: Wissensbasis | Snapshot/Transaction | Rolle | Änderungszustand
@@ -40,7 +40,6 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 - Offene Transactions mit Zweck, Akteur, Alter und Base Snapshot.
 - Stale Derived Contents.
 - Harte Validierungsfehler und Qualitätswarnungen.
-- Offene redaktionelle Hinweise.
 - Zuletzt geänderte Nodes und Releases.
 - Direkte Einstiege in Wissensbaum, Transaction, Vergleich und Publikation.
 
@@ -48,8 +47,8 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 
 - Lazy Loading über Root und paginierte Children.
 - Suche nach Titel, Beschreibung und rollenaufgelöstem Content.
-- Filter nach Rolle, Availability, Freshness, Findings und Editorial Notes.
-- Badges für eigenen Content, Fallback, fehlenden Content, stale, Warnung und TODO.
+- Filter nach Rolle, Availability, Freshness und Findings.
+- Badges für eigenen Content, Fallback, fehlenden Content, stale und Warnung.
 - Drag-and-drop für Verschieben und Sortierung mit Zielvorschau.
 - Strukturänderungen nur in einer offenen Working Transaction.
 - Tiefe Strukturen werden nicht vollständig vorab geladen.
@@ -66,7 +65,7 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 - Vergleich mit Base Snapshot und historischen Snapshots.
 - Rollen-Content-Löschung und globale Node-Löschung sind klar getrennt.
 
-Editor- und Assetdetails: [Redaktion und Assets](03-redaktion-und-assets.md).
+Editor-, TODO- und Assetdetails: [Content und Assets](03-content-und-assets.md).
 
 ## Transaction-Arbeitsbereich
 
