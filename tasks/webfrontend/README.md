@@ -24,7 +24,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | [Publikation und PDF](konzept/04-publikation-und-pdf.md) | einfacher Teilbaumexport mit einem Template, Pandoc und WeasyPrint |
 | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) | gemeinsamer Host, interne Blazor-Aufrufe, MCP HTTP, optionale spätere REST-API, Projektstruktur, Ports und DI-Grenzen |
 | [Betrieb, Sicherheit und Risiken](konzept/06-betrieb-sicherheit-und-risiken.md) | Intranetbetrieb, ausdrücklich keine Auth im ersten Schritt, Betriebsgrenzen, Risiken |
-| [Entscheidungen und offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) | Entscheidungsregister, offene Auswahlentscheidungen und Nicht-Ziele |
+| [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) | ausschließlich noch nicht entschiedene Auswahl- und Zukunftsfragen |
 | [Roadmap](Roadmap.md) | Index, Ausführungsregeln und getrennte Milestone-Dateien mit abhakbaren Agent-Tasks |
 
 ## Lese-Matrix
@@ -55,5 +55,6 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-010 | Eine globale Hierarchie und dieselbe versionierte Wissensbasis für UI, MCP und spätere Adapter |
 | K-011 | TODOs sind normaler Content ohne Sondermodell, Sondervalidierung oder Exportfilter |
 | K-012 | PDF ist ein niedrig priorisierter Teilbaumexport mit genau einem Template, Pandoc und WeasyPrint |
+| K-013 | Bilder und Assetverwaltung sind niedrig priorisiert und folgen erst nach dem einfachen PDF-Export |
 
-Details und noch offene Entscheidungen: [Entscheidungsregister](konzept/07-entscheidungen-und-offene-fragen.md).
+Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

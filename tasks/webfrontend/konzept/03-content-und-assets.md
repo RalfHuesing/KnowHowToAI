@@ -27,6 +27,8 @@ Der erste schreibende Frontend-Schnitt verwendet einen etablierten Rich-Text-/WY
 
 ## Bilder und Assets
 
+Priorität: niedrig. Verwaltete Bilder und das Assetmodell werden nach dem einfachen PDF-Export umgesetzt.
+
 ### Nutzung
 
 - Upload, Drag-and-drop und Einfügen aus der Zwischenablage.

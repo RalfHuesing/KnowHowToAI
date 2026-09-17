@@ -44,9 +44,9 @@ Der Status wird ausschließlich in der jeweiligen Milestone-Datei gepflegt.
 | [M3 – Read-only Wissenscockpit](roadmap/03-read-only-wissenscockpit.md) | vollständige menschliche Lesesicht | M2 |
 | [M4 – Transactions und Strukturpflege](roadmap/04-transactions-und-strukturpflege.md) | sichere visuelle Strukturänderungen | M3 |
 | [M5 – Rollen-Content und Rich Text](roadmap/05-rollen-content-und-rich-text.md) | vollständige Contentpflege ohne Agent | M4 |
-| [M6 – Bilder und Assetverwaltung](roadmap/06-bilder-und-assets.md) | stabile Bilder im gesamten Lebenszyklus | M5 |
-| [M7 – Betriebs- und Qualitätshärtung](roadmap/07-betrieb-und-qualitaet.md) | belastbarer Intranetbetrieb | M1–M6 |
-| [M8 – Einfacher PDF-Teilbaumexport](roadmap/08-pdf-export.md) | niedrig priorisierter PDF-Download | M6, M7 |
+| [M6 – Betriebs- und Qualitätshärtung](roadmap/06-betrieb-und-qualitaet.md) | belastbarer Kernbetrieb | M1–M5 |
+| [M7 – Einfacher PDF-Teilbaumexport](roadmap/07-pdf-export.md) | niedrig priorisierter PDF-Download ohne verwaltete Content-Bilder | M6 |
+| [M8 – Bilder und Assetverwaltung](roadmap/08-bilder-und-assets.md) | niedrig priorisierte Bilder im gesamten Lebenszyklus einschließlich PDF | M5, M7 |
 
 ## Separate spätere Vorhaben
 

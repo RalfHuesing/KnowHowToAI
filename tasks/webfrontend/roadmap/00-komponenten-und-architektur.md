@@ -6,7 +6,7 @@
 
 Ziel: Technische Risiken und produktprägende Fremdkomponenten sind vor der eigentlichen Webimplementierung anhand realistischer Anforderungen entschieden.
 
-Referenzen: [Komponentenstrategie](../konzept/02-bedienkonzept-und-ui.md#komponentenstrategie), [Offene Entscheidungen](../konzept/07-entscheidungen-und-offene-fragen.md#offene-entscheidungen), [Ein Prozess und ein Port](../konzept/05-architektur-api-und-mcp.md#ein-prozess-und-ein-port)
+Referenzen: [Komponentenstrategie](../konzept/02-bedienkonzept-und-ui.md#komponentenstrategie), [Offene Fragen](../konzept/07-entscheidungen-und-offene-fragen.md), [Ein Prozess und ein Port](../konzept/05-architektur-api-und-mcp.md#ein-prozess-und-ein-port)
 
 ## M0.1 – Ausgangslage
 
@@ -27,7 +27,7 @@ Referenzen: [Komponentenstrategie](../konzept/02-bedienkonzept-und-ui.md#kompone
     - Prüfen: Endpoint Routing, Blazor-Circuit, MCP-Streaming, DI-Scopes, Start/Stop und Route-Kollisionen.
     - Nicht enthalten: produktive Hostmigration, REST/OpenAPI, UI-Design oder STDIO-Entfernung.
     - Abnahme: technische Machbarkeit und notwendige Hostleitplanken sind belegt.
-    - Abschluss: Ergebnis in [Architekturkonzept](../konzept/05-architektur-api-und-mcp.md) und Entscheidungsregister einarbeiten; Spike-Code verwerfen oder bewusst übernehmen.
+    - Abschluss: Ergebnis im [Architekturkonzept](../konzept/05-architektur-api-und-mcp.md) festhalten und den geschlossenen Punkt aus den offenen Fragen entfernen; Spike-Code verwerfen oder bewusst übernehmen.
 
   - [ ] **M0.2-T2 – Routing- und Proxyannahmen verifizieren**
     - Umfang: `/`, `/mcp`, `/assets` und reserviertes `/api` mit realistischem Reverse-Proxy-Verhalten prüfen.
@@ -55,18 +55,8 @@ Referenzen: [Komponentenstrategie](../konzept/02-bedienkonzept-und-ui.md#kompone
     - Prüfen: Markdown als kanonisches Format, deaktivierbare Headings, Upload-Hooks, optionaler Quellmodus, Lizenz und Wartung.
     - Abnahme: O-002 ist geschlossen; bekannte Roundtrip-Grenzen besitzen Tests oder eine explizite Ablehnung.
 
-## M0.4 – Assetentscheidung
-
-- [ ] **M0.4 abschließen**
-
-  - [ ] **M0.4-T1 – Asset-Speichermodell entscheiden**
-    - Umfang: SQL-Metadaten plus Binärspeicheroptionen, Immutable-Semantik, Hash-Deduplizierung, Historienbezug und Backup bewerten.
-    - Prüfen: Größenordnung, Transaktionsgrenzen, lokale Entwicklung, Intranetdeployment und spätere Mehrinstanzfähigkeit.
-    - Nicht enthalten: Schema oder produktive Implementierung.
-    - Abnahme: O-004 ist mit Zielmodell und verworfenen Alternativen geschlossen.
-
 ## Milestone-Abnahme
 
-- O-001 bis O-004 sind geschlossen.
+- O-001 bis O-003 sind geschlossen; die niedrig priorisierte Assetentscheidung O-004 bleibt bis M8 offen.
 - Jede gewählte Abhängigkeit besitzt eine geprüfte Lizenz- und Wartungsbewertung.
-- Kein nachfolgender Milestone hängt von einer unbekannten Kernkomponente oder unbestätigten Hostannahme ab.
+- Kein Kernmilestone M1 bis M6 hängt von einer unbekannten Kernkomponente oder unbestätigten Hostannahme ab.

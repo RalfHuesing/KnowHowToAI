@@ -45,7 +45,8 @@ Pandoc wird mit WeasyPrint als PDF-Engine verwendet, sinngemäß:
 pandoc --pdf-engine=weasyprint ...
 ```
 
-- Bilder werden vor der Konvertierung über die zentrale Asset-Auflösung bereitgestellt.
+- Der erste PDF-Stand benötigt noch keine verwalteten Content-Bilder.
+- Nach dem späteren Asset-Milestone werden Bildreferenzen vor der Konvertierung über die zentrale Asset-Auflösung bereitgestellt.
 - Pandoc- und WeasyPrint-Prozesse erhalten Timeout, kontrollierte Arbeitsverzeichnisse und begrenzten Zugriff auf lokale oder externe Ressourcen.
 - Fehlerausgabe wird diagnostisch protokolliert, aber nicht ungefiltert an den Browser gegeben.
 
