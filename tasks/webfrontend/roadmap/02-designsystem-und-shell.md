@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../Roadmap.md)
 
-- [ ] **M2 abschließen**
+- [x] **M2 abschließen**
 
 Abhängigkeit: [M1](01-webhost-und-mcp-http.md)
 
@@ -82,7 +82,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M2.4 – Robustheit und Zugänglichkeit
 
-- [ ] **M2.4 abschließen**
+- [x] **M2.4 abschließen**
 
   - [x] **M2.4-T1 – Responsive Mindestdarstellung und Tastaturnavigation absichern**
     - Prüfflächen: Root-Shell, geöffnete/geschlossene Seitenbereiche, Kontextleiste, Lade-/Fehlerzustand, Alert/Toast und Bestätigungsdialog. Keine M3-Fachseiten vorziehen.
@@ -100,7 +100,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Komponenten-/Markupzustände; Browserintegration mit kontrolliert unterbrochener Circuit-Verbindung für Reconnecting und erfolgreichen Reconnect; Hostneustart/abgelaufener Circuit für Reload-Pfad. Auf UI-Zustand warten, keine Sleep-Zeiten und kein sichtbarer Browser.
     - Abnahme: Benutzer erkennt Zustand und sichere nächste Aktion; nach erfolgreichem Reconnect funktioniert der lokale M1-Interaktionsnachweis weiter, ohne fachlichen Zustand im Circuit zu erfinden.
 
-  - [ ] **M2.4-T3 – Komponenten- und visuelle Smoke-Testbasis erweitern**
+  - [x] **M2.4-T3 – Komponenten- und visuelle Smoke-Testbasis erweitern**
     - Projekt: das seit M1.2 vorhandene `KnowHowToAI.BrowserTests` mit Microsoft.Playwright .NET verwenden. Es referenziert weiterhin kein Produktionsprojekt und behandelt die veröffentlichte Server-EXE als Black Box.
     - Testhost: Server einmal pro Testkollektion mit `dotnet publish`-Artefakt, dynamischem Loopback-Port und Environment-/Kommandozeilen-Overrides starten; Migration für Shell-Smokes deaktivieren. Readiness über beobachtbaren HTTP-Zustand, Logs begrenzen/redigieren, Prozess und Port im `IAsyncLifetime` auch bei Fehlschlag sicher freigeben. Keine zweite Appsettings-Datei.
     - Browser: ausschließlich installiertes Google Chrome Stable (aktuelle installierte Version) über `Channel = "chrome"` und `Headless = true`; fehlendes Chrome ist ein klarer Preflight-Fehler, kein Chromium-Fallback. Kein Edge/Firefox/Safari-Projekt, keine sichtbare Debugkonfiguration als regulärer Testpfad.
