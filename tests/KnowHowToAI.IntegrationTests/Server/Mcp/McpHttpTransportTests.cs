@@ -2,10 +2,14 @@ using System.Net;
 using System.Net.Http;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.Mutations.Roles;
 using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Core.Tests.Application.Navigation;
 using KnowHowToAI.Server;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,6 +119,41 @@ public sealed class McpHttpTransportTests
 
     [Fact]
     [Trait("Category", "Integration")]
+    public async Task StreamableHttpClient_CompletesBeginMutationAndDiscardWorkflow()
+    {
+        var transaction = new WorkflowTransactionRepository();
+        await using var host = await McpHttpHost.StartAsync(services =>
+        {
+            services.RemoveAll<TransactionService>();
+            services.AddSingleton(new TransactionService(
+                transaction,
+                new ValidatingRepository(),
+                new WorkflowIdentifierGenerator(),
+                new ValidationPolicy { ContentSizeWarningBytes = 4096, ChildCountWarning = 25, HierarchyDepthWarning = 8, PossibleEmbeddedHeadingWarning = true }));
+            services.RemoveAll<RoleMutationService>();
+            services.AddSingleton(new RoleMutationService(new InMemoryRoleMutationRepository(
+                new WorkingRoleMutationState(new SnapshotId(2), [], [], [], []))));
+        });
+        await using var client = await McpClient.CreateAsync(CreateTransport(host.Address));
+
+        var begin = await client.CallToolAsync("begin_transaction");
+        var mutation = await client.CallToolAsync("create_role", new Dictionary<string, object?>
+        {
+            ["transactionId"] = WorkflowTransactionRepository.Id.ToString(), ["name"] = "Reviewer"
+        });
+        var discard = await client.CallToolAsync("discard_transaction", new Dictionary<string, object?>
+        {
+            ["transactionId"] = WorkflowTransactionRepository.Id.ToString()
+        });
+
+        Assert.Null(begin.IsError);
+        Assert.Null(mutation.IsError);
+        Assert.Null(discard.IsError);
+        Assert.Equal(WorkflowTransactionRepository.Id, Assert.Single(transaction.Discarded));
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
     public async Task GetMcp_IsRejectedOutsideTheStreamableHttpMapping()
     {
         await using var host = await McpHttpHost.StartAsync();
@@ -205,5 +244,42 @@ public sealed class McpHttpTransportTests
             SnapshotId snapshotId,
             CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<RoleResolution>>([]);
+    }
+
+    private sealed class WorkflowTransactionRepository : ITransactionRepository
+    {
+        public static TransactionId Id { get; } = new(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+
+        public List<TransactionId> Discarded { get; } = [];
+
+        public Task<KnowledgeTransaction> BeginAsync(BeginTransactionRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(Open());
+
+        public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<KnowledgeTransaction?>(Open());
+
+        public Task<CommitTransactionResult> CommitAsync(CommitTransactionRequest request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new CommitTransactionResult(null, null, null));
+
+        public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default)
+        {
+            Discarded.Add(transactionId);
+            return Task.FromResult(Result<KnowledgeTransaction>.Success(Open()));
+        }
+
+        private static KnowledgeTransaction Open() => new(Id, new SnapshotId(1), new SnapshotId(2), TransactionState.Open, 0, DateTimeOffset.UnixEpoch, null, null, null, null, null);
+    }
+
+    private sealed class WorkflowIdentifierGenerator : IIdentifierGenerator
+    {
+        public TransactionId CreateTransactionId() => WorkflowTransactionRepository.Id;
+        public NodeId CreateNodeId() => throw new NotSupportedException();
+        public ContentRevisionId CreateContentRevisionId() => throw new NotSupportedException();
+    }
+
+    private sealed class ValidatingRepository : IWorkingSnapshotValidationDataRepository
+    {
+        public Task<Result<WorkingSnapshotValidationData>> ReadOpenWorkingAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(Result<WorkingSnapshotValidationData>.Success(new WorkingSnapshotValidationData([], [], [], [], [])));
     }
 }
