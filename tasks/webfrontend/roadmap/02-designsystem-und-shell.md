@@ -44,7 +44,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M2.2 abschließen**
 
-  - [ ] **M2.2-T1 – Hauptlayout und Navigation implementieren**
+  - [x] **M2.2-T1 – Hauptlayout und Navigation implementieren**
     - Komponenten: `MainLayout`, `PrimaryNavigation`, `BreadcrumbRegion`, `PageActions` und `ContextPanel` unter `Web/Components/Layout`. RenderFragments/Parameter bilden Seiteninhalt, Breadcrumbs, Aktionen und Kontext ab; keine Featurekomponente kennt das CSS-Seitenraster.
     - Sichtbarer M2-Inhalt: Wortmarke und genau der vorhandene Start-Link. Noch nicht implementierte M3+-Routen, leere Menüpunkte und fachliche Beispieldaten werden nicht angezeigt. Leere Breadcrumb-/Aktions-/Kontextbereiche belegen keinen Platz und benötigen keine Dummytexte.
     - Desktoplayout: ab 1280 × 720 stehen Navigation, Arbeitsfläche und optionaler Kontextbereich nebeneinander; Arbeitsfläche darf nicht unter `min-width`-Defaults überlaufen. Bei 1024 × 720 werden Seitenbereiche über klar beschriftete Buttons ein-/ausgeklappt, während alle Funktionen erreichbar bleiben. Unterhalb 1024 besteht nur die Zoom-/Reflow-Anforderung aus O-021, keine Smartphone-Navigation.
