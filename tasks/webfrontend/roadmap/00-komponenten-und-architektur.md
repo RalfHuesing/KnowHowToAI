@@ -73,7 +73,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
 
 - [ ] **M0.2 abschließen**
 
-  - [ ] **M0.2-T1 – Blazor und MCP HTTP in einem Host validieren**
+  - [x] **M0.2-T1 – Blazor und MCP HTTP in einem Host validieren**
     - Fixture: isoliertes `net10.0`-Webprojekt mit `WebApplication`, einer minimalen Interactive-Server-Komponente unter `/` und dem aktuellen stabilen offiziellen Paket `ModelContextProtocol.AspNetCore`; ein zustandsloses Echo-Tool liegt unter `/mcp`. Kestrel bindet einen dynamischen Loopback-Port, beide Oberflächen verwenden exakt denselben Origin.
     - Prüfen: Shell per HTTP laden und genau einen echten Blazor-Circuit ausschließlich mit Headless Chrome öffnen; parallel über den offiziellen C#-SDK-Client mit ausdrücklich gewähltem Streamable-HTTP-Transport initialisieren, Tools auflisten und das Echo-Tool aufrufen. MCP wird explizit stateless konfiguriert; Legacy-SSE, zustandsbehaftete Sessions und zusätzliche Ports bleiben aus.
     - DI-/Lebenszyklusnachweis: instrumentierte scoped und singleton Services belegen erwartete Scopes ohne Zustandsübertragung zwischen zwei MCP-Requests oder zwischen MCP und Circuit. Requestabbruch erreicht den Tool-`CancellationToken`; der Host startet und stoppt dreimal ohne verbleibenden Prozess oder belegten Port.
@@ -82,6 +82,39 @@ Für M0.2 und M0.3 gilt zusätzlich:
     - Ergebnis: Paket-/Protokollversion, vollständige Mapping-Reihenfolge, relevante DI-Lifetimes, Start-/Stop-Befehle und Messung im [Architekturkonzept](../konzept/05-architektur-api-und-mcp.md) festhalten.
     - Abnahme: Circuit und MCP-Aufruf funktionieren gleichzeitig auf demselben Port; stateless Verhalten, Abbruch und saubere Beendigung sind automatisiert belegt.
     - Abschluss: Spike-Code wird nicht committed; produktive Umsetzung beginnt erst in M1.
+
+    **Nachweis (2026-09-18):** Der isolierte Wegwerf-Spike unter
+    `temp/webfrontend-spikes/M0.2-T1` verwendete `net10.0` und ausschließlich
+    `ModelContextProtocol.AspNetCore` `2.2.0` (NuGet.org, am Prüftag aktuelle
+    stabile Version laut
+    `https://api.nuget.org/v3-flatcontainer/modelcontextprotocol.aspnetcore/index.json`).
+    Das Paket referenziert `ModelContextProtocol` und
+    `ModelContextProtocol.Core` jeweils `2.2.0`; die Paketmetadaten weisen
+    Apache-2.0 und das offizielle Quellrepository
+    `https://github.com/modelcontextprotocol/csharp-sdk` (Paketcommit
+    `6fa3825973949a9c4f0cd8af344e15a8db09dc35`) aus. Apache-2.0 ist im
+    M0.1-T2-Inventar als kompatible, bereits dokumentierte Lizenz enthalten;
+    weder der Spike noch sein transitive Paketgraph führen eine neue
+    Lizenzentscheidung ein. Es wurden keine Preview-, Beta- oder RC-Pakete
+    und keine weitere Kandidatenbibliothek verwendet.
+
+    | Nachweis | Ergebnis |
+    |---|---|
+    | Host und Origin | Der veröffentlichte Kestrel-Host band dreimal dynamisch ausschließlich an `127.0.0.1` (`52649`, `55853`, `55877`). `GET /` lieferte jeweils `200`; Blazor und `/mcp` nutzten denselben Origin, ohne Zusatzport oder Proxy. |
+    | Mapping-Reihenfolge | `AddRazorComponents().AddInteractiveServerComponents()`; Instrumentierungsdienste; `AddMcpServer().WithHttpTransport(...)`; `MapStaticAssets()`; `MapRazorComponents<App>().AddInteractiveServerRenderMode()`; `MapMcp("/mcp")`. Der Transport setzt `SessionMode = Stateless`; `EnableLegacySse` bleibt beim SDK-Default `false`. |
+    | MCP-Protokoll | Streamable HTTP nach der vom Paket referenzierten Spezifikation `2025-11-25`; der SDK-Client `HttpClientTransport` setzte `TransportMode = StreamableHttp` ausdrücklich. Die aktuelle SDK-Initialisierung erfolgte über `server/discover` (statt des in neueren Revisionen entfernten `initialize`-Handshakes), danach `tools/list` und `tools/call` für `echo`. Ergebnis: `echo=same-origin`; die Tools `echo` und `wait_for_cancellation` wurden entdeckt. |
+    | Headless-Circuit | Ausschließlich Google Chrome `152.0.7977.83` mit `--headless=new` öffnete `/`. Ein instrumentierter `CircuitHandler` meldete exakt einen geöffneten Circuit; kein sichtbares Browserfenster und kein Testframework wurden verwendet. |
+    | DI und Statelesness | `SingletonProbe` blieb in zwei getrennten MCP-Aufrufen identisch (`7c11ea1d-492d-4be3-b62e-dff6c9363658`). `ScopedProbe` war pro MCP-Request verschieden (`d2a9f2d3-a055-4d80-b40d-b420d72a2723`, `346b5958-3c65-4253-b55f-a37a9719dad3`) und unterschied sich zudem vom Circuit-Scope (`eab0ea3d-ea81-4f28-8847-cba21b55c3d8`). Damit fand keine Zustandsübertragung Request-zu-Request oder MCP-zu-Circuit statt. |
+    | Kein Legacy-SSE | `GET /mcp/sse` ergab `404`; es gibt keine Session-, SSE- oder zusätzliche Portkonfiguration. |
+    | Requestabbruch | Ein offizieller Streamable-HTTP-Client startete `wait_for_cancellation`; nach der beobachteten Startmarke brach er genau diesen Request per `CancellationToken` ab. Das Tool beobachtete denselben abgebrochenen Token automatisiert (`CANCELLATION=observed`). |
+    | Lifecycle | Jeder der drei gestarteten Hosts wurde kontrolliert beendet; unmittelbar danach war der konkret gebundene Port nicht mehr im Listen-Zustand. Es blieb kein Hostprozess oder Port-Leak zurück. |
+
+    Verwendete Befehle: `dotnet build`, `dotnet publish -c Release -o .\\publish`,
+    `dotnet M0.2-T1.dll --urls http://127.0.0.1:0`, der offizielle Clientmodus
+    `--client http://127.0.0.1:<Port>/mcp` sowie der abbruchprüfende Clientmodus
+    `--cancel http://127.0.0.1:<Port>/mcp`. Alle Wartebedingungen beruhten auf
+    beobachtbaren Host-, Circuit- oder Requestzuständen, nicht auf festen Sleeps.
+    Der vollständige Spike wurde nach diesem Nachweis entfernt und nicht committed.
 
   - [ ] **M0.2-T2 – Routing- und Transportmatrix verifizieren**
     - Fixture: den Spike aus M0.2-T1 verwenden; keine zweite Hostvariante und keinen Reverse Proxy hinzufügen.
