@@ -198,7 +198,7 @@ public sealed class McpHttpTransportTests
             services.RemoveAll<TransactionService>();
             services.AddSingleton(new TransactionService(
                 transaction,
-                new ValidatingRepository(),
+                new ValidatingWorkingSnapshotRepository(),
                 new WorkflowIdentifierGenerator(),
                 new ValidationPolicy { ContentSizeWarningBytes = 4096, ChildCountWarning = 25, HierarchyDepthWarning = 8, PossibleEmbeddedHeadingWarning = true }));
             services.RemoveAll<RoleMutationService>();
@@ -247,38 +247,6 @@ public sealed class McpHttpTransportTests
         Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
     }
 
-    private sealed class McpHttpHost : IAsyncDisposable
-    {
-        private McpHttpHost(Microsoft.AspNetCore.Builder.WebApplication application, string address)
-        {
-            Application = application;
-            Address = address;
-        }
-
-        private Microsoft.AspNetCore.Builder.WebApplication Application { get; }
-
-        public string Address { get; }
-
-        public static async Task<McpHttpHost> StartAsync(Action<IServiceCollection>? configureServices = null)
-        {
-            var application = Program.CreateApplication(
-            [
-                "--urls", "http://127.0.0.1:0",
-                "--KnowHowToAI:Migrations:ApplyOnStartup=false"
-            ], configureServices);
-            await application.StartAsync();
-
-            var address = application.Urls.Single();
-            return new McpHttpHost(application, address);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await Application.StopAsync();
-            await Application.DisposeAsync();
-        }
-    }
-
     private static RetrievalPolicy CreateRetrievalPolicy() => new()
     {
         DefaultPageSize = 10,
@@ -288,11 +256,8 @@ public sealed class McpHttpTransportTests
         SnippetMaximumCharacters = 100
     };
 
-    private static HttpClientTransportOptions CreateOptions(string address) => new()
-    {
-        Endpoint = new Uri($"{address}/mcp"),
-        TransportMode = HttpTransportMode.StreamableHttp
-    };
+    private static HttpClientTransportOptions CreateOptions(string address) =>
+        McpHttpHost.CreateTransportOptions(address);
 
     private static HttpClientTransport CreateTransport(string address) => new(CreateOptions(address));
 
@@ -420,11 +385,5 @@ public sealed class McpHttpTransportTests
         public TransactionId CreateTransactionId() => WorkflowTransactionRepository.Id;
         public NodeId CreateNodeId() => throw new NotSupportedException();
         public ContentRevisionId CreateContentRevisionId() => throw new NotSupportedException();
-    }
-
-    private sealed class ValidatingRepository : IWorkingSnapshotValidationDataRepository
-    {
-        public Task<Result<WorkingSnapshotValidationData>> ReadOpenWorkingAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Result<WorkingSnapshotValidationData>.Success(new WorkingSnapshotValidationData([], [], [], [], [])));
     }
 }
