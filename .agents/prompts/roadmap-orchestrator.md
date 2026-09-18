@@ -17,8 +17,9 @@ verstehen. Lies die Roadmap und ermittle alle Meilensteine und offenen
 3. Der Auftrag an den Subagenten beginnt mit
    `Implementiere ausschließlich <T-ID> – <T-Titel>.` Er enthält danach nur
    den für diesen Slice nötigen Kontext: Akzeptanzkriterien, relevante Regeln,
-   Ist-Doku, readonly Konzeptgrenzen, Vorbedingungen, vorhandene Änderungen
-   und proportionale Prüfungen.
+   Ist-Doku, readonly Konzeptgrenzen, Vorbedingungen, vorhandene Änderungen,
+   proportionale Prüfungen sowie die verbindliche Vorgabe, bei C#-Aufgaben
+   pro-aktiv den `AiNetLinter` MCP-Server zu nutzen.
 4. Der Implementierer setzt seinen vollständigen Slice um, pflegt erforderliche
    Ist-Doku, führt sinnvolle und notwendige Prüfungen aus und erstellt einen
    atomaren Commit. Er verändert weder fremde Änderungen noch andere
@@ -32,7 +33,7 @@ verstehen. Lies die Roadmap und ermittle alle Meilensteine und offenen
 
 ## Review-Loop
 
-Nach Abschluss jedes Meilensteins startet ein eigener Review-Agent.
+Nach Abschluss jedes Meilensteins startet ein eigener Review-Agent (Auftrag inkl. verbindlicher `AiNetLinter`-Vorgabe).
 
 - Kleine, lokale Befunde behebt er selbst, prüft und committed sie.
 - Größere oder strukturelle Befunde ergänzt er zuerst als präzise neue
@@ -55,6 +56,10 @@ Nach Abschluss jedes Meilensteins startet ein eigener Review-Agent.
   abgeschwächten Tests oder Scope-Umgehungen.
 - Befolge projektspezifische Quality-Gates. Eigene Fehler vor Übergabe beheben;
   externe/vorbestehende Blocker klar abgrenzen.
+- **AiNetLinter MCP pro-aktiv nutzen**: Bei C#-Aufgaben setzen Orchestrator wie
+  Subagenten (Implementierer und Reviewer) pro-aktiv die semantischen MCP-Tools
+  des `AiNetLinter` ein (Erkundung, AST-/Impact-Analyse, `verify`). Der
+  Orchestrator gibt diese Pflicht verbindlich an alle Subagenten weiter.
 - Jeder Code-, Test-, Doku-, Roadmap- und Review-Slice erhält einen passenden
   atomaren deutschen Conventional Commit. Kein Push oder History-Rewrite ohne
   Nutzerauftrag.
