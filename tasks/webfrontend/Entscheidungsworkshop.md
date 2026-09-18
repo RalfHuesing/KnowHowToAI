@@ -16,14 +16,14 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Mit dem offenen Teil von O-013 fortfahren: Viewport-, Zoom- und Mobilgrenzen.
+3. Mit O-021 fortfahren: verbindliches Barrierefreiheitsziel und verhältnismäßige Abnahme.
 4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung für M0–M2 behandeln.
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
 Erste noch unbeantwortete Frage:
 
-> Ab welcher Desktopbreite muss die vollständige Bearbeitung funktionieren, und soll es unterhalb dieser Grenze nur eine reduzierte Ansicht oder eine mobil bedienbare Oberfläche geben?
+> Soll WCAG 2.2 AA für die Kernworkflows als Entwicklungsziel gelten, automatisiert durch wenige Accessibility-Smokes und manuell durch eine definierte Tastaturprüfung abgenommen, jedoch ohne formale Zertifizierung?
 
 ## Entscheidungsreihenfolge für M0–M2
 
@@ -156,7 +156,7 @@ Quellen:
 |---|---|---|
 | O-018 | Keine kostenpflichtigen Komponenten. Direkte und transitive Abhängigkeiten müssen kostenlos nutzbar und mit der MIT-Distribution vereinbar sein. Einfache UI/CSS wird pragmatisch selbst umgesetzt; spezialisierte OSS-Komponenten nur bei belegtem Mehrwert. | Kommerzielle Suites entfallen; Lizenzprüfung bleibt Pflicht; „keine allgemeine UI-Bibliothek“ ist für O-001 zulässig. |
 | O-028 | Das Repository steht unter MIT-Lizenz; Copyrightinhaber ist `Ralf Hüsing`, Startjahr 2026. | Root-`LICENSE` ist vorhanden; M0.1-T2 prüft sie und ergänzt weiterhin das Abhängigkeitsinventar. |
-| O-013 (Browserteil) | Die Anwendung wird browserneutral mit Webstandards gebaut. Automatisiert abgenommen wird ausschließlich die aktuelle stabile Desktopversion von Google Chrome im Headless-Modus; keine eigene Edge-/Firefox-/Safari-Testmatrix und keine interaktiven Browserstarts durch Agenten. | Andere aktuelle Browser sollen funktionieren, gelten ohne eigenen Abnahmekanal aber als erwartbar kompatibel. Viewport-, Zoom- und Mobilgrenzen bleiben noch offen. |
+| O-013 | Die Anwendung wird browserneutral mit Webstandards gebaut. Automatisiert abgenommen wird ausschließlich die aktuelle stabile Desktopversion von Google Chrome im Headless-Modus; keine eigene Edge-/Firefox-/Safari-Testmatrix und keine interaktiven Browserstarts durch Agenten. Zielgerät ist der PC: volle Darstellung ab 1280 × 720 CSS-Pixeln, bei 1024 × 720 mit verdichtetem Layout und einklappbaren Seitenbereichen noch vollständig bedienbar; Smartphones sind kein Ziel. | Begrenzte, deterministische Testmatrix ohne browserspezifische Produktpfade oder Mobile-UI. Zoom-/Reflow-Anforderungen folgen ausschließlich aus O-021. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -164,7 +164,6 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-013 | Viewports, Zoom und Mobilgrenze | volle Bearbeitung ab 1280×720, darunter einspaltig/einklappbar und bei 1024 px noch vollständig bedienbar; keine eigenständige Mobile-Optimierung | schließt den noch offenen Teil der Browser-/Viewportentscheidung |
 | O-021 | Accessibility | WCAG 2.2 AA für Kernworkflows, axe-Smokes und manuelle Tastaturabnahme; keine formale Zertifizierung im ersten Stand | verhindert spätere unplanbare Nachrüstung |
 | O-020 | Raw HTML, Links, Bilder, Paste | Raw HTML nicht ausführen; sichere URL-Schemata; externe Bilder nicht automatisch laden; Paste auf erlaubtes Markdown reduzieren | schützt Browser/PDF vor XSS, Tracking und lokalen/externen Ressourcenzugriffen |
 

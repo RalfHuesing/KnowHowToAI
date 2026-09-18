@@ -13,10 +13,11 @@ Die Oberfläche ist sachlich, seriös und modern. Sie entspricht der Erwartung a
 - Die Implementierung verwendet Webstandards und enthält keine absichtlichen Ausschlüsse oder browserspezifischen Produktpfade. Sie soll in aktuellen Browsern funktionieren.
 - Verbindlicher automatisierter Browser-Abnahmekanal ist ausschließlich die jeweils aktuelle stabile Desktopversion von Google Chrome. Andere Browserfamilien und Microsoft Edge werden nicht als eigene Testmatrix behandelt; ihre Funktion ist erwartete Kompatibilität, aber keine separat nachgewiesene Abnahme.
 - Browser-E2E läuft ausschließlich nichtinteraktiv im Headless-Modus. Implementierungsagenten starten für reguläre Abnahmen kein sichtbares Browserfenster.
-- Die Viewport- und Größengrenzen bleiben bis zum Abschluss von O-013 offen.
+- Zielgerät ist ein PC mit Desktopbrowser; Smartphones und eine eigenständige mobile Oberfläche sind ausdrücklich kein Ziel.
+- Die vollständige Desktopdarstellung ist ab 1280 × 720 CSS-Pixeln bei 100 % Zoom ausgelegt. Bei 1024 × 720 bleibt die gesamte Funktion mit verdichtetem Layout und einklappbaren Seitenbereichen erreichbar. Unterhalb dieser Referenzbreite besteht außer den noch in O-021 festzulegenden Zoom-/Accessibility-Regeln keine Produktanforderung.
 - Produktbranding und Theme werden zentral konfiguriert, nicht pro Seite erfunden.
 
-Offene Vorgaben zu Branding, UI-Sprache und Viewportgrenzen stehen in [Offene Fragen](07-entscheidungen-und-offene-fragen.md). Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
+Offene Vorgaben zu Branding, UI-Sprache und Barrierefreiheit stehen in [Offene Fragen](07-entscheidungen-und-offene-fragen.md). Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
 
 ## Komponentenstrategie
 

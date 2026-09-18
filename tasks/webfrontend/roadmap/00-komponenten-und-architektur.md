@@ -49,20 +49,20 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M0.3 abschließen**
 
   - [ ] **M0.3-T1 – UI-Komponentenbasis auswählen**
-    - Voraussetzung: O-013 zu unterstützten Browsern und O-021 zum Barrierefreiheitsziel sind durch den Benutzer entschieden.
+    - Voraussetzung: O-021 zum Barrierefreiheitsziel ist durch den Benutzer entschieden.
     - Umfang: native Blazor-/HTML-/CSS-Lösung und höchstens leichte OSS-Bibliotheken für Layout, Navigation, Formulare, Dialoge, Tabellen, Benachrichtigungen, Theme und Barrierefreiheit anhand eines kleinen Prototyps vergleichen.
     - Prüfen: fachlicher Mehrwert gegenüber Eigenlösung, .NET-/Blazor-Kompatibilität, aktive Pflege, kostenlose MIT-distributionskompatible Lizenz einschließlich transitiver Abhängigkeiten und NOTICE-Pflichten, Paket-/Bundle-Gewicht, zusätzliche Toolchain, JS-Interop, keine erzwungene Cloud/CDN-Nutzung sowie Testbarkeit und Betriebsauswirkungen.
     - Nicht enthalten: Knowledge Tree und Rich-Text-Editor; diese werden separat entschieden.
     - Abnahme: O-001 ist mit Entscheidung, Begründung, Lizenzprüfung und verworfenen Alternativen geschlossen; Browserunterstützung erfüllt O-013. „Keine allgemeine Komponentenbibliothek“ ist ausdrücklich zulässig.
 
   - [ ] **M0.3-T2 – Knowledge-Tree-Komponente auswählen**
-    - Voraussetzung: O-013 zu unterstützten Browsern und O-021 zum Barrierefreiheitsziel sind durch den Benutzer entschieden.
+    - Voraussetzung: O-021 zum Barrierefreiheitsziel ist durch den Benutzer entschieden.
     - Umfang: tiefe und breite Beispieldaten mit Lazy Loading, Paging, Virtualisierung, Auswahl, Tastaturbedienung sowie Drag-and-drop testen.
     - Prüfen: Zielvorschau, kontrolliertes Reordering, Integration in die gewählte UI-Basis sowie kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten.
     - Abnahme: O-003 ist geschlossen; Grenzen der Komponente sind dokumentiert.
 
   - [ ] **M0.3-T3 – Markdown-fähigen Rich-Text-Editor auswählen**
-    - Voraussetzung: O-013 zu unterstützten Browsern und O-020 zur Content-Sicherheits-/Fremdressourcen-Policy sind durch den Benutzer entschieden.
+    - Voraussetzung: O-020 zur Content-Sicherheits-/Fremdressourcen-Policy ist durch den Benutzer entschieden.
     - Umfang: realistische KnowHowTo-Inhalte mit Listen, Tabellen, Code, Links, Zitaten und Bildern roundtrippen.
     - Prüfen: Markdown als kanonisches Format, deaktivierbare Headings, Upload-Hooks, optionaler Quellmodus, kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten sowie Wartung.
     - Abnahme: O-002 ist geschlossen und alle im Contentkonzept geforderten Markdownstrukturen bestehen den Roundtrip; ein Kandidat mit semantischem Verlust wird nicht gewählt.
