@@ -27,34 +27,44 @@ Für M0.2 und M0.3 gilt zusätzlich:
 - [ ] **M0.1 abschließen**
 
   - [ ] **M0.1-T1 – Build-, Test- und Linter-Baseline nachweisen**
-    - Umfang: aktuellen Build, FastTests, erforderliche Integrationstests und AiNetLinter gemäß Projektregeln ausführen.
-    - Ergebnis: reproduzierbare Befehle, Laufzeiten und bekannte Abweichungen festhalten; keine Webänderung.
-    - Abnahme: Baseline ist grün oder jede bestehende Abweichung ist vor weiterer Arbeit geklärt und separat behoben.
-    - Abschluss: betroffene Ist-Dokumentation nur bei tatsächlicher Änderung aktualisieren; Task und Parentstatus committen.
+    - Vorbedingung: Working Tree mit `git status --short` prüfen. Fremde Änderungen weder aufnehmen noch bereinigen; bei Überschneidung den Benutzer fragen.
+    - Befehle in dieser Reihenfolge: `dotnet --info`, `dotnet restore KnowHowToAI.slnx`, `dotnet build KnowHowToAI.slnx --no-restore`, `pwsh scripts/test-fast.ps1`, `pwsh scripts/test-integration.ps1` und AiNetLinter `verify` für `KnowHowToAI.slnx` mit `scope: "solution"`.
+    - Aufzeichnung: Datum, .NET-SDK-/Runtimeversion, SQL-Preflight-Ergebnis, Exitcode und Laufzeit jedes Befehls sowie beim Linter `verdict`, `score` und `violationCount` direkt als kurzer `Nachweis`-Block unter diesem Task ergänzen. Keine Credentials, Connection Strings oder vollständigen Umgebungsvariablen protokollieren.
+    - Abnahme: alle Befehle sind grün; der Linter meldet ausschließlich `verdict=pass`, `score=10.0` und `violationCount=0`. Eine vorbestehende Abweichung wird nicht in diesem Task repariert: Befund dokumentieren, Task offen lassen und den Benutzer auf einen separaten Fix-Task verweisen.
+    - Nicht enthalten: Paketupdates, Refactoring oder Webänderungen.
+    - Abschluss: betroffene Ist-Dokumentation nur bei tatsächlicher Änderung aktualisieren; Task und dadurch tatsächlich erfüllte Parentstatus committen.
 
   - [ ] **M0.1-T2 – MIT-Lizenz und Abhängigkeitsbaseline herstellen**
     - Ausgangslage: Die MIT-`LICENSE` mit `Copyright (c) 2026 Ralf Hüsing` ist im Repository-Root vorhanden.
-    - Umfang: vorhandene `LICENSE` auf unveränderten MIT-Text prüfen; vollständigen direkten und transitiven Abhängigkeitsgraph aller Solution-Projekte einschließlich Build- und Testwerkzeugen ermitteln.
-    - Ergebnis: reproduzierbares Inventar mit Paket, Version, Quelle, Lizenz und einzuhaltenden Copyright-/Lizenz-/NOTICE-Pflichten in `THIRD-PARTY-NOTICES.md`; erforderliche Originalhinweise beilegen.
-    - Abnahme: keine Abhängigkeit ist kostenpflichtig, lizenzseitig ungeklärt oder mit der MIT-Distribution unvereinbar; Abweichungen werden ersetzt oder vor Fortsetzung dem Benutzer vorgelegt.
-    - Abschluss: Lizenz-/Inventardateien und die dauerhaft erforderliche Aktualisierungsanweisung dokumentieren und atomar committen.
+    - Ermittlung: nach einem Restore für jedes Projekt direkte und transitive NuGet-Pakete ausgeben; zentrale Versionen und tatsächlich aufgelöste Versionen gegeneinander prüfen. Runtime-/Shared-Framework, nur zur Entwicklung verwendete Test-/Buildpakete und mit der Anwendung ausgelieferte Pakete getrennt kennzeichnen.
+    - Lizenzprüfung: Paketmetadaten und beigefügte Lizenz-/NOTICE-Dateien aus der tatsächlich restaurierten Paketversion verwenden; bei Unklarheit das jeweilige offizielle Quellrepository hinzuziehen. Suchmaschinen-Snippets oder der Lizenztyp eines übergeordneten Projekts genügen nicht als Nachweis für transitive Pakete.
+    - Ergebnis: `THIRD-PARTY-NOTICES.md` enthält je Abhängigkeit Name, aufgelöste Version, direkte/transitive Verwendung, Produktions-/Entwicklungsumfang, Quelle, SPDX-Ausdruck oder ausgeschriebenen Lizenztyp und konkret einzuhaltende Copyright-/Lizenz-/NOTICE-Pflichten. Identische transitive Pakete werden einmal inventarisiert; erforderliche Originaltexte werden eindeutig referenziert oder beigefügt.
+    - Dauerregel: am Dokumentanfang die reproduzierbaren Inventarbefehle und die Pflicht festhalten, das Inventar bei jeder Abhängigkeitsänderung im selben Commit zu aktualisieren.
+    - Abnahme: `LICENSE` ist unveränderter MIT-Text mit dem genannten Copyright; kein Paket ist kostenpflichtig, lizenzseitig ungeklärt oder mit der MIT-Distribution unvereinbar. Nicht permissive oder unklare Lizenzen werden nicht eigenmächtig akzeptiert: Task offen lassen und Benutzerentscheidung anfordern.
+    - Abschluss: ausschließlich Lizenz-/Inventardateien, Roadmapstatus und zwingende Dokumentationsverweise atomar committen; keine Paketversion allein zur Vereinfachung des Inventars ändern.
 
 ## M0.2 – Host- und Routing-Spike
 
 - [ ] **M0.2 abschließen**
 
   - [ ] **M0.2-T1 – Blazor und MCP HTTP in einem Host validieren**
-    - Umfang: isolierter Spike für `WebApplication`, Blazor Interactive Server und MCP Streamable HTTP auf einem Kestrel-Port.
-    - Prüfen: Endpoint Routing, Blazor-Circuit, MCP-Streaming, DI-Scopes, Start/Stop und Route-Kollisionen.
+    - Fixture: isoliertes `net10.0`-Webprojekt mit `WebApplication`, einer minimalen Interactive-Server-Komponente unter `/` und dem aktuellen stabilen offiziellen Paket `ModelContextProtocol.AspNetCore`; ein zustandsloses Echo-Tool liegt unter `/mcp`. Kestrel bindet einen dynamischen Loopback-Port, beide Oberflächen verwenden exakt denselben Origin.
+    - Prüfen: Shell per HTTP laden und genau einen echten Blazor-Circuit ausschließlich mit Headless Chrome öffnen; parallel über den offiziellen C#-SDK-Client mit ausdrücklich gewähltem Streamable-HTTP-Transport initialisieren, Tools auflisten und das Echo-Tool aufrufen. MCP wird explizit stateless konfiguriert; Legacy-SSE, zustandsbehaftete Sessions und zusätzliche Ports bleiben aus.
+    - DI-/Lebenszyklusnachweis: instrumentierte scoped und singleton Services belegen erwartete Scopes ohne Zustandsübertragung zwischen zwei MCP-Requests oder zwischen MCP und Circuit. Requestabbruch erreicht den Tool-`CancellationToken`; der Host startet und stoppt dreimal ohne verbleibenden Prozess oder belegten Port.
+    - Headless-Regel: kein sichtbarer oder interaktiver Browserstart. Die temporäre Browserautomation entscheidet kein Testframework vor M0.3-T4 und wird nicht in Produktionsprojekte übernommen.
     - Nicht enthalten: produktive Hostmigration, REST/OpenAPI, UI-Design oder STDIO-Entfernung.
-    - Abnahme: technische Machbarkeit und notwendige Hostleitplanken sind belegt.
-    - Abschluss: Ergebnis im [Architekturkonzept](../konzept/05-architektur-api-und-mcp.md) festhalten; Spike-Code wird nicht als Produktionscode committed und die produktive Umsetzung beginnt erst in M1.
+    - Ergebnis: Paket-/Protokollversion, vollständige Mapping-Reihenfolge, relevante DI-Lifetimes, Start-/Stop-Befehle und Messung im [Architekturkonzept](../konzept/05-architektur-api-und-mcp.md) festhalten.
+    - Abnahme: Circuit und MCP-Aufruf funktionieren gleichzeitig auf demselben Port; stateless Verhalten, Abbruch und saubere Beendigung sind automatisiert belegt.
+    - Abschluss: Spike-Code wird nicht committed; produktive Umsetzung beginnt erst in M1.
 
-  - [ ] **M0.2-T2 – Routing- und Proxyannahmen verifizieren**
-    - Umfang: `/`, `/mcp` und reserviertes `/api` mit realistischem Reverse-Proxy-Verhalten prüfen; spätere Download-/Assetpräfixe gegen die Fallbackregeln konzeptionell abgleichen.
-    - Prüfen: WebSocket-Upgrade, Streaming, Timeouts, Fallback-Routing und ein gemeinsamer Origin.
-    - Nicht enthalten: produktives Deployment oder Security-Härtung.
-    - Abnahme: der gemeinsame Port ist bestätigt. Ist das nicht möglich, bleibt der Task offen und der Agent fragt den Benutzer, statt selbst auf mehrere Ports auszuweichen.
+  - [ ] **M0.2-T2 – Routing- und Transportmatrix verifizieren**
+    - Fixture: den Spike aus M0.2-T1 verwenden; keine zweite Hostvariante und keinen Reverse Proxy hinzufügen.
+    - Matrix: `/` liefert die Blazor-Shell; Framework-/Static-Asset-Routen bleiben erreichbar; `/mcp` akzeptiert ausschließlich die vom offiziellen SDK erzeugten zulässigen Streamable-HTTP-Aufrufe; `/api` und `/api/...` werden ausdrücklich reserviert und niemals von UI-Fallback oder MCP beantwortet; eine unbekannte UI-Route folgt allein der dokumentierten Blazor-Not-Found-Regel.
+    - Parallelfall: während eines aktiven Circuits zwei parallele MCP-Aufrufe ausführen und einen davon abbrechen. Antworten, Content-Types, Streaming/Flush, Cancellation und fehlende Route-Kollision werden protokolliert; es werden keine festen Wartezeiten verwendet.
+    - Konfiguration: Scheme, Adresse und Port stammen aus der normalen ASP.NET-Core-Hostkonfiguration. Es entsteht keine zweite Web-/MCP-Portoption und keine neue Proxykonfiguration.
+    - Abgrenzung: Reverse-Proxy-Produktwahl, TLS-Terminierung, öffentliche Erreichbarkeit und betriebliche Proxy-Timeouts sind für M0–M2 nicht erforderlich und werden erst im manuellen M6.0-Gate entschieden. M0 belegt nur, dass WebSocket/Circuit und MCP-Streaming auf einem direkten Kestrel-Origin koexistieren.
+    - Ergebnis: konkrete Routenmatrix, Mapping-Reihenfolge, reservierte Präfixe und nach M6 verschobene Betriebsannahmen im Architekturkonzept dokumentieren.
+    - Abnahme: alle Matrixfälle sind automatisiert grün und der gemeinsame Kestrel-Port ist bestätigt. Ist das nicht möglich, bleibt der Task offen und der Agent fragt den Benutzer, statt auf mehrere Ports oder einen Proxy auszuweichen.
 
 ## M0.3 – UI-Komponenten
 
