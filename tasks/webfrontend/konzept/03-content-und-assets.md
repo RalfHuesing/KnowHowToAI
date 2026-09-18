@@ -2,7 +2,7 @@
 
 ## Rich-Text-Editor
 
-Der erste schreibende Frontend-Schnitt verwendet ausschließlich Milkdown `@milkdown/crepe` `7.22.1`. Tiptap `3.31.3` mit `@tiptap/markdown` `3.31.3` ist trotz technisch bestandener Prüfung ausgeschlossen, weil die offizielle Markdown-Erweiterung eine Beta-/Early-Release-API an der kanonischen Speichergrenze ist. Ein vorheriger Wegwerf-Memo-Editor und eine erneute Editor-Auswahl sind nicht vorgesehen.
+Der erste schreibende Frontend-Schnitt verwendet ausschließlich Milkdown `@milkdown/crepe`. Tiptap mit `@tiptap/markdown` ist trotz technisch bestandener Prüfung ausgeschlossen, weil die offizielle Markdown-Erweiterung eine Beta-/Early-Release-API an der kanonischen Speichergrenze ist. Ein vorheriger Wegwerf-Memo-Editor und eine erneute Editor-Auswahl sind nicht vorgesehen.
 
 - Markdown bleibt kanonisches Ein-/Ausgabe- und Speicherformat.
 - Der Editor muss Markdown verlustarm roundtrippen; HTML-first mit nachträglicher verlustbehafteter Konvertierung reicht nicht.
@@ -13,7 +13,7 @@ Der erste schreibende Frontend-Schnitt verwendet ausschließlich Milkdown `@milk
 - Editorinhalt wird nicht zum Träger von Systemmetadaten.
 - Markdown wird über Milkdowns vorhandenen Import und `getMarkdown()` ausgetauscht. Die interne ProseMirror-Struktur ist ausschließlich flüchtiger Editorzustand und wird weder gespeichert noch transportiert.
 - Die Blazor-Grenze besteht aus genau einem featurelokalen, dynamisch importierten `ContentEditor.razor.js`: `mount` erhält Markdown sowie Change-/Focus-Callbacks; `readMarkdown`, `focus` und `dispose` sind die einzigen weiteren Aufrufe. Vor erneutem `mount` bei Nodewechsel oder Reconnect wird `dispose` ausgeführt.
-- `mount`, `readMarkdown`, `focus` und `dispose` bleiben dünnes Interop ohne eigene Verzweigungs-, Transformations-, Retry- oder Lifecyclelogik. Entsteht solche eigene Logik später tatsächlich, ist vor ihrer Aufnahme Vitest mit Version, Ablage und FastTest-Integration festzulegen; bis dahin gibt es keine separate JS-Testtoolchain.
+- `mount`, `readMarkdown`, `focus` und `dispose` bleiben dünnes Interop ohne eigene Verzweigungs-, Transformations-, Retry- oder Lifecyclelogik. Entsteht solche eigene Logik später tatsächlich, sind vor ihrer Aufnahme Vitest, Ablage und FastTest-Integration festzulegen; bis dahin gibt es keine separate JS-Testtoolchain.
 - Der verbindliche Golden Master umfasst Absätze, fett/kursiv/durchgestrichen, erlaubte Links, geordnete/ungeordnete/verschachtelte Listen, Tabellen, Inline-Code, Fenced Code mit Sprachkennung, Blockquotes und Unicode. Jeder zulässige Master muss fünf aufeinanderfolgende `Markdown -> Editor -> Markdown`-Zyklen Markdig-semantisch äquivalent überstehen.
 - Bekannte Sicherheitsfälle bleiben unverändert prüfbar: Raw HTML und Markdown-/HTML-Headings werden nicht still entfernt, sondern an der maßgeblichen Servergrenze abgelehnt; externe Bilder lösen keinen Request aus; Paste-Reduktionen erzeugen einen sichtbaren `role=status`-Hinweis; eine Serverablehnung überschreibt nie den ungespeicherten Editorwert.
 - Die spätere M8-Integration darf über den vorhandenen Hook ausschließlich eine bereits serverseitig erzeugte interne Assetreferenz einsetzen. Sie aktiviert keine externen Bild-URLs und keinen direkten Browserupload aus Milkdown heraus.

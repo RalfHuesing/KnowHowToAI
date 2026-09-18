@@ -19,7 +19,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M2.1 abschließen**
 
   - [ ] **M2.1-T1 – Native UI-Basis implementieren**
-    - Voraussetzung: `KnowHowToAI.Web.Tests` verwendet bUnit `2.11.3`/xUnit v3 `3.2.2`; `KnowHowToAI.BrowserTests` verwendet Microsoft.Playwright .NET `1.62.0` und Google Chrome Stable (installierte aktuelle Version) ausschließlich headless mit `Channel = "chrome"`.
+    - Voraussetzung: `KnowHowToAI.Web.Tests` verwendet bUnit mit xUnit v3; `KnowHowToAI.BrowserTests` verwendet Microsoft.Playwright .NET und die installierte aktuelle Google-Chrome-Stable-Version ausschließlich headless mit `Channel = "chrome"`.
     - Integration: Blazor-/HTML-Komponenten direkt implementieren; keine allgemeine UI-Paketreferenz, keine Suite-Services und kein leeres Wrapperframework hinzufügen. Lokales CSS und nur tatsächlich benötigte schmale JS-Isolation in `App.razor` einbinden. Keine CDN-, Cloud-, Telemetrie- oder Laufzeit-Downloadabhängigkeit.
     - Dialog: nativen HTML-`dialog` über einen lokalen JS-Isolationsbaustein mit `showModal()`, Fokusfalle, `Escape` und Fokusrückgabe kapseln; der Baustein enthält keine allgemeine Zustandsmaschine.
     - Testprojekt: Ein nur in `KnowHowToAI.Web.Tests` gerendertes Showcase-Fixture belegt beschriftetes Formular samt Validierung, Button, Dialog, kleine Tabelle, Inlinehinweis und Toast; es entsteht keine öffentliche Demo-/Showcase-Route im Produkt.
@@ -101,7 +101,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: Benutzer erkennt Zustand und sichere nächste Aktion; nach erfolgreichem Reconnect funktioniert der lokale M1-Interaktionsnachweis weiter, ohne fachlichen Zustand im Circuit zu erfinden.
 
   - [ ] **M2.4-T3 – Komponenten- und visuelle Smoke-Testbasis erweitern**
-    - Projekt: das seit M1.2 vorhandene `KnowHowToAI.BrowserTests` mit Microsoft.Playwright .NET `1.62.0` verwenden. Es referenziert weiterhin kein Produktionsprojekt und behandelt die veröffentlichte Server-EXE als Black Box.
+    - Projekt: das seit M1.2 vorhandene `KnowHowToAI.BrowserTests` mit Microsoft.Playwright .NET verwenden. Es referenziert weiterhin kein Produktionsprojekt und behandelt die veröffentlichte Server-EXE als Black Box.
     - Testhost: Server einmal pro Testkollektion mit `dotnet publish`-Artefakt, dynamischem Loopback-Port und Environment-/Kommandozeilen-Overrides starten; Migration für Shell-Smokes deaktivieren. Readiness über beobachtbaren HTTP-Zustand, Logs begrenzen/redigieren, Prozess und Port im `IAsyncLifetime` auch bei Fehlschlag sicher freigeben. Keine zweite Appsettings-Datei.
     - Browser: ausschließlich installiertes Google Chrome Stable (aktuelle installierte Version) über `Channel = "chrome"` und `Headless = true`; fehlendes Chrome ist ein klarer Preflight-Fehler, kein Chromium-Fallback. Kein Edge/Firefox/Safari-Projekt, keine sichtbare Debugkonfiguration als regulärer Testpfad.
     - Smokes: ausschließlich die tatsächlich erreichbare Shell bei 1280 × 720 und die kompakte Shell bei 1024 × 720. Je Smoke zuerst semantische/Verhaltensassertionen, danach ein stabil maskierter Light-Theme-Screenshot; Animationen, Zeitwerte, Correlation-IDs und andere volatile Inhalte maskieren. Es wird keine Test-/Demo-Route in das Produkt eingebaut.

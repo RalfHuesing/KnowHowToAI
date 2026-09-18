@@ -89,7 +89,7 @@ Streamable HTTP ersetzt STDIO vollständig. Das transportneutrale Domain-/Applic
 
 Verbindlicher Integrationsvertrag für M1:
 
-- Offizielles `ModelContextProtocol.AspNetCore` `2.2.0`; das Paket verwendet `ModelContextProtocol` und `ModelContextProtocol.Core` jeweils `2.2.0`.
+- Offizielles `ModelContextProtocol.AspNetCore` einschließlich seiner kompatiblen SDK-Abhängigkeiten.
 - Streamable HTTP auf `/mcp`.
 - `SessionMode = Stateless`; `EnableLegacySse` bleibt `false`.
 - Kein Transport-Sessionzustand als fachliche Quelle.

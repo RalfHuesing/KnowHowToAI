@@ -6,7 +6,7 @@
 
 Abhängigkeit: [M4](04-transactions-und-strukturpflege.md)
 
-Verbindliche M0-Basis: Editor ist ausschließlich Milkdown `@milkdown/crepe` `7.22.1`; Tiptap und eine erneute Editor-Auswahl sind ausgeschlossen. Die Interopgrenze besteht aus `mount`, `readMarkdown`, `focus` und `dispose`. Vitest ist für diesen dünnen Pfad nicht erforderlich. Komponenten- und Browsernachweise verwenden bUnit `2.11.3`/xUnit v3 `3.2.2` beziehungsweise Microsoft.Playwright .NET `1.62.0` mit Chrome Stable (installierte aktuelle Version), `Channel = "chrome"`, `Headless = true`.
+Verbindliche M0-Basis: Editor ist ausschließlich Milkdown `@milkdown/crepe`; Tiptap und eine erneute Editor-Auswahl sind ausgeschlossen. Die Interopgrenze besteht aus `mount`, `readMarkdown`, `focus` und `dispose`. Vitest ist für diesen dünnen Pfad nicht erforderlich. Komponenten- und Browsernachweise verwenden bUnit mit xUnit v3 beziehungsweise Microsoft.Playwright .NET mit der installierten aktuellen Chrome-Stable-Version, `Channel = "chrome"`, `Headless = true`.
 
 Ziel: Rollenabhängiger Markdown-Content kann vollständig und komfortabel ohne Agent gepflegt werden.
 
@@ -18,7 +18,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M5.0 abschließen**
   - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M4; kein delegierbarer Implementierungs-Leaf-Task.
-  - Entscheiden: Markdown-Quellmodus (O-010), lokale npm-/Bundle-Erzeugung O-029 samt fester Werkzeugversion sowie die noch offenen Rollen-, Fallback-, Derived-Content- und Validierungsabläufe. Editorprodukt und Editorversion werden nicht erneut entschieden.
+  - Entscheiden: Markdown-Quellmodus (O-010), lokale npm-/Bundle-Erzeugung O-029 sowie die noch offenen Rollen-, Fallback-, Derived-Content- und Validierungsabläufe. Das Editorprodukt wird nicht erneut entschieden; die beim Build aufgelöste Version wird im Lockfile festgehalten.
   - Prüfen: produktive Transaction- und Konflikt-UX aus M4, Milkdown-Interopvertrag, sichere Contentpolicy, M0-Golden-Master und tatsächliche Core-Verträge gegen die bisherigen Entwurfstasks.
   - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M5-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
   - Gate: M5.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
@@ -29,8 +29,8 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
   - [ ] **M5.1-T1 – Rich-Text-Editor mit Markdownmodell integrieren**
     - Voraussetzung: O-027 zum Undo-Umfang und O-029 zur lokalen Milkdown-Buildtoolchain sind geschlossen.
-    - Abhängigkeit: Die im M5.0-Gate festgelegte lokale npm-/Bundle-Erzeugung ist mit exakten Werkzeugversionen, Lockfile, Restore-/Buildbefehl, eindeutigem Outputpfad unter `wwwroot/`, CI-Integration und Lizenzinventarisierung im [Strukturkonzept](../konzept/08-projektstruktur-und-codekonventionen.md) dokumentiert. Vor Produktaufnahme wird der tatsächliche vollständige npm-Closure erneut inventarisiert; für `dompurify` ist die im M0-Befund ermittelte permissive Apache-2.0-Lizenzalternative einschließlich ihrer Pflichten zu verwenden und `THIRD-PARTY-NOTICES.md` im selben Commit zu ergänzen.
-    - Umfang: `@milkdown/crepe` exakt `7.22.1` lokal und ohne CDN/Runtime-Download bündeln. `ContentEditor.razor.js` dynamisch importieren; `mount` erhält Markdown und Change-/Focus-Callbacks, weitere Interopaufrufe sind ausschließlich `readMarkdown`, `focus`, `dispose`. Vor erneutem `mount` bei Nodewechsel oder Reconnect `dispose` abwarten.
+    - Abhängigkeit: Die im M5.0-Gate festgelegte lokale npm-/Bundle-Erzeugung ist mit Lockfile, Restore-/Buildbefehl, eindeutigem Outputpfad unter `wwwroot/`, CI-Integration und Lizenzinventarisierung im [Strukturkonzept](../konzept/08-projektstruktur-und-codekonventionen.md) dokumentiert. Vor Produktaufnahme wird der tatsächliche vollständige npm-Closure erneut inventarisiert; für `dompurify` ist die im M0-Befund ermittelte permissive Apache-2.0-Lizenzalternative einschließlich ihrer Pflichten zu verwenden und `THIRD-PARTY-NOTICES.md` im selben Commit zu ergänzen.
+    - Umfang: die beim Umsetzen aktuelle stabile, kompatible Version von `@milkdown/crepe` lokal und ohne CDN/Runtime-Download bündeln. `ContentEditor.razor.js` dynamisch importieren; `mount` erhält Markdown und Change-/Focus-Callbacks, weitere Interopaufrufe sind ausschließlich `readMarkdown`, `focus`, `dispose`. Vor erneutem `mount` bei Nodewechsel oder Reconnect `dispose` abwarten.
     - Toolbar: ausschließlich Bold, Italic, Strikethrough, Inline-Code und Link anzeigen; Latex, ImageBlock, Headings und Upload deaktivieren. Die interne ProseMirror-Struktur bleibt flüchtig und wird nie persistiert oder als zweiter Vertrag übertragen.
     - Unterstützen: Formatierung, sichere Links, Listen, Tabellen, Code und Zitate; Raw HTML, unsichere Links und fremde Ressourcen folgen der O-020-Policy, Bilder folgen niedrig priorisiert in M8.
     - Tests: bUnit prüft Komponentenzustand und den exakten dünnen JS-Aufrufvertrag; Playwright prüft Initialisierung, Markdownlesen, Fokus, Dirty-State, `dispose`/Remount bei Nodewechsel und Reconnect sowie Serverablehnung mit erhaltenem Editorwert. Netzwerkassertion: keine Drittanbieter-Origin und kein externer Bildrequest.
@@ -38,7 +38,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
   - [ ] **M5.1-T2 – Markdown-Roundtrip absichern**
     - Umfang: den M0-Golden-Master für Absätze, fett/kursiv/durchgestrichen, erlaubte Links, geordnete/ungeordnete/verschachtelte Listen, Tabellen, Inline-Code, Fenced Code mit Sprachkennung, Blockquotes und Unicode als dauerhafte Testdaten übernehmen; Herkunft und Lizenz der Fixture-Daten dokumentieren, keinen Spike-Code kopieren.
-    - Prüfen: jeden zulässigen Master fünfmal `Markdown -> Editor -> Markdown` durchlaufen und mit derselben Markdig-`0.42.0`-Advanced-Pipeline semantisch vergleichen; zusätzlich Whitespace, Escaping, Inhalt nahe 4 KiB und wiederholtes Öffnen/Speichern.
+    - Prüfen: jeden zulässigen Master fünfmal `Markdown -> Editor -> Markdown` durchlaufen und mit derselben Markdig-Advanced-Pipeline semantisch vergleichen; zusätzlich Whitespace, Escaping, Inhalt nahe 4 KiB und wiederholtes Öffnen/Speichern.
     - Negativfälle: Raw HTML sowie Markdown-/HTML-Headings bleiben als Eingabe erhalten, bis der Server sie mit `RawHtmlNotAllowed` beziehungsweise `HeadingNotAllowed` ablehnt; unzulässige Links und externe Bilder liefern `LinkTargetNotAllowed` beziehungsweise `ExternalImageNotAllowed`, externe Bilder erzeugen keinen Request. Paste aus Text, Browser-HTML und Office-HTML reduziert nur gemäß Contentpolicy und zeigt einen zusammengefassten `role=status`-Hinweis.
     - Abnahme: alle zulässigen Master bestehen fünf Zyklen semantisch; keine verbotene Struktur verschwindet still und jede bekannte Normalisierung ist dokumentiert.
 

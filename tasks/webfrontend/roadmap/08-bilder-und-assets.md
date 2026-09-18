@@ -8,7 +8,7 @@ Priorität: niedrig. Umsetzung nach dem PDF-Export.
 
 Abhängigkeit: [M5](05-rollen-content-und-rich-text.md), [M7](07-pdf-export.md)
 
-Verbindliche M0-Basis: Bilder erweitern den bestehenden Milkdown-Editor `@milkdown/crepe` `7.22.1` über dessen bereits vorbereiteten internen Hook; es findet keine neue Editor- oder Komponentenwahl statt. Browserfälle bleiben bei Microsoft.Playwright .NET `1.62.0` mit Chrome (installierte aktuelle Version), `Channel = "chrome"`, `Headless = true`.
+Verbindliche M0-Basis: Bilder erweitern den bestehenden Milkdown-Editor `@milkdown/crepe` über dessen bereits vorbereiteten internen Hook; es findet keine neue Editor- oder Komponentenwahl statt. Browserfälle verwenden Microsoft.Playwright .NET mit der installierten aktuellen Chrome-Stable-Version, `Channel = "chrome"`, `Headless = true`.
 
 Ziel: Bilder sind stabil referenzierbar, historisch reproduzierbar und in Editor, Browser, MCP sowie Export konsistent.
 

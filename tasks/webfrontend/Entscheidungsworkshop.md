@@ -34,7 +34,7 @@ Nächster Arbeitsschritt:
 
 Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M3 bearbeitet und nicht jetzt vorsorglich entschieden.
 
-Verbindliche M0-Ergebnisse: keine allgemeine UI-Bibliothek; nativer Knowledge Tree mit opakem serverseitigem 100er-Paging und höchstens zehn gleichzeitig gehaltenen Seiten; Milkdown `@milkdown/crepe` `7.22.1`; bUnit `2.11.3` mit xUnit v3 `3.2.2`; Microsoft.Playwright .NET `1.62.0` ausschließlich headless mit `Channel = "chrome"` gegen die installierte aktuelle Chrome-Stable-Version; kein Vitest ohne tatsächlich eigene zustandsbehaftete JS-/TS-Logik. Details stehen in den fachlich zuständigen Konzepten und in [M0](roadmap/00-komponenten-und-architektur.md).
+Verbindliche M0-Ergebnisse: keine allgemeine UI-Bibliothek; nativer Knowledge Tree mit opakem serverseitigem 100er-Paging und höchstens zehn gleichzeitig gehaltenen Seiten; Milkdown `@milkdown/crepe`; bUnit mit xUnit v3; Microsoft.Playwright .NET ausschließlich headless mit `Channel = "chrome"` gegen die installierte aktuelle Chrome-Stable-Version; kein Vitest ohne tatsächlich eigene zustandsbehaftete JS-/TS-Logik. Konkrete Fremdversionsnummern folgen der Abhängigkeitsregel im [Strukturkonzept](konzept/08-projektstruktur-und-codekonventionen.md). Details stehen in den fachlich zuständigen Konzepten und in [M0](roadmap/00-komponenten-und-architektur.md).
 
 ## Historische technische Vorbewertung vom 2026-09-17
 
@@ -183,7 +183,7 @@ Quellen:
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
 | O-010 | Markdown-Quellmodus | aufnehmen; kontrollierter Wechsel, gleiche Validierung und Dirty-State | gibt Experten Zugriff auf das kanonische Format |
-| O-029 | Milkdown-Buildtoolchain | im M5.0-Gate genau eine lokal reproduzierbare Toolchain mit festen Versionen, Lockfile, Restore-/Buildbefehl, Outputpfad und CI-/Lizenzintegration wählen; die M0-Vite-Fixture nicht automatisch übernehmen | macht die gewählte Editorversion selbst gehostet und reproduzierbar, ohne eine unentschiedene Spike-Toolchain zum Produktvertrag zu erheben |
+| O-029 | Milkdown-Buildtoolchain | im M5.0-Gate genau eine lokal reproduzierbare Toolchain mit Lockfile, Restore-/Buildbefehl, Outputpfad und CI-/Lizenzintegration wählen; die M0-Vite-Fixture nicht automatisch übernehmen | macht den gewählten Editor selbst gehostet und reproduzierbar, ohne eine unentschiedene Spike-Toolchain zum Produktvertrag zu erheben |
 | O-011 | PDF-Basislayout | A4, kein Deckblatt, Inhaltsverzeichnis ab zwei Ebenen, Logo im Header, Seitenzahl im Footer | hält ersten Export klein und brauchbar |
 | O-004 | Assetspeicher | im M8-Spike SQL-Metadaten plus getrennten immutable Binärspeicher gegen SQL-Varbinary bewerten; Backup/Mehrinstanzbetrieb mitentscheiden | keine vorzeitige Speicherfestlegung |
 | O-016 | Assetgrenzen | zunächst PNG/JPEG/WebP, 10 MiB, 40 MP; SVG aus Sicherheitsgründen nicht im ersten Stand | reduziert Sanitization- und Active-Content-Risiko |
@@ -199,7 +199,7 @@ Quellen:
 
 - Produktive Zielumgebung, SQL-Edition, vorhandener Proxy, Zertifikatsprozess, Backupplattform und Betriebsverantwortung.
 - Reale Größenordnung von Nutzern, Wissensbestand, Änderungsrate und Wiederherstellungsanforderung zur Kalibrierung von O-017/O-023.
-- Lokale npm-/Bundle-Erzeugung für die produktive Milkdown-Integration einschließlich fester Werkzeugversionen; Entscheidung im manuellen M5.0-Gate, nicht durch Wiederholung der Editorauswahl.
+- Lokale npm-/Bundle-Erzeugung für die produktive Milkdown-Integration einschließlich Lockfile; Entscheidung im manuellen M5.0-Gate, nicht durch Wiederholung der Editorauswahl.
 
 ## Bereits verbindlich und nicht erneut zu diskutieren
 
@@ -229,7 +229,7 @@ Quellen:
 | `fea000f`, `a0d540f` | gemeinsamen Blazor-/MCP-Kestrel-Origin und Routingmatrix validiert |
 | `a044ab3` | native UI-Basis ohne allgemeine Komponentenbibliothek entschieden |
 | `02a3e21` | nativen cursorpaginierten Knowledge Tree entschieden |
-| `90ffc37` | Milkdown `@milkdown/crepe` `7.22.1` entschieden |
+| `90ffc37` | Milkdown `@milkdown/crepe` entschieden |
 | `077da52` | bUnit-/Playwright-Testwerkzeuge und Vitest-Grenze entschieden |
 
 Diese Commits sind abgeschlossen und werden nicht erneut umgesetzt. Der nächste Workshop-Schritt verändert ausschließlich Entscheidungen, die der Benutzer ausdrücklich beantwortet oder für deren Entscheidung er den Agenten ausdrücklich beauftragt.

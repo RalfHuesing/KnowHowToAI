@@ -33,7 +33,7 @@ Das Frontend ist die vollumfängliche menschliche Arbeits- und Publikationsoberf
 6. **Progressive Disclosure:** Erst Struktur und Metadaten, Content nur bei Bedarf.
 7. **Intranet-first:** Regulärer Betrieb zentral im Firmennetz; lokale Entwicklung und Tests bleiben möglich.
 8. **KI optional:** Alle Kernworkflows funktionieren deterministisch ohne LLM.
-9. **M0-Auswahl verbindlich nutzen:** Allgemeine UI nativ mit Blazor/HTML/CSS, Knowledge Tree nativ und paginiert, Rich Text mit Milkdown `@milkdown/crepe` `7.22.1`; keine erneute Variantensuche in Folge-Milestones.
+9. **M0-Auswahl verbindlich nutzen:** Allgemeine UI nativ mit Blazor/HTML/CSS, Knowledge Tree nativ und paginiert, Rich Text mit Milkdown `@milkdown/crepe`; keine erneute Variantensuche in Folge-Milestones.
 10. **Bedarf vor Vorratsbau:** Der erste Schritt implementiert Weboberfläche und HTTP-MCP; weitere Integrationsadapter entstehen erst bei einem konkreten Anwendungsfall.
 
 ## Bestehende Kernleitplanken
