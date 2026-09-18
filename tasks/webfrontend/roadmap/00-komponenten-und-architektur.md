@@ -255,7 +255,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
     besonders der temporäre Playwright-Treiber ist keine Vorentscheidung für
     M0.3-T4.
 
-  - [ ] **M0.3-T3 – Markdown-fähigen Rich-Text-Editor auswählen**
+  - [x] **M0.3-T3 – Markdown-fähigen Rich-Text-Editor auswählen**
     - Kandidaten: aktuelle stabile Versionen von Milkdown und Tiptap mit dessen offizieller Markdown-Erweiterung; beide werden mit demselben Fixture geprüft, Milkdown zuerst. Die weiterhin als Beta dokumentierte Tiptap-Markdown-Erweiterung ist als Produktrisiko auszuweisen. TOAST UI Editor ist ausgeschlossen, weil das Upstream-Repository seit 2026-09-02 archiviert und schreibgeschützt ist; weitere Editoren werden nicht gesucht.
     - Golden-Master-Fixture: Absätze; fett/kursiv/durchgestrichen; Links; geordnete, ungeordnete und verschachtelte Listen; Tabellen; Inline-Code; fenced Code mit Sprachkennung; Blockquotes; Unicode; absichtlich enthaltenes Raw HTML; erlaubte und verbotene Linkziele; externe Bildsyntax; Text-, Browser-HTML- und Office-HTML-Paste; Inhalt nahe der fachlichen 4-KiB-Warngrenze.
     - Roundtrip: jeden zulässigen Golden Master fünfmal `Markdown -> Editor -> Markdown` durchlaufen lassen und anschließend mit Markdig als semantische Struktur vergleichen. Unterschiedliche, aber semantisch gleichwertige Markdownschreibweisen sind zulässig; verlorene oder neu erzeugte Struktur ist ein Knock-out. Das serverseitig verbotene Raw HTML und Headings müssen als klarer Validierungsfehler erhalten beziehungsweise abgelehnt werden und dürfen nicht stillschweigend verschwinden.
@@ -264,6 +264,87 @@ Für M0.2 und M0.3 gilt zusätzlich:
     - Auswahlregel: Ein stabiler, vollständig bestehender Markdownpfad gewinnt vor einer Beta-API. Danach gelten geringere semantische Anpassung, kleinere transitive JavaScript-Lieferkette und weniger eigener zustandsbehafteter JS-Code. Besteht kein Kandidat den Roundtrip, wird nichts ausgewählt.
     - Ergebnisort: Entscheidung, erlaubte Editorfunktionen, Interop-/Lifecycle-Vertrag, Golden Master und bekannte Grenzen in `konzept/03-content-und-assets.md`; Lizenzbefund in `THIRD-PARTY-NOTICES.md`; O-002 entfernen.
     - Abnahme: alle erlaubten Strukturen bestehen den fünffachen semantischen Roundtrip und sämtliche Sicherheits-/Lifecycle-Kriterien sind automatisiert belegt.
+
+    **Nachweis und Entscheidung (2026-09-18):** Gewählt ist
+    **Milkdown `@milkdown/crepe` `7.22.1`**. Die am Prüftag aktuelle
+    stabile npm-Version wurde aus `https://registry.npmjs.org/@milkdown/crepe`
+    (Dist-Tag `latest`) und dem ausgelieferten Paket geprüft; Upstream ist
+    `https://github.com/Milkdown/milkdown`, Lizenz MIT. Die Referenzintegration
+    nutzt den vorhandenen Markdown-Import und `getMarkdown()` ohne eigene
+    Markdown-Umwandlung. Damit bleibt Markdown der einzige Wert an der
+    Blazor-/Servergrenze und das einzige persistierbare Format; die interne,
+    flüchtige ProseMirror-Struktur wird weder gespeichert noch als zweites
+    Transportformat geführt. Es gibt keinen CDN-, Cloud-, Telemetrie-, Pro- oder
+    Bezahlzwang.
+
+    Beide strikt vorgegebenen Kandidaten liefen mit demselben lokalen,
+    nichtproduktiven Fixture unter `temp/webfrontend-spikes/M0.3-T3`:
+    `dotnet build EditorSpike.csproj --no-restore` war mit 0 Warnungen/0 Fehlern
+    erfolgreich; der lokale Markdig-`0.42.0`-Endpunkt verwendete die
+    Advanced-Extensions-Pipeline für die semantische AST-Strukturprüfung. Der
+    Browsernachweis lief ausschließlich mit Google Chrome `152.0.7977.83` und
+    `Microsoft.Playwright` `1.62.0`, `Channel = "chrome"`, `Headless = true`.
+    Er wartet auf die beobachtbare Fixture-API und Browserzustände, nicht auf
+    feste Sleeps. Playwright, Vite und der Minihost sind reine, uncommittete
+    Spikewerkzeuge und keine Vorentscheidung für M0.3-T4.
+
+    | Gemeinsamer Golden Master und Ergebnis | Milkdown `7.22.1` | Tiptap `3.31.3` + `@tiptap/markdown` `3.31.3` |
+    |---|---|---|
+    | Absätze, fett/kursiv/durchgestrichen, erlaubte `https`-/`mailto`-/Fragment-/root-relative-/relative Links, geordnete/ungeordnete/verschachtelte Listen, Tabellen, Inline- und `csharp`-Fenced-Code, Zitat, Unicode | 5/5 Markdown → Editor → Markdown, jeweils Markdig-äquivalente Struktur | 5/5, jeweils Markdig-äquivalente Struktur |
+    | Größennahe Variante | final 4.012 UTF-8-Bytes | final 4.014 UTF-8-Bytes |
+    | Separate Listen-/Tabellen- sowie Link-Master | jeweils 5/5 Markdig-äquivalent | jeweils 5/5 Markdig-äquivalent |
+    | Raw HTML und Markdown-/HTML-Headings | unverändert an den Server übergeben und klar abgelehnt: `RawHtmlNotAllowed`, `HeadingNotAllowed`, `RawHtmlNotAllowed`; kein stilles Entfernen | gleiches Ergebnis |
+    | O-020-Links und externe Bildsyntax | `http`, `javascript`, `data`, `file`, Netzwerkpfad `//` und externe Bilder vor dem Editorzugriff abgelehnt (`LinkTargetNotAllowed` bzw. `ExternalImageNotAllowed`); ein Request-Observer sah 0 Requests auf die externe Bild-URL | gleiches Ergebnis |
+    | Text-, Browser-HTML- und Office-HTML-Paste | Text blieb Text; unsichere Links, Bilder, Styles und Headingsemantik wurden reduziert; der sichtbare `role=status`-Hinweis erschien | gleiches Ergebnis |
+    | Serverablehnung und Lifecycle | Ausgangsinhalt blieb nach jeder Ablehnung erhalten; Dirty-State, Fokus, Reconnect mit Inhaltserhalt, Dispose und Nodewechsel mit Verwerfungsentscheidung automatisiert positiv | gleiches Ergebnis |
+
+    Die sichtbare Milkdown-Crepe-Toolbar enthielt im Fixture ausschließlich
+    Bold, Italic, Strikethrough, Inline-Code und Link; die öffentlichen
+    Featureflags deaktivierten Latex und ImageBlock, und es gab keinen Heading-
+    oder Bild-Upload-Befehl. In der späteren Blazor-Komponente
+    wird diese reduzierte Commandmenge über genau ein featurelokales,
+    dynamisch importiertes `ContentEditor.razor.js` gebunden: `mount` erhält
+    Markdown und Change-/Focus-Callbacks, `readMarkdown`, `focus` und `dispose`
+    sind die einzigen weiteren Aufrufe. `dispose` wird bei Reconnect und
+    Nodewechsel vor erneutem `mount` ausgeführt; Dirty-Content verbleibt im
+    Circuit und erfordert explizit `Bleiben` oder `Ungespeicherte Eingabe
+    verwerfen`. Ein späterer M8-Hook darf ausschließlich eine bereits
+    serverseitig erzeugte interne Assetreferenz in den Editor einsetzen; er
+    aktiviert weder Browserupload noch externe Bild-URLs. Der Server validiert
+    weiterhin vor jeder Mutation, zeigt den konkreten Befund und überschreibt
+    bei Fehler niemals den unpersistierten Editorwert.
+
+    **Verworfener Kandidat:** Tiptap `3.31.3` mit der offiziellen
+    Markdown-Erweiterung `3.31.3` bestand technisch dieselben Nachweise und
+    benötigt keine kostenpflichtige Funktion. Die offizielle Tiptap-Dokumentation
+    bezeichnet die Erweiterung jedoch weiterhin ausdrücklich als **Beta/early
+    release** und weist auf mögliche nicht unterstützte Randfälle hin; sie
+    übersetzt Markdown zudem über Marked in internes Tiptap-JSON und zurück.
+    Das ist kein persistiertes Zweitformat im Fixture, aber eine Beta-API an der
+    kanonischen Speichergrenze. Nach der Auswahlregel verliert sie deshalb gegen
+    Milkdowns stabilen, vollständigen Markdownpfad.
+
+    | Lizenz- und Lieferkettenmessung aus den tatsächlich installierten Paketen | Milkdown | Tiptap |
+    |---|---:|---:|
+    | Laufzeitabhängigkeiten im vollständigen Closure | 209 | 48 |
+    | Lizenzbefund | 205 MIT, 1 BSD-2-Clause, 1 BSD-3-Clause, 1 ISC, `dompurify` `MPL-2.0 OR Apache-2.0` (für die Distribution ist die permissive Apache-2.0-Alternative zu erfüllen) | 48 MIT |
+    | Closure-Dateigröße | 55.591.064 B | 9.971.519 B |
+    | Eigener zustandsbehafteter JS-Code für den Markdownpfad | keiner | keiner |
+
+    Alle vorgenannten Paketversionen wurden gegen die Paketmetadaten und ihre
+    vollständigen direkten/transitiven Closure-Manifeste geprüft. Copyright-,
+    Lizenz- und gegebenenfalls NOTICE-Texte werden bei der späteren tatsächlichen
+    Produktaufnahme in `THIRD-PARTY-NOTICES.md` vollständig inventarisiert;
+    dieser uncommittete Spike fügt keine Produktabhängigkeit hinzu und ändert
+    das Inventar deshalb nicht. Die größere Milkdown-Lieferkette ist nachrangig,
+    weil der stabile existierende Markdownpfad vor der Tiptap-Beta gewinnt.
+
+    Die Fixture wird auf ausdrücklichen Benutzerwunsch erhalten, nicht gelöscht
+    und nicht committed. Sie ist ausschließlich unter
+    `temp/webfrontend-spikes/M0.3-T3` abgelegt, wird als nichtproduktive
+    Wiederverwendung für nachfolgende Spikes behalten und teilt keine Solution-,
+    zentrale Paket-, Produktions- oder Testprojektdatei. **O-002 ist mit dieser
+    Auswahl in der Roadmap geschlossen.** M0.3 und M0 bleiben bis M0.3-T4 offen.
 
   - [ ] **M0.3-T4 – Web-Komponenten- und Browser-Testwerkzeuge auswählen**
     - Feste Werkzeuge: aktuelle stabile bUnit-Version mit xUnit v3 für Razor-Komponenten und aktuelle stabile Microsoft-Playwright-.NET-Version mit dem installierten Google-Chrome-Stable-Kanal für Browserabläufe. Es werden keine alternativen Testframeworks verglichen.
