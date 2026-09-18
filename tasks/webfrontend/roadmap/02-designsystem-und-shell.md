@@ -30,7 +30,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Startwerte Farben: Primary `#2563EB`, Primary Hover `#1D4ED8`, Primary Active `#1E40AF`, Text `#111827`, Secondary Text `#4B5563`, Page `#F8FAFC`, Surface `#FFFFFF`, Border `#CBD5E1`, Success `#15803D` auf `#F0FDF4`, Warning `#B45309` auf `#FFFBEB`, Danger `#B91C1C` auf `#FEF2F2` und Info/Primary auf `#EFF6FF`. Status besitzt zusätzlich Icon und Text.
     - Startwerte Maße: `4/8/12/16/24/32px`-Abstandsskala, Radien `4/8px`, Surface-Schatten `0 1px 2px rgb(15 23 42 / 0.08)`, Basistext `16px` mit `1.5` Zeilenhöhe und die Systemschriftkette `Segoe UI, Arial, sans-serif`. Fokus ist ein mindestens `3px` starker Ring in Primary mit `2px` Abstand und wird nicht per `outline: none` entfernt.
     - Icons: ausschließlich lokal ausgelieferte Icons der gewählten Basis oder kleine repo-eigene SVGs. Dekorative Icons sind für Assistenztechnik verborgen; alleinstehende Iconbuttons erhalten einen zugänglichen Namen. Kein eigenes Logo- oder Iconfont-Asset.
-    - Branding: `KnowHowTo AI` in der Shell als reine Textwortmarke darstellen; kein Dummy-/Bildlogo und kein Favicon-Zwang.
+    - Branding: `KnowHowToAI` in der Shell als reine Textwortmarke darstellen; kein Dummy-/Bildlogo und kein Favicon-Zwang.
     - Sprache: ausschließlich deutsche UI ohne Lokalisierungsinfrastruktur. Einmalige Texte bleiben featurelokal; nur tatsächlich gemeinsam verwendete Bezeichnungen und Fehlermappings werden zentralisiert.
     - Ausschluss: kein Dummy-/Bildlogo, Webfont, Font-CDN, `.resx`, `IStringLocalizer` oder globale Sammlung aller UI-Texte.
     - Zustände: neutral, aktiv, Erfolg, Warnung, Fehler, deaktiviert und ungespeichert.

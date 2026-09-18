@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Fuehrt IntegrationTests fuer KnowHowTo AI aus und schreibt das Ergebnis statisch nach TestResults/IntegrationTests.trx.
+    Fuehrt IntegrationTests fuer KnowHowToAI aus und schreibt das Ergebnis statisch nach TestResults/IntegrationTests.trx.
 
 .PARAMETER Filter
     xUnit-Filter fuer dotnet test (Standard: Category!=Stress).

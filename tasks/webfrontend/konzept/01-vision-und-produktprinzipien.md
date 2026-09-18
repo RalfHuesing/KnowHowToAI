@@ -2,7 +2,7 @@
 
 ## Vision
 
-KnowHowTo AI wird von einem reinen MCP-Server zu einer Wissensplattform für Menschen und Agenten.
+KnowHowToAI wird von einem reinen MCP-Server zu einer Wissensplattform für Menschen und Agenten.
 
 - Die Datenbank ist der zentrale, versionierte **Wissensbunker**.
 - Menschen pflegen, strukturieren, prüfen und publizieren Wissen über ein Webfrontend.

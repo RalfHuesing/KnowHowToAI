@@ -1,6 +1,6 @@
-# KnowHowTo AI – SQL-Skripte
+# KnowHowToAI – SQL-Skripte
 
-Dieses Verzeichnis enthält die relationalen Datenbankschema- und Initialisierungsskripte für KnowHowTo AI.
+Dieses Verzeichnis enthält die relationalen Datenbankschema- und Initialisierungsskripte für KnowHowToAI.
 
 ## Ziel-Datenbanksystem
 - **Microsoft SQL Server 2019 (15.x) oder neuer** (inklusive Azure SQL Database / Managed Instance).

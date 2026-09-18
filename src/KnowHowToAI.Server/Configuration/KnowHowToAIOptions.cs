@@ -1,7 +1,7 @@
 namespace KnowHowToAI.Server.Configuration;
 
 /// <summary>
-/// Wurzel-Options für KnowHowTo AI. Wird beim Serverstart einmalig aus "KnowHowToAI"
+/// Wurzel-Options für KnowHowToAI. Wird beim Serverstart einmalig aus "KnowHowToAI"
 /// gebunden und vollständig validiert. Ungültige Werte verhindern den Start ohne Secrets.
 /// </summary>
 internal sealed record KnowHowToAIOptions

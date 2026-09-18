@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Fuehrt FastTests fuer KnowHowTo AI aus und schreibt je Testprojekt eine statische TRX-Datei.
+    Fuehrt FastTests fuer KnowHowToAI aus und schreibt je Testprojekt eine statische TRX-Datei.
 
 .PARAMETER Filter
     xUnit-Filter fuer dotnet test (Standard: Category=Unit).

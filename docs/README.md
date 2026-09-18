@@ -1,6 +1,6 @@
-# KnowHowTo AI – Dokumentation
+# KnowHowToAI – Dokumentation
 
-Diese Dokumentation beschreibt den Ist-Zustand von KnowHowTo AI. Sie ist die
+Diese Dokumentation beschreibt den Ist-Zustand von KnowHowToAI. Sie ist die
 einzige verbindliche fachliche und technische Quelle. Ein separates Konzept- oder
 Roadmap-Dokument existiert bewusst nicht; die Entwicklungs- und
 Entscheidungsgeschichte liegt in der Git-Historie.

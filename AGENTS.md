@@ -1,4 +1,4 @@
-# KnowHowTo AI
+# KnowHowToAI
 
 Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und Menschen (.NET / C#, MS SQL Server, MCP STDIO).
 

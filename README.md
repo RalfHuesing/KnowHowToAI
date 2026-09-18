@@ -1,4 +1,4 @@
-# KnowHowTo AI
+# KnowHowToAI
 
 Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und
 Menschen. Der Zugriff erfolgt ausschließlich über MCP (Model Context Protocol);
@@ -6,7 +6,7 @@ V1 transportiert über STDIO.
 
 ## Was ist das?
 
-KnowHowTo AI speichert fachliches und technisches Wissen nicht als Markdown-Dateien,
+KnowHowToAI speichert fachliches und technisches Wissen nicht als Markdown-Dateien,
 sondern strukturiert in einem MS SQL Server: eine globale Node-Hierarchie, pro Rolle
 eigene oder per Fallback aufgelöste Inhalte, vollständige unveränderliche Snapshots
 pro Transaktion und benannte Releases. Agenten arbeiten mit kleinen,

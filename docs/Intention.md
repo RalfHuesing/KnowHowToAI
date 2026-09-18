@@ -2,7 +2,7 @@
 
 ## Zweck
 
-KnowHowTo AI ist eine **hierarchische, versionierte und rollenabhängige
+KnowHowToAI ist eine **hierarchische, versionierte und rollenabhängige
 Wissensbasis für Agenten und Menschen**. Das System unterstützt einen
 KMU-Arbeitsalltag, in dem beispielsweise Consultant, Entwickler und Endanwender
 mit demselben fachlichen Wissen arbeiten:
@@ -34,7 +34,7 @@ Zentrale Ziele:
 
 ## Kein Dateisystem für Markdown
 
-KnowHowTo AI ist **kein Dateisystem für Markdown-Dateien**. Markdown ist das
+KnowHowToAI ist **kein Dateisystem für Markdown-Dateien**. Markdown ist das
 Inhaltsformat einzelner Wissenselemente. Struktur, Versionierung, Rollen und
 Beziehungen liegen im relationalen Datenmodell
 ([Wissenshierarchie](Wissenshierarchie.md), [Datenmodell](Datenmodell.md)).

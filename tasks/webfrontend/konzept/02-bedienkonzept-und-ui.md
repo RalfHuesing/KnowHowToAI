@@ -21,7 +21,7 @@ Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit 
 
 ## Branding und Sprache
 
-- Der angezeigte Produktname lautet `KnowHowTo AI`.
+- Der angezeigte Produktname lautet `KnowHowToAI`.
 - M0 bis M2 verwenden ausschließlich eine Textwortmarke. Es wird weder ein Dummy-Logo noch ein vorläufiges Bildlogo oder eine Logo-Abhängigkeit angelegt.
 - Die primäre Startfarbe ist ein neutrales Blau (`#2563EB`). Hover-, Active-, Fokus- und Kontrastvarianten werden in M2 als zentrale Tokens abgeleitet und müssen die festgelegten Accessibility-Regeln erfüllen.
 - Die Standardschrift ist die lokale Systemkette `Segoe UI, Arial, sans-serif`; es werden keine Webfonts, Font-CDNs oder Font-Buildschritte eingeführt.
