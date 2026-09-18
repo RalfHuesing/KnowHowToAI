@@ -67,5 +67,6 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-016 | Rollierende Detailplanung: M0–M2 werden jetzt ausführungsreif geschärft; M3 und jedes folgende Milestone starten mit einem manuellen `Mx.0`-Planungs- und Konzept-Gate |
 | K-017 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows ohne formale Zertifizierung; Agenten prüfen automatisiert headless, die manuelle Tastaturcheckliste führt ein Mensch aus |
 | K-018 | Content erlaubt kein ausführbares Raw HTML und keine fremden Bildquellen; Links, Paste, Browserdarstellung und PDF folgen einer zentralen sicheren Markdown-Policy |
+| K-019 | Im PoC gibt es keinen verbindlichen externen MCP-Zielclient; M1 wird automatisiert über den offiziellen SDK-Client abgenommen, Hermes bleibt ein optionaler Eval-Smoke |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

@@ -93,7 +93,9 @@ Ziel für den zentralen Betrieb:
 - Stateless Transport, weil `TransactionId`, `SnapshotId`, Cursor und Rolle fachlichen Zustand explizit adressieren.
 - Kein Transport-Sessionzustand als fachliche Quelle.
 - Bestehende Tool-Namen und Verträge werden beim Transportwechsel fachlich beibehalten.
-- Nach erfolgreicher HTTP-Client-Abnahme wird STDIO per Hard Cut vollständig entfernt.
+- Im PoC existiert kein verbindlicher externer MCP-Zielclient. Die Transportabnahme verwendet den offiziellen SDK-Client automatisiert gegen den real gestarteten HTTP-Host; Tool Discovery, repräsentative Reads/Writes, strukturierte Fehler, Streaming und der vollständige Transaction-Workflow bilden das Gate.
+- Hermes Agent darf bei lokaler Verfügbarkeit zusätzlich für einen manuellen Eval-Smoke verwendet werden. Dieser Smoke ist optional, wird nicht durch den Implementierungsagenten installiert und blockiert weder M1 noch den Hard Cut.
+- Nach erfolgreicher automatisierter HTTP-Vertragsabnahme wird STDIO per Hard Cut vollständig entfernt.
 - Kein STDIO-Runner, Startmodus, Konfigurationsschlüssel, Paket, Deploymentpfad oder transportgebundener Test bleibt bestehen.
 - Kein Doppelbetrieb, Kompatibilitätsmodus oder STDIO-Fallback; Streamable HTTP ist anschließend der einzige unterstützte MCP-Transport.
 - Eine vorübergehende Koexistenz ist ausschließlich innerhalb der noch nicht abgeschlossenen Umstellung zulässig und wird nicht als Produktstand freigegeben.

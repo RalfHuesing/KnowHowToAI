@@ -54,13 +54,6 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Prüfen: Paging, Cursor, Read Context, Transactions, Mutationen, Export, Historie und Fehlerkatalog.
     - Abnahme: HTTP weist fachliche Parität zum bisherigen MCP-Vertrag nach; kein neuer Test setzt STDIO voraus.
 
-  - [ ] **M1.3-T3 – Reale Zielclients abnehmen**
-    - Voraussetzung: O-019 legt die verbindlichen MCP-Zielclients und Versionen fest.
-    - Umfang: mindestens die tatsächlich verwendeten MCP-Clients gegen den zentralen HTTP-Endpunkt testen.
-    - Prüfen: Konfiguration, Verbindung, Tool Discovery, langer Read, Transaction-Workflow und Fehlermeldungen.
-    - Ergebnis: clientspezifische Konfiguration und bestätigte Einschränkungen dokumentieren.
-    - Abnahme: der geplante tägliche Agentenzugriff funktioniert ohne lokalen Child Process.
-
 ## M1.4 – Hard Cut von STDIO
 
 - [ ] **M1.4 abschließen**
@@ -75,5 +68,5 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 ## Milestone-Abnahme
 
 - Eine EXE bedient auf einem Port Blazor-Shell, notwendige Web-Endpunkte und stateless MCP HTTP.
-- Bestehende MCP-Funktionen sind fachlich erhalten und mit realen Zielclients geprüft.
+- Bestehende MCP-Funktionen sind fachlich erhalten und automatisiert über den offiziellen SDK-Client gegen den realen HTTP-Host geprüft.
 - Streamable HTTP ist der einzige MCP-Transport; STDIO ist vollständig und ohne Fallback entfernt.

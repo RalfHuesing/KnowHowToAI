@@ -23,7 +23,7 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 Nächste Benutzerfrage nach Abschluss der M0-Taskschärfung:
 
-> Welche konkreten MCP-Clients sollen den HTTP-Hard-Cut in M1 verbindlich abnehmen (O-019)?
+> Welcher Produktname, welches vorläufige Logo und welche visuelle Grundrichtung sollen für M2 gelten (O-009)?
 
 ## Entscheidungsreihenfolge für M0–M2
 
@@ -31,8 +31,7 @@ Nächste Benutzerfrage nach Abschluss der M0-Taskschärfung:
 |---|---|---|
 | A – Auswahlrahmen | O-013, O-021, O-020 | Zielbrowser, Barrierefreiheit und sichere Contentdarstellung vor Komponenten-Spikes festlegen |
 | B – Technische Spikes | O-001, O-003, O-002, O-015 | UI-Paket, Tree, Editor und Testwerkzeuge evidenzbasiert auswählen |
-| C – MCP | O-019 | reale HTTP-MCP-Clients für den Transport-Hard-Cut festlegen |
-| D – Theme und Sprache | O-009, O-014 | Branding und UI-Sprache für M2 definieren |
+| C – Theme und Sprache | O-009, O-014 | Branding und UI-Sprache für M2 definieren |
 
 Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M3 bearbeitet und nicht jetzt vorsorglich entschieden.
 
@@ -136,20 +135,6 @@ Quellen:
 - [Playwright .NET](https://playwright.dev/dotnet/docs/library)
 - [Playwright Browser](https://playwright.dev/dotnet/docs/browsers)
 
-### HTTP-MCP-Zielclients – O-019
-
-Vorbefund:
-
-- Cursor dokumentiert Streamable HTTP.
-- Hermes dokumentiert URL-basierte HTTP-/Streamable-HTTP-Server.
-- Für Claude/Codex und weitere tatsächlich genutzte Clients ist die konkrete Produktvariante und Version zu benennen und praktisch abzunehmen; Produktfamilienname allein genügt nicht.
-- Mindestabnahme je Client: Verbindung, Initialize/Discovery, Toolliste, langer Read, strukturierter Fehler, Begin/Mutation/Validate/Commit sowie Reconnect/Timeout.
-
-Quellen:
-
-- [Cursor MCP](https://docs.cursor.com/context/model-context-protocol)
-- [Hermes MCP-Konfigurationsreferenz](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/reference/mcp-config-reference.md)
-
 ## Getroffene Benutzerentscheidungen
 
 | ID | Entscheidung | Umsetzungsauswirkung |
@@ -160,6 +145,7 @@ Quellen:
 | O-021 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows, jedoch keine formale Konformitäts- oder Zertifizierungsbehauptung. Verbindlich sind insbesondere Tastaturbedienung, Fokus, Semantik, Kontrast und Desktop-Zoom. | Agenten prüfen Komponenten und wenige Headless-Chrome-Smokes automatisiert. Eine feste manuelle Tastaturcheckliste ist für Menschen bestimmt; Agenten starten dafür keinen interaktiven Browser. |
 | O-020 | Raw HTML außerhalb von Code wird serverseitig abgelehnt und nie ausgeführt. Links folgen einer Allowlist; externe Bilder und Ressourcen bleiben inaktiv, bis M8 nur kontrollierte interne Assets zulässt. Paste reduziert auf erlaubtes Markdown und weist sichtbar auf jede Reduktion hin. | Einheitliche Policy für MCP-/Web-Writes, Editor, Browser und PDF; kein stiller Contentverlust und kein ungeprüftes HTML-Rendering. |
 | O-022 (Abgrenzung M1) | Die produktive Windows-/SQL-Identität ist keine M1-Entwicklungsentscheidung. M1 behält die vorhandene `DatabaseConnection`-Konfiguration; Klartext-Zugangsdaten in `appsettings.json` sind für den aktuellen Stand akzeptiert. | Kein Dienstkonto-, gMSA- oder Secret-Provider-Vorratsbau. Eine abweichende produktive Betriebswahl wird erst in M6.0 bei bekannter Umgebung getroffen. |
+| O-019 | Es gibt im PoC keinen produktiven oder täglich verwendeten MCP-Client. Hermes Agent wurde nur in Eval-/Testläufen verwendet und ist kein verbindliches Abnahmeziel. | M1 nutzt ausschließlich den offiziellen SDK-Client für automatisierte HTTP-Vertragstests. Ein lokal möglicher Hermes-Smoke ist optional und blockiert den STDIO-Hard-Cut nicht. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -168,13 +154,7 @@ Quellen:
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
 
-### Block C – MCP
-
-| ID | Zu entscheiden | Empfehlung | Konsequenz |
-|---|---|---|---|
-| O-019 | reale Clients und Versionen | täglich verwendete Cursor-, Claude-, Hermes-, Codex-Varianten explizit nennen und testen | der STDIO-Hard-Cut erfolgt erst nach ihrer grünen Abnahme |
-
-### Block D – Produkt- und Arbeitsverhalten
+### Block C – Produkt- und Arbeitsverhalten
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
@@ -218,7 +198,6 @@ Quellen:
 - Tree-Paging mit 1.000 Geschwistern und 100.000 Gesamt-Nodes; keine Scheindemonstration mit vollständig geladenem In-Memory-Baum.
 - Milkdown-Roundtrip gegen den tatsächlich erlaubten Markdownumfang und Blazor-JS-Lifecycle.
 - Paste-Sanitization und Raw-HTML-Verhalten nach O-020.
-- Aktuelle Streamable-HTTP-Unterstützung jeder konkret genannten Claude-/Codex-/Hermes-/Cursor-Version.
 - Produktive Zielumgebung, SQL-Edition, vorhandener Proxy, Zertifikatsprozess, Backupplattform und Betriebsverantwortung.
 - Reale Größenordnung von Nutzern, Wissensbestand, Änderungsrate und Wiederherstellungsanforderung zur Kalibrierung von O-017/O-023.
 
