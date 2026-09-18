@@ -1,0 +1,30 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.busy-overlay {
+    position: relative;
+}
+
+.busy-overlay__content {
+    display: inherit;
+}
+
+.busy-overlay__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-color: var(--ktai-color-page);
+    opacity: 0.6;
+}
+
+.busy-overlay__status {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-base);
+    text-align: center;
+}

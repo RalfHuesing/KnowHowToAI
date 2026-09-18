@@ -111,7 +111,23 @@ Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout,
 zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 `Web/Components/Shared` – darunter der native Dialog-Wrapper `AppDialog`
 mit schmaler JS-Isolation in `AppDialog.razor.js` sowie die
-Statusdarstellung `AppStatus`, die jeden Zustand als Icon plus Text zeigt)
+Statusdarstellung `AppStatus`, die jeden Zustand als Icon plus Text zeigt
+und die wiederverwendbaren Lade-, Leer- und Fehlerzustände
+`LoadingState`, `BusyOverlay`, `EmptyState`, `NotFoundState` und
+`TechnicalErrorState`: rein darstellende Komponenten nur mit
+Anzeigeparametern und optionalem Retry-Callback, ohne Application-Aufrufe
+und ohne globale Zustandsmaschine. `LoadingState` ersetzt den Initial
+Load durch wahrnehmbaren Status (`role="status"`, `aria-busy`) statt
+endlos leerer Fläche; `BusyOverlay` umschließt als Slot den betroffenen
+Bereich, bleibt halbdurchsichtig, sperrt den Kindinhalt während der
+Laufzeit über `inert` und kündigt den Busy-Text höflich an;
+`EmptyState` (berechtigtes Leerergebnis) und `NotFoundState`
+(fehlender gesuchter Kontext) bleiben fachlich getrennt;
+`TechnicalErrorState` zeigt ausschließlich neutralen deutschen Text,
+eine optionale opaque Correlation-ID und Retry – niemals Exception,
+Pfade, SQL- oder Toolausgabe – und ist über `tabindex="-1"`
+fokussierbar und per `aria-labelledby` mit seiner Überschrift
+verknüpft. Alle Animationen respektieren `prefers-reduced-motion`.)
 sowie `Web.Features.Dashboard` (die derzeit einzige Root-Seite). Das
 Verzeichnis
 `Web/Components/Layout` enthält das Hauptlayout und seine Bausteine:

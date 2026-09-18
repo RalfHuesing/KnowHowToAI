@@ -1,0 +1,31 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ktai-space-3);
+    padding: var(--ktai-space-8) var(--ktai-space-4);
+    color: var(--ktai-color-text-secondary);
+}
+
+.loading-state__spinner {
+    flex-shrink: 0;
+    animation: loading-state-rotate 1.2s linear infinite;
+}
+
+@keyframes loading-state-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loading-state__spinner {
+        animation: none;
+    }
+}

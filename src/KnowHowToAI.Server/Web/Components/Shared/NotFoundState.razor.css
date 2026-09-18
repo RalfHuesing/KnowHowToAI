@@ -1,0 +1,35 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.not-found-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ktai-space-3);
+    padding: var(--ktai-space-8) var(--ktai-space-4);
+    color: var(--ktai-color-text-secondary);
+    text-align: center;
+}
+
+.not-found-state__icon {
+    flex-shrink: 0;
+}
+
+.not-found-state__title {
+    margin: 0;
+    color: var(--ktai-color-text);
+}
+
+.not-found-state__description {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.not-found-state__retry {
+    padding: var(--ktai-space-2) var(--ktai-space-4);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    font: inherit;
+    cursor: pointer;
+}

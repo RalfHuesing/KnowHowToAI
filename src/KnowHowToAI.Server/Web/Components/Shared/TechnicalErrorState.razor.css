@@ -1,0 +1,44 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.technical-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ktai-space-3);
+    padding: var(--ktai-space-8) var(--ktai-space-4);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-medium);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text-secondary);
+    text-align: center;
+}
+
+.technical-error__icon {
+    flex-shrink: 0;
+    color: var(--ktai-color-danger);
+}
+
+.technical-error__title {
+    margin: 0;
+    color: var(--ktai-color-text);
+}
+
+.technical-error__message {
+    margin: 0;
+    max-width: 40rem;
+}
+
+.technical-error__correlation {
+    margin: 0;
+    color: var(--ktai-color-text-secondary);
+}
+
+.technical-error__retry {
+    padding: var(--ktai-space-2) var(--ktai-space-4);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    font: inherit;
+    cursor: pointer;
+}
