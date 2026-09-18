@@ -16,20 +16,20 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Mit O-028 fortfahren: Copyrightinhaber der fehlenden MIT-Lizenzdatei.
+3. Mit O-013 fortfahren: unterstützte Browser, Versionen und Viewports.
 4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung für M0–M2 behandeln.
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
 Erste noch unbeantwortete Frage:
 
-> Unter welchem vollständigen Namen oder Firmennamen soll der Copyright-Hinweis der MIT-`LICENSE` geführt werden?
+> Welche Browser und Desktop-Viewports sollen im ersten Stand verbindlich unterstützt werden?
 
 ## Entscheidungsreihenfolge für M0–M2
 
 | Block | IDs | Ziel |
 |---|---|---|
-| A – Auswahlrahmen | O-028, O-013, O-021, O-020 | Lizenzdatei, Zielbrowser, Barrierefreiheit und sichere Contentdarstellung vor Komponenten-Spikes festlegen |
+| A – Auswahlrahmen | O-013, O-021, O-020 | Zielbrowser, Barrierefreiheit und sichere Contentdarstellung vor Komponenten-Spikes festlegen |
 | B – Technische Spikes | O-001, O-003, O-002, O-015 | UI-Paket, Tree, Editor und Testwerkzeuge evidenzbasiert auswählen |
 | C – Host und MCP | O-022, O-019 | produktive Datenbankidentität und reale HTTP-MCP-Clients festlegen |
 | D – Theme und Sprache | O-009, O-014 | Branding und UI-Sprache für M2 definieren |
@@ -154,6 +154,7 @@ Quellen:
 | ID | Entscheidung | Umsetzungsauswirkung |
 |---|---|---|
 | O-018 | Keine kostenpflichtigen Komponenten. Direkte und transitive Abhängigkeiten müssen kostenlos nutzbar und mit der MIT-Distribution vereinbar sein. Einfache UI/CSS wird pragmatisch selbst umgesetzt; spezialisierte OSS-Komponenten nur bei belegtem Mehrwert. | Kommerzielle Suites entfallen; Lizenzprüfung bleibt Pflicht; „keine allgemeine UI-Bibliothek“ ist für O-001 zulässig. |
+| O-028 | Das Repository steht unter MIT-Lizenz; Copyrightinhaber ist `Ralf Hüsing`, Startjahr 2026. | Root-`LICENSE` ist vorhanden; M0.1-T2 prüft sie und ergänzt weiterhin das Abhängigkeitsinventar. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -161,7 +162,6 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-028 | Copyrightinhaber der MIT-Lizenz | vollständigen Namen der natürlichen oder juristischen Person verwenden, welche die Rechte hält; Startjahr 2026 | ermöglicht eine eindeutige Root-`LICENSE` und die Lizenzbaseline in M0.1-T2 |
 | O-013 | Browser, Versionen, Viewports | Edge Stable verbindlich, Chrome Stable kompatibel; automatisiert Edge/Chromium; volle Bearbeitung ab 1280×720, lesbar ab 1024 px; kein Mobile/Safari/Firefox im ersten Stand | begrenzt CSS, Testmatrix und Komponentenwahl realistisch |
 | O-021 | Accessibility | WCAG 2.2 AA für Kernworkflows, axe-Smokes und manuelle Tastaturabnahme; keine formale Zertifizierung im ersten Stand | verhindert spätere unplanbare Nachrüstung |
 | O-020 | Raw HTML, Links, Bilder, Paste | Raw HTML nicht ausführen; sichere URL-Schemata; externe Bilder nicht automatisch laden; Paste auf erlaubtes Markdown reduzieren | schützt Browser/PDF vor XSS, Tracking und lokalen/externen Ressourcenzugriffen |

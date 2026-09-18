@@ -21,8 +21,8 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abschluss: betroffene Ist-Dokumentation nur bei tatsächlicher Änderung aktualisieren; Task und Parentstatus committen.
 
   - [ ] **M0.1-T2 – MIT-Lizenz und Abhängigkeitsbaseline herstellen**
-    - Voraussetzung: O-028 zum Copyrightinhaber ist durch den Benutzer entschieden.
-    - Umfang: MIT-`LICENSE` im Repository-Root anlegen; vollständigen direkten und transitiven Abhängigkeitsgraph aller Solution-Projekte einschließlich Build- und Testwerkzeugen ermitteln.
+    - Ausgangslage: Die MIT-`LICENSE` mit `Copyright (c) 2026 Ralf Hüsing` ist im Repository-Root vorhanden.
+    - Umfang: vorhandene `LICENSE` auf unveränderten MIT-Text prüfen; vollständigen direkten und transitiven Abhängigkeitsgraph aller Solution-Projekte einschließlich Build- und Testwerkzeugen ermitteln.
     - Ergebnis: reproduzierbares Inventar mit Paket, Version, Quelle, Lizenz und einzuhaltenden Copyright-/Lizenz-/NOTICE-Pflichten in `THIRD-PARTY-NOTICES.md`; erforderliche Originalhinweise beilegen.
     - Abnahme: keine Abhängigkeit ist kostenpflichtig, lizenzseitig ungeklärt oder mit der MIT-Distribution unvereinbar; Abweichungen werden ersetzt oder vor Fortsetzung dem Benutzer vorgelegt.
     - Abschluss: Lizenz-/Inventardateien und die dauerhaft erforderliche Aktualisierungsanweisung dokumentieren und atomar committen.

@@ -8,7 +8,7 @@ Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutz
 
 Bearbeitungsreihenfolge im aktuellen Planungshorizont M0–M2:
 
-1. Benutzerentscheidungen für M0: O-028, O-013, O-021, O-020.
+1. Benutzerentscheidungen für M0: O-013, O-021, O-020.
 2. M0-Spikeaufträge ausführungsreif machen; ihre Ergebnisse schließen O-001, O-003, O-002 und O-015.
 3. Benutzerentscheidungen für M1: O-022, O-019.
 4. Benutzerentscheidungen für M2: O-009, O-014.
@@ -44,4 +44,3 @@ O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-023, O-024, O-011, O-0
 | O-025 | Hoch | Benutzer | M4.1-T1, M4.3-T1 bis T3, M5.3-T1 | Gleichzeitiges Arbeiten mehrerer UI-/MCP-Clients in derselben offenen Transaction; Empfehlung: zulassen, keine Locks, jede Mutation mit `ChangeVersion`, stale Writes deterministisch ablehnen und zum Neuladen auffordern |
 | O-026 | Mittel | Benutzer | M4.1-T1 | Lebensdauer offener Transactions; Empfehlung: keine automatische Verfallszeit oder Löschung, Alter deutlich anzeigen und ausschließlich explizit committen oder verwerfen |
 | O-027 | Mittel | Benutzer | M4.3-T1 bis T3, M5.1-T1 | Undo-/Wiederherstellungsumfang; Empfehlung: lokales Editor-Undo nur bis zum Speichern, kein globaler Undo-Stack für persistierte Mutationen, Korrektur durch Gegenänderung oder vollständiges Discard der Transaction |
-| O-028 | Hoch | Benutzer | M0.1-T2 | Copyrightinhaber für die fehlende MIT-`LICENSE` im Repository; Empfehlung: vollständiger Name der natürlichen oder juristischen Person, welche die Rechte hält, mit Startjahr 2026 |

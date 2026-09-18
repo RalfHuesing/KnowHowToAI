@@ -47,7 +47,7 @@ tests/
 └─ KnowHowToAI.BrowserTests/
 ```
 
-- `LICENSE` enthält den unveränderten MIT-Lizenztext mit dem in O-028 festgelegten Copyrightinhaber.
+- `LICENSE` enthält den unveränderten MIT-Lizenztext mit `Copyright (c) 2026 Ralf Hüsing`.
 - `THIRD-PARTY-NOTICES.md` inventarisiert direkte und transitive externe Abhängigkeiten mit Version, Quelle, Lizenz und einzuhaltenden Hinweisen. Jede Abhängigkeitsänderung aktualisiert das Inventar im selben Commit.
 
 | Projekt | Verantwortung |
