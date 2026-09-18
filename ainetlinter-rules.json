@@ -175,7 +175,8 @@
       "tasks",
       "docs",
       "scripts",
-      "sql-scripts"
+      "sql-scripts",
+      "Shared"
     ],
     "MaxPartialClassFiles": 2,
     "MaxPartialClassFilesExemptTypes": [],

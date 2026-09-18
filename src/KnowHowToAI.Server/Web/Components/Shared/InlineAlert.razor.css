@@ -1,0 +1,6 @@
+/* Keine eigene Komponentengestaltung: Inhalt und Farbe stammen aus der
+   zentralen Statusdarstellung AppStatus; diese Datei hält die
+   CSS-Isolation der Komponente konsistent. */
+.inline-alert {
+    display: block;
+}

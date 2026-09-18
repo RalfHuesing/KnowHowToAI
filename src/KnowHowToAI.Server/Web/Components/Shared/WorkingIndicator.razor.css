@@ -1,0 +1,29 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.working-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ktai-space-1);
+    color: var(--ktai-color-text-secondary);
+}
+
+.working-indicator__icon {
+    flex-shrink: 0;
+    animation: working-indicator-rotate 1.2s linear infinite;
+}
+
+@keyframes working-indicator-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .working-indicator__icon {
+        animation: none;
+    }
+}

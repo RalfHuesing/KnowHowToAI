@@ -128,14 +128,54 @@ eine optionale opaque Correlation-ID und Retry – niemals Exception,
 Pfade, SQL- oder Toolausgabe – und ist über `tabindex="-1"`
 fokussierbar und per `aria-labelledby` mit seiner Überschrift
 verknüpft. Alle Animationen respektieren `prefers-reduced-motion`.)
-sowie `Web.Features.Dashboard` (die derzeit einzige Root-Seite). Das
+sowie `Web.State` (flüchtiger Circuit-Zustand; derzeit der
+`ToastState` der globalen Toastregion) und `Web.Features.Dashboard`
+(die derzeit einzige Root-Seite).
+
+Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
+wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,
+`Fehler`) und rendern Inhalt und Farbe über die zentrale
+`AppStatus`-Darstellung, sodass nie nur Farbe die Bedeutung trägt:
+`InlineAlert` bleibt beim auslösenden Inhalt und kündigt Fehler sofort
+(`role="alert"`), alle übrigen Stufen höflich (`role="status"`) an.
+`StatusBanner` gilt für die gesamte Seite statt für einen einzelnen
+Inhalt, verwendet dieselbe Ankündigungsregel und markiert die Stufe
+zusätzlich über eine farbige Kante. `WorkingIndicator` zeigt eine
+laufende Änderung am Ort des Geschehens als Text plus Icon
+(`role="status"`, Animation ruht bei `prefers-reduced-motion`) und
+rendert im Ruhezustand nichts; der ungespeicherte Zustand bleibt in der
+zentralen `AppStatus`-Darstellung, blockierende Läufe im `BusyOverlay`.
+`ConfirmationDialog` baut auf dem `AppDialog`-Wrapper auf: Titel, kurze
+Auswirkung (über `aria-describedby` mit der primären Aktion verknüpft),
+primäre Aktion und „Abbrechen“. „Abbrechen“ ist das erste Element und
+erhält deshalb beim Öffnen den Fokus; Fokusfalle und Fokusrückgabe
+übernimmt die Dialogisolation, Escape entspricht „Abbrechen“. Eine
+destruktive Aktion ist zusätzlich zur Beschriftung durch Fehlerfarbe und
+Warnicon eindeutig; eine Texteingabe zur Bestätigung gibt es nicht.
+Während eines Requests läuft der Bestätigungs-Callback höchstens einmal
+und sind beide Aktionen deaktiviert; der programmatische Abschluss nach
+bestätigter Aktion löst keinen Abbruch aus.
+
+Die einzige globale `ToastRegion` hostet `MainLayout` genau einmal und
+liest den flüchtigen Circuit-Zustand `ToastState` (unter `Web/State`,
+scoped pro Circuit): Sie bestätigt ausschließlich nichtkritische
+abgeschlossene Aktionen, kündigt neue Meldungen über die dauerhaft
+vorhandene höfliche Live-Region (`aria-live="polite"`) an und verschiebt
+den Fokus nie. Meldungen laufen nicht zeitgesteuert ab; sie bleiben mit
+Icon plus Text bis zum Schließen durch den Benutzer sichtbar und werden
+mit dem Ende des Circuits verworfen. Kritische Informationen erscheinen
+zusätzlich oder ausschließlich im Seitenzustand über `InlineAlert` oder
+`StatusBanner` und nie nur in der Toastregion.
+
+Das
 Verzeichnis
 `Web/Components/Layout` enthält das Hauptlayout und seine Bausteine:
 
 - `MainLayout` zeichnet den Kopf mit der Produktbezeichnung als reine
   Textwortmarke ohne Logo-Asset, das Sprungziel, genau ein
-  `main`-Landmark für den Seiteninhalt und optional eingerückte
-  Seitenbereiche. Landmarks: Sprunglink „Zum Hauptinhalt springen“ als
+  `main`-Landmark für den Seiteninhalt, optional eingerückte
+  Seitenbereiche und die einzige globale Toastregion. Landmarks:
+  Sprunglink „Zum Hauptinhalt springen“ als
   erstes Element, `header`, `nav` mit zugänglichem Namen
   `Hauptnavigation` (genau der vorhandene Start-Link auf `/`; noch nicht
   implementierte Routen erscheinen bewusst nicht), `nav` `Breadcrumbs`,

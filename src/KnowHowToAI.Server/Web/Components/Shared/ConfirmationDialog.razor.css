@@ -1,0 +1,55 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.confirmation-dialog__message {
+    margin: 0 0 var(--ktai-space-4);
+}
+
+.confirmation-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ktai-space-2);
+}
+
+.confirmation-dialog__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ktai-space-1);
+    padding: var(--ktai-space-2) var(--ktai-space-4);
+    border-radius: var(--ktai-radius-small);
+    font: inherit;
+    cursor: pointer;
+}
+
+.confirmation-dialog__button--secondary {
+    border: 1px solid var(--ktai-color-border);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+}
+
+.confirmation-dialog__button--primary {
+    border: 1px solid var(--ktai-color-primary);
+    background-color: var(--ktai-color-primary);
+    color: var(--ktai-color-primary-contrast);
+}
+
+.confirmation-dialog__button--primary:hover {
+    border-color: var(--ktai-color-primary-hover);
+    background-color: var(--ktai-color-primary-hover);
+}
+
+.confirmation-dialog__button--primary:active {
+    border-color: var(--ktai-color-primary-active);
+    background-color: var(--ktai-color-primary-active);
+}
+
+/* Destruktive Aktion: Umriss in der Fehlerfarbe plus Warnicon, zusätzlich
+   zur Beschriftung; es gibt keine Texteingabe zur Bestätigung. */
+.confirmation-dialog__button--destructive {
+    border: 1px solid var(--ktai-color-danger);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-danger);
+}
+
+.confirmation-dialog__button-icon {
+    flex-shrink: 0;
+}

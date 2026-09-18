@@ -1,3 +1,4 @@
+using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -44,6 +45,9 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
 
     [Inject]
     private PageRegionState PageRegions { get; set; } = default!;
+
+    [Inject]
+    private ToastState ToastState { get; set; } = default!;
 
     [Inject]
     private IJSRuntime JSRuntime { get; set; } = default!;

@@ -1,0 +1,8 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared
+
+@* Warnung beim auslösenden Inhalt: die Ankündigung folgt der Stufe –
+   Fehler sofort (alert), alle anderen Stufen höflich (status). Inhalt und
+   Farbe kommen aus der zentralen Statusdarstellung. *@
+<div class="inline-alert" role="@(Kind == AlertKind.Fehler ? "alert" : "status")">
+    <AppStatus Kind="@StatusKind" Text="@Message" />
+</div>

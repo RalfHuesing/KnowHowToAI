@@ -1,0 +1,46 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. Die leere Region hat keine sichtbare Fläche und
+   blockiert keine Zeigerinteraktion. */
+.toast-region {
+    position: fixed;
+    right: var(--ktai-space-4);
+    bottom: var(--ktai-space-4);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-2);
+    max-width: 24rem;
+}
+
+.toast-region__toast {
+    display: flex;
+    align-items: center;
+    gap: var(--ktai-space-2);
+    padding: var(--ktai-space-3) var(--ktai-space-4);
+    border: 1px solid var(--ktai-color-border);
+    border-left: 4px solid var(--ktai-color-success);
+    border-radius: var(--ktai-radius-medium);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    box-shadow: var(--ktai-shadow-surface);
+}
+
+.toast-region__icon {
+    flex-shrink: 0;
+    color: var(--ktai-color-success);
+}
+
+.toast-region__message {
+    flex-grow: 1;
+}
+
+.toast-region__dismiss {
+    flex-shrink: 0;
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    font: inherit;
+    cursor: pointer;
+}

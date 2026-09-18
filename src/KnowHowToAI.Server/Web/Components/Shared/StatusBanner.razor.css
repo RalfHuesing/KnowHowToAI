@@ -1,0 +1,25 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.status-banner {
+    padding: var(--ktai-space-3) var(--ktai-space-4);
+    border: 1px solid var(--ktai-color-border);
+    border-left-width: 4px;
+    border-radius: var(--ktai-radius-medium);
+    background-color: var(--ktai-color-surface);
+}
+
+.status-banner--info {
+    border-left-color: var(--ktai-color-info);
+}
+
+.status-banner--erfolg {
+    border-left-color: var(--ktai-color-success);
+}
+
+.status-banner--warnung {
+    border-left-color: var(--ktai-color-warning);
+}
+
+.status-banner--fehler {
+    border-left-color: var(--ktai-color-danger);
+}

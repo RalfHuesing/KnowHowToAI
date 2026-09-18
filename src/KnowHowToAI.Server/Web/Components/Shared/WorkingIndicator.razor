@@ -1,0 +1,16 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared
+
+@* Laufende Änderung am Ort des Geschehens: Text plus Icon, nie nur Farbe.
+   Die Animation ruht bei prefers-reduced-motion; die Statusrolle kündigt
+   den Text höflich an, sobald der Zustand einsetzt. *@
+@if (IsWorking)
+{
+    <span class="working-indicator" role="status" aria-live="polite">
+        <svg class="working-indicator__icon" width="16" height="16" viewBox="0 0 16 16"
+             fill="none" aria-hidden="true" focusable="false">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"
+                    stroke-dasharray="28 10" stroke-linecap="round" />
+        </svg>
+        <span class="working-indicator__text">@Text</span>
+    </span>
+}
