@@ -71,9 +71,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M1.4 – Hard Cut von STDIO
 
-- [ ] **M1.4 abschließen**
+- [x] **M1.4 abschließen**
 
-  - [ ] **M1.4-T1 – STDIO-Transport entfernen und Ist-Dokumentation umstellen**
+  - [x] **M1.4-T1 – STDIO-Transport entfernen und Ist-Dokumentation umstellen**
     - Voraussetzung: M1.3 vollständig abgenommen.
     - Umfang: `StdioHostRunner`, `.WithStdioServerTransport()`, STDIN/STDOUT-Protokollpfade, STDIO-Prozesstests, ausschließlich transportgebundene Helfer und alle Start-/Deploymentanweisungen dafür entfernen. Generisches Prozess-Exitcode-, Logging-, Options- und Shutdownverhalten bleibt erhalten und wird nötigenfalls transportneutral benannt.
     - Pakete: nicht mehr direkt benötigte STDIO-/Basispaketreferenzen entfernen, zentralen Paketgraph und `THIRD-PARTY-NOTICES.md` aktualisieren. Das ASP.NET-Core-MCP-Paket und der offizielle Client für Tests bleiben.
