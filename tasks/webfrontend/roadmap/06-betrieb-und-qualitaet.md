@@ -6,7 +6,7 @@
 
 Abhängigkeit: [M1](01-webhost-und-mcp-http.md) bis [M5](05-rollen-content-und-rich-text.md)
 
-Verbindliche M0-Basis: gemeinsamer Kestrel-Origin und stateless `/mcp` werden gehärtet, nicht neu entworfen. Tree-Messungen beziehen sich auf natives 100er-Cursor-Paging mit höchstens zehn Circuit-Seiten; Radzen/alternative Trees und eine allgemeine UI-Bibliothek bleiben ausgeschlossen. Browser-E2E bleibt auf Playwright .NET `1.62.0` mit Chrome `152.0.7977.83`, `Channel = "chrome"`, `Headless = true` festgelegt.
+Verbindliche M0-Basis: gemeinsamer Kestrel-Origin und stateless `/mcp` werden gehärtet, nicht neu entworfen. Tree-Messungen beziehen sich auf natives 100er-Cursor-Paging mit höchstens zehn Circuit-Seiten; Radzen/alternative Trees und eine allgemeine UI-Bibliothek bleiben ausgeschlossen. Browser-E2E bleibt auf Playwright .NET `1.62.0` mit Chrome (installierte aktuelle Version), `Channel = "chrome"`, `Headless = true` festgelegt.
 
 Ziel: Das Kernfrontend ist unter realistischen Daten-, Parallelitäts- und Intranetbedingungen reproduzierbar betreibbar.
 

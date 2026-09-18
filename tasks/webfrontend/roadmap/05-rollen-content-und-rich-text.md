@@ -6,7 +6,7 @@
 
 Abhängigkeit: [M4](04-transactions-und-strukturpflege.md)
 
-Verbindliche M0-Basis: Editor ist ausschließlich Milkdown `@milkdown/crepe` `7.22.1`; Tiptap und eine erneute Editor-Auswahl sind ausgeschlossen. Die Interopgrenze besteht aus `mount`, `readMarkdown`, `focus` und `dispose`. Vitest ist für diesen dünnen Pfad nicht erforderlich. Komponenten- und Browsernachweise verwenden bUnit `2.11.3`/xUnit v3 `3.2.2` beziehungsweise Microsoft.Playwright .NET `1.62.0` mit Chrome Stable `152.0.7977.83`, `Channel = "chrome"`, `Headless = true`.
+Verbindliche M0-Basis: Editor ist ausschließlich Milkdown `@milkdown/crepe` `7.22.1`; Tiptap und eine erneute Editor-Auswahl sind ausgeschlossen. Die Interopgrenze besteht aus `mount`, `readMarkdown`, `focus` und `dispose`. Vitest ist für diesen dünnen Pfad nicht erforderlich. Komponenten- und Browsernachweise verwenden bUnit `2.11.3`/xUnit v3 `3.2.2` beziehungsweise Microsoft.Playwright .NET `1.62.0` mit Chrome Stable (installierte aktuelle Version), `Channel = "chrome"`, `Headless = true`.
 
 Ziel: Rollenabhängiger Markdown-Content kann vollständig und komfortabel ohne Agent gepflegt werden.
 

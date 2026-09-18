@@ -6,7 +6,7 @@
 
 Abhängigkeit: [M0](00-komponenten-und-architektur.md)
 
-Verbindliche M0-Basis: `ModelContextProtocol.AspNetCore` `2.2.0`, ein direkter Kestrel-Origin, `/mcp` stateless, kein Legacy-SSE, kein zweiter Port und kein Reverse Proxy. Für Tests gelten bUnit `2.11.3`, xUnit v3 `3.2.2`, Microsoft.Playwright .NET `1.62.0` und Google Chrome Stable `152.0.7977.83` ausschließlich mit `Channel = "chrome"` und `Headless = true`. Die Referenz-Fixtures unter `temp/webfrontend-spikes/` bleiben uncommittet und werden nicht in Produktions- oder Testprojekte übernommen.
+Verbindliche M0-Basis: `ModelContextProtocol.AspNetCore` `2.2.0`, ein direkter Kestrel-Origin, `/mcp` stateless, kein Legacy-SSE, kein zweiter Port und kein Reverse Proxy. Für Tests gelten bUnit `2.11.3`, xUnit v3 `3.2.2`, Microsoft.Playwright .NET `1.62.0` und Google Chrome Stable (installierte aktuelle Version) ausschließlich mit `Channel = "chrome"` und `Headless = true`. Die Referenz-Fixtures unter `temp/webfrontend-spikes/` bleiben uncommittet und werden nicht in Produktions- oder Testprojekte übernommen.
 
 Ziel: `KnowHowToAI.Server` stellt Blazor und die bestehenden MCP-Funktionen zentral über HTTP in einer EXE und auf einem Port bereit.
 
@@ -47,7 +47,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Fehlergrenze: unerwartete Renderfehler werden durch eine zentrale Error Boundary mit neutralem deutschen Text und Korrelationshinweis abgefangen; Exceptiondetails oder Credentials gelangen nicht ins Markup. Erwartete `Result`-Fehler werden als normaler Seitenzustand dargestellt.
     - Direkte DI: die Razor-Komponente verwendet den Application Service direkt; kein `HttpClient`, kein Loopback, kein Repository und kein SQL-Typ im Webnamespace.
     - Nicht enthalten: Designsystem, finale Navigation oder Fachseiten.
-    - Tests: schneller bUnit-Render-/Erfolg-/Leer-/Fehler-Smoke mit Test Double an der vorhandenen Core-Portgrenze. Der Browser-Smoke veröffentlicht den Server in einen frischen Temp-Ordner, verwendet diesen als Content Root, startet genau einen realen Circuit in Google Chrome Stable `152.0.7977.83` mit `Channel = "chrome"` und `Headless = true` und wartet ausschließlich auf beobachtbare HTTP-/Circuitzustände. Er zeichnet ausgehende HTTP-Verbindungen auf und belegt, dass kein Server-Loopback stattfindet; Hostprozess und Port sind auch bei Fehlschlag freizugeben.
+    - Tests: schneller bUnit-Render-/Erfolg-/Leer-/Fehler-Smoke mit Test Double an der vorhandenen Core-Portgrenze. Der Browser-Smoke veröffentlicht den Server in einen frischen Temp-Ordner, verwendet diesen als Content Root, startet genau einen realen Circuit in Google Chrome Stable (installierte aktuelle Version) mit `Channel = "chrome"` und `Headless = true` und wartet ausschließlich auf beobachtbare HTTP-/Circuitzustände. Er zeichnet ausgehende HTTP-Verbindungen auf und belegt, dass kein Server-Loopback stattfindet; Hostprozess und Port sind auch bei Fehlschlag freizugeben.
     - Abnahme: `/` liefert `200 text/html`, Framework-/Static-Assets liefern den passenden Erfolgscode, der lokale Statuswechsel belegt den Circuit, der read-only Application-Aufruf wird beim Initialisieren genau einmal ausgeführt und `/api...` sowie `/mcp` bleiben außerhalb der UI. Beide neuen Testprojekte laufen zweimal hintereinander grün.
 
 ## M1.3 – MCP Streamable HTTP

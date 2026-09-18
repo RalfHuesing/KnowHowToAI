@@ -58,7 +58,7 @@ tests/
 | `KnowHowToAI.Core.Tests` | schnelle Domain- und Application-Tests |
 | `KnowHowToAI.IntegrationTests` | SQL-, Host-, MCP-, PDF-Prozess- und HTTP-Grenztests |
 | `KnowHowToAI.Web.Tests` | schnelle Razor-Komponenten- und Circuit-State-Tests mit bUnit `2.11.3` und xUnit v3 `3.2.2` |
-| `KnowHowToAI.BrowserTests` | vollständige Browserabläufe mit Microsoft.Playwright .NET `1.62.0` gegen einen real gestarteten Server und Google Chrome Stable `152.0.7977.83` |
+| `KnowHowToAI.BrowserTests` | vollständige Browserabläufe mit Microsoft.Playwright .NET `1.62.0` gegen einen real gestarteten Server und Google Chrome Stable (installierte aktuelle Version) |
 
 `KnowHowToAI.Web.Tests` und `KnowHowToAI.BrowserTests` sind Zielprojekte ab M1.2 und existieren vorher noch nicht. Beim Anlegen werden sie in `KnowHowToAI.slnx` und das jeweils zuständige zentrale Testskript aufgenommen; ihre Paketversionen werden in `Directory.Packages.props` verwaltet. `KnowHowToAI.Web.Tests` läuft im FastTest-Gate; `KnowHowToAI.BrowserTests` läuft im Integrationstest-Gate.
 
@@ -365,7 +365,7 @@ tests/KnowHowToAI.BrowserTests/
 ```
 
 - `Web.Tests` spiegelt die Produktionsfeaturegrenzen. Component-Tests verwenden bUnit `2.11.3` mit xUnit v3 `3.2.2`, prüfen Rendering und Interaktion und mocken dünnes JS-Interop; fachliche Varianten verbleiben in `Core.Tests`.
-- `BrowserTests` enthält nur vollständige Benutzerabläufe und verwendet Microsoft.Playwright .NET `1.62.0`. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Jeder reguläre Lauf startet ausschließlich Google Chrome Stable `152.0.7977.83` mit `Channel = "chrome"` und `Headless = true`; fehlendes oder abweichendes Chrome ist ein klarer Preflight-Fehler. Es gibt keinen Chromium-Fallback, keinen sichtbaren Browserstart und keine weitere Browsermatrix.
+- `BrowserTests` enthält nur vollständige Benutzerabläufe und verwendet Microsoft.Playwright .NET `1.62.0`. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Jeder reguläre Lauf startet ausschließlich Google Chrome Stable (installierte aktuelle Version) mit `Channel = "chrome"` und `Headless = true`; fehlendes Chrome ist ein klarer Preflight-Fehler. Es gibt keinen Chromium-Fallback, keinen sichtbaren Browserstart und keine weitere Browsermatrix.
 - Der Browser-Testhost startet die veröffentlichte Server-EXE aus einem frisch erzeugten `dotnet publish`-Verzeichnis und verwendet dieses als Content Root. Readiness, Circuitzustand und Interaktionen werden ausschließlich über beobachtbare Zustände und Playwright-Web-first-Assertions abgewartet; feste Sleeps sind verboten. Der Host wird auch bei Testfehlern beendet und der gebundene Port freigegeben.
 - Locator-Priorität ist Rolle, Label und danach stabile Test-ID. Screenshots werden erst nach semantischen und Verhaltensassertionen erzeugt; volatile Inhalte werden stabil maskiert und Baselines nie im regulären Lauf automatisch überschrieben.
 - Vitest ist im aktuellen Zielstand nicht erforderlich und es wird kein `package.json` allein für JS-Tests angelegt. Erst wenn eigener JavaScript-/TypeScript-Code Zustand mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik verwaltet, muss der einführende Task vor dem Code Vitest-Version, Testablage und FastTest-Befehl in diesem Dokument ergänzen. Dünne `mount`-/`readMarkdown`-/`focus`-/`dispose`- und Dialogaufrufe lösen diese Pflicht nicht aus.
@@ -381,9 +381,9 @@ tests/KnowHowToAI.BrowserTests/
 | Razor-Komponenten | `bunit` | `2.11.3`, nur `KnowHowToAI.Web.Tests` |
 | Testframework | `xunit.v3` | `3.2.2`; vorhandener `xunit.runner.visualstudio` bleibt `3.1.5` |
 | Browsersteuerung | `Microsoft.Playwright` | `1.62.0`, nur `KnowHowToAI.BrowserTests` |
-| Browser | Google Chrome Stable | `152.0.7977.83`, `Channel = "chrome"`, ausschließlich headless |
+| Browser | Google Chrome Stable | installierte aktuelle Version, `Channel = "chrome"`, ausschließlich headless |
 
-Die Projekte werden über `pwsh -NoProfile -File scripts/test-fast.ps1` beziehungsweise `pwsh -NoProfile -File scripts/test-integration.ps1` ausgeführt. Für gezielte lokale Nachweise sind zusätzlich `dotnet test tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj` und `dotnet test tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj` zulässig. BrowserTests installieren keinen Playwright-Chromium-Browser. Die Chrome-Version wird vor dem Lauf über den Windows-Uninstall-Eintrag geprüft; eine nichtinteraktive Bereitstellung darf `winget install --id Google.Chrome --exact --silent --accept-package-agreements --accept-source-agreements` verwenden, muss danach aber exakt die geforderte Version nachweisen.
+Die Projekte werden über `pwsh -NoProfile -File scripts/test-fast.ps1` beziehungsweise `pwsh -NoProfile -File scripts/test-integration.ps1` ausgeführt. Für gezielte lokale Nachweise sind zusätzlich `dotnet test tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj` und `dotnet test tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj` zulässig. BrowserTests installieren keinen Playwright-Chromium-Browser. Die Chrome-Installation wird vor dem Lauf über den Windows-Uninstall-Eintrag auf Vorhandensein geprüft; die Version selbst wird nicht festgenagelt, jede installierte Stable-Version ist zulässig. Eine nichtinteraktive Bereitstellung darf `winget install --id Google.Chrome --exact --silent --accept-package-agreements --accept-source-agreements` verwenden.
 
 Die ignorierten M0-Fixtures unter `temp/webfrontend-spikes/` dienen ausschließlich als Nachweisreferenz. Produktions- oder Testcode wird nicht daraus kopiert; der jeweilige Umsetzungstask implementiert gegen die hier festgelegten Verträge und übernimmt nur verifizierte Golden-Master-Daten, soweit deren Lizenz und Herkunft dies erlauben.
 
