@@ -4,7 +4,13 @@
 <div class="shell-root @(_isCompactMode ? "shell-root--compact" : "")">
     <a class="shell-skip-link" href="#shell-main">Zum Hauptinhalt springen</a>
     <header class="shell-header">
-        <span class="shell-brand">KnowHowToAI</span>
+        <div class="shell-header-brand">
+            <span class="shell-brand">KnowHowToAI</span>
+            @if (PageRegions.KnowledgeContext is { } knowledgeContext)
+            {
+                <KnowledgeContextBar Context="@knowledgeContext" />
+            }
+        </div>
         <div class="shell-header-actions">
             @if (_isCompactMode)
             {

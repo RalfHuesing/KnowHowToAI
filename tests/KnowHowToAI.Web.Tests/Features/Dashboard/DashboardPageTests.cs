@@ -10,6 +10,7 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Dashboard;
+using KnowHowToAI.Server.Web.Components.Layout;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Features.Dashboard;
@@ -17,6 +18,8 @@ namespace KnowHowToAI.Web.Tests.Features.Dashboard;
 [Trait("Category", "Unit")]
 public sealed class DashboardPageTests : Bunit.BunitContext
 {
+    public DashboardPageTests() => Services.AddSingleton(new PageRegionState());
+
     [Fact]
     public void RendersSemanticHeadingAndTechnicalShellStatus()
     {
@@ -47,6 +50,23 @@ public sealed class DashboardPageTests : Bunit.BunitContext
         cut.Find("button").Click();
 
         Assert.Contains("Interaktivität ist verfügbar.", cut.Find("[data-testid=interaction-status]").TextContent, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DeliversTheInitialKnowledgeContextFromTheActualCurrentPageContext()
+    {
+        Services.AddSingleton(CreateNavigationService([CreateRole("Developer")]));
+        var state = Services.GetRequiredService<PageRegionState>();
+
+        Render<DashboardPage>();
+
+        var context = state.KnowledgeContext;
+        Assert.NotNull(context);
+        Assert.Equal(KnowledgeReadContextKind.Current, context.ReadContext);
+        Assert.Null(context.ContextId);
+        Assert.Null(context.DisplayName);
+        Assert.Null(context.RoleName);
+        Assert.False(context.IsDirty);
     }
 
     private static NavigationService CreateNavigationService(IReadOnlyList<Role> roles)

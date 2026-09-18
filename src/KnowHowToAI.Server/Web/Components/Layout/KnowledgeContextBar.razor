@@ -1,0 +1,25 @@
+@namespace KnowHowToAI.Server.Web.Components.Layout
+@using KnowHowToAI.Server.Web.Components.Shared
+
+@* Globale Wissenskontextleiste nahe der Wortmarke: Werte als Text und
+   Status, ohne Selektor, Links oder Mutation. Die fehlende Rolle ist
+   neutral und kein technischer Fehler; der Dirty-Zustand nutzt AppStatus
+   mit Icon plus Text, nie Farbe allein. *@
+<div class="knowledge-context" role="group" aria-label="Wissenskontext">
+    <span class="knowledge-context__item">
+        <span class="knowledge-context__label">Wissensbasis:</span>
+        <span class="knowledge-context__value">@ReadContextText</span>
+        @if (ReadContextDetail is { } detail)
+        {
+            <span class="knowledge-context__value knowledge-context__detail">@detail</span>
+        }
+    </span>
+    <span class="knowledge-context__item">
+        <span class="knowledge-context__label">Rolle:</span>
+        <span class="knowledge-context__value">@RoleText</span>
+    </span>
+    @if (Context.IsDirty)
+    {
+        <AppStatus Kind="AppStatusKind.Ungespeichert" Text="Ungespeicherte Änderungen" />
+    }
+</div>

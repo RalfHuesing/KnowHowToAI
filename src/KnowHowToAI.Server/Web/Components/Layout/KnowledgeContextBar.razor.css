@@ -1,0 +1,28 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.knowledge-context {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-1) var(--ktai-space-4);
+    min-width: 0;
+}
+
+.knowledge-context__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ktai-space-1);
+    min-width: 0;
+}
+
+.knowledge-context__label {
+    color: var(--ktai-color-text-secondary);
+}
+
+.knowledge-context__value {
+    color: var(--ktai-color-text);
+}
+
+.knowledge-context__detail {
+    color: var(--ktai-color-text-secondary);
+}

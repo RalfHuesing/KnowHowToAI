@@ -54,6 +54,13 @@
     border-bottom: 1px solid var(--ktai-color-border);
 }
 
+.shell-header-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--ktai-space-4);
+    min-width: 0;
+}
+
 .shell-brand {
     color: var(--ktai-color-text);
     font-weight: 600;

@@ -102,6 +102,21 @@ public sealed class MainLayoutTests : ShellTestContext
         Assert.Empty(cut.FindAll("nav[aria-label='Breadcrumbs']"));
         Assert.Empty(cut.FindAll(".shell-page-actions"));
         Assert.Empty(cut.FindAll("aside"));
+        Assert.Empty(cut.FindAll(".knowledge-context"));
+    }
+
+    [Fact]
+    public void RendersTheKnowledgeContextBarExactlyOnceGloballyNearTheWordmark()
+    {
+        var cut = RenderMainLayoutWithAttachPage();
+
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".knowledge-context")));
+
+        var bar = cut.Find(".shell-header-brand .knowledge-context");
+        Assert.Contains("Current Snapshot", bar.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Keine Rolle ausgewählt", bar.TextContent, StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll(".app-status--ungespeichert"));
+        Assert.Single(cut.FindAll(".knowledge-context"));
     }
 
     [Fact]
@@ -205,6 +220,8 @@ public sealed class MainLayoutTests : ShellTestContext
         {
             PageRegions.SetBreadcrumbs(builder => builder.AddContent(0, "Start"));
             PageRegions.SetContext(builder => builder.AddContent(0, "Kontextinhalt"));
+            PageRegions.SetKnowledgeContext(
+                new KnowledgeContextViewModel(KnowledgeReadContextKind.Current));
             PageRegions.SetActions(builder =>
             {
                 builder.OpenElement(0, "button");

@@ -127,6 +127,19 @@ Verzeichnis
 - Fachseiten hängen Breadcrumbs, Aktionen und Kontext ohne eigenes
   Seitenraster über den scoped Slot `PageRegionState` ein; leere Bereiche
   belegen keinen Platz und erhalten keine Dummytexte.
+- Fachseiten liefern über denselben Slot den Vertrag
+  `KnowledgeContextViewModel` (immutable `record` unter
+  `Web/Components/Layout`) für die globale Wissenskontextleiste: Art des
+  Lese-Kontexts (`Current`, `Snapshot`, `Transaction`, `Release`), optionale
+  ID/Bezeichnung, optionale Rolle und `IsDirty`. Die Komponente
+  `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
+  Kopfbereich nahe der Wortmarke – als Text und Status ohne Selektor, Links
+  oder Mutation; eine fehlende Rolle erscheint neutral als „Keine Rolle
+  ausgewählt“, der Dirty-Zustand nur bei Bedarf als „Ungespeicherte
+  Änderungen“ mit Icon plus Text. Nicht gelieferte Angaben erscheinen nicht;
+  die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
+  Rolle und ohne `IsDirty`. Domain-Typen und der M3-`WorkspaceState` sind
+  bewusst nicht Teil dieses Vertrags.
 - Ab 1280 CSS-Pixeln (vom schmalen Modul `MainLayout.razor.js` über
   `matchMedia` gemeldet) stehen Navigation, Arbeitsfläche und optionaler
   Kontextbereich nebeneinander; die Arbeitsfläche nutzt
