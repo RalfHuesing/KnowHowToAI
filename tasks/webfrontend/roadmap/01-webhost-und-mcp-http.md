@@ -52,7 +52,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M1.3 – MCP Streamable HTTP
 
-- [ ] **M1.3 abschließen**
+- [x] **M1.3 abschließen**
 
   - [x] **M1.3-T1 – MCP-HTTP-Transport produktiv integrieren**
     - Paket: `ModelContextProtocol.AspNetCore` exakt in Version `2.2.0` zentral aufnehmen; seine Paketabhängigkeiten `ModelContextProtocol` und `ModelContextProtocol.Core` bleiben `2.2.0`. Direkte Basispakete nur behalten, wenn sie danach noch direkt verwendet werden. `THIRD-PARTY-NOTICES.md` im selben Commit aus dem tatsächlichen Restore aktualisieren.
@@ -62,7 +62,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: SDK-Discovery, vollständige Tool Discovery mit Namen und Inputschema, `list_roles` als Read, kompletter `begin_transaction`/repräsentative Mutation/`discard_transaction`-Writepfad, strukturierter Parameter-/Fachfehler, zwei parallele Requests, beobachteter erster Response-Byte als Streamingnachweis und gezielter Clientabbruch bis zum Tool-`CancellationToken`. DI wird über kontrollierte Test Doubles an vorhandenen Ports isoliert; die HTTP-Grenze bleibt real.
     - Abnahme: alle bestehenden MCP-Kategorien sind über `/mcp` erreichbar; `GET /mcp` und `/mcp/sse` liefern keinen MCP-Erfolg, der Transport setzt keinen fachlichen Sessionzustand voraus, der abgebrochene Aufruf beendet nicht den parallelen Erfolgsaufruf und `/`, `/api...` bleiben unverändert.
 
-  - [ ] **M1.3-T2 – MCP-Vertragsregression vollständig abdecken**
+  - [x] **M1.3-T2 – MCP-Vertragsregression vollständig abdecken**
     - Umbau: die Assertions der bestehenden `StdioProtocolTests` in HTTP-Vertragstests gegen das gemeinsame M1.3-T1-Fixture überführen. Tests senden keine Hand-JSON-Nachrichten mehr, starten keinen STDIO-Prozess und prüfen keine Zeilenrahmung; fachliche Mapper-/Tool-Unit-Tests bleiben unverändert.
     - Vertragsmatrix: Toolmenge und Schemas; Current/Snapshot/Transaction/Release-Read-Context; Paging und ungültige Cursor; Root/Node/Children/Rollen; Suche und Markdownexport; Begin/Commit/Discard; Node-, Rollen- und Contentmutationen; Historie/Diff/Release; Warnungen; repräsentative stabile Fehlercodes für Parameter-, Not-found-, Zustands- und Konfliktfehler sowie Cancellation.
     - Assertions: mindestens Toolname, relevante Schema-Pflichtfelder, Envelopeform, `data`, `warnings`, stabiler Fehlercode und relevante strukturierte Details prüfen. Freie Meldungstexte, Property-Reihenfolge und SDK-interne HTTP-Frames werden nicht festgezurrt.
