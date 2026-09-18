@@ -16,9 +16,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M1.1 – ASP.NET-Core-Host
 
-- [ ] **M1.1 abschließen**
+- [x] **M1.1 abschließen**
 
-  - [ ] **M1.1-T1 – Serverprojekt auf Webhost umstellen**
+  - [x] **M1.1-T1 – Serverprojekt auf Webhost umstellen**
     - Projektänderung: `KnowHowToAI.Server.csproj` auf `Microsoft.NET.Sdk.Web` umstellen und nur dadurch redundant gewordene Framework-Paketreferenzen entfernen. Alle weiterhin benötigten Versionen bleiben zentral in `Directory.Packages.props`; das Lizenzinventar wird im selben Commit aktualisiert.
     - Composition Root: `Program` verwendet `WebApplication.CreateBuilder(args)` und liefert für Integrationstests weiterhin eine interne, deterministisch aufrufbare Builder-/Factory-Grenze. Bestehende Options-, Serilog-, Storage-, Application-, Migration- und vorläufige STDIO-MCP-Registrierungen werden unverändert in den Webhost übernommen; STDIO wird erst in M1.4 entfernt.
     - Prozessverhalten: vor dem Listen erfolgen Optionsvalidierung und aktivierte Migrationen. Konfigurations-/Migrationsfehler führen weiterhin zu `ServerExitCodes.StartupFailure`; Cancellation und geordneter Shutdown zu `Success`. Es entsteht keine zweite Hostklasse neben dem tatsächlich gestarteten Host.
@@ -28,7 +28,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Dokumentation: `docs/Architektur.md` und `docs/Konfiguration-und-Betrieb.md` nur auf den bereits erreichten Webhost-Ist-Stand umstellen; STDIO bleibt dort bis M1.4 als aktueller Transport dokumentiert.
     - Abnahme: bestehende fachliche Tests bleiben grün; derselbe Serverprozess ist ein funktionsfähiger Webhost, ohne Blazor- oder HTTP-MCP-Funktionsausbau.
 
-  - [ ] **M1.1-T2 – Endpunktrouting und Hostkonfiguration absichern**
+  - [x] **M1.1-T2 – Endpunktrouting und Hostkonfiguration absichern**
     - Struktur: `Web/WebEndpointRegistration.cs` als einzige zentrale Mapping-Erweiterung anlegen. In diesem Task reserviert sie `/api` und `/api/{**reservedPath}` für die üblichen HTTP-Methoden mit leerer `404`-Antwort; es wird keine REST-/OpenAPI-Infrastruktur angelegt. `/mcp` wird noch nicht gemappt und bleibt bis M1.3 ebenfalls `404`.
     - Hostkonfiguration: genau ein normaler ASP.NET-Core-Origin; Scheme, Adresse und Port kommen aus Standard-Hostkonfiguration/Command Line. Keine eigene Portoption, kein zweiter Listener, kein Proxy, kein CORS und keine vorgezogene Authentifizierung.
     - Mappingregel: technische Endpunkte werden vor der Blazor-Komponentenroute gemappt. Reservierte `/api`- und `/mcp`-Pfade dürfen nie HTML der UI oder eine Blazor-Not-Found-Seite liefern.
@@ -38,9 +38,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M1.2 – Blazor-Grundhost
 
-- [ ] **M1.2 abschließen**
+- [x] **M1.2 abschließen**
 
-  - [ ] **M1.2-T1 – Blazor-Interactive-Server-Shell bereitstellen**
+  - [x] **M1.2-T1 – Blazor-Interactive-Server-Shell bereitstellen**
     - Dateien: `WebServiceRegistration`, `WebEndpointRegistration`, `Web/Components/App.razor`, `Routes.razor`, `_Imports.razor`, ein minimales Layout und genau eine Root-Seite gemäß Zielstruktur anlegen. Services mit `AddRazorComponents().AddInteractiveServerComponents()` registrieren und Komponenten mit Interactive Server unter `/` mappen.
     - Testprojekte: `KnowHowToAI.Web.Tests` mit bUnit `2.11.3` und xUnit v3 `3.2.2` sowie `KnowHowToAI.BrowserTests` mit Microsoft.Playwright .NET `1.62.0` anlegen. Beide werden in `KnowHowToAI.slnx` und das jeweils zuständige Testskript aufgenommen. `Web.Tests` referenziert ausschließlich Server/Core; `BrowserTests` referenziert kein Produktionsprojekt und startet die veröffentlichte Server-EXE als Black Box.
     - Inhalt: semantische Überschrift „KnowHowToAI“, technischer Status der Shell, ein rein lokaler Button „Interaktivität prüfen“ mit `aria-live`-Status und ein realer read-only Aufruf von `NavigationService.ListRolesAsync(new ListRolesQuery(new ReadContext(), Limit: 1), cancellationToken)`. Es wird nur Erfolg/leer/Fehler dargestellt, keine Rollenliste, Dashboardlogik oder fachliche Navigation vorgezogen.
