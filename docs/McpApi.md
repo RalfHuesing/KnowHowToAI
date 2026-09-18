@@ -1,6 +1,6 @@
 # MCP-API
 
-Der MCP-Server stellt 27 Tools über stateless MCP Streamable HTTP unter `/mcp`
+Der MCP-Server stellt 28 Tools über stateless MCP Streamable HTTP unter `/mcp`
 bereit. Alle IDs (`NodeId`, `RoleId`,
 `TransactionId`, `SnapshotId`) sind symmetrisch: Ausgaben sind ohne Bereinigung
 oder Typkonvertierung als Eingabe für Folgetools nutzbar (Round-Trip-Garantie).
