@@ -63,7 +63,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M2.3 – Wiederverwendbare UI-Zustände
 
-- [ ] **M2.3 abschließen**
+- [x] **M2.3 abschließen**
 
   - [x] **M2.3-T1 – Lade-, Leer- und Fehlerzustände bereitstellen**
     - Komponenten: `LoadingState` für Initial Load, `BusyOverlay` für Teilaktualisierung, `EmptyState`, `NotFoundState` und `TechnicalErrorState` unter `Web/Components/Shared`. Sie erhalten nur Anzeigeparameter und optional einen `Retry`-Callback; keine Application-Aufrufe oder globale Zustandsmaschine.
@@ -72,7 +72,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: jeder Zustand, Retry genau einmal, fehlende/gesetzte Correlation-ID, kein sensibles Detail, Busy-Doppelaktion blockiert und zugängliche Namen/Rollen.
     - Abnahme: Zustände sind unabhängig vom Featureinhalt wiederverwendbar; keine Fachseite muss Grunddarstellung oder Retry-Schutz neu erfinden.
 
-  - [ ] **M2.3-T2 – Warnungs-, Bestätigungs- und Änderungszustände bereitstellen**
+  - [x] **M2.3-T2 – Warnungs-, Bestätigungs- und Änderungszustände bereitstellen**
     - Komponenten: `InlineAlert`, `StatusBanner`, eine einzelne globale `ToastRegion`, `ConfirmationDialog` und `WorkingIndicator` nativ implementieren. Gemeinsame Bausteine entstehen nur für den hier definierten wiederverwendeten Vertrag; keine generische Control-Abstraktionsschicht.
     - Regeln: Inline Alert bleibt beim auslösenden Inhalt; Banner gilt für die Seite; Toast bestätigt nur nichtkritische abgeschlossene Aktionen und ist nie alleinige Fehler-/Warnquelle. Working/dirty wird mit Text plus Icon gezeigt, nicht nur Farbe.
     - Dialog: Titel, kurze Auswirkung, primäre Aktion und „Abbrechen“; destruktive Aktion optisch/semantisch eindeutig, aber keine Texteingabe zur Bestätigung. Beim Öffnen Fokus auf die sichere Aktion „Abbrechen“, Fokusfalle, Escape entspricht Abbrechen, Schließen gibt Fokus zurück. Während eines Requests sind beide Aktionen gegen Doppelaufruf geschützt.
