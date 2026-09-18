@@ -54,6 +54,18 @@ Für M0.2 und M0.3 gilt zusätzlich:
     - Abnahme: `LICENSE` ist unveränderter MIT-Text mit dem genannten Copyright; kein Paket ist kostenpflichtig, lizenzseitig ungeklärt oder mit der MIT-Distribution unvereinbar. Nicht permissive oder unklare Lizenzen werden nicht eigenmächtig akzeptiert: Task offen lassen und Benutzerentscheidung anfordern.
     - Abschluss: ausschließlich Lizenz-/Inventardateien, Roadmapstatus und zwingende Dokumentationsverweise atomar committen; keine Paketversion allein zur Vereinfachung des Inventars ändern.
 
+    **Nachweis (2026-09-18, offen):** `LICENSE` ist unverändert der MIT-Text
+    mit `Copyright (c) 2026 Ralf Hüsing`. Ein Restore und die Inventarisierung
+    aller fünf `project.assets.json` sind in
+    [`THIRD-PARTY-NOTICES.md`](../../../THIRD-PARTY-NOTICES.md) dokumentiert;
+    alle zentralen Versionen entsprechen der tatsächlichen Auflösung. Der
+    restaurierte Transitiv `Microsoft.Data.SqlClient.SNI.runtime` `6.0.2`
+    enthält jedoch Microsoft Software License Terms statt einer permissiven
+    SPDX-Lizenz und verpflichtet unter anderem zu besonderen
+    Weitergabe-/Endnutzerbedingungen, Freistellung und Exportbeachtung. Der
+    Task bleibt deshalb nach der Abnahmeregel offen, bis der Benutzer die
+    Lizenzannahme ausdrücklich entscheidet; es wurden keine Pakete geändert.
+
 ## M0.2 – Host- und Routing-Spike
 
 - [ ] **M0.2 abschließen**
