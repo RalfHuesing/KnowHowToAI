@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
@@ -87,33 +89,102 @@ public sealed class McpHttpTransportTests
 
     [Fact]
     [Trait("Category", "Integration")]
-    public async Task ClientAbort_CancelsTheTokenReceivedByTheListRolesPort()
+    public async Task StreamableHttpClient_ReportsParameterAndDomainErrorsWithStableCodesAndDetails()
+    {
+        await using var host = await McpHttpHost.StartAsync();
+        await using var client = await McpClient.CreateAsync(CreateTransport(host.Address));
+
+        var parameterError = await client.CallToolAsync("get_node", new Dictionary<string, object?>
+        {
+            ["nodeId"] = "not-a-guid",
+            ["roleId"] = "Developer"
+        });
+        var domainError = await client.CallToolAsync("get_transaction", new Dictionary<string, object?>
+        {
+            ["transactionId"] = "not-a-guid"
+        });
+
+        using var parameterEnvelope = JsonDocument.Parse(parameterError.Content.Single().ToString()!);
+        Assert.Equal("InvalidNodeId", parameterEnvelope.RootElement.GetProperty("code").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(parameterEnvelope.RootElement.GetProperty("message").GetString()));
+        Assert.Equal("nodeId", Assert.Single(parameterEnvelope.RootElement.GetProperty("details").EnumerateObject()).Name);
+        Assert.Equal("not-a-guid", parameterEnvelope.RootElement.GetProperty("details").GetProperty("nodeId").GetString());
+        Assert.False(parameterEnvelope.RootElement.TryGetProperty("data", out _));
+        Assert.False(parameterEnvelope.RootElement.TryGetProperty("warnings", out _));
+
+        using var domainEnvelope = JsonDocument.Parse(domainError.Content.Single().ToString()!);
+        Assert.Equal("TransactionNotFound", domainEnvelope.RootElement.GetProperty("code").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(domainEnvelope.RootElement.GetProperty("message").GetString()));
+        Assert.Equal("not-a-guid", domainEnvelope.RootElement.GetProperty("details").GetProperty("transactionId").GetString());
+        Assert.False(domainEnvelope.RootElement.TryGetProperty("data", out _));
+        Assert.False(domainEnvelope.RootElement.TryGetProperty("warnings", out _));
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task StreamableHttpClient_ObservesTheFirstResponseByteBeforeTheToolCompletes()
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
-        var roles = new BlockingRoleRepository();
+        var observingHandler = new FirstByteObservingHandler();
+        var streaming = new StreamingRoleRepository(observingHandler.FirstResponseByteObserved.Task);
         var navigation = new NavigationService(
-            harness.CreateRepositories() with { Roles = roles },
-            new RetrievalPolicy
-            {
-                DefaultPageSize = 10,
-                MaximumPageSize = 100,
-                SearchPageSize = 10,
-                SearchMaximumPageSize = 100,
-                SnippetMaximumCharacters = 100
-            });
+            harness.CreateRepositories() with { Roles = streaming },
+            CreateRetrievalPolicy());
         await using var host = await McpHttpHost.StartAsync(services =>
         {
             services.RemoveAll<NavigationService>();
             services.AddSingleton(navigation);
         });
-        await using var client = await McpClient.CreateAsync(CreateTransport(host.Address));
+        using var httpClient = new HttpClient(observingHandler);
+        await using var client = await McpClient.CreateAsync(
+            new HttpClientTransport(CreateOptions(host.Address), httpClient));
+
+        var request = client.CallToolAsync("list_roles").AsTask();
+        await streaming.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        // Der erste Response-Byte erreicht den Client, waehrend der Tool-Aufruf
+        // noch auf den Blocking-Repository-Port wartet; nur ein gestreamter,
+        // nicht gepufferter Response liefert Bytes vor dem Toolabschluss.
+        await observingHandler.FirstResponseByteObserved.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        var result = await request;
+
+        Assert.Null(result.IsError);
+        Assert.True(streaming.ObservedFirstResponseByteBeforeCompletion);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task ClientAbort_CancelsTheBlockedCallWithoutEndingTheParallelSuccessCall()
+    {
+        var harness = new NavigationTestHarness(new SnapshotId(1));
+        harness.AddRole(new Role(new SnapshotId(1), new RoleId("Developer"), "Entwicklung", null, false));
+        var roles = new FirstCallBlockingRoleRepository(harness.CreateRepositories().Roles);
+        var navigation = new NavigationService(
+            harness.CreateRepositories() with { Roles = roles },
+            CreateRetrievalPolicy());
+        await using var host = await McpHttpHost.StartAsync(services =>
+        {
+            services.RemoveAll<NavigationService>();
+            services.AddSingleton(navigation);
+        });
+        await using var abortedClient = await McpClient.CreateAsync(CreateTransport(host.Address));
+        await using var successClient = await McpClient.CreateAsync(CreateTransport(host.Address));
         using var cancellation = new CancellationTokenSource();
 
-        var request = client.CallToolAsync("list_roles", cancellationToken: cancellation.Token).AsTask();
+        var abortedRequest = abortedClient
+            .CallToolAsync("list_roles", cancellationToken: cancellation.Token)
+            .AsTask();
         await roles.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        var successCall = successClient.CallToolAsync("list_roles").AsTask();
+        var successResult = await successCall.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Null(successResult.IsError);
+
         cancellation.Cancel();
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => request);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => abortedRequest);
         await roles.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
@@ -208,35 +279,74 @@ public sealed class McpHttpTransportTests
         }
     }
 
-    private static HttpClientTransport CreateTransport(string address) =>
-        new(
-            new HttpClientTransportOptions
-            {
-                Endpoint = new Uri($"{address}/mcp"),
-                TransportMode = HttpTransportMode.StreamableHttp
-            });
+    private static RetrievalPolicy CreateRetrievalPolicy() => new()
+    {
+        DefaultPageSize = 10,
+        MaximumPageSize = 100,
+        SearchPageSize = 10,
+        SearchMaximumPageSize = 100,
+        SnippetMaximumCharacters = 100
+    };
 
-    private sealed class BlockingRoleRepository : IRoleRepository
+    private static HttpClientTransportOptions CreateOptions(string address) => new()
+    {
+        Endpoint = new Uri($"{address}/mcp"),
+        TransportMode = HttpTransportMode.StreamableHttp
+    };
+
+    private static HttpClientTransport CreateTransport(string address) => new(CreateOptions(address));
+
+    private sealed class FirstByteObservingHandler : DelegatingHandler
+    {
+        public FirstByteObservingHandler()
+            : base(new HttpClientHandler())
+        {
+        }
+
+        public TaskCompletionSource FirstResponseByteObserved { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            if (request.Content is not null)
+            {
+                var body = await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                if (body.Contains("tools/call", StringComparison.Ordinal))
+                {
+                    // Das Lesen verbraucht den urspruenglichen Content; die Kopie
+                    // erhaelt alle Header und den unveranderten Body.
+                    var bufferedContent = new ByteArrayContent(Encoding.UTF8.GetBytes(body));
+                    foreach (var header in request.Content.Headers)
+                        bufferedContent.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                    request.Content = bufferedContent;
+
+                    var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    FirstResponseByteObserved.TrySetResult();
+                    return response;
+                }
+            }
+
+            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private sealed class StreamingRoleRepository(Task firstResponseByteObserved) : IRoleRepository
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool ObservedFirstResponseByteBeforeCompletion { get; private set; }
 
         public async Task<IReadOnlyList<Role>> ListBySnapshotAsync(
             SnapshotId snapshotId,
             CancellationToken cancellationToken = default)
         {
             Started.SetResult();
-            try
-            {
-                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                Cancelled.SetResult();
-                throw;
-            }
-
+            await firstResponseByteObserved
+                .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken)
+                .ConfigureAwait(false);
+            ObservedFirstResponseByteBeforeCompletion = true;
             return [];
         }
 
@@ -244,6 +354,41 @@ public sealed class McpHttpTransportTests
             SnapshotId snapshotId,
             CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<RoleResolution>>([]);
+    }
+
+    private sealed class FirstCallBlockingRoleRepository(IRoleRepository inner) : IRoleRepository
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private int _blockingCallPending = 1;
+
+        public async Task<IReadOnlyList<Role>> ListBySnapshotAsync(
+            SnapshotId snapshotId,
+            CancellationToken cancellationToken = default)
+        {
+            if (Interlocked.Exchange(ref _blockingCallPending, 0) == 1)
+            {
+                Started.SetResult();
+                try
+                {
+                    await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    Cancelled.SetResult();
+                    throw;
+                }
+            }
+
+            return await inner.ListBySnapshotAsync(snapshotId, cancellationToken);
+        }
+
+        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(
+            SnapshotId snapshotId,
+            CancellationToken cancellationToken = default) =>
+            inner.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken);
     }
 
     private sealed class WorkflowTransactionRepository : ITransactionRepository
