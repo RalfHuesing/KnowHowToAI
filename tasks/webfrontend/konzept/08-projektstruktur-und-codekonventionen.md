@@ -202,8 +202,7 @@ KnowHowToAI.Server/
 │     ├─ logo.svg
 │     └─ fonts/
 └─ wwwroot/
-   ├─ css/app.css
-   └─ favicon.svg
+   └─ css/app.css
 ```
 
 ### Server-Namespaces

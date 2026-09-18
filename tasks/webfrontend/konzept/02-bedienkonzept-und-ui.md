@@ -15,9 +15,19 @@ Die Oberfläche ist sachlich, seriös und modern. Sie entspricht der Erwartung a
 - Browser-E2E läuft ausschließlich nichtinteraktiv im Headless-Modus. Implementierungsagenten starten für reguläre Abnahmen kein sichtbares Browserfenster.
 - Zielgerät ist ein PC mit Desktopbrowser; Smartphones und eine eigenständige mobile Oberfläche sind ausdrücklich kein Ziel.
 - Die vollständige Desktopdarstellung ist ab 1280 × 720 CSS-Pixeln bei 100 % Zoom ausgelegt. Bei 1024 × 720 bleibt die gesamte Funktion mit verdichtetem Layout und einklappbaren Seitenbereichen erreichbar. Unterhalb dieser Referenzbreite besteht außer den nachfolgend festgelegten Zoom-/Accessibility-Regeln keine Produktanforderung.
-- Produktbranding und Theme werden zentral konfiguriert, nicht pro Seite erfunden.
+- Produktbranding und Theme werden zentral definiert, nicht pro Seite erfunden.
 
-Offene Vorgaben zu Branding und UI-Sprache stehen in [Offene Fragen](07-entscheidungen-und-offene-fragen.md). Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
+Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
+
+## Branding und Sprache
+
+- Der angezeigte Produktname lautet `KnowHowTo AI`.
+- M0 bis M2 verwenden ausschließlich eine Textwortmarke. Es wird weder ein Dummy-Logo noch ein vorläufiges Bildlogo oder eine Logo-Abhängigkeit angelegt.
+- Die primäre Startfarbe ist ein neutrales Blau (`#2563EB`). Hover-, Active-, Fokus- und Kontrastvarianten werden in M2 als zentrale Tokens abgeleitet und müssen die festgelegten Accessibility-Regeln erfüllen.
+- Die Standardschrift ist die lokale Systemkette `Segoe UI, Arial, sans-serif`; es werden keine Webfonts, Font-CDNs oder Font-Buildschritte eingeführt.
+- Die Oberfläche ist im aktuellen Planungshorizont ausschließlich deutsch. Es gibt keine Sprachauswahl, keine `.resx`-Ressourcen, kein `IStringLocalizer` und keine andere Lokalisierungsinfrastruktur.
+- Einmalige featurelokale Texte bleiben bei ihrer Razor-Komponente. Nur tatsächlich featureübergreifend wiederverwendete Bezeichnungen und Fehlermappings werden zentral gehalten; es entsteht keine globale Sammlung aller UI-Literale.
+- Technische, im Produkt bereits etablierte Domänenbegriffe wie Snapshot, Transaction, Commit, Discard und Release dürfen in der deutschen UI unverändert verwendet werden.
 
 ## Barrierefreiheit
 

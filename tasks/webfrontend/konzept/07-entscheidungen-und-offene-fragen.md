@@ -9,8 +9,7 @@ Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutz
 Bearbeitungsreihenfolge im aktuellen Planungshorizont M0–M2:
 
 1. M0-Spikeaufträge ausführungsreif machen; ihre Ergebnisse schließen O-001, O-003, O-002 und O-015.
-2. Benutzerentscheidungen für M2: O-009, O-014.
-3. Abschließender Konsistenz- und Agentenausführbarkeitscheck für alle Leaf-Tasks M0–M2.
+2. Abschließender Konsistenz- und Agentenausführbarkeitscheck für alle Leaf-Tasks M0–M2.
 
 O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-022, O-023, O-024, O-011, O-004 und O-016 werden nicht in diesem Workshop vorentschieden. Sie verbleiben offen und werden im `Mx.0`-Gate ihres ersten betroffenen Milestones bearbeitet. O-005 und O-006 bleiben Entscheidungen außerhalb der aktuellen Roadmap.
 
@@ -24,11 +23,9 @@ O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-022, O-023, O-024, O-0
 | O-006 | Niedrig | Benutzer, später | außerhalb dieser Roadmap | Integrierte KI; erst nach stabilen manuellen Workflows konkretisieren |
 | O-007 | Hoch | Benutzer | M4.1-T1 | Transaction-`Actor` ohne Auth: freie Eingabe, Serverkonfiguration oder leer; Empfehlung: beim Start frei eingebbar und danach immutable |
 | O-008 | Hoch | Benutzer | M3.4-T1 | Initiale Content-Rolle: explizite Pflichtauswahl oder automatisch gemerkte letzte Rolle; Empfehlung: keine stille Rolle, letzte Auswahl nur pro Browsertab merken |
-| O-009 | Hoch | Benutzer | M2.1-T2 | Branding: Produktname, Logo, Primärfarbe und gewünschte Standardschrift; Empfehlung ohne Vorgabe: Textlogo „KnowHowTo AI“, neutrales Blau und Systemschrift |
 | O-010 | Mittel | Benutzer | M5.1-T3 | Markdown-Quellmodus im ersten Contenteditor; Empfehlung: aufnehmen, weil Markdown das kanonische Format ist |
 | O-011 | Niedrig | Benutzer | M7.1-T1 | PDF-Basislayout: Seitenformat, Deckblatt, Inhaltsverzeichnis, Header/Footer und Logo; Empfehlung: A4, kein Deckblatt, TOC ab zwei Ebenen, Logo im Header, Seitenzahl im Footer |
 | O-012 | Hoch | Benutzer | M6.4-T1 | Zieldeployment: Betriebssystem, Prozesshost/Service, Reverse Proxy, Hostname und TLS-Terminierung; Empfehlung: Windows Service hinter IIS oder vorhandenem Unternehmensproxy |
-| O-014 | Hoch | Benutzer | M2.1-T2 | UI-Sprache und Lokalisierung; Empfehlung: zunächst ausschließlich Deutsch, Texte dennoch zentral und nicht in Fachlogik verteilen |
 | O-015 | Mittel | Spike | M0.3-T4 | Testwerkzeuge gemäß K-015 für Razor-Komponenten, Headless-Chrome-E2E und gegebenenfalls eigenes JavaScript; Startkandidaten: bUnit, Microsoft Playwright und bei nichttrivialer JS-Logik Vitest |
 | O-016 | Niedrig | Benutzer | M8.6-T1 | Assetgrenzen: erlaubte Bildtypen, maximale Dateigröße und Pixelzahl; Empfehlung: PNG/JPEG/WebP/SVG, 10 MiB, 40 Megapixel, SVG nur nach sicherer Sanitization |
 | O-017 | Hoch | Benutzer | M6.3-T1 bis T2 | Messbare Performanceziele einschließlich Referenzdaten, gleichzeitiger Blazor-Circuits und paralleler MCP-Aufrufe; Empfehlung: 100.000 Nodes, 1.000 direkte Kinder, 20 Circuits, 10 parallele MCP-Aufrufe, P95-Serverantwort unter 500 ms und sichtbare UI-Reaktion unter 1 s im Intranet |

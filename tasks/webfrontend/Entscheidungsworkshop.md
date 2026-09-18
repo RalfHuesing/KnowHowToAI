@@ -21,9 +21,9 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
-Nächste Benutzerfrage nach Abschluss der M0-Taskschärfung:
+Nächster Arbeitsschritt:
 
-> Welcher Produktname, welches vorläufige Logo und welche visuelle Grundrichtung sollen für M2 gelten (O-009)?
+> M0- bis M2-Leaf-Tasks technisch schärfen und abschließend auf Ausführbarkeit durch Agenten ohne hohes Reasoning prüfen. Weitere Benutzerfragen werden nur gestellt, wenn dabei eine echte M0–M2-Produktentscheidung sichtbar wird.
 
 ## Entscheidungsreihenfolge für M0–M2
 
@@ -146,6 +146,8 @@ Quellen:
 | O-020 | Raw HTML außerhalb von Code wird serverseitig abgelehnt und nie ausgeführt. Links folgen einer Allowlist; externe Bilder und Ressourcen bleiben inaktiv, bis M8 nur kontrollierte interne Assets zulässt. Paste reduziert auf erlaubtes Markdown und weist sichtbar auf jede Reduktion hin. | Einheitliche Policy für MCP-/Web-Writes, Editor, Browser und PDF; kein stiller Contentverlust und kein ungeprüftes HTML-Rendering. |
 | O-022 (Abgrenzung M1) | Die produktive Windows-/SQL-Identität ist keine M1-Entwicklungsentscheidung. M1 behält die vorhandene `DatabaseConnection`-Konfiguration; Klartext-Zugangsdaten in `appsettings.json` sind für den aktuellen Stand akzeptiert. | Kein Dienstkonto-, gMSA- oder Secret-Provider-Vorratsbau. Eine abweichende produktive Betriebswahl wird erst in M6.0 bei bekannter Umgebung getroffen. |
 | O-019 | Es gibt im PoC keinen produktiven oder täglich verwendeten MCP-Client. Hermes Agent wurde nur in Eval-/Testläufen verwendet und ist kein verbindliches Abnahmeziel. | M1 nutzt ausschließlich den offiziellen SDK-Client für automatisierte HTTP-Vertragstests. Ein lokal möglicher Hermes-Smoke ist optional und blockiert den STDIO-Hard-Cut nicht. |
+| O-009 | Produktname ist `KnowHowTo AI`; M2 verwendet eine reine Textwortmarke ohne Dummy- oder Bildlogo, neutrales Blau mit `#2563EB` als Starttoken und die lokale Systemschriftkette `Segoe UI, Arial, sans-serif`. | Keine Logo-, Font-, CDN- oder zusätzliche Assetabhängigkeit in M0–M2; ein echtes Logo kann in einem späteren manuellen Planungsgate ergänzt werden. |
+| O-014 | Die UI ist zunächst ausschließlich deutsch. Es gibt keine Sprachauswahl oder Lokalisierungsinfrastruktur; nur tatsächlich mehrfach verwendete gemeinsame Texte werden zentralisiert. | Kein `.resx`-/`IStringLocalizer`-Vorratsbau und keine globale Konstantensammlung für einmalige featurelokale Texte. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -158,8 +160,6 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-009 | Name, Logo, Farbe, Schrift | „KnowHowTo AI“, zunächst Textlogo, neutrales Blau, Systemschrift; später zentral austauschbar | schließt Theme- und PDF-Grundbranding |
-| O-014 | Sprache/Lokalisierung | UI zunächst ausschließlich Deutsch; Texte zentral halten, keine vollständige Lokalisierungsinfrastruktur | kleine Oberfläche ohne verstreute Literaltexte |
 | O-008 | initiale Rolle | keine stille fachliche Defaultrolle; letzte Wahl nur im Browsertab merken und bei Einstieg sichtbar bestätigen | verhindert unbemerkte Rollenauflösung |
 | O-007 | Transaction Actor ohne Auth | beim Beginnen frei eingebbar, pro Browsertab vorbefüllt, danach immutable; `Client` fest auf Webclient setzen | liefert nachvollziehbare Metadaten ohne vorgetäuschte Identität |
 | O-025 | mehrere Clients in derselben Transaction | zulassen, keine Locks; `ChangeVersion` bei jeder Mutation, stale Write ablehnen und neu laden | UI und MCP bleiben gleichwertige Clients ohne Lockverwaltung |

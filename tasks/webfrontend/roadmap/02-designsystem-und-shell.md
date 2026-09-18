@@ -23,8 +23,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: Beispielseite rendert die benötigten Basiskomponenten im Serverbetrieb.
 
   - [ ] **M2.1-T2 – Design-Tokens und Business-Theme definieren**
-    - Voraussetzung: O-009 zu Branding und O-014 zur UI-Sprache sind durch den Benutzer entschieden.
-    - Umfang: Farben, Typografie, Abstände, Raster, Rahmen, Elevation, Fokusdarstellung und Iconkonvention.
+    - Umfang: zentrale Farben mit `#2563EB` als primärem Starttoken, Systemschriftkette `Segoe UI, Arial, sans-serif`, Abstände, Raster, Rahmen, Elevation, Fokusdarstellung und Iconkonvention definieren; `KnowHowTo AI` in der Shell als reine Textwortmarke darstellen.
+    - Sprache: ausschließlich deutsche UI ohne Lokalisierungsinfrastruktur. Einmalige Texte bleiben featurelokal; nur tatsächlich gemeinsam verwendete Bezeichnungen und Fehlermappings werden zentralisiert.
+    - Ausschluss: kein Dummy-/Bildlogo, Webfont, Font-CDN, `.resx`, `IStringLocalizer` oder globale Sammlung aller UI-Texte.
     - Zustände: neutral, aktiv, Erfolg, Warnung, Fehler, deaktiviert und ungespeichert.
     - Prüfen: Light Theme als erster Stand, ausreichende Kontraste und konsistente Dichte.
     - Abnahme: Theme ist zentral definiert; Fachkomponenten enthalten keine verstreuten Designwerte.
