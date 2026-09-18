@@ -54,17 +54,18 @@ tests/
 |---|---|
 | `KnowHowToAI.Core` | Domain, transportneutrale Use Cases, Ports und fachliche Ergebnisse |
 | `KnowHowToAI.Storage.SqlServer` | SQL-Verbindungen, Migrationen, Repositories und SQL-Mapping |
-| `KnowHowToAI.Server` | Composition Root, Konfiguration, HTTP-Host, MCP-, Blazor-, PDF- und Browser-Endpunkt-Adapter |
+| `KnowHowToAI.Server` | Composition Root, Konfiguration, gemeinsamer Kestrel-Host, MCP-Streamable-HTTP-, Blazor-, PDF- und Browser-Endpunkt-Adapter |
 | `KnowHowToAI.Core.Tests` | schnelle Domain- und Application-Tests |
 | `KnowHowToAI.IntegrationTests` | SQL-, Host-, MCP-, PDF-Prozess- und HTTP-Grenztests |
-| `KnowHowToAI.Web.Tests` | schnelle Razor-Komponenten-, Web-Mapping- und Circuit-State-Tests mit bUnit `2.11.3` und xUnit v3 `3.2.2` |
+| `KnowHowToAI.Web.Tests` | schnelle Razor-Komponenten- und Circuit-State-Tests mit bUnit `2.11.3` und xUnit v3 `3.2.2` |
 | `KnowHowToAI.BrowserTests` | vollständige Browserabläufe mit Microsoft.Playwright .NET `1.62.0` gegen einen real gestarteten Server und Google Chrome Stable `152.0.7977.83` |
 
-Neue Testprojekte werden in `KnowHowToAI.slnx`, die zentralen Testskripte und `Directory.Packages.props` aufgenommen. `KnowHowToAI.Web.Tests` läuft im FastTest-Gate; `KnowHowToAI.BrowserTests` läuft im Integrationstest-Gate.
+`KnowHowToAI.Web.Tests` und `KnowHowToAI.BrowserTests` sind Zielprojekte ab M1.2 und existieren vorher noch nicht. Beim Anlegen werden sie in `KnowHowToAI.slnx` und das jeweils zuständige zentrale Testskript aufgenommen; ihre Paketversionen werden in `Directory.Packages.props` verwaltet. `KnowHowToAI.Web.Tests` läuft im FastTest-Gate; `KnowHowToAI.BrowserTests` läuft im Integrationstest-Gate.
 
 - `KnowHowToAI.Web.Tests` referenziert `KnowHowToAI.Server` und `KnowHowToAI.Core`.
 - `KnowHowToAI.BrowserTests` behandelt den gebauten Server als Black Box und referenziert kein Produktionsprojekt; der Testhost startet die veröffentlichte Server-EXE mit expliziten Environment-/Kommandozeilen-Overrides, nicht mit einer zweiten produktiven Appsettings-Datei.
 - `KnowHowToAI.IntegrationTests` behält seine bestehenden Referenzen auf Server, Core und SQL-Storage.
+- Reale Kestrel-, Routing-, MCP- und HTTP-Grenztests verbleiben in `KnowHowToAI.IntegrationTests`; `KnowHowToAI.Web.Tests` dupliziert diese Hostgrenzen nicht.
 - Die Testversionen aus M0 sind feste Ausgangsversionen für M1–M8. Ein Versionssprung ist kein Implementierungsdetail eines Featuretasks, sondern benötigt einen belegten Inkompatibilitätsgrund, erneute Fixture-Abnahme und aktualisiertes Lizenzinventar.
 
 ## `KnowHowToAI.Core`
@@ -222,6 +223,13 @@ KnowHowToAI.Server/
 
 `Program.cs` erstellt den Host und ruft ausschließlich klar benannte Registrierungs-/Mapping-Erweiterungen auf. Featurelogik und Optionsvalidierung stehen nicht in `Program.cs`.
 
+### Host-, Transport- und UI-Grenzen aus M0
+
+- `KnowHowToAI.Server` ist die einzige EXE und betreibt Blazor sowie MCP auf demselben Kestrel-Origin und demselben konfigurierten Port. Es entsteht kein zweiter Listener und für M1–M2 keine Reverse-Proxy-Voraussetzung.
+- MCP verwendet `ModelContextProtocol.AspNetCore` `2.2.0` mit `ModelContextProtocol` und `ModelContextProtocol.Core` jeweils `2.2.0`. `MapMcp("/mcp")` wird ausschließlich als stateless Streamable HTTP mit `SessionMode = Stateless` und `EnableLegacySse = false` registriert; Legacy-SSE und zustandsbehaftete MCP-Sessions werden nicht angelegt.
+- `/api` und `/api/{**reservedPath}` bleiben bis zu einer späteren Integrationsentscheidung explizit reserviert und dürfen ebenso wie `/mcp` nie vom Blazor-Fallback beantwortet werden. Die konkrete Registrierungs- und Mappingreihenfolge steht im [Architekturkonzept](05-architektur-api-und-mcp.md#mcp-transport).
+- Web-Basiskomponenten verwenden ausschließlich natives Blazor, semantisches HTML und eigenes CSS. Es wird keine allgemeine UI-Komponentenbibliothek referenziert; der `KnowledgeTree` ist eine native Komponente und kein Radzen- oder anderer Fremd-Tree.
+
 ## Web-Featurezuordnung
 
 | Feature | Route | Routable Page | Featurelokale Hauptkomponenten |
@@ -244,6 +252,7 @@ Regeln:
 - `ContentEditor` bleibt Bestandteil der Knowledge-Seite; es entsteht keine zweite, konkurrierende Node-Editor-Seite.
 - `KnowledgeTree` verwendet keine Fremdkomponente. Paging, Cachegrenze, Semantik und Move-Positionen sind im [Bedienkonzept](02-bedienkonzept-und-ui.md#wissensbaum) verbindlich festgelegt.
 - `ContentEditor` bindet ausschließlich Milkdown `@milkdown/crepe` `7.22.1` über `ContentEditor.razor.js` ein. Die konkrete lokale npm-/Bundle-Erzeugung und deren feste Werkzeugversion werden vor M5-Produktivcode im manuellen M5.0-Gate festgelegt; die M0-Vite-Fixture ist ausdrücklich keine Vorentscheidung.
+- Das M5.0-Gate ergänzt vor M5.1-T1 in diesem Dokument den exakten Ablageort von Paketmanifest, Lockfile, Buildkonfiguration und erzeugten lokalen Milkdown-Assets. Vor dieser Entscheidung wird weder ein `package.json` noch ein vorläufiger Bundle-/Vendor-Ordner als Produktstruktur festgelegt.
 
 ## URL- und Arbeitskontext
 
@@ -357,7 +366,7 @@ tests/KnowHowToAI.BrowserTests/
 
 - `Web.Tests` spiegelt die Produktionsfeaturegrenzen. Component-Tests verwenden bUnit `2.11.3` mit xUnit v3 `3.2.2`, prüfen Rendering und Interaktion und mocken dünnes JS-Interop; fachliche Varianten verbleiben in `Core.Tests`.
 - `BrowserTests` enthält nur vollständige Benutzerabläufe und verwendet Microsoft.Playwright .NET `1.62.0`. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Jeder reguläre Lauf startet ausschließlich Google Chrome Stable `152.0.7977.83` mit `Channel = "chrome"` und `Headless = true`; fehlendes oder abweichendes Chrome ist ein klarer Preflight-Fehler. Es gibt keinen Chromium-Fallback, keinen sichtbaren Browserstart und keine weitere Browsermatrix.
-- Der Browser-Testhost startet die Release-DLL aus einem frisch erzeugten `dotnet publish`-Verzeichnis und verwendet dieses als Content Root. Readiness, Circuitzustand und Interaktionen werden ausschließlich über beobachtbare Zustände und Playwright-Web-first-Assertions abgewartet; feste Sleeps sind verboten. Der Host wird auch bei Testfehlern beendet und der gebundene Port freigegeben.
+- Der Browser-Testhost startet die veröffentlichte Server-EXE aus einem frisch erzeugten `dotnet publish`-Verzeichnis und verwendet dieses als Content Root. Readiness, Circuitzustand und Interaktionen werden ausschließlich über beobachtbare Zustände und Playwright-Web-first-Assertions abgewartet; feste Sleeps sind verboten. Der Host wird auch bei Testfehlern beendet und der gebundene Port freigegeben.
 - Locator-Priorität ist Rolle, Label und danach stabile Test-ID. Screenshots werden erst nach semantischen und Verhaltensassertionen erzeugt; volatile Inhalte werden stabil maskiert und Baselines nie im regulären Lauf automatisch überschrieben.
 - Vitest ist im aktuellen Zielstand nicht erforderlich und es wird kein `package.json` allein für JS-Tests angelegt. Erst wenn eigener JavaScript-/TypeScript-Code Zustand mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik verwaltet, muss der einführende Task vor dem Code Vitest-Version, Testablage und FastTest-Befehl in diesem Dokument ergänzen. Dünne `mount`-/`readMarkdown`-/`focus`-/`dispose`- und Dialogaufrufe lösen diese Pflicht nicht aus.
 - Host-/Routing-/MCP-Tests bleiben in `KnowHowToAI.IntegrationTests/Server`.
