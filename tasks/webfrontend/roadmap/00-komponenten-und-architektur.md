@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../Roadmap.md)
 
-- [ ] **M0 abschließen**
+- [x] **M0 abschließen**
 
 Ziel: Technische Risiken und produktprägende Fremdkomponenten sind vor der eigentlichen Webimplementierung anhand realistischer Anforderungen entschieden.
 
@@ -152,7 +152,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
 
 ## M0.3 – UI-Komponenten
 
-- [ ] **M0.3 abschließen**
+- [x] **M0.3 abschließen**
 
   - [x] **M0.3-T1 – UI-Komponentenbasis auswählen**
     - Kandidaten und Reihenfolge: zuerst native Blazor-/HTML-/CSS-Basis. Erfüllt sie alle Musskriterien ohne wiederholte komplexe Eigenimplementierung, wird „keine allgemeine Komponentenbibliothek“ gewählt und der Paketvergleich endet. Nur andernfalls werden zusätzlich die aktuellen stabilen Versionen von `Microsoft.FluentUI.AspNetCore.Components` und `MudBlazor` mit demselben Fixture geprüft; andere Suites sind ausgeschlossen.
@@ -346,7 +346,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
     zentrale Paket-, Produktions- oder Testprojektdatei. **O-002 ist mit dieser
     Auswahl in der Roadmap geschlossen.** M0.3 und M0 bleiben bis M0.3-T4 offen.
 
-  - [ ] **M0.3-T4 – Web-Komponenten- und Browser-Testwerkzeuge auswählen**
+  - [x] **M0.3-T4 – Web-Komponenten- und Browser-Testwerkzeuge auswählen**
     - Feste Werkzeuge: aktuelle stabile bUnit-Version mit xUnit v3 für Razor-Komponenten und aktuelle stabile Microsoft-Playwright-.NET-Version mit dem installierten Google-Chrome-Stable-Kanal für Browserabläufe. Es werden keine alternativen Testframeworks verglichen.
     - Fixture bUnit: eine zustandsbehaftete Razor-Komponente rendert, DI beziehen, Parameter ändern, Event auslösen, Fehlerzustand prüfen und dünnes JS-Interop mocken. Der Test läuft mit `dotnet test` unter `net10.0` und xUnit v3.
     - Fixture Playwright: einen realen temporären ASP.NET-Core-Host auf dynamischem Loopback-Port starten, Interactive-Server-Verbindung abwarten, über Rollen/Labels/Test-IDs bedienen, Web-first Assertions und einen stabil maskierten Screenshot ausführen sowie sauber beenden. Start ausschließlich mit `Channel = "chrome"` und `Headless = true`; kein Chromium-Fallback, keine Browsermatrix und kein sichtbarer Browserstart.
@@ -356,6 +356,53 @@ Für M0.2 und M0.3 gilt zusätzlich:
     - Nicht enthalten: Testprojekte oder produktive Testfälle; diese folgen in M2.
     - Ergebnisort: Versionen, Projektzuordnung, feste Befehle, Locator-/Screenshot-Regeln und Vitest-Entscheidung in `konzept/08-projektstruktur-und-codekonventionen.md`; Lizenzbefund in `THIRD-PARTY-NOTICES.md`; O-015 entfernen.
     - Abnahme: beide Pflichtfixtures laufen zweimal hintereinander grün und hinterlassen keinen Hostprozess; O-015 ist geschlossen.
+
+    **Nachweis und Entscheidung (2026-09-18):** Das isolierte, uncommittete Fixture
+    unter `temp/webfrontend-spikes/M0.3-T4` prüfte die am Prüftag stabilen
+    `bunit` `2.11.3` (MIT, NuGet.org,
+    `https://github.com/bUnit-dev/bUnit`) und `xunit.v3` `3.2.2`
+    (Apache-2.0, NuGet.org, `https://github.com/xunit/xunit`) mit dem
+    zugehörigen `xunit.runner.visualstudio` `3.1.5`. Der feste Befehl
+    `dotnet test ComponentTests/M03T4.ComponentTests.csproj` lief zweimal
+    hintereinander grün (je ein Test): Rendering, Scoped-DI, Parameterwechsel,
+    Event, Fehlerzustand und das gemockte dünne JS-Interop sind belegt.
+
+    Die Browserpflichtfixture verwendet `Microsoft.Playwright` `1.62.0`
+    (MIT, NuGet.org, `https://github.com/microsoft/playwright-dotnet`) und
+    ausschließlich den installierten Google Chrome Stable `152.0.7977.83`
+    mit `Channel = "chrome"` und `Headless = true`. Der reale Host startete
+    auf dynamischem Loopback und die Shell war erreichbar. Der entscheidende
+    Startweg ist der frisch mit `dotnet publish -c Release -o Publish`
+    erzeugte Temp-Publish-Ordner als Content Root der Release-DLL; damit
+    lösen Static-Web-Assets korrekt auf und der ausschließlich nach realem
+    `OnAfterRender` gesetzte Circuitmarker erscheint. In zwei unmittelbaren
+    Wiederholungsläufen bediente Playwright den Button per Rolle, das Feld per
+    Label und das Ergebnis per Test-ID, wartete Web-first auf
+    `DI verfügbar: Browserwert` und erzeugte einen stabil maskierten
+    Screenshot. Es gab keinen Chromium-Fallback, keinen sichtbaren Browser
+    und keine feste Wartezeit: Host und Circuit werden ausschließlich über
+    beobachtbare Zustände abgewartet. Der Host wird im `finally` beendet; die
+    konkrete Prozessprüfung ergab keinen verbliebenen `M0.3-T4`-Hostprozess.
+
+    Lokale und CI-Prüfung vor Browser-E2E: `Get-ItemProperty
+    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Google
+    Chrome' | Select-Object -Expand DisplayVersion`; nichtinteraktive
+    Windows-Installation: `winget install --id Google.Chrome --exact
+    --silent --accept-package-agreements --accept-source-agreements`. Fehlt
+    Chrome danach, schlägt der Lauf fehl statt auf einen anderen Browser zu
+    wechseln. Chrome ist keine Anwendungslaufzeitabhängigkeit.
+
+    **Vitest-Entscheidung:** nicht erforderlich. Die gewählte Native-Tree- und
+    Milkdown-Integration besitzen nach M0.3-T2/T3 keinen eigenen
+    zustandsbehafteten JS-/TS-Pfad mit Verzweigungen, Transformationen oder
+    Retry-/Lifecyclelogik; vorgesehen sind ausschließlich schmale
+    featurelokale Interop-Aufrufe. Es wird keine Node-Testtoolchain angelegt.
+    `THIRD-PARTY-NOTICES.md` bleibt unverändert, weil keines dieser Pakete
+    produktiv oder dauerhaft aufgenommen wurde. Auf ausdrücklichen
+    Benutzerwunsch bleibt das Fixture als ignorierte, nichtproduktive Referenz
+    erhalten und wird nicht gelöscht oder committed. **O-015 ist durch diese
+    Werkzeugentscheidung in der Roadmap geschlossen; M0.3 und M0 sind
+    abgeschlossen.**
 
 ## Milestone-Abnahme
 
