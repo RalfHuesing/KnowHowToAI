@@ -16,14 +16,14 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Mit O-020 fortfahren: sichere Darstellung und Bearbeitung fremder Markdown-Inhalte.
+3. Als Nächstes die M0.3-Spikeaufträge für O-001, O-003, O-002 und O-015 ausführungsreif präzisieren.
 4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung für M0–M2 behandeln.
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
-Erste noch unbeantwortete Frage:
+Nächste Benutzerfrage nach Abschluss der M0-Taskschärfung:
 
-> Sollen Raw HTML und externe Bilder grundsätzlich inaktiv bleiben, Links nur sichere Schemas verwenden und eingefügte Fremdformatierung auf den erlaubten Markdownumfang reduziert werden?
+> Unter welcher produktiven Windows-/SQL-Identität soll der gemeinsame Serverhost laufen, und woher erhält er gegebenenfalls benötigte Secrets (O-022)?
 
 ## Entscheidungsreihenfolge für M0–M2
 
@@ -158,6 +158,7 @@ Quellen:
 | O-028 | Das Repository steht unter MIT-Lizenz; Copyrightinhaber ist `Ralf Hüsing`, Startjahr 2026. | Root-`LICENSE` ist vorhanden; M0.1-T2 prüft sie und ergänzt weiterhin das Abhängigkeitsinventar. |
 | O-013 | Die Anwendung wird browserneutral mit Webstandards gebaut. Automatisiert abgenommen wird ausschließlich die aktuelle stabile Desktopversion von Google Chrome im Headless-Modus; keine eigene Edge-/Firefox-/Safari-Testmatrix und keine interaktiven Browserstarts durch Agenten. Zielgerät ist der PC: volle Darstellung ab 1280 × 720 CSS-Pixeln, bei 1024 × 720 mit verdichtetem Layout und einklappbaren Seitenbereichen noch vollständig bedienbar; Smartphones sind kein Ziel. | Begrenzte, deterministische Testmatrix ohne browserspezifische Produktpfade oder Mobile-UI. Zoom-/Reflow-Anforderungen folgen ausschließlich aus O-021. |
 | O-021 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows, jedoch keine formale Konformitäts- oder Zertifizierungsbehauptung. Verbindlich sind insbesondere Tastaturbedienung, Fokus, Semantik, Kontrast und Desktop-Zoom. | Agenten prüfen Komponenten und wenige Headless-Chrome-Smokes automatisiert. Eine feste manuelle Tastaturcheckliste ist für Menschen bestimmt; Agenten starten dafür keinen interaktiven Browser. |
+| O-020 | Raw HTML außerhalb von Code wird serverseitig abgelehnt und nie ausgeführt. Links folgen einer Allowlist; externe Bilder und Ressourcen bleiben inaktiv, bis M8 nur kontrollierte interne Assets zulässt. Paste reduziert auf erlaubtes Markdown und weist sichtbar auf jede Reduktion hin. | Einheitliche Policy für MCP-/Web-Writes, Editor, Browser und PDF; kein stiller Contentverlust und kein ungeprüftes HTML-Rendering. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -165,7 +166,6 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-020 | Raw HTML, Links, Bilder, Paste | Raw HTML nicht ausführen; sichere URL-Schemata; externe Bilder nicht automatisch laden; Paste auf erlaubtes Markdown reduzieren | schützt Browser/PDF vor XSS, Tracking und lokalen/externen Ressourcenzugriffen |
 
 ### Block C – Host und MCP
 

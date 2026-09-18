@@ -13,6 +13,29 @@ Der erste schreibende Frontend-Schnitt verwendet einen etablierten Rich-Text-/WY
 - Editorinhalt wird nicht zum Träger von Systemmetadaten.
 - Auswahl erfolgt als technischer Spike mit realistischen KnowHowTo-Inhalten und Roundtrip-Tests.
 
+## Sichere Markdown-, Link- und Paste-Policy
+
+Die Policy gilt einheitlich für MCP- und Web-Schreibvorgänge, Editor, Browserdarstellung, Markdown-Export und PDF. Sichere Darstellung ersetzt die serverseitige Validierung nicht.
+
+### Raw HTML
+
+- Raw HTML außerhalb von Inline- und Fenced-Code ist kein zulässiger `ContentMd` und wird serverseitig als harter Fehler abgelehnt. Es wird weder still entfernt noch lediglich im Browser versteckt.
+- HTML innerhalb eines Codebereichs bleibt normaler, nicht ausgeführter Beispieltext.
+- Browser- und PDF-Renderer führen Raw HTML auch als zusätzliche Abwehr nicht aus. Content wird nie ungeprüft als `MarkupString`, DOM-HTML oder Template-HTML übernommen.
+- Bei einer Ablehnung bleibt der vollständige ungespeicherte Editorinhalt erhalten und der konkrete Befund sichtbar.
+
+### Links und Bilder
+
+- Zulässig sind `https`-, `mailto`-, Fragment-, root-relative und normale pfadrelative Links. Netzwerkpfade mit `//` sowie `http`, `javascript`, `data`, `file`, UNC-Pfade und alle nicht ausdrücklich erlaubten Schemas werden serverseitig abgelehnt.
+- Externe Markdown- und HTML-Bildquellen werden weder gespeichert noch geladen. Bis M8 gibt es keinen Content-Bildpfad; ab M8 sind ausschließlich die kontrollierten internen Assetreferenzen zulässig.
+- Renderer dürfen keine externen oder lokalen Ressourcen nachladen. Externe Links erhalten beim Rendern eine sichere Browserbehandlung ohne Zugriff des Zielkontexts auf die Ursprungsseite.
+
+### Einfügen aus der Zwischenablage
+
+- Plain Text bleibt Plain Text. HTML aus Browsern oder Office wird ausschließlich in den erlaubten Markdownumfang überführt: Absätze, Hervorhebungen, Links, geordnete und ungeordnete Listen, Tabellen, Inline-/Fenced-Code und Blockquotes.
+- Styles, Klassen, Skripte, unbekannte Elemente, eingebettete Dateien und Bilder werden verworfen. Unsichere Links werden unter Erhalt ihres sichtbaren Texts entfernt. Eingefügte Headings werden zu normalen Absätzen ohne Headingsemantik.
+- Jede inhaltliche Reduktion erzeugt unmittelbar einen sichtbaren, zusammengefassten Hinweis. Sie gilt als ungespeicherte Editoränderung und umgeht nie die serverseitige Validierung.
+
 ## Freier Content einschließlich TODOs
 
 `TODO`, `TODO: Besser formulieren` oder vergleichbare Formulierungen sind normaler `ContentMd` wie jeder andere Text.

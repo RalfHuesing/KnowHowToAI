@@ -49,6 +49,7 @@ pandoc --pdf-engine=weasyprint --template=<template.html> --css=<document.css> -
 - Der erste PDF-Stand benötigt noch keine verwalteten Content-Bilder.
 - Nach dem späteren Asset-Milestone werden Bildreferenzen vor der Konvertierung über die zentrale Asset-Auflösung bereitgestellt.
 - Pandoc- und WeasyPrint-Prozesse erhalten Timeout, kontrollierte Arbeitsverzeichnisse und begrenzten Zugriff auf lokale oder externe Ressourcen.
+- Raw HTML wird gemäß der [sicheren Contentpolicy](03-content-und-assets.md#sichere-markdown--link--und-paste-policy) nicht ausgeführt; externe oder lokale Contentressourcen werden nicht nachgeladen.
 - Fehlerausgabe wird diagnostisch protokolliert, aber nicht ungefiltert an den Browser gegeben.
 
 ## UI-Ablauf

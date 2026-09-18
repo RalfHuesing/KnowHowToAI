@@ -34,7 +34,6 @@ Milestone Mx
 
 Vor Start der Implementierung werden gemeinsam mit dem Benutzer geschlossen:
 
-- O-020 (sichere Contentdarstellung) für M0;
 - O-022 (Datenbankidentität und Secretquelle) und O-019 (reale MCP-Zielclients) für M1;
 - O-009 (Branding) und O-014 (UI-Sprache) für M2.
 

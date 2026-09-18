@@ -60,9 +60,8 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: O-003 ist geschlossen; Grenzen der Komponente sind dokumentiert.
 
   - [ ] **M0.3-T3 – Markdown-fähigen Rich-Text-Editor auswählen**
-    - Voraussetzung: O-020 zur Content-Sicherheits-/Fremdressourcen-Policy ist durch den Benutzer entschieden.
     - Umfang: realistische KnowHowTo-Inhalte mit Listen, Tabellen, Code, Links, Zitaten und Bildern roundtrippen.
-    - Prüfen: Markdown als kanonisches Format, deaktivierbare Headings, Upload-Hooks, optionaler Quellmodus, kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten sowie Wartung.
+    - Prüfen: Markdown als kanonisches Format, deaktivierbare Headings, Raw-HTML-Ablehnung, Link-Allowlist, inaktive externe Bilder, sichtbare Paste-Reduktionshinweise, spätere interne Upload-Hooks, optionaler Quellmodus, kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten sowie Wartung.
     - Abnahme: O-002 ist geschlossen und alle im Contentkonzept geforderten Markdownstrukturen bestehen den Roundtrip; ein Kandidat mit semantischem Verlust wird nicht gewählt.
 
   - [ ] **M0.3-T4 – Web-Komponenten- und Browser-Testwerkzeuge auswählen**

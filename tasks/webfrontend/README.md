@@ -66,5 +66,6 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-015 | Keine kostenpflichtigen Komponenten; jede direkte und transitive Abhängigkeit muss kostenlos nutzbar und mit der MIT-Distribution vereinbar sein, Lizenzpflichten werden eingehalten |
 | K-016 | Rollierende Detailplanung: M0–M2 werden jetzt ausführungsreif geschärft; M3 und jedes folgende Milestone starten mit einem manuellen `Mx.0`-Planungs- und Konzept-Gate |
 | K-017 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows ohne formale Zertifizierung; Agenten prüfen automatisiert headless, die manuelle Tastaturcheckliste führt ein Mensch aus |
+| K-018 | Content erlaubt kein ausführbares Raw HTML und keine fremden Bildquellen; Links, Paste, Browserdarstellung und PDF folgen einer zentralen sicheren Markdown-Policy |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

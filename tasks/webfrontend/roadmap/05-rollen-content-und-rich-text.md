@@ -26,9 +26,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M5.1 abschließen**
 
   - [ ] **M5.1-T1 – Rich-Text-Editor mit Markdownmodell integrieren**
-    - Voraussetzung: O-020 zur sicheren Content-/Fremdressourcen-Policy und O-027 zum Undo-Umfang sind geschlossen.
+    - Voraussetzung: O-027 zum Undo-Umfang ist geschlossen.
     - Umfang: gewählten Editor laden, Markdown einlesen/ausgeben, Toolbar auf erlaubte Strukturen begrenzen und Headings deaktivieren.
-    - Unterstützen: Formatierung, Links, Listen, Tabellen, Code und Zitate; Bilder folgen niedrig priorisiert in M8.
+    - Unterstützen: Formatierung, sichere Links, Listen, Tabellen, Code und Zitate; Raw HTML, unsichere Links und fremde Ressourcen folgen der O-020-Policy, Bilder folgen niedrig priorisiert in M8.
     - Tests: Komponenten-Smoke, Editorinitialisierung, Wechsel zwischen Nodes und große Inhalte.
     - Abnahme: Editor produziert Markdown und kein kanonisches HTML-Nebenformat.
 
