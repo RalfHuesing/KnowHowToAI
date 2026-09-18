@@ -2,7 +2,6 @@ using KnowHowToAI.Server.Configuration;
 using KnowHowToAI.Server.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 
@@ -12,17 +11,21 @@ internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        using var host = CreateHost(args);
+        using var application = CreateApplication(args);
 
-        var logger = host.Services
-            .GetRequiredService<ILoggerFactory>()
-            .CreateLogger(typeof(StdioHostRunner));
-        return await StdioHostRunner.RunAsync(host, logger).ConfigureAwait(false);
+        return await RunApplicationAsync(application).ConfigureAwait(false);
     }
 
-    internal static IHost CreateHost(string[] args)
+    internal static Microsoft.AspNetCore.Builder.WebApplication CreateApplication(string[] args)
     {
-        var builder = Host.CreateApplicationBuilder(args);
+        var builder = CreateBuilder(args);
+
+        return builder.Build();
+    }
+
+    internal static Microsoft.AspNetCore.Builder.WebApplicationBuilder CreateBuilder(string[] args)
+    {
+        var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
         builder.Services.Configure<ConsoleLifetimeOptions>(options => options.SuppressStatusMessages = true);
         builder.Logging.ClearProviders();
@@ -39,6 +42,18 @@ internal static class Program
             .WithStdioServerTransport()
             .WithToolsFromAssembly();
 
-        return builder.Build();
+        return builder;
+    }
+
+    internal static Task<int> RunApplicationAsync(Microsoft.AspNetCore.Builder.WebApplication application) =>
+        StdioHostRunner.RunAsync(
+            application,
+            () => ValidateStartupOptions(application.Services));
+
+    private static void ValidateStartupOptions(IServiceProvider serviceProvider)
+    {
+        _ = serviceProvider.GetRequiredService<IOptions<KnowHowToAIOptions>>().Value;
+        _ = serviceProvider.GetRequiredService<IOptions<DatabaseConnectionOptions>>().Value;
+        _ = serviceProvider.GetRequiredService<IOptions<LoggingOptions>>().Value;
     }
 }

@@ -4,7 +4,7 @@
 
 - C# / .NET (aktuell `net10.0`)
 - MS SQL Server 2019 oder neuer (inkl. Azure SQL)
-- MCP-Server mit Transport STDIO (ModelContextProtocol-SDK)
+- ASP.NET-Core-Webhost mit Kestrel; MCP verwendet vorläufig noch den Transport STDIO (ModelContextProtocol-SDK)
 - aktuelle, gepflegte NuGet-Standardpakete; für Markdown-Verarbeitung eine
   etablierte Bibliothek, kein eigener Parser
 - Datenzugriff über Dapper (Zeilenmodelle bleiben intern im Storage-Projekt)
@@ -47,14 +47,16 @@ SQL-Typen; Domain referenziert kein Infrastrukturprojekt.
 
 ## Transportgrenzen
 
-V1 arbeitet ausschließlich über MCP STDIO. Der Agent greift ausschließlich über
-die [MCP-API](McpApi.md) zu; es gibt keinen Workflow über lokale temporäre
-Markdown-Dateien. Das System funktioniert damit mit jedem MCP-fähigen Client,
-unabhängig von lokalem Dateizugriff, Git oder Unified-Diff-Fähigkeit.
+`KnowHowToAI.Server` läuft als einziger ASP.NET-Core-Webhost mit Kestrel. In
+diesem erreichten Zwischenstand ist noch kein Browser- oder HTTP-MCP-Endpunkt
+gemappt; der aktuelle MCP-Transport bleibt deshalb STDIO. Der Agent greift
+ausschließlich über die [MCP-API](McpApi.md) zu; es gibt keinen Workflow über
+lokale temporäre Markdown-Dateien. Das System funktioniert damit mit jedem
+MCP-fähigen Client, unabhängig von lokalem Dateizugriff, Git oder Unified-Diff-
+Fähigkeit.
 
-Die Geschäftslogik ist nicht an STDIO gekoppelt. Spätere Adapter (MCP über HTTP,
-REST) müssen ohne Änderung der Application-/Domain-Schicht möglich sein; beide sind
-in V1 nicht implementiert ([Entscheidungen](Entscheidungen.md)).
+Die Geschäftslogik ist nicht an STDIO gekoppelt. MCP über HTTP und Browseradapter
+werden ohne Änderung der Application-/Domain-Schicht auf diesem Webhost ergänzt.
 
 ## Projekte und Namespaces
 
@@ -97,8 +99,8 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 `Mapping` (interne Dapper-Zeilenmodelle und explizites Domain-Mapping).
 
 **`KnowHowToAI.Server`**: `Configuration` (bindbare Options, zentrale
-Validatoren, Redaction), `Hosting` (Composition Root, DI, Start, kontrollierter
-Shutdown), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgruppe),
+Validatoren, Redaction), `Hosting` (Composition Root, DI, Kestrel-Start,
+kontrollierter Shutdown), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgruppe),
 `Mcp.Tools.*` (dünne Handler), `Mcp.Mapping` (ausschließlich
 Transport-/Result-Mapping).
 

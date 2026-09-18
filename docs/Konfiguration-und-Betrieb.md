@@ -79,10 +79,11 @@ Credentials.
 
 ## Protokollierung
 
-Der Server läuft als STDIO-Prozess. `stdout` ist exklusiv dem MCP-Protokoll
-vorbehalten: Protokollausgaben gehen ausschließlich nach `stderr` und optional in
-die konfigurierbare, täglich rotierende Datei. Keine Start-, SQL- oder
-Diagnoseausgabe verunreinigt `stdout`.
+Der Server läuft als ASP.NET-Core-Webhost auf Kestrel. Der MCP-Transport bleibt in
+diesem Zwischenstand STDIO; `stdout` ist deshalb weiterhin exklusiv dem
+MCP-Protokoll vorbehalten. Protokollausgaben gehen ausschließlich nach `stderr`
+und optional in die konfigurierbare, täglich rotierende Datei. Keine Start-, SQL-
+oder Diagnoseausgabe verunreinigt `stdout`.
 
 Geheimnisse (Passwörter, Verbindungszeichenfolgen) und vollständige
 Content-Payloads werden niemals protokolliert; sensitive Werte erreichen die
@@ -91,10 +92,13 @@ vom Protokollierungsaufbau redigiert, bevor ein Kanal schreibt. Der MCP-Transpor
 schreibt Roh-Protokollnachrichten ausschließlich auf Trace-Ebene; der
 Betriebsdefault (`Information`) liegt darüber.
 
+Konfigurationsfehler werden vor einer Kestrel-Bindung validiert; aktivierte
+Schema-Migrationen laufen ebenfalls vor der Betriebsbereitschaft. Fehler in
+Konfiguration, Migration oder Kestrel-Start führen zu `StartupFailure`.
 Herunterfahren, Abbruch und eine defekte Client-Pipe werden kontrolliert
 behandelt: Ende des Client-Eingabestroms, SIGTERM/Ctrl+C und Pipe-Schreibfehler
-führen zu einem geordneten Herunterfahren mit stabilem Exitcode, ohne unbehandelte
-Exception.
+führen zu einem geordneten Herunterfahren mit stabilem Exitcode `Success`, ohne
+unbehandelte Exception.
 
 ## Build, Tests und Linter
 

@@ -11,9 +11,9 @@ namespace KnowHowToAI.Server.Hosting;
 internal sealed class SchemaMigrationHostedService(
     ISchemaMigrator schemaMigrator,
     MigrationPolicy migrationPolicy,
-    ILogger<SchemaMigrationHostedService> logger) : IHostedService
+    ILogger<SchemaMigrationHostedService> logger) : IHostedLifecycleService
 {
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartingAsync(CancellationToken cancellationToken)
     {
         if (!migrationPolicy.ApplyOnStartup)
         {
@@ -40,5 +40,33 @@ internal sealed class SchemaMigrationHostedService(
         }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Schema-Migrationsdienst wird gestartet.");
+        return Task.CompletedTask;
+    }
+
+    public Task StartedAsync(CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Schema-Migrationsdienst wurde gestartet.");
+        return Task.CompletedTask;
+    }
+
+    public Task StoppingAsync(CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Schema-Migrationsdienst wird kontrolliert beendet.");
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Schema-Migrationsdienst wurde beendet.");
+        return Task.CompletedTask;
+    }
+
+    public Task StoppedAsync(CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Schema-Migrationsdienst ist beendet.");
+        return Task.CompletedTask;
+    }
 }
