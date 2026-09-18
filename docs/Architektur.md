@@ -211,6 +211,31 @@ Verzeichnis
   Inhalt; die Seite und die Arbeitsfläche scrollen im Dokument. Unterhalb
   von 1024 besteht nur die Zoom-/Reflow-Anforderung, keine
   Smartphone-Navigation.
+- Der Verbindungsverlust des Interactive-Server-Circuits wird durch die
+  offizielle .NET-10-Reconnect-Oberfläche behandelt: Die Komponente
+  `ReconnectModal` (unter `Web/Components/Layout`, aus `App.razor`
+  eingebunden) stellt das Markup mit der ID `components-reconnect-modal`
+  bereit, auf die die Blazor-Runtime die Klassen `components-reconnect-*`
+  setzt und das Ereignis `components-reconnect-state-changed` sendet; das
+  schmale Modul `ReconnectModal.razor.js` passt ausschließlich Darstellung,
+  Fokus und Texte an. Die Verbindungslogik bleibt im Framework
+  (`Blazor.reconnect`/`Blazor.resumeCircuit`) mit dessen begrenztem
+  Retryplan (höchstens 30 Versuche, exponential ansteigende Abstände); es
+  gibt keine eigene SignalR-Verbindung und keine unbegrenzte Retryschleife.
+  Der modale Dialog blockiert sämtliche Interaktion hinter einem
+  halbtransparenten Hintergrund, der die letzte Ansicht sichtbar hält. Der
+  Zustand wird als Text plus Icon über eine höfliche Live-Region
+  angekündigt: „Verbindung wird wiederhergestellt …“ während der
+  Wiederherstellung (mit Countdown bis zum nächsten Versuch), „Verbindung
+  getrennt“ mit „Erneut versuchen“ nach vorläufigem Fehlschlag sowie „Sitzung
+  nicht mehr verfügbar“ mit „Seite neu laden“ bei abgelehntem/abgelaufenem
+  Circuit; Escape schließt den Dialog nicht. Beim Öffnen liegt der Fokus
+  deterministisch auf dem Dialog, in den Handlungsstates auf der sicheren
+  nächsten Aktion. Ein erfolgreicher Reconnect schließt den Dialog ohne
+  fachlichen Erfolgshinweis. Ein Reload warnt nur, wenn ein Feature den
+  Arbeitsstand als ungespeichert meldet (`window.KnowHowToAI.isDirty`); M2
+  besitzt dafür noch keinen Produzenten, eine persistierte Transaction gilt
+  nie als ungespeichert.
 `wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
 Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
 Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie

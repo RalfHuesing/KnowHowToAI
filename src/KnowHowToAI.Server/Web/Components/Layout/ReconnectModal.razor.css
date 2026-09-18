@@ -1,0 +1,169 @@
+/* Scoped CSS für die offizielle Reconnect-Oberfläche: Sichtbarkeit je Zustand
+   steuern die vom Framework gesetzten Klassen components-reconnect-*; alle
+   Werte stammen aus den globalen Tokens in wwwroot/css/app.css. */
+
+.components-reconnect-first-attempt-visible,
+.components-reconnect-repeated-attempt-visible,
+.components-reconnect-failed-visible,
+.components-reconnect-rejected-visible,
+.components-pause-visible,
+.components-resume-failed-visible,
+.components-rejoining-animation {
+    display: none;
+}
+
+#components-reconnect-modal.components-reconnect-show .components-reconnect-first-attempt-visible,
+#components-reconnect-modal.components-reconnect-show .components-rejoining-animation,
+#components-reconnect-modal.components-reconnect-retrying,
+#components-reconnect-modal.components-reconnect-retrying .components-reconnect-repeated-attempt-visible,
+#components-reconnect-modal.components-reconnect-retrying .components-rejoining-animation,
+#components-reconnect-modal.components-reconnect-failed,
+#components-reconnect-modal.components-reconnect-failed .components-reconnect-failed-visible,
+#components-reconnect-modal.components-reconnect-rejected,
+#components-reconnect-modal.components-reconnect-rejected .components-reconnect-rejected-visible,
+#components-reconnect-modal.components-reconnect-paused,
+#components-reconnect-modal.components-reconnect-paused .components-pause-visible,
+#components-reconnect-modal.components-reconnect-resume-failed,
+#components-reconnect-modal.components-reconnect-resume-failed .components-resume-failed-visible {
+    display: block;
+}
+
+#components-reconnect-modal {
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    width: min(24rem, calc(100vw - 2 * var(--ktai-space-4)));
+    margin: 20vh auto;
+    padding: var(--ktai-space-6);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-medium);
+    box-shadow: var(--ktai-shadow-surface);
+}
+
+/* Der halbtransparente Hintergrund hält die letzte Ansicht sichtbar und
+   blockiert als modaler Dialog sämtliche Interaktion dahinter. */
+#components-reconnect-modal::backdrop {
+    background-color: color-mix(in srgb, var(--ktai-color-text) 40%, transparent);
+}
+
+.components-reconnect-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ktai-space-3);
+}
+
+.components-reconnect-states {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ktai-space-2);
+    min-height: 1.5rem;
+}
+
+.components-reconnect-state {
+    margin: 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+.components-reconnect-state svg {
+    vertical-align: -2px;
+    margin-right: var(--ktai-space-2);
+}
+
+#components-reconnect-modal.components-reconnect-show .components-reconnect-state svg,
+#components-reconnect-modal.components-reconnect-retrying .components-reconnect-state svg {
+    color: var(--ktai-color-info);
+}
+
+#components-reconnect-modal.components-reconnect-failed .components-reconnect-state svg {
+    color: var(--ktai-color-warning);
+}
+
+#components-reconnect-modal.components-reconnect-rejected .components-reconnect-state svg,
+#components-reconnect-modal.components-reconnect-resume-failed .components-reconnect-state svg {
+    color: var(--ktai-color-danger);
+}
+
+#components-reconnect-modal.components-reconnect-paused .components-reconnect-state svg {
+    color: var(--ktai-color-warning);
+}
+
+.components-reconnect-actions {
+    display: flex;
+    justify-content: center;
+}
+
+#components-reconnect-modal button {
+    border: 1px solid var(--ktai-color-primary);
+    background-color: var(--ktai-color-primary);
+    color: var(--ktai-color-primary-contrast);
+    padding: var(--ktai-space-2) var(--ktai-space-6);
+    border-radius: var(--ktai-radius-small);
+    font-family: var(--ktai-font-family);
+    font-size: var(--ktai-font-size-base);
+    line-height: var(--ktai-line-height-base);
+}
+
+    #components-reconnect-modal button:hover {
+        border-color: var(--ktai-color-primary-hover);
+        background-color: var(--ktai-color-primary-hover);
+    }
+
+    #components-reconnect-modal button:active {
+        border-color: var(--ktai-color-primary-active);
+        background-color: var(--ktai-color-primary-active);
+    }
+
+.components-rejoining-animation {
+    position: relative;
+    width: 48px;
+    height: 48px;
+}
+
+    .components-rejoining-animation div {
+        position: absolute;
+        border: 3px solid var(--ktai-color-info);
+        border-radius: 50%;
+        animation: components-rejoining-animation 1.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+
+        .components-rejoining-animation div:nth-child(2) {
+            animation-delay: -0.5s;
+        }
+
+@keyframes components-rejoining-animation {
+    0% {
+        top: 24px;
+        left: 24px;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+
+    5% {
+        top: 24px;
+        left: 24px;
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+
+    100% {
+        top: 0;
+        left: 0;
+        width: 48px;
+        height: 48px;
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #components-reconnect-modal .components-rejoining-animation {
+        display: none;
+    }
+
+    #components-reconnect-modal .components-rejoining-animation div {
+        animation: none;
+    }
+}

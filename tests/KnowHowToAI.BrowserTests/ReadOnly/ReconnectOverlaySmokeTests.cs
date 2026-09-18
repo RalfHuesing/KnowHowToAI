@@ -1,0 +1,126 @@
+using KnowHowToAI.BrowserTests.TestSupport;
+using Microsoft.Playwright;
+
+namespace KnowHowToAI.BrowserTests.ReadOnly;
+
+[Trait("Category", "Integration")]
+public sealed class ReconnectOverlaySmokeTests
+{
+    [Fact]
+    public async Task InterruptedConnection_ShowsReconnectOverlayAndContinuesCircuitAfterSuccessfulReconnect()
+    {
+        await using var host = await PublishedServerHost.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+        {
+            Channel = "chrome",
+            Headless = true
+        });
+        var page = await browser.NewPageAsync(new BrowserNewPageOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+        });
+        await page.GotoAsync(host.Address, new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded,
+            Timeout = 30_000
+        });
+
+        // Circuit bereit machen: Interaktivitätsnachweis wie im M1-Smoke.
+        var interactionStatus = page.GetByTestId("interaction-status");
+        await EnsureInteractivityAsync(page, interactionStatus);
+
+        var reconnectDialog = page.Locator("#components-reconnect-modal");
+        await page.Context.SetOfflineAsync(true);
+        // SignalR erkennt den Verbindungsverlust erst mit dem Ablauf des
+        // KeepAlive-Timeouts (etwa 30 Sekunden); gewartet wird auf den
+        // beobachtbaren Dialogzustand, nicht auf feste Zeiten.
+        await Assertions.Expect(reconnectDialog).ToHaveAttributeAsync("open", "", new() { Timeout = 60_000 });
+        var visibleState = reconnectDialog.Locator(".components-reconnect-state:visible");
+        await Assertions.Expect(visibleState).ToHaveCountAsync(1, new() { Timeout = 15_000 });
+        await Assertions.Expect(visibleState).ToContainTextAsync("Verbindung wird wiederhergestellt", new() { Timeout = 5_000 });
+        Assert.Equal("components-reconnect-modal", await page.EvaluateAsync<string?>("document.activeElement?.id"));
+
+        await page.Context.SetOfflineAsync(false);
+        await Assertions.Expect(reconnectDialog).ToBeHiddenAsync(new() { Timeout = 30_000 });
+
+        // Der Circuit ist derselbe geblieben: der vor dem Abbruch gesetzte
+        // Status steht weiterhin da, ohne dass die Seite neu geladen hätte,
+        // und der M1-Interaktionsnachweis antwortet erneut.
+        await Assertions.Expect(interactionStatus).ToHaveTextAsync(
+            "Interaktivität ist verfügbar.", new() { Timeout = 5_000 });
+        await EnsureInteractivityAsync(page, interactionStatus);
+
+        // Erfolgreicher Reconnect zeigt keinen fachlichen Erfolgshinweis.
+        Assert.Empty(await page.Locator(".toast-region__toast").AllAsync());
+    }
+
+    [Fact]
+    public async Task ExpiredCircuitAfterHostRestart_ShowsSessionLostOverlayAndReloadRestoresShell()
+    {
+        var host = await PublishedServerHost.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+        {
+            Channel = "chrome",
+            Headless = true
+        });
+        var page = await browser.NewPageAsync(new BrowserNewPageOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+        });
+        await page.GotoAsync(host.Address, new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded,
+            Timeout = 30_000
+        });
+        // "Shell bereit" erscheint bereits im Prerendering; erst der
+        // beobachtbare Interaktionsnachweis belegt, dass ein Circuit
+        // etabliert ist, dessen Verlust die Reconnect-Oberfläche auslöst.
+        await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync(
+            "Shell bereit", new() { Timeout = 15_000 });
+        await EnsureInteractivityAsync(page, page.GetByTestId("interaction-status"));
+
+        // Hostneustart am selben Loopback-Origin: der Circuit des Browsers
+        // existiert im neuen Prozess nicht mehr und wird beim nächsten
+        // Reconnect-Versuch abgelehnt.
+        var address = host.Address;
+        await host.DisposeAsync();
+        await using var restartedHost = await PublishedServerHost.StartAsync(address);
+
+        var reconnectDialog = page.Locator("#components-reconnect-modal");
+        await Assertions.Expect(reconnectDialog).ToHaveAttributeAsync("open", "", new() { Timeout = 60_000 });
+        var visibleState = reconnectDialog.Locator(".components-reconnect-state:visible");
+        await Assertions.Expect(visibleState).ToHaveCountAsync(1, new() { Timeout = 120_000 });
+        await Assertions.Expect(visibleState).ToContainTextAsync("Sitzung nicht mehr verfügbar", new() { Timeout = 5_000 });
+
+        var reloadButton = reconnectDialog.GetByRole(AriaRole.Button, new() { Name = "Seite neu laden" });
+        await Assertions.Expect(reloadButton).ToBeVisibleAsync(new() { Timeout = 5_000 });
+        Assert.Equal("components-reconnect-reload-button", await page.EvaluateAsync<string?>("document.activeElement?.id"));
+
+        await reloadButton.ClickAsync();
+        await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync(
+            "Shell bereit", new() { Timeout = 30_000 });
+    }
+
+    private static async Task EnsureInteractivityAsync(IPage page, ILocator interactionStatus)
+    {
+        // Der Klick kann ankommen, bevor der Circuit das Ereignis verdrahtet
+        // hat; erneut klicken, bis der beobachtbare Statuswechsel vorliegt.
+        for (var attempt = 1; ; attempt++)
+        {
+            await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
+            try
+            {
+                await Assertions.Expect(interactionStatus).ToHaveTextAsync(
+                    "Interaktivität ist verfügbar.",
+                    new() { Timeout = 2_000 });
+                break;
+            }
+            catch (PlaywrightException) when (attempt < 10)
+            {
+                // Circuit noch nicht verbunden; erneut klicken.
+            }
+        }
+    }
+}

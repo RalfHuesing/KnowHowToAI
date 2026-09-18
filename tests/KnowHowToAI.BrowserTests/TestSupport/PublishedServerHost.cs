@@ -33,7 +33,7 @@ public sealed class PublishedServerHost : IAsyncDisposable
 
     public string Address { get; }
 
-    public static async Task<PublishedServerHost> StartAsync()
+    public static async Task<PublishedServerHost> StartAsync(string? address = null)
     {
         if (!OperatingSystem.IsWindows())
             throw new PlatformNotSupportedException("Die Browsertests benötigen Windows mit Google Chrome Stable.");
@@ -46,7 +46,9 @@ public sealed class PublishedServerHost : IAsyncDisposable
         {
             var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);
-            var address = AllocateLoopbackAddress();
+            // Explizite Adresse für Tests, die denselben Circuit-Origin erneut
+            // erreichen müssen (Hostneustart); sonst eine freie Loopback-Adresse.
+            address ??= AllocateLoopbackAddress();
             var serverProcess = StartServer(publishDirectory, address);
             try
             {

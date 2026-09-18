@@ -1,0 +1,84 @@
+@namespace KnowHowToAI.Server.Web.Components.Layout
+
+@* Offizielle .NET-10-Reconnect-Oberfläche: Blazor sucht das Element mit der
+   ID "components-reconnect-modal", setzt darauf die Klassen
+   components-reconnect-* und sendet "components-reconnect-state-changed".
+   Dieses Markup und das begleitende JS-Modul passen ausschließlich
+   Darstellung, Fokus und Texte an; die Verbindungslogik bleibt vollständig
+   im Blazor-Framework (Blazor.reconnect / Blazor.resumeCircuit). Es gibt
+   keine eigene SignalR-Verbindung und keine eigene Retryschleife. *@
+<script type="module" src="@Assets["Web/Components/Layout/ReconnectModal.razor.js"]"></script>
+
+<dialog id="components-reconnect-modal" data-nosnippet aria-label="Verbindungsstatus">
+    <div class="components-reconnect-container">
+        <div class="components-rejoining-animation" aria-hidden="true">
+            <div></div>
+            <div></div>
+        </div>
+        <div class="components-reconnect-states" role="status" aria-live="polite">
+            <p class="components-reconnect-state components-reconnect-first-attempt-visible">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                     aria-hidden="true" focusable="false">
+                    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" stroke="currentColor"
+                          stroke-width="1.5" fill="none" stroke-linecap="round" />
+                    <path d="M13.7 1.8v2.7h-2.7" stroke="currentColor" stroke-width="1.5"
+                          fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>Verbindung wird wiederhergestellt …</span>
+            </p>
+            <p class="components-reconnect-state components-reconnect-repeated-attempt-visible">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                     aria-hidden="true" focusable="false">
+                    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" stroke="currentColor"
+                          stroke-width="1.5" fill="none" stroke-linecap="round" />
+                    <path d="M13.7 1.8v2.7h-2.7" stroke="currentColor" stroke-width="1.5"
+                          fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>Verbindung wird wiederhergestellt … Nächster Versuch in
+                    <span id="components-seconds-to-next-attempt">–</span> Sekunden.</span>
+            </p>
+            <p class="components-reconnect-state components-reconnect-failed-visible">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                     aria-hidden="true" focusable="false">
+                    <path d="M8 3v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="8" cy="12.5" r="1.4" fill="currentColor" />
+                </svg>
+                <span>Verbindung getrennt</span>
+            </p>
+            <p class="components-reconnect-state components-reconnect-rejected-visible">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                     aria-hidden="true" focusable="false">
+                    <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor"
+                          stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <span>Sitzung nicht mehr verfügbar</span>
+            </p>
+            <p class="components-reconnect-state components-pause-visible">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                     aria-hidden="true" focusable="false">
+                    <path d="M6 4v8M10 4v8" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" />
+                </svg>
+                <span>Die Sitzung wurde vom Server pausiert.</span>
+            </p>
+            <p class="components-reconnect-state components-resume-failed-visible">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                     aria-hidden="true" focusable="false">
+                    <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor"
+                          stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <span>Sitzung konnte nicht fortgesetzt werden.</span>
+            </p>
+        </div>
+        <div class="components-reconnect-actions">
+            <button id="components-reconnect-button" type="button"
+                    class="components-reconnect-failed-visible">Erneut versuchen</button>
+            <button id="components-reconnect-reload-button" type="button"
+                    class="components-reconnect-rejected-visible">Seite neu laden</button>
+            <button id="components-resume-button" type="button"
+                    class="components-pause-visible components-resume-failed-visible">Fortsetzen</button>
+        </div>
+    </div>
+</dialog>
