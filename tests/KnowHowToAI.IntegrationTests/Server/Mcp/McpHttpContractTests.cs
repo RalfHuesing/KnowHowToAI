@@ -9,7 +9,7 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
-using KnowHowToAI.Core.Tests.Application.Navigation;
+using KnowHowToAI.TestSupport;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

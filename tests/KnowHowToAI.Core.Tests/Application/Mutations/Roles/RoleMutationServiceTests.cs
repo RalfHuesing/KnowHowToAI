@@ -1,4 +1,3 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Mutations.Roles;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Tests.Application.Transactions;
@@ -7,6 +6,7 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Mutations.Roles;
 
@@ -29,7 +29,7 @@ public sealed class RoleMutationServiceTests
         var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
             ? TransactionTestErrors.NotFound(TransactionId)
             : TransactionTestErrors.Closed(TransactionId);
-        var repository = new InMemoryRoleMutationRepository(State(), rejection);
+        var repository = new InMemoryRoleMutationRepository(State()) { Rejection = rejection };
         var service = new RoleMutationService(repository);
 
         var result = await service.CreateRoleAsync(TransactionId, "Developer", null);
@@ -49,7 +49,7 @@ public sealed class RoleMutationServiceTests
         var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
             ? TransactionTestErrors.NotFound(TransactionId)
             : TransactionTestErrors.Closed(TransactionId);
-        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)]), rejection);
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)])) { Rejection = rejection };
         var service = new RoleMutationService(repository);
 
         var result = await service.UpdateRoleAsync(TransactionId, DefaultRoleId, "Neu", null);
@@ -69,7 +69,7 @@ public sealed class RoleMutationServiceTests
         var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
             ? TransactionTestErrors.NotFound(TransactionId)
             : TransactionTestErrors.Closed(TransactionId);
-        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)]), rejection);
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)])) { Rejection = rejection };
         var service = new RoleMutationService(repository);
 
         var result = await service.DeleteRoleAsync(TransactionId, DefaultRoleId);
@@ -91,8 +91,10 @@ public sealed class RoleMutationServiceTests
             : TransactionTestErrors.Closed(TransactionId);
         var initialResolution = new RoleResolution(SnapshotId, DefaultRoleId, DefaultRoleId, 1);
         var repository = new InMemoryRoleMutationRepository(
-            State([Role(DefaultRoleId), Role(DeveloperRoleId)], [initialResolution]),
-            rejection);
+            State([Role(DefaultRoleId), Role(DeveloperRoleId)], [initialResolution]))
+        {
+            Rejection = rejection
+        };
         var service = new RoleMutationService(repository);
 
         var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId]);
@@ -256,38 +258,4 @@ public sealed class RoleMutationServiceTests
 
     private static Role Role(RoleId roleId, string? description = null) =>
         new(SnapshotId, roleId, roleId.ToString(), description, IsDeleted: false);
-
-    private sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState state, DomainError? rejection = null) : IRoleMutationRepository
-    {
-        public WorkingRoleMutationState State { get; private set; } = state;
-
-        public long ChangeVersion { get; private set; }
-
-        public Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(
-            TransactionId transactionId,
-            Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate,
-            CancellationToken cancellationToken = default)
-        {
-            if (rejection is not null)
-                return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(rejection));
-
-            var previousState = State;
-            var decisionResult = mutate(previousState);
-            if (!decisionResult.IsSuccess)
-                return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(decisionResult.Error!, decisionResult.Warnings));
-
-            var decision = decisionResult.Value!;
-            var stateChanged = HasStateChanged(previousState, decision.State);
-            State = decision.State;
-            if (stateChanged)
-                ChangeVersion++;
-
-            return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Success(
-                new WorkingRoleMutationExecution<T>(decision.Value, State.SnapshotId, ChangeVersion, previousState, State)));
-        }
-
-        private static bool HasStateChanged(WorkingRoleMutationState before, WorkingRoleMutationState after) =>
-            !before.Roles.SequenceEqual(after.Roles)
-            || !before.Resolutions.SequenceEqual(after.Resolutions);
-    }
 }

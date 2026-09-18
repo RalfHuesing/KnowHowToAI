@@ -1,5 +1,3 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
-using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
@@ -11,6 +9,7 @@ using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Retrieval;
 
@@ -180,29 +179,27 @@ public sealed class M5AcceptanceTests
         }
     }
 
+    // ── Test Harness (düner Wrapper über die gemeinsamen TestSupport-Fakes) ──
+
     private sealed class MultiSnapshotTestHarness
     {
-        public List<Snapshot> Snapshots { get; } = [];
-        public List<Node> Nodes { get; } = [];
-        public List<Role> Roles { get; } = [];
-        public List<RoleResolution> Resolutions { get; } = [];
-        public List<NodeContent> Contents { get; } = [];
-        public List<ContentDependency> Dependencies { get; } = [];
-        public InMemoryReleaseRepository ReleaseRepo { get; } = new();
+        private readonly InMemoryKnowledgeStore _store = new();
 
-        public void AddSnapshot(Snapshot s) => Snapshots.Add(s);
-        public void AddNode(Node n) => Nodes.Add(n);
-        public void AddRole(Role r) => Roles.Add(r);
-        public void AddRoleResolution(RoleResolution res) => Resolutions.Add(res);
-        public void AddContent(NodeContent c) => Contents.Add(c);
+        public InMemoryReleaseMutationRepository ReleaseRepo { get; } = new();
+
+        public void AddSnapshot(Snapshot s) => _store.Snapshots.Add(s);
+        public void AddNode(Node n) => _store.Nodes.Add(n);
+        public void AddRole(Role r) => _store.Roles.Add(r);
+        public void AddRoleResolution(RoleResolution res) => _store.Resolutions.Add(res);
+        public void AddContent(NodeContent c) => _store.Contents.Add(c);
 
         public SnapshotReadRepositories CreateSnapshotReadRepositories() => new(
-            new DelegatingSnapshotRepo(Snapshots),
-            new ThrowingTxRepo(),
-            new DelegatingHierarchyRepo(Nodes),
-            new DelegatingContentRepo(Contents),
-            new DelegatingRoleRepo(Roles, Resolutions),
-            new DelegatingDepRepo(Dependencies));
+            new InMemorySnapshotRepository(_store),
+            new InMemoryTransactionRepository(_store),
+            new InMemoryHierarchyRepository(_store),
+            new InMemoryContentRepository(_store),
+            new InMemoryRoleRepository(_store),
+            new InMemoryDependencyRepository(_store));
 
         public MarkdownExportService CreateExportService() => new(CreateSnapshotReadRepositories());
 
@@ -212,7 +209,7 @@ public sealed class M5AcceptanceTests
         public ReleaseService CreateReleaseService(RetrievalPolicy? policy = null) => new(
             CreateSnapshotReadRepositories(),
             ReleaseRepo,
-            new FrozenClock(FixedNow),
+            new FixedClock(FixedNow),
             policy ?? StandardPolicy(),
             new ValidationPolicy
             {
@@ -243,76 +240,5 @@ public sealed class M5AcceptanceTests
             SearchMaximumPageSize = 50,
             SnippetMaximumCharacters = 100
         };
-    }
-
-    private sealed class InMemoryReleaseRepository : IReleaseMutationRepository
-    {
-        public List<Release> ExistingReleases { get; } = [];
-
-        public Task<Result<Release>> CreateAsync(CreateReleaseRecord request, CancellationToken cancellationToken = default)
-        {
-            var rel = new Release(new ReleaseId(ExistingReleases.Count + 1), request.SnapshotId, request.Name, request.Description, request.CreatedAtUtc);
-            ExistingReleases.Add(rel);
-            return Task.FromResult(Result<Release>.Success(rel));
-        }
-
-        public Task<IReadOnlyList<Release>> ListAsync(int limit, long? afterReleaseId, CancellationToken cancellationToken = default)
-        {
-            var query = ExistingReleases.AsEnumerable();
-            if (afterReleaseId.HasValue)
-                query = query.Where(r => r.ReleaseId.Value > afterReleaseId.Value);
-
-            var items = query.OrderBy(r => r.ReleaseId.Value).Take(limit).ToArray();
-            return Task.FromResult<IReadOnlyList<Release>>(items);
-        }
-    }
-
-    private sealed class FrozenClock(DateTimeOffset now) : IClock
-    {
-        public DateTimeOffset UtcNow => now;
-    }
-
-    private sealed class DelegatingSnapshotRepo(List<Snapshot> snapshots) : ISnapshotRepository
-    {
-        public Task<Snapshot?> FindAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(snapshots.FirstOrDefault(s => s.SnapshotId == snapshotId));
-
-        public Task<Snapshot> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(snapshots.First(s => s.State == SnapshotState.Committed));
-    }
-
-    private sealed class ThrowingTxRepo : ITransactionRepository
-    {
-        public Task<KnowledgeTransaction> BeginAsync(KnowHowToAI.Core.Application.Transactions.BeginTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<KnowHowToAI.Core.Application.Transactions.CommitTransactionResult> CommitAsync(KnowHowToAI.Core.Application.Transactions.CommitTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-    }
-
-    private sealed class DelegatingHierarchyRepo(List<Node> nodes) : IHierarchyRepository
-    {
-        public Task<IReadOnlyList<Node>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Node>>(nodes.Where(n => n.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class DelegatingRoleRepo(List<Role> roles, List<RoleResolution> resolutions) : IRoleRepository
-    {
-        public Task<IReadOnlyList<Role>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Role>>(roles.Where(r => r.SnapshotId == snapshotId).ToArray());
-
-        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<RoleResolution>>(resolutions.Where(r => r.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class DelegatingContentRepo(List<NodeContent> contents) : IContentRepository
-    {
-        public Task<IReadOnlyList<NodeContent>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<NodeContent>>(contents.Where(c => c.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class DelegatingDepRepo(List<ContentDependency> dependencies) : IDependencyRepository
-    {
-        public Task<IReadOnlyList<ContentDependency>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<ContentDependency>>(dependencies.Where(d => d.SnapshotId == snapshotId).ToArray());
     }
 }

@@ -1,4 +1,3 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Retrieval.Export;
@@ -9,6 +8,7 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Retrieval.Export;
 
@@ -363,120 +363,26 @@ public sealed class MarkdownExportServiceTests
         Assert.Equal(archivedRole.ToString(), result.Details[RoleResolutionErrorCodes.CandidateRoleIdDetail]);
     }
 
-    // ── Test Harness & Fakes ────────────────────────────────────────────────
+    // ── Test Harness (düner Wrapper über die gemeinsamen TestSupport-Fakes) ──
 
-    private sealed class ExportTestHarness
+    private sealed class ExportTestHarness(SnapshotId currentSnapshotId)
     {
-        private SnapshotId _currentSnapshotId;
-        private readonly List<Snapshot> _snapshots = [];
-        private readonly Dictionary<TransactionId, KnowledgeTransaction> _transactions = new();
-        private readonly List<Node> _nodes = [];
-        private readonly List<Role> _roles = [];
-        private readonly List<RoleResolution> _resolutions = [];
-        private readonly List<NodeContent> _contents = [];
-        private readonly List<ContentDependency> _dependencies = [];
+        private readonly InMemoryKnowledgeStore _store =
+            InMemoryKnowledgeStore.WithCurrentCommittedSnapshot(currentSnapshotId, DateTimeOffset.UtcNow);
 
-        public ExportTestHarness(SnapshotId currentSnapshotId)
-        {
-            _currentSnapshotId = currentSnapshotId;
-            _snapshots.Add(new Snapshot(currentSnapshotId, null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-        }
-
-        public void AddNode(Node node) => _nodes.Add(node);
-        public void AddRole(Role role) => _roles.Add(role);
-        public void AddRoleResolution(RoleResolution resolution) => _resolutions.Add(resolution);
-        public void AddContent(NodeContent content) => _contents.Add(content);
-        public void AddDependency(ContentDependency dependency) => _dependencies.Add(dependency);
+        public void AddNode(Node node) => _store.Nodes.Add(node);
+        public void AddRole(Role role) => _store.Roles.Add(role);
+        public void AddRoleResolution(RoleResolution resolution) => _store.Resolutions.Add(resolution);
+        public void AddContent(NodeContent content) => _store.Contents.Add(content);
+        public void AddDependency(ContentDependency dependency) => _store.Dependencies.Add(dependency);
 
         public MarkdownExportService CreateService() => new(
             new SnapshotReadRepositories(
-                new SnapshotRepoFake(_snapshots, () => _currentSnapshotId),
-                new TransactionRepoFake(_transactions),
-                new HierarchyRepoFake(_nodes),
-                new ContentRepoFake(_contents),
-                new RoleRepoFake(_roles, _resolutions),
-                new DependencyRepoFake(_dependencies)));
-    }
-
-    private sealed class SnapshotRepoFake : ISnapshotRepository
-    {
-        private readonly List<Snapshot> _snapshots;
-        private readonly Func<SnapshotId> _currentSnapshotIdProvider;
-
-        public SnapshotRepoFake(List<Snapshot> snapshots, Func<SnapshotId> currentSnapshotIdProvider)
-        {
-            _snapshots = snapshots;
-            _currentSnapshotIdProvider = currentSnapshotIdProvider;
-        }
-
-        public Task<Snapshot?> FindAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_snapshots.FirstOrDefault(s => s.SnapshotId == snapshotId));
-
-        public Task<Snapshot> GetCurrentAsync(CancellationToken cancellationToken = default)
-        {
-            var currentId = _currentSnapshotIdProvider();
-            return Task.FromResult(_snapshots.First(s => s.SnapshotId == currentId));
-        }
-    }
-
-    private sealed class TransactionRepoFake : ITransactionRepository
-    {
-        private readonly Dictionary<TransactionId, KnowledgeTransaction> _transactions;
-
-        public TransactionRepoFake(Dictionary<TransactionId, KnowledgeTransaction> transactions)
-        {
-            _transactions = transactions;
-        }
-
-        public Task<KnowledgeTransaction> BeginAsync(KnowHowToAI.Core.Application.Transactions.BeginTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_transactions.GetValueOrDefault(transactionId));
-        public Task<KnowHowToAI.Core.Application.Transactions.CommitTransactionResult> CommitAsync(KnowHowToAI.Core.Application.Transactions.CommitTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-    }
-
-    private sealed class HierarchyRepoFake : IHierarchyRepository
-    {
-        private readonly List<Node> _nodes;
-        public HierarchyRepoFake(List<Node> nodes) => _nodes = nodes;
-
-        public Task<IReadOnlyList<Node>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Node>>(_nodes.Where(n => n.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class RoleRepoFake : IRoleRepository
-    {
-        private readonly List<Role> _roles;
-        private readonly List<RoleResolution> _resolutions;
-
-        public RoleRepoFake(List<Role> roles, List<RoleResolution> resolutions)
-        {
-            _roles = roles;
-            _resolutions = resolutions;
-        }
-
-        public Task<IReadOnlyList<Role>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Role>>(_roles.Where(r => r.SnapshotId == snapshotId).ToArray());
-
-        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<RoleResolution>>(_resolutions.Where(r => r.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class ContentRepoFake : IContentRepository
-    {
-        private readonly List<NodeContent> _contents;
-        public ContentRepoFake(List<NodeContent> contents) => _contents = contents;
-
-        public Task<IReadOnlyList<NodeContent>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<NodeContent>>(_contents.Where(c => c.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class DependencyRepoFake : IDependencyRepository
-    {
-        private readonly List<ContentDependency> _dependencies;
-        public DependencyRepoFake(List<ContentDependency> dependencies) => _dependencies = dependencies;
-
-        public Task<IReadOnlyList<ContentDependency>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<ContentDependency>>(_dependencies.Where(d => d.SnapshotId == snapshotId).ToArray());
+                new InMemorySnapshotRepository(_store),
+                new InMemoryTransactionRepository(_store),
+                new InMemoryHierarchyRepository(_store),
+                new InMemoryContentRepository(_store),
+                new InMemoryRoleRepository(_store),
+                new InMemoryDependencyRepository(_store)));
     }
 }

@@ -26,8 +26,5 @@
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="KnowHowToAI.IntegrationTests" />
-  </ItemGroup>
 
 </Project>

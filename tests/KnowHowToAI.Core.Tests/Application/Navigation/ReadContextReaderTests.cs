@@ -1,9 +1,7 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
-using KnowHowToAI.Core.Application.Policies;
-using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 using Xunit;
 
 namespace KnowHowToAI.Core.Tests.Application.Navigation;
@@ -20,13 +18,15 @@ public sealed class ReadContextReaderTests
     [Fact]
     public async Task ResolveAsync_TransactionSelector_DoesNotLoadCurrentSnapshot()
     {
-        var snapshots = new SnapshotRepoFake { ThrowOnGetCurrent = true };
-        snapshots.Add(new Snapshot(HistoricalSnapshotId, null, SnapshotState.Committed, CreatedAtUtc, CreatedAtUtc));
+        var store = new InMemoryKnowledgeStore();
+        var snapshots = new InMemorySnapshotRepository(store) { ThrowOnGetCurrent = true };
+        store.Snapshots.Add(new Snapshot(HistoricalSnapshotId, null, SnapshotState.Committed, CreatedAtUtc, CreatedAtUtc));
+        store.Transactions[TransactionId] = Transaction();
 
         var result = await ReadContextReader.ResolveAsync(
             new ReadContext(TransactionId: TransactionId),
             snapshots,
-            new TransactionRepoFake(Transaction()));
+            new InMemoryTransactionRepository(store));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(WorkingSnapshotId, result.Value!.SnapshotId);
@@ -38,13 +38,14 @@ public sealed class ReadContextReaderTests
     [Fact]
     public async Task ResolveAsync_SnapshotSelector_DoesNotLoadCurrentSnapshot()
     {
-        var snapshots = new SnapshotRepoFake { ThrowOnGetCurrent = true };
-        snapshots.Add(new Snapshot(HistoricalSnapshotId, null, SnapshotState.Committed, CreatedAtUtc, CreatedAtUtc));
+        var store = new InMemoryKnowledgeStore();
+        var snapshots = new InMemorySnapshotRepository(store) { ThrowOnGetCurrent = true };
+        store.Snapshots.Add(new Snapshot(HistoricalSnapshotId, null, SnapshotState.Committed, CreatedAtUtc, CreatedAtUtc));
 
         var result = await ReadContextReader.ResolveAsync(
             new ReadContext(SnapshotId: HistoricalSnapshotId),
             snapshots,
-            new TransactionRepoFake(null));
+            new InMemoryTransactionRepository(store));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(HistoricalSnapshotId, result.Value!.SnapshotId);
@@ -56,13 +57,14 @@ public sealed class ReadContextReaderTests
     [Fact]
     public async Task ResolveAsync_WithoutSelector_LoadsCurrentSnapshotExactlyOnce()
     {
-        var snapshots = new SnapshotRepoFake();
-        snapshots.Add(new Snapshot(CurrentSnapshotId, null, SnapshotState.Committed, CreatedAtUtc, CreatedAtUtc));
+        var store = new InMemoryKnowledgeStore { CurrentSnapshotId = CurrentSnapshotId };
+        var snapshots = new InMemorySnapshotRepository(store);
+        store.Snapshots.Add(new Snapshot(CurrentSnapshotId, null, SnapshotState.Committed, CreatedAtUtc, CreatedAtUtc));
 
         var result = await ReadContextReader.ResolveAsync(
             new ReadContext(),
             snapshots,
-            new TransactionRepoFake(null));
+            new InMemoryTransactionRepository(store));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(CurrentSnapshotId, result.Value!.SnapshotId);
@@ -84,42 +86,4 @@ public sealed class ReadContextReaderTests
             null,
             null,
             null);
-
-    private sealed class SnapshotRepoFake : ISnapshotRepository
-    {
-        private readonly List<Snapshot> _snapshots = [];
-
-        public int GetCurrentCalls { get; private set; }
-
-        public bool ThrowOnGetCurrent { get; init; }
-
-        public void Add(Snapshot snapshot) => _snapshots.Add(snapshot);
-
-        public Task<Snapshot?> FindAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_snapshots.FirstOrDefault(snapshot => snapshot.SnapshotId == snapshotId));
-
-        public Task<Snapshot> GetCurrentAsync(CancellationToken cancellationToken = default)
-        {
-            GetCurrentCalls++;
-            if (ThrowOnGetCurrent)
-                throw new InvalidOperationException("GetCurrentAsync darf nur im Current-Zweig aufgerufen werden.");
-
-            return Task.FromResult(_snapshots.First(snapshot => snapshot.SnapshotId == CurrentSnapshotId));
-        }
-    }
-
-    private sealed class TransactionRepoFake(KnowledgeTransaction? transaction) : ITransactionRepository
-    {
-        public Task<KnowledgeTransaction> BeginAsync(BeginTransactionRequest request, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
-        public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(transaction);
-
-        public Task<CommitTransactionResult> CommitAsync(CommitTransactionRequest request, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
-        public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-    }
 }

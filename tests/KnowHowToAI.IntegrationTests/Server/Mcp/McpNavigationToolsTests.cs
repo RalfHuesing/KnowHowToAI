@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
-using KnowHowToAI.Core.Tests.Application.Navigation;
+using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Tools.Navigation;
 namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 

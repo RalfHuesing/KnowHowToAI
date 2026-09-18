@@ -1,5 +1,3 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
-using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
@@ -10,6 +8,7 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.History;
 
@@ -172,19 +171,24 @@ public sealed class ReleaseServiceTests
         Assert.NotNull(result.Value.NextCursor);
     }
 
+    // ── Test Harness (düner Wrapper über die gemeinsamen TestSupport-Fakes) ──
+
     private sealed class ReleaseTestHarness
     {
+        private readonly InMemoryKnowledgeStore _store = new();
+
         public InMemoryReleaseMutationRepository ReleaseRepo { get; } = new();
-        public List<Snapshot> Snapshots { get; } =
-        [
-            new Snapshot(CommittedSnapshotId, null, SnapshotState.Committed, Now, Now),
-            new Snapshot(WorkingSnapshotId, null, SnapshotState.Working, Now, null)
-        ];
-        public List<Node> Nodes { get; } = [];
-        public List<Role> Roles { get; } = [];
-        public List<RoleResolution> Resolutions { get; } = [];
-        public List<NodeContent> Contents { get; } = [];
-        public List<ContentDependency> Dependencies { get; } = [];
+        public List<Node> Nodes => _store.Nodes;
+        public List<Role> Roles => _store.Roles;
+        public List<RoleResolution> Resolutions => _store.Resolutions;
+        public List<NodeContent> Contents => _store.Contents;
+        public List<ContentDependency> Dependencies => _store.Dependencies;
+
+        public ReleaseTestHarness()
+        {
+            _store.Snapshots.Add(new Snapshot(CommittedSnapshotId, null, SnapshotState.Committed, Now, Now));
+            _store.Snapshots.Add(new Snapshot(WorkingSnapshotId, null, SnapshotState.Working, Now, null));
+        }
 
         public void SetupCleanSnapshot(SnapshotId snapshotId)
         {
@@ -232,14 +236,14 @@ public sealed class ReleaseServiceTests
 
         public ReleaseService CreateService(int defaultPageSize = 10) => new(
             new SnapshotReadRepositories(
-                new DelegatingSnapshotRepository(Snapshots),
-                new ThrowingTransactionRepository(),
-                new DelegatingHierarchyRepository(Nodes),
-                new DelegatingContentRepository(Contents),
-                new DelegatingRoleRepository(Roles, Resolutions),
-                new DelegatingDependencyRepository(Dependencies)),
+                new InMemorySnapshotRepository(_store),
+                new InMemoryTransactionRepository(_store),
+                new InMemoryHierarchyRepository(_store),
+                new InMemoryContentRepository(_store),
+                new InMemoryRoleRepository(_store),
+                new InMemoryDependencyRepository(_store)),
             ReleaseRepo,
-            new ConstantClock(Now),
+            new FixedClock(Now),
             new RetrievalPolicy
             {
                 DefaultPageSize = defaultPageSize,
@@ -255,87 +259,5 @@ public sealed class ReleaseServiceTests
                 HierarchyDepthWarning = 8,
                 PossibleEmbeddedHeadingWarning = true
             });
-    }
-
-    private sealed class InMemoryReleaseMutationRepository : IReleaseMutationRepository
-    {
-        public List<Release> ExistingReleases { get; } = [];
-        public CreateReleaseRecord? LastRequest { get; private set; }
-        public DomainError? CreateError { get; set; }
-
-        public Task<Result<Release>> CreateAsync(CreateReleaseRecord request, CancellationToken cancellationToken = default)
-        {
-            LastRequest = request;
-            if (CreateError is not null)
-                return Task.FromResult(Result<Release>.Failure(CreateError));
-
-            var newRelease = new Release(
-                new ReleaseId(ExistingReleases.Count + 1),
-                request.SnapshotId,
-                request.Name,
-                request.Description,
-                request.CreatedAtUtc);
-
-            ExistingReleases.Add(newRelease);
-            return Task.FromResult(Result<Release>.Success(newRelease));
-        }
-
-        public Task<IReadOnlyList<Release>> ListAsync(int limit, long? afterReleaseId, CancellationToken cancellationToken = default)
-        {
-            IEnumerable<Release> query = ExistingReleases.OrderBy(release => release.ReleaseId.Value);
-            if (afterReleaseId.HasValue)
-                query = query.Where(release => release.ReleaseId.Value > afterReleaseId.Value);
-
-            return Task.FromResult<IReadOnlyList<Release>>(query.Take(limit).ToList());
-        }
-    }
-
-    private sealed class ConstantClock(DateTimeOffset utcNow) : IClock
-    {
-        public DateTimeOffset UtcNow => utcNow;
-    }
-
-    private sealed class DelegatingSnapshotRepository(List<Snapshot> snapshots) : ISnapshotRepository
-    {
-        public Task<Snapshot?> FindAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(snapshots.FirstOrDefault(s => s.SnapshotId == snapshotId));
-
-        public Task<Snapshot> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(snapshots.First(s => s.State == SnapshotState.Committed));
-    }
-
-    private sealed class ThrowingTransactionRepository : ITransactionRepository
-    {
-        public Task<KnowledgeTransaction> BeginAsync(KnowHowToAI.Core.Application.Transactions.BeginTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<KnowHowToAI.Core.Application.Transactions.CommitTransactionResult> CommitAsync(KnowHowToAI.Core.Application.Transactions.CommitTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-    }
-
-    private sealed class DelegatingHierarchyRepository(List<Node> nodes) : IHierarchyRepository
-    {
-        public Task<IReadOnlyList<Node>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Node>>(nodes.Where(n => n.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class DelegatingRoleRepository(List<Role> roles, List<RoleResolution> resolutions) : IRoleRepository
-    {
-        public Task<IReadOnlyList<Role>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Role>>(roles.Where(r => r.SnapshotId == snapshotId).ToArray());
-
-        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<RoleResolution>>(resolutions.Where(r => r.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class DelegatingContentRepository(List<NodeContent> contents) : IContentRepository
-    {
-        public Task<IReadOnlyList<NodeContent>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<NodeContent>>(contents.Where(c => c.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class DelegatingDependencyRepository(List<ContentDependency> dependencies) : IDependencyRepository
-    {
-        public Task<IReadOnlyList<ContentDependency>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<ContentDependency>>(dependencies.Where(d => d.SnapshotId == snapshotId).ToArray());
     }
 }

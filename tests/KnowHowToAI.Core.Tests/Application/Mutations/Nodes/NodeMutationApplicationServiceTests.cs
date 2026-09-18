@@ -1,5 +1,3 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
-using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
@@ -9,6 +7,7 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Validation;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Mutations.Nodes;
 
@@ -264,7 +263,7 @@ public sealed class NodeMutationApplicationServiceTests
         NodeId generatedNodeId) =>
         new(
             repository,
-            new NodeMutationService(new FixedIdentifierGenerator(generatedNodeId)),
+            new NodeMutationService(new FixedIdentifierGenerator { FixedNodeId = generatedNodeId }),
             new ValidationPolicy
             {
                 ContentSizeWarningBytes = 4096,
@@ -298,50 +297,4 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.Single(nodes.Where(node => node.NodeId == nodeId));
 
     private static NodeId NodeIdFor(int value) => new(new Guid(value, 0, 0, new byte[8]));
-
-    private sealed class InMemoryNodeMutationRepository(WorkingNodeMutationState state) : INodeMutationRepository
-    {
-        public WorkingNodeMutationState State { get; private set; } = state;
-
-        public long ChangeVersion { get; private set; }
-
-        public DomainError? Rejection { get; init; }
-
-        public Task<Result<WorkingNodeMutationExecution<T>>> ExecuteAsync<T>(
-            TransactionId transactionId,
-            Func<WorkingNodeMutationState, Result<WorkingNodeMutationDecision<T>>> mutate,
-            CancellationToken cancellationToken = default)
-        {
-            if (Rejection is not null)
-                return Task.FromResult(Result<WorkingNodeMutationExecution<T>>.Failure(Rejection));
-
-            var previousState = State;
-            var decisionResult = mutate(previousState);
-            if (!decisionResult.IsSuccess)
-                return Task.FromResult(Result<WorkingNodeMutationExecution<T>>.Failure(decisionResult.Error!));
-
-            var decision = decisionResult.Value!;
-            var stateChanged = HasStateChanged(previousState, decision.State);
-            State = decision.State;
-            if (stateChanged)
-                ChangeVersion++;
-
-            return Task.FromResult(Result<WorkingNodeMutationExecution<T>>.Success(
-                new WorkingNodeMutationExecution<T>(decision.Value, State.SnapshotId, ChangeVersion, previousState, State)));
-        }
-
-        private static bool HasStateChanged(WorkingNodeMutationState before, WorkingNodeMutationState after) =>
-            !before.Nodes.SequenceEqual(after.Nodes)
-            || !before.Contents.SequenceEqual(after.Contents)
-            || !before.Dependencies.SequenceEqual(after.Dependencies);
-    }
-
-    private sealed class FixedIdentifierGenerator(NodeId nodeId) : IIdentifierGenerator
-    {
-        public TransactionId CreateTransactionId() => throw new NotSupportedException();
-
-        public NodeId CreateNodeId() => nodeId;
-
-        public ContentRevisionId CreateContentRevisionId() => throw new NotSupportedException();
-    }
 }

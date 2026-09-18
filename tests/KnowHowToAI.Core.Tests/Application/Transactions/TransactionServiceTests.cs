@@ -1,10 +1,10 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
-using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Transactions;
 
@@ -20,7 +20,7 @@ public sealed class TransactionServiceTests
         var service = new TransactionService(
             repository,
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.BeginAsync(new BeginTransactionOptions("Import", "Agent", "MCP"));
@@ -40,7 +40,7 @@ public sealed class TransactionServiceTests
         var service = new TransactionService(
             new TransactionRepositoryFake(),
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.GetAsync(requestedTransactionId);
@@ -62,7 +62,7 @@ public sealed class TransactionServiceTests
         var service = new TransactionService(
             new TransactionRepositoryFake { FoundTransaction = closedTransaction },
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.GetAsync(transactionId);
@@ -88,7 +88,7 @@ public sealed class TransactionServiceTests
             {
                 ReadResult = Result<WorkingSnapshotValidationData>.Failure(expectedError)
             },
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.ValidateAsync(transactionId);
@@ -108,7 +108,7 @@ public sealed class TransactionServiceTests
             {
                 ReadResult = Result<WorkingSnapshotValidationData>.Success(new WorkingSnapshotValidationData([], [], [], [], []))
             },
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.ValidateAsync(transactionId);
@@ -133,7 +133,7 @@ public sealed class TransactionServiceTests
                 CommitResult = new CommitTransactionResult(null, null, expectedError)
             },
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.CommitAsync(transactionId, "Freigabe");
@@ -163,7 +163,7 @@ public sealed class TransactionServiceTests
                 CommitResult = new CommitTransactionResult(null, null, conflictError)
             },
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.CommitAsync(transactionId, null);
@@ -185,7 +185,7 @@ public sealed class TransactionServiceTests
                 CommitResult = new CommitTransactionResult(committedTransaction, validationReport, null)
             },
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.CommitAsync(transactionId, "Freigabe");
@@ -206,7 +206,7 @@ public sealed class TransactionServiceTests
         var service = new TransactionService(
             repository,
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         await service.CommitAsync(transactionId, "Freigabe");
@@ -234,7 +234,7 @@ public sealed class TransactionServiceTests
         var service = new TransactionService(
             repository,
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.DiscardAsync(transactionId);
@@ -256,7 +256,7 @@ public sealed class TransactionServiceTests
         var service = new TransactionService(
             repository,
             new ValidationDataRepositoryFake(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
 
         var result = await service.DiscardAsync(transactionId);
@@ -287,15 +287,6 @@ public sealed class TransactionServiceTests
         HierarchyDepthWarning = 8,
         PossibleEmbeddedHeadingWarning = true
     };
-
-    private sealed class FixedIdentifierGenerator : IIdentifierGenerator
-    {
-        public TransactionId CreateTransactionId() => GeneratedTransactionId;
-
-        public NodeId CreateNodeId() => throw new NotSupportedException();
-
-        public ContentRevisionId CreateContentRevisionId() => throw new NotSupportedException();
-    }
 
     private sealed class TransactionRepositoryFake : ITransactionRepository
     {

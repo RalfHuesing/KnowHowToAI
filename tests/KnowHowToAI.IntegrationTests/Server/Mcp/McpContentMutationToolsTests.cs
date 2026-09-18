@@ -7,6 +7,7 @@ using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.IntegrationTests.TestSupport;
+using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Content;
 using KnowHowToAI.Server.Mcp.Tools.Mutations;
 

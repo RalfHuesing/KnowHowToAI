@@ -1,4 +1,3 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
@@ -8,6 +7,7 @@ using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.History;
 
@@ -227,43 +227,41 @@ public sealed class HistoryServiceTests
         Assert.NotNull(result.Value.NextCursor);
     }
 
+    // ── Test Harness (düner Wrapper über die gemeinsamen TestSupport-Fakes) ──
+
     private sealed class HistoryTestHarness
     {
-        public List<Snapshot> Snapshots { get; } = new();
-        public Dictionary<TransactionId, KnowledgeTransaction> Transactions { get; } = new();
-        public List<Node> Nodes { get; } = new();
-        public List<Role> Roles { get; } = new();
-        public List<RoleResolution> Resolutions { get; } = new();
-        public List<NodeContent> Contents { get; } = new();
-        public List<ContentDependency> Dependencies { get; } = new();
+        private readonly InMemoryKnowledgeStore _store = new();
+
+        public List<Node> Nodes => _store.Nodes;
 
         public HistoryTestHarness()
         {
-            Snapshots.Add(new Snapshot(CommittedSnap1, null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-            Snapshots.Add(new Snapshot(CommittedSnap2, CommittedSnap1, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-            Snapshots.Add(new Snapshot(WorkingSnap, CommittedSnap1, SnapshotState.Working, DateTimeOffset.UtcNow, null));
+            _store.Snapshots.Add(new Snapshot(CommittedSnap1, null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+            _store.Snapshots.Add(new Snapshot(CommittedSnap2, CommittedSnap1, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+            _store.Snapshots.Add(new Snapshot(WorkingSnap, CommittedSnap1, SnapshotState.Working, DateTimeOffset.UtcNow, null));
 
-            Transactions[OpenTxId] = new KnowledgeTransaction(
+            _store.Transactions[OpenTxId] = new KnowledgeTransaction(
                 OpenTxId, CommittedSnap1, WorkingSnap, TransactionState.Open, ChangeVersion: 2L,
                 DateTimeOffset.UtcNow, null, "test", "tester", "client", null);
 
-            Transactions[DiscardedTxId] = new KnowledgeTransaction(
+            _store.Transactions[DiscardedTxId] = new KnowledgeTransaction(
                 DiscardedTxId, CommittedSnap1, WorkingSnap, TransactionState.Discarded, ChangeVersion: 1L,
                 DateTimeOffset.UtcNow, null, "test", "tester", "client", null);
 
-            Transactions[CommittedTxId] = new KnowledgeTransaction(
+            _store.Transactions[CommittedTxId] = new KnowledgeTransaction(
                 CommittedTxId, CommittedSnap1, CommittedSnap2, TransactionState.Committed, ChangeVersion: 3L,
                 DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, "test", "tester", "client", "commit message");
         }
 
         public HistoryService CreateService() => new(
             new SnapshotReadRepositories(
-                new FakeSnapshotRepository(Snapshots),
-                new FakeTransactionRepository(Transactions),
-                new FakeHierarchyRepository(Nodes),
-                new FakeContentRepository(Contents),
-                new FakeRoleRepository(Roles, Resolutions),
-                new FakeDependencyRepository(Dependencies)),
+                new InMemorySnapshotRepository(_store),
+                new InMemoryTransactionRepository(_store),
+                new InMemoryHierarchyRepository(_store),
+                new InMemoryContentRepository(_store),
+                new InMemoryRoleRepository(_store),
+                new InMemoryDependencyRepository(_store)),
             new RetrievalPolicy
             {
                 DefaultPageSize = 10,
@@ -272,70 +270,5 @@ public sealed class HistoryServiceTests
                 SearchMaximumPageSize = 50,
                 SnippetMaximumCharacters = 100
             });
-    }
-
-    private sealed class FakeSnapshotRepository : ISnapshotRepository
-    {
-        private readonly List<Snapshot> _snapshots;
-        public FakeSnapshotRepository(List<Snapshot> snapshots) => _snapshots = snapshots;
-
-        public Task<Snapshot?> FindAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_snapshots.FirstOrDefault(s => s.SnapshotId == snapshotId));
-
-        public Task<Snapshot> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(_snapshots.First(s => s.State == SnapshotState.Committed));
-    }
-
-    private sealed class FakeTransactionRepository : ITransactionRepository
-    {
-        private readonly Dictionary<TransactionId, KnowledgeTransaction> _transactions;
-        public FakeTransactionRepository(Dictionary<TransactionId, KnowledgeTransaction> transactions) => _transactions = transactions;
-
-        public Task<KnowledgeTransaction> BeginAsync(KnowHowToAI.Core.Application.Transactions.BeginTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_transactions.GetValueOrDefault(transactionId));
-        public Task<KnowHowToAI.Core.Application.Transactions.CommitTransactionResult> CommitAsync(KnowHowToAI.Core.Application.Transactions.CommitTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-    }
-
-    private sealed class FakeHierarchyRepository : IHierarchyRepository
-    {
-        private readonly List<Node> _nodes;
-        public FakeHierarchyRepository(List<Node> nodes) => _nodes = nodes;
-        public Task<IReadOnlyList<Node>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Node>>(_nodes.Where(n => n.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class FakeRoleRepository : IRoleRepository
-    {
-        private readonly List<Role> _roles;
-        private readonly List<RoleResolution> _resolutions;
-        public FakeRoleRepository(List<Role> roles, List<RoleResolution> resolutions)
-        {
-            _roles = roles;
-            _resolutions = resolutions;
-        }
-
-        public Task<IReadOnlyList<Role>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Role>>(_roles.Where(r => r.SnapshotId == snapshotId).ToArray());
-
-        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<RoleResolution>>(_resolutions.Where(r => r.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class FakeContentRepository : IContentRepository
-    {
-        private readonly List<NodeContent> _contents;
-        public FakeContentRepository(List<NodeContent> contents) => _contents = contents;
-        public Task<IReadOnlyList<NodeContent>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<NodeContent>>(_contents.Where(c => c.SnapshotId == snapshotId).ToArray());
-    }
-
-    private sealed class FakeDependencyRepository : IDependencyRepository
-    {
-        private readonly List<ContentDependency> _dependencies;
-        public FakeDependencyRepository(List<ContentDependency> dependencies) => _dependencies = dependencies;
-        public Task<IReadOnlyList<ContentDependency>> ListBySnapshotAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<ContentDependency>>(_dependencies.Where(d => d.SnapshotId == snapshotId).ToArray());
     }
 }

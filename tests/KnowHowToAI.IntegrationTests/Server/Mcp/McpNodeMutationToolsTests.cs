@@ -11,6 +11,7 @@ using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.IntegrationTests.TestSupport;
+using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Tools.Mutations;
 
 namespace KnowHowToAI.IntegrationTests.Server.Mcp;

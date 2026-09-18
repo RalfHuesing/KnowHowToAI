@@ -12,7 +12,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
-using KnowHowToAI.Core.Tests.Application.Navigation;
+using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

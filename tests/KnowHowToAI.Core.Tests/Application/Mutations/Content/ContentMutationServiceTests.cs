@@ -1,8 +1,8 @@
-using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Mutations.Content;
 
@@ -129,20 +129,11 @@ public sealed class ContentMutationServiceTests
     }
 
     private static ContentMutationService CreateService() =>
-        new(new ContentRevisionService(new FixedIdentifierGenerator(GeneratedRevisionId)));
+        new(new ContentRevisionService(new FixedIdentifierGenerator { FixedContentRevisionId = GeneratedRevisionId }));
 
     private static NodeContent Content(RoleId roleId, string content) =>
         new(SnapshotId, NodeId, roleId, ExistingRevisionId, ContentMode.Independent, content, IsDeleted: false);
 
     private static NodeContent Find(IEnumerable<NodeContent> contents, RoleId roleId) =>
         Assert.Single(contents.Where(content => content.RoleId == roleId));
-
-    private sealed class FixedIdentifierGenerator(ContentRevisionId contentRevisionId) : IIdentifierGenerator
-    {
-        public TransactionId CreateTransactionId() => throw new NotSupportedException();
-
-        public NodeId CreateNodeId() => throw new NotSupportedException();
-
-        public ContentRevisionId CreateContentRevisionId() => contentRevisionId;
-    }
 }

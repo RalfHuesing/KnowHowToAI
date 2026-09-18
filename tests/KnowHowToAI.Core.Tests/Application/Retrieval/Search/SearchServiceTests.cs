@@ -1,10 +1,10 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Retrieval.Search;
 
@@ -283,26 +283,23 @@ public sealed class SearchServiceTests
         Assert.Equal("Title", hit.HitField);
     }
 
+    // ── Test Harness (düner Wrapper über die gemeinsamen TestSupport-Fakes) ──
+
     private sealed class SearchTestHarness
     {
-        private readonly SnapshotId _currentSnapshotId;
-        private readonly List<Snapshot> _snapshots = new();
-        private readonly Dictionary<TransactionId, KnowledgeTransaction> _transactions = new();
+        private readonly InMemoryKnowledgeStore _store;
 
-        public FakeRetrievalRepository RetrievalRepo { get; } = new();
+        public InMemoryRetrievalRepository RetrievalRepo { get; } = new(CurrentSnapshotId);
 
-        public SearchTestHarness(SnapshotId currentSnapshotId)
-        {
-            _currentSnapshotId = currentSnapshotId;
-            _snapshots.Add(new Snapshot(_currentSnapshotId, null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-        }
+        public SearchTestHarness(SnapshotId currentSnapshotId) =>
+            _store = InMemoryKnowledgeStore.WithCurrentCommittedSnapshot(currentSnapshotId, DateTimeOffset.UtcNow);
 
-        public void AddTransaction(KnowledgeTransaction tx) => _transactions[tx.TransactionId] = tx;
+        public void AddTransaction(KnowledgeTransaction tx) => _store.Transactions[tx.TransactionId] = tx;
 
         public SearchService CreateService() => new(
             new SearchRepositories(
-                new FakeSnapshotRepository(_snapshots, _currentSnapshotId),
-                new FakeTransactionRepository(_transactions),
+                new InMemorySnapshotRepository(_store),
+                new InMemoryTransactionRepository(_store),
                 RetrievalRepo),
             new RetrievalPolicy
             {
@@ -312,63 +309,5 @@ public sealed class SearchServiceTests
                 SearchMaximumPageSize = 50,
                 SnippetMaximumCharacters = 100
             });
-    }
-
-    private sealed class FakeRetrievalRepository : IRetrievalRepository
-    {
-        public int CallCount { get; private set; }
-        public SearchRequest? LastRequest { get; private set; }
-        public List<SearchHit> ResultsToReturn { get; set; } = new();
-        public long? ChangeVersionToReturn { get; set; }
-        public List<Role> Roles { get; } = new();
-        public List<RoleResolution> Resolutions { get; } = new();
-
-        public void ConfigureActiveRole(RoleId roleId, bool isDeleted = false)
-        {
-            Roles.Add(new Role(CurrentSnapshotId, roleId, roleId.Value, null, isDeleted));
-            Resolutions.Add(new RoleResolution(CurrentSnapshotId, roleId, roleId, 1));
-        }
-
-        public Task<Result<SearchRepositoryResult>> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default)
-        {
-            CallCount++;
-            LastRequest = request;
-            return Task.FromResult(Result<SearchRepositoryResult>.Success(new SearchRepositoryResult(
-                ResultsToReturn, ChangeVersionToReturn, Roles, Resolutions)));
-        }
-    }
-
-    private sealed class FakeSnapshotRepository : ISnapshotRepository
-    {
-        private readonly List<Snapshot> _snapshots;
-        private readonly SnapshotId _currentSnapshotId;
-
-        public FakeSnapshotRepository(List<Snapshot> snapshots, SnapshotId currentSnapshotId)
-        {
-            _snapshots = snapshots;
-            _currentSnapshotId = currentSnapshotId;
-        }
-
-        public Task<Snapshot?> FindAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_snapshots.FirstOrDefault(s => s.SnapshotId == snapshotId));
-
-        public Task<Snapshot> GetCurrentAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(_snapshots.First(s => s.SnapshotId == _currentSnapshotId));
-    }
-
-    private sealed class FakeTransactionRepository : ITransactionRepository
-    {
-        private readonly Dictionary<TransactionId, KnowledgeTransaction> _transactions;
-
-        public FakeTransactionRepository(Dictionary<TransactionId, KnowledgeTransaction> transactions)
-        {
-            _transactions = transactions;
-        }
-
-        public Task<KnowledgeTransaction> BeginAsync(KnowHowToAI.Core.Application.Transactions.BeginTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
-            Task.FromResult(_transactions.GetValueOrDefault(transactionId));
-        public Task<KnowHowToAI.Core.Application.Transactions.CommitTransactionResult> CommitAsync(KnowHowToAI.Core.Application.Transactions.CommitTransactionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-        public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }

@@ -1,5 +1,3 @@
-using KnowHowToAI.Core.Application.Abstractions.Persistence;
-using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
@@ -10,6 +8,7 @@ using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Validation;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Core.Tests.Application.Mutations.Content;
 
@@ -228,7 +227,7 @@ public sealed class ContentMutationApplicationServiceTests
     private static ContentMutationApplicationService CreateService(InMemoryContentMutationRepository repository) =>
         new(
             repository,
-            new ContentMutationService(new ContentRevisionService(new FixedIdentifierGenerator())),
+            new ContentMutationService(new ContentRevisionService(new FixedIdentifierGenerator { FixedContentRevisionId = GeneratedRevisionId })),
             new ValidationPolicy
             {
                 ContentSizeWarningBytes = 8,
@@ -252,49 +251,4 @@ public sealed class ContentMutationApplicationServiceTests
 
     private static NodeContent Content(RoleId roleId, ContentRevisionId revisionId, string text) =>
         new(SnapshotId, NodeId, roleId, revisionId, ContentMode.Independent, text, IsDeleted: false);
-
-    private sealed class InMemoryContentMutationRepository(WorkingContentMutationState state) : IContentMutationRepository
-    {
-        public WorkingContentMutationState State { get; private set; } = state;
-
-        public long ChangeVersion { get; private set; }
-
-        public DomainError? Rejection { get; init; }
-
-        public Task<Result<WorkingContentMutationExecution<T>>> ExecuteAsync<T>(
-            TransactionId transactionId,
-            Func<WorkingContentMutationState, Result<WorkingContentMutationDecision<T>>> mutate,
-            CancellationToken cancellationToken = default)
-        {
-            if (Rejection is not null)
-                return Task.FromResult(Result<WorkingContentMutationExecution<T>>.Failure(Rejection));
-
-            var previousState = State;
-            var decisionResult = mutate(previousState);
-            if (!decisionResult.IsSuccess)
-                return Task.FromResult(Result<WorkingContentMutationExecution<T>>.Failure(decisionResult.Error!, decisionResult.Warnings));
-
-            var decision = decisionResult.Value!;
-            var stateChanged = HasStateChanged(previousState, decision.State);
-            State = decision.State;
-            if (stateChanged)
-                ChangeVersion++;
-
-            return Task.FromResult(Result<WorkingContentMutationExecution<T>>.Success(
-                new WorkingContentMutationExecution<T>(decision.Value, State.SnapshotId, ChangeVersion, previousState, State)));
-        }
-
-        private static bool HasStateChanged(WorkingContentMutationState before, WorkingContentMutationState after) =>
-            !before.Contents.SequenceEqual(after.Contents)
-            || !before.Dependencies.SequenceEqual(after.Dependencies);
-    }
-
-    private sealed class FixedIdentifierGenerator : IIdentifierGenerator
-    {
-        public TransactionId CreateTransactionId() => throw new NotSupportedException();
-
-        public NodeId CreateNodeId() => throw new NotSupportedException();
-
-        public ContentRevisionId CreateContentRevisionId() => GeneratedRevisionId;
-    }
 }
