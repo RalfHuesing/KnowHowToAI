@@ -2,16 +2,21 @@
 
 ## Rich-Text-Editor
 
-Der erste schreibende Frontend-Schnitt verwendet einen etablierten Rich-Text-/WYSIWYG-Editor. Ein vorheriger Wegwerf-Memo-Editor ist nicht vorgesehen.
+Der erste schreibende Frontend-Schnitt verwendet ausschließlich Milkdown `@milkdown/crepe` `7.22.1`. Tiptap `3.31.3` mit `@tiptap/markdown` `3.31.3` ist trotz technisch bestandener Prüfung ausgeschlossen, weil die offizielle Markdown-Erweiterung eine Beta-/Early-Release-API an der kanonischen Speichergrenze ist. Ein vorheriger Wegwerf-Memo-Editor und eine erneute Editor-Auswahl sind nicht vorgesehen.
 
 - Markdown bleibt kanonisches Ein-/Ausgabe- und Speicherformat.
 - Der Editor muss Markdown verlustarm roundtrippen; HTML-first mit nachträglicher verlustbehafteter Konvertierung reicht nicht.
-- WYSIWYG und optionaler Markdown-Quellmodus.
-- Formatierungen, Links, Listen, Tabellen, Code, Zitate und Bilder.
-- Heading-Funktionen sind deaktiviert.
+- WYSIWYG; der Markdown-Quellmodus bleibt die offene Produktentscheidung O-010 für M5.0.
+- Formatierungen, Links, Listen, Tabellen, Code und Zitate; Bilder werden erst in M8 über kontrollierte interne Assets aktiviert.
+- Die sichtbare Crepe-Toolbar enthält ausschließlich Bold, Italic, Strikethrough, Inline-Code und Link. Latex, ImageBlock, Headings und Bild-Upload sind deaktiviert.
 - Verbotene Markdown-/HTML-Headings werden unmittelbar markiert und serverseitig weiterhin abgelehnt.
 - Editorinhalt wird nicht zum Träger von Systemmetadaten.
-- Auswahl erfolgt als technischer Spike mit realistischen KnowHowTo-Inhalten und Roundtrip-Tests.
+- Markdown wird über Milkdowns vorhandenen Import und `getMarkdown()` ausgetauscht. Die interne ProseMirror-Struktur ist ausschließlich flüchtiger Editorzustand und wird weder gespeichert noch transportiert.
+- Die Blazor-Grenze besteht aus genau einem featurelokalen, dynamisch importierten `ContentEditor.razor.js`: `mount` erhält Markdown sowie Change-/Focus-Callbacks; `readMarkdown`, `focus` und `dispose` sind die einzigen weiteren Aufrufe. Vor erneutem `mount` bei Nodewechsel oder Reconnect wird `dispose` ausgeführt.
+- `mount`, `readMarkdown`, `focus` und `dispose` bleiben dünnes Interop ohne eigene Verzweigungs-, Transformations-, Retry- oder Lifecyclelogik. Entsteht solche eigene Logik später tatsächlich, ist vor ihrer Aufnahme Vitest mit Version, Ablage und FastTest-Integration festzulegen; bis dahin gibt es keine separate JS-Testtoolchain.
+- Der verbindliche Golden Master umfasst Absätze, fett/kursiv/durchgestrichen, erlaubte Links, geordnete/ungeordnete/verschachtelte Listen, Tabellen, Inline-Code, Fenced Code mit Sprachkennung, Blockquotes und Unicode. Jeder zulässige Master muss fünf aufeinanderfolgende `Markdown -> Editor -> Markdown`-Zyklen Markdig-semantisch äquivalent überstehen.
+- Bekannte Sicherheitsfälle bleiben unverändert prüfbar: Raw HTML und Markdown-/HTML-Headings werden nicht still entfernt, sondern an der maßgeblichen Servergrenze abgelehnt; externe Bilder lösen keinen Request aus; Paste-Reduktionen erzeugen einen sichtbaren `role=status`-Hinweis; eine Serverablehnung überschreibt nie den ungespeicherten Editorwert.
+- Die spätere M8-Integration darf über den vorhandenen Hook ausschließlich eine bereits serverseitig erzeugte interne Assetreferenz einsetzen. Sie aktiviert keine externen Bild-URLs und keinen direkten Browserupload aus Milkdown heraus.
 
 ## Sichere Markdown-, Link- und Paste-Policy
 
@@ -19,15 +24,15 @@ Die Policy gilt einheitlich für MCP- und Web-Schreibvorgänge, Editor, Browserd
 
 ### Raw HTML
 
-- Raw HTML außerhalb von Inline- und Fenced-Code ist kein zulässiger `ContentMd` und wird serverseitig als harter Fehler abgelehnt. Es wird weder still entfernt noch lediglich im Browser versteckt.
+- Raw HTML außerhalb von Inline- und Fenced-Code ist kein zulässiger `ContentMd` und wird serverseitig mit `RawHtmlNotAllowed` als harter Fehler abgelehnt. Es wird weder still entfernt noch lediglich im Browser versteckt.
 - HTML innerhalb eines Codebereichs bleibt normaler, nicht ausgeführter Beispieltext.
 - Browser- und PDF-Renderer führen Raw HTML auch als zusätzliche Abwehr nicht aus. Content wird nie ungeprüft als `MarkupString`, DOM-HTML oder Template-HTML übernommen.
 - Bei einer Ablehnung bleibt der vollständige ungespeicherte Editorinhalt erhalten und der konkrete Befund sichtbar.
 
 ### Links und Bilder
 
-- Zulässig sind `https`-, `mailto`-, Fragment-, root-relative und normale pfadrelative Links. Netzwerkpfade mit `//` sowie `http`, `javascript`, `data`, `file`, UNC-Pfade und alle nicht ausdrücklich erlaubten Schemas werden serverseitig abgelehnt.
-- Externe Markdown- und HTML-Bildquellen werden weder gespeichert noch geladen. Bis M8 gibt es keinen Content-Bildpfad; ab M8 sind ausschließlich die kontrollierten internen Assetreferenzen zulässig.
+- Zulässig sind `https`-, `mailto`-, Fragment-, root-relative und normale pfadrelative Links. Netzwerkpfade mit `//` sowie `http`, `javascript`, `data`, `file`, UNC-Pfade und alle nicht ausdrücklich erlaubten Schemas werden serverseitig mit `LinkTargetNotAllowed` abgelehnt.
+- Externe Markdown- und HTML-Bildquellen werden mit `ExternalImageNotAllowed` abgelehnt und weder gespeichert noch geladen. Bis M8 gibt es keinen Content-Bildpfad; ab M8 sind ausschließlich die kontrollierten internen Assetreferenzen zulässig.
 - Renderer dürfen keine externen oder lokalen Ressourcen nachladen. Externe Links erhalten beim Rendern eine sichere Browserbehandlung ohne Zugriff des Zielkontexts auf die Ursprungsseite.
 
 ### Einfügen aus der Zwischenablage

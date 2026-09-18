@@ -57,14 +57,15 @@ tests/
 | `KnowHowToAI.Server` | Composition Root, Konfiguration, HTTP-Host, MCP-, Blazor-, PDF- und Browser-Endpunkt-Adapter |
 | `KnowHowToAI.Core.Tests` | schnelle Domain- und Application-Tests |
 | `KnowHowToAI.IntegrationTests` | SQL-, Host-, MCP-, PDF-Prozess- und HTTP-Grenztests |
-| `KnowHowToAI.Web.Tests` | schnelle Razor-Komponenten-, Web-Mapping- und Circuit-State-Tests |
-| `KnowHowToAI.BrowserTests` | vollständige Browserabläufe gegen einen real gestarteten Server |
+| `KnowHowToAI.Web.Tests` | schnelle Razor-Komponenten-, Web-Mapping- und Circuit-State-Tests mit bUnit `2.11.3` und xUnit v3 `3.2.2` |
+| `KnowHowToAI.BrowserTests` | vollständige Browserabläufe mit Microsoft.Playwright .NET `1.62.0` gegen einen real gestarteten Server und Google Chrome Stable `152.0.7977.83` |
 
 Neue Testprojekte werden in `KnowHowToAI.slnx`, die zentralen Testskripte und `Directory.Packages.props` aufgenommen. `KnowHowToAI.Web.Tests` läuft im FastTest-Gate; `KnowHowToAI.BrowserTests` läuft im Integrationstest-Gate.
 
 - `KnowHowToAI.Web.Tests` referenziert `KnowHowToAI.Server` und `KnowHowToAI.Core`.
 - `KnowHowToAI.BrowserTests` behandelt den gebauten Server als Black Box und referenziert kein Produktionsprojekt; der Testhost startet die veröffentlichte Server-EXE mit expliziten Environment-/Kommandozeilen-Overrides, nicht mit einer zweiten produktiven Appsettings-Datei.
 - `KnowHowToAI.IntegrationTests` behält seine bestehenden Referenzen auf Server, Core und SQL-Storage.
+- Die Testversionen aus M0 sind feste Ausgangsversionen für M1–M8. Ein Versionssprung ist kein Implementierungsdetail eines Featuretasks, sondern benötigt einen belegten Inkompatibilitätsgrund, erneute Fixture-Abnahme und aktualisiertes Lizenzinventar.
 
 ## `KnowHowToAI.Core`
 
@@ -226,7 +227,7 @@ KnowHowToAI.Server/
 | Feature | Route | Routable Page | Featurelokale Hauptkomponenten |
 |---|---|---|---|
 | Dashboard | `/` | `DashboardPage.razor` | `SnapshotSummary`, `OpenTransactionList`, `QualitySummary`, `RecentChanges` |
-| Wissen | `/knowledge`, `/knowledge/{NodeId:guid}` | `KnowledgePage.razor` | `KnowledgeTree`, `Breadcrumbs`, `NodeDetails`, `RoleContentView` |
+| Wissen | `/knowledge`, `/knowledge/{NodeId:guid}` | `KnowledgePage.razor` | nativer `KnowledgeTree`, `Breadcrumbs`, `NodeDetails`, `RoleContentView` |
 | Suche | `/search` | `SearchPage.razor` | `SearchForm`, `SearchResults`, `KnowledgeFilter` |
 | Historie | `/history` | `HistoryPage.razor` | `SnapshotList`, `ReleaseList`, `SnapshotDiff`, `CreateReleaseDialog` |
 | Transactions | `/transactions`, `/transactions/{TransactionId:guid}` | `TransactionsPage.razor`, `TransactionPage.razor` | `TransactionHeader`, `TransactionValidation`, `TransactionDiff`, `CommitDialog` |
@@ -241,6 +242,8 @@ Regeln:
 - Featurelokale ViewModels und Mapper bleiben im Featureordner. Unterordner `Components`, `Mapping` oder `Models` werden erst angelegt, wenn mindestens drei Dateien derselben Art vorhanden sind.
 - Gemeinsam verwendet bedeutet Nutzung durch mindestens zwei Features. Erst dann wird ein rein darstellender Baustein nach `Web/Components/Shared` verschoben.
 - `ContentEditor` bleibt Bestandteil der Knowledge-Seite; es entsteht keine zweite, konkurrierende Node-Editor-Seite.
+- `KnowledgeTree` verwendet keine Fremdkomponente. Paging, Cachegrenze, Semantik und Move-Positionen sind im [Bedienkonzept](02-bedienkonzept-und-ui.md#wissensbaum) verbindlich festgelegt.
+- `ContentEditor` bindet ausschließlich Milkdown `@milkdown/crepe` `7.22.1` über `ContentEditor.razor.js` ein. Die konkrete lokale npm-/Bundle-Erzeugung und deren feste Werkzeugversion werden vor M5-Produktivcode im manuellen M5.0-Gate festgelegt; die M0-Vite-Fixture ist ausdrücklich keine Vorentscheidung.
 
 ## URL- und Arbeitskontext
 
@@ -319,7 +322,7 @@ Die Pfade werden relativ zum Content Root aufgelöst, sofern sie nicht absolut s
 
 - Routable Pages und zustandsbehaftete Featurekomponenten verwenden immer `.razor` plus `.razor.cs`. Rein präsentative Komponenten ohne C#-Logik bleiben in einer `.razor`-Datei.
 - Feature-CSS ist scoped. `wwwroot/css/app.css` enthält nur Reset, globale Tokens und frameworkweite Basisklassen.
-- JavaScript ist nur für fehlende Browser-/Komponentenfunktionen zulässig und wird per JS-Isolation featurelokal gehalten.
+- JavaScript ist nur für fehlende Browser-/Komponentenfunktionen zulässig und wird per JS-Isolation featurelokal gehalten. Der native Dialogwrapper und `ContentEditor.razor.js` bleiben dünne Interopgrenzen ohne eigene Zustandsmaschine.
 - Konkrete C#-Klassen sind `sealed`, Namespaces file-scoped und asynchrone IO-Grenzen führen `CancellationToken` weiter.
 - Ein Produktions-`.cs` enthält grundsätzlich einen öffentlichen oder internen Top-Level-Typ. Kleine private Hilfstypen bleiben in der konsumierenden Klasse.
 - Verbotene Namen: `Helper`, `Utils`, `CommonService`, `Manager`, `BaseService`, `Models` als globaler Sammelnamespace.
@@ -352,13 +355,28 @@ tests/KnowHowToAI.BrowserTests/
 └─ TestSupport/
 ```
 
-- `Web.Tests` spiegelt die Produktionsfeaturegrenzen. Component-Tests prüfen Rendering und Interaktion; fachliche Varianten verbleiben in `Core.Tests`.
-- `BrowserTests` enthält nur vollständige Benutzerabläufe. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Alle regulären Läufe verwenden die aktuelle stabile Google-Chrome-Desktopversion headless; Agenten starten kein sichtbares Browserfenster und keine zusätzliche Browsermatrix.
-- Nichttriviale eigene JavaScript-Logik benötigt schnelle JS-Unit-Tests. M0.3-T4 legt Werkzeug, Ablage und Skriptintegration fest; ohne eigenständige JS-Logik wird keine separate JS-Testtoolchain angelegt.
+- `Web.Tests` spiegelt die Produktionsfeaturegrenzen. Component-Tests verwenden bUnit `2.11.3` mit xUnit v3 `3.2.2`, prüfen Rendering und Interaktion und mocken dünnes JS-Interop; fachliche Varianten verbleiben in `Core.Tests`.
+- `BrowserTests` enthält nur vollständige Benutzerabläufe und verwendet Microsoft.Playwright .NET `1.62.0`. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Jeder reguläre Lauf startet ausschließlich Google Chrome Stable `152.0.7977.83` mit `Channel = "chrome"` und `Headless = true`; fehlendes oder abweichendes Chrome ist ein klarer Preflight-Fehler. Es gibt keinen Chromium-Fallback, keinen sichtbaren Browserstart und keine weitere Browsermatrix.
+- Der Browser-Testhost startet die Release-DLL aus einem frisch erzeugten `dotnet publish`-Verzeichnis und verwendet dieses als Content Root. Readiness, Circuitzustand und Interaktionen werden ausschließlich über beobachtbare Zustände und Playwright-Web-first-Assertions abgewartet; feste Sleeps sind verboten. Der Host wird auch bei Testfehlern beendet und der gebundene Port freigegeben.
+- Locator-Priorität ist Rolle, Label und danach stabile Test-ID. Screenshots werden erst nach semantischen und Verhaltensassertionen erzeugt; volatile Inhalte werden stabil maskiert und Baselines nie im regulären Lauf automatisch überschrieben.
+- Vitest ist im aktuellen Zielstand nicht erforderlich und es wird kein `package.json` allein für JS-Tests angelegt. Erst wenn eigener JavaScript-/TypeScript-Code Zustand mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik verwaltet, muss der einführende Task vor dem Code Vitest-Version, Testablage und FastTest-Befehl in diesem Dokument ergänzen. Dünne `mount`-/`readMarkdown`-/`focus`-/`dispose`- und Dialogaufrufe lösen diese Pflicht nicht aus.
 - Host-/Routing-/MCP-Tests bleiben in `KnowHowToAI.IntegrationTests/Server`.
 - SQL- und Assetmetadaten-Tests bleiben in `KnowHowToAI.IntegrationTests/SqlServer`.
 - PDF-Prozessgrenztests liegen in `KnowHowToAI.IntegrationTests/Server/Pdf`; reine PDF-Orchestrierungstests liegen in `Core.Tests/Application/Retrieval/Export`.
 - Testdateien spiegeln den Namen des geprüften Typs oder Verhaltens und enden mit `Tests`.
+
+### Feste Testabhängigkeiten und Befehle
+
+| Einsatz | Abhängigkeit/Runtime | Version und Regel |
+|---|---|---|
+| Razor-Komponenten | `bunit` | `2.11.3`, nur `KnowHowToAI.Web.Tests` |
+| Testframework | `xunit.v3` | `3.2.2`; vorhandener `xunit.runner.visualstudio` bleibt `3.1.5` |
+| Browsersteuerung | `Microsoft.Playwright` | `1.62.0`, nur `KnowHowToAI.BrowserTests` |
+| Browser | Google Chrome Stable | `152.0.7977.83`, `Channel = "chrome"`, ausschließlich headless |
+
+Die Projekte werden über `pwsh -NoProfile -File scripts/test-fast.ps1` beziehungsweise `pwsh -NoProfile -File scripts/test-integration.ps1` ausgeführt. Für gezielte lokale Nachweise sind zusätzlich `dotnet test tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj` und `dotnet test tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj` zulässig. BrowserTests installieren keinen Playwright-Chromium-Browser. Die Chrome-Version wird vor dem Lauf über den Windows-Uninstall-Eintrag geprüft; eine nichtinteraktive Bereitstellung darf `winget install --id Google.Chrome --exact --silent --accept-package-agreements --accept-source-agreements` verwenden, muss danach aber exakt die geforderte Version nachweisen.
+
+Die ignorierten M0-Fixtures unter `temp/webfrontend-spikes/` dienen ausschließlich als Nachweisreferenz. Produktions- oder Testcode wird nicht daraus kopiert; der jeweilige Umsetzungstask implementiert gegen die hier festgelegten Verträge und übernimmt nur verifizierte Golden-Master-Daten, soweit deren Lizenz und Herkunft dies erlauben.
 
 ## Änderungsregel für Agenten
 

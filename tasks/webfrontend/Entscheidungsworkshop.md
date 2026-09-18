@@ -2,7 +2,7 @@
 
 Stand: 2026-09-18
 
-Status: Planung M0–M2 abgeschlossen und zur Agentenausführung freigegeben. Der Workshop wird vor M3 im manuellen M3.0-Gate fortgesetzt.
+Status: M0 abgeschlossen; M1–M2 zur Agentenausführung freigegeben. Der Workshop wird vor M3 im manuellen M3.0-Gate fortgesetzt.
 
 ## Verbindlichkeit
 
@@ -16,15 +16,15 @@ Status: Planung M0–M2 abgeschlossen und zur Agentenausführung freigegeben. De
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Für Umsetzung den ersten offenen Leaf-Task ab M0.1-T1 gemäß Roadmap bearbeiten; technische Spikeentscheidungen O-001/O-003/O-002/O-015 fallen ausschließlich in M0.3.
+3. Für Umsetzung den ersten offenen Leaf-Task M1.1-T1 gemäß Roadmap bearbeiten. Die technischen Spikeentscheidungen O-001/O-003/O-002/O-015 sind geschlossen und werden nicht erneut aufgerollt.
 4. Nach abgeschlossenem M2 hier stoppen und gemeinsam das manuelle M3.0-Gate durchführen; M3+-Leaf-Tasks vorher nicht implementieren.
 5. Neue Gesprächsentscheidungen sofort im fachlich zuständigen Konzept dokumentieren und atomar committen.
 
 Nächster Arbeitsschritt:
 
-> M0 ab M0.1-T1, danach M1 und M2 in dokumentierter Reihenfolge umsetzen. Nach M2 keine M3-Aufgabe beginnen, sondern zum manuellen M3.0-Planungs- und Konzept-Gate zurückkehren.
+> M1 ab M1.1-T1 und danach M2 in dokumentierter Reihenfolge umsetzen. Nach M2 keine M3-Aufgabe beginnen, sondern zum manuellen M3.0-Planungs- und Konzept-Gate zurückkehren.
 
-## Entscheidungsreihenfolge für M0–M2
+## Abgeschlossene Entscheidungsreihenfolge für M0–M2
 
 | Block | IDs | Ziel |
 |---|---|---|
@@ -34,7 +34,11 @@ Nächster Arbeitsschritt:
 
 Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M3 bearbeitet und nicht jetzt vorsorglich entschieden.
 
-## Technische Vorbewertung vom 2026-09-17
+Verbindliche M0-Ergebnisse: keine allgemeine UI-Bibliothek; nativer Knowledge Tree mit opakem serverseitigem 100er-Paging und höchstens zehn gleichzeitig gehaltenen Seiten; Milkdown `@milkdown/crepe` `7.22.1`; bUnit `2.11.3` mit xUnit v3 `3.2.2`; Microsoft.Playwright .NET `1.62.0` ausschließlich headless mit `Channel = "chrome"` gegen Chrome Stable `152.0.7977.83`; kein Vitest ohne tatsächlich eigene zustandsbehaftete JS-/TS-Logik. Details stehen in den fachlich zuständigen Konzepten und in [M0](roadmap/00-komponenten-und-architektur.md).
+
+## Historische technische Vorbewertung vom 2026-09-17
+
+Die folgenden Abschnitte erklären die damalige Kandidatenmenge, sind aber keine offenen Auswahlaufträge. Die verbindlichen Ergebnisse stehen im vorstehenden Absatz und in den Konzeptdokumenten.
 
 ### UI-Komponentenbasis – O-001
 
@@ -179,6 +183,7 @@ Quellen:
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
 | O-010 | Markdown-Quellmodus | aufnehmen; kontrollierter Wechsel, gleiche Validierung und Dirty-State | gibt Experten Zugriff auf das kanonische Format |
+| O-029 | Milkdown-Buildtoolchain | im M5.0-Gate genau eine lokal reproduzierbare Toolchain mit festen Versionen, Lockfile, Restore-/Buildbefehl, Outputpfad und CI-/Lizenzintegration wählen; die M0-Vite-Fixture nicht automatisch übernehmen | macht die gewählte Editorversion selbst gehostet und reproduzierbar, ohne eine unentschiedene Spike-Toolchain zum Produktvertrag zu erheben |
 | O-011 | PDF-Basislayout | A4, kein Deckblatt, Inhaltsverzeichnis ab zwei Ebenen, Logo im Header, Seitenzahl im Footer | hält ersten Export klein und brauchbar |
 | O-004 | Assetspeicher | im M8-Spike SQL-Metadaten plus getrennten immutable Binärspeicher gegen SQL-Varbinary bewerten; Backup/Mehrinstanzbetrieb mitentscheiden | keine vorzeitige Speicherfestlegung |
 | O-016 | Assetgrenzen | zunächst PNG/JPEG/WebP, 10 MiB, 40 MP; SVG aus Sicherheitsgründen nicht im ersten Stand | reduziert Sanitization- und Active-Content-Risiko |
@@ -192,13 +197,9 @@ Quellen:
 
 ## Noch zu recherchieren oder im Spike zu beweisen
 
-- Lizenzinventar aller direkten und transitiven Abhängigkeiten jedes in die engere Wahl genommenen OSS-Kandidaten einschließlich einzuhaltender Copyright-/NOTICE-Pflichten.
-- Native Blazor-/HTML-/CSS-Basis versus gegebenenfalls Fluent UI oder MudBlazor mit realem Interactive-Server-Prototyp, Theme, Accessibility und messbarem Abhängigkeitsgewicht.
-- Tree-Paging mit 1.000 Geschwistern und 100.000 Gesamt-Nodes; keine Scheindemonstration mit vollständig geladenem In-Memory-Baum.
-- Milkdown-Roundtrip gegen den tatsächlich erlaubten Markdownumfang und Blazor-JS-Lifecycle.
-- Paste-Sanitization und Raw-HTML-Verhalten nach O-020.
 - Produktive Zielumgebung, SQL-Edition, vorhandener Proxy, Zertifikatsprozess, Backupplattform und Betriebsverantwortung.
 - Reale Größenordnung von Nutzern, Wissensbestand, Änderungsrate und Wiederherstellungsanforderung zur Kalibrierung von O-017/O-023.
+- Lokale npm-/Bundle-Erzeugung für die produktive Milkdown-Integration einschließlich fester Werkzeugversionen; Entscheidung im manuellen M5.0-Gate, nicht durch Wiederholung der Editorauswahl.
 
 ## Bereits verbindlich und nicht erneut zu diskutieren
 
@@ -223,5 +224,12 @@ Quellen:
 | `f574c1a` | Agentenregeln auf Web-/HTTP-Ziel vorbereitet |
 | `bd7c09e` | Agentenregeln tokenarm verdichtet |
 | `f590981` | 360°-Audit: fehlende Produkt-, Sicherheits- und Betriebsentscheidungen ergänzt |
+| `940392f` | Build-, Test- und Linter-Baseline nachgewiesen |
+| `b52a250`, `a34c90c` | Abhängigkeiten inventarisiert und Lizenzbaseline geschlossen |
+| `fea000f`, `a0d540f` | gemeinsamen Blazor-/MCP-Kestrel-Origin und Routingmatrix validiert |
+| `a044ab3` | native UI-Basis ohne allgemeine Komponentenbibliothek entschieden |
+| `02a3e21` | nativen cursorpaginierten Knowledge Tree entschieden |
+| `90ffc37` | Milkdown `@milkdown/crepe` `7.22.1` entschieden |
+| `077da52` | bUnit-/Playwright-Testwerkzeuge und Vitest-Grenze entschieden |
 
-Diese Commits sind bereits abgeschlossen und werden nicht erneut umgesetzt. Der nächste Workshop-Schritt verändert ausschließlich Entscheidungen, die der Benutzer ausdrücklich beantwortet.
+Diese Commits sind abgeschlossen und werden nicht erneut umgesetzt. Der nächste Workshop-Schritt verändert ausschließlich Entscheidungen, die der Benutzer ausdrücklich beantwortet oder für deren Entscheidung er den Agenten ausdrücklich beauftragt.

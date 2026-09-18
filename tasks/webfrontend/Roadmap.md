@@ -30,13 +30,13 @@ Milestone Mx
 - Erst wenn das jeweilige `Mx.0`-Gate abgeschlossen und committed ist, sind die nachfolgenden Leaf-Tasks dieses Milestones zur Agentenausführung freigegeben.
 - Entscheidungen werden nicht vorsorglich für spätere Milestones erzwungen. Sie werden im zuständigen `Mx.0`-Gate mit dem dann bekannten Ist-Stand getroffen.
 
-### Freigabeziel für M0 bis M2
+### Freigabestand für M0 bis M2
 
-Alle aktuell bekannten Benutzerentscheidungen für M0 bis M2 sind geschlossen. Weitere Benutzerentscheidungen ab M3 werden ausdrücklich nicht vorgezogen.
+Alle Benutzer- und Spikeentscheidungen für M0 bis M2 sind geschlossen. Weitere Benutzerentscheidungen ab M3 werden ausdrücklich nicht vorgezogen.
 
-Die technischen Entscheidungen O-001, O-003, O-002 und O-015 werden nicht vorweggenommen. Sie sind die ausdrücklichen, evidenzbasierten Ergebnisse der M0.3-Spikes. Die zugehörigen M0-Tasks müssen dafür eine feste Kandidatenmenge, Prüfschritte, Ergebnisartefakte und eindeutige Abnahmeregeln vorgeben.
+M0 ist abgeschlossen. Die evidenzbasierten Ergebnisse O-001, O-003, O-002 und O-015 sind als K-021 bis K-025 im [Konzeptindex](README.md#gesetzte-leitentscheidungen) festgehalten und für alle Folge-Milestones verbindlich. Allgemeine UI-Basis, Tree, Editor und Testwerkzeuge werden nicht erneut gesucht oder zwischen Varianten entschieden.
 
-Freigabestand 2026-09-18: Die 23 Leaf-Tasks von M0 bis einschließlich M2 sind auf feste Reihenfolge, Scope, Ergebnisort, Tests, Abnahme und klare Nicht-Ziele geprüft und zur Agentenausführung freigegeben. Ausführung beginnt mit M0.1-T1. M3 bleibt unabhängig davon bis zum manuellen Abschluss von M3.0 gesperrt.
+Freigabestand 2026-09-18: M0 ist mit neun dokumentierten Nachweis-Commits abgeschlossen. Die verbleibenden 15 Leaf-Tasks von M1 und M2 sind auf feste Reihenfolge, Scope, Ergebnisort, Tests, Abnahme und klare Nicht-Ziele geprüft und zur Agentenausführung freigegeben. Ausführung beginnt mit M1.1-T1. M3 bleibt unabhängig davon bis zum manuellen Abschluss von M3.0 gesperrt.
 
 ## Gesamtausführung durch einen Agenten
 

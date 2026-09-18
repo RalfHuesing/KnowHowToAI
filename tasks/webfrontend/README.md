@@ -69,5 +69,11 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-018 | Content erlaubt kein ausführbares Raw HTML und keine fremden Bildquellen; Links, Paste, Browserdarstellung und PDF folgen einer zentralen sicheren Markdown-Policy |
 | K-019 | Im PoC gibt es keinen verbindlichen externen MCP-Zielclient; M1 wird automatisiert über den offiziellen SDK-Client abgenommen, Hermes bleibt ein optionaler Eval-Smoke |
 | K-020 | M2 verwendet den Namen „KnowHowToAI“ als reine Textwortmarke ohne Logo-Dummy, ein neutrales Blau und Systemschriften; die UI ist zunächst ausschließlich deutsch ohne Lokalisierungsinfrastruktur |
+| K-021 | Allgemeine UI-Basis ist ausschließlich natives Blazor, semantisches HTML und eigenes CSS; Fluent UI, MudBlazor oder eine andere allgemeine Komponentenbibliothek werden in M1–M8 nicht erneut bewertet oder eingeführt |
+| K-022 | Der Knowledge Tree wird nativ umgesetzt: serverseitiges Cursor-Paging mit exakt 100 Einträgen pro Seite, höchstens zehn gleichzeitig gehaltene Seiten und kein vorgeladener Gesamtbaum; Radzen ist mangels öffentlicher Tree-Virtualisierungs-/Cursor-Paging-API ausgeschlossen |
+| K-023 | Rich-Text-Editor ist Milkdown `@milkdown/crepe` `7.22.1`; Tiptap ist trotz bestandener Technikprüfung wegen der Beta-Markdown-Erweiterung ausgeschlossen |
+| K-024 | Razor-Komponententests verwenden bUnit `2.11.3` mit xUnit v3 `3.2.2`; Browser-E2E verwendet Microsoft.Playwright .NET `1.62.0` ausschließlich headless mit `Channel = "chrome"` gegen Google Chrome Stable `152.0.7977.83` |
+| K-025 | Vitest und eine separate JavaScript-Testtoolchain werden nicht vorsorglich eingeführt; sie werden erst bei eigener zustandsbehafteter JavaScript-/TypeScript-Logik mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik erforderlich |
+| K-026 | Die ignorierten Verzeichnisse unter `temp/webfrontend-spikes/` bleiben uncommittete Referenz-Fixtures; sie sind weder Produktionscode noch kopierbare Implementierungsvorlagen oder dauerhafte Testprojekte |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

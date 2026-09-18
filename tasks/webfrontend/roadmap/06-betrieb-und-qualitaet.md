@@ -6,6 +6,8 @@
 
 Abhängigkeit: [M1](01-webhost-und-mcp-http.md) bis [M5](05-rollen-content-und-rich-text.md)
 
+Verbindliche M0-Basis: gemeinsamer Kestrel-Origin und stateless `/mcp` werden gehärtet, nicht neu entworfen. Tree-Messungen beziehen sich auf natives 100er-Cursor-Paging mit höchstens zehn Circuit-Seiten; Radzen/alternative Trees und eine allgemeine UI-Bibliothek bleiben ausgeschlossen. Browser-E2E bleibt auf Playwright .NET `1.62.0` mit Chrome `152.0.7977.83`, `Channel = "chrome"`, `Headless = true` festgelegt.
+
 Ziel: Das Kernfrontend ist unter realistischen Daten-, Parallelitäts- und Intranetbedingungen reproduzierbar betreibbar.
 
 Referenzen: [Betriebsabnahme](../konzept/06-betrieb-sicherheit-und-risiken.md#betriebsabnahme), [Risiken](../konzept/06-betrieb-sicherheit-und-risiken.md#risiken-und-gegenmaßnahmen)
@@ -56,10 +58,10 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
   - [ ] **M6.3-T1 – Tiefe und breite Wissensbäume messen und optimieren**
     - Voraussetzung: O-017 definiert Referenzdatenmenge und messbare Zielwerte.
-    - Umfang: realistische Datenprofile, Tree-Lazy-Loading, Paging, Virtualisierung, Breadcrumbs und Nodewechsel.
+    - Umfang: realistische Datenprofile, natives Tree-Lazy-Loading, opakes 100er-Paging, Zehn-Seiten-LRU, Neuzentrierung, Breadcrumbs und Nodewechsel. Viewport-Virtualisierung ist keine bereits vorhandene Eigenschaft; sie darf nur bei einem im Task belegten Zielverstoß als eigener dokumentierter Umsetzungsslice ergänzt werden.
     - Messen: Serverlatenz, SQL-Aufwand, übertragene Daten, Renderzeit und Speicher pro Circuit.
     - Regel: Grenzwerte vor der Optimierung festlegen; keine rein synthetische Mikrooptimierung.
-    - Abnahme: die in O-017 festgelegten Interaktionszeiten sind belegt; bis dahin bleibt der Task offen.
+    - Abnahme: die in O-017 festgelegten Interaktionszeiten sind für 1, 10 und 11 geladene Seiten, mehr als 1.000 Geschwister und die festgelegte Referenztiefe belegt; der Circuit hält nie mehr als zehn Tree-Seiten. Bis O-017 geschlossen ist, bleibt der Task offen.
 
   - [ ] **M6.3-T2 – Search, Diff und große Inhalte messen und optimieren**
     - Voraussetzung: O-017 definiert Referenzdatenmenge und messbare Zielwerte.
@@ -71,11 +73,11 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M6.4 abschließen**
 
-  - [ ] **M6.4-T1 – Reverse-Proxy-Betrieb abnehmen**
+  - [ ] **M6.4-T1 – Entschiedene Deploymentkette abnehmen**
     - Voraussetzung: O-012 zur Zieldeploymenttopologie ist durch den Benutzer entschieden.
-    - Umfang: vorgesehener Proxy mit Blazor-WebSockets, Reconnect, MCP Streamable HTTP und Download.
-    - Prüfen: Forwarded Headers, Host, TLS-Terminierung, Body-/Timeoutlimits und Streamingpuffer.
-    - Abnahme: reale Deploymentkette besteht definierte Browser- und MCP-Smokes.
+    - Umfang: die in O-012 festgelegte reale Kette mit Blazor-WebSockets, Reconnect, MCP Streamable HTTP und Download. Entscheidet O-012 direkten Kestrel-Betrieb, wird kein Proxy eingeführt; entscheidet O-012 einen Proxy, wird ausschließlich das konkret benannte Produkt konfiguriert und geprüft.
+    - Prüfen: immer Host, Scheme, Port, TLS-Terminierung und Netzwerkpfad; bei einem Proxy zusätzlich Forwarded Headers, WebSocket-Upgrade, Body-/Timeoutlimits und Streamingpuffer.
+    - Abnahme: die konkret entschiedene Deploymentkette besteht definierte Browser- und MCP-Smokes; es existiert keine ungenutzte Proxykonfiguration oder zweite Portarchitektur.
 
   - [ ] **M6.4-T2 – Netzwerk- und Hostkonfiguration härten**
     - Voraussetzung: O-022 zur produktiven Secretquelle und O-024 zur Betriebsbeobachtung sind durch den Benutzer entschieden.

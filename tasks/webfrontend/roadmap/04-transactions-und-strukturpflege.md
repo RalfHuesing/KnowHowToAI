@@ -6,6 +6,8 @@
 
 Abhängigkeit: [M3](03-read-only-wissenscockpit.md)
 
+Verbindliche M0-Basis: Strukturpflege erweitert denselben nativen, 100er-cursorpaginierten Knowledge Tree aus M3. Es wird keine Tree-Komponente gesucht oder ersetzt. `Parent`, `Before` und `After` sind die einzigen Move-Zielpositionen und müssen per Drag-and-drop sowie über fokussierbare Aktionsbuttons denselben Mutationseinstieg verwenden. Komponenten- und Browsernachweise bleiben bei bUnit `2.11.3`/xUnit v3 `3.2.2` beziehungsweise Microsoft.Playwright .NET `1.62.0` mit Chrome Stable `152.0.7977.83`, `Channel = "chrome"`, `Headless = true`.
+
 Ziel: Benutzer können Working Transactions sicher führen und die Node-Struktur visuell ändern.
 
 Referenzen: [Transaction-Arbeitsbereich](../konzept/02-bedienkonzept-und-ui.md#transaction-arbeitsbereich), [Wissensbaum](../konzept/02-bedienkonzept-und-ui.md#wissensbaum), [DI-Grenzen](../konzept/05-architektur-api-und-mcp.md#di--und-zustandsgrenzen)
@@ -17,7 +19,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M4.0 abschließen**
   - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M3; kein delegierbarer Implementierungs-Leaf-Task.
   - Entscheiden: Transaction-Actor (O-007), Zusammenarbeit mehrerer Clients (O-025), Lebensdauer offener Transactions (O-026), Undo-Grenzen (O-027) und konkrete Sicherheitsdialoge für Strukturmutationen.
-  - Prüfen: reale Lese-UX aus M3, bestehende Mutationsverträge, `ChangeVersion`, Konfliktverhalten und Tree-Komponentengrenzen gegen die bisherigen Entwurfstasks.
+  - Prüfen: reale Lese-UX aus M3, bestehende Mutationsverträge, `ChangeVersion`, Konfliktverhalten sowie Paging-/Cachegrenzen des nativen Trees gegen die bisherigen Entwurfstasks. Tree-Variante und Paginggröße sind keine offenen Entscheidungen.
   - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M4-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
   - Gate: M4.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
 
@@ -84,11 +86,11 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
   - [ ] **M4.3-T3 – Nodes per Drag-and-drop verschieben und sortieren**
     - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction und O-027 zum Undo-Umfang sind durch den Benutzer entschieden.
-    - Umfang: Move/Reorder im Tree mit Zielvorschau, Einfügeposition und anschließender Working-Tree-Aktualisierung.
+    - Umfang: Move/Reorder im nativen Tree mit den Zielpositionen `Parent`, `Before` und `After`, sichtbarer Zielvorschau und anschließender Working-Tree-Aktualisierung. Native HTML-Drag-Ereignisse und die drei fokussierbaren Aktionsbuttons rufen denselben UI-Movevertrag auf.
     - Regeln: UI optimiert nur die Interaktion; serverseitige Hierarchievalidierung entscheidet.
-    - Prüfen: Zyklus, ungültiges Ziel, Root, Paging-Grenze, gleiches Ziel und Tastaturalternative.
-    - Tests: Komponenten-, Application- und Browserfälle.
-    - Abnahme: komplexe Strukturänderungen sind präzise und nachvollziehbar möglich.
+    - Prüfen: Zyklus, ungültiges Ziel, Root, Source/Target auf verschiedenen 100er-Seiten, Cache-Eviction während der Auswahl, gleiches Ziel und vollständige Tastaturalternative.
+    - Tests: bUnit-Komponentenfälle für alle drei Zielpositionen und Serverablehnung; Application-Tests für fachliche Varianten; je ein headless Playwright-Ablauf per Drag-and-drop und Aktionsbuttons. Beide Wege müssen identische Mutationseingaben und dieselbe bestätigte Serveraktualisierung erzeugen.
+    - Abnahme: alle drei Zielpositionen sind per Maus und Tastatur präzise ausführbar; bei Ablehnung wird die betroffene Seite aus dem Serverzustand neu geladen und kein optimistischer Phantomzustand bleibt sichtbar.
 
 ## M4.4 – Konflikte
 

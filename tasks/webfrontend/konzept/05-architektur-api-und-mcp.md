@@ -62,7 +62,7 @@ Erst ein konkreter Automationsfall entscheidet, welche REST-Endpunkte benötigt 
 
 ## Ein Prozess und ein Port
 
-Empfehlung: eine EXE, ein Kestrel-Host, ein konfigurierter HTTP(S)-Port.
+Verbindliches, in M0 nachgewiesenes Ziel: eine EXE, ein Kestrel-Host und ein über die normale ASP.NET-Core-Hostkonfiguration gesetzter HTTP(S)-Port.
 
 ```text
 https://knowhowtoai.intern/
@@ -77,7 +77,8 @@ Leitplanken gegen reale Konflikte:
 - MCP immer explizit auf `/mcp` mappen; nicht auf die Root-Route.
 - Blazor-Komponenten und Fallbacks dürfen `/mcp`, `/assets` und reserviertes `/api` nicht verschlucken.
 - Statische Assets und Upload-/Download-Routen eindeutig trennen.
-- M0 bis M2 belegen den direkten gemeinsamen Kestrel-Origin. Eine Reverse-Proxy-Produktwahl, TLS-Terminierung und betriebliche Proxy-Timeouts werden nicht vorgezogen, sondern im manuellen M6.0-Gate mit der realen Deploymentumgebung entschieden.
+- M0 hat Blazor-Circuit, stateless MCP, parallele Requests, Streaming, Requestabbruch und dreifachen sauberen Start/Stop auf demselben direkten Kestrel-Origin automatisiert belegt. M1 übernimmt genau dieses Hostingmodell; ein zweiter Port oder Reverse Proxy ist keine Voraussetzung für M1 oder M2.
+- Eine Reverse-Proxy-Produktwahl, TLS-Terminierung und betriebliche Proxy-Timeouts werden nicht vorgezogen, sondern im manuellen M6.0-Gate mit der realen Deploymentumgebung entschieden.
 - Request-Limits, Timeouts und Response Compression werden erst mit einem konkreten Endpunkt- oder Betriebsbedarf ergänzt. Streaming und Cancellation des MCP-Endpunkts werden bereits in M0/M1 gegen Kestrel verifiziert.
 
 Eine spätere REST-API kann im selben Prozess und Port unter `/api/v1` ergänzt werden. Dafür ist weder eine zweite EXE noch ein zweiter Port erforderlich.
@@ -86,11 +87,11 @@ Eine spätere REST-API kann im selben Prozess und Port unter `/api/v1` ergänzt 
 
 Streamable HTTP ersetzt STDIO vollständig. Das transportneutrale Domain-/Application-Design bleibt beim Transportwechsel erhalten.
 
-Ziel für den zentralen Betrieb:
+Verbindlicher Integrationsvertrag für M1:
 
-- Offizielles `ModelContextProtocol.AspNetCore`-Paket.
+- Offizielles `ModelContextProtocol.AspNetCore` `2.2.0`; das Paket verwendet `ModelContextProtocol` und `ModelContextProtocol.Core` jeweils `2.2.0`.
 - Streamable HTTP auf `/mcp`.
-- Stateless Transport, weil `TransactionId`, `SnapshotId`, Cursor und Rolle fachlichen Zustand explizit adressieren.
+- `SessionMode = Stateless`; `EnableLegacySse` bleibt `false`.
 - Kein Transport-Sessionzustand als fachliche Quelle.
 - Bestehende Tool-Namen und Verträge werden beim Transportwechsel fachlich beibehalten.
 - Im PoC existiert kein verbindlicher externer MCP-Zielclient. Die Transportabnahme verwendet den offiziellen SDK-Client automatisiert gegen den real gestarteten HTTP-Host; Tool Discovery, repräsentative Reads/Writes, strukturierte Fehler, Streaming und der vollständige Transaction-Workflow bilden das Gate.
@@ -99,6 +100,17 @@ Ziel für den zentralen Betrieb:
 - Kein STDIO-Runner, Startmodus, Konfigurationsschlüssel, Paket, Deploymentpfad oder transportgebundener Test bleibt bestehen.
 - Kein Doppelbetrieb, Kompatibilitätsmodus oder STDIO-Fallback; Streamable HTTP ist anschließend der einzige unterstützte MCP-Transport.
 - Eine vorübergehende Koexistenz ist ausschließlich innerhalb der noch nicht abgeschlossenen Umstellung zulässig und wird nicht als Produktstand freigegeben.
+
+Die in M0 bestätigte Registrierungs- und Mappingreihenfolge ist:
+
+1. `AddRazorComponents().AddInteractiveServerComponents()` und Webdienste registrieren.
+2. `AddMcpServer().WithHttpTransport(...)` mit stateless Sessionmodus und vorhandener Tool-Discovery registrieren.
+3. Antiforgery sowie explizite `404`-Reservierungen für `/api` und `/api/{**reservedPath}` aktivieren.
+4. Nicht-MCP-Methoden auf `/mcp` außerhalb des MCP-Mappings mit `405` beantworten.
+5. Static Assets und Razor-Komponenten einschließlich der Blazor-Not-Found-Darstellung mappen.
+6. `MapMcp("/mcp")` so mappen, dass weder Razor-Fallback noch reserviertes `/api` die MCP-Route beantworten.
+
+Die Produktionsabnahme verwendet ausschließlich den offiziellen C#-SDK-Client mit `HttpClientTransport` und ausdrücklich `TransportMode = StreamableHttp`. Direkte Hand-JSON-Aufrufe sind kein Vertragsnachweis. Legacy-SSE (`/mcp/sse`), stateful Sessions, zusätzlicher Listener und Reverse Proxy bleiben ausgeschlossen.
 
 ## DI- und Zustandsgrenzen
 

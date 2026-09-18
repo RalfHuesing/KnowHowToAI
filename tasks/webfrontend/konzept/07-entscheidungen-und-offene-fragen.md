@@ -6,15 +6,12 @@ Gesprächsstand, Empfehlungen und Recherche: [Entscheidungsworkshop](../Entschei
 
 Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutzerentscheidung offen ist. Bei Spike-Entscheidungen ist der angegebene Task selbst für die Entscheidung und ihre Dokumentation zuständig. M3 und spätere Milestones werden erst in ihrem manuellen `Mx.0`-Gate entscheidungs- und ausführungsreif geschärft.
 
-Im aktuellen Planungshorizont M0–M2 ist keine Benutzerentscheidung mehr offen. O-001, O-003, O-002 und O-015 bleiben bis zur Ausführung der fest spezifizierten M0.3-Spikes in der Tabelle, sind aber keine Gesprächsblocker: Der jeweilige Spike entscheidet sie anhand seiner festen Kandidaten, Fixtures und Auswahlregeln. Der Konsistenz- und Agentenausführbarkeitscheck aller M0–M2-Leaf-Tasks wurde am 2026-09-18 abgeschlossen.
+Im aktuellen Planungshorizont M0–M2 ist keine Benutzerentscheidung mehr offen. O-001, O-003, O-002 und O-015 wurden durch M0 geschlossen; ihre Ergebnisse stehen in den fachlich zuständigen Konzepten und als K-021 bis K-025 im [Konzeptindex](../README.md#gesetzte-leitentscheidungen). Der Konsistenz- und Agentenausführbarkeitscheck der verbleibenden M1–M2-Leaf-Tasks wurde am 2026-09-18 nachgeführt.
 
-O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-022, O-023, O-024, O-011, O-004 und O-016 werden nicht in diesem Workshop vorentschieden. Sie verbleiben offen und werden im `Mx.0`-Gate ihres ersten betroffenen Milestones bearbeitet. O-005 und O-006 bleiben Entscheidungen außerhalb der aktuellen Roadmap.
+O-008, O-007, O-025, O-026, O-027, O-010, O-029, O-012, O-017, O-022, O-023, O-024, O-011, O-004 und O-016 werden nicht in diesem Workshop vorentschieden. Sie verbleiben offen und werden im `Mx.0`-Gate ihres ersten betroffenen Milestones bearbeitet. O-005 und O-006 bleiben Entscheidungen außerhalb der aktuellen Roadmap.
 
 | ID | Priorität | Klärung | Blockiert | Offene Frage und Startempfehlung |
 |---|---|---|---|---|
-| O-001 | Hoch | Spike | M0.3-T1 | UI-Komponentenbasis; native Blazor-/HTML-/CSS-Lösung gegen leichte MIT-distributionskompatible OSS-Bibliotheken bewerten; keine allgemeine Bibliothek ist ein zulässiges Ergebnis |
-| O-002 | Hoch | Spike | M0.3-T3 | Rich-Text-Komponente gemäß K-015; Markdown-nativ, verlustarmer Roundtrip, deaktivierbare Headings und spätere Upload-Hooks |
-| O-003 | Hoch | Spike | M0.3-T2 | Baumkomponente gemäß K-015; Lazy Loading, Virtualisierung, Drag-and-drop und Tastaturbedienung |
 | O-004 | Niedrig | Spike | M8.1-T1 | Asset-Speicher; immutable/dedupliziert, SQL-Metadaten und Binärspeicheroptionen bewerten |
 | O-005 | Mittel | Benutzer, später | außerhalb dieser Roadmap | Presentation Views; kanonischen Baum behalten und Views auf denselben `NodeId`s modellieren |
 | O-006 | Niedrig | Benutzer, später | außerhalb dieser Roadmap | Integrierte KI; erst nach stabilen manuellen Workflows konkretisieren |
@@ -23,7 +20,6 @@ O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-022, O-023, O-024, O-0
 | O-010 | Mittel | Benutzer | M5.1-T3 | Markdown-Quellmodus im ersten Contenteditor; Empfehlung: aufnehmen, weil Markdown das kanonische Format ist |
 | O-011 | Niedrig | Benutzer | M7.1-T1 | PDF-Basislayout: Seitenformat, Deckblatt, Inhaltsverzeichnis, Header/Footer und Logo; Empfehlung: A4, kein Deckblatt, TOC ab zwei Ebenen, Logo im Header, Seitenzahl im Footer |
 | O-012 | Hoch | Benutzer | M6.4-T1 | Zieldeployment: Betriebssystem, Prozesshost/Service, Reverse Proxy, Hostname und TLS-Terminierung; Empfehlung: Windows Service hinter IIS oder vorhandenem Unternehmensproxy |
-| O-015 | Mittel | Spike | M0.3-T4 | Testwerkzeuge gemäß K-015 für Razor-Komponenten, Headless-Chrome-E2E und gegebenenfalls eigenes JavaScript; Startkandidaten: bUnit, Microsoft Playwright und bei nichttrivialer JS-Logik Vitest |
 | O-016 | Niedrig | Benutzer | M8.6-T1 | Assetgrenzen: erlaubte Bildtypen, maximale Dateigröße und Pixelzahl; Empfehlung: PNG/JPEG/WebP/SVG, 10 MiB, 40 Megapixel, SVG nur nach sicherer Sanitization |
 | O-017 | Hoch | Benutzer | M6.3-T1 bis T2 | Messbare Performanceziele einschließlich Referenzdaten, gleichzeitiger Blazor-Circuits und paralleler MCP-Aufrufe; Empfehlung: 100.000 Nodes, 1.000 direkte Kinder, 20 Circuits, 10 parallele MCP-Aufrufe, P95-Serverantwort unter 500 ms und sichtbare UI-Reaktion unter 1 s im Intranet |
 | O-022 | Niedrig | Benutzer in M6.0 | M6.4-T2 | Reine Betriebswahl bei bekannter Zielumgebung: produktive Prozess-/SQL-Identität und gegebenenfalls Secretbehandlung. Bis dahin bleibt die bestehende `DatabaseConnection`-Sektion einschließlich Klartext-SQL-Zugangsdaten zulässig; keine vorsorgliche Dienstkonto-, gMSA- oder Secret-Provider-Infrastruktur. |
@@ -32,3 +28,4 @@ O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-022, O-023, O-024, O-0
 | O-025 | Hoch | Benutzer | M4.1-T1, M4.3-T1 bis T3, M5.3-T1 | Gleichzeitiges Arbeiten mehrerer UI-/MCP-Clients in derselben offenen Transaction; Empfehlung: zulassen, keine Locks, jede Mutation mit `ChangeVersion`, stale Writes deterministisch ablehnen und zum Neuladen auffordern |
 | O-026 | Mittel | Benutzer | M4.1-T1 | Lebensdauer offener Transactions; Empfehlung: keine automatische Verfallszeit oder Löschung, Alter deutlich anzeigen und ausschließlich explizit committen oder verwerfen |
 | O-027 | Mittel | Benutzer | M4.3-T1 bis T3, M5.1-T1 | Undo-/Wiederherstellungsumfang; Empfehlung: lokales Editor-Undo nur bis zum Speichern, kein globaler Undo-Stack für persistierte Mutationen, Korrektur durch Gegenänderung oder vollständiges Discard der Transaction |
+| O-029 | Mittel | Benutzer im M5.0-Gate | M5.1-T1 bis T2 | Wie werden Milkdown `@milkdown/crepe` `7.22.1` und sein npm-Closure reproduzierbar in lokale, selbst gehostete Browserassets gebaut: Vite, esbuild oder eine andere konkret versionierte Toolchain? M0 wählte den Editor, aber ausdrücklich keine Produkt-Buildtoolchain. Das M5.0-Gate muss genau eine Variante, feste Versionen, Lockfile, Restore-/Buildbefehl, Outputpfad und CI-/Lizenzintegration festlegen. |

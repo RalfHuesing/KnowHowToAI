@@ -6,6 +6,8 @@
 
 Abhängigkeit: [M1](01-webhost-und-mcp-http.md)
 
+Verbindliche M0-Basis: keine allgemeine UI-Bibliothek. M2 verwendet natives Blazor, semantisches HTML, eigenes CSS und nur schmale lokale JS-Isolation für Funktionen wie den nativen `dialog`. Es findet keine erneute Komponenten- oder Testwerkzeugsuche statt.
+
 Ziel: Alle Fachfeatures erhalten eine konsistente, moderne und belastbare UI-Grundlage.
 
 Referenzen: [Visueller Stil](../konzept/02-bedienkonzept-und-ui.md#visueller-stil), [Grundlayout](../konzept/02-bedienkonzept-und-ui.md#grundlayout), [Blazor-Betrieb](../konzept/06-betrieb-sicherheit-und-risiken.md#blazor-betrieb)
@@ -16,20 +18,21 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M2.1 abschließen**
 
-  - [ ] **M2.1-T1 – Gewählte UI-Komponentenbasis integrieren**
-    - Voraussetzung: ausschließlich die in M0.3-T1/T4 dokumentierte UI-Basis und Testversionen verwenden; keine erneute Komponentensuche und kein Versionssprung ohne belegte Inkompatibilität.
-    - Integration: erforderliche Paketversionen zentral aufnehmen, Services in `WebServiceRegistration` registrieren und lokale CSS-/JS-Assets in `App.razor` einbinden. Keine CDN-, Cloud-, Telemetrie- oder Laufzeit-Downloadabhängigkeit. Bei nativer Basis wird kein leeres Abstraktions- oder Wrapperframework angelegt.
-    - Testprojekt: das seit M1.2 vorhandene `KnowHowToAI.Web.Tests` auf die ausgewählte Komponentenbasis erweitern. Ein nur im Testprojekt gerendertes Showcase-Fixture belegt beschriftetes Formular samt Validierung, Button, Dialog, kleine Tabelle, Inlinehinweis und Toast; es entsteht keine öffentliche Demo-/Showcase-Route im Produkt.
-    - Ressourcen: produktiv nur tatsächlich für M2 benötigte Assets übernehmen; Paket-/Publishdifferenz gegen M1 protokollieren und `THIRD-PARTY-NOTICES.md` aktualisieren.
+  - [ ] **M2.1-T1 – Native UI-Basis implementieren**
+    - Voraussetzung: `KnowHowToAI.Web.Tests` verwendet bUnit `2.11.3`/xUnit v3 `3.2.2`; `KnowHowToAI.BrowserTests` verwendet Microsoft.Playwright .NET `1.62.0` und Google Chrome Stable `152.0.7977.83` ausschließlich headless mit `Channel = "chrome"`.
+    - Integration: Blazor-/HTML-Komponenten direkt implementieren; keine allgemeine UI-Paketreferenz, keine Suite-Services und kein leeres Wrapperframework hinzufügen. Lokales CSS und nur tatsächlich benötigte schmale JS-Isolation in `App.razor` einbinden. Keine CDN-, Cloud-, Telemetrie- oder Laufzeit-Downloadabhängigkeit.
+    - Dialog: nativen HTML-`dialog` über einen lokalen JS-Isolationsbaustein mit `showModal()`, Fokusfalle, `Escape` und Fokusrückgabe kapseln; der Baustein enthält keine allgemeine Zustandsmaschine.
+    - Testprojekt: Ein nur in `KnowHowToAI.Web.Tests` gerendertes Showcase-Fixture belegt beschriftetes Formular samt Validierung, Button, Dialog, kleine Tabelle, Inlinehinweis und Toast; es entsteht keine öffentliche Demo-/Showcase-Route im Produkt.
+    - Ressourcen: produktiv nur tatsächlich für M2 benötigte eigene Assets übernehmen; Publishgröße von `wwwroot` und Gesamtpublish gegen M1 protokollieren. `THIRD-PARTY-NOTICES.md` nur ändern, wenn der tatsächliche Restore neue Abhängigkeiten enthält.
     - Nicht enthalten: Knowledge Tree und Rich-Text-Editor.
-    - Tests: Komponenten-Render-/Interaktionssmoke, echter Hoststart und Netzwerkassertion im Headless Chrome, dass beim Laden keine Drittanbieter-Origin angefordert wird.
-    - Abnahme: das Showcase-Fixture rendert und bedient alle genannten Basiskomponenten; die Produktionsshell startet ohne externe Ressourcen und ohne unnötige Demooberfläche.
+    - Tests: bUnit-Render-/Interaktionssmoke; Playwright-Dialogfolge `Enter`, `Tab`, `Shift+Tab`, `Escape` einschließlich sichtbarem Fokus und Fokusrückgabe; echter Hoststart und Netzwerkassertion, dass beim Laden keine Drittanbieter-Origin angefordert wird.
+    - Abnahme: das Showcase-Fixture rendert und bedient alle genannten Basiskomponenten; der Dialogvertrag ist per Tastatur belegt; die Produktionsshell startet ohne allgemeine Komponentenbibliothek, externe Ressourcen oder Demooberfläche.
 
   - [ ] **M2.1-T2 – Design-Tokens und Business-Theme definieren**
-    - Ablage: globale Tokens ausschließlich als CSS Custom Properties in `wwwroot/css/app.css`; komponentenspezifische Werte bleiben in scoped CSS und referenzieren die globalen Tokens. Eine gewählte Bibliothek wird aus denselben Tokens gespeist, ohne ein zweites konkurrierendes Theme.
+    - Ablage: globale Tokens ausschließlich als CSS Custom Properties in `wwwroot/css/app.css`; komponentenspezifische Werte bleiben in scoped CSS und referenzieren die globalen Tokens. Es gibt kein zweites Bibliotheks-Theme.
     - Startwerte Farben: Primary `#2563EB`, Primary Hover `#1D4ED8`, Primary Active `#1E40AF`, Text `#111827`, Secondary Text `#4B5563`, Page `#F8FAFC`, Surface `#FFFFFF`, Border `#CBD5E1`, Success `#15803D` auf `#F0FDF4`, Warning `#B45309` auf `#FFFBEB`, Danger `#B91C1C` auf `#FEF2F2` und Info/Primary auf `#EFF6FF`. Status besitzt zusätzlich Icon und Text.
     - Startwerte Maße: `4/8/12/16/24/32px`-Abstandsskala, Radien `4/8px`, Surface-Schatten `0 1px 2px rgb(15 23 42 / 0.08)`, Basistext `16px` mit `1.5` Zeilenhöhe und die Systemschriftkette `Segoe UI, Arial, sans-serif`. Fokus ist ein mindestens `3px` starker Ring in Primary mit `2px` Abstand und wird nicht per `outline: none` entfernt.
-    - Icons: ausschließlich lokal ausgelieferte Icons der gewählten Basis oder kleine repo-eigene SVGs. Dekorative Icons sind für Assistenztechnik verborgen; alleinstehende Iconbuttons erhalten einen zugänglichen Namen. Kein eigenes Logo- oder Iconfont-Asset.
+    - Icons: ausschließlich kleine repo-eigene SVGs. Dekorative Icons sind für Assistenztechnik verborgen; alleinstehende Iconbuttons erhalten einen zugänglichen Namen. Kein eigenes Logo- oder Iconfont-Asset.
     - Branding: `KnowHowToAI` in der Shell als reine Textwortmarke darstellen; kein Dummy-/Bildlogo und kein Favicon-Zwang.
     - Sprache: ausschließlich deutsche UI ohne Lokalisierungsinfrastruktur. Einmalige Texte bleiben featurelokal; nur tatsächlich gemeinsam verwendete Bezeichnungen und Fehlermappings werden zentralisiert.
     - Ausschluss: kein Dummy-/Bildlogo, Webfont, Font-CDN, `.resx`, `IStringLocalizer` oder globale Sammlung aller UI-Texte.
@@ -70,7 +73,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: Zustände sind unabhängig vom Featureinhalt wiederverwendbar; keine Fachseite muss Grunddarstellung oder Retry-Schutz neu erfinden.
 
   - [ ] **M2.3-T2 – Warnungs-, Bestätigungs- und Änderungszustände bereitstellen**
-    - Komponenten: `InlineAlert`, `StatusBanner`, eine einzelne globale `ToastRegion`, `ConfirmationDialog` und `WorkingIndicator`. Produktbezogene Wrapper entstehen nur dort, wo sie den hier definierten Vertrag über der gewählten Komponentenbasis durchsetzen; keine Eins-zu-eins-Wrapper für jedes Library-Control.
+    - Komponenten: `InlineAlert`, `StatusBanner`, eine einzelne globale `ToastRegion`, `ConfirmationDialog` und `WorkingIndicator` nativ implementieren. Gemeinsame Bausteine entstehen nur für den hier definierten wiederverwendeten Vertrag; keine generische Control-Abstraktionsschicht.
     - Regeln: Inline Alert bleibt beim auslösenden Inhalt; Banner gilt für die Seite; Toast bestätigt nur nichtkritische abgeschlossene Aktionen und ist nie alleinige Fehler-/Warnquelle. Working/dirty wird mit Text plus Icon gezeigt, nicht nur Farbe.
     - Dialog: Titel, kurze Auswirkung, primäre Aktion und „Abbrechen“; destruktive Aktion optisch/semantisch eindeutig, aber keine Texteingabe zur Bestätigung. Beim Öffnen Fokus auf die sichere Aktion „Abbrechen“, Fokusfalle, Escape entspricht Abbrechen, Schließen gibt Fokus zurück. Während eines Requests sind beide Aktionen gegen Doppelaufruf geschützt.
     - Toast: neue Meldungen werden höflich angekündigt; Fokus wird nicht automatisch verschoben; Meldung ist pausier-/schließbar und kritische Information bleibt zusätzlich im Seitenzustand sichtbar.
@@ -97,13 +100,13 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Komponenten-/Markupzustände; Browserintegration mit kontrolliert unterbrochener Circuit-Verbindung für Reconnecting und erfolgreichen Reconnect; Hostneustart/abgelaufener Circuit für Reload-Pfad. Auf UI-Zustand warten, keine Sleep-Zeiten und kein sichtbarer Browser.
     - Abnahme: Benutzer erkennt Zustand und sichere nächste Aktion; nach erfolgreichem Reconnect funktioniert der lokale M1-Interaktionsnachweis weiter, ohne fachlichen Zustand im Circuit zu erfinden.
 
-  - [ ] **M2.4-T3 – Komponenten- und visuelle Smoke-Testbasis etablieren**
-    - Projekt: `KnowHowToAI.BrowserTests` mit der in O-015 festgelegten Playwright-.NET-Version anlegen, in `KnowHowToAI.slnx` und `scripts/test-integration.ps1` aufnehmen. Es referenziert kein Produktionsprojekt und behandelt die veröffentlichte Server-EXE als Black Box.
+  - [ ] **M2.4-T3 – Komponenten- und visuelle Smoke-Testbasis erweitern**
+    - Projekt: das seit M1.2 vorhandene `KnowHowToAI.BrowserTests` mit Microsoft.Playwright .NET `1.62.0` verwenden. Es referenziert weiterhin kein Produktionsprojekt und behandelt die veröffentlichte Server-EXE als Black Box.
     - Testhost: Server einmal pro Testkollektion mit `dotnet publish`-Artefakt, dynamischem Loopback-Port und Environment-/Kommandozeilen-Overrides starten; Migration für Shell-Smokes deaktivieren. Readiness über beobachtbaren HTTP-Zustand, Logs begrenzen/redigieren, Prozess und Port im `IAsyncLifetime` auch bei Fehlschlag sicher freigeben. Keine zweite Appsettings-Datei.
-    - Browser: ausschließlich installierten Google Chrome Stable über `Channel = "chrome"` und `Headless = true`; fehlendes Chrome ist ein klarer Preflight-Fehler, kein Chromium-Fallback. Kein Edge/Firefox/Safari-Projekt, keine sichtbare Debugkonfiguration als regulärer Testpfad.
+    - Browser: ausschließlich installiertes Google Chrome Stable `152.0.7977.83` über `Channel = "chrome"` und `Headless = true`; fehlendes oder abweichendes Chrome ist ein klarer Preflight-Fehler, kein Chromium-Fallback. Kein Edge/Firefox/Safari-Projekt, keine sichtbare Debugkonfiguration als regulärer Testpfad.
     - Smokes: ausschließlich die tatsächlich erreichbare Shell bei 1280 × 720 und die kompakte Shell bei 1024 × 720. Je Smoke zuerst semantische/Verhaltensassertionen, danach ein stabil maskierter Light-Theme-Screenshot; Animationen, Zeitwerte, Correlation-IDs und andere volatile Inhalte maskieren. Es wird keine Test-/Demo-Route in das Produkt eingebaut.
     - Baselines: genau diese zwei Shell-Viewports als versionierte visuelle Baselines. Weitere Zustände erzeugen erst mit einem echten späteren Verbraucher Diagnose-Screenshots oder bewusst beschlossene Baselines. Baselineänderungen benötigen Diff-Prüfung; automatische Aktualisierung im regulären Lauf ist verboten.
-    - Skripte: fester lokaler/CI-Befehl und Chrome-Preflight dokumentieren. Falls M0.3-T4 Vitest verlangte, dessen separaten Unit-Befehl in das FastTest-Gate integrieren; andernfalls kein `package.json` allein für BrowserTests anlegen.
+    - Skripte: feste lokale/CI-Befehle und Chrome-Preflight aus dem [Strukturkonzept](../konzept/08-projektstruktur-und-codekonventionen.md#feste-testabhängigkeiten-und-befehle) dokumentieren. Vitest ist nicht erforderlich; kein `package.json` allein für BrowserTests anlegen.
     - Nicht enthalten: flächendeckende Pixeltests.
     - Abnahme: Web.Tests und BrowserTests laufen zweimal hintereinander grün, hinterlassen keinen Prozess/Port und spätere Milestones besitzen klar benannte Ablagen für Komponenten- beziehungsweise echte Benutzerablauftests.
 

@@ -8,6 +8,8 @@ Priorität: niedrig. Umsetzung erst nach dem gehärteten Kernfrontend.
 
 Abhängigkeit: [M6](06-betrieb-und-qualitaet.md)
 
+Verbindliche M0-Testbasis: Browserfälle verwenden weiterhin Microsoft.Playwright .NET `1.62.0` ausschließlich mit Google Chrome Stable `152.0.7977.83`, `Channel = "chrome"` und `Headless = true`. Für PDF wird kein zweites Browserframework eingeführt; Rendererwerkzeuge und ihre Versionen werden ausschließlich im M7.0-Gate festgelegt.
+
 Ziel: Der Benutzer lädt vom aktuellen Node aus dessen gesamten Teilbaum im einzigen konfigurierten Layout als PDF herunter.
 
 Referenz: [Publikation und PDF](../konzept/04-publikation-und-pdf.md)

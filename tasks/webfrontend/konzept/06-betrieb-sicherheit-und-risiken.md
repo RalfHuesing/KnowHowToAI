@@ -48,7 +48,7 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 | Unterschiedliche DI-Scopes erzeugen versteckten Zustand | Stateless Application Services; fachlichen Kontext explizit übergeben |
 | Ein späterer Proxy blockiert WebSockets oder Streaming | Proxywahl und Intranet-Deploymenttest im manuellen M6.0-Gate; Timeouts und Upgrade-Verhalten dort prüfen |
 | Firmennetz wird mit Authentifizierung verwechselt | Kein Internet-Exposure; Netzgrenzen dokumentieren; Auth als separates Pflichtvorhaben vor Scope-Erweiterung |
-| Tiefe Bäume werden langsam | Lazy Loading, Paging, virtuelle Darstellung, Suche und Breadcrumbs |
+| Tiefe Bäume werden langsam | Lazy Loading, opakes serverseitiges 100er-Paging, höchstens zehn geladene Seiten pro Circuit, Suche und Breadcrumbs; kein Vollbaum und keine behauptete Viewport-Virtualisierung |
 | Drag-and-drop erzeugt falsche Struktur | Zielvorschau, serverseitige Validierung, Transaction-Diff vor Commit |
 | Rich-Text-Editor verändert Markdown | Roundtrip-Tests, Markdown-natives Modell, Quellmodus, keine HTML-first-Konvertierung |
 | Bilder blähen Snapshots auf | Immutable, per Hash deduplizierte Assets; Snapshot referenziert statt kopiert |
@@ -62,6 +62,6 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 - Alle Oberflächen sind unter einem Host und Port erreichbar.
 - Root, `/mcp` und `/assets` kollidieren nicht; reserviertes `/api` wird nicht vom Blazor-Fallback verschluckt.
 - M0 bis M2: Blazor-Circuit, Reconnect und MCP-Streaming funktionieren direkt über denselben Kestrel-Origin.
-- Ab M6 nach festgelegtem Zielbetrieb: dieselben Nachweise zusätzlich über den vorgesehenen Reverse Proxy.
+- Ab M6 nach festgelegtem Zielbetrieb: dieselben Nachweise über die in O-012 entschiedene reale Deploymentkette; nur falls diese einen Reverse Proxy enthält, ist zusätzlich dessen WebSocket-/Streamingverhalten nachzuweisen.
 - Nicht freigegebene Netzsegmente erreichen den Host nicht.
 - Neustart des Prozesses lässt committed und offene persistierte Arbeitsstände fachlich rekonstruierbar.

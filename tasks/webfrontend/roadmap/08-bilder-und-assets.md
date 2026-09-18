@@ -8,6 +8,8 @@ Priorität: niedrig. Umsetzung nach dem PDF-Export.
 
 Abhängigkeit: [M5](05-rollen-content-und-rich-text.md), [M7](07-pdf-export.md)
 
+Verbindliche M0-Basis: Bilder erweitern den bestehenden Milkdown-Editor `@milkdown/crepe` `7.22.1` über dessen bereits vorbereiteten internen Hook; es findet keine neue Editor- oder Komponentenwahl statt. Browserfälle bleiben bei Microsoft.Playwright .NET `1.62.0` mit Chrome `152.0.7977.83`, `Channel = "chrome"`, `Headless = true`.
+
 Ziel: Bilder sind stabil referenzierbar, historisch reproduzierbar und in Editor, Browser, MCP sowie Export konsistent.
 
 Referenz: [Bilder und Assets](../konzept/03-content-und-assets.md#bilder-und-assets)
@@ -82,10 +84,10 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M8.4 abschließen**
 
   - [ ] **M8.4-T1 – Bild-Upload im Rich-Text-Editor integrieren**
-    - Umfang: Dateiauswahl, Drag-and-drop und Einfügen aus Zwischenablage über den kontrollierten Uploadpfad.
+    - Umfang: Dateiauswahl, Drag-and-drop und Einfügen aus Zwischenablage über den kontrollierten Uploadpfad; erst nach erfolgreicher serverseitiger Anlage setzt der vorhandene Milkdown-Hook die zurückgegebene interne Assetreferenz ein.
     - UX: Busy, Erfolg, Fehler, Wiederholung und Abbruch; keine eingebetteten Data-URLs.
     - Tests: alle drei Eingabewege und Editorwechsel während Upload.
-    - Abnahme: erfolgreicher Upload erzeugt eine stabile Markdown-Assetreferenz.
+    - Abnahme: erfolgreicher Upload erzeugt eine stabile Markdown-Assetreferenz; Milkdown lädt weder externe Bild-URLs noch Data-URLs und umgeht den Server-Endpunkt nicht.
 
   - [ ] **M8.4-T2 – Markdown-Bildreferenzen roundtrip-sicher machen**
     - Umfang: Editorimport/-export, Rendering und Quellmodus für das festgelegte Referenzformat.

@@ -11,7 +11,7 @@ Die Oberfläche ist sachlich, seriös und modern. Sie entspricht der Erwartung a
 - Klare Hover-, Fokus-, Auswahl-, Lade-, Leer- und Fehlerzustände.
 - Tastaturbedienung, ausreichende Kontraste und zugängliche Komponenten.
 - Die Implementierung verwendet Webstandards und enthält keine absichtlichen Ausschlüsse oder browserspezifischen Produktpfade. Sie soll in aktuellen Browsern funktionieren.
-- Verbindlicher automatisierter Browser-Abnahmekanal ist ausschließlich die jeweils aktuelle stabile Desktopversion von Google Chrome. Andere Browserfamilien und Microsoft Edge werden nicht als eigene Testmatrix behandelt; ihre Funktion ist erwartete Kompatibilität, aber keine separat nachgewiesene Abnahme.
+- Verbindlicher automatisierter Browser-Abnahmekanal ist Google Chrome Stable `152.0.7977.83`. Andere Browserfamilien und Microsoft Edge werden nicht als eigene Testmatrix behandelt; ihre Funktion ist erwartete Kompatibilität, aber keine separat nachgewiesene Abnahme. Ein Chrome-Versionssprung benötigt einen eigenen, dokumentierten Testwerkzeug-Update-Slice statt einer stillen Änderung in einem Featuretask.
 - Browser-E2E läuft ausschließlich nichtinteraktiv im Headless-Modus. Implementierungsagenten starten für reguläre Abnahmen kein sichtbares Browserfenster.
 - Zielgerät ist ein PC mit Desktopbrowser; Smartphones und eine eigenständige mobile Oberfläche sind ausdrücklich kein Ziel.
 - Die vollständige Desktopdarstellung ist ab 1280 × 720 CSS-Pixeln bei 100 % Zoom ausgelegt. Bei 1024 × 720 bleibt die gesamte Funktion mit verdichtetem Layout und einklappbaren Seitenbereichen erreichbar. Unterhalb dieser Referenzbreite besteht außer den nachfolgend festgelegten Zoom-/Accessibility-Regeln keine Produktanforderung.
@@ -37,17 +37,20 @@ WCAG 2.2 AA ist der Entwicklungsmaßstab für die menschlichen Kernworkflows, je
 - Semantisches HTML, zugängliche Namen, Labels, Statusmeldungen und Fehlerzuordnungen werden bevorzugt; ARIA ergänzt nur fehlende native Semantik.
 - Textkontrast beträgt mindestens 4,5:1, großer Text mindestens 3:1. Relevante nichttextuelle UI-Zustände und Fokusdarstellungen erreichen mindestens 3:1 und werden nie nur durch Farbe vermittelt.
 - Bei 200 % Desktop-Zoom gehen keine Informationen oder Funktionen verloren. Bei 400 % Zoom fließen normale Inhalte einspaltig um; fachlich wirklich zweidimensionale Bereiche dürfen innerhalb ihres eigenen Bereichs scrollen. Das ist Desktop-Zoom und begründet keine Smartphone-Unterstützung.
-- Drag-and-drop erhält immer eine funktional gleichwertige Tastaturalternative. Tree und Rich-Text-Editor werden in M0 nur ausgewählt, wenn ihre Kernfunktionen diese Regeln erfüllen oder mit begrenztem, dokumentiertem Aufwand erfüllen können.
-- Agenten prüfen repräsentative Zustände automatisiert mit Komponentenassertionen, wenigen Accessibility-Smokes und echten Tastatursequenzen im Headless-Chrome-Lauf. Eine kurze, feste manuelle Tastaturcheckliste wird für die Abnahme durch einen Menschen gepflegt; Agenten starten dafür keinen interaktiven Browser.
+- Drag-and-drop erhält immer eine funktional gleichwertige Tastaturalternative. Der native Tree bietet dieselben Zielpositionen `Parent`, `Before` und `After` über Drag-and-drop und fokussierbare Aktionsbuttons. Milkdown wird auf die freigegebenen Befehle begrenzt und darf keine Heading- oder externe Bildfunktion anbieten.
+- Agenten prüfen repräsentative Zustände mit bUnit `2.11.3` und xUnit v3 `3.2.2` sowie wenigen echten Tastatursequenzen über Microsoft.Playwright .NET `1.62.0`. Browserläufe verwenden ausschließlich Google Chrome Stable `152.0.7977.83`, `Channel = "chrome"` und `Headless = true`. Eine kurze, feste manuelle Tastaturcheckliste wird für die Abnahme durch einen Menschen gepflegt; Agenten starten dafür keinen interaktiven Browser.
 
 ## Komponentenstrategie
 
+Die folgenden Ergebnisse sind nach M0 verbindlich und keine erneuten Auswahlaufträge:
+
 - Kostenpflichtige Komponenten und Abonnements sind ausgeschlossen. Alle direkten und transitiven externen Abhängigkeiten müssen kostenlos nutzbar und mit der Distribution des MIT-lizenzierten Projekts vereinbar sein.
 - Standardmäßig zulässig sind permissive Lizenzen wie MIT, 0BSD, BSD-2-Clause, BSD-3-Clause, ISC und Apache-2.0 unter Einhaltung ihrer Copyright-, Lizenz- und NOTICE-Pflichten. Andere Lizenzen erfordern vor Aufnahme eine dokumentierte Einzelfallprüfung und ausdrückliche Benutzerentscheidung; Copyleft-, Source-available-, nutzungsbeschränkte oder kommerziell doppelt lizenzierte Komponenten sind nicht der Default.
-- Für einfache Layouts, Formulare und Gestaltung werden Blazor, semantisches HTML und überschaubares eigenes CSS bevorzugt. Eine kleine projektspezifische Lösung ist einer umfangreichen Suite oder zusätzlichen Toolchain vorzuziehen, wenn sie gleich verständlich, testbar und wartbar ist.
-- Für nachweislich komplexe Controls wie Knowledge Tree oder Markdown-Rich-Text-Editor werden fokussierte, etablierte Open-Source-Komponenten bevorzugt, wenn sie Risiko und Eigenaufwand materiell senken. Eine allgemeine Suite wird nicht allein für ein einzelnes Control eingeführt.
-- Auswahlkriterien: fachliche Passung, aktive Pflege, Lizenz aller transitiven Abhängigkeiten, Paket- und Bundle-Gewicht, zusätzliche Build-Toolchain, JS-Interop, .NET-10-/Blazor-Kompatibilität, Barrierefreiheit, Internationalisierung, Testbarkeit, Theme-Fähigkeit, keine erzwungene Cloud/CDN-Nutzung und kein proprietäres Contentformat.
-- Komponenten werden vor Festlegung mit realistischen Daten und Randfällen gespikt. „Keine allgemeine Komponentenbibliothek“ ist ein zulässiges Ergebnis.
+- Es gibt keine allgemeine UI-Komponentenbibliothek. Layout, Formulare, Tabellen, Hinweise, Toasts und Dialoge werden mit nativem Blazor, semantischem HTML und überschaubarem eigenem CSS umgesetzt. Fluent UI, MudBlazor und weitere Suites werden in M1–M8 weder installiert noch erneut bewertet.
+- Ein nativer HTML-`dialog` wird nur über eine schmale lokale JS-Isolation für `showModal()`, Fokusfalle, `Escape` und Fokusrückgabe ergänzt. Daraus entsteht kein allgemeines Control-Framework.
+- Der Knowledge Tree ist eine native Blazor-/HTML-/CSS-Komponente. `Radzen.Blazor` `11.4.1` ist ausgeschlossen, weil `RadzenTree` keine öffentliche Tree-Virtualisierungs- oder serverseitige Cursor-Paging-API besitzt. Es wird kein Fork, DOM-Patch oder Zugriff auf nichtöffentliche Komponenteninternas verwendet.
+- Der einzige spezialisierte Editor ist Milkdown `@milkdown/crepe` `7.22.1`; Details und Grenzen stehen in [Content und Assets](03-content-und-assets.md#rich-text-editor).
+- Diese Auswahl ist abgeschlossen. Neue Komponenten oder Versionssprünge benötigen einen konkreten, belegten Inkompatibilitäts- oder Funktionsgrund, eine erneute Lizenzprüfung und eine Aktualisierung von `THIRD-PARTY-NOTICES.md`; eine allgemeine Komponentensuche ist kein Folge-Task.
 
 ## Grundlayout
 
@@ -74,11 +77,18 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 
 ## Wissensbaum
 
-- Lazy Loading über Root und paginierte Children.
+- Native Blazor-/HTML-/CSS-Implementierung ohne Tree-Paket.
+- Der einzelne fachliche Root wird separat geladen; Children werden ausschließlich bei Expand mit `limit = 100` über den vorhandenen Navigation-Use-Case angefordert. `nextCursor` bleibt opak und wird unverändert für die nächste Seite desselben Parents weitergereicht.
+- Eine geladene Parent-Seite enthält höchstens 100 Einträge. Seitennavigation ersetzt die sichtbare Seite desselben Parents, statt frühere Seiten im DOM anzuhängen. Für „Zurück“ speichert der Circuit je Parent nur die zuvor verwendeten opaken Cursorstrings, keine früheren Itemseiten; der vorherige Cursor wird erneut serverseitig geladen.
+- Der Circuit hält höchstens zehn geladene 100er-Seiten. Beim Laden einer elften Seite wird die am längsten ungenutzte Seite eines nicht ausgewählten Teilbaums entfernt und dieser Zweig sichtbar geschlossen. Gehören alle zehn Seiten zum aktuellen Auswahlpfad, wird die rootnächste Seite entfernt und ihr Kind auf dem Auswahlpfad zum visuellen Root des Tree-Ausschnitts; die vollständige globale Herkunft bleibt über Breadcrumbs navigierbar. Breadcrumb-Navigation oberhalb des Ausschnitts lädt die benötigte Seite erneut und unterliegt derselben Zehn-Seiten-Regel. Eine höfliche Statusmeldung erklärt das Schließen beziehungsweise Neuzentrieren.
+- Auswahl, Expand-Zustand, aktuell sichtbare Seiten und LRU-Reihenfolge sind ausschließlich flüchtiger Circuit-State. Route und Query bleiben Quelle für Node, Rolle und Read Context; nach Reload werden nur die für den ausgewählten Pfad benötigten Seiten erneut geladen.
+- Der DOM enthält niemals den Gesamtbaum. Die Begrenzung erfolgt durch serverseitiges Paging und den Zehn-Seiten-Cache; echte Viewport-Virtualisierung ist weder Voraussetzung noch behauptete Eigenschaft.
 - Suche nach Titel, Beschreibung und rollenaufgelöstem Content.
 - Filter nach Rolle, Availability, Freshness und Findings wirken auf die paginierte Trefferliste neben der Suche. Innerhalb einer Filtergruppe gilt ODER, zwischen Filtergruppen UND; ungefilterte Ansicht ist der Default. Der Tree wird nicht clientseitig beschnitten; die Auswahl eines Treffers fokussiert dessen Node im Tree.
 - Badges für eigenen Content, Fallback, fehlenden Content, stale und Warnung.
 - Drag-and-drop für Verschieben und Sortierung mit Zielvorschau.
+- Der Tree verwendet `role="tree"`/`role="treeitem"`, roving `tabindex`, `aria-level`, `aria-selected` und bei Parents `aria-expanded`. Pflichtbedienung: `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`, `End`, `Enter` und Leertaste.
+- `Parent`, `Before` und `After` sind sowohl Drag-and-drop-Ziele als auch fokussierbare Aktionsbuttons mit demselben Move-Vertrag.
 - Strukturänderungen nur in einer offenen Working Transaction.
 - Tiefe Strukturen werden nicht vollständig vorab geladen.
 - Breadcrumbs und direkte Navigation per stabiler `NodeId`.
