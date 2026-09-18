@@ -1,8 +1,11 @@
 using System.Net;
 using System.Net.Http;
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Core.Tests.Application.Navigation;
 using KnowHowToAI.Server;
 using Microsoft.Extensions.DependencyInjection;
@@ -80,6 +83,38 @@ public sealed class McpHttpTransportTests
 
     [Fact]
     [Trait("Category", "Integration")]
+    public async Task ClientAbort_CancelsTheTokenReceivedByTheListRolesPort()
+    {
+        var harness = new NavigationTestHarness(new SnapshotId(1));
+        var roles = new BlockingRoleRepository();
+        var navigation = new NavigationService(
+            harness.CreateRepositories() with { Roles = roles },
+            new RetrievalPolicy
+            {
+                DefaultPageSize = 10,
+                MaximumPageSize = 100,
+                SearchPageSize = 10,
+                SearchMaximumPageSize = 100,
+                SnippetMaximumCharacters = 100
+            });
+        await using var host = await McpHttpHost.StartAsync(services =>
+        {
+            services.RemoveAll<NavigationService>();
+            services.AddSingleton(navigation);
+        });
+        await using var client = await McpClient.CreateAsync(CreateTransport(host.Address));
+        using var cancellation = new CancellationTokenSource();
+
+        var request = client.CallToolAsync("list_roles", cancellationToken: cancellation.Token).AsTask();
+        await roles.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => request);
+        await roles.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
     public async Task GetMcp_IsRejectedOutsideTheStreamableHttpMapping()
     {
         await using var host = await McpHttpHost.StartAsync();
@@ -141,4 +176,34 @@ public sealed class McpHttpTransportTests
                 Endpoint = new Uri($"{address}/mcp"),
                 TransportMode = HttpTransportMode.StreamableHttp
             });
+
+    private sealed class BlockingRoleRepository : IRoleRepository
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async Task<IReadOnlyList<Role>> ListBySnapshotAsync(
+            SnapshotId snapshotId,
+            CancellationToken cancellationToken = default)
+        {
+            Started.SetResult();
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Cancelled.SetResult();
+                throw;
+            }
+
+            return [];
+        }
+
+        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(
+            SnapshotId snapshotId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<RoleResolution>>([]);
+    }
 }
