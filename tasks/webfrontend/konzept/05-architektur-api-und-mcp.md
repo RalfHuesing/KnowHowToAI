@@ -77,8 +77,8 @@ Leitplanken gegen reale Konflikte:
 - MCP immer explizit auf `/mcp` mappen; nicht auf die Root-Route.
 - Blazor-Komponenten und Fallbacks dürfen `/mcp`, `/assets` und reserviertes `/api` nicht verschlucken.
 - Statische Assets und Upload-/Download-Routen eindeutig trennen.
-- Reverse Proxy muss Blazor-SignalR/WebSockets und lang laufende MCP-HTTP-Antworten unterstützen.
-- Request-Limits, Timeouts, Response Compression und Streaming pro Endpunktgruppe bewusst konfigurieren.
+- M0 bis M2 belegen den direkten gemeinsamen Kestrel-Origin. Eine Reverse-Proxy-Produktwahl, TLS-Terminierung und betriebliche Proxy-Timeouts werden nicht vorgezogen, sondern im manuellen M6.0-Gate mit der realen Deploymentumgebung entschieden.
+- Request-Limits, Timeouts und Response Compression werden erst mit einem konkreten Endpunkt- oder Betriebsbedarf ergänzt. Streaming und Cancellation des MCP-Endpunkts werden bereits in M0/M1 gegen Kestrel verifiziert.
 
 Eine spätere REST-API kann im selben Prozess und Port unter `/api/v1` ergänzt werden. Dafür ist weder eine zweite EXE noch ein zweiter Port erforderlich.
 
