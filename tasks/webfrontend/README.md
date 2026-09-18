@@ -11,7 +11,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 - Verbindlicher System-Ist-Stand bleibt [`docs/`](../../docs/README.md).
 - Konzeptaussagen werden nicht als bereits implementiertes Verhalten in `docs/` übernommen.
 - Relevante Gesprächsergebnisse werden hier fortgeschrieben und automatisch atomar committed.
-- Das Konzept wird nur bis zum jeweils aktuellen Detailplanungshorizont ausführungsreif geschärft. Aktuell umfasst dieser Horizont M0 bis einschließlich M2; die Freigabe entsteht erst, wenn die dafür offenen Entscheidungen geschlossen und die Tasks abschließend geprüft sind.
+- Das Konzept wird nur bis zum jeweils aktuellen Detailplanungshorizont ausführungsreif geschärft. Aktuell umfasst dieser Horizont M0 bis einschließlich M2; dieser Bereich ist seit 2026-09-18 entschieden, abschließend geprüft und zur sequenziellen Agentenausführung freigegeben.
 - Ab M3 beginnt jedes Milestone mit einem manuellen Planungs- und Konzept-Gate `Mx.0`. Spätere Tasks sind bis zum Abschluss dieses Gates nur ein Richtungsentwurf und nicht zur Agentenausführung freigegeben.
 - Jede umgesetzte Roadmap-Aufgabe aktualisiert im selben Commit Code, Tests, `docs/`, Konzeptstatus und Checkbox.
 - Detailaussagen stehen in genau einem Konzeptdokument; Index und Roadmap verlinken darauf.

@@ -2,7 +2,7 @@
 
 Stand: 2026-09-18
 
-Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werden jetzt nur die dafür notwendigen Entscheidungen bearbeitet.
+Status: Planung M0–M2 abgeschlossen und zur Agentenausführung freigegeben. Der Workshop wird vor M3 im manuellen M3.0-Gate fortgesetzt.
 
 ## Verbindlichkeit
 
@@ -16,14 +16,13 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Als Nächstes die M0.3-Spikeaufträge für O-001, O-003, O-002 und O-015 ausführungsreif präzisieren.
-4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung für M0–M2 behandeln.
-5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
-6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
+3. Für Umsetzung den ersten offenen Leaf-Task ab M0.1-T1 gemäß Roadmap bearbeiten; technische Spikeentscheidungen O-001/O-003/O-002/O-015 fallen ausschließlich in M0.3.
+4. Nach abgeschlossenem M2 hier stoppen und gemeinsam das manuelle M3.0-Gate durchführen; M3+-Leaf-Tasks vorher nicht implementieren.
+5. Neue Gesprächsentscheidungen sofort im fachlich zuständigen Konzept dokumentieren und atomar committen.
 
 Nächster Arbeitsschritt:
 
-> M0- bis M2-Leaf-Tasks technisch schärfen und abschließend auf Ausführbarkeit durch Agenten ohne hohes Reasoning prüfen. Weitere Benutzerfragen werden nur gestellt, wenn dabei eine echte M0–M2-Produktentscheidung sichtbar wird.
+> M0 ab M0.1-T1, danach M1 und M2 in dokumentierter Reihenfolge umsetzen. Nach M2 keine M3-Aufgabe beginnen, sondern zum manuellen M3.0-Planungs- und Konzept-Gate zurückkehren.
 
 ## Entscheidungsreihenfolge für M0–M2
 

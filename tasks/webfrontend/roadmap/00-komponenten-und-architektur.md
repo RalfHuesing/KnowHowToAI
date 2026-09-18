@@ -96,7 +96,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
     - Sicherheits- und Integrationsprüfung: Heading-Befehle sind nicht verfügbar; Links folgen exakt O-020; externe Bilder/Assets lösen im Browser keinen Request aus; Paste-Reduktionen erzeugen einen sichtbaren Hinweis; der ursprüngliche Editorinhalt bleibt bei Serverablehnung erhalten; Image-Upload ist deaktiviert, besitzt aber einen später anschließbaren internen Hook; Dirty-State, Fokus, Dispose, Reconnect und Nodewechsel sind kontrollierbar.
     - Musskriterien: Markdown bleibt einziges kanonisches Speicherformat; kein HTML-/Editor-JSON als verstecktes Zweitformat; self-hosted Assets; schmale JS-Isolation für Blazor Interactive Server; automatisierbar in Headless Chrome; keine Cloudfunktion und kein Pro-/Bezahlmodul für Mussfunktionen.
     - Auswahlregel: Ein stabiler, vollständig bestehender Markdownpfad gewinnt vor einer Beta-API. Danach gelten geringere semantische Anpassung, kleinere transitive JavaScript-Lieferkette und weniger eigener zustandsbehafteter JS-Code. Besteht kein Kandidat den Roundtrip, wird nichts ausgewählt.
-    - Ergebnisort: Entscheidung, erlaubte Editorfunktionen, Interop-/Lifecycle-Vertrag, Golden Master und bekannte Grenzen in `konzept/03-content-und-editor.md`; Lizenzbefund in `THIRD-PARTY-NOTICES.md`; O-002 entfernen.
+    - Ergebnisort: Entscheidung, erlaubte Editorfunktionen, Interop-/Lifecycle-Vertrag, Golden Master und bekannte Grenzen in `konzept/03-content-und-assets.md`; Lizenzbefund in `THIRD-PARTY-NOTICES.md`; O-002 entfernen.
     - Abnahme: alle erlaubten Strukturen bestehen den fünffachen semantischen Roundtrip und sämtliche Sicherheits-/Lifecycle-Kriterien sind automatisiert belegt.
 
   - [ ] **M0.3-T4 – Web-Komponenten- und Browser-Testwerkzeuge auswählen**

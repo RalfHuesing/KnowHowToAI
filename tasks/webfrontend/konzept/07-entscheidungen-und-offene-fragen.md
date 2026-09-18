@@ -6,10 +6,7 @@ Gesprächsstand, Empfehlungen und Recherche: [Entscheidungsworkshop](../Entschei
 
 Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutzerentscheidung offen ist. Bei Spike-Entscheidungen ist der angegebene Task selbst für die Entscheidung und ihre Dokumentation zuständig. M3 und spätere Milestones werden erst in ihrem manuellen `Mx.0`-Gate entscheidungs- und ausführungsreif geschärft.
 
-Bearbeitungsreihenfolge im aktuellen Planungshorizont M0–M2:
-
-1. M0-Spikeaufträge ausführungsreif machen; ihre Ergebnisse schließen O-001, O-003, O-002 und O-015.
-2. Abschließender Konsistenz- und Agentenausführbarkeitscheck für alle Leaf-Tasks M0–M2.
+Im aktuellen Planungshorizont M0–M2 ist keine Benutzerentscheidung mehr offen. O-001, O-003, O-002 und O-015 bleiben bis zur Ausführung der fest spezifizierten M0.3-Spikes in der Tabelle, sind aber keine Gesprächsblocker: Der jeweilige Spike entscheidet sie anhand seiner festen Kandidaten, Fixtures und Auswahlregeln. Der Konsistenz- und Agentenausführbarkeitscheck aller M0–M2-Leaf-Tasks wurde am 2026-09-18 abgeschlossen.
 
 O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-022, O-023, O-024, O-011, O-004 und O-016 werden nicht in diesem Workshop vorentschieden. Sie verbleiben offen und werden im `Mx.0`-Gate ihres ersten betroffenen Milestones bearbeitet. O-005 und O-006 bleiben Entscheidungen außerhalb der aktuellen Roadmap.
 
