@@ -63,9 +63,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M2.4 abschließen**
 
   - [ ] **M2.4-T1 – Responsive Mindestdarstellung und Tastaturnavigation absichern**
-    - Umfang: Desktop-first Layout bei schmalem Browser, Zoom, Fokusreihenfolge, Skip-Ziele und grundlegende ARIA-Semantik.
-    - Tests: automatisierte Accessibility-Smokes plus definierte manuelle Tastaturprüfung.
-    - Abnahme: Kernnavigation ist ohne Maus bedienbar; Inhalt bleibt bei Mindestbreite erreichbar.
+    - Umfang: Desktop-first Layout bei 1024 × 720, 200-%-Zoom ohne Funktionsverlust, 400-%-Reflow für normale Inhalte, Fokusreihenfolge, Skip-Ziele, Kontraste und semantische Beschriftung gemäß O-021.
+    - Tests: Komponentenassertionen, wenige Accessibility-Smokes und echte Tastatursequenzen ausschließlich headless; zusätzlich eine kurze reproduzierbare Tastaturcheckliste für die menschliche Abnahme erstellen.
+    - Abnahme: Kernnavigation und Shellzustände sind ohne Maus bedienbar; Fokus bleibt sichtbar, Inhalt bleibt bei Mindestbreite und Desktop-Zoom erreichbar. Der Agent startet keinen interaktiven Browser und behauptet keine formale WCAG-Zertifizierung.
 
   - [ ] **M2.4-T2 – Reconnect- und Circuit-Verlust-Oberfläche implementieren**
     - Umfang: Reconnecting, getrennt, Wiederverbinden und kontrolliertes Neuladen darstellen.

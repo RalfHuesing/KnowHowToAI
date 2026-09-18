@@ -65,5 +65,6 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-014 | Web, MCP und PDF bleiben in `KnowHowToAI.Server`; die verbindliche Feature-, Namespace- und Teststruktur steht in einem eigenen Strukturkonzept |
 | K-015 | Keine kostenpflichtigen Komponenten; jede direkte und transitive Abhängigkeit muss kostenlos nutzbar und mit der MIT-Distribution vereinbar sein, Lizenzpflichten werden eingehalten |
 | K-016 | Rollierende Detailplanung: M0–M2 werden jetzt ausführungsreif geschärft; M3 und jedes folgende Milestone starten mit einem manuellen `Mx.0`-Planungs- und Konzept-Gate |
+| K-017 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows ohne formale Zertifizierung; Agenten prüfen automatisiert headless, die manuelle Tastaturcheckliste führt ein Mensch aus |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

@@ -49,16 +49,14 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M0.3 abschließen**
 
   - [ ] **M0.3-T1 – UI-Komponentenbasis auswählen**
-    - Voraussetzung: O-021 zum Barrierefreiheitsziel ist durch den Benutzer entschieden.
     - Umfang: native Blazor-/HTML-/CSS-Lösung und höchstens leichte OSS-Bibliotheken für Layout, Navigation, Formulare, Dialoge, Tabellen, Benachrichtigungen, Theme und Barrierefreiheit anhand eines kleinen Prototyps vergleichen.
-    - Prüfen: fachlicher Mehrwert gegenüber Eigenlösung, .NET-/Blazor-Kompatibilität, aktive Pflege, kostenlose MIT-distributionskompatible Lizenz einschließlich transitiver Abhängigkeiten und NOTICE-Pflichten, Paket-/Bundle-Gewicht, zusätzliche Toolchain, JS-Interop, keine erzwungene Cloud/CDN-Nutzung sowie Testbarkeit und Betriebsauswirkungen.
+    - Prüfen: fachlicher Mehrwert gegenüber Eigenlösung, .NET-/Blazor-Kompatibilität, aktive Pflege, kostenlose MIT-distributionskompatible Lizenz einschließlich transitiver Abhängigkeiten und NOTICE-Pflichten, Paket-/Bundle-Gewicht, zusätzliche Toolchain, JS-Interop, keine erzwungene Cloud/CDN-Nutzung sowie Testbarkeit und Betriebsauswirkungen. Die O-021-Kernregeln für Tastatur, Fokus, Semantik, Kontrast und Zoom werden am Prototyp belegt.
     - Nicht enthalten: Knowledge Tree und Rich-Text-Editor; diese werden separat entschieden.
     - Abnahme: O-001 ist mit Entscheidung, Begründung, Lizenzprüfung und verworfenen Alternativen geschlossen; Browserunterstützung erfüllt O-013. „Keine allgemeine Komponentenbibliothek“ ist ausdrücklich zulässig.
 
   - [ ] **M0.3-T2 – Knowledge-Tree-Komponente auswählen**
-    - Voraussetzung: O-021 zum Barrierefreiheitsziel ist durch den Benutzer entschieden.
     - Umfang: tiefe und breite Beispieldaten mit Lazy Loading, Paging, Virtualisierung, Auswahl, Tastaturbedienung sowie Drag-and-drop testen.
-    - Prüfen: Zielvorschau, kontrolliertes Reordering, Integration in die gewählte UI-Basis sowie kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten.
+    - Prüfen: Zielvorschau, kontrolliertes Reordering, vollständige Tastaturalternative, Fokusführung, zugängliche Tree-Semantik, Integration in die gewählte UI-Basis sowie kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten.
     - Abnahme: O-003 ist geschlossen; Grenzen der Komponente sind dokumentiert.
 
   - [ ] **M0.3-T3 – Markdown-fähigen Rich-Text-Editor auswählen**

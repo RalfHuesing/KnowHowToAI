@@ -16,14 +16,14 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Mit O-021 fortfahren: verbindliches Barrierefreiheitsziel und verhältnismäßige Abnahme.
+3. Mit O-020 fortfahren: sichere Darstellung und Bearbeitung fremder Markdown-Inhalte.
 4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung für M0–M2 behandeln.
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
 Erste noch unbeantwortete Frage:
 
-> Soll WCAG 2.2 AA für die Kernworkflows als Entwicklungsziel gelten, automatisiert durch wenige Accessibility-Smokes und manuell durch eine definierte Tastaturprüfung abgenommen, jedoch ohne formale Zertifizierung?
+> Sollen Raw HTML und externe Bilder grundsätzlich inaktiv bleiben, Links nur sichere Schemas verwenden und eingefügte Fremdformatierung auf den erlaubten Markdownumfang reduziert werden?
 
 ## Entscheidungsreihenfolge für M0–M2
 
@@ -157,6 +157,7 @@ Quellen:
 | O-018 | Keine kostenpflichtigen Komponenten. Direkte und transitive Abhängigkeiten müssen kostenlos nutzbar und mit der MIT-Distribution vereinbar sein. Einfache UI/CSS wird pragmatisch selbst umgesetzt; spezialisierte OSS-Komponenten nur bei belegtem Mehrwert. | Kommerzielle Suites entfallen; Lizenzprüfung bleibt Pflicht; „keine allgemeine UI-Bibliothek“ ist für O-001 zulässig. |
 | O-028 | Das Repository steht unter MIT-Lizenz; Copyrightinhaber ist `Ralf Hüsing`, Startjahr 2026. | Root-`LICENSE` ist vorhanden; M0.1-T2 prüft sie und ergänzt weiterhin das Abhängigkeitsinventar. |
 | O-013 | Die Anwendung wird browserneutral mit Webstandards gebaut. Automatisiert abgenommen wird ausschließlich die aktuelle stabile Desktopversion von Google Chrome im Headless-Modus; keine eigene Edge-/Firefox-/Safari-Testmatrix und keine interaktiven Browserstarts durch Agenten. Zielgerät ist der PC: volle Darstellung ab 1280 × 720 CSS-Pixeln, bei 1024 × 720 mit verdichtetem Layout und einklappbaren Seitenbereichen noch vollständig bedienbar; Smartphones sind kein Ziel. | Begrenzte, deterministische Testmatrix ohne browserspezifische Produktpfade oder Mobile-UI. Zoom-/Reflow-Anforderungen folgen ausschließlich aus O-021. |
+| O-021 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows, jedoch keine formale Konformitäts- oder Zertifizierungsbehauptung. Verbindlich sind insbesondere Tastaturbedienung, Fokus, Semantik, Kontrast und Desktop-Zoom. | Agenten prüfen Komponenten und wenige Headless-Chrome-Smokes automatisiert. Eine feste manuelle Tastaturcheckliste ist für Menschen bestimmt; Agenten starten dafür keinen interaktiven Browser. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -164,7 +165,6 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-021 | Accessibility | WCAG 2.2 AA für Kernworkflows, axe-Smokes und manuelle Tastaturabnahme; keine formale Zertifizierung im ersten Stand | verhindert spätere unplanbare Nachrüstung |
 | O-020 | Raw HTML, Links, Bilder, Paste | Raw HTML nicht ausführen; sichere URL-Schemata; externe Bilder nicht automatisch laden; Paste auf erlaubtes Markdown reduzieren | schützt Browser/PDF vor XSS, Tracking und lokalen/externen Ressourcenzugriffen |
 
 ### Block C – Host und MCP

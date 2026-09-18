@@ -14,10 +14,21 @@ Die Oberfläche ist sachlich, seriös und modern. Sie entspricht der Erwartung a
 - Verbindlicher automatisierter Browser-Abnahmekanal ist ausschließlich die jeweils aktuelle stabile Desktopversion von Google Chrome. Andere Browserfamilien und Microsoft Edge werden nicht als eigene Testmatrix behandelt; ihre Funktion ist erwartete Kompatibilität, aber keine separat nachgewiesene Abnahme.
 - Browser-E2E läuft ausschließlich nichtinteraktiv im Headless-Modus. Implementierungsagenten starten für reguläre Abnahmen kein sichtbares Browserfenster.
 - Zielgerät ist ein PC mit Desktopbrowser; Smartphones und eine eigenständige mobile Oberfläche sind ausdrücklich kein Ziel.
-- Die vollständige Desktopdarstellung ist ab 1280 × 720 CSS-Pixeln bei 100 % Zoom ausgelegt. Bei 1024 × 720 bleibt die gesamte Funktion mit verdichtetem Layout und einklappbaren Seitenbereichen erreichbar. Unterhalb dieser Referenzbreite besteht außer den noch in O-021 festzulegenden Zoom-/Accessibility-Regeln keine Produktanforderung.
+- Die vollständige Desktopdarstellung ist ab 1280 × 720 CSS-Pixeln bei 100 % Zoom ausgelegt. Bei 1024 × 720 bleibt die gesamte Funktion mit verdichtetem Layout und einklappbaren Seitenbereichen erreichbar. Unterhalb dieser Referenzbreite besteht außer den nachfolgend festgelegten Zoom-/Accessibility-Regeln keine Produktanforderung.
 - Produktbranding und Theme werden zentral konfiguriert, nicht pro Seite erfunden.
 
-Offene Vorgaben zu Branding, UI-Sprache und Barrierefreiheit stehen in [Offene Fragen](07-entscheidungen-und-offene-fragen.md). Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
+Offene Vorgaben zu Branding und UI-Sprache stehen in [Offene Fragen](07-entscheidungen-und-offene-fragen.md). Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
+
+## Barrierefreiheit
+
+WCAG 2.2 AA ist der Entwicklungsmaßstab für die menschlichen Kernworkflows, jedoch keine formale Konformitäts- oder Zertifizierungsbehauptung. Es gibt im ersten Stand keine Browser- oder Screenreader-Matrix.
+
+- Alle Kernfunktionen sind per Tastatur erreichbar. Es gibt keine Tastaturfalle; Fokusreihenfolge, sichtbarer und nicht vollständig verdeckter Fokus sowie Fokusübergabe bei Dialogen und Fehlern sind definiert.
+- Semantisches HTML, zugängliche Namen, Labels, Statusmeldungen und Fehlerzuordnungen werden bevorzugt; ARIA ergänzt nur fehlende native Semantik.
+- Textkontrast beträgt mindestens 4,5:1, großer Text mindestens 3:1. Relevante nichttextuelle UI-Zustände und Fokusdarstellungen erreichen mindestens 3:1 und werden nie nur durch Farbe vermittelt.
+- Bei 200 % Desktop-Zoom gehen keine Informationen oder Funktionen verloren. Bei 400 % Zoom fließen normale Inhalte einspaltig um; fachlich wirklich zweidimensionale Bereiche dürfen innerhalb ihres eigenen Bereichs scrollen. Das ist Desktop-Zoom und begründet keine Smartphone-Unterstützung.
+- Drag-and-drop erhält immer eine funktional gleichwertige Tastaturalternative. Tree und Rich-Text-Editor werden in M0 nur ausgewählt, wenn ihre Kernfunktionen diese Regeln erfüllen oder mit begrenztem, dokumentiertem Aufwand erfüllen können.
+- Agenten prüfen repräsentative Zustände automatisiert mit Komponentenassertionen, wenigen Accessibility-Smokes und echten Tastatursequenzen im Headless-Chrome-Lauf. Eine kurze, feste manuelle Tastaturcheckliste wird für die Abnahme durch einen Menschen gepflegt; Agenten starten dafür keinen interaktiven Browser.
 
 ## Komponentenstrategie
 
