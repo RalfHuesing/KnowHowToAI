@@ -84,7 +84,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M2.4 abschließen**
 
-  - [ ] **M2.4-T1 – Responsive Mindestdarstellung und Tastaturnavigation absichern**
+  - [x] **M2.4-T1 – Responsive Mindestdarstellung und Tastaturnavigation absichern**
     - Prüfflächen: Root-Shell, geöffnete/geschlossene Seitenbereiche, Kontextleiste, Lade-/Fehlerzustand, Alert/Toast und Bestätigungsdialog. Keine M3-Fachseiten vorziehen.
     - Automatisierte Matrix in Headless Chrome: 1280 × 720 und 1024 × 720 bei 100 %; zusätzlich äquivalente Layoutbreiten 640 CSS-Pixel für 200-%- und 320 CSS-Pixel für 400-%-Reflow. Die beiden schmalen Prüfungen sind Zoom-/Reflow-Nachweise und keine Smartphonefreigabe; echter Browserzoom bleibt Teil der manuellen Checkliste.
     - Assertions: kein ungewollter horizontaler Seitenoverflow bei normalem Content; alle Texte/Aktionen erreichbar; fachlich zweidimensionale Testfläche scrollt nur im eigenen Bereich; Landmark-/Labelstruktur; logische Tabreihenfolge; Skip-Link; sichtbarer Fokus; Dialogfokus; Status nicht nur per Farbe; feste Tokenkontraste.
