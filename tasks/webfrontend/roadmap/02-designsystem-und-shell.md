@@ -93,7 +93,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Komponentenassertionen und die genannten gezielten Browser-Smokes; kein generischer Scanner oder weitere Accessibility-Abhängigkeit allein für diesen Task.
     - Abnahme: Kernnavigation und Shellzustände sind ohne Maus bedienbar; Fokus bleibt sichtbar, Inhalt bleibt bei Mindestbreite und Desktop-Zoom erreichbar. Der Agent startet keinen interaktiven Browser und behauptet keine formale WCAG-Zertifizierung.
 
-  - [ ] **M2.4-T2 – Reconnect- und Circuit-Verlust-Oberfläche implementieren**
+  - [x] **M2.4-T2 – Reconnect- und Circuit-Verlust-Oberfläche implementieren**
     - Umsetzung: die offizielle .NET-10-Blazor-Reconnect-Oberfläche/-Hooks verwenden und nur deren Markup/Styling kontrolliert anpassen; keine eigene parallele SignalR-Verbindung und keine unbegrenzte Retryschleife.
     - Zustände und Texte: „Verbindung wird wiederhergestellt …“ während Retry, „Verbindung getrennt“ mit „Erneut versuchen“ nach vorläufigem Fehlschlag sowie „Sitzung nicht mehr verfügbar“ mit „Seite neu laden“ bei abgelehntem/abgelaufenem Circuit. Status wird als Text plus Icon angekündigt.
     - Verhalten: Overlay blockiert nur unsichere Interaktion, behält die letzte Ansicht sichtbar und hat deterministischen Fokus. Erfolgreicher Reconnect schließt es ohne fachlichen Erfolgshinweis. Reload warnt nur bei tatsächlich gesetztem `IsDirty`; eine persistierte Transaction wird nicht als ungespeichert bezeichnet.
