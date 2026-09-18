@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../Roadmap.md)
 
-- [ ] **M1 abschließen**
+- [x] **M1 abschließen**
 
 Abhängigkeit: [M0](00-komponenten-und-architektur.md)
 
