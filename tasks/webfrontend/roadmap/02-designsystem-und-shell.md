@@ -18,7 +18,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M2.1 abschließen**
 
-  - [ ] **M2.1-T1 – Native UI-Basis implementieren**
+  - [x] **M2.1-T1 – Native UI-Basis implementieren**
     - Voraussetzung: `KnowHowToAI.Web.Tests` verwendet bUnit mit xUnit v3; `KnowHowToAI.BrowserTests` verwendet Microsoft.Playwright .NET und die installierte aktuelle Google-Chrome-Stable-Version ausschließlich headless mit `Channel = "chrome"`.
     - Integration: Blazor-/HTML-Komponenten direkt implementieren; keine allgemeine UI-Paketreferenz, keine Suite-Services und kein leeres Wrapperframework hinzufügen. Lokales CSS und nur tatsächlich benötigte schmale JS-Isolation in `App.razor` einbinden. Keine CDN-, Cloud-, Telemetrie- oder Laufzeit-Downloadabhängigkeit.
     - Dialog: nativen HTML-`dialog` über einen lokalen JS-Isolationsbaustein mit `showModal()`, Fokusfalle, `Escape` und Fokusrückgabe kapseln; der Baustein enthält keine allgemeine Zustandsmaschine.
