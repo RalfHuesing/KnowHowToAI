@@ -96,9 +96,9 @@ Startreihenfolge für M0.3-T3:
 2. **Tiptap** nur als Vergleich.
    - Sehr aktive Editorbasis.
    - Bidirektionale Markdown-Erweiterung ist weiterhin Beta und dokumentiert Verlust-/Grenzfälle; deshalb derzeit kein Startfavorit.
-3. **Toast UI Editor** nur als Wartungs-/Fallbackvergleich.
-   - Markdown- und WYSIWYG-Modus sowie Image-Hook vorhanden.
-   - Vor Auswahl aktuelle Wartungsaktivität und Roundtripqualität neu belegen.
+3. **TOAST UI Editor** nicht mehr prüfen.
+   - Das Upstream-Repository wurde am 2026-09-02 archiviert und ist schreibgeschützt.
+   - Damit scheidet der Kandidat bereits vor dem Spike am Wartungskriterium aus.
 
 Zwingende Spike-Golden-Master:
 
@@ -116,7 +116,7 @@ Quellen:
 - [Milkdown](https://github.com/Milkdown/milkdown)
 - [Milkdown Upload-Plugin](https://milkdown.dev/docs/api/plugin-upload)
 - [Tiptap Markdown](https://tiptap.dev/docs/editor/markdown)
-- [Toast UI Editor](https://github.com/nhn/tui.editor)
+- [TOAST UI Editor – archiviertes Repository](https://github.com/nhn/tui.editor)
 
 ### Testwerkzeuge – O-015
 
