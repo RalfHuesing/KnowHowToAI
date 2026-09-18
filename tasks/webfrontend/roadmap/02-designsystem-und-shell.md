@@ -16,7 +16,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M2.1 – Komponentenbasis und Theme
 
-- [ ] **M2.1 abschließen**
+- [x] **M2.1 abschließen**
 
   - [x] **M2.1-T1 – Native UI-Basis implementieren**
     - Voraussetzung: `KnowHowToAI.Web.Tests` verwendet bUnit mit xUnit v3; `KnowHowToAI.BrowserTests` verwendet Microsoft.Playwright .NET und die installierte aktuelle Google-Chrome-Stable-Version ausschließlich headless mit `Channel = "chrome"`.
@@ -28,7 +28,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: bUnit-Render-/Interaktionssmoke; Playwright-Dialogfolge `Enter`, `Tab`, `Shift+Tab`, `Escape` einschließlich sichtbarem Fokus und Fokusrückgabe; echter Hoststart und Netzwerkassertion, dass beim Laden keine Drittanbieter-Origin angefordert wird.
     - Abnahme: das Showcase-Fixture rendert und bedient alle genannten Basiskomponenten; der Dialogvertrag ist per Tastatur belegt; die Produktionsshell startet ohne allgemeine Komponentenbibliothek, externe Ressourcen oder Demooberfläche.
 
-  - [ ] **M2.1-T2 – Design-Tokens und Business-Theme definieren**
+  - [x] **M2.1-T2 – Design-Tokens und Business-Theme definieren**
     - Ablage: globale Tokens ausschließlich als CSS Custom Properties in `wwwroot/css/app.css`; komponentenspezifische Werte bleiben in scoped CSS und referenzieren die globalen Tokens. Es gibt kein zweites Bibliotheks-Theme.
     - Startwerte Farben: Primary `#2563EB`, Primary Hover `#1D4ED8`, Primary Active `#1E40AF`, Text `#111827`, Secondary Text `#4B5563`, Page `#F8FAFC`, Surface `#FFFFFF`, Border `#CBD5E1`, Success `#15803D` auf `#F0FDF4`, Warning `#B45309` auf `#FFFBEB`, Danger `#B91C1C` auf `#FEF2F2` und Info/Primary auf `#EFF6FF`. Status besitzt zusätzlich Icon und Text.
     - Startwerte Maße: `4/8/12/16/24/32px`-Abstandsskala, Radien `4/8px`, Surface-Schatten `0 1px 2px rgb(15 23 42 / 0.08)`, Basistext `16px` mit `1.5` Zeilenhöhe und die Systemschriftkette `Segoe UI, Arial, sans-serif`. Fokus ist ein mindestens `3px` starker Ring in Primary mit `2px` Abstand und wird nicht per `outline: none` entfernt.
