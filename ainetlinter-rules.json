@@ -22,7 +22,8 @@
     ],
     "SemanticNamingAllowSubstringOfMethodName": true,
     "AllowedSilentCatchExceptionTypes": [
-      "ObjectDisposedException"
+      "ObjectDisposedException",
+      "JSDisconnectedException"
     ],
     "EnforceMinimalApiAsParameters": false,
     "EnforceResultPatternOverExceptions": false,
