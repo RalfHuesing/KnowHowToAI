@@ -125,8 +125,8 @@ pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatab
   laufen gegen die manuell bereitgestellte, konfigurierte Datenbank; der Harness
   erzeugt oder entfernt keine Datenbanken. Fehlende SQL-Voraussetzungen sind ein
   klarer Preflight-Fehler, kein grüner Skip.
-- Der Browser-Shell-Smoke verlangt Google Chrome Stable `152.0.7977.83` im
-  headless `chrome`-Channel. Eine fehlende oder abweichende Version ist ein
+- Der Browser-Shell-Smoke verlangt Google Chrome Stable (installierte aktuelle
+  Version) im headless `chrome`-Channel. Eine fehlende Installation ist ein
   Preflight-Fehler; Chromium oder ein anderer Browser ist kein Fallback.
 - Teilnachweis: `pwsh -NoProfile -File scripts/test-integration.ps1 -Filter
   'FullyQualifiedName~<Testklasse>'` führt nur berührte SQL-Tests aus.

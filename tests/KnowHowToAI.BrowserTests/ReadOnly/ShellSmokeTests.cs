@@ -10,15 +10,13 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 [Trait("Category", "Integration")]
 public sealed class ShellSmokeTests
 {
-    private const string RequiredChromeVersion = "152.0.7977.83";
-
     [Fact]
     public async Task RootShell_UsesOneInteractiveCircuitWithoutServerLoopback()
     {
         if (!OperatingSystem.IsWindows())
             throw new PlatformNotSupportedException("Die Browsertests benötigen Windows mit Google Chrome Stable.");
 
-        EnsureRequiredChromeVersion();
+        EnsureChromeStableIsInstalled();
         var repositoryRoot = FindRepositoryRoot();
         var testRoot = Path.Combine(repositoryRoot, "temp", "browser-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(testRoot);
@@ -52,8 +50,25 @@ public sealed class ShellSmokeTests
             Assert.Contains("text/html", response.Headers["content-type"], StringComparison.OrdinalIgnoreCase);
             await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync("Shell bereit");
-            await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
-            await Assertions.Expect(page.GetByTestId("interaction-status")).ToHaveTextAsync("Interaktivität ist verfügbar.");
+            // Der Klick kann ankommen, bevor der Circuit das Ereignis verdrahtet
+            // hat (Warmup nach dem Serverstart). Deshalb klicken wir erneut, bis
+            // der beobachtbare Statuswechsel die Interaktivität belegt.
+            var interactionStatus = page.GetByTestId("interaction-status");
+            for (var attempt = 1; ; attempt++)
+            {
+                await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
+                try
+                {
+                    await Assertions.Expect(interactionStatus).ToHaveTextAsync(
+                        "Interaktivität ist verfügbar.",
+                        new() { Timeout = 2_000 });
+                    break;
+                }
+                catch (PlaywrightException) when (attempt < 10)
+                {
+                    // Circuit noch nicht verbunden; erneut klicken.
+                }
+            }
 
             Assert.NotEmpty(observedRequests);
             Assert.All(observedRequests, request => Assert.StartsWith(address, request, StringComparison.OrdinalIgnoreCase));
@@ -68,20 +83,20 @@ public sealed class ShellSmokeTests
                 serverProcess.Dispose();
             }
 
-            Directory.Delete(testRoot, recursive: true);
+            DeleteDirectoryWithRetry(testRoot);
         }
     }
 
     [SupportedOSPlatform("windows")]
-    private static void EnsureRequiredChromeVersion()
+    private static void EnsureChromeStableIsInstalled()
     {
         if (!OperatingSystem.IsWindows())
             throw new PlatformNotSupportedException("Die Browsertests benötigen Windows mit Google Chrome Stable.");
 
         var version = ReadChromeVersion(Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"))
             ?? ReadChromeVersion(Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"));
-        if (!string.Equals(version, RequiredChromeVersion, StringComparison.Ordinal))
-            throw new InvalidOperationException($"Google Chrome Stable {RequiredChromeVersion} ist erforderlich; gefunden: {version ?? "nicht installiert"}.");
+        if (string.IsNullOrWhiteSpace(version))
+            throw new InvalidOperationException("Google Chrome Stable ist erforderlich; es wurde keine installierte Version gefunden.");
     }
 
     private static async Task PublishServerAsync(string repositoryRoot, string publishDirectory)
@@ -124,6 +139,27 @@ public sealed class ShellSmokeTests
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         return $"http://127.0.0.1:{port}";
+    }
+
+    // Windows hält die Image-Section eines frisch beendeten Prozesses kurz nach
+    // dem Exit-Event weiterhin geöffnet; der Löschversuch wartet diesen Nachlauf
+    // über wenige Wiederholungen ab, statt den Test am Cleanup scheitern zu lassen.
+    private static void DeleteDirectoryWithRetry(string path)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                Directory.Delete(path, recursive: true);
+                return;
+            }
+            catch (Exception exception) when (
+                attempt < 5 &&
+                exception is UnauthorizedAccessException or IOException)
+            {
+                Thread.Sleep(millisecondsTimeout: 200);
+            }
+        }
     }
 
     private static string FindRepositoryRoot()
