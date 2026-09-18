@@ -22,6 +22,8 @@ Verbindlicher initialer Umfang:
 - Kontrollierte HTTP-Endpunkte werden erst in dem Milestone ergänzt, der den jeweiligen Browser-Upload oder -Download tatsächlich benötigt.
 - Keine allgemeine REST-/JSON-API und kein OpenAPI-Vertrag für n8n im ersten Schritt.
 
+Der M1-Webhost-Umbau verändert den vorhandenen `DatabaseConnection`-Vertrag nicht. SQL-Benutzername und Passwort dürfen für den aktuellen Entwicklungs- und ersten Betriebsstand weiterhin in der einzigen versionierten `appsettings.json` stehen. M1 führt weder Secret Provider noch Windows-Servicekonten, gMSA oder eine zweite Konfigurationsquelle ein. Die konkrete produktive Prozess-/SQL-Identität ist eine Betriebsentscheidung und wird erst im manuellen M6.0-Gate bei bekannter Deploymentumgebung bewertet.
+
 ## Blazor-interne Aufrufe
 
 Blazor Interactive Server läuft serverseitig. Komponenten und UI-nahe Services rufen Application Services deshalb direkt per Dependency Injection auf.

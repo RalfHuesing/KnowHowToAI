@@ -17,9 +17,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M1.1 abschließen**
 
   - [ ] **M1.1-T1 – Serverprojekt auf Webhost umstellen**
-    - Voraussetzung: O-022 zur produktiven Datenbankidentität und Secretquelle ist durch den Benutzer entschieden.
     - Umfang: `Microsoft.NET.Sdk.Web`, `WebApplication`, Composition Root und geordneten Start/Stop einführen.
-    - Erhalten: Konfigurationsvalidierung, SQL-Migrationen, Logging, Exitcodes und Application-/Repository-Registrierungen.
+    - Erhalten: bestehende `DatabaseConnection`-Sektion einschließlich SQL-Authentifizierung aus der einzigen `appsettings.json`, Konfigurationsvalidierung, SQL-Migrationen, Logging, Exitcodes und Application-/Repository-Registrierungen.
+    - Nicht enthalten: Windows-Servicekonto, gMSA, Secret Provider oder andere produktive Credential-Infrastruktur; diese Betriebswahl gehört in M6.0.
     - Tests: Hoststart, Konfigurationsfehler, Migrationserfolg/-fehler und Shutdown.
     - Abnahme: bestehende fachliche Tests bleiben grün; Host läuft ohne Blazor- oder MCP-Funktionsausbau.
 

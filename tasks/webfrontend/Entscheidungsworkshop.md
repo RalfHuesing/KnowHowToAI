@@ -23,7 +23,7 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 Nächste Benutzerfrage nach Abschluss der M0-Taskschärfung:
 
-> Unter welcher produktiven Windows-/SQL-Identität soll der gemeinsame Serverhost laufen, und woher erhält er gegebenenfalls benötigte Secrets (O-022)?
+> Welche konkreten MCP-Clients sollen den HTTP-Hard-Cut in M1 verbindlich abnehmen (O-019)?
 
 ## Entscheidungsreihenfolge für M0–M2
 
@@ -31,7 +31,7 @@ Nächste Benutzerfrage nach Abschluss der M0-Taskschärfung:
 |---|---|---|
 | A – Auswahlrahmen | O-013, O-021, O-020 | Zielbrowser, Barrierefreiheit und sichere Contentdarstellung vor Komponenten-Spikes festlegen |
 | B – Technische Spikes | O-001, O-003, O-002, O-015 | UI-Paket, Tree, Editor und Testwerkzeuge evidenzbasiert auswählen |
-| C – Host und MCP | O-022, O-019 | produktive Datenbankidentität und reale HTTP-MCP-Clients festlegen |
+| C – MCP | O-019 | reale HTTP-MCP-Clients für den Transport-Hard-Cut festlegen |
 | D – Theme und Sprache | O-009, O-014 | Branding und UI-Sprache für M2 definieren |
 
 Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M3 bearbeitet und nicht jetzt vorsorglich entschieden.
@@ -159,6 +159,7 @@ Quellen:
 | O-013 | Die Anwendung wird browserneutral mit Webstandards gebaut. Automatisiert abgenommen wird ausschließlich die aktuelle stabile Desktopversion von Google Chrome im Headless-Modus; keine eigene Edge-/Firefox-/Safari-Testmatrix und keine interaktiven Browserstarts durch Agenten. Zielgerät ist der PC: volle Darstellung ab 1280 × 720 CSS-Pixeln, bei 1024 × 720 mit verdichtetem Layout und einklappbaren Seitenbereichen noch vollständig bedienbar; Smartphones sind kein Ziel. | Begrenzte, deterministische Testmatrix ohne browserspezifische Produktpfade oder Mobile-UI. Zoom-/Reflow-Anforderungen folgen ausschließlich aus O-021. |
 | O-021 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows, jedoch keine formale Konformitäts- oder Zertifizierungsbehauptung. Verbindlich sind insbesondere Tastaturbedienung, Fokus, Semantik, Kontrast und Desktop-Zoom. | Agenten prüfen Komponenten und wenige Headless-Chrome-Smokes automatisiert. Eine feste manuelle Tastaturcheckliste ist für Menschen bestimmt; Agenten starten dafür keinen interaktiven Browser. |
 | O-020 | Raw HTML außerhalb von Code wird serverseitig abgelehnt und nie ausgeführt. Links folgen einer Allowlist; externe Bilder und Ressourcen bleiben inaktiv, bis M8 nur kontrollierte interne Assets zulässt. Paste reduziert auf erlaubtes Markdown und weist sichtbar auf jede Reduktion hin. | Einheitliche Policy für MCP-/Web-Writes, Editor, Browser und PDF; kein stiller Contentverlust und kein ungeprüftes HTML-Rendering. |
+| O-022 (Abgrenzung M1) | Die produktive Windows-/SQL-Identität ist keine M1-Entwicklungsentscheidung. M1 behält die vorhandene `DatabaseConnection`-Konfiguration; Klartext-Zugangsdaten in `appsettings.json` sind für den aktuellen Stand akzeptiert. | Kein Dienstkonto-, gMSA- oder Secret-Provider-Vorratsbau. Eine abweichende produktive Betriebswahl wird erst in M6.0 bei bekannter Umgebung getroffen. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -167,11 +168,10 @@ Quellen:
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
 
-### Block C – Host und MCP
+### Block C – MCP
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-022 | produktive SQL-Identität/Secrets | Windows-Servicekonto mit integrierter SQL-Authentifizierung und minimalen Rechten; keine produktiven Kennwörter im Repository | kann bestehende Konfigurationsregel und Deploymentdoku ändern |
 | O-019 | reale Clients und Versionen | täglich verwendete Cursor-, Claude-, Hermes-, Codex-Varianten explizit nennen und testen | der STDIO-Hard-Cut erfolgt erst nach ihrer grünen Abnahme |
 
 ### Block D – Produkt- und Arbeitsverhalten

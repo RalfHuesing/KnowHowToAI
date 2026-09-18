@@ -34,7 +34,7 @@ Milestone Mx
 
 Vor Start der Implementierung werden gemeinsam mit dem Benutzer geschlossen:
 
-- O-022 (Datenbankidentität und Secretquelle) und O-019 (reale MCP-Zielclients) für M1;
+- O-019 (reale MCP-Zielclients) für M1;
 - O-009 (Branding) und O-014 (UI-Sprache) für M2.
 
 Die technischen Entscheidungen O-001, O-003, O-002 und O-015 werden nicht vorweggenommen. Sie sind die ausdrücklichen, evidenzbasierten Ergebnisse der M0.3-Spikes. Die zugehörigen M0-Tasks müssen dafür eine feste Kandidatenmenge, Prüfschritte, Ergebnisartefakte und eindeutige Abnahmeregeln vorgeben.

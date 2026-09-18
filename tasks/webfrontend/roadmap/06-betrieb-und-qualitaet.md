@@ -16,7 +16,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M6.0 abschließen**
   - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M5; kein delegierbarer Implementierungs-Leaf-Task.
-  - Entscheiden: Zieldeployment (O-012), Last- und Performanceziele (O-017), Recovery und Aufbewahrung (O-023) sowie Betriebsbeobachtung (O-024).
+  - Entscheiden: Zieldeployment (O-012), gegebenenfalls produktive Prozess-/SQL-Identität und Secretbehandlung (O-022), Last- und Performanceziele (O-017), Recovery und Aufbewahrung (O-023) sowie Betriebsbeobachtung (O-024).
   - Prüfen: real implementierte Browser- und MCP-Workflows, gemessene Datenmengen, produktive Infrastruktur und verbliebene Qualitätsrisiken gegen die bisherigen Entwurfstasks.
   - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M6-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
   - Gate: M6.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
