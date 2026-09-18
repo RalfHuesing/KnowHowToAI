@@ -10,10 +10,13 @@ Die Oberfläche ist sachlich, seriös und modern. Sie entspricht der Erwartung a
 - Statusfarben ausschließlich semantisch: Erfolg, Warnung, Fehler, stale, Working, committed.
 - Klare Hover-, Fokus-, Auswahl-, Lade-, Leer- und Fehlerzustände.
 - Tastaturbedienung, ausreichende Kontraste und zugängliche Komponenten.
-- Browser-, Versions- und Viewportgrenzen werden vor der Komponentenauswahl durch O-013 festgelegt und anschließend hier als verbindliche Werte übernommen.
+- Die Implementierung verwendet Webstandards und enthält keine absichtlichen Ausschlüsse oder browserspezifischen Produktpfade. Sie soll in aktuellen Browsern funktionieren.
+- Verbindlicher automatisierter Browser-Abnahmekanal ist ausschließlich die jeweils aktuelle stabile Desktopversion von Google Chrome. Andere Browserfamilien und Microsoft Edge werden nicht als eigene Testmatrix behandelt; ihre Funktion ist erwartete Kompatibilität, aber keine separat nachgewiesene Abnahme.
+- Browser-E2E läuft ausschließlich nichtinteraktiv im Headless-Modus. Implementierungsagenten starten für reguläre Abnahmen kein sichtbares Browserfenster.
+- Die Viewport- und Größengrenzen bleiben bis zum Abschluss von O-013 offen.
 - Produktbranding und Theme werden zentral konfiguriert, nicht pro Seite erfunden.
 
-Offene Vorgaben zu Branding, UI-Sprache und Zielbrowsern stehen in [Offene Fragen](07-entscheidungen-und-offene-fragen.md). Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
+Offene Vorgaben zu Branding, UI-Sprache und Viewportgrenzen stehen in [Offene Fragen](07-entscheidungen-und-offene-fragen.md). Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit UTC-Wert im Tooltip dargestellt.
 
 ## Komponentenstrategie
 

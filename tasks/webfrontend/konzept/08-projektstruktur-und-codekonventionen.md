@@ -354,7 +354,8 @@ tests/KnowHowToAI.BrowserTests/
 ```
 
 - `Web.Tests` spiegelt die Produktionsfeaturegrenzen. Component-Tests prüfen Rendering und Interaktion; fachliche Varianten verbleiben in `Core.Tests`.
-- `BrowserTests` enthält nur vollständige Benutzerabläufe. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions.
+- `BrowserTests` enthält nur vollständige Benutzerabläufe. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Alle regulären Läufe verwenden die aktuelle stabile Google-Chrome-Desktopversion headless; Agenten starten kein sichtbares Browserfenster und keine zusätzliche Browsermatrix.
+- Nichttriviale eigene JavaScript-Logik benötigt schnelle JS-Unit-Tests. M0.3-T4 legt Werkzeug, Ablage und Skriptintegration fest; ohne eigenständige JS-Logik wird keine separate JS-Testtoolchain angelegt.
 - Host-/Routing-/MCP-Tests bleiben in `KnowHowToAI.IntegrationTests/Server`.
 - SQL- und Assetmetadaten-Tests bleiben in `KnowHowToAI.IntegrationTests/SqlServer`.
 - PDF-Prozessgrenztests liegen in `KnowHowToAI.IntegrationTests/Server/Pdf`; reine PDF-Orchestrierungstests liegen in `Core.Tests/Application/Retrieval/Export`.

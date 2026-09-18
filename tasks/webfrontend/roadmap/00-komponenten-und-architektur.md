@@ -68,8 +68,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Abnahme: O-002 ist geschlossen und alle im Contentkonzept geforderten Markdownstrukturen bestehen den Roundtrip; ein Kandidat mit semantischem Verlust wird nicht gewählt.
 
   - [ ] **M0.3-T4 – Web-Komponenten- und Browser-Testwerkzeuge auswählen**
-    - Umfang: Kandidaten für Razor-Komponententests und echte Browser-E2E gegen .NET 10, xUnit v3, CI-/lokalen Betrieb und die gewählten UI-Komponenten prüfen.
-    - Prüfen: Interaktion, JS-Interop, Screenshots, Browserinstallation, Headless-Betrieb, kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten sowie Wartung.
+    - Umfang: bUnit für Razor-Komponententests, Microsoft Playwright .NET für echte Headless-Chrome-E2E und bei nichttrivialer eigener JavaScript-Logik Vitest als JS-Unit-Testwerkzeug gegen .NET 10, xUnit v3, CI-/lokalen Betrieb und die gewählten UI-Komponenten prüfen.
+    - Prüfen: Interaktion, JS-Interop, Screenshots, reproduzierbare nichtinteraktive Chrome-Installation, ausschließlicher Headless-Betrieb, kostenlose MIT-distributionskompatible Lizenz aller direkten und transitiven Abhängigkeiten sowie Wartung.
+    - Regel: keine Browsermatrix und keine sichtbaren Browserstarts durch Implementierungsagenten. Vitest wird nur eingeführt, wenn eigenes JavaScript eigenständige testwürdige Logik enthält; dünnes JS-Interop wird über Komponenten- und Browsertests abgedeckt.
     - Nicht enthalten: Testprojekte oder produktive Testfälle; diese folgen in M2.
     - Abnahme: O-015 ist geschlossen; Werkzeuge und verworfene Alternativen sind im Strukturkonzept dokumentiert.
 

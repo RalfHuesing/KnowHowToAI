@@ -16,14 +16,14 @@ Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werde
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Mit O-013 fortfahren: unterstützte Browser, Versionen und Viewports.
+3. Mit dem offenen Teil von O-013 fortfahren: Viewport-, Zoom- und Mobilgrenzen.
 4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung für M0–M2 behandeln.
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
 Erste noch unbeantwortete Frage:
 
-> Welche Browser und Desktop-Viewports sollen im ersten Stand verbindlich unterstützt werden?
+> Ab welcher Desktopbreite muss die vollständige Bearbeitung funktionieren, und soll es unterhalb dieser Grenze nur eine reduzierte Ansicht oder eine mobil bedienbare Oberfläche geben?
 
 ## Entscheidungsreihenfolge für M0–M2
 
@@ -124,9 +124,10 @@ Quellen:
 Klare Startempfehlung:
 
 - **bUnit mit xUnit v3** für Razor-Komponenten, Rendering, Events, DI und kontrolliertes JS-Interop.
-- **Microsoft Playwright .NET mit xUnit v3** für reale Browserabläufe, SignalR/Reconnect, JS-lastige Fremdkomponenten, Downloads und Accessibility-Smokes.
+- **Microsoft Playwright .NET mit xUnit v3** ausschließlich headless gegen die aktuelle Google-Chrome-Stable-Version für reale Browserabläufe, SignalR/Reconnect, JS-lastige Fremdkomponenten, Downloads und Accessibility-Smokes.
+- **Vitest** als Startkandidat für schnelle Unit-Tests, sobald eigenes JavaScript mehr als dünnes, durch Komponenten- oder Browsertests ausreichend belegtes JS-Interop enthält. Ohne solche Logik wird keine JS-Testtoolchain vorsorglich eingeführt.
 - Browser-E2E bleibt klein; fachliche Varianten gehören in Core-/Komponententests.
-- Playwright verwendet web-first Assertions und Rollen-/Label-/Test-ID-Locators; keine festen Wartezeiten.
+- Playwright verwendet web-first Assertions und Rollen-/Label-/Test-ID-Locators; keine festen Wartezeiten und keine sichtbaren Browserstarts durch Implementierungsagenten.
 
 Quellen:
 
@@ -155,6 +156,7 @@ Quellen:
 |---|---|---|
 | O-018 | Keine kostenpflichtigen Komponenten. Direkte und transitive Abhängigkeiten müssen kostenlos nutzbar und mit der MIT-Distribution vereinbar sein. Einfache UI/CSS wird pragmatisch selbst umgesetzt; spezialisierte OSS-Komponenten nur bei belegtem Mehrwert. | Kommerzielle Suites entfallen; Lizenzprüfung bleibt Pflicht; „keine allgemeine UI-Bibliothek“ ist für O-001 zulässig. |
 | O-028 | Das Repository steht unter MIT-Lizenz; Copyrightinhaber ist `Ralf Hüsing`, Startjahr 2026. | Root-`LICENSE` ist vorhanden; M0.1-T2 prüft sie und ergänzt weiterhin das Abhängigkeitsinventar. |
+| O-013 (Browserteil) | Die Anwendung wird browserneutral mit Webstandards gebaut. Automatisiert abgenommen wird ausschließlich die aktuelle stabile Desktopversion von Google Chrome im Headless-Modus; keine eigene Edge-/Firefox-/Safari-Testmatrix und keine interaktiven Browserstarts durch Agenten. | Andere aktuelle Browser sollen funktionieren, gelten ohne eigenen Abnahmekanal aber als erwartbar kompatibel. Viewport-, Zoom- und Mobilgrenzen bleiben noch offen. |
 
 ## Offene Benutzerentscheidungen mit Empfehlung
 
@@ -162,7 +164,7 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-013 | Browser, Versionen, Viewports | Edge Stable verbindlich, Chrome Stable kompatibel; automatisiert Edge/Chromium; volle Bearbeitung ab 1280×720, lesbar ab 1024 px; kein Mobile/Safari/Firefox im ersten Stand | begrenzt CSS, Testmatrix und Komponentenwahl realistisch |
+| O-013 | Viewports, Zoom und Mobilgrenze | volle Bearbeitung ab 1280×720, darunter einspaltig/einklappbar und bei 1024 px noch vollständig bedienbar; keine eigenständige Mobile-Optimierung | schließt den noch offenen Teil der Browser-/Viewportentscheidung |
 | O-021 | Accessibility | WCAG 2.2 AA für Kernworkflows, axe-Smokes und manuelle Tastaturabnahme; keine formale Zertifizierung im ersten Stand | verhindert spätere unplanbare Nachrüstung |
 | O-020 | Raw HTML, Links, Bilder, Paste | Raw HTML nicht ausführen; sichere URL-Schemata; externe Bilder nicht automatisch laden; Paste auf erlaubtes Markdown reduzieren | schützt Browser/PDF vor XSS, Tracking und lokalen/externen Ressourcenzugriffen |
 
