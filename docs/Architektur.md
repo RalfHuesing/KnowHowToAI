@@ -160,6 +160,15 @@ kein Produktionsprojekt. Ein Dialog-Smoke belegt die Tastaturfolge
 Fokusrückgabe gegen dieselben Serverressourcen und dass beim Laden keine
 Drittanbieter-Origin angefordert wird.
 
+`KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die
+Repository-Root-Ermittlung (`TestRepositoryRoot`), Wegwerf-Verzeichnisse unter
+`temp/<prefix>_<random>` mit Selbstaufräumung beim Verlassen des `using`
+(`TestTempDirectory`, Dispose wartet den Image-Section-Nachlauf frisch
+beendeter Prozesse ab), das Schreiben persistenter Messberichte nach `temp/`
+(`TestMeasurementReports`) und das sprachabhängige Parsen von
+SET STATISTICS-Ausgaben (`SqlStatisticsMessages`). Gemeinsame Infrastruktur
+wird nur ergänzt, wenn mindestens zwei Testprojekte sie tatsächlich benötigen.
+
 ## Deployment
 
 Ein Serverprozess (eine EXE) wird über eine SQL-Verbindung mit genau einer

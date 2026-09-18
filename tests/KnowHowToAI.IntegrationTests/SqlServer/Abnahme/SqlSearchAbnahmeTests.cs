@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Globalization;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
@@ -9,6 +7,7 @@ using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Repositories.Retrieval;
+using KnowHowToAI.TestSupport;
 using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.IntegrationTests.SqlServer.Abnahme;
@@ -223,8 +222,8 @@ public sealed partial class SqlSearchAbnahmeTests
         stopwatch.Stop();
 
         var messageText = string.Join("\n", statistics);
-        var logicalReads = ParseLogicalReads(messageText);
-        var (cpuMs, elapsedMs) = ParseExecutionTimes(messageText);
+        var logicalReads = SqlStatisticsMessages.ParseLogicalReads(messageText);
+        var (cpuMs, elapsedMs) = SqlStatisticsMessages.ParseExecutionTimes(messageText);
         var planSummary = BuildPlanSummary(result.PlanRows);
 
         return new SearchQueryMeasurement(
@@ -281,31 +280,6 @@ public sealed partial class SqlSearchAbnahmeTests
         return string.Join("\n", statementLines.Concat(operatorLines));
     }
 
-    private static (int Total, Dictionary<string, int> ByTable) ParseLogicalReads(string messageText)
-    {
-        var byTable = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (Match match in LogicalReadsRegex().Matches(messageText))
-        {
-            var tableName = match.Groups[1].Value;
-            var reads = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
-            byTable[tableName] = byTable.GetValueOrDefault(tableName) + reads;
-        }
-
-        return (byTable.Values.Sum(), byTable);
-    }
-
-    private static (long CpuMs, long ElapsedMs) ParseExecutionTimes(string messageText)
-    {
-        Match? lastMatch = null;
-        foreach (Match match in ExecutionTimesRegex().Matches(messageText))
-            lastMatch = match;
-
-        return lastMatch is null
-            ? (0, 0)
-            : (long.Parse(lastMatch.Groups[1].Value, CultureInfo.InvariantCulture),
-                long.Parse(lastMatch.Groups[2].Value, CultureInfo.InvariantCulture));
-    }
-
     private static async Task<string> WriteMeasurementReportAsync(
         SqlTestDatabase database,
         IReadOnlyList<SearchQueryMeasurement> measurements)
@@ -317,27 +291,8 @@ public sealed partial class SqlSearchAbnahmeTests
             measurements,
             null);
 
-        var reportPath = Path.Combine(FindRepositoryRoot(), "temp", "search-abnahme-messung.json");
-        Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
-        File.WriteAllText(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
-        return reportPath;
+        return TestMeasurementReports.WriteJson("search-abnahme-messung.json", report);
     }
-
-    internal static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "KnowHowToAI.slnx")))
-            directory = directory.Parent;
-
-        return directory?.FullName
-            ?? throw new InvalidOperationException("Repository-Root mit KnowHowToAI.slnx wurde nicht gefunden.");
-    }
-
-    [GeneratedRegex(@"(?:Table|Tabelle): ""([^""]+)""\. (?:Scan count|Anzahl von [ÜU]berpr[üu]fungen): \d+, (?:logical reads|logische Lesevorg[aä]nge): (\d+)", RegexOptions.CultureInvariant)]
-    private static partial Regex LogicalReadsRegex();
-
-    [GeneratedRegex(@"(?:SQL Server Execution Times|SQL Server-Ausf[üu]hrungszeiten):\s*CPU[- ](?:time|Zeit) = (\d+) ms,\s*(?:elapsed time|verstrichene Zeit) = (\d+) ms", RegexOptions.CultureInvariant | RegexOptions.Singleline)]
-    private static partial Regex ExecutionTimesRegex();
 
     private sealed class SearchPlanRow
     {

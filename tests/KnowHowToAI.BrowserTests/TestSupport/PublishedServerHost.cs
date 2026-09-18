@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Versioning;
+using KnowHowToAI.TestSupport;
 using Microsoft.Win32;
 
 namespace KnowHowToAI.BrowserTests.TestSupport;
@@ -15,11 +16,11 @@ namespace KnowHowToAI.BrowserTests.TestSupport;
 public sealed class PublishedServerHost : IAsyncDisposable
 {
     private readonly Process _serverProcess;
-    private readonly string _testRoot;
+    private readonly TestTempDirectory _testDirectory;
 
-    private PublishedServerHost(string testRoot, Process serverProcess, string address)
+    private PublishedServerHost(TestTempDirectory testDirectory, Process serverProcess, string address)
     {
-        _testRoot = testRoot;
+        _testDirectory = testDirectory;
         _serverProcess = serverProcess;
         Address = address;
     }
@@ -32,21 +33,20 @@ public sealed class PublishedServerHost : IAsyncDisposable
             throw new PlatformNotSupportedException("Die Browsertests benötigen Windows mit Google Chrome Stable.");
 
         EnsureChromeStableIsInstalled();
-        var repositoryRoot = FindRepositoryRoot();
-        var testRoot = Path.Combine(repositoryRoot, "temp", "browser-tests", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(testRoot);
+        var repositoryRoot = TestRepositoryRoot.Resolve();
+        var testDirectory = TestTempDirectory.Create("browser-tests");
 
         try
         {
-            var publishDirectory = Path.Combine(testRoot, "publish");
+            var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);
             var address = AllocateLoopbackAddress();
             var serverProcess = StartServer(publishDirectory, address);
-            return new PublishedServerHost(testRoot, serverProcess, address);
+            return new PublishedServerHost(testDirectory, serverProcess, address);
         }
         catch
         {
-            Directory.Delete(testRoot, recursive: true);
+            testDirectory.Dispose();
             throw;
         }
     }
@@ -63,7 +63,7 @@ public sealed class PublishedServerHost : IAsyncDisposable
         finally
         {
             _serverProcess.Dispose();
-            DeleteDirectoryWithRetry(_testRoot);
+            _testDirectory.Dispose();
         }
     }
 
@@ -116,38 +116,6 @@ public sealed class PublishedServerHost : IAsyncDisposable
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         return $"http://127.0.0.1:{port}";
-    }
-
-    // Windows hält die Image-Section eines frisch beendeten Prozesses kurz nach
-    // dem Exit-Event weiterhin geöffnet; der Löschversuch wartet diesen Nachlauf
-    // über wenige Wiederholungen ab, statt den Test am Cleanup scheitern zu lassen.
-    private static void DeleteDirectoryWithRetry(string path)
-    {
-        for (var attempt = 1; ; attempt++)
-        {
-            try
-            {
-                Directory.Delete(path, recursive: true);
-                return;
-            }
-            catch (Exception exception) when (
-                attempt < 5 &&
-                exception is UnauthorizedAccessException or IOException)
-            {
-                Thread.Sleep(millisecondsTimeout: 200);
-            }
-        }
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        for (var current = new DirectoryInfo(AppContext.BaseDirectory); current is not null; current = current.Parent)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "KnowHowToAI.slnx")))
-                return current.FullName;
-        }
-
-        throw new DirectoryNotFoundException("Das Repository-Root konnte nicht ermittelt werden.");
     }
 
     [SupportedOSPlatform("windows")]

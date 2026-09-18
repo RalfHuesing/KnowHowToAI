@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using KnowHowToAI.Server.Mcp.Contracts;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
@@ -55,16 +56,6 @@ public sealed class McpErrorCatalogTests
     private static IReadOnlyList<string> ExtractCodes(string text) =>
         [.. Regex.Matches(text, "`([A-Za-z][A-Za-z0-9]+)`").Select(match => match.Groups[1].Value).Distinct()];
 
-    private static string FindCatalogPath()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null
-               && !File.Exists(Path.Combine(directory.FullName, "docs", "McpApi.md")))
-        {
-            directory = directory.Parent;
-        }
-
-        Assert.NotNull(directory);
-        return Path.Combine(directory.FullName, "docs", "McpApi.md");
-    }
+    private static string FindCatalogPath() =>
+        System.IO.Path.Combine(TestRepositoryRoot.Resolve(), "docs", "McpApi.md");
 }

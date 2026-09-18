@@ -1,7 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Domain.Common;
@@ -9,6 +6,7 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
+using KnowHowToAI.TestSupport;
 using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.IntegrationTests.SqlServer.Abnahme;
@@ -290,8 +288,8 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         stopwatch.Stop();
 
         var messageText = string.Join("\n", statistics);
-        var reads = ParseLadungsLogicalReads(messageText);
-        var (cpuMs, elapsedMs) = ParseLadungsExecutionTimes(messageText);
+        var reads = SqlStatisticsMessages.ParseLogicalReads(messageText);
+        var (cpuMs, elapsedMs) = SqlStatisticsMessages.ParseExecutionTimes(messageText);
         return new SqlLadungsMessung(
             basisZeilen, zielZeilen, reads.Total, reads.ByTable, cpuMs, elapsedMs,
             stopwatch.Elapsed.TotalMilliseconds);
@@ -376,31 +374,6 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         while (await reader.NextResultAsync());
     }
 
-    private static (int Total, Dictionary<string, int> ByTable) ParseLadungsLogicalReads(string messageText)
-    {
-        var byTable = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (Match match in LadungsLogicalReadsRegex().Matches(messageText))
-        {
-            var tableName = match.Groups[1].Value;
-            var reads = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
-            byTable[tableName] = byTable.GetValueOrDefault(tableName) + reads;
-        }
-
-        return (byTable.Values.Sum(), byTable);
-    }
-
-    private static (long CpuMs, long ElapsedMs) ParseLadungsExecutionTimes(string messageText)
-    {
-        Match? lastMatch = null;
-        foreach (Match match in LadungsExecutionTimesRegex().Matches(messageText))
-            lastMatch = match;
-
-        return lastMatch is null
-            ? (0, 0)
-            : (long.Parse(lastMatch.Groups[1].Value, CultureInfo.InvariantCulture),
-                long.Parse(lastMatch.Groups[2].Value, CultureInfo.InvariantCulture));
-    }
-
     private static async Task<string> SchreibeDiffMessberichtAsync(
         SqlTestDatabase database,
         SnapshotId baseSnapshotId,
@@ -418,18 +391,8 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
             istPlan,
             "Vollstaendige Snapshot-Ladung je Cursor-Seite konstant, unabhaengig vom Offset.");
 
-        var reportPath = Path.Combine(SqlSearchAbnahmeTests.FindRepositoryRoot(), "temp", "diff-abnahme-messung.json");
-        Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
-        File.WriteAllText(
-            reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
-        return reportPath;
+        return TestMeasurementReports.WriteJson("diff-abnahme-messung.json", report);
     }
-
-    [GeneratedRegex(@"(?:Table|Tabelle): ""([^""]+)""\. (?:Scan count|Anzahl von [ÜU]berpr[üu]fungen): \d+, (?:logical reads|logische Lesevorg[aä]nge): (\d+)", RegexOptions.CultureInvariant)]
-    private static partial Regex LadungsLogicalReadsRegex();
-
-    [GeneratedRegex(@"(?:SQL Server Execution Times|SQL Server-Ausf[üu]hrungszeiten):\s*CPU[- ](?:time|Zeit) = (\d+) ms,\s*(?:elapsed time|verstrichene Zeit) = (\d+) ms", RegexOptions.CultureInvariant | RegexOptions.Singleline)]
-    private static partial Regex LadungsExecutionTimesRegex();
 
     private sealed record SnapshotZeilenStatistik(
         int Nodes,

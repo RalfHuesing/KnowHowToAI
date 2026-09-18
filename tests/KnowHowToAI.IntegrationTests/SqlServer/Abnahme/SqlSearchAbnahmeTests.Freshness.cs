@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
@@ -7,6 +6,7 @@ using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Mapping;
 using KnowHowToAI.Storage.SqlServer.Repositories.Retrieval;
+using KnowHowToAI.TestSupport;
 using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.IntegrationTests.SqlServer.Abnahme;
@@ -117,8 +117,8 @@ public sealed partial class SqlSearchAbnahmeTests
         stopwatch.Stop();
 
         var messageText = string.Join("\n", statistics);
-        var logicalReads = ParseLogicalReads(messageText);
-        var (cpuMs, elapsedMs) = ParseExecutionTimes(messageText);
+        var logicalReads = SqlStatisticsMessages.ParseLogicalReads(messageText);
+        var (cpuMs, elapsedMs) = SqlStatisticsMessages.ParseExecutionTimes(messageText);
 
         return new FreshnessSearchMeasurement(
             "MitDerivedTrefferBeraterKomplett",
@@ -247,10 +247,7 @@ public sealed partial class SqlSearchAbnahmeTests
             "Kompletter SearchAsync-Pfad bei Derived-Treffern: Rollen- und Resolution-Laden, "
             + "SearchSql, volles Laden aller Contents und Dependencies (Freshness-Bewertung).");
 
-        var reportPath = Path.Combine(FindRepositoryRoot(), "temp", "search-abnahme-freshness-messung.json");
-        Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
-        File.WriteAllText(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
-        return reportPath;
+        return TestMeasurementReports.WriteJson("search-abnahme-freshness-messung.json", report);
     }
 
     private sealed record DerivedSearchRow(

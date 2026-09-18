@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\KnowHowToAI.Server\KnowHowToAI.Server.csproj" />
     <ProjectReference Include="..\..\src\KnowHowToAI.Core\KnowHowToAI.Core.csproj" />
+    <ProjectReference Include="..\KnowHowToAI.TestSupport\KnowHowToAI.TestSupport.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="bunit" />
