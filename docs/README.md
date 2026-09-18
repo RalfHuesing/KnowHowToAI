@@ -32,6 +32,7 @@ Entscheidungsgeschichte liegt in der Git-Historie.
 | [Datenmodell](Datenmodell.md) | SQL-Tabellen, Snapshot-Schlüssel, Transaction-Metadaten, Migrationen |
 | [Architektur](Architektur.md) | Stack, Schichten, Transportgrenzen, Projektstruktur, Deployment |
 | [Konfiguration und Betrieb](Konfiguration-und-Betrieb.md) | Konfigurationsschlüssel, Protokollierung, Build, Tests, Linter |
+| [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md) | manuelle Checkliste für Browserzoom, Reflow und Tastaturnavigation der Anwendungsshell |
 | [Invarianten](Invarianten.md) | verbindliche Regeln des Gesamtsystems |
 | [Entscheidungen](Entscheidungen.md) | Architekturentscheidungen, bewusste V1-Grenzen, spätere Erweiterungen |
 

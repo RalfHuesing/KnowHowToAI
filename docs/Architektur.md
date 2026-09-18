@@ -176,7 +176,9 @@ Verzeichnis
   `main`-Landmark für den Seiteninhalt, optional eingerückte
   Seitenbereiche und die einzige globale Toastregion. Landmarks:
   Sprunglink „Zum Hauptinhalt springen“ als
-  erstes Element, `header`, `nav` mit zugänglichem Namen
+  erstes Element – seine Aktivierung legt den Fokus auf das `main`-Landmark,
+  weil die erweiterte Blazor-Navigation den Hash-Link sonst abfängt, ohne
+  den Fokus zu verschieben –, `header`, `nav` mit zugänglichem Namen
   `Hauptnavigation` (genau der vorhandene Start-Link auf `/`; noch nicht
   implementierte Routen erscheinen bewusst nicht), `nav` `Breadcrumbs`,
   der Seitenaktionsbereich und optional `aside` `Kontext`.

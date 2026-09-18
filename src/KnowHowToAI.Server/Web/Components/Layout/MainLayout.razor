@@ -2,7 +2,8 @@
 @namespace KnowHowToAI.Server.Web.Components.Layout
 
 <div class="shell-root @(_isCompactMode ? "shell-root--compact" : "")">
-    <a class="shell-skip-link" href="#shell-main">Zum Hauptinhalt springen</a>
+    <a class="shell-skip-link" href="#shell-main" @onclick="SkipToMainAsync"
+       @onclick:preventDefault="true">Zum Hauptinhalt springen</a>
     <header class="shell-header">
         <div class="shell-header-brand">
             <span class="shell-brand">KnowHowToAI</span>
@@ -63,7 +64,7 @@
                 }
             </div>
         }
-        <main id="shell-main" class="shell-main" tabindex="-1">
+        <main id="shell-main" class="shell-main" tabindex="-1" @ref="_mainElement">
             @Body
         </main>
     </div>

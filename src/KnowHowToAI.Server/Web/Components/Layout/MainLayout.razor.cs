@@ -38,6 +38,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private RenderFragment? _renderedBody;
     private ElementReference _navigationToggleButton;
     private ElementReference _contextToggleButton;
+    private ElementReference _mainElement;
     private PrimaryNavigation? _primaryNavigation;
     private ContextPanel? _contextPanel;
     private DotNetObjectReference<MainLayout>? _selfReference;
@@ -154,6 +155,14 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
 
     private bool IsOpen(ShellPanel panel) =>
         panel == ShellPanel.Navigation ? _isNavigationOpen : _isContextOpen;
+
+    private async Task SkipToMainAsync()
+    {
+        // Blazors erweiterte Navigation fängt den Hash-Link ab und verschiebt
+        // weder Fokus noch Fokusstartpunkt; der Sprunglink legt den Fokus
+        // deshalb selbst auf das main-Landmark.
+        await _mainElement.FocusAsync();
+    }
 
     private void SetOpen(ShellPanel panel, bool isOpen)
     {
