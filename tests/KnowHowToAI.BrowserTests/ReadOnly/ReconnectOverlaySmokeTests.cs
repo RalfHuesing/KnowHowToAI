@@ -36,9 +36,15 @@ public sealed class ReconnectOverlaySmokeTests
         // KeepAlive-Timeouts (etwa 30 Sekunden); gewartet wird auf den
         // beobachtbaren Dialogzustand, nicht auf feste Zeiten.
         await Assertions.Expect(reconnectDialog).ToHaveAttributeAsync("open", "", new() { Timeout = 60_000 });
-        var visibleState = reconnectDialog.Locator(".components-reconnect-state:visible");
-        await Assertions.Expect(visibleState).ToHaveCountAsync(1, new() { Timeout = 15_000 });
-        await Assertions.Expect(visibleState).ToContainTextAsync("Verbindung wird wiederhergestellt", new() { Timeout = 5_000 });
+        // Beim Retryübergang setzt das Framework "components-reconnect-retrying",
+        // ohne "components-reconnect-show" zu entfernen: der Wiederherstellungs-
+        // Absatz bleibt neben dem Countdown-Absatz sichtbar. Gezählt wird daher
+        // nicht die Anzahl sichtbarer Zustände, sondern genau der geprüfte
+        // Absatz der Wiederherstellungsphase.
+        var reconnectingState = reconnectDialog.Locator(
+            "p.components-reconnect-state.components-reconnect-first-attempt-visible");
+        await Assertions.Expect(reconnectingState).ToBeVisibleAsync(new() { Timeout = 15_000 });
+        await Assertions.Expect(reconnectingState).ToContainTextAsync("Verbindung wird wiederhergestellt", new() { Timeout = 5_000 });
         Assert.Equal("components-reconnect-modal", await page.EvaluateAsync<string?>("document.activeElement?.id"));
 
         await page.Context.SetOfflineAsync(false);
@@ -90,9 +96,14 @@ public sealed class ReconnectOverlaySmokeTests
 
         var reconnectDialog = page.Locator("#components-reconnect-modal");
         await Assertions.Expect(reconnectDialog).ToHaveAttributeAsync("open", "", new() { Timeout = 60_000 });
-        var visibleState = reconnectDialog.Locator(".components-reconnect-state:visible");
-        await Assertions.Expect(visibleState).ToHaveCountAsync(1, new() { Timeout = 120_000 });
-        await Assertions.Expect(visibleState).ToContainTextAsync("Sitzung nicht mehr verfügbar", new() { Timeout = 5_000 });
+        // Im abgelehnten Zustand entfernt das Framework sämtliche
+        // Zustandsklassen und setzt ausschließlich "components-reconnect-
+        // rejected"; geprüft wird genau dieser Absatz statt einer Anzahl
+        // aller sichtbaren Zustandsabsätze.
+        var rejectedState = reconnectDialog.Locator(
+            "p.components-reconnect-state.components-reconnect-rejected-visible");
+        await Assertions.Expect(rejectedState).ToBeVisibleAsync(new() { Timeout = 120_000 });
+        await Assertions.Expect(rejectedState).ToContainTextAsync("Sitzung nicht mehr verfügbar", new() { Timeout = 5_000 });
 
         var reloadButton = reconnectDialog.GetByRole(AriaRole.Button, new() { Name = "Seite neu laden" });
         await Assertions.Expect(reloadButton).ToBeVisibleAsync(new() { Timeout = 5_000 });
