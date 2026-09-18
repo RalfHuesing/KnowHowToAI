@@ -15,6 +15,12 @@ namespace KnowHowToAI.BrowserTests.TestSupport;
 /// </summary>
 public sealed class PublishedServerHost : IAsyncDisposable
 {
+    // xUnit v3 führt die Browser-Smoke-Klassen parallel aus; mehrere gleichzeitige
+    // dotnet-publish-Aufrufe desselben Projekts konkurrieren um MSBuild-Locks in
+    // obj/ und scheitern intermittierend mit Exitcode 1. Nur das Publishen wird
+    // serialisiert — die Server-Starts und -Läufe bleiben parallel.
+    private static readonly SemaphoreSlim _publishGate = new(1, 1);
+
     private readonly Process _serverProcess;
     private readonly TestTempDirectory _testDirectory;
 
@@ -93,17 +99,25 @@ public sealed class PublishedServerHost : IAsyncDisposable
 
     private static async Task PublishServerAsync(string repositoryRoot, string publishDirectory)
     {
-        var publish = new ProcessStartInfo("dotnet") { UseShellExecute = false };
-        publish.ArgumentList.Add("publish");
-        publish.ArgumentList.Add(Path.Combine(repositoryRoot, "src", "KnowHowToAI.Server", "KnowHowToAI.Server.csproj"));
-        publish.ArgumentList.Add("--nologo");
-        publish.ArgumentList.Add("--output");
-        publish.ArgumentList.Add(publishDirectory);
+        await _publishGate.WaitAsync();
+        try
+        {
+            var publish = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+            publish.ArgumentList.Add("publish");
+            publish.ArgumentList.Add(Path.Combine(repositoryRoot, "src", "KnowHowToAI.Server", "KnowHowToAI.Server.csproj"));
+            publish.ArgumentList.Add("--nologo");
+            publish.ArgumentList.Add("--output");
+            publish.ArgumentList.Add(publishDirectory);
 
-        using var process = Process.Start(publish) ?? throw new InvalidOperationException("Der Publish-Prozess konnte nicht gestartet werden.");
-        await process.WaitForExitAsync();
-        if (process.ExitCode != 0)
-            throw new InvalidOperationException($"Der Publish-Prozess ist mit Exitcode {process.ExitCode} beendet worden.");
+            using var process = Process.Start(publish) ?? throw new InvalidOperationException("Der Publish-Prozess konnte nicht gestartet werden.");
+            await process.WaitForExitAsync();
+            if (process.ExitCode != 0)
+                throw new InvalidOperationException($"Der Publish-Prozess ist mit Exitcode {process.ExitCode} beendet worden.");
+        }
+        finally
+        {
+            _publishGate.Release();
+        }
     }
 
     private static Process StartServer(string publishDirectory, string address)
