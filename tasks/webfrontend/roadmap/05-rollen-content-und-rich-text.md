@@ -12,6 +12,15 @@ Referenzen: [Node-Ansicht und Editor](../konzept/02-bedienkonzept-und-ui.md#node
 
 Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
 
+## M5.0 – Manuelle Planung und Konzeptschärfung
+
+- [ ] **M5.0 abschließen**
+  - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M4; kein delegierbarer Implementierungs-Leaf-Task.
+  - Entscheiden: Markdown-Quellmodus (O-010) sowie die noch offenen konkreten Editor-, Rollen-, Fallback-, Derived-Content- und Validierungsabläufe.
+  - Prüfen: produktive Transaction- und Konflikt-UX aus M4, M0-Editorentscheidung, sichere Contentpolicy und tatsächliche Core-Verträge gegen die bisherigen Entwurfstasks.
+  - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M5-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
+  - Gate: M5.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
+
 ## M5.1 – Editorbasis
 
 - [ ] **M5.1 abschließen**

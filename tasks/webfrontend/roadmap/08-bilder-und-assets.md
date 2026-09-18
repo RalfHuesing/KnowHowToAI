@@ -14,6 +14,15 @@ Referenz: [Bilder und Assets](../konzept/03-content-und-assets.md#bilder-und-ass
 
 Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
 
+## M8.0 – Manuelle Planung und Konzeptschärfung
+
+- [ ] **M8.0 abschließen**
+  - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M7; kein delegierbarer Implementierungs-Leaf-Task.
+  - Entscheiden: Asset-Speicherstrategie und Backupkopplung (O-004), erlaubte Bildtypen und Grenzen (O-016) sowie Upload-, Referenz- und Bereinigungs-UX.
+  - Prüfen: produktiven Editor, Browser-/MCP-/Markdown-/PDF-Ausgabepfade, reale Deploymenttopologie und Datenmengen gegen die bisherigen Entwurfstasks.
+  - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M8-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
+  - Gate: M8.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
+
 ## M8.1 – Daten- und Anwendungsmodell
 
 - [ ] **M8.1 abschließen**

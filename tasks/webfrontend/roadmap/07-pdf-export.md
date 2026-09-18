@@ -14,6 +14,15 @@ Referenz: [Publikation und PDF](../konzept/04-publikation-und-pdf.md)
 
 Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
 
+## M7.0 – Manuelle Planung und Konzeptschärfung
+
+- [ ] **M7.0 abschließen**
+  - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M6; kein delegierbarer Implementierungs-Leaf-Task.
+  - Entscheiden: PDF-Basislayout (O-011), verbindliche Zielumgebung der Renderer und der konkrete Benutzerablauf auf Basis des dann fertigen Kernfrontends.
+  - Prüfen: aktuellen Markdown-Export, Contentpolicy, Deploymentbedingungen, installierbare Werkzeugversionen und Lizenzpflichten gegen die bisherigen Entwurfstasks.
+  - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M7-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
+  - Gate: M7.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
+
 ## M7.1 – Werkzeuge und Template
 
 - [ ] **M7.1 abschließen**

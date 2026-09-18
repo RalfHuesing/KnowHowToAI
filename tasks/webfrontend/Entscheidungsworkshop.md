@@ -1,8 +1,8 @@
 # Entscheidungsworkshop: Arbeitsstand und Fortsetzung
 
-Stand: 2026-09-17
+Stand: 2026-09-18
 
-Status: aktiv; O-018 ist entschieden, 27 Punkte sind offen.
+Status: aktiv; aktueller Planungshorizont M0–M2. Von den offenen Punkten werden jetzt nur die dafür notwendigen Entscheidungen bearbeitet.
 
 ## Verbindlichkeit
 
@@ -17,7 +17,7 @@ Status: aktiv; O-018 ist entschieden, 27 Punkte sind offen.
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
 3. Mit O-028 fortfahren: Copyrightinhaber der fehlenden MIT-Lizenzdatei.
-4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung behandeln.
+4. Pro Gesprächsschritt genau eine zusammenhängende Benutzerentscheidung für M0–M2 behandeln.
 5. Empfehlung, Konsequenzen und betroffene Tasks nennen; keine unnötige Technikfrage an den Benutzer delegieren.
 6. Antwort sofort dokumentieren und committen, bevor der nächste Block beginnt.
 
@@ -25,17 +25,16 @@ Erste noch unbeantwortete Frage:
 
 > Unter welchem vollständigen Namen oder Firmennamen soll der Copyright-Hinweis der MIT-`LICENSE` geführt werden?
 
-## Entscheidungsreihenfolge
+## Entscheidungsreihenfolge für M0–M2
 
 | Block | IDs | Ziel |
 |---|---|---|
 | A – Auswahlrahmen | O-028, O-013, O-021, O-020 | Lizenzdatei, Zielbrowser, Barrierefreiheit und sichere Contentdarstellung vor Komponenten-Spikes festlegen |
 | B – Technische Spikes | O-001, O-003, O-002, O-015 | UI-Paket, Tree, Editor und Testwerkzeuge evidenzbasiert auswählen |
 | C – Host und MCP | O-022, O-019 | produktive Datenbankidentität und reale HTTP-MCP-Clients festlegen |
-| D – Produktverhalten | O-009, O-014, O-008, O-007, O-025, O-026, O-027 | Branding, Sprache, Arbeitskontext und Mehrclientverhalten definieren |
-| E – Betrieb und Last | O-012, O-017, O-023, O-024 | Zieltopologie, Last, Recovery und Betriebsbeobachtung messbar machen |
-| F – niedrige Priorität | O-010, O-011, O-004, O-016 | Quellmodus, PDF und Assets entscheiden, bevor ihre Milestones beginnen |
-| G – spätere Vorhaben | O-005, O-006 | Presentation Views und integrierte KI bewusst außerhalb der aktuellen Roadmap halten oder neu beauftragen |
+| D – Theme und Sprache | O-009, O-014 | Branding und UI-Sprache für M2 definieren |
+
+Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M3 bearbeitet und nicht jetzt vorsorglich entschieden.
 
 ## Technische Vorbewertung vom 2026-09-17
 

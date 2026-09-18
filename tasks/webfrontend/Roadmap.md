@@ -1,6 +1,6 @@
 # Roadmap: Webfrontend und Wissensplattform
 
-Stand: 2026-09-17
+Stand: 2026-09-18
 
 Status: Planungsartefakt; `docs/` beschreibt ausschließlich den implementierten Ist-Zustand.
 
@@ -21,6 +21,25 @@ Milestone Mx
 - Wird beim Start erkennbar, dass ein Leaf-Task diese Grenze überschreitet, wird er vor der Implementierung in weitere sequenzielle Leaf-Tasks geteilt.
 - Ein Task übernimmt keine unerwähnten Nachbarfeatures. Notwendige Folgethemen werden als neue Tasks dokumentiert.
 
+## Rollierender Planungshorizont
+
+- Der aktuelle Detailplanungshorizont endet mit M2. M0, M1 und M2 werden vor ihrer Agentenausführung so weit entschieden und präzisiert, dass ein Agent ohne hohes Reasoning-Niveau jeden Leaf-Task deterministisch bearbeiten kann.
+- Die beschriebenen Inhalte von M3 bis M8 halten derzeit Zielrichtung, Abhängigkeiten und bekannte Risiken fest. Sie sind bewusst noch keine Ausführungsfreigabe.
+- M3 und jedes folgende Milestone beginnen mit einem Arbeitspaket `Mx.0 – Manuelle Planung und Konzeptschärfung`. Dieses Arbeitspaket wird gemeinsam mit dem Benutzer bearbeitet und nie als Implementierungs-Leaf-Task an einen Agenten delegiert.
+- Im `Mx.0`-Gate werden der umgesetzte Ist-Stand des Vorgängermilestones ausgewertet, offene Produkt- und Technikentscheidungen getroffen, Konzeptdokumente fortgeschrieben und die nachfolgenden Leaf-Tasks des Milestones konkretisiert, geteilt, ersetzt oder entfernt.
+- Erst wenn das jeweilige `Mx.0`-Gate abgeschlossen und committed ist, sind die nachfolgenden Leaf-Tasks dieses Milestones zur Agentenausführung freigegeben.
+- Entscheidungen werden nicht vorsorglich für spätere Milestones erzwungen. Sie werden im zuständigen `Mx.0`-Gate mit dem dann bekannten Ist-Stand getroffen.
+
+### Freigabeziel für M0 bis M2
+
+Vor Start der Implementierung werden gemeinsam mit dem Benutzer geschlossen:
+
+- O-028 (Copyrightinhaber), O-013 (Browser und Viewports), O-021 (Barrierefreiheit) und O-020 (sichere Contentdarstellung) für M0;
+- O-022 (Datenbankidentität und Secretquelle) und O-019 (reale MCP-Zielclients) für M1;
+- O-009 (Branding) und O-014 (UI-Sprache) für M2.
+
+Die technischen Entscheidungen O-001, O-003, O-002 und O-015 werden nicht vorweggenommen. Sie sind die ausdrücklichen, evidenzbasierten Ergebnisse der M0.3-Spikes. Die zugehörigen M0-Tasks müssen dafür eine feste Kandidatenmenge, Prüfschritte, Ergebnisartefakte und eindeutige Abnahmeregeln vorgeben.
+
 ## Gesamtausführung durch einen Agenten
 
 Ein Agent mit dem Auftrag „alles umsetzen“ arbeitet deterministisch:
@@ -28,16 +47,18 @@ Ein Agent mit dem Auftrag „alles umsetzen“ arbeitet deterministisch:
 1. Milestone-Dateien in numerischer Reihenfolge öffnen.
 2. Darin den ersten nicht erledigten Leaf-Task in Dokumentreihenfolge wählen.
 3. Abhängigkeiten, referenzierte Konzepte, [Projektstruktur](konzept/08-projektstruktur-und-codekonventionen.md) und erforderliche `docs/` vollständig lesen.
-4. Prüfen, ob eine [offene Frage](konzept/07-entscheidungen-und-offene-fragen.md) den Task blockiert. Bei Blockade nicht raten, sondern den Benutzer fragen und den Punkt zuerst dokumentarisch schließen.
-5. Genau den Leaf-Task implementieren, prüfen, dokumentieren, abhaken und atomar committen.
-6. Erfüllte Arbeitspaket- und Milestone-Checkboxen im selben Commit schließen.
-7. Mit dem nächsten Leaf-Task fortfahren, bis die Roadmap abgeschlossen oder eine explizite Blockade erreicht ist.
+4. Prüfen, ob das Milestone innerhalb des aktuellen Planungshorizonts liegt oder sein `Mx.0`-Gate abgeschlossen ist. Andernfalls nicht implementieren und zur manuellen Planung zurückkehren.
+5. Prüfen, ob eine [offene Frage](konzept/07-entscheidungen-und-offene-fragen.md) den Task blockiert. Bei Blockade nicht raten, sondern den Benutzer fragen und den Punkt zuerst dokumentarisch schließen.
+6. Genau den Leaf-Task implementieren, prüfen, dokumentieren, abhaken und atomar committen.
+7. Erfüllte Arbeitspaket- und Milestone-Checkboxen im selben Commit schließen.
+8. Mit dem nächsten Leaf-Task fortfahren, bis die Roadmap abgeschlossen oder eine explizite Blockade erreicht ist.
 
 Bereits vorhandenes Verhalten wird nicht blind neu implementiert. Der Agent verifiziert es gegen die Task-Abnahme, ergänzt fehlende Nachweise und markiert den Task erst danach als erledigt.
 
 ## Verbindliche Arbeitsregeln
 
 - Milestones und Tasks werden in dokumentierter Reihenfolge umgesetzt; Abweichungen benötigen eine festgehaltene Begründung.
+- Ein `Mx.0`-Arbeitspaket ist ein manuelles Konzept-Gate, kein Agent-Task. Dessen Abschluss gibt nur das unmittelbar zugehörige Milestone frei.
 - Vor jedem Task gelten `AGENTS.md`, die Projektregeln und die Lese-Matrix in [`docs/`](../../docs/README.md).
 - [Projektstruktur und Codekonventionen](konzept/08-projektstruktur-und-codekonventionen.md) ist für jeden Task mit Produktions-, Test- oder Projektstrukturänderung Pflichtlektüre.
 - Der Agent liest die im Milestone und Task verlinkten Konzept- und Ist-Dokumente vollständig im relevanten Umfang.
@@ -56,12 +77,12 @@ Der Status wird ausschließlich in der jeweiligen Milestone-Datei gepflegt.
 | [M0 – Komponenten- und Architekturentscheidungen](roadmap/00-komponenten-und-architektur.md) | Risiken vor Produktivcode entscheiden | – |
 | [M1 – Gemeinsamer Webhost und MCP HTTP](roadmap/01-webhost-und-mcp-http.md) | Eine EXE, ein Port, Blazor und HTTP-MCP | M0 |
 | [M2 – Designsystem und Anwendungsshell](roadmap/02-designsystem-und-shell.md) | belastbare moderne UI-Grundlage | M1 |
-| [M3 – Read-only Wissenscockpit](roadmap/03-read-only-wissenscockpit.md) | vollständige menschliche Lesesicht | M2 |
-| [M4 – Transactions und Strukturpflege](roadmap/04-transactions-und-strukturpflege.md) | sichere visuelle Strukturänderungen | M3 |
-| [M5 – Rollen-Content und Rich Text](roadmap/05-rollen-content-und-rich-text.md) | vollständige Contentpflege ohne Agent | M4 |
-| [M6 – Betriebs- und Qualitätshärtung](roadmap/06-betrieb-und-qualitaet.md) | belastbarer Kernbetrieb | M1–M5 |
-| [M7 – Einfacher PDF-Teilbaumexport](roadmap/07-pdf-export.md) | niedrig priorisierter PDF-Download ohne verwaltete Content-Bilder | M6 |
-| [M8 – Bilder und Assetverwaltung](roadmap/08-bilder-und-assets.md) | niedrig priorisierte Bilder im gesamten Lebenszyklus einschließlich PDF | M5, M7 |
+| [M3 – Read-only Wissenscockpit](roadmap/03-read-only-wissenscockpit.md) | vollständige menschliche Lesesicht; beginnt mit manuellem M3.0-Gate | M2 |
+| [M4 – Transactions und Strukturpflege](roadmap/04-transactions-und-strukturpflege.md) | sichere visuelle Strukturänderungen; beginnt mit manuellem M4.0-Gate | M3 |
+| [M5 – Rollen-Content und Rich Text](roadmap/05-rollen-content-und-rich-text.md) | vollständige Contentpflege ohne Agent; beginnt mit manuellem M5.0-Gate | M4 |
+| [M6 – Betriebs- und Qualitätshärtung](roadmap/06-betrieb-und-qualitaet.md) | belastbarer Kernbetrieb; beginnt mit manuellem M6.0-Gate | M1–M5 |
+| [M7 – Einfacher PDF-Teilbaumexport](roadmap/07-pdf-export.md) | niedrig priorisierter PDF-Download; beginnt mit manuellem M7.0-Gate | M6 |
+| [M8 – Bilder und Assetverwaltung](roadmap/08-bilder-und-assets.md) | niedrig priorisierte Bilder; beginnt mit manuellem M8.0-Gate | M5, M7 |
 
 ## Separate spätere Vorhaben
 

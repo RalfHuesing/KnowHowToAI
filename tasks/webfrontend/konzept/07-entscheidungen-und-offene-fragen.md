@@ -4,17 +4,17 @@ Diese Datei enthält ausschließlich noch nicht entschiedene Punkte. Nach einer 
 
 Gesprächsstand, Empfehlungen und Recherche: [Entscheidungsworkshop](../Entscheidungsworkshop.md).
 
-Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutzerentscheidung offen ist. Bei Spike-Entscheidungen ist der angegebene Task selbst für die Entscheidung und ihre Dokumentation zuständig.
+Ein Roadmap-Task darf nicht begonnen werden, solange eine ihm zugeordnete Benutzerentscheidung offen ist. Bei Spike-Entscheidungen ist der angegebene Task selbst für die Entscheidung und ihre Dokumentation zuständig. M3 und spätere Milestones werden erst in ihrem manuellen `Mx.0`-Gate entscheidungs- und ausführungsreif geschärft.
 
-Bearbeitungsreihenfolge für den Entscheidungsworkshop:
+Bearbeitungsreihenfolge im aktuellen Planungshorizont M0–M2:
 
-1. Lizenz- und Komponentenrahmen: O-028, O-013, O-021, O-020.
-2. Technische Spikes: O-001, O-003, O-002, O-015.
-3. Host und reale MCP-Clients: O-022, O-019.
-4. Produkt- und Arbeitsverhalten: O-009, O-014, O-008, O-007, O-025, O-026, O-027.
-5. Betrieb und Last: O-012, O-017, O-023, O-024.
-6. Niedrige Priorität: O-010, O-011, O-004, O-016.
-7. Spätere Vorhaben: O-005, O-006.
+1. Benutzerentscheidungen für M0: O-028, O-013, O-021, O-020.
+2. M0-Spikeaufträge ausführungsreif machen; ihre Ergebnisse schließen O-001, O-003, O-002 und O-015.
+3. Benutzerentscheidungen für M1: O-022, O-019.
+4. Benutzerentscheidungen für M2: O-009, O-014.
+5. Abschließender Konsistenz- und Agentenausführbarkeitscheck für alle Leaf-Tasks M0–M2.
+
+O-008, O-007, O-025, O-026, O-027, O-010, O-012, O-017, O-023, O-024, O-011, O-004 und O-016 werden nicht in diesem Workshop vorentschieden. Sie verbleiben offen und werden im `Mx.0`-Gate ihres ersten betroffenen Milestones bearbeitet. O-005 und O-006 bleiben Entscheidungen außerhalb der aktuellen Roadmap.
 
 | ID | Priorität | Klärung | Blockiert | Offene Frage und Startempfehlung |
 |---|---|---|---|---|

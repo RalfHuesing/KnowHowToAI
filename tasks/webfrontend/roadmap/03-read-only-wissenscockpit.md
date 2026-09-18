@@ -12,6 +12,15 @@ Referenzen: [Dashboard](../konzept/02-bedienkonzept-und-ui.md#dashboard), [Wisse
 
 Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
 
+## M3.0 – Manuelle Planung und Konzeptschärfung
+
+- [ ] **M3.0 abschließen**
+  - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M2; kein delegierbarer Implementierungs-Leaf-Task.
+  - Entscheiden: konkreter Informationsbedarf für Dashboard und Node-Ansicht, initiale Rollenwahl (O-008), sichere Contentdarstellung im Licht des gewählten Editors sowie Such-, Historien- und Export-UX.
+  - Prüfen: tatsächliche Application-Reads, Pagingverträge, UI-Basis und Erkenntnisse aus M0–M2 gegen die bisherigen Entwurfstasks.
+  - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M3-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
+  - Gate: M3.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
+
 ## M3.1 – Web-Lesegrenze
 
 - [ ] **M3.1 abschließen**

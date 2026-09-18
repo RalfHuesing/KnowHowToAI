@@ -1,6 +1,6 @@
 # Webfrontend und Wissensplattform
 
-Stand: 2026-09-17
+Stand: 2026-09-18
 
 Status: Fortlaufendes Zielkonzept; keine Beschreibung des implementierten Ist-Zustands.
 
@@ -11,6 +11,8 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 - Verbindlicher System-Ist-Stand bleibt [`docs/`](../../docs/README.md).
 - Konzeptaussagen werden nicht als bereits implementiertes Verhalten in `docs/` übernommen.
 - Relevante Gesprächsergebnisse werden hier fortgeschrieben und automatisch atomar committed.
+- Das Konzept wird nur bis zum jeweils aktuellen Detailplanungshorizont ausführungsreif geschärft. Aktuell umfasst dieser Horizont M0 bis einschließlich M2; die Freigabe entsteht erst, wenn die dafür offenen Entscheidungen geschlossen und die Tasks abschließend geprüft sind.
+- Ab M3 beginnt jedes Milestone mit einem manuellen Planungs- und Konzept-Gate `Mx.0`. Spätere Tasks sind bis zum Abschluss dieses Gates nur ein Richtungsentwurf und nicht zur Agentenausführung freigegeben.
 - Jede umgesetzte Roadmap-Aufgabe aktualisiert im selben Commit Code, Tests, `docs/`, Konzeptstatus und Checkbox.
 - Detailaussagen stehen in genau einem Konzeptdokument; Index und Roadmap verlinken darauf.
 
@@ -62,5 +64,6 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-013 | Bilder und Assetverwaltung sind niedrig priorisiert und folgen erst nach dem einfachen PDF-Export |
 | K-014 | Web, MCP und PDF bleiben in `KnowHowToAI.Server`; die verbindliche Feature-, Namespace- und Teststruktur steht in einem eigenen Strukturkonzept |
 | K-015 | Keine kostenpflichtigen Komponenten; jede direkte und transitive Abhängigkeit muss kostenlos nutzbar und mit der MIT-Distribution vereinbar sein, Lizenzpflichten werden eingehalten |
+| K-016 | Rollierende Detailplanung: M0–M2 werden jetzt ausführungsreif geschärft; M3 und jedes folgende Milestone starten mit einem manuellen `Mx.0`-Planungs- und Konzept-Gate |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

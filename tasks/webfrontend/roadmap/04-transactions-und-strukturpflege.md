@@ -12,6 +12,15 @@ Referenzen: [Transaction-Arbeitsbereich](../konzept/02-bedienkonzept-und-ui.md#t
 
 Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md)
 
+## M4.0 – Manuelle Planung und Konzeptschärfung
+
+- [ ] **M4.0 abschließen**
+  - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M3; kein delegierbarer Implementierungs-Leaf-Task.
+  - Entscheiden: Transaction-Actor (O-007), Zusammenarbeit mehrerer Clients (O-025), Lebensdauer offener Transactions (O-026), Undo-Grenzen (O-027) und konkrete Sicherheitsdialoge für Strukturmutationen.
+  - Prüfen: reale Lese-UX aus M3, bestehende Mutationsverträge, `ChangeVersion`, Konfliktverhalten und Tree-Komponentengrenzen gegen die bisherigen Entwurfstasks.
+  - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M4-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
+  - Gate: M4.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
+
 ## M4.1 – Transaction-Arbeitskontext
 
 - [ ] **M4.1 abschließen**
