@@ -1,0 +1,33 @@
+/* Linke Navigationspalte; Werte ausschließlich aus den globalen Tokens. */
+
+.shell-panel--navigation {
+    grid-column: 1;
+    grid-row: 2;
+    width: 16rem;
+    padding: var(--ktai-space-4);
+    background-color: var(--ktai-color-surface);
+    border-right: 1px solid var(--ktai-color-border);
+}
+
+.shell-nav-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.shell-nav-link {
+    display: block;
+    padding: var(--ktai-space-2) var(--ktai-space-3);
+    color: var(--ktai-color-text);
+    text-decoration: none;
+}
+
+.shell-nav-link:hover {
+    color: var(--ktai-color-primary);
+}
+
+.shell-nav-link.active {
+    color: var(--ktai-color-primary);
+    font-weight: 600;
+    background-color: var(--ktai-color-info-background);
+}

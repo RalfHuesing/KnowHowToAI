@@ -111,10 +111,35 @@ Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout,
 zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 `Web/Components/Shared` – darunter der native Dialog-Wrapper `AppDialog`
 mit schmaler JS-Isolation in `AppDialog.razor.js` sowie die
-Statusdarstellung `AppStatus`, die jeden Zustand als Icon plus Text zeigt;
-das Shell-Layout `ShellLayout` stellt die Produktbezeichnung als reine
-Textwortmarke ohne Logo-Asset dar) sowie
-`Web.Features.Dashboard` (die derzeit einzige Root-Seite). Das Verzeichnis
+Statusdarstellung `AppStatus`, die jeden Zustand als Icon plus Text zeigt)
+sowie `Web.Features.Dashboard` (die derzeit einzige Root-Seite). Das
+Verzeichnis
+`Web/Components/Layout` enthält das Hauptlayout und seine Bausteine:
+
+- `MainLayout` zeichnet den Kopf mit der Produktbezeichnung als reine
+  Textwortmarke ohne Logo-Asset, das Sprungziel, genau ein
+  `main`-Landmark für den Seiteninhalt und optional eingerückte
+  Seitenbereiche. Landmarks: Sprunglink „Zum Hauptinhalt springen“ als
+  erstes Element, `header`, `nav` mit zugänglichem Namen
+  `Hauptnavigation` (genau der vorhandene Start-Link auf `/`; noch nicht
+  implementierte Routen erscheinen bewusst nicht), `nav` `Breadcrumbs`,
+  der Seitenaktionsbereich und optional `aside` `Kontext`.
+- Fachseiten hängen Breadcrumbs, Aktionen und Kontext ohne eigenes
+  Seitenraster über den scoped Slot `PageRegionState` ein; leere Bereiche
+  belegen keinen Platz und erhalten keine Dummytexte.
+- Ab 1280 CSS-Pixeln (vom schmalen Modul `MainLayout.razor.js` über
+  `matchMedia` gemeldet) stehen Navigation, Arbeitsfläche und optionaler
+  Kontextbereich nebeneinander; die Arbeitsfläche nutzt
+  `minmax(0, 1fr)`, um nicht unter `min-width`-Defaults zu überlaufen.
+- In kompakten Breiten klappen klar beschriftete Kopfbuttons die
+  Seitenbereiche ein und aus; sie erscheinen als überlagernde Panels
+  unterhalb des Kopfs. Öffnen setzt den Fokus auf die
+  Bereichsüberschrift, Schließen (Schalter, Schließen-Button, Escape)
+  gibt ihn an den Auslöser zurück, und Escape schließt nur den zuletzt
+  geöffneten überlagernden Bereich. Keine fixierten Höhen für normalen
+  Inhalt; die Seite und die Arbeitsfläche scrollen im Dokument. Unterhalb
+  von 1024 besteht nur die Zoom-/Reflow-Anforderung, keine
+  Smartphone-Navigation.
 `wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
 Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
 Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie
@@ -166,10 +191,17 @@ Formular mit Validierung, Button, nativer Dialog über JS-Isolation, kleine
 Tabelle, Inlinehinweis, Toast) und besitzt keine Route im Produkt.
 `KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
-kein Produktionsprojekt. Ein Dialog-Smoke belegt die Tastaturfolge
+kein Produktionsprojekt. Der Testhost wartet nach dem Serverstart auf eine
+erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt.
+Ein Dialog-Smoke belegt die Tastaturfolge
 `Enter`, `Tab`, `Shift+Tab`, `Escape` einschließlich Fokusfalle und
 Fokusrückgabe gegen dieselben Serverressourcen und dass beim Laden keine
-Drittanbieter-Origin angefordert wird.
+Drittanbieter-Origin angefordert wird. Ein Layout-Smoke belegt für 1280 × 720
+und 1024 × 720 die Landmark-Struktur, das Nebeneinander der Spalten beziehungsweise
+das Ein-/Ausklappen über beschriftete Buttons, die Fokusübergabe an die
+Bereichsüberschrift mit Fokusrückgabe an den Auslöser, Escape als Schließen
+des zuletzt geöffneten Bereichs sowie fehlenden Horizontalüberlauf und
+Seiten-Scrollbarkeit mit langem Testinhalt.
 
 `KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die
 Repository-Root-Ermittlung (`TestRepositoryRoot`), Wegwerf-Verzeichnisse unter

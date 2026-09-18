@@ -1,3 +1,4 @@
+using KnowHowToAI.Server.Web.Components.Layout;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Server.Web;
@@ -9,6 +10,10 @@ internal static class WebServiceRegistration
     {
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        // Flüchtiger Seitenbereichs-Slot pro Circuit; Fachseiten hängen
+        // Breadcrumbs, Aktionen und Kontext ein, ohne das Seitenraster zu kennen.
+        services.AddScoped<PageRegionState>();
 
         return services;
     }

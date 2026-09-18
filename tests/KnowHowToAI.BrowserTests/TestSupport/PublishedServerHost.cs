@@ -42,7 +42,22 @@ public sealed class PublishedServerHost : IAsyncDisposable
             await PublishServerAsync(repositoryRoot, publishDirectory);
             var address = AllocateLoopbackAddress();
             var serverProcess = StartServer(publishDirectory, address);
-            return new PublishedServerHost(testDirectory, serverProcess, address);
+            try
+            {
+                // Der Server wird erst weitergereicht, wenn er tatsächlich antwortet;
+                // der erste Start einer frisch veröffentlichten EXE kann mehrere
+                // Sekunden dauern, und Browser-Navigation würde sonst ins Leere laufen.
+                await WaitForReadinessAsync(address);
+                return new PublishedServerHost(testDirectory, serverProcess, address);
+            }
+            catch
+            {
+                if (!serverProcess.HasExited)
+                    serverProcess.Kill(entireProcessTree: true);
+
+                serverProcess.Dispose();
+                throw;
+            }
         }
         catch
         {
@@ -108,6 +123,26 @@ public sealed class PublishedServerHost : IAsyncDisposable
         start.ArgumentList.Add(publishDirectory);
         start.ArgumentList.Add("--KnowHowToAI:Migrations:ApplyOnStartup=false");
         return Process.Start(start) ?? throw new InvalidOperationException("Die veröffentlichte Server-EXE konnte nicht gestartet werden.");
+    }
+
+    private static async Task WaitForReadinessAsync(string address)
+    {
+        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(60);
+        while (DateTime.UtcNow < deadline)
+        {
+            try
+            {
+                _ = await client.GetAsync(address);
+                return;
+            }
+            catch (Exception exception) when (exception is HttpRequestException or SocketException or TaskCanceledException)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(200));
+            }
+        }
+
+        throw new TimeoutException($"Der veröffentlichte Server unter {address} wurde nicht rechtzeitig betriebsbereit.");
     }
 
     private static string AllocateLoopbackAddress()

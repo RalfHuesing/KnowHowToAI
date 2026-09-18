@@ -1,0 +1,14 @@
+/* Optionaler Kontextbereich; Werte ausschließlich aus den globalen Tokens. */
+
+.shell-panel--context {
+    grid-column: 3;
+    grid-row: 2;
+    width: 18rem;
+    padding: var(--ktai-space-4);
+    background-color: var(--ktai-color-surface);
+    border-left: 1px solid var(--ktai-color-border);
+}
+
+.shell-panel-content {
+    color: var(--ktai-color-text);
+}

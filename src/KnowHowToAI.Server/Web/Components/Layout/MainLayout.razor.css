@@ -1,0 +1,164 @@
+/*
+ * Komponentenlokale Shell-Gestaltung; alle Werte kommen aus den globalen
+ * Tokens in wwwroot/css/app.css. In Desktopbreite (ab 1280 CSS-Pixeln, vom
+ * zugehörigen Modul gemeldet) stehen Navigation, Arbeitsfläche und
+ * optionaler Kontextbereich nebeneinander; in kompakten Breiten werden sie
+ * über die beschrifteten Kopfbuttons ein- und ausgeklappt und erscheinen als
+ * überlagernde Panels. Keine fixierten Höhen für normalen Inhalt: die
+ * Seite und die Arbeitsfläche scrollen im Dokument. Elemente, die die
+ * untergeordneten Layoutkomponenten rendern, werden über ::deep adressiert.
+ */
+
+.shell-root {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+    --shell-header-height: 3.5rem;
+}
+
+.shell-skip-link {
+    position: absolute;
+    top: var(--ktai-space-4);
+    left: var(--ktai-space-4);
+    z-index: 10;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    padding: var(--ktai-space-2) var(--ktai-space-4);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-primary);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-medium);
+}
+
+.shell-skip-link:focus-visible {
+    width: auto;
+    height: auto;
+    clip-path: none;
+}
+
+.shell-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ktai-space-4);
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: var(--shell-header-height);
+    padding: var(--ktai-space-2) var(--ktai-space-4);
+    background-color: var(--ktai-color-surface);
+    border-bottom: 1px solid var(--ktai-color-border);
+}
+
+.shell-brand {
+    color: var(--ktai-color-text);
+    font-weight: 600;
+}
+
+.shell-header-actions {
+    display: flex;
+    gap: var(--ktai-space-2);
+}
+
+.shell-toggle {
+    padding: var(--ktai-space-1) var(--ktai-space-3);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    cursor: pointer;
+}
+
+.shell-root ::deep .shell-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ktai-space-2);
+    margin-bottom: var(--ktai-space-2);
+}
+
+.shell-root ::deep .shell-panel-title {
+    margin: 0;
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-base);
+    font-weight: 600;
+}
+
+.shell-root ::deep .shell-panel-close {
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    background-color: transparent;
+    border: none;
+    color: var(--ktai-color-text-secondary);
+    cursor: pointer;
+}
+
+.shell-root ::deep .shell-panel-close:hover {
+    color: var(--ktai-color-text);
+}
+
+.shell-workspace {
+    display: flex;
+    flex-direction: column;
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+}
+
+.shell-workspace-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ktai-space-4);
+    padding: var(--ktai-space-2) var(--ktai-space-6);
+    background-color: var(--ktai-color-surface);
+    border-bottom: 1px solid var(--ktai-color-border);
+}
+
+.shell-main {
+    flex: 1;
+    min-width: 0;
+    padding: var(--ktai-space-6);
+}
+
+/*
+ * Kompakte Breite: eine Spalte; die Seitenbereiche liegen als überlagernde
+ * Panels unterhalb des Kopfs und scrollen notfalls in ihrem eigenen Bereich,
+ * ohne den Seiteninhalt zu einer Scrollfalle zu machen.
+ */
+.shell-root--compact {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.shell-root--compact .shell-workspace {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.shell-root--compact ::deep .shell-panel--navigation,
+.shell-root--compact ::deep .shell-panel--context {
+    position: fixed;
+    top: var(--shell-header-height);
+    bottom: 0;
+    z-index: 5;
+    width: min(20rem, calc(100% - var(--ktai-space-8)));
+    overflow-y: auto;
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-medium);
+    box-shadow: var(--ktai-shadow-surface);
+}
+
+.shell-root--compact ::deep .shell-panel--navigation {
+    left: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.shell-root--compact ::deep .shell-panel--context {
+    right: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}

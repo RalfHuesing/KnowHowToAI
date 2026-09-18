@@ -1,0 +1,6 @@
+/* Seitenaktionsbereich über der Arbeitsfläche; Werte aus den globalen Tokens. */
+
+.shell-page-actions {
+    display: flex;
+    gap: var(--ktai-space-2);
+}

@@ -1,0 +1,5 @@
+/* Breadcrumb-Bereich über der Arbeitsfläche; Werte aus den globalen Tokens. */
+
+.shell-breadcrumbs {
+    color: var(--ktai-color-text-secondary);
+}

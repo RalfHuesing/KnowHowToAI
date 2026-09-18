@@ -13,7 +13,7 @@ namespace KnowHowToAI.Web.Tests.Features.DesignTokens;
 /// berechneten Tokenwerte sowie den Light-Theme-Screenshot.
 /// </summary>
 [Trait("Category", "Unit")]
-public sealed class DesignTokensShowcaseTests : BunitContext
+public sealed class DesignTokensShowcaseTests : ShellTestContext
 {
     private const string ShowcaseStyle = """
         .showcase { max-width: 720px; margin: 0 auto; padding: var(--ktai-space-6); }
@@ -69,7 +69,7 @@ public sealed class DesignTokensShowcaseTests : BunitContext
         await AssertComputedStyleAsync(page, "body", "font-family", "\"Segoe UI\", Arial, sans-serif");
         await AssertComputedStyleAsync(page, "body", "font-size", "16px");
         await AssertComputedStyleAsync(page, "body", "line-height", "24px");
-        await AssertComputedStyleAsync(page, ".app-shell-brand", "font-weight", "600");
+        await AssertComputedStyleAsync(page, ".shell-brand", "font-weight", "600");
         await AssertComputedStyleAsync(page, "p.showcase-actions button:first-child", "background-color", "rgb(37, 99, 235)");
         await AssertComputedStyleAsync(page, ".showcase-button-primary[disabled]", "opacity", "0.6");
         await AssertComputedStyleAsync(page, ".app-status--neutral", "color", "rgb(75, 85, 99)");
@@ -122,7 +122,7 @@ public sealed class DesignTokensShowcaseTests : BunitContext
             "wwwroot",
             "css",
             "app.css"));
-        var shellStyles = ReadIsolatedStylesheet(Path.Combine("Layout", "ShellLayout.razor.css"));
+        var shellStyles = ReadIsolatedStylesheet(Path.Combine("Layout", "MainLayout.razor.css"));
         var statusStyles = ReadIsolatedStylesheet(Path.Combine("Shared", "AppStatus.razor.css"));
 
         return $"""
