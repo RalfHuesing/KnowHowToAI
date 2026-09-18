@@ -42,7 +42,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M2.2 – Anwendungsshell
 
-- [ ] **M2.2 abschließen**
+- [x] **M2.2 abschließen**
 
   - [x] **M2.2-T1 – Hauptlayout und Navigation implementieren**
     - Komponenten: `MainLayout`, `PrimaryNavigation`, `BreadcrumbRegion`, `PageActions` und `ContextPanel` unter `Web/Components/Layout`. RenderFragments/Parameter bilden Seiteninhalt, Breadcrumbs, Aktionen und Kontext ab; keine Featurekomponente kennt das CSS-Seitenraster.
@@ -54,7 +54,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Layout- und Landmark-Assertions, Tab-/Escape-Sequenz, Fokusübergabe sowie Überlaufsmokes für 1280 × 720 und 1024 × 720 mit langem Testinhalt.
     - Abnahme: spätere Fachseiten können Inhalt, Breadcrumbs, Aktionen und Kontext ohne eigenes Seitenraster einhängen; keine tote Navigation oder Platzhalterfachlichkeit ist sichtbar.
 
-  - [ ] **M2.2-T2 – Globale Wissenskontextleiste implementieren**
+  - [x] **M2.2-T2 – Globale Wissenskontextleiste implementieren**
     - Modell: genau ein immutable `KnowledgeContextViewModel` im Layoutbereich mit Read-Context-Art (`Current`, `Snapshot`, `Transaction`, `Release`), optionaler ID/Bezeichnung, optionaler Rolle und `IsDirty`. Keine Domain-Typen direkt im Markup und kein vorgezogener `WorkspaceState` aus M3.
     - M2-Initialzustand: aus dem tatsächlichen Seitenkontext `Current`, keine ausgewählte Rolle und `IsDirty = false` mappen. Sichtbare Texte: „Current Snapshot“, „Keine Rolle ausgewählt“ und nur bei `IsDirty` „Ungespeicherte Änderungen“. Es werden keine Dummy-IDs oder erfundenen Serverdaten angezeigt.
     - Darstellung: Kontextleiste global nahe der Wortmarke; Werte als Text/Status, noch ohne Selektor, Links oder Mutation. Fehlende Rolle wird neutral und nicht als technischer Fehler dargestellt.
