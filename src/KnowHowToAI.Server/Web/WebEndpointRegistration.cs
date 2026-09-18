@@ -16,10 +16,21 @@ internal static class WebEndpointRegistration
         Microsoft.AspNetCore.Http.HttpMethods.Options
     ];
 
+    private static readonly string[] NonMcpHttpMethods =
+    [
+        Microsoft.AspNetCore.Http.HttpMethods.Get,
+        Microsoft.AspNetCore.Http.HttpMethods.Put,
+        Microsoft.AspNetCore.Http.HttpMethods.Patch,
+        Microsoft.AspNetCore.Http.HttpMethods.Delete,
+        Microsoft.AspNetCore.Http.HttpMethods.Head,
+        Microsoft.AspNetCore.Http.HttpMethods.Options
+    ];
+
     public static void MapWebEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
     {
         endpoints.MapMethods("/api", ReservedHttpMethods, ReturnReservedNotFoundAsync);
         endpoints.MapMethods("/api/{**reservedPath}", ReservedHttpMethods, ReturnReservedNotFoundAsync);
+        endpoints.MapMethods("/mcp", NonMcpHttpMethods, ReturnMethodNotAllowedAsync);
         endpoints.MapStaticAssets(GetStaticAssetsManifestPath());
         endpoints.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
@@ -28,6 +39,12 @@ internal static class WebEndpointRegistration
     private static Task ReturnReservedNotFoundAsync(Microsoft.AspNetCore.Http.HttpContext context)
     {
         context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound;
+        return Task.CompletedTask;
+    }
+
+    private static Task ReturnMethodNotAllowedAsync(Microsoft.AspNetCore.Http.HttpContext context)
+    {
+        context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status405MethodNotAllowed;
         return Task.CompletedTask;
     }
 

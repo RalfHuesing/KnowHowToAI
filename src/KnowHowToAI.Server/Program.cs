@@ -17,13 +17,20 @@ internal static class Program
         return await RunApplicationAsync(application).ConfigureAwait(false);
     }
 
-    internal static Microsoft.AspNetCore.Builder.WebApplication CreateApplication(string[] args)
+    internal static Microsoft.AspNetCore.Builder.WebApplication CreateApplication(string[] args) =>
+        CreateApplication(args, configureServices: null);
+
+    internal static Microsoft.AspNetCore.Builder.WebApplication CreateApplication(
+        string[] args,
+        Action<Microsoft.Extensions.DependencyInjection.IServiceCollection>? configureServices)
     {
         var builder = CreateBuilder(args);
+        configureServices?.Invoke(builder.Services);
         var application = builder.Build();
 
         application.UseAntiforgery();
         application.MapWebEndpoints();
+        application.MapMcp("/mcp");
 
         return application;
     }
@@ -45,6 +52,13 @@ internal static class Program
         builder.Services.AddWebServices();
         builder.Services
             .AddMcpServer()
+            .WithHttpTransport(options =>
+            {
+                options.SessionMode = ModelContextProtocol.AspNetCore.HttpServerSessionMode.Stateless;
+#pragma warning disable MCP9004
+                options.EnableLegacySse = false;
+#pragma warning restore MCP9004
+            })
             .WithStdioServerTransport()
             .WithToolsFromAssembly();
 

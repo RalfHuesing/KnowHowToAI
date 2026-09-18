@@ -68,7 +68,7 @@ Versionen wurden in den Assets exakt aufgelöst; es gibt keine Abweichung.
 | Dapper | 2.1.66 / 2.1.66 |
 | Microsoft.Data.SqlClient | 6.0.2 / 6.0.2 |
 | Microsoft.Extensions.Configuration, `.Json`, Hosting, Options | 10.0.10 / 10.0.10 |
-| ModelContextProtocol | 2.2.0 / 2.2.0 |
+| ModelContextProtocol.AspNetCore, ModelContextProtocol, ModelContextProtocol.Core | 2.2.0 / 2.2.0 |
 | Serilog, Serilog.Extensions.Hosting | 4.4.0 / 4.4.0; 9.0.0 / 9.0.0 |
 | Serilog.Sinks.Console, Serilog.Sinks.File | 6.1.1 / 6.1.1; 7.0.0 / 7.0.0 |
 | coverlet.collector | 10.0.1 / 10.0.1 |
@@ -148,6 +148,7 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | Microsoft.TestPlatform.ObjectModel 18.8.1 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | Microsoft.TestPlatform.TestHost 18.8.1 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT`; `ThirdPartyNotices.txt` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright und `ThirdPartyNotices.txt` mitführen; nicht mit dem Server ausliefern. |
 | Microsoft.Win32.Registry 5.0.0 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen; nicht mit dem Server ausliefern. |
+| ModelContextProtocol.AspNetCore 2.2.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | ModelContextProtocol 2.2.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | ModelContextProtocol.Core 2.2.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | Serilog 4.4.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |

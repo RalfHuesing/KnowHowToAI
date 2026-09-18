@@ -4,7 +4,7 @@
 
 - C# / .NET (aktuell `net10.0`)
 - MS SQL Server 2019 oder neuer (inkl. Azure SQL)
-- ASP.NET-Core-Webhost mit Kestrel; MCP verwendet vorläufig noch den Transport STDIO (ModelContextProtocol-SDK)
+- ASP.NET-Core-Webhost mit Kestrel; MCP ist zusätzlich über stateless Streamable HTTP unter `/mcp` erreichbar (ModelContextProtocol-SDK); STDIO bleibt bis zum geplanten Hard Cut vorläufig aktiv
 - aktuelle, gepflegte NuGet-Standardpakete; für Markdown-Verarbeitung eine
   etablierte Bibliothek, kein eigener Parser
 - Datenzugriff über Dapper (Zeilenmodelle bleiben intern im Storage-Projekt)
@@ -14,7 +14,7 @@
 Strikte Schichtung mit einseitigen Abhängigkeiten:
 
 ```text
-                    MCP STDIO
+             MCP Streamable HTTP / STDIO
                           │
                           ▼
                 ┌─────────────────┐
@@ -53,13 +53,14 @@ für die üblichen HTTP-Methoden; eine REST- oder OpenAPI-Infrastruktur gibt es
 noch nicht. Die Root-Route `/` liefert eine minimale Blazor Interactive-Server-
 Shell. Sie ruft ihren Read-only-Status direkt über einen Application Service ab;
 es gibt weder einen HTTP-Loopback noch eine allgemeine Browser-API. `/mcp`
-liefert weiterhin `404` und der aktuelle MCP-Transport bleibt STDIO. Der Agent greift ausschließlich über die
+ist als stateless Streamable HTTP-Endpunkt erreichbar, während STDIO bis zum geplanten Hard Cut aktiv bleibt. Der Agent greift ausschließlich über die
 [MCP-API](McpApi.md) zu; es gibt keinen Workflow über lokale temporäre
 Markdown-Dateien. Das System funktioniert damit mit jedem MCP-fähigen Client,
 unabhängig von lokalem Dateizugriff, Git oder Unified-Diff-Fähigkeit.
 
-Die Geschäftslogik ist nicht an STDIO gekoppelt. MCP über HTTP und Browseradapter
-werden ohne Änderung der Application-/Domain-Schicht auf diesem Webhost ergänzt.
+Die Geschäftslogik ist nicht an einen MCP-Transport gekoppelt. MCP über HTTP und
+Browseradapter werden ohne Änderung der Application-/Domain-Schicht auf diesem
+Webhost ergänzt.
 
 ## Projekte und Namespaces
 

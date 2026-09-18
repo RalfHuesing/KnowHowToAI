@@ -82,11 +82,14 @@ Credentials.
 Der Server läuft als ASP.NET-Core-Webhost auf Kestrel. Scheme, Adresse und Port
 stammen ausschließlich aus der normalen ASP.NET-Core-Hostkonfiguration und ihren
 Kommandozeilen-Overrides; der Server definiert weder eine eigene Portoption noch
-einen zweiten Listener. Der MCP-Transport bleibt in diesem Zwischenstand STDIO;
+einen zweiten Listener. Der MCP-Transport ist in diesem Zwischenstand zusätzlich
+stateless als Streamable HTTP unter `/mcp` verfügbar; STDIO bleibt bis zum
+geplanten Hard Cut aktiv.
 Blazor Interactive Server bedient zusätzlich die minimale Shell auf `/` über
 denselben Origin. Der Shell-Read ruft die Application-Schicht direkt per DI auf
 und verwendet keinen HTTP-Loopback.
-`stdout` ist deshalb weiterhin exklusiv dem MCP-Protokoll vorbehalten.
+Solange STDIO aktiv ist, bleibt `stdout` exklusiv dessen MCP-Protokoll
+vorbehalten.
 Protokollausgaben gehen ausschließlich nach `stderr` und optional in die
 konfigurierbare, täglich rotierende Datei. Keine Start-, SQL- oder
 Diagnoseausgabe verunreinigt `stdout`.

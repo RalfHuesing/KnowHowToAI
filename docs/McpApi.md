@@ -1,6 +1,7 @@
 # MCP-API
 
-Der MCP-Server stellt 27 Tools über MCP STDIO bereit. Alle IDs (`NodeId`, `RoleId`,
+Der MCP-Server stellt 27 Tools über stateless MCP Streamable HTTP unter `/mcp`
+und vorläufig weiterhin über MCP STDIO bereit. Alle IDs (`NodeId`, `RoleId`,
 `TransactionId`, `SnapshotId`) sind symmetrisch: Ausgaben sind ohne Bereinigung
 oder Typkonvertierung als Eingabe für Folgetools nutzbar (Round-Trip-Garantie).
 Rollen werden immer explizit als `roleId` übergeben; es gibt keinen globalen
@@ -227,7 +228,15 @@ Warncodes wie `NodeTooLarge`, `PossibleEmbeddedHeading`, `TooManyChildren`,
 Fehler.
 <!-- mcp-catalog-end -->
 
-## STDIO-Protokollverhalten
+## Transportverhalten während der Umstellung
+
+Streamable HTTP ist unter `/mcp` ausschließlich mit dem stateless Sessionmodus
+erreichbar. Legacy-SSE bleibt deaktiviert; `GET /mcp` wird nicht als MCP-Erfolg
+behandelt und `/mcp/sse` ist kein MCP-Endpunkt. Es existieren weder ein
+zusätzlicher MCP-Port noch CORS- oder fachlicher Transport-Sessionzustand. Der
+STDIO-Betrieb bleibt nur bis zum ausdrücklich geplanten Hard Cut aktiv.
+
+### STDIO-Protokollverhalten
 
 Der Server läuft als STDIO-Prozess. `stdout` enthält ausschließlich
 MCP-Protokollnachrichten; alle Diagnose- und Protokollausgaben gehen nach

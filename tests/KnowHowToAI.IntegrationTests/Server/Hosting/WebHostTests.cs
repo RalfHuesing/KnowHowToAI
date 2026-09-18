@@ -30,7 +30,9 @@ public sealed class WebHostTests
         using var client = new HttpClient();
         using var response = await client.GetAsync($"{GetBoundAddress(application)}{path}");
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(
+            path == "/mcp" ? HttpStatusCode.MethodNotAllowed : HttpStatusCode.NotFound,
+            response.StatusCode);
         Assert.Empty(await response.Content.ReadAsByteArrayAsync());
         await application.StopAsync();
     }
