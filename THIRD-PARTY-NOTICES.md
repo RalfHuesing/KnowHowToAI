@@ -94,7 +94,7 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | Microsoft.Bcl.Cryptography 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` unverändert mitführen. |
 | Microsoft.CodeCoverage 18.8.1 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT`; `ThirdPartyNotices.txt` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright und `ThirdPartyNotices.txt` mitführen; nicht mit dem Server ausliefern. |
 | Microsoft.Data.SqlClient 6.0.2 | direkt in Storage; transitiv in Server/Integrationstests; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
-| Microsoft.Data.SqlClient.SNI.runtime 6.0.2 | transitiv; P | NuGet.org; `.nuspec`: `file: LICENSE.txt`; beigefügte `LICENSE.txt` | Microsoft Software License Terms (kein SPDX-Ausdruck, nicht permissiv) | Nur Objektcode als Teil einer Anwendung verteilen, Endnutzer-/Distributorbedingungen mindestens gleich schützend verlangen, Microsoft freistellen, Marken nicht verwenden, Exportregeln einhalten und Drittanbieterhinweise beachten. **Benutzerentscheidung erforderlich.** |
+| Microsoft.Data.SqlClient.SNI.runtime 6.0.2 | transitiv; P | NuGet.org; `.nuspec`: `file: LICENSE.txt`; beigefügte `LICENSE.txt` | Microsoft Software License Terms (kein SPDX-Ausdruck, nicht permissiv) | Nur Objektcode als Teil einer Anwendung verteilen, Endnutzer-/Distributorbedingungen mindestens gleich schützend verlangen, Microsoft freistellen, Marken nicht verwenden, Exportregeln einhalten und Drittanbieterhinweise beachten. Die ausdrückliche Annahme dieser Restriktionen ist unten festgehalten. |
 | Microsoft.Extensions.AI.Abstractions 10.8.3 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.Extensions.Caching.Abstractions 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | Microsoft.Extensions.Caching.Abstractions 10.0.10 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
@@ -167,14 +167,21 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | xunit.v3.runner.common 3.2.2 | transitiv; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 | xunit.v3.runner.inproc.console 3.2.2 | transitiv; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 
-## Ergebnis und offene Entscheidung
+## Ergebnis und explizite Benutzerentscheidung
 
 Mit Ausnahme von `Microsoft.Data.SqlClient.SNI.runtime 6.0.2` verwenden alle
 inventarisierten Pakete die permissiven SPDX-Ausdrücke MIT, Apache-2.0 oder
 BSD-2-Clause. Für das SNI-Runtimepaket liefert der restaurierte Paketinhalt
 jedoch die oben dokumentierten Microsoft Software License Terms. Diese sind
 kostenlos nutzbar, aber keine permissive Open-Source-Lizenz und enthalten
-zusätzliche Weitergabe-, Freistellungs- und Exportpflichten. Nach den
-Projektregeln wird diese Abhängigkeit nicht eigenmächtig als MIT-kompatibel
-akzeptiert. M0.1-T2 bleibt bis zu einer ausdrücklichen Benutzerentscheidung
-offen; es wurden keinerlei Paketversionen geändert.
+zusätzliche Weitergabe-, Freistellungs- und Exportpflichten.
+
+Am 2026-09-18 hat der Benutzer die Microsoft Software License Terms für
+`Microsoft.Data.SqlClient.SNI.runtime` `6.0.2` ausdrücklich angenommen. Die
+Annahme beschränkt sich auf dieses Paket und diese Version sowie die im
+Inventar genannten Restriktionen: Objektcode nur als Teil der Anwendung
+verteilen, gleichwertig schützende Endnutzer-/Distributorbedingungen verlangen,
+Microsoft freistellen, Marken nicht verwenden, Exportregeln einhalten und
+Drittanbieterhinweise beachten. Sie erklärt die Lizenz weder zu MIT noch zu
+einer permissiven Open-Source-Lizenz und hebt keine der genannten Pflichten auf.
+Es wurden keinerlei Paketversionen geändert.

@@ -24,7 +24,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
 
 ## M0.1 – Ausgangslage
 
-- [ ] **M0.1 abschließen**
+- [x] **M0.1 abschließen**
 
   - [x] **M0.1-T1 – Build-, Test- und Linter-Baseline nachweisen**
     - Vorbedingung: Working Tree mit `git status --short` prüfen. Fremde Änderungen weder aufnehmen noch bereinigen; bei Überschneidung den Benutzer fragen.
@@ -45,7 +45,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
     | `pwsh scripts/test-integration.ps1` | 0 | 13,693 s | grün, SQL-Preflight und 31 Tests |
     | AiNetLinter `verify` (`scope: solution`) | n/a (MCP) | 2,831 s | `verdict=pass`, `score=10.0`, `violationCount=0` |
 
-  - [ ] **M0.1-T2 – MIT-Lizenz und Abhängigkeitsbaseline herstellen**
+  - [x] **M0.1-T2 – MIT-Lizenz und Abhängigkeitsbaseline herstellen**
     - Ausgangslage: Die MIT-`LICENSE` mit `Copyright (c) 2026 Ralf Hüsing` ist im Repository-Root vorhanden.
     - Ermittlung: nach einem Restore für jedes Projekt direkte und transitive NuGet-Pakete ausgeben; zentrale Versionen und tatsächlich aufgelöste Versionen gegeneinander prüfen. Runtime-/Shared-Framework, nur zur Entwicklung verwendete Test-/Buildpakete und mit der Anwendung ausgelieferte Pakete getrennt kennzeichnen.
     - Lizenzprüfung: Paketmetadaten und beigefügte Lizenz-/NOTICE-Dateien aus der tatsächlich restaurierten Paketversion verwenden; bei Unklarheit das jeweilige offizielle Quellrepository hinzuziehen. Suchmaschinen-Snippets oder der Lizenztyp eines übergeordneten Projekts genügen nicht als Nachweis für transitive Pakete.
@@ -54,7 +54,7 @@ Für M0.2 und M0.3 gilt zusätzlich:
     - Abnahme: `LICENSE` ist unveränderter MIT-Text mit dem genannten Copyright; kein Paket ist kostenpflichtig, lizenzseitig ungeklärt oder mit der MIT-Distribution unvereinbar. Nicht permissive oder unklare Lizenzen werden nicht eigenmächtig akzeptiert: Task offen lassen und Benutzerentscheidung anfordern.
     - Abschluss: ausschließlich Lizenz-/Inventardateien, Roadmapstatus und zwingende Dokumentationsverweise atomar committen; keine Paketversion allein zur Vereinfachung des Inventars ändern.
 
-    **Nachweis (2026-09-18, offen):** `LICENSE` ist unverändert der MIT-Text
+    **Nachweis (2026-09-18):** `LICENSE` ist unverändert der MIT-Text
     mit `Copyright (c) 2026 Ralf Hüsing`. Ein Restore und die Inventarisierung
     aller fünf `project.assets.json` sind in
     [`THIRD-PARTY-NOTICES.md`](../../../THIRD-PARTY-NOTICES.md) dokumentiert;
@@ -63,8 +63,11 @@ Für M0.2 und M0.3 gilt zusätzlich:
     enthält jedoch Microsoft Software License Terms statt einer permissiven
     SPDX-Lizenz und verpflichtet unter anderem zu besonderen
     Weitergabe-/Endnutzerbedingungen, Freistellung und Exportbeachtung. Der
-    Task bleibt deshalb nach der Abnahmeregel offen, bis der Benutzer die
-    Lizenzannahme ausdrücklich entscheidet; es wurden keine Pakete geändert.
+    Der Benutzer hat diese konkreten Microsoft Software License Terms am
+    2026-09-18 ausdrücklich angenommen. Die Lizenz wird dabei nicht als
+    permissiv eingeordnet; ihre Weitergabe-, Freistellungs- und Exportpflichten
+    bleiben verbindlich und sind in `THIRD-PARTY-NOTICES.md` festgehalten. Es
+    wurden keine Pakete geändert.
 
 ## M0.2 – Host- und Routing-Spike
 
