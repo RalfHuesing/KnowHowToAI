@@ -27,8 +27,9 @@ alwaysApply: false
   - MCP-Vertragstests starten einen echten Server und verwenden ausschließlich den laut Ist-Dokumentation unterstützten Transport. Beim Hard Cut werden Alttransport, Konfiguration und Tests im selben grünen Slice nach belegter Zieltransport-Parität entfernt; kein Doppelbetrieb.
   - HTTP-Grenztests prüfen Route, Methode, Status, Content-Type, strukturierte Fehler und Abbruch. Browser-E2E verwendet robuste Rollen-/Label-/Test-ID-Locators; Screenshots dienen der Diagnose, nicht als alleinige Verhaltensassertion.
   - Externe Prozessadapter werden in FastTests über ihre Core-Grenze ersetzt; wenige Integrationstests prüfen Argumentescaping, Exitcode, Timeout, Abbruch, Outputlimit und Bereinigung gegen das reale Werkzeug.
-  - Testtemporärdateien (falls nötig) ausschließlich im ignorierten Repo-Temp (`temp/`) anlegen (nie im System-Temp).
+  - Testtemporärdateien (falls nötig) ausschließlich im ignorierten Repo-Temp (`temp/`) anlegen (nie im System-Temp). Wegwerf-Verzeichnisse über `TestTempDirectory` (Prefix-Konvention `temp/<prefix>_<random>`), persistente Messberichte über `TestMeasurementReports`.
   - Verifikation ausschließlich über die vorhandene C#-Testinfrastruktur (keine Ad-hoc-Skripte committen).
+  - Gemeinsame Testinfrastruktur (Repo-Root, Temp-Verzeichnisse, Messberichte, STATISTICS-Parsing, In-Memory-Port-Fakes) ausschließlich in `tests/KnowHowToAI.TestSupport` ergänzen; in den Testprojekten keine funktionalen Duplikate anlegen, testfallspezifisches Verhalten als Option am gemeinsamen Fake statt als neue Klasse.
 - **Abdeckungsmatrix für kritische Workflows**:
   - Jeder Core-Read-Kontext wird gegen Current, expliziten Snapshot und Working Transaction geprüft; mehrere Selektoren sind ein Negativfall. Adapter mit `ReleaseId` prüfen zusätzlich dessen eindeutige Snapshot-Auflösung.
   - Jeder Mutations-Use-Case prüft offene, fehlende und geschlossene Transaction sowie unveränderten Current Snapshot vor Commit.
