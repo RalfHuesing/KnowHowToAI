@@ -5,6 +5,7 @@ using KnowHowToAI.Server.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.IntegrationTests.Server.Hosting;
@@ -15,6 +16,80 @@ namespace KnowHowToAI.IntegrationTests.Server.Hosting;
 [Trait("Category", "Integration")]
 public sealed class WebHostTests
 {
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/mcp")]
+    [InlineData("/api")]
+    [InlineData("/api/test")]
+    [InlineData("/unbekannt")]
+    public async Task UnmappedRoutes_ReturnEmptyNotFoundResponses(string path)
+    {
+        using var application = CreateApplication("http://127.0.0.1:0");
+
+        await application.StartAsync();
+
+        using var client = new HttpClient();
+        using var response = await client.GetAsync($"{GetBoundAddress(application)}{path}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+        await application.StopAsync();
+    }
+
+    [Theory]
+    [InlineData("/api", "GET")]
+    [InlineData("/api", "POST")]
+    [InlineData("/api", "PUT")]
+    [InlineData("/api", "PATCH")]
+    [InlineData("/api", "DELETE")]
+    [InlineData("/api", "HEAD")]
+    [InlineData("/api", "OPTIONS")]
+    [InlineData("/api/test", "GET")]
+    [InlineData("/api/test", "POST")]
+    [InlineData("/api/test", "PUT")]
+    [InlineData("/api/test", "PATCH")]
+    [InlineData("/api/test", "DELETE")]
+    [InlineData("/api/test", "HEAD")]
+    [InlineData("/api/test", "OPTIONS")]
+    public async Task ReservedApiRoutes_ReturnEmptyNotFoundResponses_ForUsualHttpMethods(string path, string method)
+    {
+        using var application = CreateApplication("http://127.0.0.1:0");
+
+        await application.StartAsync();
+
+        using var client = new HttpClient();
+        using var request = new HttpRequestMessage(new HttpMethod(method), $"{GetBoundAddress(application)}{path}");
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+        await application.StopAsync();
+    }
+
+    [Fact]
+    public void ReservedApiRoutes_AreMappedExplicitlyForUsualHttpMethods()
+    {
+        using var application = CreateApplication("http://127.0.0.1:0");
+
+        var reservedEndpoints = ((IEndpointRouteBuilder)application).DataSources
+            .SelectMany(dataSource => dataSource.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Where(endpoint => endpoint.RoutePattern.RawText is "/api" or "/api/{**reservedPath}")
+            .OrderBy(endpoint => endpoint.RoutePattern.RawText, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(2, reservedEndpoints.Length);
+        Assert.All(reservedEndpoints, endpoint =>
+        {
+            var httpMethods = endpoint.Metadata.GetMetadata<HttpMethodMetadata>();
+
+            Assert.NotNull(httpMethods);
+            Assert.Equal(
+            ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+            httpMethods.HttpMethods);
+        });
+    }
+
     [Fact]
     public async Task Application_StartsOnDynamicLoopbackPort_WhenMigrationsAreDisabled()
     {
@@ -28,6 +103,21 @@ public sealed class WebHostTests
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         await application.StopAsync();
+    }
+
+    [Fact]
+    public async Task ExplicitDynamicUrlOverride_UsesOneOriginPerHostStart()
+    {
+        using var firstApplication = CreateApplication("http://127.0.0.1:0");
+        using var secondApplication = CreateApplication("http://127.0.0.1:0");
+
+        await firstApplication.StartAsync();
+        await secondApplication.StartAsync();
+
+        Assert.NotEqual(GetBoundAddress(firstApplication), GetBoundAddress(secondApplication));
+
+        await secondApplication.StopAsync();
+        await firstApplication.StopAsync();
     }
 
     [Fact]

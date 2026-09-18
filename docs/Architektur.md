@@ -47,13 +47,15 @@ SQL-Typen; Domain referenziert kein Infrastrukturprojekt.
 
 ## Transportgrenzen
 
-`KnowHowToAI.Server` läuft als einziger ASP.NET-Core-Webhost mit Kestrel. In
-diesem erreichten Zwischenstand ist noch kein Browser- oder HTTP-MCP-Endpunkt
-gemappt; der aktuelle MCP-Transport bleibt deshalb STDIO. Der Agent greift
-ausschließlich über die [MCP-API](McpApi.md) zu; es gibt keinen Workflow über
-lokale temporäre Markdown-Dateien. Das System funktioniert damit mit jedem
-MCP-fähigen Client, unabhängig von lokalem Dateizugriff, Git oder Unified-Diff-
-Fähigkeit.
+`KnowHowToAI.Server` läuft als einziger ASP.NET-Core-Webhost mit Kestrel. Der
+Webhost reserviert `/api` und dessen Unterpfade mit einer leeren `404`-Antwort
+für die üblichen HTTP-Methoden; eine REST- oder OpenAPI-Infrastruktur gibt es
+noch nicht. In diesem erreichten Zwischenstand ist noch kein Browser- oder
+HTTP-MCP-Endpunkt gemappt; `/mcp` liefert daher ebenfalls `404` und der aktuelle
+MCP-Transport bleibt STDIO. Der Agent greift ausschließlich über die
+[MCP-API](McpApi.md) zu; es gibt keinen Workflow über lokale temporäre
+Markdown-Dateien. Das System funktioniert damit mit jedem MCP-fähigen Client,
+unabhängig von lokalem Dateizugriff, Git oder Unified-Diff-Fähigkeit.
 
 Die Geschäftslogik ist nicht an STDIO gekoppelt. MCP über HTTP und Browseradapter
 werden ohne Änderung der Application-/Domain-Schicht auf diesem Webhost ergänzt.

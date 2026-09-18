@@ -79,11 +79,14 @@ Credentials.
 
 ## Protokollierung
 
-Der Server läuft als ASP.NET-Core-Webhost auf Kestrel. Der MCP-Transport bleibt in
-diesem Zwischenstand STDIO; `stdout` ist deshalb weiterhin exklusiv dem
-MCP-Protokoll vorbehalten. Protokollausgaben gehen ausschließlich nach `stderr`
-und optional in die konfigurierbare, täglich rotierende Datei. Keine Start-, SQL-
-oder Diagnoseausgabe verunreinigt `stdout`.
+Der Server läuft als ASP.NET-Core-Webhost auf Kestrel. Scheme, Adresse und Port
+stammen ausschließlich aus der normalen ASP.NET-Core-Hostkonfiguration und ihren
+Kommandozeilen-Overrides; der Server definiert weder eine eigene Portoption noch
+einen zweiten Listener. Der MCP-Transport bleibt in diesem Zwischenstand STDIO;
+`stdout` ist deshalb weiterhin exklusiv dem MCP-Protokoll vorbehalten.
+Protokollausgaben gehen ausschließlich nach `stderr` und optional in die
+konfigurierbare, täglich rotierende Datei. Keine Start-, SQL- oder
+Diagnoseausgabe verunreinigt `stdout`.
 
 Geheimnisse (Passwörter, Verbindungszeichenfolgen) und vollständige
 Content-Payloads werden niemals protokolliert; sensitive Werte erreichen die

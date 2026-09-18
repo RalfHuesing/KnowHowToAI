@@ -1,5 +1,6 @@
 using KnowHowToAI.Server.Configuration;
 using KnowHowToAI.Server.Hosting;
+using KnowHowToAI.Server.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -19,8 +20,11 @@ internal static class Program
     internal static Microsoft.AspNetCore.Builder.WebApplication CreateApplication(string[] args)
     {
         var builder = CreateBuilder(args);
+        var application = builder.Build();
 
-        return builder.Build();
+        application.MapWebEndpoints();
+
+        return application;
     }
 
     internal static Microsoft.AspNetCore.Builder.WebApplicationBuilder CreateBuilder(string[] args)
