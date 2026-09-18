@@ -1,8 +1,8 @@
 # KnowHowToAI
 
 Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und
-Menschen. Der Zugriff erfolgt ausschließlich über MCP (Model Context Protocol);
-V1 transportiert über STDIO.
+Menschen. Der Zugriff erfolgt ausschließlich über MCP (Model Context Protocol)
+als stateless Streamable HTTP unter `/mcp`.
 
 ## Was ist das?
 
@@ -38,7 +38,8 @@ Ableitungen (Stale), ohne automatisch zu synchronisieren.
 ## Technischer Stack
 
 - C# / .NET, MS SQL Server 2019 oder neuer
-- MCP-Server über STDIO (ModelContextProtocol-SDK)
+- Eine Server-EXE (ASP.NET-Core-Webhost mit Kestrel) bedient Blazor-Shell und
+  MCP Streamable HTTP unter `/mcp` (ModelContextProtocol-SDK) auf einem Origin
 - Dapper für den SQL-Zugriff, Markdig für Markdown-Validierung, Serilog für
   Protokollierung nach stderr
 
@@ -49,13 +50,20 @@ Ableitungen (Stale), ohne automatisch zu synchronisieren.
   `DatabaseConnection`-Sektion von `src/KnowHowToAI.Server/appsettings.json`
 - .NET SDK (Ziel-Framework `net10.0`)
 
-## Bauen und Testen
+## Bauen, Starten und Testen
 
 ```text
 dotnet build KnowHowToAI.slnx -v q --nologo
+dotnet publish src/KnowHowToAI.Server -c Release -o <Verzeichnis>
 pwsh -NoProfile -File scripts/test-fast.ps1
 pwsh -NoProfile -File scripts/test-integration.ps1
 ```
+
+Die veröffentlichte Server-EXE startet als Webhost mit einem konfigurierten
+Origin (Standard-ASP.NET-Core-Hostkonfiguration, z. B. `--urls`). Sie bindet
+Blazor-Shell unter `/` und MCP Streamable HTTP unter `/mcp` an denselben Port;
+Scheme, Adresse und Port stammen aus der Hostkonfiguration bzw. den
+Kommandozeilen-Overrides.
 
 Integrationstests mit echtem SQL Server laufen gegen die konfigurierte Datenbank
 (Kategorie `ManualDatabaseIntegration`); der Test-Harness erzeugt oder entfernt

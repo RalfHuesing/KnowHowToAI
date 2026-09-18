@@ -53,20 +53,14 @@ internal static class Program
         builder.Services
             .AddMcpServer()
             .WithHttpTransport(options =>
-            {
-                options.SessionMode = ModelContextProtocol.AspNetCore.HttpServerSessionMode.Stateless;
-#pragma warning disable MCP9004
-                options.EnableLegacySse = false;
-#pragma warning restore MCP9004
-            })
-            .WithStdioServerTransport()
+                options.SessionMode = ModelContextProtocol.AspNetCore.HttpServerSessionMode.Stateless)
             .WithToolsFromAssembly();
 
         return builder;
     }
 
     internal static Task<int> RunApplicationAsync(Microsoft.AspNetCore.Builder.WebApplication application) =>
-        StdioHostRunner.RunAsync(
+        HostRunner.RunAsync(
             application,
             () => ValidateStartupOptions(application.Services));
 

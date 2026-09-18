@@ -1,6 +1,6 @@
 # KnowHowToAI
 
-Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und Menschen (.NET / C#, MS SQL Server, MCP STDIO).
+Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und Menschen (.NET / C#, MS SQL Server, MCP Streamable HTTP).
 
 ## Grundprinzip: Greenfield (Hard Cut)
 

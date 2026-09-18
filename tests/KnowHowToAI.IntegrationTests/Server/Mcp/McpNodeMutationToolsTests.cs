@@ -19,7 +19,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// Handler-Vertragstests der Struktur-Tools (create_node, update_node, move_node,
 /// reorder_node, delete_node): dünne Delegation an den NodeMutationApplicationService
 /// mit protokollkonformer Error-Struktur, ID-Round-Trip und atomarer Subtree-Löschung.
-/// Keine SQL- oder STDIO-Infrastruktur.
+/// Keine SQL- oder Server-Infrastruktur.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpNodeMutationToolsTests

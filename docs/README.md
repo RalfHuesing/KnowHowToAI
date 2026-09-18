@@ -46,7 +46,7 @@ sowie [Invarianten](Invarianten.md) zu lesen, dazu das fachlich betroffene Dokum
 | Rollen, Fallback, Revisions, Dependencies, Freshness | [Rollen und Content](Rollen-und-Content.md) |
 | Transactions, Snapshots, Concurrency, Historie, Releases | [Transaktionen und Historie](Transaktionen-und-Historie.md), [Datenmodell](Datenmodell.md) |
 | Export, Navigation, Search, Schreiben, Validatoren | [Retrieval](Retrieval.md) |
-| MCP-Tools, Schemas, Fehlercodes, STDIO | [MCP-API](McpApi.md) sowie die vom Tool berührten Fachdokumente |
+| MCP-Tools, Schemas, Fehlercodes | [MCP-API](McpApi.md) sowie die vom Tool berührten Fachdokumente |
 | SQL-Schema, Repositories, Migrationen | [Datenmodell](Datenmodell.md), [Architektur](Architektur.md) |
 | Projektsetup, Konfiguration, Transport, Betrieb | [Architektur](Architektur.md), [Konfiguration und Betrieb](Konfiguration-und-Betrieb.md) |
 | Begründungen, V1-Grenzen, Erweiterungsplanung | [Entscheidungen](Entscheidungen.md) |

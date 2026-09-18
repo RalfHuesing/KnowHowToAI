@@ -1,7 +1,7 @@
 # MCP-API
 
 Der MCP-Server stellt 27 Tools über stateless MCP Streamable HTTP unter `/mcp`
-und vorläufig weiterhin über MCP STDIO bereit. Alle IDs (`NodeId`, `RoleId`,
+bereit. Alle IDs (`NodeId`, `RoleId`,
 `TransactionId`, `SnapshotId`) sind symmetrisch: Ausgaben sind ohne Bereinigung
 oder Typkonvertierung als Eingabe für Folgetools nutzbar (Round-Trip-Garantie).
 Rollen werden immer explizit als `roleId` übergeben; es gibt keinen globalen
@@ -228,24 +228,10 @@ Warncodes wie `NodeTooLarge`, `PossibleEmbeddedHeading`, `TooManyChildren`,
 Fehler.
 <!-- mcp-catalog-end -->
 
-## Transportverhalten während der Umstellung
+## Transportverhalten
 
-Streamable HTTP ist unter `/mcp` ausschließlich mit dem stateless Sessionmodus
-erreichbar. Legacy-SSE bleibt deaktiviert; `GET /mcp` wird nicht als MCP-Erfolg
-behandelt und `/mcp/sse` ist kein MCP-Endpunkt. Es existieren weder ein
-zusätzlicher MCP-Port noch CORS- oder fachlicher Transport-Sessionzustand. Der
-STDIO-Betrieb bleibt nur bis zum ausdrücklich geplanten Hard Cut aktiv.
-
-### STDIO-Protokollverhalten
-
-Der Server läuft als STDIO-Prozess. `stdout` enthält ausschließlich
-MCP-Protokollnachrichten; alle Diagnose- und Protokollausgaben gehen nach
-`stderr` oder in eine Datei ([Konfiguration und
-Betrieb](Konfiguration-und-Betrieb.md)). Für nicht parsebare stdin-Zeilen
-garantiert das MCP-SDK keine JSON-RPC-Fehlerantwort (−32700): Parse-Fehler werden
-nach stderr geloggt, `stdout` bleibt sauber und der Prozess beantwortet
-nachfolgende gültige Requests normal. Ungültige JSON-Typen oder unbekannte Felder
-in `arguments` liefern dagegen protokollkonforme Antworten (isError-Result
-beziehungsweise JSON-RPC-Error). Das Ende des Client-Eingabestroms, SIGTERM/Ctrl+C
-und Schreibfehler auf der Pipe führen zu einem geordneten Herunterfahren mit
-stabilem Exitcode.
+Streamable HTTP ist unter `/mcp` der einzige MCP-Transport und ausschließlich
+mit dem stateless Sessionmodus erreichbar. Legacy-SSE ist deaktiviert (Standard
+des SDK); `GET /mcp` wird nicht als MCP-Erfolg behandelt und `/mcp/sse` ist kein
+MCP-Endpunkt. Es existieren weder ein zusätzlicher MCP-Port noch CORS- oder
+fachlicher Transport-Sessionzustand.

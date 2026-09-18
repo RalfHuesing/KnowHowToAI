@@ -4,7 +4,7 @@
 
 - C# / .NET (aktuell `net10.0`)
 - MS SQL Server 2019 oder neuer (inkl. Azure SQL)
-- ASP.NET-Core-Webhost mit Kestrel; MCP ist zusätzlich über stateless Streamable HTTP unter `/mcp` erreichbar (ModelContextProtocol-SDK); STDIO bleibt bis zum geplanten Hard Cut vorläufig aktiv
+- ASP.NET-Core-Webhost mit Kestrel; MCP ist über stateless Streamable HTTP unter `/mcp` erreichbar (ModelContextProtocol-SDK); Legacy-SSE ist deaktiviert
 - aktuelle, gepflegte NuGet-Standardpakete; für Markdown-Verarbeitung eine
   etablierte Bibliothek, kein eigener Parser
 - Datenzugriff über Dapper (Zeilenmodelle bleiben intern im Storage-Projekt)
@@ -14,7 +14,7 @@
 Strikte Schichtung mit einseitigen Abhängigkeiten:
 
 ```text
-             MCP Streamable HTTP / STDIO
+             MCP Streamable HTTP (/mcp)
                           │
                           ▼
                 ┌─────────────────┐
@@ -53,12 +53,13 @@ für die üblichen HTTP-Methoden; eine REST- oder OpenAPI-Infrastruktur gibt es
 noch nicht. Die Root-Route `/` liefert eine minimale Blazor Interactive-Server-
 Shell. Sie ruft ihren Read-only-Status direkt über einen Application Service ab;
 es gibt weder einen HTTP-Loopback noch eine allgemeine Browser-API. `/mcp`
-ist als stateless Streamable HTTP-Endpunkt erreichbar, während STDIO bis zum geplanten Hard Cut aktiv bleibt. Der Agent greift ausschließlich über die
+ist der einzige MCP-Endpunkt und als stateless Streamable HTTP erreichbar. Der
+Agent greift ausschließlich über die
 [MCP-API](McpApi.md) zu; es gibt keinen Workflow über lokale temporäre
 Markdown-Dateien. Das System funktioniert damit mit jedem MCP-fähigen Client,
 unabhängig von lokalem Dateizugriff, Git oder Unified-Diff-Fähigkeit.
 
-Die Geschäftslogik ist nicht an einen MCP-Transport gekoppelt. MCP über HTTP und
+Die Geschäftslogik ist nicht an einen MCP-Transport gekoppelt. Weitere
 Browseradapter werden ohne Änderung der Application-/Domain-Schicht auf diesem
 Webhost ergänzt.
 
@@ -148,17 +149,19 @@ Interactive-Server-Smoke; es referenziert kein Produktionsprojekt.
 
 ## Deployment
 
-Ein MCP-Server-Prozess wird über eine SQL-Verbindung mit genau einer
-KnowHowTo-AI-Datenbank verbunden. Für verschiedene Wissensbestände werden mehrere
-Serverprozesse mit unterschiedlichen Connection Strings gestartet:
+Ein Serverprozess (eine EXE) wird über eine SQL-Verbindung mit genau einer
+KnowHowTo-AI-Datenbank verbunden und bedient Blazor-Shell und MCP auf einem
+konfigurierten Origin. Für verschiedene Wissensbestände werden mehrere
+Serverprozesse mit unterschiedlichen Connection Strings und jeweils eigenem
+Origin gestartet:
 
 ```text
-MCP Server A → SQL DB Produkt A
-MCP Server B → SQL DB Produkt B
-MCP Server C → SQL DB Internes Wissen
+Server A (Origin A) → SQL DB Produkt A
+Server B (Origin B) → SQL DB Produkt B
+Server C (Origin C) → SQL DB Internes Wissen
 ```
 
 V1 benötigt dadurch keine Mandantenverwaltung innerhalb einer Instanz. Ein
-zentral betriebener SQL Server mit lokalen STDIO-Prozessen mehrerer Nutzer ist
+zentral betriebener SQL Server mit mehreren Serverprozessen mehrerer Nutzer ist
 der vorgesehene Betriebsmodus. Da eine Serverinstanz genau eine Datenbank bedient,
 erhält jede Wissensbasis ihre eigenen Policies über die App-Konfiguration.

@@ -56,8 +56,8 @@ Verletzungen gemeldet werden, stehen im [Katalog der MCP-API](McpApi.md).
 30. Es gibt kein automatisches Merge oder Rebase.
 31. Node-Löschung (global, alle Rollen) und Rollen-Content-Löschung (nur der
     explizite Content einer Rolle) sind unterschiedliche Operationen.
-32. STDIO ist nur der erste Transport; die Geschäftslogik ist nicht an STDIO
-    gebunden.
+32. Streamable HTTP unter `/mcp` ist der einzige MCP-Transport; die
+    Geschäftslogik ist nicht an einen Transport gebunden.
 
 Zusätzlich verbindliche Konfigurations- und Migrationsregeln:
 

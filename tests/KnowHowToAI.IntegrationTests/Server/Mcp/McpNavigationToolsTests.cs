@@ -12,7 +12,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// <summary>
 /// Handler-Vertragstests der Navigation-Tools (get_root, get_node, list_children,
 /// list_roles): dünne Delegation an den NavigationService mit protokollkonformer
-/// Error-Struktur, ID-Round-Trip und Paging-Grenzen. Keine SQL- oder STDIO-Infrastruktur.
+/// Error-Struktur, ID-Round-Trip und Paging-Grenzen. Keine SQL- oder Server-Infrastruktur.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpNavigationToolsTests

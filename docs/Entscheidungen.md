@@ -63,6 +63,7 @@ Formulierung liegen beim Agenten (Trennung im Detail:
 | ADR-V1-005 | 4-KiB-Default als konfigurierbares Soft-Limit; Überschriften bleiben harte Fehler |
 | ADR-V1-006 | App-Konfiguration statt DB-Konfiguration; harte Invarianten sind nicht abschaltbar |
 | ADR-V1-007 | Dependency-Löschsemantik: Anlage-/Änderungsvalidierung (aktive explizite Source erforderlich) getrennt von Snapshot-Zustandsvalidierung; bestehende Provenienz zu später gelöschter Source bleibt erhalten und macht Derived Content transitiv `Stale` |
+| ADR-V1-008 | MCP ausschließlich als stateless Streamable HTTP unter `/mcp` in derselben Server-EXE wie die Blazor-Shell (ein Kestrel-Origin); Legacy-SSE deaktiviert, kein anderer MCP-Transport und kein Fallback |
 
 Messgestützte Performance-Entscheidungen (Suchindizes, Freshness-Ladung,
 Diff-Paging) stehen mit ihren Begründungen in [Retrieval](Retrieval.md).
@@ -71,7 +72,7 @@ Diff-Paging) stehen mit ihren Begründungen in [Retrieval](Retrieval.md).
 
 Folgendes ist aktuell nicht implementiert:
 
-- HTTP-MCP, REST-API
+- REST-API
 - grafische Administration / Rollen-Administrationsoberfläche
 - Benutzerverwaltung, Berechtigungs-/ACL-System, Mandantenmodell innerhalb einer
   Instanz
@@ -91,7 +92,8 @@ Folgendes ist aktuell nicht implementiert:
 Folgende Erweiterungen sind nicht umgesetzt, dürfen durch das V1-Design aber
 nicht unnötig verhindert werden:
 
-- **Weitere Transporte**: MCP über HTTP, REST API.
+- **Weitere Transporte**: REST API als allgemeine HTTP-Fassade; der MCP-Transport
+  (Streamable HTTP) ist festgelegt.
 - **Admin-Oberfläche**: Verwaltung von Rollen, Resolution Orders, Releases,
   Snapshots, Transactions und Knowledge-Struktur; nicht versionierte Validator-
   und Betriebsparameter bleiben auch dann Anwendungskonfiguration.

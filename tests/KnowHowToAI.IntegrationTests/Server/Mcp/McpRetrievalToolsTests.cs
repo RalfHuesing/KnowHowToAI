@@ -16,7 +16,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// <summary>
 /// Handler-Vertragstests der Retrieval-Tools (search, export_tree): dünne Delegation
 /// an SearchService und MarkdownExportService mit protokollkonformer Error-Struktur,
-/// Paging-Grenzen und Export-Ausgabe. Keine SQL- oder STDIO-Infrastruktur.
+/// Paging-Grenzen und Export-Ausgabe. Keine SQL- oder Server-Infrastruktur.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpRetrievalToolsTests

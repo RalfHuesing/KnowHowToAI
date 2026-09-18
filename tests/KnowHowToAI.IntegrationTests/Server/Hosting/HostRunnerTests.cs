@@ -7,32 +7,22 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace KnowHowToAI.IntegrationTests.Server.Hosting;
 
 /// <summary>
-/// Belegt, dass Shutdown, Cancellation, defekte Client-Pipe und Startfehler vom
+/// Belegt, dass kontrolliertes Herunterfahren, Abbruch und Startfehler vom
 /// Serverlauf kontrolliert in stabile Exitcodes überführt werden, statt den
 /// Prozess mit unbehandelter Exception zu beenden.
 /// </summary>
 [Trait("Category", "Integration")]
-public sealed class StdioHostRunnerTests
+public sealed class HostRunnerTests
 {
     [Fact]
-    public async Task ImmediateClientDisconnect_ReturnsSuccess()
+    public async Task ImmediateStop_ReturnsSuccess()
     {
         using var host = Host.CreateDefaultBuilder()
             .ConfigureServices(services => services.AddSingleton<IHostedService>(serviceProvider =>
                 new StoppingHostedService(serviceProvider.GetRequiredService<IHostApplicationLifetime>())))
             .Build();
 
-        var exitCode = await StdioHostRunner.RunAsync(host, NullLogger.Instance);
-
-        Assert.Equal(ServerExitCodes.Success, exitCode);
-    }
-
-    [Fact]
-    public async Task BrokenClientPipeOnStart_ReturnsSuccessWithoutProcessCrash()
-    {
-        using var host = BuildHostWithStartFailure(new IOException("Verbindung unterbrochen"));
-
-        var exitCode = await StdioHostRunner.RunAsync(host, NullLogger.Instance);
+        var exitCode = await HostRunner.RunAsync(host, NullLogger.Instance);
 
         Assert.Equal(ServerExitCodes.Success, exitCode);
     }
@@ -42,7 +32,7 @@ public sealed class StdioHostRunnerTests
     {
         using var host = BuildHostWithStartFailure(new OperationCanceledException());
 
-        var exitCode = await StdioHostRunner.RunAsync(host, NullLogger.Instance);
+        var exitCode = await HostRunner.RunAsync(host, NullLogger.Instance);
 
         Assert.Equal(ServerExitCodes.Success, exitCode);
     }
@@ -54,7 +44,7 @@ public sealed class StdioHostRunnerTests
         using var host = BuildHostWithStartFailure(new InvalidOperationException($"Password={secret}"));
         var logger = new RecordingLogger();
 
-        var exitCode = await StdioHostRunner.RunAsync(host, logger);
+        var exitCode = await HostRunner.RunAsync(host, logger);
 
         Assert.Equal(ServerExitCodes.StartupFailure, exitCode);
         Assert.DoesNotContain(secret, logger.RenderedEvents, StringComparison.Ordinal);
@@ -62,7 +52,7 @@ public sealed class StdioHostRunnerTests
     }
 
     [Fact]
-    public async Task BrokenClientPipeDuringBackgroundRun_ReturnsSuccessWithoutProcessCrash()
+    public async Task FailingBackgroundService_StopsHostWithSuccessWithoutProcessCrash()
     {
         var trigger = new TaskCompletionSource();
         using var host = Host.CreateDefaultBuilder()
@@ -70,7 +60,7 @@ public sealed class StdioHostRunnerTests
                 services.AddSingleton<IHostedService>(new FailingBackgroundService(trigger.Task)))
             .Build();
 
-        var runTask = StdioHostRunner.RunAsync(host, NullLogger.Instance);
+        var runTask = HostRunner.RunAsync(host, NullLogger.Instance);
         trigger.SetResult();
 
         var exitCode = await runTask;
@@ -107,7 +97,7 @@ public sealed class StdioHostRunnerTests
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await trigger.WaitAsync(stoppingToken);
-            throw new IOException("Client-Pipe defekt");
+            throw new IOException("Hosted Service fehlgeschlagen");
         }
     }
 

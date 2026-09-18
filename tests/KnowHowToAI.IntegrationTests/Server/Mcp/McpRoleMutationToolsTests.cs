@@ -13,7 +13,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// Handler-Vertragstests der Rollen-Tools (create_role, update_role, delete_role,
 /// set_role_resolution): dünne Delegation an den RoleMutationService mit
 /// protokollkonformer Error-Struktur und vollständiger Resolution-Order-Antwort.
-/// Keine SQL- oder STDIO-Infrastruktur.
+/// Keine SQL- oder Server-Infrastruktur.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpRoleMutationToolsTests

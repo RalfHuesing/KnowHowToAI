@@ -18,7 +18,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// <summary>
 /// Handler-Vertragstests der History- und Release-Tools: dünne Delegation an
 /// HistoryService und ReleaseService mit protokollkonformer Error-Struktur,
-/// ID-Round-Trip und Snapshot-/Release-Metadaten. Keine SQL- oder STDIO-Infrastruktur.
+/// ID-Round-Trip und Snapshot-/Release-Metadaten. Keine SQL- oder Server-Infrastruktur.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpHistoryToolsTests

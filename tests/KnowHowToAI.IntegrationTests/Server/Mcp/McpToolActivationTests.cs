@@ -9,7 +9,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Belegt, dass der produktive DI-Host jede MCP-Tool-Klasse aktivieren kann –
-/// exakt der Pfad, den der stdio-Server bei der Tool-Aktivierung durchläuft.
+/// exakt der Pfad, den der MCP-Server bei der Tool-Aktivierung durchläuft.
 /// Fängt Konstruktor-Ambiguitäten der Service-Abhängigkeiten (z. B. mehrere
 /// auflösbare Konstruktoren), die erst zur Laufzeit werfen.
 /// </summary>

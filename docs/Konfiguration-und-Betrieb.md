@@ -82,17 +82,13 @@ Credentials.
 Der Server läuft als ASP.NET-Core-Webhost auf Kestrel. Scheme, Adresse und Port
 stammen ausschließlich aus der normalen ASP.NET-Core-Hostkonfiguration und ihren
 Kommandozeilen-Overrides; der Server definiert weder eine eigene Portoption noch
-einen zweiten Listener. Der MCP-Transport ist in diesem Zwischenstand zusätzlich
-stateless als Streamable HTTP unter `/mcp` verfügbar; STDIO bleibt bis zum
-geplanten Hard Cut aktiv.
-Blazor Interactive Server bedient zusätzlich die minimale Shell auf `/` über
+einen zweiten Listener. MCP ist als stateless Streamable HTTP unter `/mcp`
+erreichbar; Legacy-SSE ist deaktiviert (Standard des SDK).
+Blazor Interactive Server bedient die minimale Shell auf `/` über
 denselben Origin. Der Shell-Read ruft die Application-Schicht direkt per DI auf
 und verwendet keinen HTTP-Loopback.
-Solange STDIO aktiv ist, bleibt `stdout` exklusiv dessen MCP-Protokoll
-vorbehalten.
 Protokollausgaben gehen ausschließlich nach `stderr` und optional in die
-konfigurierbare, täglich rotierende Datei. Keine Start-, SQL- oder
-Diagnoseausgabe verunreinigt `stdout`.
+konfigurierbare, täglich rotierende Datei.
 
 Geheimnisse (Passwörter, Verbindungszeichenfolgen) und vollständige
 Content-Payloads werden niemals protokolliert; sensitive Werte erreichen die
@@ -104,8 +100,7 @@ Betriebsdefault (`Information`) liegt darüber.
 Konfigurationsfehler werden vor einer Kestrel-Bindung validiert; aktivierte
 Schema-Migrationen laufen ebenfalls vor der Betriebsbereitschaft. Fehler in
 Konfiguration, Migration oder Kestrel-Start führen zu `StartupFailure`.
-Herunterfahren, Abbruch und eine defekte Client-Pipe werden kontrolliert
-behandelt: Ende des Client-Eingabestroms, SIGTERM/Ctrl+C und Pipe-Schreibfehler
+Herunterfahren und Abbruch (SIGTERM/Ctrl+C) werden kontrolliert behandelt und
 führen zu einem geordneten Herunterfahren mit stabilem Exitcode `Success`, ohne
 unbehandelte Exception.
 

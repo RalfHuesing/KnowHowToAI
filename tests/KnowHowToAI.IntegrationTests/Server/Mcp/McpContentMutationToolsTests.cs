@@ -16,7 +16,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 /// Handler-Vertragstests der Content-Tools (replace_content, replace_text,
 /// delete_content): dünne Delegation an den ContentMutationApplicationService mit
 /// protokollkonformer Error-Struktur, Revisions- und Freshness-Mapping sowie
-/// Heading-/Text-Operation-Verträgen. Keine SQL- oder STDIO-Infrastruktur.
+/// Heading-/Text-Operation-Verträgen. Keine SQL- oder Server-Infrastruktur.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpContentMutationToolsTests

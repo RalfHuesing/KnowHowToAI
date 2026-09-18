@@ -1,11 +1,11 @@
 namespace KnowHowToAI.Server.Hosting;
 
 /// <summary>
-/// Zentrale Prozess-Exitcodes des STDIO-Servers.
+/// Zentrale Prozess-Exitcodes des Servers.
 /// </summary>
 internal static class ServerExitCodes
 {
-    /// <summary>Reguläres Ende, Shutdown, Abbruch oder getrennte Client-Pipe.</summary>
+    /// <summary>Reguläres Ende, Shutdown oder Abbruch.</summary>
     public const int Success = 0;
 
     /// <summary>Start- oder Betriebsfehler, der das Ende des Servers erzwingt.</summary>

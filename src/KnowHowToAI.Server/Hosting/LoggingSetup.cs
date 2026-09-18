@@ -6,9 +6,8 @@ namespace KnowHowToAI.Server.Hosting;
 
 /// <summary>
 /// Baut die Protokollierung auf: alle Ausgaben nach stderr, optional ergänzt um eine
-/// rotierende Datei. <c>stdout</c> bleibt exklusiv dem MCP-Protokoll vorbehalten.
-/// Roh-Payloads schreibt der MCP-Transport ausschließlich auf Trace-Ebene; der
-/// konfigurierbare Default-Level liegt darüber.
+/// rotierende Datei. Roh-Payloads schreibt der MCP-Transport ausschließlich auf
+/// Trace-Ebene; der konfigurierbare Default-Level liegt darüber.
 /// </summary>
 internal static class LoggingSetup
 {
