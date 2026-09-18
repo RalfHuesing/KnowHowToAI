@@ -1,0 +1,19 @@
+/*
+ * Globale Basis für alle Seiten. Enthält in T1 bewusst nur den neutralen
+ * Reset ohne Designwerte; Farben, Abstände, Typografie und der Fokusring
+ * folgen zentral als Tokens in M2.1-T2.
+ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+[hidden] {
+    display: none !important;
+}

@@ -1,0 +1,100 @@
+@namespace KnowHowToAI.Web.Tests.TestSupport
+@using KnowHowToAI.Server.Web.Components.Shared
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+@* Showcase-Fixture ausschließlich für bUnit: belegt die native UI-Basis aus
+   M2.1-T1 (beschriftetes Formular mit Validierung, Button, nativer Dialog,
+   kleine Tabelle, Inlinehinweis, Toast). Keine Route im Produkt. *@
+
+<section aria-labelledby="ui-basis-heading" data-testid="ui-basis-root">
+    <h2 id="ui-basis-heading">UI-Basis-Prüfseite</h2>
+
+    <EditForm Model="_form" OnValidSubmit="HandleValidSubmit" data-testid="ui-basis-form">
+        <DataAnnotationsValidator />
+        <label for="showcase-name">Name</label>
+        <InputText id="showcase-name" @bind-Value="_form.Name" aria-describedby="showcase-name-hint" />
+        <ValidationMessage For="() => _form.Name" data-testid="showcase-name-error" />
+        <p id="showcase-name-hint" data-testid="showcase-hint">Der Name ist Pflichtfeld und wird beim Speichern geprüft.</p>
+        <button type="submit" data-testid="showcase-submit">Speichern</button>
+    </EditForm>
+    <p data-testid="showcase-submit-status" role="status">@_submitStatus</p>
+
+    <button type="button" @onclick="OpenDialogAsync" data-testid="showcase-dialog-open">Dialog öffnen</button>
+    <AppDialog @ref="_dialog" Title="Beispieldialog" OnClosed="HandleDialogClosed">
+        <p data-testid="showcase-dialog-content">Inhalt im nativen Dialog.</p>
+        <button type="button" @onclick="CloseDialogAsync" data-testid="showcase-dialog-close">Dialog schließen</button>
+    </AppDialog>
+    <p data-testid="showcase-dialog-status" aria-live="polite">@_dialogStatus</p>
+
+    <table data-testid="showcase-table">
+        <caption>Rollenübersicht</caption>
+        <thead>
+            <tr>
+                <th scope="col">Rolle</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Developer</td>
+                <td>Aktiv</td>
+            </tr>
+            <tr>
+                <td>Reviewer</td>
+                <td>Aktiv</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" @onclick="ShowToast" data-testid="showcase-toast-button">Hinweis anzeigen</button>
+    @if (_toastVisible)
+    {
+        <p role="status" data-testid="showcase-toast">Die Aktion wurde abgeschlossen.</p>
+    }
+</section>
+
+@code {
+    private readonly ShowcaseForm _form = new();
+    private AppDialog? _dialog;
+    private string _submitStatus = "Noch nicht gespeichert.";
+    private string _dialogStatus = "Der Dialog wurde noch nicht benutzt.";
+    private bool _toastVisible;
+
+    private async Task HandleValidSubmit()
+    {
+        _submitStatus = "Die Formularprüfung war erfolgreich.";
+        await Task.CompletedTask;
+    }
+
+    private async Task OpenDialogAsync()
+    {
+        if (_dialog is null)
+        {
+            return;
+        }
+
+        _dialogStatus = "Der Dialog ist geöffnet.";
+        await _dialog.OpenAsync();
+    }
+
+    private async Task CloseDialogAsync()
+    {
+        if (_dialog is null)
+        {
+            return;
+        }
+
+        await _dialog.CloseAsync();
+    }
+
+    private void HandleDialogClosed() => _dialogStatus = "Der Dialog wurde geschlossen.";
+
+    private void ShowToast() => _toastVisible = true;
+
+    private sealed class ShowcaseForm
+    {
+        [Required(ErrorMessage = "Bitte geben Sie einen Namen an.")]
+        public string Name { get; set; } = string.Empty;
+    }
+}

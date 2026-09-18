@@ -107,8 +107,14 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 Validatoren, Redaction), `Hosting` (Composition Root, DI, Kestrel-Start,
 kontrollierter Shutdown), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgruppe),
 `Mcp.Tools.*` (dünne Handler), `Mcp.Mapping` (ausschließlich
-Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout und zentrale
-Fehlergrenze) sowie `Web.Features.Dashboard` (die derzeit einzige Root-Seite).
+Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout,
+zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
+`Web/Components/Shared` – darunter der native Dialog-Wrapper `AppDialog`
+mit schmaler JS-Isolation in `AppDialog.razor.js`) sowie
+`Web.Features.Dashboard` (die derzeit einzige Root-Seite). Das Verzeichnis
+`wwwroot/css/app.css` enthält die neutrale globale Basis-Reset-Regel ohne
+Designwerte; die Shell bindet ausschließlich lokale eigene Ressourcen ein,
+keine CDN-, Cloud- oder Telemetrie-Ressourcen.
 
 Leitplanken:
 
@@ -143,9 +149,16 @@ Test-Support wird nur ergänzt, wenn mindestens zwei Tests ihn tatsächlich
 benötigen; Testnamen beschreiben Verhalten.
 
 `KnowHowToAI.Web.Tests` prüft die Razor-Shell mit bUnit und isolierten
-Application-Persistence-Ports. `KnowHowToAI.BrowserTests` startet die
-veröffentlichte Server-EXE als Black Box mit Google Chrome Stable im headless
-Interactive-Server-Smoke; es referenziert kein Produktionsprojekt.
+Application-Persistence-Ports. Das Test-Fixture `TestSupport/UiBasisShowcase`
+rendert ausschließlich in diesem Projekt die native UI-Basis (beschriftetes
+Formular mit Validierung, Button, nativer Dialog über JS-Isolation, kleine
+Tabelle, Inlinehinweis, Toast) und besitzt keine Route im Produkt.
+`KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
+mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
+kein Produktionsprojekt. Ein Dialog-Smoke belegt die Tastaturfolge
+`Enter`, `Tab`, `Shift+Tab`, `Escape` einschließlich Fokusfalle und
+Fokusrückgabe gegen dieselben Serverressourcen und dass beim Laden keine
+Drittanbieter-Origin angefordert wird.
 
 ## Deployment
 
