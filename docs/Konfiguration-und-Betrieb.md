@@ -127,7 +127,28 @@ pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatab
   klarer Preflight-Fehler, kein grüner Skip.
 - Der Browser-Shell-Smoke verlangt Google Chrome Stable (installierte aktuelle
   Version) im headless `chrome`-Channel. Eine fehlende Installation ist ein
-  Preflight-Fehler; Chromium oder ein anderer Browser ist kein Fallback.
+  Preflight-Fehler; Chromium oder ein anderer Browser ist kein Fallback. Der
+  Testhost prüft die Installation vor jedem Lauf über den Windows-Uninstall-
+  Eintrag; eine nichtinteraktive Bereitstellung ist über
+  `winget install --id Google.Chrome --exact --silent --accept-package-agreements --accept-source-agreements`
+  möglich. Die Version selbst wird nicht festgenagelt, jede installierte
+  Stable-Version ist zulässig.
+- Gezielte Browser-Smoke-Läufe:
+  `pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'FullyQualifiedName~SmokeTests'`
+  beziehungsweise
+  `dotnet test tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj`.
+  Die Abhängigkeits- und Befehlsregeln stehen im Strukturkonzept unter
+  „Feste Testabhängigkeiten und Befehle“
+  (`tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md`).
+- Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
+  die Shell bei 1280 × 720 und 1024 × 720 gegen die versionierten PNG-Baselines
+  unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`. Im regulären
+  Lauf werden Baselines nur verglichen und niemals automatisch aktualisiert;
+  Abweichungen schlagen den Test mit Pfadangaben fehl. Nach einer beabsichtigten
+  UI-Änderung wird der aktuelle Screenshot aus `temp/visual-shell/` nach einer
+  manuellen Diff-Prüfung bewusst in die Baseline übernommen (per `git add`).
+  Volatile Inhalte (Animationen, Caret, Schriftnachladung) maskiert der Test
+  vor der Aufnahme.
 - Teilnachweis: `pwsh -NoProfile -File scripts/test-integration.ps1 -Filter
   'FullyQualifiedName~<Testklasse>'` führt nur berührte SQL-Tests aus.
 - Skriptausgaben in eine Logdatei umleiten und die Datei auswerten, statt pwsh

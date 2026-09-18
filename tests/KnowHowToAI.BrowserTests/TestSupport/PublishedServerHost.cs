@@ -24,14 +24,21 @@ public sealed class PublishedServerHost : IAsyncDisposable
     private readonly Process _serverProcess;
     private readonly TestTempDirectory _testDirectory;
 
-    private PublishedServerHost(TestTempDirectory testDirectory, Process serverProcess, string address)
+    private PublishedServerHost(TestTempDirectory testDirectory, Process serverProcess, string address, BoundedProcessLog log)
     {
         _testDirectory = testDirectory;
         _serverProcess = serverProcess;
         Address = address;
+        Log = log;
     }
 
     public string Address { get; }
+
+    /// <summary>
+    /// Begrenzte, redigierte Ausgabe des Serverprozesses für Diagnosen;
+    /// bewusst nicht unbegrenzt und nicht als Verhaltensassertion nutzbar.
+    /// </summary>
+    public BoundedProcessLog Log { get; }
 
     public static async Task<PublishedServerHost> StartAsync(string? address = null)
     {
@@ -49,14 +56,15 @@ public sealed class PublishedServerHost : IAsyncDisposable
             // Explizite Adresse für Tests, die denselben Circuit-Origin erneut
             // erreichen müssen (Hostneustart); sonst eine freie Loopback-Adresse.
             address ??= AllocateLoopbackAddress();
-            var serverProcess = StartServer(publishDirectory, address);
+            var processLog = new BoundedProcessLog();
+            var serverProcess = StartServer(publishDirectory, address, processLog);
             try
             {
                 // Der Server wird erst weitergereicht, wenn er tatsächlich antwortet;
                 // der erste Start einer frisch veröffentlichten EXE kann mehrere
                 // Sekunden dauern, und Browser-Navigation würde sonst ins Leere laufen.
-                await WaitForReadinessAsync(address);
-                return new PublishedServerHost(testDirectory, serverProcess, address);
+                await WaitForReadinessAsync(address, processLog);
+                return new PublishedServerHost(testDirectory, serverProcess, address, processLog);
             }
             catch
             {
@@ -122,7 +130,7 @@ public sealed class PublishedServerHost : IAsyncDisposable
         }
     }
 
-    private static Process StartServer(string publishDirectory, string address)
+    private static Process StartServer(string publishDirectory, string address, BoundedProcessLog processLog)
     {
         var executable = Path.Combine(publishDirectory, "KnowHowToAI.Server.exe");
         if (!File.Exists(executable))
@@ -131,17 +139,28 @@ public sealed class PublishedServerHost : IAsyncDisposable
         var start = new ProcessStartInfo(executable)
         {
             UseShellExecute = false,
-            WorkingDirectory = publishDirectory
+            WorkingDirectory = publishDirectory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
         };
         start.ArgumentList.Add("--urls");
         start.ArgumentList.Add(address);
         start.ArgumentList.Add("--contentRoot");
         start.ArgumentList.Add(publishDirectory);
         start.ArgumentList.Add("--KnowHowToAI:Migrations:ApplyOnStartup=false");
-        return Process.Start(start) ?? throw new InvalidOperationException("Die veröffentlichte Server-EXE konnte nicht gestartet werden.");
+        var process = Process.Start(start) ?? throw new InvalidOperationException("Die veröffentlichte Server-EXE konnte nicht gestartet werden.");
+        _ = CollectOutputAsync(process.StandardOutput, processLog);
+        _ = CollectOutputAsync(process.StandardError, processLog);
+        return process;
     }
 
-    private static async Task WaitForReadinessAsync(string address)
+    private static async Task CollectOutputAsync(StreamReader reader, BoundedProcessLog processLog)
+    {
+        while (await reader.ReadLineAsync() is { } line)
+            processLog.Append(line);
+    }
+
+    private static async Task WaitForReadinessAsync(string address, BoundedProcessLog processLog)
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(60);
@@ -158,7 +177,8 @@ public sealed class PublishedServerHost : IAsyncDisposable
             }
         }
 
-        throw new TimeoutException($"Der veröffentlichte Server unter {address} wurde nicht rechtzeitig betriebsbereit.");
+        throw new TimeoutException(
+            $"Der veröffentlichte Server unter {address} wurde nicht rechtzeitig betriebsbereit. Letzte begrenzte Logzeilen: {string.Join(" | ", processLog.Snapshot())}");
     }
 
     private static string AllocateLoopbackAddress()

@@ -288,7 +288,9 @@ Tabelle, Inlinehinweis, Toast) und besitzt keine Route im Produkt.
 `KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
 kein Produktionsprojekt. Der Testhost wartet nach dem Serverstart auf eine
-erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt.
+erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt;
+die Prozessausgabe wird dabei begrenzt und redigiert im Speicher gesammelt und
+ausschließlich für Diagnosen fehlgeschlagener Läufe herangezogen.
 Ein Dialog-Smoke belegt die Tastaturfolge
 `Enter`, `Tab`, `Shift+Tab`, `Escape` einschließlich Fokusfalle und
 Fokusrückgabe gegen dieselben Serverressourcen und dass beim Laden keine
@@ -297,7 +299,19 @@ und 1024 × 720 die Landmark-Struktur, das Nebeneinander der Spalten beziehungsw
 das Ein-/Ausklappen über beschriftete Buttons, die Fokusübergabe an die
 Bereichsüberschrift mit Fokusrückgabe an den Auslöser, Escape als Schließen
 des zuletzt geöffneten Bereichs sowie fehlenden Horizontalüberlauf und
-Seiten-Scrollbarkeit mit langem Testinhalt.
+Seiten-Scrollbarkeit mit langem Testinhalt. Ein visueller Smoke nimmt je
+Viewport erst nach den Verhaltensassertionen einen maskierten Light-Theme-
+Screenshot der Shell auf und vergleicht ihn mit der versionierten Baseline
+unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`; Abweichungen
+erfordern eine manuelle Diff-Prüfung, eine automatische Baselineaktualisierung
+im regulären Lauf findet nicht statt.
+
+Die Testablagen sind nach Prüfgegenstand benannt: Komponententests liegen in
+`KnowHowToAI.Web.Tests` unter `Components/{Layout,Shared}` beziehungsweise
+`Features/<Feature>`; vollständige Benutzerabläufe entstehen in
+`KnowHowToAI.BrowserTests` unter `ReadOnly/` (Shell, Navigation, Reconnect)
+und den featurebezogenen Ordnern `Transactions/`, `Content/`, `PdfExport/`
+und `Assets/`, sobald die zuständigen Milestones sie befüllen.
 
 `KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die
 Repository-Root-Ermittlung (`TestRepositoryRoot`), Wegwerf-Verzeichnisse unter
