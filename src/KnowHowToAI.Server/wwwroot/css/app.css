@@ -1,8 +1,53 @@
 /*
- * Globale Basis für alle Seiten. Enthält in T1 bewusst nur den neutralen
- * Reset ohne Designwerte; Farben, Abstände, Typografie und der Fokusring
- * folgen zentral als Tokens in M2.1-T2.
+ * Globale Basis für alle Seiten: neutraler Reset, zentrale Design-Tokens
+ * des Business-Themes (M2.1-T2) und frameworkweite Basisklassen. Feature-
+ * und Komponenten-CSS ist scoped und referenziert die Werte ausschließlich
+ * über var(...). Es gibt kein zweites Theme; ein Dark Theme existiert nicht.
  */
+
+:root {
+    /* Farben – Business-Theme (Startwerte M2.1-T2) */
+    --ktai-color-primary: #2563eb;
+    --ktai-color-primary-hover: #1d4ed8;
+    --ktai-color-primary-active: #1e40af;
+    --ktai-color-primary-contrast: #ffffff;
+    --ktai-color-text: #111827;
+    --ktai-color-text-secondary: #4b5563;
+    --ktai-color-page: #f8fafc;
+    --ktai-color-surface: #ffffff;
+    --ktai-color-border: #cbd5e1;
+    --ktai-color-success: #15803d;
+    --ktai-color-success-background: #f0fdf4;
+    --ktai-color-warning: #b45309;
+    --ktai-color-warning-background: #fffbeb;
+    --ktai-color-danger: #b91c1c;
+    --ktai-color-danger-background: #fef2f2;
+    --ktai-color-info: #2563eb;
+    --ktai-color-info-background: #eff6ff;
+    --ktai-color-focus: #2563eb;
+
+    /* Abstandsskala */
+    --ktai-space-1: 4px;
+    --ktai-space-2: 8px;
+    --ktai-space-3: 12px;
+    --ktai-space-4: 16px;
+    --ktai-space-6: 24px;
+    --ktai-space-8: 32px;
+
+    /* Radien und Schatten */
+    --ktai-radius-small: 4px;
+    --ktai-radius-medium: 8px;
+    --ktai-shadow-surface: 0 1px 2px rgb(15 23 42 / 0.08);
+
+    /* Typografie – Systemschriftkette ohne Webfont */
+    --ktai-font-family: "Segoe UI", Arial, sans-serif;
+    --ktai-font-size-base: 16px;
+    --ktai-line-height-base: 1.5;
+
+    /* Fokusring – wird niemals unterdrückt */
+    --ktai-focus-ring-width: 3px;
+    --ktai-focus-ring-offset: 2px;
+}
 
 *,
 *::before,
@@ -12,8 +57,33 @@
 
 body {
     margin: 0;
+    background-color: var(--ktai-color-page);
+    color: var(--ktai-color-text);
+    font-family: var(--ktai-font-family);
+    font-size: var(--ktai-font-size-base);
+    line-height: var(--ktai-line-height-base);
 }
 
 [hidden] {
     display: none !important;
+}
+
+/*
+ * Fokusring für alle fokussierbaren Elemente; mindestens 3px stark, in
+ * Primary, mit 2px Abstand und niemals entfernt (Startwerte M2.1-T2).
+ */
+:focus-visible {
+    outline: var(--ktai-focus-ring-width) solid var(--ktai-color-focus);
+    outline-offset: var(--ktai-focus-ring-offset);
+}
+
+/*
+ * Deaktivierter Zustand: zusätzlich zur sichtbaren Abschwächung bleibt die
+ * native Semantik (disabled / aria-disabled) die alleinige Wahrheitsquelle;
+ * die Zustandsfarben liegen in den Tokens, nicht hier. Der Ring selbst wird
+ * nie über outline unterdrückt.
+ */
+:where(button, input, select, textarea, fieldset):disabled,
+:where(button, a, [role="button"])[aria-disabled="true"] {
+    opacity: 0.6;
 }

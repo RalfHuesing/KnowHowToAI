@@ -1,0 +1,37 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared
+
+@* Statusdarstellung mit Icon und Text; die Farbe ist nie der alleinige
+   Informationsträger. Icons sind kleine repo-eigene SVGs und für die
+   Assistenztechnik verborgen, weil der Text die Bedeutung trägt. *@
+<span class="app-status app-status--@Kind.ToString().ToLowerInvariant()">
+    <svg class="app-status__icon" width="16" height="16" viewBox="0 0 16 16"
+         fill="none" aria-hidden="true" focusable="false">
+        @switch (Kind)
+        {
+            case AppStatusKind.Aktiv:
+                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5" />
+                <circle cx="8" cy="8" r="2.5" fill="currentColor" />
+                break;
+            case AppStatusKind.Erfolg:
+                <path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2"
+                      fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                break;
+            case AppStatusKind.Warnung:
+                <path d="M8 3v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <circle cx="8" cy="12.5" r="1.4" fill="currentColor" />
+                break;
+            case AppStatusKind.Fehler:
+                <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="2"
+                      fill="none" stroke-linecap="round" />
+                break;
+            case AppStatusKind.Ungespeichert:
+                <path d="M10.5 2.5l3 3L6 13H3v-3l7.5-7.5z" stroke="currentColor"
+                      stroke-width="1.5" fill="none" stroke-linejoin="round" />
+                break;
+            default:
+                <circle cx="8" cy="8" r="3" fill="currentColor" />
+                break;
+        }
+    </svg>
+    <span class="app-status__text">@Text</span>
+</span>

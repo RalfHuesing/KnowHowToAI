@@ -1,0 +1,39 @@
+/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
+   in wwwroot/css/app.css. */
+.app-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ktai-space-1);
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border-radius: var(--ktai-radius-small);
+}
+
+.app-status__icon {
+    flex-shrink: 0;
+}
+
+.app-status--neutral {
+    color: var(--ktai-color-text-secondary);
+    background-color: var(--ktai-color-page);
+}
+
+.app-status--aktiv {
+    color: var(--ktai-color-info);
+    background-color: var(--ktai-color-info-background);
+}
+
+.app-status--erfolg {
+    color: var(--ktai-color-success);
+    background-color: var(--ktai-color-success-background);
+}
+
+.app-status--warnung,
+.app-status--ungespeichert {
+    color: var(--ktai-color-warning);
+    background-color: var(--ktai-color-warning-background);
+}
+
+.app-status--fehler {
+    color: var(--ktai-color-danger);
+    background-color: var(--ktai-color-danger-background);
+}

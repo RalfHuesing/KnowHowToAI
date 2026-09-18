@@ -1,1 +1,14 @@
-/* Das minimale Shell-Layout besitzt bewusst noch keine Gestaltung. */
+/* Komponentenlokale Shell-Gestaltung; alle Werte kommen aus den globalen
+   Tokens in wwwroot/css/app.css. */
+.app-shell-header {
+    display: flex;
+    align-items: center;
+    padding: var(--ktai-space-2) var(--ktai-space-4);
+    background-color: var(--ktai-color-surface);
+    border-bottom: 1px solid var(--ktai-color-border);
+}
+
+.app-shell-brand {
+    color: var(--ktai-color-text);
+    font-weight: 600;
+}

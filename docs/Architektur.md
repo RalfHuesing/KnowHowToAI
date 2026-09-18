@@ -110,10 +110,21 @@ kontrollierter Shutdown), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgrupp
 Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout,
 zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 `Web/Components/Shared` – darunter der native Dialog-Wrapper `AppDialog`
-mit schmaler JS-Isolation in `AppDialog.razor.js`) sowie
+mit schmaler JS-Isolation in `AppDialog.razor.js` sowie die
+Statusdarstellung `AppStatus`, die jeden Zustand als Icon plus Text zeigt;
+das Shell-Layout `ShellLayout` stellt die Produktbezeichnung als reine
+Textwortmarke ohne Logo-Asset dar) sowie
 `Web.Features.Dashboard` (die derzeit einzige Root-Seite). Das Verzeichnis
-`wwwroot/css/app.css` enthält die neutrale globale Basis-Reset-Regel ohne
-Designwerte; die Shell bindet ausschließlich lokale eigene Ressourcen ein,
+`wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
+Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
+Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie
+Erfolgs-, Warnungs- und Fehlerpaaren; Abstandsskala `4/8/12/16/24/32px`;
+Radien `4/8px`; Surface-Schatten; Basistext `16px` mit Zeilenhöhe `1.5` und
+der Systemschriftkette `Segoe UI, Arial, sans-serif`; Fokusring mit `3px`
+Stärke und `2px` Abstand) und frameworkweite Basisklassen für Fokusring und
+deaktivierten Zustand. Komponenten-CSS ist scoped und referenziert diese
+Tokens ausschließlich über `var(...)`; es gibt kein zweites Theme und kein
+Dark Theme. Die Shell bindet ausschließlich lokale eigene Ressourcen ein,
 keine CDN-, Cloud- oder Telemetrie-Ressourcen.
 
 Leitplanken:

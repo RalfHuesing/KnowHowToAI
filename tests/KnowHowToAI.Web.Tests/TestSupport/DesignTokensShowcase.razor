@@ -1,0 +1,40 @@
+@namespace KnowHowToAI.Web.Tests.TestSupport
+@using KnowHowToAI.Server.Web.Components.Shared
+@using KnowHowToAI.Server.Web.Components.Layout
+
+@* Showcase-Fixture ausschließlich für bUnit: belegt das Business-Theme aus
+   M2.1-T2 (Wortmarke, Karte mit Schatten, Status mit Icon und Text,
+   Formularfeld, primäre/deaktivierte/sekundäre Aktion). Keine Route im
+   Produkt; gerendertes Markup dient dem Light-Theme-Screenshot. *@
+
+<ShellLayout>
+    <Body>
+        <section class="showcase" aria-labelledby="design-tokens-showcase-heading" data-testid="design-tokens-root">
+        <h1 id="design-tokens-showcase-heading">Design-Tokens-Prüfseite</h1>
+        <p class="showcase-secondary">Text- und Statusfarben stammen aus den zentralen Tokens in der globalen Stylesheetdatei.</p>
+
+        <div class="showcase-card">
+            <h2>Statusdarstellungen</h2>
+            <p class="showcase-status-row">
+                <AppStatus Kind="AppStatusKind.Neutral" Text="Neutral" />
+                <AppStatus Kind="AppStatusKind.Aktiv" Text="Aktiv" />
+                <AppStatus Kind="AppStatusKind.Erfolg" Text="Erfolg" />
+                <AppStatus Kind="AppStatusKind.Warnung" Text="Warnung" />
+                <AppStatus Kind="AppStatusKind.Fehler" Text="Fehler" />
+                <AppStatus Kind="AppStatusKind.Ungespeichert" Text="Ungespeicherte Änderungen" />
+            </p>
+        </div>
+
+        <div class="showcase-card">
+            <h2>Formular und Aktionen</h2>
+            <label for="design-tokens-showcase-input">Bezeichnung</label>
+            <input id="design-tokens-showcase-input" type="text" value="Beispielwert" />
+            <p class="showcase-actions">
+                <button type="button" class="showcase-button-primary">Speichern</button>
+                <button type="button" class="showcase-button-primary" disabled>Inaktiv</button>
+                <button type="button" class="showcase-button-secondary">Abbrechen</button>
+            </p>
+        </div>
+        </section>
+    </Body>
+</ShellLayout>
