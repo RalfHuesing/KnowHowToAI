@@ -57,4 +57,10 @@ if ($AdditionalArgs) {
 }
 
 & dotnet @allArgs
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+
+$browserProjectPath = Join-Path $repoRoot 'tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj'
+& dotnet test $browserProjectPath '--filter' $Filter '--logger' 'trx;LogFileName=IntegrationTests.Browser.trx' '--results-directory' $resultsDir
 exit $LASTEXITCODE

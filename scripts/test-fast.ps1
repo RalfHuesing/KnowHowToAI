@@ -36,7 +36,8 @@ if (-not (Test-Path $resultsDir)) {
 
 $testProjects = @(
     'tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj',
-    'tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj'
+    'tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj',
+    'tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj'
 )
 
 foreach ($relativeProjectPath in $testProjects) {

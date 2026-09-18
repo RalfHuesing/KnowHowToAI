@@ -85,7 +85,11 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 |---|---|---|---|---|
 | Azure.Core 1.38.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Azure.Identity 1.11.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
-| coverlet.collector 10.0.1 | direkt in beiden Testprojekten; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Copyright beilegen; nicht mit dem Server ausliefern. |
+| AngleSharp 1.8.1 | transitiv in Web.Tests über bUnit; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Copyright beilegen; nicht mit dem Server ausliefern. |
+| AngleSharp.Css 1.1.2 | transitiv in Web.Tests über bUnit; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Copyright beilegen; nicht mit dem Server ausliefern. |
+| AngleSharp.Diffing 1.1.1 | transitiv in Web.Tests über bUnit; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Copyright beilegen; nicht mit dem Server ausliefern. |
+| bunit 2.11.3 | direkt in Web.Tests; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Copyright beilegen; nicht mit dem Server ausliefern. |
+| coverlet.collector 10.0.1 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Copyright beilegen; nicht mit dem Server ausliefern. |
 | Dapper 2.1.66 | direkt in Storage; transitiv in Server/Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | Markdig 0.42.0 | direkt in Core; transitiv in übrigen Projekten; P | NuGet.org; `.nuspec`: `expression: BSD-2-Clause` | BSD-2-Clause | Copyright, Bedingungen und Haftungsausschluss beilegen. |
 | Microsoft.ApplicationInsights 2.23.0 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
@@ -134,7 +138,8 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | Microsoft.IdentityModel.Protocols 7.5.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.IdentityModel.Protocols.OpenIdConnect 7.5.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.IdentityModel.Tokens 7.5.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
-| Microsoft.NET.Test.Sdk 18.8.1 | direkt in beiden Testprojekten; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| Microsoft.NET.Test.Sdk 18.8.1 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| Microsoft.Playwright 1.62.0 | direkt in BrowserTests; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | Microsoft.SqlServer.Server 1.0.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.Testing.Extensions.Telemetry 1.9.1 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | Microsoft.Testing.Extensions.TrxReport.Abstractions 1.9.1 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
@@ -151,6 +156,7 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | Serilog.Sinks.Console 6.1.1 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | Serilog.Sinks.File 7.0.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | System.ClientModel 1.0.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
+| System.ComponentModel.Annotations 5.0.0 | transitiv in BrowserTests; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | System.Configuration.ConfigurationManager 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | System.Diagnostics.EventLog 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | System.Diagnostics.EventLog 10.0.10 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
@@ -158,10 +164,10 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | System.Memory.Data 1.0.2 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | System.Security.Cryptography.Pkcs 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | System.Security.Cryptography.ProtectedData 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
-| xunit.runner.visualstudio 3.1.5 | direkt in beiden Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
-| xunit.v3.assert 3.2.2 | direkt in beiden Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
+| xunit.runner.visualstudio 3.1.5 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
+| xunit.v3.assert 3.2.2 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 | xunit.v3.common 3.2.2 | transitiv; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
-| xunit.v3.core 3.2.2 | direkt in beiden Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
+| xunit.v3.core 3.2.2 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 | xunit.v3.core.mtp-v1 3.2.2 | transitiv; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 | xunit.v3.extensibility.core 3.2.2 | transitiv; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 | xunit.v3.runner.common 3.2.2 | transitiv; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |

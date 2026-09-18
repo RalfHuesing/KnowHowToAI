@@ -1,0 +1,10 @@
+@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@inject KnowHowToAI.Core.Application.Navigation.NavigationService NavigationService
+
+<PageTitle>KnowHowToAI</PageTitle>
+
+<h1>KnowHowToAI</h1>
+<p data-testid="shell-status" aria-live="polite">@_shellStatus</p>
+<button type="button" @onclick="CheckInteractivity">Interaktivität prüfen</button>
+<p data-testid="interaction-status" aria-live="polite">@_interactionStatus</p>

@@ -83,6 +83,9 @@ Der Server läuft als ASP.NET-Core-Webhost auf Kestrel. Scheme, Adresse und Port
 stammen ausschließlich aus der normalen ASP.NET-Core-Hostkonfiguration und ihren
 Kommandozeilen-Overrides; der Server definiert weder eine eigene Portoption noch
 einen zweiten Listener. Der MCP-Transport bleibt in diesem Zwischenstand STDIO;
+Blazor Interactive Server bedient zusätzlich die minimale Shell auf `/` über
+denselben Origin. Der Shell-Read ruft die Application-Schicht direkt per DI auf
+und verwendet keinen HTTP-Loopback.
 `stdout` ist deshalb weiterhin exklusiv dem MCP-Protokoll vorbehalten.
 Protokollausgaben gehen ausschließlich nach `stderr` und optional in die
 konfigurierbare, täglich rotierende Datei. Keine Start-, SQL- oder
@@ -115,8 +118,8 @@ Die Solution ist `.slnx`. Der Build muss fehler- und warnungsfrei sein
 Testebenen (Details: `.agents/rules/TestRichtlinien.mdc`):
 
 ```text
-pwsh -NoProfile -File scripts/test-fast.ps1                       # Category=Unit (Core + Integrationstest-Projekt)
-pwsh -NoProfile -File scripts/test-integration.ps1                # Category=Integration (Serverstart, MCP-Verträge)
+pwsh -NoProfile -File scripts/test-fast.ps1                       # Category=Unit (Core, Integration und Razor-Shell)
+pwsh -NoProfile -File scripts/test-integration.ps1                # Category=Integration (Serverstart, MCP-Verträge, Browser-Shell)
 pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatabaseIntegration'
 ```
 
@@ -124,6 +127,9 @@ pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatab
   laufen gegen die manuell bereitgestellte, konfigurierte Datenbank; der Harness
   erzeugt oder entfernt keine Datenbanken. Fehlende SQL-Voraussetzungen sind ein
   klarer Preflight-Fehler, kein grüner Skip.
+- Der Browser-Shell-Smoke verlangt Google Chrome Stable `152.0.7977.83` im
+  headless `chrome`-Channel. Eine fehlende oder abweichende Version ist ein
+  Preflight-Fehler; Chromium oder ein anderer Browser ist kein Fallback.
 - Teilnachweis: `pwsh -NoProfile -File scripts/test-integration.ps1 -Filter
   'FullyQualifiedName~<Testklasse>'` führt nur berührte SQL-Tests aus.
 - Skriptausgaben in eine Logdatei umleiten und die Datei auswerten, statt pwsh

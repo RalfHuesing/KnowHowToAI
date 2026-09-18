@@ -17,7 +17,6 @@ namespace KnowHowToAI.IntegrationTests.Server.Hosting;
 public sealed class WebHostTests
 {
     [Theory]
-    [InlineData("/")]
     [InlineData("/mcp")]
     [InlineData("/api")]
     [InlineData("/api/test")]
@@ -33,6 +32,22 @@ public sealed class WebHostTests
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+        await application.StopAsync();
+    }
+
+    [Fact]
+    public async Task RootRoute_ReturnsTheBlazorShell()
+    {
+        using var application = CreateApplication("http://127.0.0.1:0");
+        await application.StartAsync();
+
+        using var client = new HttpClient();
+        using var response = await client.GetAsync(GetBoundAddress(application));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("text/html", response.Content.Headers.ContentType!.MediaType!, StringComparison.OrdinalIgnoreCase);
+        using var frameworkResponse = await client.GetAsync($"{GetBoundAddress(application)}/_framework/blazor.web.js");
+        Assert.Equal(HttpStatusCode.OK, frameworkResponse.StatusCode);
         await application.StopAsync();
     }
 
@@ -101,7 +116,7 @@ public sealed class WebHostTests
         using var client = new HttpClient();
         using var response = await client.GetAsync(address);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         await application.StopAsync();
     }
 

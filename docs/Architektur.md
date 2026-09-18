@@ -50,9 +50,10 @@ SQL-Typen; Domain referenziert kein Infrastrukturprojekt.
 `KnowHowToAI.Server` läuft als einziger ASP.NET-Core-Webhost mit Kestrel. Der
 Webhost reserviert `/api` und dessen Unterpfade mit einer leeren `404`-Antwort
 für die üblichen HTTP-Methoden; eine REST- oder OpenAPI-Infrastruktur gibt es
-noch nicht. In diesem erreichten Zwischenstand ist noch kein Browser- oder
-HTTP-MCP-Endpunkt gemappt; `/mcp` liefert daher ebenfalls `404` und der aktuelle
-MCP-Transport bleibt STDIO. Der Agent greift ausschließlich über die
+noch nicht. Die Root-Route `/` liefert eine minimale Blazor Interactive-Server-
+Shell. Sie ruft ihren Read-only-Status direkt über einen Application Service ab;
+es gibt weder einen HTTP-Loopback noch eine allgemeine Browser-API. `/mcp`
+liefert weiterhin `404` und der aktuelle MCP-Transport bleibt STDIO. Der Agent greift ausschließlich über die
 [MCP-API](McpApi.md) zu; es gibt keinen Workflow über lokale temporäre
 Markdown-Dateien. Das System funktioniert damit mit jedem MCP-fähigen Client,
 unabhängig von lokalem Dateizugriff, Git oder Unified-Diff-Fähigkeit.
@@ -104,7 +105,8 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 Validatoren, Redaction), `Hosting` (Composition Root, DI, Kestrel-Start,
 kontrollierter Shutdown), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgruppe),
 `Mcp.Tools.*` (dünne Handler), `Mcp.Mapping` (ausschließlich
-Transport-/Result-Mapping).
+Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout und zentrale
+Fehlergrenze) sowie `Web.Features.Dashboard` (die derzeit einzige Root-Seite).
 
 Leitplanken:
 
@@ -137,6 +139,11 @@ Leitplanken:
 `Smoke`, `TestSupport` (gemeinsam genutzte, echte Testinfrastruktur).
 Test-Support wird nur ergänzt, wenn mindestens zwei Tests ihn tatsächlich
 benötigen; Testnamen beschreiben Verhalten.
+
+`KnowHowToAI.Web.Tests` prüft die Razor-Shell mit bUnit und isolierten
+Application-Persistence-Ports. `KnowHowToAI.BrowserTests` startet die
+veröffentlichte Server-EXE als Black Box mit Google Chrome Stable im headless
+Interactive-Server-Smoke; es referenziert kein Produktionsprojekt.
 
 ## Deployment
 

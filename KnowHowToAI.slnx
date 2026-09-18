@@ -7,5 +7,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj" />
     <Project Path="tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj" />
+    <Project Path="tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj" />
+    <Project Path="tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj" />
   </Folder>
 </Solution>

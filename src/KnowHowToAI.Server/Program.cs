@@ -22,6 +22,7 @@ internal static class Program
         var builder = CreateBuilder(args);
         var application = builder.Build();
 
+        application.UseAntiforgery();
         application.MapWebEndpoints();
 
         return application;
@@ -41,6 +42,7 @@ internal static class Program
         builder.Services.AddKnowHowToAIOptions(builder.Configuration);
         builder.Services.AddSqlStorage();
         builder.Services.AddApplicationServices();
+        builder.Services.AddWebServices();
         builder.Services
             .AddMcpServer()
             .WithStdioServerTransport()
