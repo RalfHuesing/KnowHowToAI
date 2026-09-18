@@ -54,7 +54,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M1.3 abschließen**
 
-  - [ ] **M1.3-T1 – MCP-HTTP-Transport produktiv integrieren**
+  - [x] **M1.3-T1 – MCP-HTTP-Transport produktiv integrieren**
     - Paket: `ModelContextProtocol.AspNetCore` exakt in Version `2.2.0` zentral aufnehmen; seine Paketabhängigkeiten `ModelContextProtocol` und `ModelContextProtocol.Core` bleiben `2.2.0`. Direkte Basispakete nur behalten, wenn sie danach noch direkt verwendet werden. `THIRD-PARTY-NOTICES.md` im selben Commit aus dem tatsächlichen Restore aktualisieren.
     - Registrierung: vorhandene `.WithToolsFromAssembly()`-Discovery und Toolklassen weiterverwenden, `WithHttpTransport` ausdrücklich mit `SessionMode = Stateless` konfigurieren und `EnableLegacySse = false` beibehalten. `/api` bleibt explizit reserviert; Static Assets und Razor-Komponenten werden gemäß [bestätigter Mappingreihenfolge](../konzept/05-architektur-api-und-mcp.md#mcp-transport) registriert, `MapMcp("/mcp")` beantwortet ausschließlich den MCP-Pfad. Legacy-SSE, stateful/hybride Sessions, CORS und zusätzlicher MCP-Port bleiben deaktiviert.
     - Erhalten: Tool-Namen, Schemas, Envelopes, Fehler- und Warnverträge.
