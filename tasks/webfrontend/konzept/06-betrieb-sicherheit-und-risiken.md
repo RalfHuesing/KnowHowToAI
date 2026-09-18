@@ -6,8 +6,8 @@
 - Eine Deployment-Einheit, eine Basiskonfiguration, standardmäßig ein HTTP(S)-Port.
 - Zentraler Betrieb unter festgelegtem Hostnamen im Firmennetz.
 - Kein Internet-Exposure.
-- Reverse Proxy und Netzwerk unterstützen Blazor-SignalR/WebSockets und MCP Streamable HTTP.
-- TLS ist auch intern anzustreben, spätestens bei sensiblen Kundendaten oder nicht vertrauenswürdigen Netzsegmenten.
+- M0 bis M2 werden direkt gegen den gemeinsamen Kestrel-Origin umgesetzt und abgenommen. Reverse Proxy, konkrete Netzwerkfreigaben und TLS-Terminierung werden erst im manuellen M6.0-Gate mit der realen Deploymentumgebung festgelegt und getestet.
+- TLS ist auch intern anzustreben, spätestens bei sensiblen Kundendaten oder nicht vertrauenswürdigen Netzsegmenten; daraus folgt noch keine M0–M2-Produkt- oder Infrastrukturentscheidung.
 - Fachlicher Zustand liegt nicht im Prozessspeicher; Mehrinstanzbetrieb bleibt dadurch später möglich.
 
 Port- und Hostarchitektur: [Architektur, API und MCP](05-architektur-api-und-mcp.md#ein-prozess-und-ein-port).
@@ -20,7 +20,7 @@ Bis dahin gilt:
 
 - Zugriff ausschließlich aus explizit freigegebenen, vertrauenswürdigen Firmennetzsegmenten.
 - Firewall und Netzwerksegmentierung bilden die Zugriffsschranke.
-- `AllowedHosts` enthält nur tatsächliche Intranet-Hostnamen; keine Wildcard.
+- M0 bis M2 führen keine erfundenen Intranet-Hostnamen oder eine eigene Hostfilter-Konfiguration ein. Konkrete `AllowedHosts` werden im manuellen M6.0-Gate zusammen mit Hostname, Proxy und Deploymentumgebung festgelegt; eine spätere produktive Freigabe verwendet keine Wildcard.
 - Kein direkter Endkundenzugang.
 - Keine Veröffentlichung von UI, Assets oder MCP im Internet.
 - UI, Assets und MCP liegen im selben Origin.
@@ -46,7 +46,7 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 | Benutzer verliert Arbeitskontext | Snapshot/Transaction/Rolle permanent sichtbar; Navigation und Circuit-Verlust absichern |
 | Route-Kollision zwischen Blazor, Web-Endpunkten und MCP | Feste Präfixe; `/mcp` explizit; Routing-Smoke-Tests; `/api` für spätere Integration reserviert |
 | Unterschiedliche DI-Scopes erzeugen versteckten Zustand | Stateless Application Services; fachlichen Kontext explizit übergeben |
-| Proxy blockiert WebSockets oder Streaming | Intranet-Deploymenttest mit realem Proxy; Timeouts und Upgrade-Verhalten prüfen |
+| Ein späterer Proxy blockiert WebSockets oder Streaming | Proxywahl und Intranet-Deploymenttest im manuellen M6.0-Gate; Timeouts und Upgrade-Verhalten dort prüfen |
 | Firmennetz wird mit Authentifizierung verwechselt | Kein Internet-Exposure; Netzgrenzen dokumentieren; Auth als separates Pflichtvorhaben vor Scope-Erweiterung |
 | Tiefe Bäume werden langsam | Lazy Loading, Paging, virtuelle Darstellung, Suche und Breadcrumbs |
 | Drag-and-drop erzeugt falsche Struktur | Zielvorschau, serverseitige Validierung, Transaction-Diff vor Commit |
@@ -61,7 +61,7 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 
 - Alle Oberflächen sind unter einem Host und Port erreichbar.
 - Root, `/mcp` und `/assets` kollidieren nicht; reserviertes `/api` wird nicht vom Blazor-Fallback verschluckt.
-- Blazor funktioniert über den vorgesehenen Reverse Proxy per WebSocket und nach Reconnect.
-- MCP-Streaming funktioniert über denselben Proxy.
+- M0 bis M2: Blazor-Circuit, Reconnect und MCP-Streaming funktionieren direkt über denselben Kestrel-Origin.
+- Ab M6 nach festgelegtem Zielbetrieb: dieselben Nachweise zusätzlich über den vorgesehenen Reverse Proxy.
 - Nicht freigegebene Netzsegmente erreichen den Host nicht.
 - Neustart des Prozesses lässt committed und offene persistierte Arbeitsstände fachlich rekonstruierbar.
