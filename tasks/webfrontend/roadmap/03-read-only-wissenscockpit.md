@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../Roadmap.md)
 
-- [ ] **M3 abschließen**
+- [x] **M3 abschließen**
 
 Abhängigkeit: [M2](02-designsystem-und-shell.md)
 
