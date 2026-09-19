@@ -48,7 +48,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M3.3 abschließen**
 
-  - [ ] **M3.3-T1 – Lazy-Loading-Datenadapter für den Wissensbaum implementieren**
+  - [x] **M3.3-T1 – Lazy-Loading-Datenadapter für den Wissensbaum implementieren**
     - Umfang: den einzelnen Root über `NavigationService.GetRootAsync` laden; pro Expand `NavigationService.ListChildrenAsync` mit explizitem `ReadContext`, `RoleId`, `Limit: 100` und dem unverändert weitergereichten opaken Cursor aufrufen. `ChildCount > 0` bestimmt `HasChildren`; kein separater HTTP-Endpunkt und kein neuer Persistence-Port.
     - Zustand: stabile `NodeId`, Auswahl, Expand-Zustand, je Parent genau eine sichtbare Seite, `nextCursor`, Cursor-Historie, Request-Cancellation und LRU-Reihenfolge liegen im `KnowledgeTree`-Circuit-State. Die Cursor-Historie speichert nur zuvor verwendete opake Cursorstrings, keine Itemseiten. Kontextwechsel verwirft alle Tree-Seiten, Cursor-Historien und laufenden Requests; ein verspätetes Ergebnis darf den neuen Kontext nicht überschreiben.
     - Cachegrenze: maximal zehn geladene Seiten. Die elfte Anforderung entfernt die am längsten ungenutzte Seite eines nicht ausgewählten Teilbaums und schließt ihn. Gehören alle zehn Seiten zum Auswahlpfad, wird die rootnächste Seite entfernt und ihr Kind auf dem Auswahlpfad zum visuellen Root des Tree-Ausschnitts; der globale Pfad bleibt in den Breadcrumbs. Navigation zu einem höheren Breadcrumb lädt dessen Seite erneut und unterliegt derselben Cachegrenze. Die UI kündigt Schließen oder Neuzentrieren einmalig über `role=status` an.
