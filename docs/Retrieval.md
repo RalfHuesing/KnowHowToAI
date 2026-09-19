@@ -189,15 +189,16 @@ repräsentative Datenmenge (401 Nodes, 440 Contents, 20 Dependencies, 3 Rollen,
 Working-Transaction/Commit-Pfade) getroffen und in den Abnahme-Integrationstests
 `SqlSearchAbnahmeTests` (`SqlServer/Abnahme/`) laufend neu messbar:
 
-- **Keine Search-Index-Migration.** Maximale 1795 logische Reads und ~14 ms
+- **Keine Search-Index-Migration.** Maximale 1795 logische Reads und ~23 ms
   Wall-Clock pro Suchseite, Ausführung < 1 ms; der Plan arbeitet mit Index Seeks
   und skaliert mit der Treffermenge pro Rolle, nicht mit dem Gesamtbestand. Ein
   nicht sargbares `LIKE '%…%'` könnte Head-Lookups nur marginal verbessern.
-- **Keine Begrenzung des Freshness-Ladens auf die Treffer-Teilmenge.** Das volle
-  Laden aller Contents und Dependencies kostet bei dieser Datenmenge ~24 zusätzliche
-  logische Reads (~1,3 % der Gesamtkosten); eine Teilmenge-Ladung würde den
-  Repository-Pfad ohne messbaren Nutzen verkomplizieren. Wiederholungspunkt: etwa
-  Faktor 100 größerer Content-Bestand.
+- **Transitive Freshness in der Search-CTE.** Die rekursive SQL-CTE bewertet den
+  vollständigen Derived-Dependency-Graphen vor Filterung und Keyset-Paging. Bei
+  20 Derived-Treffern verursacht sie 7039 logische Reads und ~31 ms Wall-Clock
+  (SQL-Ausführung < 1 ms); ein nachgelagertes Laden oder eine nur auf die Seite
+  begrenzte Freshness-Bewertung würde die Parität zum allgemeinen Freshness-Use-Case
+  gefährden. Wiederholungspunkt: etwa Faktor 100 größerer Content-Bestand.
 - **Keine Kategorie-Offsets im `DiffCursor`.** Das History-Repository lädt pro
   Cursor-Seite beide Snapshots vollständig; Kosten pro Seite sind konstant
   (69 logische Reads, ~3 ms SQL, ~38 ms für den vollständigen 8-Seiten-Durchlauf

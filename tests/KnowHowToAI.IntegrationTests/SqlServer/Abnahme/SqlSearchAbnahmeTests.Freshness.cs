@@ -12,9 +12,8 @@ using Microsoft.Data.SqlClient;
 namespace KnowHowToAI.IntegrationTests.SqlServer.Abnahme;
 
 /// <summary>
-/// M5.15-Abnahme: misst die kompletten Kosten von SqlRetrievalRepository.SearchAsync
-/// bei Derived-Content-Treffern einschließlich des Ladens aller Contents und
-/// Dependencies für die transitive Freshness-Bewertung. Die Messwerte werden nach
+/// Misst die Kosten der SQL-basierten transitiven Freshness-Bewertung für
+/// Derived-Content-Treffer. Die Messwerte werden nach
 /// temp/search-abnahme-freshness-messung.json geschrieben.
 /// </summary>
 public sealed partial class SqlSearchAbnahmeTests
@@ -23,7 +22,7 @@ public sealed partial class SqlSearchAbnahmeTests
     private const string DerivedSuchtext = "Berater-Sicht";
 
     [Fact]
-    public async Task SearchMitDerivedTreffern_KompletteFreshnessLadeKosten_NachweisInReadsUndLaufzeit()
+    public async Task SearchMitDerivedTreffern_TransitiveSqlFreshnessBewertung_NachweisInReadsUndLaufzeit()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
@@ -57,29 +56,11 @@ public sealed partial class SqlSearchAbnahmeTests
         Assert.True(measurement.LogicalReadsTotal < 100_000, $"Unerwartet hohe Reads: {measurement.LogicalReadsTotal}");
         Assert.True(measurement.WallClockMilliseconds < 2000, $"Unerwartet langsam: {measurement.WallClockMilliseconds}");
         Assert.Equal(erwarteteDerivedTreffer, measurement.DerivedHitCount);
-        Assert.Equal(ErwarteteGesamtContents(), measurement.LoadedContentCount);
-        Assert.Equal(erwarteteDerivedTreffer, measurement.LoadedDependencyCount);
-        Assert.Equal(ErwarteteFreshnessTeilmenge(), measurement.FreshnessSubsetRowCount);
-        Assert.True(
-            measurement.FreshnessSubsetRowCount < measurement.LoadedContentCount + measurement.LoadedDependencyCount,
-            "Freshness-Teilmenge ist nicht kleiner als die vollstaendige Ladung.");
+        Assert.Contains("StaleContents", measurement.PlanSummary);
 
         var reportPath = await WriteFreshnessMeasurementReportAsync(database, measurement).ConfigureAwait(false);
         Assert.True(File.Exists(reportPath), "Freshness-Messbericht wurde nicht geschrieben.");
     }
-
-    /// <summary>
-    /// Anzahl Contents im kommittierten Abnahme-Snapshot: 400 Entwickler (Independent),
-    /// 20 Endanwender (Independent), 20 Berater (Derived) = 440.
-    /// </summary>
-    private static int ErwarteteGesamtContents() =>
-        ThemaNodeCount + 2 * (ThemaNodeCount / FallbackContentStride);
-
-    /// <summary>
-    /// Fuer die transitive Freshness der Trefferseite noetige Zeilen: alle
-    /// Dependencies der Derived-Treffer plus ihre unmittelbaren Source-Contents.
-    /// </summary>
-    private static int ErwarteteFreshnessTeilmenge() => 2 * (ThemaNodeCount / FallbackContentStride);
 
     private static async Task<FreshnessSearchMeasurement> MeasureCompleteDerivedSearchAsync(
         SqlTestDatabase database,
@@ -91,15 +72,13 @@ public sealed partial class SqlSearchAbnahmeTests
             statistics.AddRange(eventArgs.Errors.Cast<SqlError>().Select(error => error.Message));
 
         var statisticsSql = $"""
-            -- {FreshnessMessungMarker}: kompletter SearchAsync-Pfad mit Freshness-Ladung
+            -- {FreshnessMessungMarker}: SearchAsync-Pfad mit SQL-Freshness-CTE
             SET STATISTICS IO ON;
             SET STATISTICS TIME ON;
             SET STATISTICS PROFILE ON;
             {SqlRetrievalRepository.ListRolesSql}
             {SqlRetrievalRepository.ListRoleResolutionsSql}
             {SqlRetrievalRepository.SearchSql}
-            {SqlRetrievalRepository.ListContentsSql}
-            {SqlRetrievalRepository.ListDependenciesSql}
             """;
         await using var command = connection.CreateCommand();
         command.CommandText = statisticsSql;
@@ -111,6 +90,7 @@ public sealed partial class SqlSearchAbnahmeTests
         command.Parameters.AddWithValue("@lastRank", 0);
         command.Parameters.AddWithValue("@lastSortOrder", 0);
         command.Parameters.AddWithValue("@lastNodeId", Guid.Empty);
+        AddEmptySearchFilterParameters(command);
 
         var stopwatch = Stopwatch.StartNew();
         var executed = await ExecuteCompletePathAsync(command).ConfigureAwait(false);
@@ -124,9 +104,6 @@ public sealed partial class SqlSearchAbnahmeTests
             "MitDerivedTrefferBeraterKomplett",
             executed.SearchRows.Count,
             executed.SearchRows.Count(row => row.ContentMode == SqlPersistedValues.ContentDerived),
-            executed.Contents.Count,
-            executed.Dependencies.Count,
-            CountFreshnessSubsetRows(executed),
             logicalReads.Total,
             logicalReads.ByTable,
             cpuMs,
@@ -148,10 +125,6 @@ public sealed partial class SqlSearchAbnahmeTests
                 rows.PlanRows.AddRange(ReadPlanResultSet(reader));
             else if (columns.Contains("HitField"))
                 await ReadSearchRowsAsync(reader, rows).ConfigureAwait(false);
-            else if (columns.Contains("ContentMd"))
-                ReadContentRows(reader, rows);
-            else if (columns.Contains("SourceContentRevisionId"))
-                ReadDependencyRows(reader, rows);
             else if (columns.Contains("RequestedRoleId"))
                 rows.Resolutions = ReadCountedRows(reader);
             else if (columns.Contains("RoleId"))
@@ -177,27 +150,6 @@ public sealed partial class SqlSearchAbnahmeTests
                     : reader.GetString(reader.GetOrdinal("ContentMode"))));
     }
 
-    private static void ReadContentRows(SqlDataReader reader, CompletePathRows rows)
-    {
-        while (reader.Read())
-            rows.Contents.Add(new LoadedContentRow(
-                reader.GetGuid(reader.GetOrdinal("NodeId")),
-                reader.GetString(reader.GetOrdinal("RoleId")),
-                reader.GetGuid(reader.GetOrdinal("ContentRevisionId")),
-                reader.GetString(reader.GetOrdinal("ContentMode")),
-                reader.GetBoolean(reader.GetOrdinal("IsDeleted"))));
-    }
-
-    private static void ReadDependencyRows(SqlDataReader reader, CompletePathRows rows)
-    {
-        while (reader.Read())
-            rows.Dependencies.Add(new LoadedDependencyRow(
-                reader.GetGuid(reader.GetOrdinal("TargetNodeId")),
-                reader.GetString(reader.GetOrdinal("TargetRoleId")),
-                reader.GetGuid(reader.GetOrdinal("SourceNodeId")),
-                reader.GetString(reader.GetOrdinal("SourceRoleId"))));
-    }
-
     private static int ReadCountedRows(SqlDataReader reader)
     {
         var count = 0;
@@ -212,29 +164,6 @@ public sealed partial class SqlSearchAbnahmeTests
             yield return ReadPlanRow(reader);
     }
 
-    /// <summary>
-    /// Zeilen der Freshness-Teilmenge: Dependencies der Derived-Treffer plus ihre
-    /// Source-Contents. Source-Contents sind hier Independent, eine Ebene genuegt;
-    /// eine echte Teilmenge muesste transitiv abschliessen.
-    /// </summary>
-    private static int CountFreshnessSubsetRows(CompletePathRows rows)
-    {
-        var derivedHits = rows.SearchRows
-            .Where(row => row.ContentMode == SqlPersistedValues.ContentDerived)
-            .ToList();
-        var neededDependencies = rows.Dependencies
-            .Where(dependency => derivedHits.Any(hit =>
-                hit.NodeId == dependency.TargetNodeId
-                && hit.ResolvedRoleId == dependency.TargetRoleId))
-            .ToList();
-        var neededSourceContents = rows.Contents
-            .Where(content => neededDependencies.Any(dependency =>
-                dependency.SourceNodeId == content.NodeId
-                && dependency.SourceRoleId == content.RoleId))
-            .ToList();
-        return neededDependencies.Count + neededSourceContents.Count;
-    }
-
     private static async Task<string> WriteFreshnessMeasurementReportAsync(
         SqlTestDatabase database,
         FreshnessSearchMeasurement measurement)
@@ -244,8 +173,8 @@ public sealed partial class SqlSearchAbnahmeTests
             await database.GetSqlServerMajorVersionAsync().ConfigureAwait(false),
             ThemaNodeCount,
             measurement,
-            "Kompletter SearchAsync-Pfad bei Derived-Treffern: Rollen- und Resolution-Laden, "
-            + "SearchSql, volles Laden aller Contents und Dependencies (Freshness-Bewertung).");
+            "SearchAsync-Pfad bei Derived-Treffern: Rollen- und Resolution-Laden sowie "
+            + "SearchSql mit rekursiver SQL-CTE fuer die Freshness-Bewertung.");
 
         return TestMeasurementReports.WriteJson("search-abnahme-freshness-messung.json", report);
     }
@@ -256,24 +185,9 @@ public sealed partial class SqlSearchAbnahmeTests
         Guid? ContentRevisionId,
         string? ContentMode);
 
-    private sealed record LoadedContentRow(
-        Guid NodeId,
-        string RoleId,
-        Guid ContentRevisionId,
-        string ContentMode,
-        bool IsDeleted);
-
-    private sealed record LoadedDependencyRow(
-        Guid TargetNodeId,
-        string TargetRoleId,
-        Guid SourceNodeId,
-        string SourceRoleId);
-
     private sealed class CompletePathRows
     {
         public List<DerivedSearchRow> SearchRows { get; } = [];
-        public List<LoadedContentRow> Contents { get; } = [];
-        public List<LoadedDependencyRow> Dependencies { get; } = [];
         public List<QueryPlanRow> PlanRows { get; } = [];
         public int Roles { get; set; }
         public int Resolutions { get; set; }
@@ -283,9 +197,6 @@ public sealed partial class SqlSearchAbnahmeTests
         string Name,
         int SearchRowCount,
         int DerivedHitCount,
-        int LoadedContentCount,
-        int LoadedDependencyCount,
-        int FreshnessSubsetRowCount,
         int LogicalReadsTotal,
         Dictionary<string, int> LogicalReadsByTable,
         long CpuMilliseconds,

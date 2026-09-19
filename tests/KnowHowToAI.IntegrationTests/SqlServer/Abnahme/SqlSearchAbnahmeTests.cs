@@ -216,6 +216,7 @@ public sealed partial class SqlSearchAbnahmeTests
         command.Parameters.AddWithValue("@lastRank", variant.LastRank);
         command.Parameters.AddWithValue("@lastSortOrder", variant.LastSortOrder);
         command.Parameters.AddWithValue("@lastNodeId", variant.LastNodeId);
+        AddEmptySearchFilterParameters(command);
 
         var stopwatch = Stopwatch.StartNew();
         var result = await ExecuteWithProfileAsync(command).ConfigureAwait(false);
@@ -236,6 +237,18 @@ public sealed partial class SqlSearchAbnahmeTests
             stopwatch.Elapsed.TotalMilliseconds,
             planSummary,
             messageText.Length > 4000 ? messageText[..4000] : messageText);
+    }
+
+    private static void AddEmptySearchFilterParameters(SqlCommand command)
+    {
+        command.Parameters.AddWithValue("@hasResolvedRoleFilter", 0);
+        command.Parameters.AddWithValue("@resolvedRoleFilter", "[]");
+        command.Parameters.AddWithValue("@hasAvailabilityFilter", 0);
+        command.Parameters.AddWithValue("@availabilityFilter", "[]");
+        command.Parameters.AddWithValue("@hasFreshnessFilter", 0);
+        command.Parameters.AddWithValue("@freshnessFilter", "[]");
+        command.Parameters.AddWithValue("@hasFindingFilter", 0);
+        command.Parameters.AddWithValue("@findingFilter", "[]");
     }
 
     private static async Task<(List<SearchPlanRow> Rows, List<QueryPlanRow> PlanRows)> ExecuteWithProfileAsync(
