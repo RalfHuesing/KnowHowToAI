@@ -26,6 +26,7 @@ public sealed class NodeMutationApplicationService
     public Task<Result<NodeMutationResult>> CreateAsync(
         TransactionId transactionId,
         CreateNodeRequest request,
+        long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -41,20 +42,20 @@ public sealed class NodeMutationApplicationService
                     request.Description,
                     request.SortOrder),
                 state.KnownNodeIds),
+            expectedChangeVersion,
             cancellationToken);
     }
 
     public Task<Result<NodeMutationResult>> UpdateAsync(
         TransactionId transactionId,
-        NodeId nodeId,
-        string title,
-        string? description,
+        UpdateNodeRequest request,
         CancellationToken cancellationToken = default) =>
         ExecuteHierarchyMutationAsync(
             transactionId,
             state => _mutationService.Update(
                 state.Nodes,
-                new UpdateNodeCommand { NodeId = nodeId, Title = title, Description = description }),
+                new UpdateNodeCommand { NodeId = request.NodeId, Title = request.Title, Description = request.Description }),
+            request.ExpectedChangeVersion,
             cancellationToken);
 
     public Task<Result<NodeMutationResult>> MoveAsync(
@@ -68,7 +69,8 @@ public sealed class NodeMutationApplicationService
             state => _mutationService.Move(
                 state.Nodes,
                 new MoveNodeCommand(nodeId, parentNodeId, sortOrder)),
-            cancellationToken);
+            expectedChangeVersion: null,
+            cancellationToken: cancellationToken);
 
     public Task<Result<NodeMutationResult>> ReorderAsync(
         TransactionId transactionId,
@@ -80,7 +82,8 @@ public sealed class NodeMutationApplicationService
             state => _mutationService.Reorder(
                 state.Nodes,
                 new ReorderNodeCommand(nodeId, sortOrder)),
-            cancellationToken);
+            expectedChangeVersion: null,
+            cancellationToken: cancellationToken);
 
     public async Task<Result<NodeMutationResult>> DeleteAsync(
         TransactionId transactionId,
@@ -91,7 +94,7 @@ public sealed class NodeMutationApplicationService
         var executionResult = await _repository.ExecuteAsync(
             transactionId,
             state => CreateDeletionDecision(state, nodeId, deleteSubtree),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken).ConfigureAwait(false);
         if (!executionResult.IsSuccess)
             return Result<NodeMutationResult>.Failure(executionResult.Error!);
 
@@ -102,12 +105,14 @@ public sealed class NodeMutationApplicationService
     private async Task<Result<NodeMutationResult>> ExecuteHierarchyMutationAsync(
         TransactionId transactionId,
         Func<WorkingNodeMutationState, Result<HierarchyMutationResult>> mutate,
+        long? expectedChangeVersion,
         CancellationToken cancellationToken)
     {
         var executionResult = await _repository.ExecuteAsync(
             transactionId,
             state => CreateHierarchyDecision(state, mutate),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken,
+            expectedChangeVersion: expectedChangeVersion).ConfigureAwait(false);
         if (!executionResult.IsSuccess)
             return Result<NodeMutationResult>.Failure(executionResult.Error!);
 

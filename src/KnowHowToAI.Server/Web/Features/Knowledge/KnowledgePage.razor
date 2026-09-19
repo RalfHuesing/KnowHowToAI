@@ -40,6 +40,14 @@
                             IsLoading="@_isLoadingNodeDetails"
                             ErrorMessage="@_nodeDetailsErrorMessage"
                             NodeNotFound="@_nodeDetailsNotFound" />
+                        @if (_nodeDetailsViewModel is not null && WorkspaceState.ActiveTransactionId.HasValue)
+                        {
+                            <NodeMetadataEditor
+                                Node="@_nodeDetailsViewModel"
+                                TransactionId="@WorkspaceState.ActiveTransactionId"
+                                ExpectedChangeVersion="@WorkspaceState.CurrentChangeVersion"
+                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
+                        }
                     </div>
                 }
                 else

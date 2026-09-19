@@ -14,5 +14,6 @@ public interface INodeMutationRepository
     Task<Result<WorkingNodeMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingNodeMutationState, Result<WorkingNodeMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        long? expectedChangeVersion = null);
 }

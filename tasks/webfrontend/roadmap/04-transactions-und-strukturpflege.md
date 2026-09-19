@@ -71,7 +71,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M4.3 abschließen**
 
-  - [ ] **M4.3-T1 – Nodes erstellen und Stammdaten bearbeiten**
+  - [x] **M4.3-T1 – Nodes erstellen und Stammdaten bearbeiten**
     - Umfang: Node unter gewähltem Parent erstellen sowie Titel und Description bearbeiten.
     - Regeln: Änderungen nur in aktiver Transaction; serverseitige Normalisierung/Validierung bleibt maßgeblich.
     - Undo (O-027 entschieden): kein globaler Undo-Stack; Korrektur durch Gegenänderung oder vollständiges Discard.

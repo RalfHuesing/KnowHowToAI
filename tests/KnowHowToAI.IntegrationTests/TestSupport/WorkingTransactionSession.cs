@@ -95,7 +95,9 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     public async Task<Node> UpdateNodeAsync(NodeId nodeId, string title, string? description)
     {
-        var result = await Nodes.UpdateAsync(TransactionId, nodeId, title, description).ConfigureAwait(false);
+        var result = await Nodes.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(nodeId, title, description)).ConfigureAwait(false);
         return Require(result).Node;
     }
 

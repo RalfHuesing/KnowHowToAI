@@ -1,0 +1,43 @@
+.node-metadata-editor {
+    border-top: 1px solid var(--ktai-color-border);
+    padding-top: var(--ktai-space-4);
+}
+
+.node-metadata-fields {
+    display: grid;
+    gap: var(--ktai-space-3);
+}
+
+.node-metadata-fields label {
+    display: block;
+    margin-bottom: var(--ktai-space-1);
+    font-weight: 600;
+}
+
+.node-metadata-fields input,
+.node-metadata-fields textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    color: var(--ktai-color-text);
+    font: inherit;
+}
+
+.node-metadata-fields textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.node-metadata-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-2);
+    margin-top: var(--ktai-space-3);
+}
+
+.node-metadata-hint {
+    margin: 0 0 var(--ktai-space-3);
+    color: var(--ktai-color-text-secondary);
+}

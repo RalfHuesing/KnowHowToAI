@@ -9,7 +9,7 @@ public static class McpErrorCatalog
     private static readonly string[] ContextStateErrorCodes =
     [
         "InvalidReadContext", "SnapshotNotFound", "SnapshotNotCommitted", "TransactionNotFound",
-        "TransactionClosed", "SnapshotConflict", "SnapshotMutationConflict", "InvalidCursor", "CursorExpired",
+        "TransactionClosed", "SnapshotConflict", "ChangeVersionConflict", "SnapshotMutationConflict", "InvalidCursor", "CursorExpired",
         "WorkingSnapshotNotOpen", "TransactionDiscarded"
     ];
 
@@ -18,7 +18,7 @@ public static class McpErrorCatalog
         "NodeNotFound", "InvalidNodeId", "RootAlreadyExists", "ParentNodeNotFound", "InvalidHierarchy", "NodeHasChildren",
         "RoleNotFound", "RoleInUse", "RoleResolutionNotConfigured", "InvalidRoleResolution",
         "DuplicateNodeId", "HierarchyCycle", "NodeIdAlreadyUsed", "SelfParentNotAllowed", "SnapshotMismatch",
-        "TitleRequired", "RoleNameRequired", "RoleIdRequired", "CandidateRoleDeleted",
+        "TitleRequired", "TitleTooLong", "DescriptionTooLong", "RoleNameRequired", "RoleIdRequired", "CandidateRoleDeleted",
         "CandidateRoleNotFound", "DuplicateCandidateRole", "DuplicatePriority", "InvalidPriority",
         "RequestedRoleDeleted", "RequestedRoleNotFound"
     ];

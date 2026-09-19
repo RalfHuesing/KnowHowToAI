@@ -1,6 +1,9 @@
 using Bunit;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Runtime;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
@@ -187,6 +190,16 @@ public sealed class KnowledgePageTests : BunitContext
         Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
         Services.AddSingleton(new ContextSelectorState());
         Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
+        Services.AddSingleton(new NodeMutationApplicationService(
+            new InMemoryNodeMutationRepository(new WorkingNodeMutationState(workingSnapshotId, [], [], [], [])),
+            new NodeMutationService(new GuidIdentifierGenerator()),
+            new ValidationPolicy
+            {
+                ContentSizeWarningBytes = 4096,
+                ChildCountWarning = 100,
+                HierarchyDepthWarning = 8,
+                PossibleEmbeddedHeadingWarning = true
+            }));
 
         var query = scenario switch
         {

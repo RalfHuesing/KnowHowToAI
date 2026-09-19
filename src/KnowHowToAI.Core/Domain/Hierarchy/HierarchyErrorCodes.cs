@@ -14,7 +14,6 @@ public static class HierarchyErrorCodes
     public const string SelfParentNotAllowed = "SelfParentNotAllowed";
     public const string SnapshotMismatch = "SnapshotMismatch";
     public const string TitleRequired = "TitleRequired";
-
     public const string ExpectedSnapshotIdDetail = "expectedSnapshotId";
     public const string NodeIdDetail = "nodeId";
     public const string ParentNodeIdDetail = "parentNodeId";

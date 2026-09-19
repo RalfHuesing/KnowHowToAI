@@ -26,6 +26,10 @@ SortOrder
 Description
 ```
 
+`Title` enthält 1 bis 200 Zeichen; die optionale `Description` enthält höchstens
+1000 Zeichen. Diese Grenzen werden vor der Persistenz validiert und entsprechen
+den Datenbankgrenzen.
+
 `NodeId` ist eine stabile logische ID (GUID) und bleibt über Snapshots und
 Änderungen hinweg identisch. Titel, Parent, Reihenfolge und Inhalt können sich
 ändern; die logische Identität bleibt bestehen. Pro Snapshot existiert höchstens

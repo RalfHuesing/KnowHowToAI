@@ -56,7 +56,8 @@ internal abstract class SqlRepository
     protected async Task<SqlWorkingSnapshotMutationExecution<TResult>> ExecuteWorkingSnapshotMutationAsync<TResult>(
         TransactionId transactionId,
         Func<SqlWorkingSnapshotMutationContext, CancellationToken, Task<SqlWorkingSnapshotMutationResult<TResult>>> mutateAsync,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long? expectedChangeVersion = null)
     {
         ArgumentNullException.ThrowIfNull(mutateAsync);
 
@@ -68,6 +69,7 @@ internal abstract class SqlRepository
             var guard = await ReadWorkingSnapshotGuardAsync(connection, databaseTransaction, transactionId, cancellationToken)
                 .ConfigureAwait(false);
             ValidateWorkingSnapshotMutationGuard(guard, transactionId);
+            ValidateExpectedChangeVersion(guard!, expectedChangeVersion);
 
             var context = new SqlWorkingSnapshotMutationContext(
                 connection,
@@ -144,6 +146,16 @@ internal abstract class SqlRepository
             throw new WorkingSnapshotMutationRejectedException(
                 "WorkingSnapshotNotOpen",
                 $"Der Working Snapshot der Transaction '{transactionId.Value}' ist nicht bearbeitbar.");
+    }
+
+    private static void ValidateExpectedChangeVersion(WorkingSnapshotGuard guard, long? expectedChangeVersion)
+    {
+        if (!expectedChangeVersion.HasValue || expectedChangeVersion.Value == guard.ChangeVersion)
+            return;
+
+        throw new WorkingSnapshotMutationRejectedException(
+            TransactionValidationErrorCodes.ChangeVersionConflict,
+            "Die Transaction wurde zwischen Laden und Speichern geändert.");
     }
 
     protected sealed record WorkingSnapshotGuard(

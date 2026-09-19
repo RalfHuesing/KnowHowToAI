@@ -190,7 +190,7 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.Equal(new[] { "title", "transactionId" }, SortedRequiredNames(schemas["create_node"]));
 
         Assert.Equal(
-            new[] { "description", "nodeId", "title", "transactionId" },
+            new[] { "description", "expectedChangeVersion", "nodeId", "title", "transactionId" },
             SortedPropertyNames(schemas["update_node"]));
         Assert.Equal(new[] { "nodeId", "title", "transactionId" }, SortedRequiredNames(schemas["update_node"]));
 

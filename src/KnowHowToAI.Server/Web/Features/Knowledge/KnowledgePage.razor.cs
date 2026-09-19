@@ -3,6 +3,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Core.Application.Mutations.Nodes;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -246,6 +247,22 @@ public sealed partial class KnowledgePage : IDisposable
         _nodeDetailsErrorMessage = null;
         _nodeDetailsNotFound = false;
         _markdownDownloadUrl = null;
+    }
+
+    private async Task HandleNodeMutationSucceededAsync(NodeMutationResult mutation)
+    {
+        if (WorkspaceState.CurrentRoleId is not { } roleId || !WorkspaceState.ActiveTransactionId.HasValue)
+            return;
+
+        WorkspaceState.SetChangeVersion(mutation.ChangeVersion);
+        var updatedContext = WorkspaceState.CurrentContext with { ChangeVersion = mutation.ChangeVersion };
+        WorkspaceState.SetContext(updatedContext, WorkspaceState.CurrentReadContext);
+        PageRegions.SetKnowledgeContext(updatedContext);
+
+        await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, roleId, CancellationToken.None);
+        await TreeWorkspace.SelectNodeAsync(mutation.Node.NodeId.Value, CancellationToken.None);
+        WorkspaceState.SetNode(mutation.Node.NodeId.Value);
+        await LoadNodeDetailsAsync(mutation.Node.NodeId.Value, WorkspaceState.CurrentReadContext, roleId);
     }
 
     private string CreateMarkdownDownloadUrl(Guid nodeId, string roleId)

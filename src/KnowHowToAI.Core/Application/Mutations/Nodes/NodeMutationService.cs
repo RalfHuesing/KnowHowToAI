@@ -27,8 +27,9 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         if (existingError is not null)
             return Result<HierarchyMutationResult>.Failure(existingError);
 
-        if (string.IsNullOrWhiteSpace(command.Title))
-            return Result<HierarchyMutationResult>.Failure(CreateTitleRequiredError());
+        var metadataError = ValidateMetadata(command.Title, command.Description);
+        if (metadataError is not null)
+            return Result<HierarchyMutationResult>.Failure(metadataError);
 
         var parentError = FindParentError(nodes, command.SnapshotId, command.ParentNodeId, nodeId: null);
         if (parentError is not null)
@@ -91,8 +92,9 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         if (existingError is not null)
             return Result<HierarchyMutationResult>.Failure(existingError);
 
-        if (string.IsNullOrWhiteSpace(command.Title))
-            return Result<HierarchyMutationResult>.Failure(CreateTitleRequiredError());
+        var metadataError = ValidateMetadata(command.Title, command.Description);
+        if (metadataError is not null)
+            return Result<HierarchyMutationResult>.Failure(metadataError);
 
         var node = FindActiveNode(nodes, command.NodeId);
         if (node is null)
@@ -292,6 +294,36 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         new(
             HierarchyErrorCodes.TitleRequired,
             "Der Titel einer aktiven Node darf nicht leer oder nur Whitespace sein.");
+
+    private static DomainError? ValidateMetadata(string title, string? description)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return CreateTitleRequiredError();
+
+        if (title.Length > NodeMetadataValidation.TitleMaximumLength)
+        {
+            return new DomainError(
+                NodeMetadataValidation.TitleTooLong,
+                $"Der Titel darf höchstens {NodeMetadataValidation.TitleMaximumLength} Zeichen enthalten.",
+                new Dictionary<string, string>
+                {
+                    ["maximumLength"] = NodeMetadataValidation.TitleMaximumLength.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                });
+        }
+
+        if (description?.Length > NodeMetadataValidation.DescriptionMaximumLength)
+        {
+            return new DomainError(
+                NodeMetadataValidation.DescriptionTooLong,
+                $"Die Beschreibung darf höchstens {NodeMetadataValidation.DescriptionMaximumLength} Zeichen enthalten.",
+                new Dictionary<string, string>
+                {
+                    ["maximumLength"] = NodeMetadataValidation.DescriptionMaximumLength.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                });
+        }
+
+        return null;
+    }
 
     private static DomainError CreateNodeIdAlreadyUsedError(NodeId nodeId) =>
         new(

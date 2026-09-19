@@ -237,6 +237,14 @@ Source-Revision und deren aktuell ausgewertete Freshness; die Liste ist keine
 transitive Provenienzauflistung. `KnowledgePage` und MCP mappen dasselbe
 transportneutrale Ergebnis, auch wenn der wirksame Derived Content aus einer
 Fallback-Rolle stammt.
+Im aktiven Transaction-Kontext ergänzt `NodeMetadataEditor` diese Ansicht um
+explizite Formulare für Titel, Beschreibung und eine Child-Node unter dem
+ausgewählten Parent. Die Komponente ruft ausschließlich
+`NodeMutationApplicationService` auf, übergibt die gelesene `ChangeVersion` und
+initialisiert nach einer bestätigten Mutation Tree, Auswahl und Details aus dem
+Working Snapshot neu. Bei `ChangeVersionConflict` bleibt der Formzustand sichtbar
+und der serverseitige Fehler wird am Formular angezeigt; Korrekturen erfolgen
+bewusst oder durch Discard, ohne globalen Undo-Stack.
 Der Inhaltsbereich rendert Markdown sicher über `SafeMarkdownRenderer` (gemäß O-020:
 kein Raw-HTML-Rendering via `DisableHtml`, Neutralisierung von JavaScript-, Data- und
 File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine

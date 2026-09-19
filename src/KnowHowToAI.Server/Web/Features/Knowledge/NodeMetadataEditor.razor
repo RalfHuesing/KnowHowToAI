@@ -1,0 +1,60 @@
+@using KnowHowToAI.Core.Application.Mutations.Nodes
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+@namespace KnowHowToAI.Server.Web.Features.Knowledge
+
+@if (!TransactionId.HasValue)
+{
+    <section class="node-metadata-editor" aria-label="Strukturpflege" data-testid="node-metadata-readonly">
+        <InlineAlert Kind="AlertKind.Info" Message="Stammdaten und Child-Nodes können nur in einer offenen Transaction geändert werden." />
+    </section>
+}
+else
+{
+    <section class="node-metadata-editor" aria-label="Strukturpflege" data-testid="node-metadata-editor">
+        @if (_errorMessage is not null)
+        {
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+        }
+
+        @if (_mode == EditorMode.None)
+        {
+            <div class="node-metadata-actions">
+                <button type="button" class="btn btn-secondary" @onclick="OpenEdit" data-testid="edit-node-metadata">
+                    Stammdaten bearbeiten
+                </button>
+                <button type="button" class="btn btn-secondary" @onclick="OpenCreate" data-testid="create-child-node">
+                    Child-Node erstellen
+                </button>
+            </div>
+        }
+        else
+        {
+            <form @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
+                <h2 class="node-section-heading">@(_mode == EditorMode.Edit ? "Stammdaten bearbeiten" : "Child-Node erstellen")</h2>
+                @if (_mode == EditorMode.Create)
+                {
+                    <p class="node-metadata-hint">Die neue Node wird unter „@Node.Title“ erstellt.</p>
+                }
+                <div class="node-metadata-fields">
+                    <div>
+                        <label for="node-metadata-title">Titel</label>
+                        <input id="node-metadata-title" data-testid="node-metadata-title" @bind="_title" maxlength="200" disabled="@_isSubmitting" />
+                    </div>
+                    <div>
+                        <label for="node-metadata-description">Beschreibung</label>
+                        <textarea id="node-metadata-description" data-testid="node-metadata-description" @bind="_description" maxlength="1000" disabled="@_isSubmitting"></textarea>
+                    </div>
+                </div>
+                <div class="node-metadata-actions">
+                    <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="save-node-metadata">
+                        @(_isSubmitting ? "Wird gespeichert…" : "Speichern")
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@_isSubmitting">
+                        Abbrechen
+                    </button>
+                </div>
+            </form>
+        }
+    </section>
+}

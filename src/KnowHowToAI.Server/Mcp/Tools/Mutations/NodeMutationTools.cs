@@ -64,7 +64,7 @@ internal sealed class NodeMutationTools
             .CreateAsync(
                 parsedTransactionId,
                 new CreateNodeRequest(parsedParentNodeId, title, description, sortOrder),
-                cancellationToken)
+                cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         if (!created.IsSuccess)
             return McpMutationMapper.ToEnvelope(created);
@@ -200,6 +200,7 @@ internal sealed class NodeMutationTools
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
         [Description("Neuer Titel der Node.")] string title,
         [Description("Optionale neue Beschreibung der Node.")] string? description = null,
+        [Description("Optionaler erwarteter ChangeVersion-Stand der Transaction; bei einer zwischenzeitlichen Mutation wird der Write abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -208,7 +209,10 @@ internal sealed class NodeMutationTools
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
         return McpMutationMapper.ToEnvelope(await _nodeMutationService
-            .UpdateAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, title, description, cancellationToken)
+            .UpdateAsync(
+                parsedTransactionId.Value,
+                new UpdateNodeRequest(parsedNodeId.Value!.Value, title, description, expectedChangeVersion),
+                cancellationToken)
             .ConfigureAwait(false));
     }
 

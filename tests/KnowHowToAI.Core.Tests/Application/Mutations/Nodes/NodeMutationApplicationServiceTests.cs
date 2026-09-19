@@ -46,7 +46,9 @@ public sealed class NodeMutationApplicationServiceTests
         var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId), Node(FirstChildNodeId, RootNodeId)));
         var service = CreateService(repository, SecondChildNodeId);
 
-        var result = await service.UpdateAsync(TransactionId, FirstChildNodeId, "Neuer Titel", "Neue Beschreibung");
+        var result = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(FirstChildNodeId, "Neuer Titel", "Neue Beschreibung"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal("Neuer Titel", result.Value!.Node.Title);
@@ -131,7 +133,9 @@ public sealed class NodeMutationApplicationServiceTests
         var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId))) { Rejection = rejection };
         var service = CreateService(repository, SecondChildNodeId);
 
-        var result = await service.UpdateAsync(TransactionId, RootNodeId, "Neuer Titel", "Neue Beschreibung");
+        var result = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(RootNodeId, "Neuer Titel", "Neue Beschreibung"));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -207,7 +211,9 @@ public sealed class NodeMutationApplicationServiceTests
         var repository = new InMemoryNodeMutationRepository(State(node));
         var service = CreateService(repository, SecondChildNodeId);
 
-        var result = await service.UpdateAsync(TransactionId, RootNodeId, "Titel", "Beschreibung");
+        var result = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(RootNodeId, "Titel", "Beschreibung"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(0, result.Value!.ChangeVersion);
@@ -251,10 +257,98 @@ public sealed class NodeMutationApplicationServiceTests
         var repository = new InMemoryNodeMutationRepository(State(node));
         var service = CreateService(repository, SecondChildNodeId);
 
-        var result = await service.UpdateAsync(TransactionId, RootNodeId, "Neu", null);
+        var result = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(RootNodeId, "Neu", null));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.ChangeVersion);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task CreateAndUpdateAsync_AcceptMetadataAtStorageBoundariesAndAllowDuplicateTitles()
+    {
+        var root = Node(RootNodeId);
+        var sibling = Node(FirstChildNodeId, RootNodeId) with { Title = new string('T', NodeMetadataValidation.TitleMaximumLength) };
+        var repository = new InMemoryNodeMutationRepository(State(root, sibling));
+        var service = CreateService(repository, SecondChildNodeId);
+        var description = new string('B', NodeMetadataValidation.DescriptionMaximumLength);
+
+        var created = await service.CreateAsync(
+            TransactionId,
+            new CreateNodeRequest(RootNodeId, sibling.Title, description, int.MaxValue));
+        var updated = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(FirstChildNodeId, sibling.Title, description));
+
+        Assert.True(created.IsSuccess);
+        Assert.True(updated.IsSuccess);
+        Assert.Equal(sibling.Title, Find(repository.State.Nodes, SecondChildNodeId).Title);
+        Assert.Equal(description, Find(repository.State.Nodes, FirstChildNodeId).Description);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CreateAsync_RejectsMetadataBeyondStorageBoundariesWithoutChangingState(bool titleIsTooLong)
+    {
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId)));
+        var service = CreateService(repository, SecondChildNodeId);
+        var title = titleIsTooLong
+            ? new string('T', NodeMetadataValidation.TitleMaximumLength + 1)
+            : "Gültiger Titel";
+        var description = titleIsTooLong
+            ? null
+            : new string('B', NodeMetadataValidation.DescriptionMaximumLength + 1);
+
+        var result = await service.CreateAsync(
+            TransactionId,
+            new CreateNodeRequest(RootNodeId, title, description, 0));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            titleIsTooLong ? NodeMetadataValidation.TitleTooLong : NodeMetadataValidation.DescriptionTooLong,
+            result.Code);
+        Assert.Single(repository.State.Nodes);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task CreateAsync_RejectsParentOutsideTheWorkingSnapshot()
+    {
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId)));
+        var service = CreateService(repository, SecondChildNodeId);
+        var missingParent = NodeIdFor(99);
+
+        var result = await service.CreateAsync(
+            TransactionId,
+            new CreateNodeRequest(missingParent, "Child", null, 0));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(HierarchyErrorCodes.ParentNodeNotFound, result.Code);
+        Assert.Single(repository.State.Nodes);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_RejectsStaleChangeVersionWithoutChangingState()
+    {
+        var node = Node(RootNodeId) with { Title = "Aktuell" };
+        var repository = new InMemoryNodeMutationRepository(State(node));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var first = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(RootNodeId, "Von anderem Client", null, ExpectedChangeVersion: 0));
+        var stale = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(RootNodeId, "Veralteter Client", null, ExpectedChangeVersion: 0));
+
+        Assert.True(first.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("Von anderem Client", Find(repository.State.Nodes, RootNodeId).Title);
         Assert.Equal(1, repository.ChangeVersion);
     }
 

@@ -1,6 +1,7 @@
 using Dapper;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
@@ -65,7 +66,8 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
     public async Task<Result<WorkingNodeMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingNodeMutationState, Result<WorkingNodeMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long? expectedChangeVersion = null)
     {
         ArgumentNullException.ThrowIfNull(mutate);
         WorkingNodeMutationState? previousState = null;
@@ -94,7 +96,8 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
                         Result<WorkingNodeMutationDecision<T>>.Success(decision),
                         stateChanged);
                 },
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                expectedChangeVersion).ConfigureAwait(false);
 
             if (!execution.Value.IsSuccess)
                 return Result<WorkingNodeMutationExecution<T>>.Failure(execution.Value.Error!);
@@ -109,10 +112,14 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         }
         catch (WorkingSnapshotMutationRejectedException exception)
         {
+            var details = new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() };
+            if (expectedChangeVersion.HasValue && exception.Code == TransactionValidationErrorCodes.ChangeVersionConflict)
+                details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expectedChangeVersion.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
             return Result<WorkingNodeMutationExecution<T>>.Failure(new DomainError(
                 exception.Code,
                 exception.Message,
-                new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() }));
+                details));
         }
     }
 

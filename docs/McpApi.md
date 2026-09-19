@@ -131,10 +131,15 @@ Transaction; `delete_node` wirkt global über alle Rollen
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
 | `create_node` | `transactionId`, `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0), optional `contentMd` (setzt im selben Aufruf den Rollen-Content; dann `roleId` erforderlich, optional `contentMode`, Standard `Independent`, optional `sources`) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds`; bei `contentMd` zusätzlich `roleId`, `contentRevisionId`, `contentMode`, `freshness` |
-| `update_node` | `transactionId`, `nodeId`, `title` (erforderlich), optional `description` | dieselben Feldnamen wie `create_node` |
+| `update_node` | `transactionId`, `nodeId`, `title` (erforderlich), optional `description`, optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
 | `move_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `parentNodeId` (ohne Wert wird die Node zur Root-Node) | dieselben Feldnamen wie `create_node` |
 | `reorder_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich) | dieselben Feldnamen wie `create_node` |
 | `delete_node` | `transactionId`, `nodeId` (erforderlich), optional `deleteSubtree` (Standard `false`) | dieselben Feldnamen wie `create_node` |
+
+Bei `update_node` macht `expectedChangeVersion` einen zuvor gelesenen
+Working-Stand zur Vorbedingung. Weicht er beim atomaren Write ab, wird die Mutation mit
+`ChangeVersionConflict` abgelehnt; der Client lädt den betroffenen Bereich neu und sendet
+eine bewusste Gegenänderung, falls sie weiter gewünscht ist.
 
 `affectedNodeIds` umfasst die geänderte Node und alle durch
 Sortiernormalisierung oder Verschieben betroffenen aktiven Nachfahren. Mit
@@ -208,14 +213,14 @@ von einem Synchronisationstest gegen diesen Abschnitt geprüft. Neue Codes dürf
 ergänzt werden; veröffentlichte Codes werden nicht beiläufig umbenannt.
 
 - Kontext/Zustand: `InvalidReadContext`, `SnapshotNotFound`, `SnapshotNotCommitted`,
-  `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`,
+  `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`, `ChangeVersionConflict`,
   `SnapshotMutationConflict`, `InvalidCursor`, `CursorExpired`,
   `WorkingSnapshotNotOpen`, `TransactionDiscarded`
 - Struktur/Rollen: `NodeNotFound`, `InvalidNodeId`, `RootAlreadyExists`, `ParentNodeNotFound`,
   `InvalidHierarchy`, `NodeHasChildren`, `RoleNotFound`, `RoleInUse`,
   `RoleResolutionNotConfigured`, `InvalidRoleResolution`, `DuplicateNodeId`,
   `HierarchyCycle`, `NodeIdAlreadyUsed`, `SelfParentNotAllowed`, `SnapshotMismatch`,
-  `TitleRequired`, `RoleNameRequired`, `RoleIdRequired`, `CandidateRoleDeleted`,
+  `TitleRequired`, `TitleTooLong`, `DescriptionTooLong`, `RoleNameRequired`, `RoleIdRequired`, `CandidateRoleDeleted`,
   `CandidateRoleNotFound`, `DuplicateCandidateRole`, `DuplicatePriority`,
   `InvalidPriority`, `RequestedRoleDeleted`, `RequestedRoleNotFound`
 - Content: `ExplicitContentNotFound`, `HeadingNotAllowed`, `FrontMatterNotAllowed`,
