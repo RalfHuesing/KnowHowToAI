@@ -17,6 +17,7 @@ internal sealed class KnowHowToAIOptionsValidator : IValidateOptions<KnowHowToAI
         ValidateRetrieval(options.Retrieval, errors);
         ValidateStorage(options.Storage, errors);
         ValidateMigrations(options.Migrations, errors);
+        ValidateAuth(options.Auth, errors);
         return errors.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(errors);
@@ -56,6 +57,12 @@ internal sealed class KnowHowToAIOptionsValidator : IValidateOptions<KnowHowToAI
     {
         if (m.LockTimeoutSeconds is < 1 or > 600)
             errors.Add($"KnowHowToAI:Migrations:LockTimeoutSeconds muss zwischen 1 und 600 liegen, ist aber {m.LockTimeoutSeconds}.");
+    }
+
+    private static void ValidateAuth(AuthOptions a, List<string> errors)
+    {
+        if (string.IsNullOrWhiteSpace(a.DummyUserName))
+            errors.Add("KnowHowToAI:Auth:DummyUserName darf nicht leer sein.");
     }
 }
 

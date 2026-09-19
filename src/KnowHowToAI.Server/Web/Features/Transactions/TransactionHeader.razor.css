@@ -1,0 +1,85 @@
+.transaction-header {
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.transaction-header__title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.transaction-header__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text-primary, #111827);
+}
+
+.transaction-header__id {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted, #6b7280);
+    margin: 0.25rem 0 0 0;
+    font-family: var(--font-mono, monospace);
+}
+
+.badge-state {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+}
+
+.badge-state--open {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-state--committed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-state--discarded {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+}
+
+.transaction-header__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border-subtle, #f3f4f6);
+}
+
+.transaction-header__meta-item dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted, #6b7280);
+    margin-bottom: 0.25rem;
+}
+
+.transaction-header__meta-item dd {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-primary, #111827);
+    margin: 0;
+}

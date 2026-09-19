@@ -20,6 +20,13 @@ public interface ITransactionRepository
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Liefert alle aktuell offenen Transactions (State = Open), sortiert nach Erstellungszeit absteigend.
+    /// </summary>
+    Task<IReadOnlyList<KnowledgeTransaction>> ListOpenAsync(
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<KnowledgeTransaction>>([]);
+
+    /// <summary>
     /// Prüft und aktiviert einen Working Snapshot innerhalb einer kurzen atomaren
     /// SQL-Operation. Der Rückgabewert enthält auch bei fachlicher Ablehnung den
     /// vollständigen Validierungsbefund beziehungsweise den stabilen Fehler.

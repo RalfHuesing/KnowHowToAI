@@ -1,0 +1,34 @@
+@page "/transactions/{TransactionId:guid}"
+@namespace KnowHowToAI.Server.Web.Features.Transactions
+@using Microsoft.AspNetCore.Components.Web
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+
+<div class="transaction-page" data-testid="transaction-page">
+    @if (_isLoading)
+    {
+        <p class="loading-state" role="status">Lade Transaction...</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="transaction-error" role="alert" data-testid="transaction-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+            <div class="error-actions">
+                <a href="/transactions" class="btn btn-secondary" data-testid="tx-back-link">Zur Übersicht</a>
+            </div>
+        </div>
+    }
+    else if (_transaction is not null)
+    {
+        <TransactionHeader Transaction="@_transaction"
+                           IsOlderThan7Days="@(_transaction.CreatedAtUtc <= Clock.UtcNow.AddDays(-7))" />
+
+        <div class="transaction-page__actions" data-testid="transaction-page-actions">
+            <a href="@KnowledgeUrl" class="btn btn-primary" data-testid="tx-open-knowledge-link">
+                Im Wissensbaum öffnen
+            </a>
+            <a href="/transactions" class="btn btn-secondary" data-testid="tx-back-link">
+                Zur Übersicht
+            </a>
+        </div>
+    }
+</div>

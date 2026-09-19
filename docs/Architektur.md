@@ -80,10 +80,10 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 | `Domain.Versioning` | Snapshot, Transaction, Release |
 | `Domain.Validation` | aggregierte harte Fehler, Warnungen, Validation-Reports |
 | `Application.Abstractions.Persistence` | schmale Ports für Migration, Versionierung, fachliche Writes, Retrieval |
-| `Application.Abstractions.Runtime` | kontrollierbare Zeit- und ID-Erzeugung |
+| `Application.Abstractions.Runtime` | kontrollierbare Zeit- und ID-Erzeugung, `ICurrentUserService` |
 | `Application.Runtime` | Laufzeit-Dienste (durchgetaktete Zeit, IDs) |
 | `Application.Policies` | von der App-Konfiguration unabhängige Quality-/Retrieval-Policies |
-| `Application.Transactions` | Begin, Get, Validate, Commit, Discard |
+| `Application.Transactions` | Begin, Get, Validate, Commit, Discard, ListOpen |
 | `Application.Navigation` | Read-Kontext, Root, Node, Children, Rollen-Metadaten |
 | `Application.Mutations.Nodes` | Create, Update, Move, Reorder, Delete Node |
 | `Application.Mutations.Content` | Replace Content/Text, Delete Content |
@@ -106,7 +106,7 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 
 **`KnowHowToAI.Server`**: `Configuration` (bindbare Options, zentrale
 Validatoren, Redaction), `Hosting` (Composition Root, DI, Kestrel-Start,
-kontrollierter Shutdown), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgruppe),
+kontrollierter Shutdown, `DummyCurrentUserService`), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgruppe),
 `Mcp.Tools.*` (dünne Handler), `Mcp.Mapping` (ausschließlich
 Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout,
 zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
@@ -136,7 +136,7 @@ Rolle, Lese-Kontext und `ChangeVersion` sowie `WebReadContextResolver`
 zur Validierung und Auflösung von `transactionId`, `snapshotId` und
 `releaseId` auf Core-`ReadContext` und `KnowledgeContextViewModel`) und
 die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Roles`,
-`Search`, `History`, `Dashboard`).
+`Search`, `History`, `Dashboard`, `Transactions`).
 
 Die Web-Lesegrenze entkoppelt Razor-Komponenten vollständig von Domain-Typen:
 Komponenten rufen Application Services direkt in-process per Dependency

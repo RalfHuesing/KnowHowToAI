@@ -56,6 +56,11 @@ public sealed class TransactionService
             : Result<KnowledgeTransaction>.Success(transaction);
     }
 
+    /// <summary>Liefert alle aktuell offenen Transactions, sortiert nach Erstellungszeit absteigend.</summary>
+    public Task<IReadOnlyList<KnowledgeTransaction>> ListOpenAsync(
+        CancellationToken cancellationToken = default) =>
+        _transactionRepository.ListOpenAsync(cancellationToken);
+
     /// <summary>Verwirft eine offene Transaction, ohne den Current Snapshot zu verändern.</summary>
     public Task<Result<KnowledgeTransaction>> DiscardAsync(
         TransactionId transactionId,

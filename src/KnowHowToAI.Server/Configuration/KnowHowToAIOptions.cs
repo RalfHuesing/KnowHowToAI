@@ -13,4 +13,5 @@ internal sealed record KnowHowToAIOptions
     public RetrievalOptions Retrieval { get; init; } = new();
     public StorageOptions Storage { get; init; } = new();
     public MigrationOptions Migrations { get; init; } = new();
+    public AuthOptions Auth { get; init; } = new();
 }

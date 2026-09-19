@@ -12,23 +12,21 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Retrieval;
 /// </summary>
 internal sealed class SqlDashboardRepository : SqlRepository, IDashboardRepository
 {
+    private readonly ITransactionRepository _transactionRepository;
+
     private const string LatestReleaseSql = """
         SELECT TOP (1) ReleaseId, SnapshotId, Name, Description, ReleasedAtUtc
         FROM dbo.KnowHowToAI_Release
         ORDER BY ReleasedAtUtc DESC, ReleaseId DESC;
         """;
 
-    private const string ListOpenTransactionsSql = """
-        SELECT TransactionId, BaseSnapshotId, WorkingSnapshotId, State, ChangeVersion,
-               CreatedAtUtc, CommittedAtUtc, Purpose, Actor, Client, CommitMessage
-        FROM dbo.KnowHowToAI_Transaction
-        WHERE State = 'Open'
-        ORDER BY CreatedAtUtc DESC;
-        """;
-
-    public SqlDashboardRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
+    public SqlDashboardRepository(
+        SqlConnectionFactory connectionFactory,
+        SqlStoragePolicy storagePolicy,
+        ITransactionRepository transactionRepository)
         : base(connectionFactory, storagePolicy)
     {
+        _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
     }
 
     public async Task<Release?> GetLatestReleaseAsync(CancellationToken cancellationToken = default)
@@ -39,11 +37,6 @@ internal sealed class SqlDashboardRepository : SqlRepository, IDashboardReposito
         return row is null ? null : SqlRowMapper.ToRelease(row);
     }
 
-    public async Task<IReadOnlyList<KnowledgeTransaction>> ListOpenTransactionsAsync(CancellationToken cancellationToken = default)
-    {
-        await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
-        var rows = await connection.QueryAsync<TransactionRow>(
-            CreateCommand(ListOpenTransactionsSql, null, cancellationToken)).ConfigureAwait(false);
-        return rows.Select(SqlRowMapper.ToTransaction).ToArray();
-    }
+    public Task<IReadOnlyList<KnowledgeTransaction>> ListOpenTransactionsAsync(CancellationToken cancellationToken = default) =>
+        _transactionRepository.ListOpenAsync(cancellationToken);
 }

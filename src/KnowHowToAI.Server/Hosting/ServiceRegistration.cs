@@ -78,6 +78,7 @@ internal static class ServiceRegistration
     {
         services.AddSingleton<IIdentifierGenerator, GuidIdentifierGenerator>();
         services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton<ICurrentUserService, DummyCurrentUserService>();
         services.AddSingleton(serviceProvider =>
         {
             var validation = serviceProvider

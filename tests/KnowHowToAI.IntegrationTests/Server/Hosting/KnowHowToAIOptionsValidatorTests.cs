@@ -160,4 +160,25 @@ public sealed class KnowHowToAIOptionsValidatorTests
         var result = Sut.Validate(null, opts);
         Assert.True(result.Succeeded);
     }
+
+    // --- Auth ---
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void DummyUserName_EmptyOrWhitespace_Fails(string userName)
+    {
+        var opts = ValidOptions() with { Auth = new() { DummyUserName = userName } };
+        var result = Sut.Validate(null, opts);
+        Assert.False(result.Succeeded);
+        Assert.Contains("DummyUserName", string.Join(" ", result.Failures ?? []));
+    }
+
+    [Fact]
+    public void DummyUserName_NonEmpty_Succeeds()
+    {
+        var opts = ValidOptions() with { Auth = new() { DummyUserName = "CustomActor" } };
+        var result = Sut.Validate(null, opts);
+        Assert.True(result.Succeeded);
+    }
 }

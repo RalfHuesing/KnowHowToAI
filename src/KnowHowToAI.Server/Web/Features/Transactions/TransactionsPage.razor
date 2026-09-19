@@ -1,0 +1,105 @@
+@page "/transactions"
+@namespace KnowHowToAI.Server.Web.Features.Transactions
+@using Microsoft.AspNetCore.Components.Web
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+
+<div class="transactions-page" data-testid="transactions-page">
+    <div class="transactions-page__header">
+        <h1 class="transactions-page__title">Transactions</h1>
+        <p class="transactions-page__description">
+            Verwaltung von Working Transactions für strukturierte Wissensänderungen.
+        </p>
+    </div>
+
+    <section class="transactions-section begin-transaction-card" aria-labelledby="begin-tx-heading" data-testid="begin-transaction-section">
+        <h2 id="begin-tx-heading" class="section-title">Neue Transaction beginnen</h2>
+        @if (!string.IsNullOrWhiteSpace(_beginErrorMessage))
+        {
+            <div class="form-error" role="alert" data-testid="begin-tx-error">
+                <InlineAlert Kind="AlertKind.Fehler" Message="@_beginErrorMessage" />
+            </div>
+        }
+        <form class="begin-tx-form" @onsubmit="BeginTransactionAsync" @onsubmit:preventDefault="true">
+            <div class="form-group">
+                <label for="tx-purpose" class="form-label">Zweck (optional):</label>
+                <input id="tx-purpose" type="text" class="form-input" placeholder="z. B. Überarbeitung Glossar"
+                       @bind="NewPurpose" data-testid="tx-purpose-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="tx-client" class="form-label">Client (optional):</label>
+                <input id="tx-client" type="text" class="form-input" placeholder="z. B. Web UI"
+                       @bind="NewClient" data-testid="tx-client-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="tx-actor" class="form-label">Akteur (automatisch):</label>
+                <input id="tx-actor" type="text" class="form-input form-input--readonly" readonly
+                       value="@_currentUserName" data-testid="tx-actor-display" />
+                <span class="form-hint">Wird über den aktuellen Benutzer gesetzt und ist danach unveränderlich.</span>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="begin-transaction-button">
+                    @(_isSubmitting ? "Wird gestartet..." : "Transaction beginnen")
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="transactions-section open-transactions-card" aria-labelledby="open-tx-heading" data-testid="open-transactions-section">
+        <h2 id="open-tx-heading" class="section-title">Offene Transactions (@_transactions.Count)</h2>
+
+        @if (_isLoading)
+        {
+            <p class="loading-state" role="status">Lade offene Transactions...</p>
+        }
+        else if (_transactions.Count == 0)
+        {
+            <p class="empty-state" data-testid="empty-transactions-message">Keine offenen Transactions vorhanden.</p>
+        }
+        else
+        {
+            <div class="transaction-grid" role="list">
+                @foreach (var tx in _transactions)
+                {
+                    <article class="transaction-card" role="listitem" data-testid="transaction-item-@tx.TransactionId">
+                        <div class="transaction-card__header">
+                            <h3 class="transaction-card__title">
+                                @(string.IsNullOrWhiteSpace(tx.Purpose) ? "Ohne Zweckangabe" : tx.Purpose)
+                            </h3>
+                            @if (tx.IsOlderThan7Days)
+                            {
+                                <span class="badge badge-warning" data-testid="tx-age-warning">Älter als 7 Tage</span>
+                            }
+                        </div>
+
+                        <dl class="transaction-card__meta">
+                            <dt>Akteur:</dt>
+                            <dd>@(tx.Actor ?? "Unbekannt")</dd>
+                            <dt>Client:</dt>
+                            <dd>@(tx.Client ?? "Unbekannt")</dd>
+                            <dt>Erstellt am:</dt>
+                            <dd data-volatile="" title="@tx.CreatedAtUtc.ToString("u")">
+                                @tx.CreatedAtUtc.ToString("g")
+                            </dd>
+                            <dt>Base-Snapshot:</dt>
+                            <dd>@tx.BaseSnapshotId</dd>
+                            <dt>Working-Snapshot:</dt>
+                            <dd>@tx.WorkingSnapshotId</dd>
+                            <dt>ChangeVersion:</dt>
+                            <dd>@tx.ChangeVersion</dd>
+                        </dl>
+
+                        <div class="transaction-card__actions">
+                            <a href="/transactions/@tx.TransactionId" class="btn btn-secondary"
+                               data-testid="tx-details-link-@tx.TransactionId">Details anzeigen</a>
+                            <a href="/knowledge?transactionId=@tx.TransactionId" class="btn btn-primary"
+                               data-testid="tx-resume-link-@tx.TransactionId">Als Arbeitskontext fortsetzen</a>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+</div>

@@ -199,6 +199,14 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         WHERE TransactionId = @transactionId;
         """;
 
+    private const string ListOpenTransactionsSql = """
+        SELECT TransactionId, BaseSnapshotId, WorkingSnapshotId, State, ChangeVersion,
+               CreatedAtUtc, CommittedAtUtc, Purpose, Actor, Client, CommitMessage
+        FROM dbo.KnowHowToAI_Transaction
+        WHERE State = 'Open'
+        ORDER BY CreatedAtUtc DESC;
+        """;
+
     public SqlTransactionRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
         : base(connectionFactory, storagePolicy)
     {
@@ -233,6 +241,15 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         var row = await connection.QuerySingleOrDefaultAsync<TransactionRow>(
             CreateCommand(FindSql, new { transactionId = transactionId.Value }, cancellationToken)).ConfigureAwait(false);
         return row is null ? null : SqlRowMapper.ToTransaction(row);
+    }
+
+    public async Task<IReadOnlyList<KnowledgeTransaction>> ListOpenAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await connection.QueryAsync<TransactionRow>(
+            CreateCommand(ListOpenTransactionsSql, null, cancellationToken)).ConfigureAwait(false);
+        return rows.Select(SqlRowMapper.ToTransaction).ToArray();
     }
 
     public async Task<CommitTransactionResult> CommitAsync(

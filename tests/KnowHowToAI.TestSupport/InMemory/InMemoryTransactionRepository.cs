@@ -15,13 +15,38 @@ public sealed class InMemoryTransactionRepository(InMemoryKnowledgeStore store) 
 {
     public Task<KnowledgeTransaction> BeginAsync(
         BeginTransactionRequest request,
-        CancellationToken cancellationToken = default) =>
-        throw new NotSupportedException("BeginAsync ist im In-Memory-Read-Fake nicht unterstützt.");
+        CancellationToken cancellationToken = default)
+    {
+        var baseSnapshotId = store.CurrentSnapshotId ?? new SnapshotId(1);
+        var workingSnapshotId = new SnapshotId(baseSnapshotId.Value + 1);
+        var tx = new KnowledgeTransaction(
+            request.TransactionId,
+            baseSnapshotId,
+            workingSnapshotId,
+            TransactionState.Open,
+            ChangeVersion: 0,
+            CreatedAtUtc: DateTimeOffset.UtcNow,
+            CommittedAtUtc: null,
+            request.Purpose,
+            request.Actor,
+            request.Client,
+            CommitMessage: null);
+        store.Transactions[request.TransactionId] = tx;
+        return Task.FromResult(tx);
+    }
 
     public Task<KnowledgeTransaction?> FindAsync(
         TransactionId transactionId,
         CancellationToken cancellationToken = default) =>
         Task.FromResult(store.Transactions.GetValueOrDefault(transactionId));
+
+    public Task<IReadOnlyList<KnowledgeTransaction>> ListOpenAsync(
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<KnowledgeTransaction>>(
+            store.Transactions.Values
+                .Where(t => t.State == TransactionState.Open)
+                .OrderByDescending(t => t.CreatedAtUtc)
+                .ToArray());
 
     public Task<CommitTransactionResult> CommitAsync(
         CommitTransactionRequest request,

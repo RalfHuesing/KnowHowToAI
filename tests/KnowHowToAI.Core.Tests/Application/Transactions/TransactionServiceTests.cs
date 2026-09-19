@@ -34,6 +34,23 @@ public sealed class TransactionServiceTests
     }
 
     [Fact]
+    public async Task ListOpenAsync_ReturnsOpenTransactionsFromRepository()
+    {
+        var tx = CreateTransaction(GeneratedTransactionId, TransactionState.Open);
+        var repository = new TransactionRepositoryFake { OpenTransactions = [tx] };
+        var service = new TransactionService(
+            repository,
+            new ValidationDataRepositoryFake(),
+            new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
+            ValidationPolicy());
+
+        var result = await service.ListOpenAsync();
+
+        Assert.Single(result);
+        Assert.Equal(GeneratedTransactionId, result[0].TransactionId);
+    }
+
+    [Fact]
     public async Task GetAsync_MissingTransaction_ReturnsStableTransactionNotFoundError()
     {
         var requestedTransactionId = new TransactionId(Guid.Parse("2344830c-5dd1-4d10-9d00-7784c4c28210"));
@@ -339,6 +356,11 @@ public sealed class TransactionServiceTests
             CommitRequest = request;
             return Task.FromResult(CommitResult);
         }
+
+        public IReadOnlyList<KnowledgeTransaction> OpenTransactions { get; set; } = [];
+
+        public Task<IReadOnlyList<KnowledgeTransaction>> ListOpenAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(OpenTransactions);
 
         public Task<Result<KnowledgeTransaction>> DiscardAsync(TransactionId transactionId, CancellationToken cancellationToken = default)
         {
