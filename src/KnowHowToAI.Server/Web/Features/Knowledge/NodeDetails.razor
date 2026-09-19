@@ -1,0 +1,127 @@
+@namespace KnowHowToAI.Server.Web.Features.Knowledge
+@using KnowHowToAI.Server.Web.Components.Shared
+
+@if (_isLoading)
+{
+    <LoadingState Message="Knoten wird geladen…" />
+}
+else if (_errorMessage is not null)
+{
+    <div data-testid="node-details-error">
+        <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+    </div>
+}
+else if (_nodeNotFound)
+{
+    <div data-testid="node-details-not-found">
+        <NotFoundState
+            Title="Knoten nicht gefunden"
+            Description="Der angeforderte Knoten existiert nicht oder ist in diesem Kontext nicht verfügbar." />
+    </div>
+}
+else if (ViewModel is not null)
+{
+    <article class="node-details" data-testid="node-details" aria-label="@ViewModel.Title">
+        <header class="node-details-header">
+            <h1 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h1>
+
+            @if (!string.IsNullOrWhiteSpace(ViewModel.Description))
+            {
+                <p class="node-details-description" data-testid="node-details-description">@ViewModel.Description</p>
+            }
+        </header>
+
+        <section class="node-details-meta" aria-label="Metadaten" data-testid="node-details-meta">
+            <dl class="node-meta-list">
+                <div class="node-meta-item">
+                    <dt>Rolle</dt>
+                    <dd data-testid="node-details-role">
+                        @ViewModel.RequestedRoleId
+                        @if (ViewModel.FallbackUsed && ViewModel.ResolvedRoleId is not null)
+                        {
+                            <span class="node-meta-fallback" title="Inhalt stammt per Fallback aus dieser Rolle">
+                                → @ViewModel.ResolvedRoleId
+                            </span>
+                        }
+                    </dd>
+                </div>
+                <div class="node-meta-item">
+                    <dt>Verfügbarkeit</dt>
+                    <dd>
+                        <span class="node-meta-badge node-meta-badge--@ViewModel.Availability.ToLowerInvariant()"
+                              data-testid="node-details-availability">
+                            @MapAvailabilityLabel(ViewModel.Availability)
+                        </span>
+                    </dd>
+                </div>
+                <div class="node-meta-item">
+                    <dt>Aktualität</dt>
+                    <dd>
+                        <span class="node-meta-badge node-meta-badge--@ViewModel.Freshness.ToLowerInvariant()"
+                              data-testid="node-details-freshness">
+                            @MapFreshnessLabel(ViewModel.Freshness)
+                        </span>
+                    </dd>
+                </div>
+                @if (ViewModel.ContentMode is not null)
+                {
+                    <div class="node-meta-item">
+                        <dt>Inhaltsmodus</dt>
+                        <dd data-testid="node-details-content-mode">@MapContentModeLabel(ViewModel.ContentMode)</dd>
+                    </div>
+                }
+                @if (ViewModel.ContentRevisionId.HasValue)
+                {
+                    <div class="node-meta-item">
+                        <dt>Revision</dt>
+                        <dd class="node-meta-revision" data-testid="node-details-revision">
+                            @ViewModel.ContentRevisionId.Value.ToString("N")[..8]…
+                        </dd>
+                    </div>
+                }
+                <div class="node-meta-item">
+                    <dt>Position</dt>
+                    <dd data-testid="node-details-sort-order">@ViewModel.SortOrder</dd>
+                </div>
+                <div class="node-meta-item">
+                    <dt>Node-ID</dt>
+                    <dd class="node-meta-id" data-testid="node-details-node-id">@ViewModel.NodeId</dd>
+                </div>
+            </dl>
+        </section>
+
+        @if (ViewModel.SourceRevisions.Count > 0)
+        {
+            <section class="node-details-provenance" aria-label="Quellrevisionen" data-testid="node-details-provenance">
+                <h2 class="node-section-heading">Quellrevisionen (Derived)</h2>
+                <ul class="node-provenance-list">
+                    @foreach (var rev in ViewModel.SourceRevisions)
+                    {
+                        <li class="node-provenance-item" data-testid="node-provenance-item">
+                            <span class="node-provenance-source">
+                                Knoten <code>@rev.SourceNodeId.ToString("N")[..8]…</code>
+                                Rolle <strong>@rev.SourceRoleId</strong>
+                                Revision <code>@rev.SourceContentRevisionId.ToString("N")[..8]…</code>
+                            </span>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+
+        <section class="node-details-content" aria-label="Inhalt" data-testid="node-details-content">
+            @if (string.IsNullOrWhiteSpace(ViewModel.ContentMd))
+            {
+                <div class="node-content-empty" data-testid="node-content-empty">
+                    <em>Kein Inhalt für diese Rolle vorhanden.</em>
+                </div>
+            }
+            else
+            {
+                <div class="node-content-markdown" data-testid="node-content-markdown">
+                    @SafeMarkdownRenderer.Render(ViewModel.ContentMd)
+                </div>
+            }
+        </section>
+    </article>
+}

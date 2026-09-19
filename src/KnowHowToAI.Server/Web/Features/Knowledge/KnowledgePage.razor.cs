@@ -11,7 +11,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// <summary>
 /// Routable Wissenscockpit-Seite (/knowledge und /knowledge/{NodeId:guid}).
 /// Rekonstruiert den Arbeitskontext aus Route und Query und orchestriert
-/// Tree, Breadcrumbs und Workspace-State.
+/// Tree, Breadcrumbs, Workspace-State und Node-Detailansicht.
 /// Setzt O-008 verbindlich um: keine stille Standardrolle; wenn kein Eintrag
 /// in Query oder localStorage vorhanden ist, erscheint der modale Pflichtauswahl-Selektor.
 /// </summary>
@@ -48,6 +48,12 @@ public sealed partial class KnowledgePage : IDisposable
     private bool _hasNoRoles;
     private bool _isAwaitingRoleSelection;
     private bool _isDisposed;
+
+    // Node-Detailansicht
+    private NodeDetailsViewModel? _nodeDetailsViewModel;
+    private bool _isLoadingNodeDetails;
+    private string? _nodeDetailsErrorMessage;
+    private bool _nodeDetailsNotFound;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -159,21 +165,66 @@ public sealed partial class KnowledgePage : IDisposable
             await TreeState.InitializeAsync(readContext, roleId, CancellationToken.None);
         }
 
-        await ApplyNodeSelectionAsync();
+        await ApplyNodeSelectionAsync(readContext, roleId);
     }
 
-    private async Task ApplyNodeSelectionAsync()
+    private async Task ApplyNodeSelectionAsync(ReadContext readContext, string roleId)
     {
         if (NodeId.HasValue)
         {
             await TreeState.SelectNodeAsync(NodeId.Value, CancellationToken.None);
             WorkspaceState.SetNode(NodeId.Value);
+            await LoadNodeDetailsAsync(NodeId.Value, readContext, roleId);
         }
         else if (TreeState.SelectedNodeId.HasValue)
         {
             await TreeState.SelectNodeAsync(null, CancellationToken.None);
             WorkspaceState.SetNode(null);
+            ClearNodeDetails();
         }
+        else
+        {
+            ClearNodeDetails();
+        }
+    }
+
+    private async Task LoadNodeDetailsAsync(Guid nodeId, ReadContext readContext, string roleId)
+    {
+        _isLoadingNodeDetails = true;
+        _nodeDetailsErrorMessage = null;
+        _nodeDetailsNotFound = false;
+        _nodeDetailsViewModel = null;
+
+        var result = await NavigationService.GetNodeAsync(
+            new NodeId(nodeId),
+            readContext,
+            new RoleId(roleId),
+            CancellationToken.None);
+
+        _isLoadingNodeDetails = false;
+
+        if (!result.IsSuccess)
+        {
+            var errorCode = result.Error!.Code;
+            if (string.Equals(errorCode, "NodeNotFound", StringComparison.Ordinal))
+                _nodeDetailsNotFound = true;
+            else
+                _nodeDetailsErrorMessage = result.Error.Message;
+            return;
+        }
+
+        _nodeDetailsViewModel = KnowledgeNavigationMapper.ToNodeDetailsViewModel(
+            result.Value,
+            allDependencies: null,
+            changeVersion: WorkspaceState.CurrentChangeVersion);
+    }
+
+    private void ClearNodeDetails()
+    {
+        _nodeDetailsViewModel = null;
+        _isLoadingNodeDetails = false;
+        _nodeDetailsErrorMessage = null;
+        _nodeDetailsNotFound = false;
     }
 
     private void UpdateUrlWithRole(Uri currentUri, string roleId)

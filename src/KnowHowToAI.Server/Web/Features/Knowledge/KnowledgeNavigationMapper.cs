@@ -1,5 +1,7 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge;
 
@@ -10,12 +12,17 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// </summary>
 public static class KnowledgeNavigationMapper
 {
-    public static NodeDetailsViewModel? ToNodeDetailsViewModel(NodeWithContent? nodeWithContent, long? changeVersion = null)
+    public static NodeDetailsViewModel? ToNodeDetailsViewModel(
+        NodeWithContent? nodeWithContent,
+        IReadOnlyList<ContentDependency>? allDependencies = null,
+        long? changeVersion = null)
     {
         if (nodeWithContent?.Node is null)
             return null;
 
         var node = nodeWithContent.Node;
+        var sourceRevisions = BuildSourceRevisions(nodeWithContent, allDependencies);
+
         return new NodeDetailsViewModel(
             node.NodeId.Value,
             node.ParentNodeId?.Value,
@@ -30,6 +37,7 @@ public static class KnowledgeNavigationMapper
             nodeWithContent.Content?.ContentRevisionId.Value,
             nodeWithContent.Content?.ContentMode.ToString(),
             nodeWithContent.Content?.ContentMd,
+            sourceRevisions,
             changeVersion);
     }
 
@@ -58,14 +66,17 @@ public static class KnowledgeNavigationMapper
             page.NextCursor);
     }
 
-    public static Result<NodeDetailsViewModel> ToNodeDetailsResult(Result<NodeWithContent> result, long? changeVersion = null)
+    public static Result<NodeDetailsViewModel> ToNodeDetailsResult(
+        Result<NodeWithContent> result,
+        IReadOnlyList<ContentDependency>? allDependencies = null,
+        long? changeVersion = null)
     {
         ArgumentNullException.ThrowIfNull(result);
         if (!result.IsSuccess)
             return Result<NodeDetailsViewModel>.Failure(result.Error!, result.Warnings);
 
         return Result<NodeDetailsViewModel>.Success(
-            ToNodeDetailsViewModel(result.Value, changeVersion),
+            ToNodeDetailsViewModel(result.Value, allDependencies, changeVersion),
             result.Warnings);
     }
 
@@ -78,5 +89,31 @@ public static class KnowledgeNavigationMapper
         return Result<ChildrenPageViewModel>.Success(
             result.Value is null ? null : ToChildrenPageViewModel(result.Value),
             result.Warnings);
+    }
+
+    private static IReadOnlyList<SourceRevisionViewModel> BuildSourceRevisions(
+        NodeWithContent nodeWithContent,
+        IReadOnlyList<ContentDependency>? allDependencies)
+    {
+        if (allDependencies is null
+            || nodeWithContent.Content is null
+            || nodeWithContent.Content.ContentMode != ContentMode.Derived
+            || nodeWithContent.ResolvedRoleId is null)
+        {
+            return [];
+        }
+
+        var targetNodeId = nodeWithContent.Node!.NodeId;
+        var targetRoleId = nodeWithContent.ResolvedRoleId;
+
+        return allDependencies
+            .Where(d => d.TargetNodeId == targetNodeId && d.TargetRoleId == targetRoleId)
+            .Select(d => new SourceRevisionViewModel(
+                d.TargetNodeId.Value,
+                d.TargetRoleId.Value,
+                d.SourceNodeId.Value,
+                d.SourceRoleId.Value,
+                d.SourceContentRevisionId.Value))
+            .ToArray();
     }
 }

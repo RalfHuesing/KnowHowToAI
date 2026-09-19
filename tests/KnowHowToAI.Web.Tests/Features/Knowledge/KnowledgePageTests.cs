@@ -84,7 +84,7 @@ public sealed class KnowledgePageTests : BunitContext
             .Add(p => p.NodeId, childId.Value));
 
         Assert.NotNull(cut.Find("[data-testid='node-details-section']"));
-        var selectedIdElement = cut.Find("[data-testid='selected-node-id']");
+        var selectedIdElement = cut.Find("[data-testid='node-details-node-id']");
         Assert.Contains(childId.Value.ToString(), selectedIdElement.TextContent);
 
         // Breadcrumbs enthalten Root und Child

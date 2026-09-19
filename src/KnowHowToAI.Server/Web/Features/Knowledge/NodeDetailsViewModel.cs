@@ -17,6 +17,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// <param name="ContentRevisionId">Optionale ID der Inhaltsrevision.</param>
 /// <param name="ContentMode">Optionaler Inhaltsmodus (z. B. Independent, Derived).</param>
 /// <param name="ContentMd">Optionaler Markdown-Inhalt des Knotens.</param>
+/// <param name="SourceRevisions">Quellrevisionen bei Derived Content; leer bei Independent oder fehlendem Content.</param>
 /// <param name="ChangeVersion">Optionale Versionsnummer bei Working-Snapshot-Reads.</param>
 public sealed record NodeDetailsViewModel(
     Guid NodeId,
@@ -32,4 +33,5 @@ public sealed record NodeDetailsViewModel(
     Guid? ContentRevisionId,
     string? ContentMode,
     string? ContentMd,
+    IReadOnlyList<SourceRevisionViewModel> SourceRevisions,
     long? ChangeVersion = null);

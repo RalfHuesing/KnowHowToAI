@@ -176,6 +176,16 @@ beim Neuladen oder direktem Einstieg lädt der `KnowledgeTreePathLoader` den Pfa
 Zielknoten nach, sodass Zustand und Breadcrumbs aus der URL vollständig rekonstruierbar
 bleiben.
 
+Die Read-only Node-Detailansicht (`NodeDetails`) zeigt Titel, Beschreibung, Position,
+Rolle (inklusive Fallback-Kennzeichnung mit Pfeil und aufgelöster Rolle), Verfügbarkeit,
+Freshness-Status, Inhaltsmodus (`Independent` vs. `Derived`), optionale Revisions-ID
+sowie bei abgeleitetem Inhalt (`Derived`) die Quellrevisionen (`SourceRevisions`).
+Der Inhaltsbereich rendert Markdown sicher über `SafeMarkdownRenderer` (gemäß O-020:
+kein Raw-HTML-Rendering via `DisableHtml`, Neutralisierung von JavaScript-, Data- und
+File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine
+Bearbeitungscontrols). Bei fehlendem Inhalt wird ein expliziter Hinweis angezeigt;
+Lade- und Fehlerzustände nutzen `LoadingState`, `InlineAlert` bzw. `NotFoundState`.
+
 Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
 wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,
 `Fehler`) und rendern Inhalt und Farbe über die zentrale

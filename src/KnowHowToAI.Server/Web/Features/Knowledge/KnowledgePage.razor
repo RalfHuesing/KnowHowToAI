@@ -32,14 +32,13 @@
             <main class="knowledge-content-pane" aria-label="Knotendetails" data-testid="knowledge-content-pane">
                 @if (TreeState.SelectedNodeId is not null)
                 {
-                    <section class="node-details-placeholder" data-testid="node-details-section">
-                        <h2 class="node-title-placeholder" data-testid="selected-node-title">
-                            @(TreeState.FindNode(TreeState.SelectedNodeId.Value)?.Title ?? "Ausgewählter Knoten")
-                        </h2>
-                        <p class="node-id-placeholder" data-testid="selected-node-id">
-                            ID: @TreeState.SelectedNodeId
-                        </p>
-                    </section>
+                    <div data-testid="node-details-section">
+                        <NodeDetails
+                            ViewModel="@_nodeDetailsViewModel"
+                            IsLoading="@_isLoadingNodeDetails"
+                            ErrorMessage="@_nodeDetailsErrorMessage"
+                            NodeNotFound="@_nodeDetailsNotFound" />
+                    </div>
                 }
                 else
                 {
