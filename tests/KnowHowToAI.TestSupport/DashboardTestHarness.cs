@@ -54,6 +54,8 @@ public sealed class DashboardTestHarness
 
     public void AddOpenTransaction(KnowledgeTransaction tx) => _dashboardRepo.AddOpenTransaction(tx);
 
+    public void SetOpenTransactionsFailure(Exception? exception) => _dashboardRepo.SetListOpenFailure(exception);
+
     public void SetTransactionValidationData(TransactionId txId, WorkingSnapshotValidationData data) =>
         _validationDataRepo.SetValidationData(txId, data);
 
@@ -73,6 +75,12 @@ public sealed class DashboardTestHarness
     {
         Store.Contents.RemoveAll(c => c.SnapshotId == snapshotId);
         Store.Contents.AddRange(contents);
+    }
+
+    public void SetSnapshotDependencies(SnapshotId snapshotId, IReadOnlyList<ContentDependency> dependencies)
+    {
+        Store.Dependencies.RemoveAll(dependency => dependency.SnapshotId == snapshotId);
+        Store.Dependencies.AddRange(dependencies);
     }
 
     public DashboardService CreateService(ValidationPolicy? validationPolicy = null)

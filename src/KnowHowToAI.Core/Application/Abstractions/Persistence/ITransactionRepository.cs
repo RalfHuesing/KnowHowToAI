@@ -26,6 +26,16 @@ public interface ITransactionRepository
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<KnowledgeTransaction>>([]);
 
+    /// <summary>Liefert höchstens <paramref name="limit"/> offene Transactions in stabiler Reihenfolge.</summary>
+    async Task<IReadOnlyList<KnowledgeTransaction>> ListOpenAsync(
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(limit);
+        var transactions = await ListOpenAsync(cancellationToken).ConfigureAwait(false);
+        return transactions.Take(limit).ToArray();
+    }
+
     /// <summary>
     /// Prüft und aktiviert einen Working Snapshot innerhalb einer kurzen atomaren
     /// SQL-Operation. Der Rückgabewert enthält auch bei fachlicher Ablehnung den

@@ -13,4 +13,4 @@ public sealed record OpenTransactionItemViewModel(
     DateTimeOffset CreatedAtUtc,
     long ChangeVersion,
     bool IsOlderThan7Days,
-    IReadOnlyList<string> ValidationErrors);
+    IReadOnlyList<DashboardDiagnosticViewModel> ValidationErrors);

@@ -12,6 +12,7 @@ using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Features.Dashboard;
 using KnowHowToAI.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace KnowHowToAI.Web.Tests.Features.Dashboard;
 
@@ -24,6 +25,7 @@ public sealed class DashboardPageTests : Bunit.BunitContext
     {
         Services.AddSingleton(new PageRegionState());
         Services.AddSingleton<IClock>(new FixedClock(Now));
+        Services.AddLogging();
     }
 
     [Fact]
@@ -166,5 +168,23 @@ public sealed class DashboardPageTests : Bunit.BunitContext
         Assert.NotNull(cut.Find("[data-testid=empty-transactions]"));
         Assert.NotNull(cut.Find("[data-testid=quality-clean]"));
         Assert.NotNull(cut.Find("[data-testid=empty-recent-changes]"));
+    }
+
+    [Fact]
+    public void KeepsOtherAreasUsable_WhenTransactionAreaFails()
+    {
+        var harness = new DashboardTestHarness(now: Now);
+        harness.SetOpenTransactionsFailure(new InvalidOperationException("SQL details must stay private"));
+        Services.AddSingleton(harness.CreateService());
+
+        var cut = Render<DashboardPage>();
+
+        Assert.NotNull(cut.Find("[data-testid=snapshot-summary]"));
+        var error = cut.Find("[data-testid=dashboard-area-error]");
+        Assert.Contains("Offene Transactions", error.TextContent, StringComparison.Ordinal);
+        Assert.Contains("DashboardTechnicalError", error.TextContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("SQL details", error.TextContent, StringComparison.Ordinal);
+        Assert.NotNull(cut.Find("[data-testid=quality-summary]"));
+        Assert.NotNull(cut.Find("[data-testid=recent-changes]"));
     }
 }

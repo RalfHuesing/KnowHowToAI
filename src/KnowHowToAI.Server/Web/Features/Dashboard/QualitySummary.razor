@@ -17,7 +17,7 @@
                         @foreach (var stale in Quality.StaleContents)
                         {
                             <li>
-                                <a href="/knowledge/@stale.NodeId" class="dashboard-link">Node @stale.NodeId</a>
+                                <a href="/knowledge/@stale.NodeId?roleId=@Uri.EscapeDataString(stale.RoleId)" class="dashboard-link">Node @stale.NodeId</a>
                                 <span class="badge badge-warning">Rolle: @stale.RoleId</span>
                             </li>
                         }
@@ -34,9 +34,20 @@
                 @if (Quality.WarningCount > 0)
                 {
                     <ul class="quality-list" data-testid="warnings-list">
-                        @foreach (var warning in Quality.WarningMessages)
+                        @foreach (var warning in Quality.Warnings)
                         {
-                            <li class="warning-item">@warning</li>
+                            <li class="warning-item"><code>@warning.Code</code>: @warning.Message
+                                @if (warning.Details.Count > 0)
+                                {
+                                    <dl class="diagnostic-details">
+                                        @foreach (var detail in warning.Details)
+                                        {
+                                            <dt>@detail.Key</dt>
+                                            <dd>@detail.Value</dd>
+                                        }
+                                    </dl>
+                                }
+                            </li>
                         }
                     </ul>
                 }

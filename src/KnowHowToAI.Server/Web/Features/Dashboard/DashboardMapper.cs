@@ -46,7 +46,7 @@ public static class DashboardMapper
 
         var tx = summary.Transaction;
         var isOlderThan7Days = tx.CreatedAtUtc <= nowUtc.AddDays(-7);
-        var errors = summary.ValidationErrors.Select(e => e.Message).ToArray();
+        var errors = summary.ValidationErrors.Select(ToDiagnosticViewModel).ToArray();
 
         return new OpenTransactionItemViewModel(
             tx.TransactionId.Value,
@@ -69,15 +69,15 @@ public static class DashboardMapper
             .Select(s => new StaleContentItemViewModel(s.NodeId.Value, s.RoleId.Value, s.ContentRevisionId.Value))
             .ToArray();
 
-        var warningMessages = quality.Warnings
-            .Select(w => w.Message)
+        var warnings = quality.Warnings
+            .Select(ToDiagnosticViewModel)
             .ToArray();
 
         return new DashboardQualityViewModel(
             staleContents.Length,
             staleContents,
-            warningMessages.Length,
-            warningMessages,
+            warnings.Length,
+            warnings,
             quality.RefactoringCandidates.Count);
     }
 
@@ -89,6 +89,12 @@ public static class DashboardMapper
             change.NodeId.Value,
             change.Title,
             change.Kind.ToString());
+    }
+
+    private static DashboardDiagnosticViewModel ToDiagnosticViewModel(DomainIssue issue)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+        return new DashboardDiagnosticViewModel(issue.Code, issue.Message, issue.Details);
     }
 
     public static Result<DashboardViewModel> ToDashboardResult(

@@ -58,11 +58,13 @@ public sealed class DashboardMapperTests
         Assert.Equal(txId.Value, txVm.TransactionId);
         Assert.False(txVm.IsOlderThan7Days);
         Assert.Single(txVm.ValidationErrors);
-        Assert.Equal("Harter Fehler", txVm.ValidationErrors[0]);
+        Assert.Equal("TestError", txVm.ValidationErrors[0].Code);
+        Assert.Equal("Harter Fehler", txVm.ValidationErrors[0].Message);
 
         Assert.Equal(1, vm.QualitySummary.StaleContentCount);
         Assert.Equal(1, vm.QualitySummary.WarningCount);
-        Assert.Equal("Qualitätswarnung", vm.QualitySummary.WarningMessages[0]);
+        Assert.Equal("WarnungCode", vm.QualitySummary.Warnings[0].Code);
+        Assert.Equal("Qualitätswarnung", vm.QualitySummary.Warnings[0].Message);
 
         Assert.Single(vm.RecentChanges);
         Assert.Equal("Test Node", vm.RecentChanges[0].Title);

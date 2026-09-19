@@ -17,5 +17,7 @@ public interface IDashboardRepository
     /// <summary>
     /// Liefert alle aktuell offenen Transactions (State = Open), sortiert nach Erstellungszeit absteigend.
     /// </summary>
-    Task<IReadOnlyList<KnowledgeTransaction>> ListOpenTransactionsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<KnowledgeTransaction>> ListOpenTransactionsAsync(
+        int limit,
+        CancellationToken cancellationToken = default);
 }

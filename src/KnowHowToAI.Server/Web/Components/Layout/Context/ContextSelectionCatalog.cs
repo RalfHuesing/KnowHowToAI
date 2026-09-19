@@ -11,6 +11,8 @@ namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 /// </summary>
 public sealed class ContextSelectionCatalog : IContextSelectionCatalog
 {
+    private const int ContextTransactionLimit = 100;
+
     private readonly ReleaseService _releaseService;
     private readonly IDashboardRepository _dashboardRepository;
     private readonly ILogger<ContextSelectionCatalog> _logger;
@@ -57,7 +59,7 @@ public sealed class ContextSelectionCatalog : IContextSelectionCatalog
     {
         try
         {
-            var transactions = await _dashboardRepository.ListOpenTransactionsAsync(cancellationToken);
+            var transactions = await _dashboardRepository.ListOpenTransactionsAsync(ContextTransactionLimit, cancellationToken);
             return transactions.Select(transaction => new ContextSelectionTransactionOptionViewModel(
                 transaction.TransactionId.Value.ToString("D"),
                 $"{transaction.Purpose} ({transaction.Actor})")).ToArray();

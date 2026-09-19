@@ -1,0 +1,6 @@
+<section class="dashboard-card error-state" data-testid="dashboard-area-error" role="alert">
+    <h2>@Area</h2>
+    <p>Dieser Bereich konnte momentan nicht geladen werden.</p>
+    <p class="technical-diagnostic">Technische Referenz: <code>@Error.Code</code> / <code>@Error.CorrelationId</code></p>
+    <button type="button" class="dashboard-link" @onclick="Retry">Erneut versuchen</button>
+</section>

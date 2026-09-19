@@ -252,6 +252,18 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         return rows.Select(SqlRowMapper.ToTransaction).ToArray();
     }
 
+    public async Task<IReadOnlyList<KnowledgeTransaction>> ListOpenAsync(
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(limit);
+        await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        var sql = ListOpenTransactionsSql.Replace("SELECT", "SELECT TOP (@Limit)", StringComparison.Ordinal);
+        var rows = await connection.QueryAsync<TransactionRow>(
+            CreateCommand(sql, new { Limit = limit }, cancellationToken)).ConfigureAwait(false);
+        return rows.Select(SqlRowMapper.ToTransaction).ToArray();
+    }
+
     public async Task<CommitTransactionResult> CommitAsync(
         CommitTransactionRequest request,
         CancellationToken cancellationToken = default)

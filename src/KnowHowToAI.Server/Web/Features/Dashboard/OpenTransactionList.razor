@@ -36,7 +36,18 @@
                             <ul>
                                 @foreach (var error in tx.ValidationErrors)
                                 {
-                                    <li>@error</li>
+                                    <li><code>@error.Code</code>: @error.Message
+                                        @if (error.Details.Count > 0)
+                                        {
+                                            <dl class="diagnostic-details">
+                                                @foreach (var detail in error.Details)
+                                                {
+                                                    <dt>@detail.Key</dt>
+                                                    <dd>@detail.Value</dd>
+                                                }
+                                            </dl>
+                                        }
+                                    </li>
                                 }
                             </ul>
                         </div>

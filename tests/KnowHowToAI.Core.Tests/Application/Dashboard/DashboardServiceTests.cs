@@ -147,6 +147,40 @@ public sealed class DashboardServiceTests
     }
 
     [Fact]
+    public async Task GetDashboardAsync_WhenOnlyDependencyChanges_ReportsBothReferencedNodesOnce()
+    {
+        var harness = new DashboardTestHarness();
+        harness.SetCurrentSnapshot(new Snapshot(CurrentSnapshotId, CommittedBaseSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+
+        var sourceNodeId = new NodeId(Guid.NewGuid());
+        var targetNodeId = new NodeId(Guid.NewGuid());
+        var sourceRoleId = new RoleId("Source");
+        var targetRoleId = new RoleId("Target");
+        harness.SetSnapshotNodes(CurrentSnapshotId, [
+            new Node(CurrentSnapshotId, sourceNodeId, null, "Quelle", null, 1, false),
+            new Node(CurrentSnapshotId, targetNodeId, null, "Ziel", null, 2, false)
+        ]);
+        harness.SetSnapshotNodes(CommittedBaseSnapshotId, [
+            new Node(CommittedBaseSnapshotId, sourceNodeId, null, "Quelle", null, 1, false),
+            new Node(CommittedBaseSnapshotId, targetNodeId, null, "Ziel", null, 2, false)
+        ]);
+        harness.SetSnapshotDependencies(CurrentSnapshotId, [new ContentDependency(
+            CurrentSnapshotId,
+            targetNodeId,
+            targetRoleId,
+            sourceNodeId,
+            sourceRoleId,
+            new ContentRevisionId(Guid.NewGuid()))]);
+
+        var result = await harness.CreateService().GetDashboardAsync(new DashboardQuery());
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            new[] { sourceNodeId, targetNodeId }.OrderBy(id => id.Value),
+            result.Value!.RecentNodeChanges.Select(change => change.NodeId).OrderBy(id => id.Value));
+    }
+
+    [Fact]
     public async Task GetDashboardAsync_EvaluatesCurrentQuality_StaleContentsAndWarnings()
     {
         var harness = new DashboardTestHarness();

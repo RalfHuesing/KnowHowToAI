@@ -91,7 +91,7 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 | `Application.Retrieval.Export` | deterministischer Markdown-Export |
 | `Application.Retrieval.Search` | begrenzte Suche, Snippets, Paging |
 | `Application.History` | Snapshots, Diffs, Transaction Changes, Releases |
-| `Application.Dashboard` | transportneutrale Dashboardaggregation (Current Snapshot, Release, offene Transactions, Qualität, geänderte Nodes) |
+| `Application.Dashboard` | transportneutrale, bereichsweise ladbare Dashboard-Reads (Current Snapshot/Release, offene Transactions, Qualität und geänderte Nodes) |
 
 **`KnowHowToAI.Storage.SqlServer`**: `Connections` (Connection Factory),
 `Configuration` (validierte SQL-/Migrations-Policies),

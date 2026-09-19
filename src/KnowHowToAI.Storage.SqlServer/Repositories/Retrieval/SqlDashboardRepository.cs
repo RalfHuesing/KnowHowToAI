@@ -37,6 +37,8 @@ internal sealed class SqlDashboardRepository : SqlRepository, IDashboardReposito
         return row is null ? null : SqlRowMapper.ToRelease(row);
     }
 
-    public Task<IReadOnlyList<KnowledgeTransaction>> ListOpenTransactionsAsync(CancellationToken cancellationToken = default) =>
-        _transactionRepository.ListOpenAsync(cancellationToken);
+    public Task<IReadOnlyList<KnowledgeTransaction>> ListOpenTransactionsAsync(
+        int limit,
+        CancellationToken cancellationToken = default) =>
+        _transactionRepository.ListOpenAsync(limit, cancellationToken);
 }

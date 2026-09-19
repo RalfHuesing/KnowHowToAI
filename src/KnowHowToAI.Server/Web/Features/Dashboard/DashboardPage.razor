@@ -22,19 +22,44 @@
             Lade Wissensdashboard...
         </div>
     }
-    else if (_errorMessage is not null)
-    {
-        <div class="error-state" data-testid="dashboard-error" role="alert">
-            <p>@_errorMessage</p>
-        </div>
-    }
-    else if (_model is not null)
+    else
     {
         <div class="dashboard-grid">
-            <SnapshotSummary CurrentSnapshot="_model.CurrentSnapshot" LatestRelease="_model.LatestRelease" />
-            <OpenTransactionList Transactions="_model.OpenTransactions" />
-            <QualitySummary Quality="_model.QualitySummary" />
-            <RecentChanges Changes="_model.RecentChanges" HasPredecessor="_model.CurrentSnapshot.BaseSnapshotId.HasValue" />
+            @if (_snapshotError is not null)
+            {
+                <DashboardAreaFailure Area="Snapshot und Release" Error="_snapshotError" Retry="LoadSnapshotAsync" />
+            }
+            else if (_currentSnapshot is not null)
+            {
+                <SnapshotSummary CurrentSnapshot="_currentSnapshot" LatestRelease="_latestRelease" />
+            }
+
+            @if (_transactionsError is not null)
+            {
+                <DashboardAreaFailure Area="Offene Transactions" Error="_transactionsError" Retry="LoadTransactionsAsync" />
+            }
+            else if (_openTransactions is not null)
+            {
+                <OpenTransactionList Transactions="_openTransactions" />
+            }
+
+            @if (_qualityError is not null)
+            {
+                <DashboardAreaFailure Area="Qualitätsübersicht" Error="_qualityError" Retry="LoadQualityAsync" />
+            }
+            else if (_qualitySummary is not null)
+            {
+                <QualitySummary Quality="_qualitySummary" />
+            }
+
+            @if (_changesError is not null)
+            {
+                <DashboardAreaFailure Area="Zuletzt geänderte Nodes" Error="_changesError" Retry="LoadChangesAsync" />
+            }
+            else if (_recentChanges is not null)
+            {
+                <RecentChanges Changes="_recentChanges" HasPredecessor="_currentSnapshot?.BaseSnapshotId.HasValue == true" />
+            }
         </div>
     }
 </div>

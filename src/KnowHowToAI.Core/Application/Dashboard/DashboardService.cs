@@ -14,6 +14,9 @@ namespace KnowHowToAI.Core.Application.Dashboard;
 /// </summary>
 public sealed class DashboardService
 {
+    private const int RecentChangesPageSize = 100;
+    private const int OpenTransactionsPageSize = 100;
+
     private readonly ISnapshotRepository _snapshotRepository;
     private readonly IDashboardRepository _dashboardRepository;
     private readonly IWorkingSnapshotValidationDataRepository _validationDataRepository;
@@ -49,10 +52,37 @@ public sealed class DashboardService
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var currentSnapshot = await _snapshotRepository.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
-        var latestRelease = await _dashboardRepository.GetLatestReleaseAsync(cancellationToken).ConfigureAwait(false);
-        var openTransactions = await _dashboardRepository.ListOpenTransactionsAsync(cancellationToken).ConfigureAwait(false);
+        var snapshotSummary = await GetSnapshotSummaryAsync(cancellationToken).ConfigureAwait(false);
+        var openTransactionSummaries = await GetOpenTransactionsAsync(cancellationToken).ConfigureAwait(false);
+        var currentQuality = await GetCurrentQualityAsync(snapshotSummary.CurrentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
+        var recentNodeChanges = await GetRecentNodeChangesAsync(snapshotSummary.CurrentSnapshot, cancellationToken).ConfigureAwait(false);
 
+        var result = new DashboardResult(
+            snapshotSummary.CurrentSnapshot,
+            snapshotSummary.LatestRelease,
+            openTransactionSummaries,
+            currentQuality,
+            recentNodeChanges);
+
+        return Result<DashboardResult>.Success(result);
+    }
+
+    /// <summary>Lädt ausschließlich die Snapshot- und Releasekarte des Dashboards.</summary>
+    public async Task<DashboardSnapshotSummary> GetSnapshotSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        var currentSnapshot = await GetCurrentSnapshotAsync(cancellationToken).ConfigureAwait(false);
+        var latestRelease = await _dashboardRepository.GetLatestReleaseAsync(cancellationToken).ConfigureAwait(false);
+        return new DashboardSnapshotSummary(currentSnapshot, latestRelease);
+    }
+
+    /// <summary>Lädt ausschließlich den Current Snapshot für unabhängige Dashboardbereiche.</summary>
+    public Task<Domain.Versioning.Snapshot> GetCurrentSnapshotAsync(CancellationToken cancellationToken = default) =>
+        _snapshotRepository.GetCurrentAsync(cancellationToken);
+
+    /// <summary>Lädt ausschließlich die offenen Transactions inklusive ihrer fachlichen Fehler.</summary>
+    public async Task<IReadOnlyList<OpenTransactionSummary>> GetOpenTransactionsAsync(CancellationToken cancellationToken = default)
+    {
+        var openTransactions = await _dashboardRepository.ListOpenTransactionsAsync(OpenTransactionsPageSize, cancellationToken).ConfigureAwait(false);
         var openTransactionSummaries = new List<OpenTransactionSummary>(openTransactions.Count);
         foreach (var tx in openTransactions)
         {
@@ -60,18 +90,20 @@ public sealed class DashboardService
             openTransactionSummaries.Add(new OpenTransactionSummary(tx, errors));
         }
 
-        var currentQuality = await EvaluateCurrentQualityAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
-        var recentNodeChanges = await ComputeRecentNodeChangesAsync(currentSnapshot, cancellationToken).ConfigureAwait(false);
-
-        var result = new DashboardResult(
-            currentSnapshot,
-            latestRelease,
-            openTransactionSummaries,
-            currentQuality,
-            recentNodeChanges);
-
-        return Result<DashboardResult>.Success(result);
+        return openTransactionSummaries;
     }
+
+    /// <summary>Lädt ausschließlich den Qualitätsbereich des aktuellen Snapshots.</summary>
+    public Task<CurrentQualitySummary> GetCurrentQualityAsync(
+        SnapshotId snapshotId,
+        CancellationToken cancellationToken = default) =>
+        EvaluateCurrentQualityAsync(snapshotId, cancellationToken);
+
+    /// <summary>Lädt ausschließlich die jüngsten nodebezogenen Änderungen.</summary>
+    public Task<IReadOnlyList<RecentNodeChange>> GetRecentNodeChangesAsync(
+        Domain.Versioning.Snapshot currentSnapshot,
+        CancellationToken cancellationToken = default) =>
+        ComputeRecentNodeChangesAsync(currentSnapshot, cancellationToken);
 
     private async Task<IReadOnlyList<DomainError>> ValidateOpenTransactionErrorsAsync(
         TransactionId transactionId,
@@ -149,31 +181,69 @@ public sealed class DashboardService
             currentSnapshot.SnapshotId,
             baseData,
             currentData,
-            Limit: int.MaxValue,
+            Limit: RecentChangesPageSize,
             Offset: 0,
             ChangeVersion: null));
 
         var changes = new Dictionary<NodeId, RecentNodeChange>();
 
+        AddNodeChanges(changes, diff);
+        AddContentChanges(changes, diff, baseData, currentData);
+        AddDependencyChanges(changes, diff, baseData, currentData);
+
+        return changes.Values.OrderBy(c => c.Title, StringComparer.Ordinal).ToArray();
+    }
+
+    private static void AddNodeChanges(Dictionary<NodeId, RecentNodeChange> changes, SnapshotDiff diff)
+    {
         foreach (var nodeEntry in diff.Nodes)
         {
             var side = nodeEntry.After ?? nodeEntry.Before!;
             changes[side.NodeId] = new RecentNodeChange(side.NodeId, side.Title, nodeEntry.Kind);
         }
+    }
 
+    private static void AddContentChanges(
+        Dictionary<NodeId, RecentNodeChange> changes,
+        SnapshotDiff diff,
+        SnapshotData baseData,
+        SnapshotData currentData)
+    {
         foreach (var contentEntry in diff.Contents)
         {
             var side = contentEntry.After ?? contentEntry.Before!;
-            if (!changes.ContainsKey(side.NodeId))
-            {
-                var title = currentData.Nodes.FirstOrDefault(n => n.NodeId == side.NodeId)?.Title
-                    ?? baseData.Nodes.FirstOrDefault(n => n.NodeId == side.NodeId)?.Title
-                    ?? side.NodeId.ToString();
+            AddChangedNode(changes, side.NodeId, baseData, currentData);
+        }
+    }
 
-                changes[side.NodeId] = new RecentNodeChange(side.NodeId, title, DiffChangeKind.Modified);
-            }
+    private static void AddDependencyChanges(
+        Dictionary<NodeId, RecentNodeChange> changes,
+        SnapshotDiff diff,
+        SnapshotData baseData,
+        SnapshotData currentData)
+    {
+        foreach (var dependencyEntry in diff.Dependencies)
+        {
+            var dependency = dependencyEntry.After ?? dependencyEntry.Before!;
+            AddChangedNode(changes, dependency.SourceNodeId, baseData, currentData);
+            AddChangedNode(changes, dependency.TargetNodeId, baseData, currentData);
+        }
+    }
+
+    private static void AddChangedNode(
+        Dictionary<NodeId, RecentNodeChange> changes,
+        NodeId nodeId,
+        SnapshotData baseData,
+        SnapshotData currentData)
+    {
+        if (changes.ContainsKey(nodeId))
+        {
+            return;
         }
 
-        return changes.Values.OrderBy(c => c.Title, StringComparer.Ordinal).ToArray();
+        var title = currentData.Nodes.FirstOrDefault(node => node.NodeId == nodeId)?.Title
+            ?? baseData.Nodes.FirstOrDefault(node => node.NodeId == nodeId)?.Title
+            ?? nodeId.ToString();
+        changes[nodeId] = new RecentNodeChange(nodeId, title, DiffChangeKind.Modified);
     }
 }
