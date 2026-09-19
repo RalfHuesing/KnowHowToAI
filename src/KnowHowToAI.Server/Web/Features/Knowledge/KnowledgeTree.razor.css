@@ -115,6 +115,62 @@
     white-space: nowrap;
 }
 
+.tree-move-instructions {
+    margin: 0;
+    padding: var(--ktai-space-2);
+    background: var(--ktai-color-info-background);
+    border: 1px solid var(--ktai-color-info);
+    border-radius: var(--ktai-radius-small);
+}
+
+.tree-move-source-btn,
+.tree-move-target {
+    border: 1px solid var(--ktai-color-primary);
+    border-radius: var(--ktai-radius-small);
+    background: var(--ktai-color-surface);
+    color: var(--ktai-color-primary);
+    cursor: pointer;
+    font: inherit;
+}
+
+.tree-move-source-btn {
+    padding: 2px var(--ktai-space-1);
+    font-size: 0.75rem;
+}
+
+.tree-move-source-btn.is-active {
+    background: var(--ktai-color-primary);
+    color: white;
+}
+
+.tree-move-targets {
+    display: flex;
+    gap: var(--ktai-space-1);
+    margin: 0 0 var(--ktai-space-1) calc(20px + var(--ktai-space-2));
+    padding: var(--ktai-space-1);
+    border-left: 3px solid var(--ktai-color-primary);
+}
+
+.tree-move-targets.is-hidden {
+    display: none;
+}
+
+.tree-move-target {
+    padding: 2px var(--ktai-space-2);
+    font-size: 0.8125rem;
+}
+
+.tree-move-source-btn:hover,
+.tree-move-target:hover {
+    background: var(--ktai-color-info-background);
+}
+
+.tree-move-source-btn:focus-visible,
+.tree-move-target:focus-visible {
+    outline: 3px solid var(--ktai-color-primary);
+    outline-offset: 2px;
+}
+
 .tree-node-badges {
     display: inline-flex;
     align-items: center;

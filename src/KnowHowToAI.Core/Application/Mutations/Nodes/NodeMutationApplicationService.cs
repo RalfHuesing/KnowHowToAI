@@ -60,29 +60,28 @@ public sealed class NodeMutationApplicationService
 
     public Task<Result<NodeMutationResult>> MoveAsync(
         TransactionId transactionId,
-        NodeId nodeId,
-        NodeId? parentNodeId,
-        int sortOrder,
+        MoveNodeRequest request,
         CancellationToken cancellationToken = default) =>
         ExecuteHierarchyMutationAsync(
             transactionId,
             state => _mutationService.Move(
                 state.Nodes,
-                new MoveNodeCommand(nodeId, parentNodeId, sortOrder)),
-            expectedChangeVersion: null,
+                new MoveNodeCommand(request.NodeId, request.ParentNodeId, request.SortOrder)),
+            request.ExpectedChangeVersion,
             cancellationToken: cancellationToken);
 
     public Task<Result<NodeMutationResult>> ReorderAsync(
         TransactionId transactionId,
         NodeId nodeId,
         int sortOrder,
+        long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default) =>
         ExecuteHierarchyMutationAsync(
             transactionId,
             state => _mutationService.Reorder(
                 state.Nodes,
                 new ReorderNodeCommand(nodeId, sortOrder)),
-            expectedChangeVersion: null,
+            expectedChangeVersion,
             cancellationToken: cancellationToken);
 
     public async Task<Result<NodeMutationResult>> DeleteAsync(

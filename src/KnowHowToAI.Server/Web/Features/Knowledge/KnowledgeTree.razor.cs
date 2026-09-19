@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using KnowHowToAI.Core.Application.Mutations.Nodes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge;
 
@@ -21,14 +23,34 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
     [Inject]
     private ILogger<KnowledgeTree>? Logger { get; set; }
 
+    [Inject]
+    private IServiceProvider ServiceProvider { get; set; } = default!;
+
     [Parameter]
     public EventCallback<Guid> OnNodeSelected { get; set; }
+
+    [Parameter]
+    public bool CanMove { get; set; }
+
+    [Parameter]
+    public EventCallback<NodeMutationResult> OnNodeMutationSucceeded { get; set; }
+
+    [Parameter]
+    public string? MoveTransactionId { get; set; }
+
+    [Parameter]
+    public string? MoveSnapshotId { get; set; }
+
+    [Parameter]
+    public string? MoveReleaseId { get; set; }
 
     private readonly Dictionary<Guid, ElementReference> _nodeElements = new();
     private ElementReference _treeElement;
     private Task<IJSObjectReference>? _moduleTask;
     private Guid? _focusedNodeId;
     private Guid? _lastSelectedNodeId;
+    private Guid? _moveSourceNodeId;
+    private string? _moveErrorMessage;
     private bool _isDisposed;
 
     private Guid? EffectiveFocusedNodeId
@@ -89,6 +111,52 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
         _focusedNodeId = nodeId;
         await TreeWorkspace.SelectNodeAsync(nodeId);
         await OnNodeSelected.InvokeAsync(nodeId);
+    }
+
+    private string MoveSourceTitle => _moveSourceNodeId is { } nodeId
+        ? GetVisibleNodes().FirstOrDefault(node => node.NodeId == nodeId)?.Title ?? "der ausgewählte Knoten"
+        : string.Empty;
+
+    private Task BeginMoveAsync(Guid nodeId)
+    {
+        _moveSourceNodeId = _moveSourceNodeId == nodeId ? null : nodeId;
+        _moveErrorMessage = null;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void EndDrag()
+    {
+        // Ein Drop ruft den Vertrag sofort auf; nach einem abgebrochenen Drag bleibt
+        // die explizite Auswahl als zugängliche Tastaturalternative erhalten.
+    }
+
+    private async Task RequestMoveAsync(KnowledgeTreeNodeViewModel target, TreeMovePosition position)
+    {
+        if (_moveSourceNodeId is not { } sourceNodeId || !CanMove)
+            return;
+
+        _moveErrorMessage = null;
+        var treeMoveCoordinator = ServiceProvider.GetService<TreeMoveCoordinator>();
+        if (treeMoveCoordinator is null)
+        {
+            _moveErrorMessage = "Die Verschiebeaktion ist in diesem Kontext nicht verfügbar.";
+            return;
+        }
+
+        var outcome = await treeMoveCoordinator.MoveAsync(new TreeMoveRequest(
+            sourceNodeId,
+            target.NodeId,
+            target.ParentNodeId,
+            target.Summary.SortOrder,
+            position),
+            MoveTransactionId,
+            MoveSnapshotId,
+            MoveReleaseId);
+        _moveSourceNodeId = null;
+        if (outcome.IsSuccess)
+            await OnNodeMutationSucceeded.InvokeAsync(outcome.Mutation!);
+        else
+            _moveErrorMessage = outcome.ErrorMessage;
     }
 
     private void HandleFocus(Guid nodeId)

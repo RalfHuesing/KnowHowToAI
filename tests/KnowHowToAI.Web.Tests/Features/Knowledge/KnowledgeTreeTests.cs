@@ -294,4 +294,61 @@ public sealed class KnowledgeTreeTests : BunitContext
         Assert.Equal(100, treeState.RootNode!.Children.Count);
         Assert.True(treeState.RootNode.HasNextPage);
     }
+
+    [Theory]
+    [InlineData(TreeMovePosition.Parent)]
+    [InlineData(TreeMovePosition.Before)]
+    [InlineData(TreeMovePosition.After)]
+    public async Task KnowledgeTree_MoveActionButtons_EmitTheSamePositionedMoveContract(TreeMovePosition position)
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        var sourceId = new NodeId(Guid.NewGuid());
+        var targetId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+        harness.AddNode(new Node(DefaultSnapshotId, sourceId, rootId, "Quelle", null, 0, false));
+        harness.AddNode(new Node(DefaultSnapshotId, targetId, rootId, "Ziel", null, 1, false));
+
+        var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
+        Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.ExpandNodeAsync(rootId.Value);
+
+        var cut = Render<KnowledgeTree>(parameters => parameters
+            .Add(component => component.CanMove, true));
+
+        await cut.InvokeAsync(() => cut.Find($"[data-testid='tree-move-source-{sourceId.Value}']").Click());
+
+        Assert.NotNull(cut.Find($"[data-testid='tree-move-{position.ToString().ToLowerInvariant()}-{targetId.Value}']"));
+        Assert.NotNull(cut.Find("[data-testid='tree-move-instructions']"));
+    }
+
+    [Fact]
+    public async Task KnowledgeTree_ServerRejectedMoveLeavesTheRenderedTreeUntouched()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        var sourceId = new NodeId(Guid.NewGuid());
+        var targetId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+        harness.AddNode(new Node(DefaultSnapshotId, sourceId, rootId, "Quelle", null, 0, false));
+        harness.AddNode(new Node(DefaultSnapshotId, targetId, rootId, "Ziel", null, 1, false));
+
+        var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
+        Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.ExpandNodeAsync(rootId.Value);
+
+        var cut = Render<KnowledgeTree>(parameters => parameters.Add(component => component.CanMove, true));
+
+        await cut.InvokeAsync(() => cut.Find($"[data-testid='tree-move-source-{sourceId.Value}']").Click());
+        await cut.InvokeAsync(() => cut.Find($"[data-testid='tree-move-parent-{targetId.Value}']").Click());
+
+        Assert.NotNull(cut.Find($"[data-testid='treeitem-{sourceId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='treeitem-{targetId.Value}']"));
+        Assert.NotNull(cut.Find("[data-testid='tree-move-error']"));
+        Assert.Equal(rootId.Value.ToString(), treeState.FindNode(sourceId.Value)!.ParentNodeId!.Value.ToString());
+    }
 }

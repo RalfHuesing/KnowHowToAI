@@ -16,6 +16,11 @@
         </div>
     }
 
+    @if (!string.IsNullOrEmpty(_moveErrorMessage))
+    {
+        <div class="tree-error" role="alert" data-testid="tree-move-error">@_moveErrorMessage</div>
+    }
+
     @if (TreeWorkspace.IsLoading)
     {
         <div class="tree-loading" role="status" data-testid="tree-loading">
@@ -37,6 +42,12 @@
              data-testid="knowledge-tree"
              @ref="_treeElement"
              @onkeydown="HandleKeyDownAsync">
+            @if (CanMove && _moveSourceNodeId is not null)
+            {
+                <p class="tree-move-instructions" role="status" data-testid="tree-move-instructions">
+                    Wählen Sie für „@MoveSourceTitle“ eine Zielposition: unterordnen, davor oder danach.
+                </p>
+            }
             @RenderNode(TreeWorkspace.VisualRootNode)
         </div>
     }
@@ -60,8 +71,11 @@
                  aria-describedby="@statusDescriptionId"
                  data-testid="@($"treeitem-{node.NodeId}")"
                  data-nodeid="@node.NodeId"
+                 draggable="@CanMove"
                  @onclick="() => HandleSelectNodeAsync(node.NodeId)"
                  @onfocus="() => HandleFocus(node.NodeId)"
+                 @ondragstart="() => BeginMoveAsync(node.NodeId)"
+                 @ondragend="EndDrag"
                  @ref="_nodeElements[node.NodeId]">
                 
                 @if (node.HasChildren)
@@ -82,6 +96,18 @@
                 }
 
                 <span class="tree-node-title" data-testid="@($"tree-title-{node.NodeId}")">@node.Title</span>
+
+                @if (CanMove)
+                {
+                    <button type="button"
+                            class="tree-move-source-btn @(_moveSourceNodeId == node.NodeId ? "is-active" : "")"
+                            aria-pressed="@(_moveSourceNodeId == node.NodeId ? "true" : "false")"
+                            data-testid="@($"tree-move-source-{node.NodeId}")"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => BeginMoveAsync(node.NodeId)">
+                        @(_moveSourceNodeId == node.NodeId ? "Verschieben abbrechen" : "Verschieben")
+                    </button>
+                }
 
                 <span id="@statusDescriptionId" hidden>
                     Status: @node.Summary.Availability; Aktualität: @node.Summary.Freshness@(node.Summary.Findings is { Count: > 0 } ? "; Warnung vorhanden" : string.Empty)
@@ -134,6 +160,36 @@
                     <span class="tree-node-error" role="alert" data-testid="@($"tree-node-error-{node.NodeId}")">@node.Error</span>
                 }
             </div>
+
+            @if (CanMove)
+            {
+                <div class="tree-move-targets @(_moveSourceNodeId is null ? "is-hidden" : "")" aria-label="Zielpositionen für @node.Title" data-testid="@($"tree-move-targets-{node.NodeId}")">
+                    <button type="button"
+                            class="tree-move-target"
+                            data-testid="@($"tree-move-parent-{node.NodeId}")"
+                            @ondragover:preventDefault
+                            @ondrop="() => RequestMoveAsync(node, TreeMovePosition.Parent)"
+                            @onclick="() => RequestMoveAsync(node, TreeMovePosition.Parent)">
+                        Unter „@node.Title"
+                    </button>
+                    <button type="button"
+                            class="tree-move-target"
+                            data-testid="@($"tree-move-before-{node.NodeId}")"
+                            @ondragover:preventDefault
+                            @ondrop="() => RequestMoveAsync(node, TreeMovePosition.Before)"
+                            @onclick="() => RequestMoveAsync(node, TreeMovePosition.Before)">
+                        Vor „@node.Title"
+                    </button>
+                    <button type="button"
+                            class="tree-move-target"
+                            data-testid="@($"tree-move-after-{node.NodeId}")"
+                            @ondragover:preventDefault
+                            @ondrop="() => RequestMoveAsync(node, TreeMovePosition.After)"
+                            @onclick="() => RequestMoveAsync(node, TreeMovePosition.After)">
+                        Nach „@node.Title"
+                    </button>
+                </div>
+            }
 
             @if (node.HasChildren && node.IsExpanded)
             {

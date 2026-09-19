@@ -86,7 +86,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Erfolgs- und Ablehnungsfälle sowie Diffdarstellung.
     - Abnahme: keine Löschung erfolgt ohne sichtbare Ziel- und Auswirkungsprüfung.
 
-  - [ ] **M4.3-T3 – Nodes per Drag-and-drop verschieben und sortieren**
+  - [x] **M4.3-T3 – Nodes per Drag-and-drop verschieben und sortieren**
     - Umfang: Move/Reorder im nativen Tree mit den Zielpositionen `Parent`, `Before` und `After`, sichtbarer Zielvorschau und anschließender Working-Tree-Aktualisierung. Native HTML-Drag-Ereignisse und die drei fokussierbaren Aktionsbuttons rufen denselben UI-Movevertrag auf.
     - Regeln: UI optimiert nur die Interaktion; serverseitige Hierarchievalidierung entscheidet.
     - Gleichzeitige Clients (O-025 entschieden): stale `ChangeVersion` deterministisch ablehnen; bei Ablehnung Tree vom Serverzustand neu laden.

@@ -35,7 +35,7 @@ public sealed class TransactionStateAndNavigationSmokeTests
 
             // Warten auf Navigation zur Detailseite /transactions/{id}
             await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-            transactionId = await ReadTransactionIdAsync(page);
+            transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
             await Assertions.Expect(page.GetByTestId("tx-title")).ToHaveTextAsync("Browser Smoke Test Transaction");
 
             // Im Wissensbaum öffnen
@@ -106,7 +106,7 @@ public sealed class TransactionStateAndNavigationSmokeTests
             await page.GetByTestId("tx-purpose-input").FillAsync("Reconnect Smoke Test Transaction");
             await page.GetByTestId("begin-transaction-button").ClickAsync();
             await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-            transactionId = await ReadTransactionIdAsync(page);
+            transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
 
             await page.GetByTestId("tx-open-knowledge-link").ClickAsync();
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
@@ -153,11 +153,4 @@ public sealed class TransactionStateAndNavigationSmokeTests
         }
     }
 
-    private static async Task<Guid> ReadTransactionIdAsync(IPage page)
-    {
-        var rawValue = await page.GetByTestId("tx-id").TextContentAsync();
-        return Guid.TryParse(rawValue?.Replace("ID:", string.Empty, StringComparison.Ordinal).Trim(), out var transactionId)
-            ? transactionId
-            : throw new InvalidOperationException("Die Transaction-Detailseite enthält keine gültige Transaction-ID.");
-    }
 }

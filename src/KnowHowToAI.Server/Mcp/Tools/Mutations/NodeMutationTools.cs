@@ -236,10 +236,8 @@ internal sealed class NodeMutationTools
         return McpMutationMapper.ToEnvelope(await _nodeMutationService
             .MoveAsync(
                 parsedTransactionId.Value,
-                parsedNodeId.Value!.Value,
-                parsedParentNodeId.Value,
-                sortOrder,
-                cancellationToken)
+                new MoveNodeRequest(parsedNodeId.Value!.Value, parsedParentNodeId.Value, sortOrder),
+                cancellationToken: cancellationToken)
             .ConfigureAwait(false));
     }
 
@@ -259,7 +257,7 @@ internal sealed class NodeMutationTools
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
         return McpMutationMapper.ToEnvelope(await _nodeMutationService
-            .ReorderAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, sortOrder, cancellationToken)
+            .ReorderAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, sortOrder, cancellationToken: cancellationToken)
             .ConfigureAwait(false));
     }
 

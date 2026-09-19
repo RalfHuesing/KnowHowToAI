@@ -36,6 +36,7 @@ internal static class WebServiceRegistration
         // Schmale Präsentationsgrenze für Wissensseite und nativen Baum.
         services.AddScoped<IKnowledgeTreeWorkspace>(serviceProvider =>
             serviceProvider.GetRequiredService<KnowledgeTreeState>());
+        services.AddScoped<TreeMoveCoordinator>();
 
         // Persistiert die letzte Rollenauswahl im Browser-LocalStorage.
         services.AddScoped<IRoleStorageService, BrowserRoleStorageService>();

@@ -68,7 +68,7 @@ public sealed class NodeMutationApplicationServiceTests
         var service = CreateService(repository, NodeIdFor(9));
 
         var reorder = await service.ReorderAsync(TransactionId, SecondChildNodeId, 0);
-        var move = await service.MoveAsync(TransactionId, FirstChildNodeId, SecondChildNodeId, 0);
+        var move = await service.MoveAsync(TransactionId, new MoveNodeRequest(FirstChildNodeId, SecondChildNodeId, 0));
 
         Assert.True(reorder.IsSuccess);
         Assert.Contains(GrandchildNodeId, move.Value!.AffectedNodeIds);
@@ -155,7 +155,7 @@ public sealed class NodeMutationApplicationServiceTests
         var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId), Node(FirstChildNodeId, RootNodeId))) { Rejection = rejection };
         var service = CreateService(repository, SecondChildNodeId);
 
-        var result = await service.MoveAsync(TransactionId, FirstChildNodeId, null, 1);
+        var result = await service.MoveAsync(TransactionId, new MoveNodeRequest(FirstChildNodeId, null, 1));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -228,11 +228,33 @@ public sealed class NodeMutationApplicationServiceTests
         var repository = new InMemoryNodeMutationRepository(State(root, child));
         var service = CreateService(repository, SecondChildNodeId);
 
-        var result = await service.MoveAsync(TransactionId, FirstChildNodeId, RootNodeId, 0);
+        var result = await service.MoveAsync(TransactionId, new MoveNodeRequest(FirstChildNodeId, RootNodeId, 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(0, result.Value!.ChangeVersion);
         Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task MoveAsync_StaleChangeVersion_IsRejectedWithoutChangingTheWorkingTree()
+    {
+        var root = Node(RootNodeId);
+        var child = Node(FirstChildNodeId, RootNodeId, sortOrder: 0);
+        var repository = new InMemoryNodeMutationRepository(State(root, child));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var concurrentChange = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(FirstChildNodeId, "Aktualisiert", null, ExpectedChangeVersion: 0));
+        var result = await service.MoveAsync(
+            TransactionId,
+            new MoveNodeRequest(FirstChildNodeId, null, 0, ExpectedChangeVersion: 0));
+
+        Assert.True(concurrentChange.IsSuccess);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, result.Code);
+        Assert.Equal(1, repository.ChangeVersion);
+        Assert.Equal(RootNodeId, Find(repository.State.Nodes, FirstChildNodeId).ParentNodeId);
     }
 
     [Fact]
