@@ -14,13 +14,13 @@ namespace KnowHowToAI.Web.Tests.Components.Layout;
 public sealed class NavigationProtectionTests : ShellTestContext
 {
     [Fact]
-    public void MainLayout_WhenNotDirty_NavigationProceedsDirectly()
+    public void NavigationProtection_WhenNotDirty_NavigationProceedsDirectly()
     {
         var navManager = Services.GetRequiredService<NavigationManager>();
         var pageRegions = Services.GetRequiredService<PageRegionState>();
         var workspaceState = Services.GetRequiredService<WorkspaceState>();
 
-        var cut = RenderMainLayout();
+        var cut = RenderNavigationProtection();
 
         pageRegions.SetKnowledgeContext(new KnowledgeContextViewModel(
             KnowledgeReadContextKind.Current,
@@ -33,7 +33,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
     }
 
     [Fact]
-    public void MainLayout_WhenDirty_NavigationIsInterceptedAndConfirmationDialogOpened()
+    public void NavigationProtection_WhenDirty_NavigationIsInterceptedAndConfirmationDialogOpened()
     {
         var navManager = Services.GetRequiredService<NavigationManager>();
         var pageRegions = Services.GetRequiredService<PageRegionState>();
@@ -46,7 +46,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         var initialUri = navManager.Uri;
 
-        var cut = RenderMainLayout();
+        var cut = RenderNavigationProtection();
 
         pageRegions.SetKnowledgeContext(contextVm);
         workspaceState.SetContext(contextVm, new ReadContext());
@@ -65,7 +65,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
     }
 
     [Fact]
-    public async Task MainLayout_WhenDirty_ConfirmingLeaveNavigatesAndClearsDirty()
+    public async Task NavigationProtection_WhenDirty_ConfirmingLeaveNavigatesAndClearsDirty()
     {
         var navManager = Services.GetRequiredService<NavigationManager>();
         var pageRegions = Services.GetRequiredService<PageRegionState>();
@@ -76,7 +76,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
             ContextId: Guid.NewGuid().ToString("D"),
             IsDirty: true);
 
-        var cut = RenderMainLayout();
+        var cut = RenderNavigationProtection();
 
         pageRegions.SetKnowledgeContext(contextVm);
         workspaceState.SetContext(contextVm, new ReadContext());
@@ -97,7 +97,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
     }
 
     [Fact]
-    public async Task MainLayout_WhenDirty_CancellingLeaveKeepsUserOnPage()
+    public async Task NavigationProtection_WhenDirty_CancellingLeaveKeepsUserOnPage()
     {
         var navManager = Services.GetRequiredService<NavigationManager>();
         var pageRegions = Services.GetRequiredService<PageRegionState>();
@@ -110,7 +110,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         var initialUri = navManager.Uri;
 
-        var cut = RenderMainLayout();
+        var cut = RenderNavigationProtection();
 
         pageRegions.SetKnowledgeContext(contextVm);
         workspaceState.SetContext(contextVm, new ReadContext());
@@ -130,6 +130,6 @@ public sealed class NavigationProtectionTests : ShellTestContext
         Assert.True(pageRegions.KnowledgeContext?.IsDirty);
     }
 
-    private IRenderedComponent<MainLayout> RenderMainLayout() =>
-        Render<MainLayout>(parameters => parameters.Add(p => p.Body, (RenderFragment)(b => b.AddMarkupContent(0, "<p>Inhalt</p>"))));
+    private IRenderedComponent<NavigationProtection> RenderNavigationProtection() =>
+        Render<NavigationProtection>();
 }

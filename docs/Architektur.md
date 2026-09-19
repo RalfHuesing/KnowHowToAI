@@ -304,9 +304,10 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
   Rolle und ohne `IsDirty`. Domain-Typen und der `WorkspaceState` sind
   bewusst nicht Teil dieses Vertrags.
-- `MainLayout` schützt ungespeicherten Formularzustand (`IsDirty`) über
+- `NavigationProtection` schützt ungespeicherten Formularzustand (`IsDirty`) über
   `NavigationLock` und einen `ConfirmationDialog` bei interner Blazor-Navigation
-  sowie über das native `beforeunload`-Ereignis bei externer Navigation;
+  sowie über das native `beforeunload`-Ereignis bei externer Navigation; `MainLayout`
+  bindet die abgegrenzte Shell-Komponente ein;
   bereits in einer Transaction persistierte Änderungen verbleiben in der Datenbank
   und sind per URL rekonstruierbar.
 - `ContextSelectorDialog` hostet ausschließlich den nativen Dialog-Lifecycle.

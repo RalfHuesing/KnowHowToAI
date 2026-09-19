@@ -3,9 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
-using KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 using KnowHowToAI.Server.Web.Components.Shared.Feedback;
-using Microsoft.AspNetCore.Components.Routing;
 
 namespace KnowHowToAI.Server.Web.Components.Layout.Shell;
 
@@ -63,60 +61,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private ContextSelectorState? ContextSelector { get; set; }
 
     [Inject]
-    private NavigationManager NavigationManager { get; set; } = default!;
-
-    [Inject]
     private IJSRuntime JSRuntime { get; set; } = default!;
-
-    private ConfirmationDialog? _navigationConfirmationDialog;
-    private bool _isConfirmingNavigation;
-    private string? _targetNavigationLocation;
-
-    private async Task HandleBeforeInternalNavigation(LocationChangingContext context)
-    {
-        if (PageRegions.KnowledgeContext?.IsDirty == true && !_isConfirmingNavigation)
-        {
-            context.PreventNavigation();
-            _targetNavigationLocation = context.TargetLocation;
-            if (_navigationConfirmationDialog is not null)
-            {
-                await _navigationConfirmationDialog.OpenAsync();
-            }
-        }
-    }
-
-    private async Task ConfirmLeavePageAsync()
-    {
-        _isConfirmingNavigation = true;
-        if (_navigationConfirmationDialog is not null)
-        {
-            await _navigationConfirmationDialog.CloseAsync();
-        }
-
-        WorkspaceState?.SetDirty(false);
-
-        if (PageRegions.KnowledgeContext is not null)
-        {
-            PageRegions.SetKnowledgeContext(PageRegions.KnowledgeContext with { IsDirty = false });
-        }
-
-        if (!string.IsNullOrEmpty(_targetNavigationLocation))
-        {
-            NavigationManager.NavigateTo(_targetNavigationLocation);
-        }
-
-        _isConfirmingNavigation = false;
-        _targetNavigationLocation = null;
-    }
-
-    private async Task CancelLeavePageAsync()
-    {
-        _targetNavigationLocation = null;
-        if (_navigationConfirmationDialog is not null)
-        {
-            await _navigationConfirmationDialog.CloseAsync();
-        }
-    }
 
     private void OpenContextSelector()
     {
