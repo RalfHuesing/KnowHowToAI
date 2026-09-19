@@ -81,7 +81,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         _workspaceState = new WorkspaceState();
         _pageRegions = new PageRegionState();
         _releaseRepo = new FakeReleaseRepository();
-        _contextResolver = new WebReadContextResolver(_releaseRepo);
+        _contextResolver = new WebReadContextResolver(_releaseRepo, _harness.CreateRepositories().Transactions);
         _roleStorage = new InMemoryRoleStorageService("Developer");
         _contextSelector = new ContextSelectorState();
 

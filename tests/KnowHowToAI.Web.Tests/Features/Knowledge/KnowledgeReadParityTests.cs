@@ -342,7 +342,7 @@ public sealed class KnowledgeReadParityTests
         Assert.False(mcpContextResult.IsSuccess);
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, mcpContextResult.Error!.Code);
 
-        var webResolver = new WebReadContextResolver(new FakeReleaseRepository());
+        var webResolver = new WebReadContextResolver(new FakeReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore()));
         var webContextResult = await webResolver.ResolveAsync(txRaw, snapRaw, releaseIdRaw: null);
         Assert.False(webContextResult.IsSuccess);
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, webContextResult.Error!.Code);

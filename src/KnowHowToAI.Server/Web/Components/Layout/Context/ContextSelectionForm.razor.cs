@@ -31,6 +31,11 @@ public sealed partial class ContextSelectionForm : ComponentBase
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
+    [Inject]
+    private WorkspaceState WorkspaceState { get; set; } = default!;
+
+    private bool _isConfirmingDirtySwitch;
+
     protected override async Task OnInitializedAsync()
     {
         _draft.ApplyInitialContext(State.InitialReadContext);
@@ -90,6 +95,18 @@ public sealed partial class ContextSelectionForm : ComponentBase
         if (_errorMessage is not null)
             return;
 
+        if (WorkspaceState.IsDirty && !_isConfirmingDirtySwitch)
+        {
+            _isConfirmingDirtySwitch = true;
+            _errorMessage = "Sie haben ungespeicherte Änderungen. Wenn Sie den Kontext wechseln, gehen diese verloren. Klicken Sie erneut auf 'Übernehmen', um trotzdem zu wechseln.";
+            return;
+        }
+
+        if (WorkspaceState.IsDirty)
+        {
+            WorkspaceState.SetDirty(false);
+        }
+
         if (!string.IsNullOrWhiteSpace(_selectedRoleId))
         {
             await RoleStorage.SetLastRoleIdAsync(_selectedRoleId);
@@ -98,6 +115,7 @@ public sealed partial class ContextSelectionForm : ComponentBase
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var targetUrl = _draft.BuildTargetUrl(uri, State.Mode, _selectedRoleId);
 
+        _isConfirmingDirtySwitch = false;
         State.Close();
         NavigationManager.NavigateTo(targetUrl);
     }
@@ -115,6 +133,7 @@ public sealed partial class ContextSelectionForm : ComponentBase
 
     private void Cancel()
     {
+        _isConfirmingDirtySwitch = false;
         if (State.Mode == ContextSelectorMode.Full)
         {
             State.Close();

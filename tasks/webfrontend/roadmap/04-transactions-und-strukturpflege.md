@@ -24,7 +24,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M4.1 – Transaction-Arbeitskontext
 
-- [ ] **M4.1 abschließen**
+- [x] **M4.1 abschließen**
 
   - [x] **M4.1-T1 – Transaction beginnen, auflisten und fortsetzen**
     - Umfang: Beginnen mit Optionen, alle offenen Transactions auflisten, explizit auswählen und als Working Read Context öffnen. Ohne Auth existiert kein belastbares „eigene Transactions“.
@@ -35,7 +35,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: neue/vorhandene Transaction, leere Liste, ungültige ID, Refresh und Reconnect.
     - Abnahme: Working Context bleibt nach Navigation rekonstruierbar.
 
-  - [ ] **M4.1-T2 – Transaction-State und Navigationsschutz implementieren**
+  - [x] **M4.1-T2 – Transaction-State und Navigationsschutz implementieren**
     - Umfang: globaler Status, Base Snapshot, Änderungsindikator und Schutz bei Kontextwechsel, Tabnavigation oder Circuit-Verlust.
     - Abgrenzung: bereits persistierte Änderungen gehen nicht verloren; rein flüchtiger Formzustand wird separat behandelt.
     - Tests: Refresh, Browsernavigation, Reconnect und Prozessneustart.

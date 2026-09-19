@@ -14,6 +14,13 @@
             <span class="knowledge-context__value knowledge-context__detail">@detail</span>
         }
     </span>
+    @if (Context.BaseSnapshotId is not null)
+    {
+        <span class="knowledge-context__item" data-testid="context-base-snapshot">
+            <span class="knowledge-context__label">Base-Snapshot:</span>
+            <span class="knowledge-context__value">@Context.BaseSnapshotId</span>
+        </span>
+    }
     <span class="knowledge-context__item">
         <span class="knowledge-context__label">Rolle:</span>
         <span class="knowledge-context__value">@RoleText</span>

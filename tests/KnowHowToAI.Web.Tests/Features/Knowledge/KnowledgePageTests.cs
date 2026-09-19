@@ -38,7 +38,7 @@ public sealed class KnowledgePageTests : BunitContext
         var workspaceState = new WorkspaceState();
         var pageRegions = new PageRegionState();
         var releaseRepo = new FakeReleaseRepository();
-        var contextResolver = new WebReadContextResolver(releaseRepo);
+        var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
 
         Services.AddSingleton(service);
         Services.AddSingleton(treeState);
@@ -72,7 +72,7 @@ public sealed class KnowledgePageTests : BunitContext
         var workspaceState = new WorkspaceState();
         var pageRegions = new PageRegionState();
         var releaseRepo = new FakeReleaseRepository();
-        var contextResolver = new WebReadContextResolver(releaseRepo);
+        var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
 
         Services.AddSingleton(service);
         Services.AddSingleton(treeState);
@@ -107,7 +107,7 @@ public sealed class KnowledgePageTests : BunitContext
         var workspaceState = new WorkspaceState();
         var pageRegions = new PageRegionState();
         var releaseRepo = new FakeReleaseRepository();
-        var contextResolver = new WebReadContextResolver(releaseRepo);
+        var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
 
         Services.AddSingleton(service);
         Services.AddSingleton(treeState);

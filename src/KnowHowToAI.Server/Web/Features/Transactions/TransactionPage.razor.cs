@@ -61,12 +61,14 @@ public sealed partial class TransactionPage : ComponentBase
                 DisplayName: string.IsNullOrWhiteSpace(_transaction.Purpose)
                     ? $"Transaktion {_transaction.TransactionId.Value:D}"
                     : _transaction.Purpose,
-                RoleName: WorkspaceState.CurrentRoleId);
+                RoleName: WorkspaceState.CurrentRoleId,
+                BaseSnapshotId: _transaction.BaseSnapshotId.Value);
 
             PageRegions.SetKnowledgeContext(contextVm);
             WorkspaceState.SetContext(
                 contextVm,
                 new ReadContext(TransactionId: _transaction.TransactionId));
+            WorkspaceState.SetChangeVersion(_transaction.ChangeVersion);
         }
 
         _isLoading = false;

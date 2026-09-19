@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 
 namespace KnowHowToAI.Server.Web.State;
@@ -21,7 +22,22 @@ public sealed class WorkspaceState
 
     public ReadContext CurrentReadContext { get; private set; } = new();
 
+    public bool HasActiveTransaction => CurrentReadContext.TransactionId.HasValue;
+
+    public TransactionId? ActiveTransactionId => CurrentReadContext.TransactionId;
+
+    public bool IsDirty => CurrentContext.IsDirty;
+
     public event Action? Changed;
+
+    public void SetDirty(bool isDirty)
+    {
+        if (CurrentContext.IsDirty == isDirty)
+            return;
+
+        CurrentContext = CurrentContext with { IsDirty = isDirty };
+        Changed?.Invoke();
+    }
 
     public void SetNode(Guid? nodeId)
     {

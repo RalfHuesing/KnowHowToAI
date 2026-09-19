@@ -132,9 +132,9 @@ fokussierbar und per `aria-labelledby` mit seiner Überschrift
 verknüpft. Alle Animationen respektieren `prefers-reduced-motion`.)
 sowie `Web.State` (flüchtiger Circuit-Zustand: `ToastState` der globalen
 Toastregion, `WorkspaceState` als Circuit-Cache für ausgewählten Node,
-Rolle, Lese-Kontext und `ChangeVersion` sowie `WebReadContextResolver`
+Rolle, Lese-Kontext, `BaseSnapshotId` und `ChangeVersion` sowie `WebReadContextResolver`
 zur Validierung und Auflösung von `transactionId`, `snapshotId` und
-`releaseId` auf Core-`ReadContext` und `KnowledgeContextViewModel`) und
+`releaseId` über `ITransactionRepository` und `IReleaseRepository` auf Core-`ReadContext` und `KnowledgeContextViewModel`) und
 die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Roles`,
 `Search`, `History`, `Dashboard`, `Transactions`).
 
@@ -293,16 +293,22 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   `KnowledgeContextViewModel` (immutable `record` unter
   `Web/Components/Layout/Context`) für die globale Wissenskontextleiste: Art des
   Lese-Kontexts (`Current`, `Snapshot`, `Transaction`, `Release`), optionale
-  ID/Bezeichnung, optionale Rolle und `IsDirty`. Die Komponente
+  ID/Bezeichnung, optionale Rolle, `IsDirty` und optionale `BaseSnapshotId`. Die Komponente
   `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
   Kopfbereich nahe der Wortmarke – als Text und Status ohne Selektor, Links
   oder Mutation; sie spiegelt `IsDirty` als `data-ktai-dirty`-Attribut ihres
   Wurzelelements; eine fehlende Rolle erscheint neutral als „Keine Rolle
   ausgewählt“, der Dirty-Zustand nur bei Bedarf als „Ungespeicherte
-  Änderungen“ mit Icon plus Text. Nicht gelieferte Angaben erscheinen nicht;
+  Änderungen“ mit Icon plus Text und bei Transactions der Base-Snapshot als
+  eigenes Meta-Item. Nicht gelieferte Angaben erscheinen nicht;
   die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
-  Rolle und ohne `IsDirty`. Domain-Typen und der M3-`WorkspaceState` sind
+  Rolle und ohne `IsDirty`. Domain-Typen und der `WorkspaceState` sind
   bewusst nicht Teil dieses Vertrags.
+- `MainLayout` schützt ungespeicherten Formularzustand (`IsDirty`) über
+  `NavigationLock` und einen `ConfirmationDialog` bei interner Blazor-Navigation
+  sowie über das native `beforeunload`-Ereignis bei externer Navigation;
+  bereits in einer Transaction persistierte Änderungen verbleiben in der Datenbank
+  und sind per URL rekonstruierbar.
 - `ContextSelectorDialog` hostet ausschließlich den nativen Dialog-Lifecycle.
   Das featurekonkrete `ContextSelectionForm` hält den unpersistierten
   Auswahlentwurf, validiert und bildet die kanonische Ziel-URL. Die beiden

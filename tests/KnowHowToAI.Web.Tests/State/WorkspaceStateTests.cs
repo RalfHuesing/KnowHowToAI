@@ -122,4 +122,46 @@ public sealed class WorkspaceStateTests
         Assert.Null(state.CurrentReadContext.TransactionId);
         Assert.Equal(1, changeCount);
     }
+
+    [Fact]
+    public void SetDirty_UpdatesPropertyAndFiresChangedOnlyWhenDifferent()
+    {
+        var state = new WorkspaceState();
+        var changeCount = 0;
+        state.Changed += () => changeCount++;
+
+        state.SetDirty(true);
+        Assert.True(state.IsDirty);
+        Assert.Equal(1, changeCount);
+
+        // Gleicher Wert darf kein neues Event auslösen
+        state.SetDirty(true);
+        Assert.Equal(1, changeCount);
+
+        state.SetDirty(false);
+        Assert.False(state.IsDirty);
+        Assert.Equal(2, changeCount);
+    }
+
+    [Fact]
+    public void Properties_ReflectTransactionAndBaseSnapshot()
+    {
+        var state = new WorkspaceState();
+        var txId = new TransactionId(Guid.NewGuid());
+
+        Assert.False(state.HasActiveTransaction);
+        Assert.Null(state.ActiveTransactionId);
+        Assert.Null(state.CurrentContext.BaseSnapshotId);
+
+        var contextVm = new KnowledgeContextViewModel(
+            KnowledgeReadContextKind.Transaction,
+            ContextId: txId.Value.ToString("D"),
+            BaseSnapshotId: 42L);
+
+        state.SetContext(contextVm, new ReadContext(TransactionId: txId));
+
+        Assert.True(state.HasActiveTransaction);
+        Assert.Equal(txId, state.ActiveTransactionId);
+        Assert.Equal(42L, state.CurrentContext.BaseSnapshotId);
+    }
 }

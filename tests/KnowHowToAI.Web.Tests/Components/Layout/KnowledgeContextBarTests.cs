@@ -94,6 +94,20 @@ public sealed class KnowledgeContextBarTests : BunitContext
         Assert.Equal("Wissenskontext", group.GetAttribute("aria-label"));
     }
 
+    [Fact]
+    public void RendersTheBaseSnapshotWhenProvided()
+    {
+        var cut = RenderBar(new KnowledgeContextViewModel(
+            KnowledgeReadContextKind.Transaction,
+            ContextId: "tx-1",
+            BaseSnapshotId: 42L));
+
+        var baseSnapElement = cut.Find("[data-testid='context-base-snapshot']");
+        Assert.NotNull(baseSnapElement);
+        Assert.Contains("Base-Snapshot:", baseSnapElement.TextContent, StringComparison.Ordinal);
+        Assert.Contains("42", baseSnapElement.TextContent, StringComparison.Ordinal);
+    }
+
     private IRenderedComponent<KnowledgeContextBar> RenderBar(KnowledgeContextViewModel context) =>
         Render<KnowledgeContextBar>(parameters => parameters.Add(parameter => parameter.Context, context));
 }

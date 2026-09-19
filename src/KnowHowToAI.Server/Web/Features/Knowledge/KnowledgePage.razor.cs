@@ -126,7 +126,7 @@ public sealed partial class KnowledgePage : IDisposable
             return;
         }
 
-        await ApplySelectedRoleAndInitializeAsync(contextVm, readContext, availableRoles, roleId);
+        await ApplySelectedRoleAndInitializeAsync(contextVm, readContext, availableRoles, roleId, contextResolution.Value!.ChangeVersion);
     }
 
     private void ApplyEmptyRolesState(KnowledgeContextViewModel contextVm, ReadContext readContext)
@@ -163,13 +163,15 @@ public sealed partial class KnowledgePage : IDisposable
         KnowledgeContextViewModel contextVm,
         ReadContext readContext,
         IReadOnlyList<Role> availableRoles,
-        string roleId)
+        string roleId,
+        long? changeVersion)
     {
         var matchedRole = availableRoles.First(r => r.RoleId.Value == roleId);
         var effectiveContextVm = contextVm with { RoleName = matchedRole.Name };
         PageRegions.SetKnowledgeContext(effectiveContextVm);
 
         WorkspaceState.SetContext(effectiveContextVm, readContext);
+        WorkspaceState.SetChangeVersion(changeVersion);
         WorkspaceState.SetRole(roleId);
 
         if (!TreeWorkspace.HasContext(readContext, roleId))

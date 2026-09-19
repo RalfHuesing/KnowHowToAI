@@ -15,21 +15,26 @@ namespace KnowHowToAI.Server.Web.State;
 /// </summary>
 public sealed record WebReadContextResolution(
     ReadContext ReadContext,
-    KnowledgeContextViewModel ContextViewModel);
+    KnowledgeContextViewModel ContextViewModel,
+    long? ChangeVersion = null);
 
 /// <summary>
 /// Löst URL-Query-Parameter (transactionId, snapshotId, releaseId) an der Web-Grenze
 /// auf den passenden Core-ReadContext und das zugehörige KnowledgeContextViewModel auf.
 /// Stellt den gegenseitigen Ausschluss der Selektoren sicher und löst ReleaseId
-/// asynchron auf den unveränderlichen Snapshot des Releases auf.
+/// und TransactionId asynchron über deren Repositories auf.
 /// </summary>
 public sealed class WebReadContextResolver
 {
     private readonly IReleaseRepository _releaseRepository;
+    private readonly ITransactionRepository _transactionRepository;
 
-    public WebReadContextResolver(IReleaseRepository releaseRepository)
+    public WebReadContextResolver(
+        IReleaseRepository releaseRepository,
+        ITransactionRepository transactionRepository)
     {
         _releaseRepository = releaseRepository ?? throw new ArgumentNullException(nameof(releaseRepository));
+        _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
     }
 
     public async Task<Result<WebReadContextResolution>> ResolveAsync(
@@ -43,7 +48,7 @@ public sealed class WebReadContextResolver
             return Result<WebReadContextResolution>.Failure(exclusionCheck.Error!);
 
         if (!string.IsNullOrWhiteSpace(transactionIdRaw))
-            return ResolveTransaction(transactionIdRaw);
+            return await ResolveTransactionAsync(transactionIdRaw, cancellationToken).ConfigureAwait(false);
 
         if (!string.IsNullOrWhiteSpace(snapshotIdRaw))
             return ResolveSnapshot(snapshotIdRaw);
@@ -78,7 +83,9 @@ public sealed class WebReadContextResolver
         return Result<bool>.Success(true);
     }
 
-    private static Result<WebReadContextResolution> ResolveTransaction(string transactionIdRaw)
+    private async Task<Result<WebReadContextResolution>> ResolveTransactionAsync(
+        string transactionIdRaw,
+        CancellationToken cancellationToken)
     {
         if (!Guid.TryParseExact(transactionIdRaw, "D", out var txGuid))
         {
@@ -89,12 +96,36 @@ public sealed class WebReadContextResolver
         }
 
         var txId = new TransactionId(txGuid);
+        var transaction = await _transactionRepository.FindAsync(txId, cancellationToken).ConfigureAwait(false);
+        if (transaction is null)
+        {
+            return Result<WebReadContextResolution>.Failure(new DomainError(
+                ReadContextErrorCodes.TransactionNotFound,
+                "Die angefragte Transaktion existiert nicht.",
+                new Dictionary<string, string> { ["transactionId"] = transactionIdRaw }));
+        }
+
+        if (transaction.State != TransactionState.Open)
+        {
+            return Result<WebReadContextResolution>.Failure(new DomainError(
+                ReadContextErrorCodes.TransactionClosed,
+                "Die angefragte Transaktion ist bereits geschlossen.",
+                new Dictionary<string, string> { ["transactionId"] = transactionIdRaw }));
+        }
+
         var readContext = new ReadContext(TransactionId: txId);
         var contextVm = new KnowledgeContextViewModel(
             KnowledgeReadContextKind.Transaction,
             ContextId: txId.Value.ToString("D"),
-            DisplayName: $"Transaktion {txId.Value:D}");
-        return Result<WebReadContextResolution>.Success(new WebReadContextResolution(readContext, contextVm));
+            DisplayName: string.IsNullOrWhiteSpace(transaction.Purpose)
+                ? $"Transaktion {txId.Value:D}"
+                : transaction.Purpose,
+            BaseSnapshotId: transaction.BaseSnapshotId.Value);
+
+        return Result<WebReadContextResolution>.Success(new WebReadContextResolution(
+            readContext,
+            contextVm,
+            transaction.ChangeVersion));
     }
 
     private static Result<WebReadContextResolution> ResolveSnapshot(string snapshotIdRaw)

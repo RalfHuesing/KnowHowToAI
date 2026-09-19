@@ -77,4 +77,15 @@
 
     @* Globaler Rollen- und Lesekontext-Selektor *@
     <ContextSelectorDialog />
+
+    <NavigationLock ConfirmExternalNavigation="@(PageRegions.KnowledgeContext?.IsDirty == true)"
+                    OnBeforeInternalNavigation="HandleBeforeInternalNavigation" />
+
+    <ConfirmationDialog @ref="_navigationConfirmationDialog"
+                        Title="Ungespeicherte Änderungen"
+                        Message="Sie haben ungespeicherte Änderungen. Möchten Sie die Seite wirklich verlassen? Ihre ungespeicherten Eingaben gehen dabei verloren."
+                        ConfirmText="Seite verlassen"
+                        IsDestructive="false"
+                        OnConfirm="ConfirmLeavePageAsync"
+                        OnCancel="CancelLeavePageAsync" />
 </div>
