@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../Roadmap.md)
 
-- [x] **M3 abschließen**
+- [ ] **M3 abschließen**
 
 Abhängigkeit: [M2](02-designsystem-und-shell.md)
 
@@ -84,7 +84,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.5 – Suche
 
-- [ ] **M3.5 abschließen**
+- [x] **M3.5 abschließen**
 
   - [x] **M3.5-T1 – Paginierte Wissenssuche implementieren**
     - Umfang: Suchtext, Rolle, Read Context, Cursor, Treffer-Snippet, Breadcrumb und Navigation zum Node.
@@ -100,7 +100,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Query-/Repositoryverhalten, Web-Mapping, Komponenten und Browser-Smoke.
     - Abnahme: Filtersemantik aus dem Bedienkonzept ist vollständig serverseitig paginiert umgesetzt; der Tree wird nicht clientseitig beschnitten.
 
-  - [ ] **M3.5-T3 – Suche gegen den deterministischen Browserbestand stabilisieren**
+  - [x] **M3.5-T3 – Suche gegen den deterministischen Browserbestand stabilisieren**
     - Befund aus dem M3.7-T2-Gate: `SearchSmoke` zeigt bei nichtleerem Bestand nach Auswahl des Fallback-Filters einen technischen Fehler statt einer Treffer- oder Leerergebnisdarstellung.
     - Abnahme: Die Suche verarbeitet den repräsentativen, über den realen MCP-Transport bereitgestellten Browserbestand einschließlich Fallback-Rolle fehlerfrei; der vollständige Browserlauf ist wieder grün.
 
@@ -123,7 +123,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.7 – Markdown-Export
 
-- [ ] **M3.7 abschließen**
+- [x] **M3.7 abschließen**
 
   - [x] **M3.7-T1 – Bestehenden Markdown-Teilbaumexport in der UI bereitstellen**
     - Umfang: aktueller Node, Rolle und Read Context an vorhandenen Export-Use-Case übergeben und Datei herunterladen.
@@ -132,7 +132,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Mapping, Download-Endpunkt und Browser-Smoke.
     - Abnahme: bestehende Exportfunktion ist ohne Agent nutzbar.
 
-  - [ ] **M3.7-T2 – Deterministischen Browsernachweis für den Markdown-Download herstellen**
+  - [x] **M3.7-T2 – Deterministischen Browsernachweis für den Markdown-Download herstellen**
     - Befund aus dem M3.7-Review: Der aktuelle Browser-Smoke beendet sich bei einer leeren Browser-Testdatenbank erfolgreich und prüft dadurch weder Link noch Download.
     - Umfang: Die bestehende Browser-Testinfrastruktur stellt für diesen Test einen reproduzierbaren, nichtleeren Read-only-Wissensstand mit Rolle und auswählbarem Node bereit; der Smoke wartet anschließend auf einen tatsächlichen Download und prüft Status, `text/markdown; charset=utf-8`, `Content-Disposition: attachment`, `Cache-Control: no-store` und den `.md`-Dateinamen.
     - Grenze: Keine Produktdaten-Seeds, keine Produktionsmutation und kein Überspringen des Download-Nachweises bei leerem Zustand.
