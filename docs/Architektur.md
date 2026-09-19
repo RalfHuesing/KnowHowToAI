@@ -128,9 +128,21 @@ eine optionale opaque Correlation-ID und Retry – niemals Exception,
 Pfade, SQL- oder Toolausgabe – und ist über `tabindex="-1"`
 fokussierbar und per `aria-labelledby` mit seiner Überschrift
 verknüpft. Alle Animationen respektieren `prefers-reduced-motion`.)
-sowie `Web.State` (flüchtiger Circuit-Zustand; derzeit der
-`ToastState` der globalen Toastregion) und `Web.Features.Dashboard`
-(die derzeit einzige Root-Seite).
+sowie `Web.State` (flüchtiger Circuit-Zustand: `ToastState` der globalen
+Toastregion, `WorkspaceState` als Circuit-Cache für ausgewählten Node,
+Rolle, Lese-Kontext und `ChangeVersion` sowie `WebReadContextResolver`
+zur Validierung und Auflösung von `transactionId`, `snapshotId` und
+`releaseId` auf Core-`ReadContext` und `KnowledgeContextViewModel`) und
+die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Roles`,
+`Search`, `History`, `Dashboard`).
+
+Die Web-Lesegrenze entkoppelt Razor-Komponenten vollständig von Domain-Typen:
+Komponenten rufen Application Services direkt in-process per Dependency
+Injection auf (keine REST-Schicht). Die Ergebnisse werden über statische
+Mapper (`KnowledgeNavigationMapper`, `RoleMapper`, `SearchMapper`,
+`HistoryMapper`) in unveränderliche UI-ViewModels überführt. Fehlercodes,
+Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
+erhalten; Domain-Typen erscheinen nicht im Rendering.
 
 Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
 wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,

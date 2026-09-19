@@ -20,6 +20,12 @@ internal static class WebServiceRegistration
         // die Region selbst hostet das Layout.
         services.AddScoped<ToastState>();
 
+        // Flüchtiger Circuit-State für den Arbeitskontext (Node, Rolle, Lese-Kontext).
+        services.AddScoped<WorkspaceState>();
+
+        // Löst URL-Query-Parameter auf Core-ReadContext und KnowledgeContextViewModel auf.
+        services.AddScoped<WebReadContextResolver>();
+
         return services;
     }
 }
