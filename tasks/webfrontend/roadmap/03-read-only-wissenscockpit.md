@@ -152,7 +152,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M3.9 abschließen**
   - Auditbasis: Code- und Nachweisprüfung am 2026-09-19 gegen `603f830`; M4-Arbeitsstand ist nicht Teil des Befunds.
 
-  - [ ] **M3.9-T1 – Tree-Circuit tatsächlich begrenzen und Request-Rennen schließen**
+  - [x] **M3.9-T1 – Tree-Circuit tatsächlich begrenzen und Request-Rennen schließen**
     - Befund: Ersetzte oder evictete Child-Seiten bleiben in `KnowledgeTreeState._knownNodes`; damit wächst der Circuit trotz `LoadedPageCount <= 10` bis zum Vollbaum. Bei zwei Requests desselben Parents kann das `finally` des alten Requests den neueren Cancellation-Eintrag entfernen; ein spät erfolgreiches altes Ergebnis derselben Kontextgeneration kann die neuere Seite überschreiben.
     - Umsetzung: Beim Seitenersatz/Evict alle nicht mehr erreichbaren Off-Path-Knoten samt Nachfahren aus Index, Auswahl-/Fokus- und Cursorzustand entfernen; nur Root, Knoten der höchstens zehn geladenen Seiten und die minimale ausgewählte Breadcrumb-Kette dürfen verbleiben. Pro Parent eine monotone Requestgeneration oder äquivalente Identität verwenden; nur der aktuell registrierte Request darf Ergebnis, Fehler, Loadingzustand oder Registry verändern. Eviction erst für eine erfolgreich übernommene neue Seite wirksam machen.
     - Tests: 1.050 direkte Children vorwärts/rückwärts, elf breite Zweige und wiederholte Seitenwechsel prüfen die reale Anzahl gehaltener Knoten/Seiten, nicht nur DOM und Cachezähler. Ein kontrolliert verzögerter Repository-Call ignoriert Cancellation und liefert nach dem Nachfolger; ausschließlich das Nachfolgerergebnis bleibt sichtbar und registriert. Kontextwechsel deckt denselben Fall ab.
