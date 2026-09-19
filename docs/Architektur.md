@@ -363,8 +363,9 @@ Radien `4/8px`; Surface-Schatten; Basistext `16px` mit Zeilenhöhe `1.5` und
 der Systemschriftkette `Segoe UI, Arial, sans-serif`; Fokusring mit `3px`
 Stärke und `2px` Abstand) und frameworkweite Basisklassen für Fokusring und
 deaktivierten Zustand. Komponenten-CSS ist scoped und referenziert diese
-Tokens ausschließlich über `var(...)`; es gibt kein zweites Theme und kein
-Dark Theme. Die Shell bindet ausschließlich lokale eigene Ressourcen ein,
+Tokens ausschließlich über `var(...)`; außerhalb von `app.css` sind keine
+Hex-Farbliterale zulässig. Es gibt kein zweites Theme und kein Dark Theme. Die
+Shell bindet ausschließlich lokale eigene Ressourcen ein,
 keine CDN-, Cloud- oder Telemetrie-Ressourcen.
 
 Leitplanken:

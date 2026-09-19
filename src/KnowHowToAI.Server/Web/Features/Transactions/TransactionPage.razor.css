@@ -37,27 +37,27 @@
 }
 
 .btn-primary {
-    background-color: var(--color-primary, #2563eb);
-    color: #ffffff;
+    background-color: var(--ktai-color-primary);
+    color: var(--ktai-color-primary-contrast);
 }
 
 .btn-primary:hover {
-    background-color: var(--color-primary-hover, #1d4ed8);
+    background-color: var(--ktai-color-primary-hover);
 }
 
 .btn-secondary {
-    background-color: var(--color-surface, #ffffff);
-    color: var(--color-text-primary, #111827);
-    border-color: var(--color-border, #d1d5db);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    border-color: var(--ktai-color-border-input);
 }
 
 .btn-secondary:hover {
-    background-color: var(--color-bg-subtle, #f9fafb);
-    border-color: var(--color-border-hover, #9ca3af);
+    background-color: var(--ktai-color-surface-subtle);
+    border-color: var(--ktai-color-border-hover);
 }
 
 .loading-state {
-    color: var(--color-text-muted, #6b7280);
+    color: var(--ktai-color-text-muted);
     font-style: italic;
     margin: 0;
 }

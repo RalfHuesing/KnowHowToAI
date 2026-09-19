@@ -38,18 +38,35 @@ public sealed class DesignTokensTests
             ["--ktai-color-primary-contrast"] = "#ffffff",
             ["--ktai-color-text"] = "#111827",
             ["--ktai-color-text-secondary"] = "#4b5563",
+            ["--ktai-color-text-muted"] = "#6b7280",
             ["--ktai-color-page"] = "#f8fafc",
             ["--ktai-color-surface"] = "#ffffff",
+            ["--ktai-color-surface-subtle"] = "#f9fafb",
             ["--ktai-color-border"] = "#cbd5e1",
+            ["--ktai-color-border-light"] = "#e5e7eb",
+            ["--ktai-color-border-subtle"] = "#f3f4f6",
+            ["--ktai-color-border-input"] = "#d1d5db",
+            ["--ktai-color-border-hover"] = "#9ca3af",
             ["--ktai-color-success"] = "#15803d",
             ["--ktai-color-success-background"] = "#f0fdf4",
+            ["--ktai-color-success-emphasis"] = "#065f46",
+            ["--ktai-color-success-emphasis-background"] = "#d1fae5",
+            ["--ktai-color-success-strong"] = "#166534",
+            ["--ktai-color-success-strong-background"] = "#dcfce7",
             ["--ktai-color-warning"] = "#b45309",
             ["--ktai-color-warning-background"] = "#fffbeb",
+            ["--ktai-color-warning-emphasis"] = "#92400e",
+            ["--ktai-color-warning-emphasis-background"] = "#fef3c7",
             ["--ktai-color-danger"] = "#b91c1c",
             ["--ktai-color-danger-background"] = "#fef2f2",
+            ["--ktai-color-danger-strong-background"] = "#fee2e2",
             ["--ktai-color-info"] = "#2563eb",
             ["--ktai-color-info-background"] = "#eff6ff",
+            ["--ktai-color-info-emphasis-background"] = "#dbeafe",
             ["--ktai-color-focus"] = "#2563eb",
+            ["--ktai-color-code-background"] = "#f1f5f9",
+            ["--ktai-color-code-block-background"] = "#0f172a",
+            ["--ktai-color-code-block-text"] = "#e2e8f0",
             ["--ktai-space-1"] = "4px",
             ["--ktai-space-2"] = "8px",
             ["--ktai-space-3"] = "12px",
@@ -116,26 +133,44 @@ public sealed class DesignTokensTests
     }
 
     [Fact]
-    public void ComponentStylesDoNotRepeatGlobalDesignValues()
+    public void LocalStylesheetsDoNotContainHexColorLiterals()
     {
-        var componentDirectory = Path.Combine(
+        var serverDirectory = Path.Combine(
             TestRepositoryRoot.Resolve(),
             "src",
-            "KnowHowToAI.Server",
-            "Web",
-            "Components");
+            "KnowHowToAI.Server");
+        var centralStylesheet = Path.GetFullPath(Path.Combine(
+            serverDirectory,
+            "wwwroot",
+            "css",
+            "app.css"));
 
-        foreach (var stylesheet in Directory.EnumerateFiles(componentDirectory, "*.razor.css", SearchOption.AllDirectories))
+        var localStylesheets = Directory.EnumerateFiles(serverDirectory, "*.css", SearchOption.AllDirectories)
+            .Where(path => !IsBuildArtifact(path))
+            .Where(path => !string.Equals(
+                Path.GetFullPath(path),
+                centralStylesheet,
+                StringComparison.OrdinalIgnoreCase));
+
+        foreach (var stylesheet in localStylesheets)
         {
             var content = File.ReadAllText(stylesheet);
             var scatteredColorLiterals = Regex.Matches(
                 content,
-                "(?:#[0-9a-fA-F]{3,8}\\b|\\brgba?\\()");
+                @"#[0-9a-f]{3,4}\b|#[0-9a-f]{6}\b|#[0-9a-f]{8}\b",
+                RegexOptions.IgnoreCase);
 
             Assert.True(
                 scatteredColorLiterals.Count == 0,
-                $"{stylesheet} enthält {scatteredColorLiterals.Count} verstreute Farbliterale; Farben gehören in die globalen Tokens in wwwroot/css/app.css.");
+                $"{stylesheet} enthält {scatteredColorLiterals.Count} verstreute Hex-Farbliterale; Farben gehören ausschließlich in die globalen Tokens in wwwroot/css/app.css.");
         }
+    }
+
+    private static bool IsBuildArtifact(string path)
+    {
+        var pathSegments = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return pathSegments.Contains("bin", StringComparer.OrdinalIgnoreCase)
+            || pathSegments.Contains("obj", StringComparer.OrdinalIgnoreCase);
     }
 
     private static IReadOnlyDictionary<string, string> ParseTokens()

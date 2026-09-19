@@ -28,9 +28,9 @@
     font-weight: 700;
 }
 
-.snapshot-diff__kind--added { background: #dcfce7; color: #166534; }
-.snapshot-diff__kind--modified { background: #dbeafe; color: #1d4ed8; }
-.snapshot-diff__kind--deleted { background: #fee2e2; color: #b91c1c; }
+.snapshot-diff__kind--added { background: var(--ktai-color-success-strong-background); color: var(--ktai-color-success-strong); }
+.snapshot-diff__kind--modified { background: var(--ktai-color-info-emphasis-background); color: var(--ktai-color-primary-hover); }
+.snapshot-diff__kind--deleted { background: var(--ktai-color-danger-strong-background); color: var(--ktai-color-danger); }
 
 .snapshot-diff__ids,
 .snapshot-diff__detail,

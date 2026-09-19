@@ -188,7 +188,7 @@
 }
 
 .node-content-markdown code {
-    background-color: #f1f5f9;
+    background-color: var(--ktai-color-code-background);
     padding: 1px 5px;
     border-radius: var(--ktai-radius-small);
     font-family: monospace;
@@ -196,8 +196,8 @@
 }
 
 .node-content-markdown pre {
-    background-color: #0f172a;
-    color: #e2e8f0;
+    background-color: var(--ktai-color-code-block-background);
+    color: var(--ktai-color-code-block-text);
     padding: var(--ktai-space-4);
     border-radius: var(--ktai-radius-medium);
     overflow-x: auto;

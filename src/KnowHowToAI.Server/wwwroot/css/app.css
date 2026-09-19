@@ -13,18 +13,35 @@
     --ktai-color-primary-contrast: #ffffff;
     --ktai-color-text: #111827;
     --ktai-color-text-secondary: #4b5563;
+    --ktai-color-text-muted: #6b7280;
     --ktai-color-page: #f8fafc;
     --ktai-color-surface: #ffffff;
+    --ktai-color-surface-subtle: #f9fafb;
     --ktai-color-border: #cbd5e1;
+    --ktai-color-border-light: #e5e7eb;
+    --ktai-color-border-subtle: #f3f4f6;
+    --ktai-color-border-input: #d1d5db;
+    --ktai-color-border-hover: #9ca3af;
     --ktai-color-success: #15803d;
     --ktai-color-success-background: #f0fdf4;
+    --ktai-color-success-emphasis: #065f46;
+    --ktai-color-success-emphasis-background: #d1fae5;
+    --ktai-color-success-strong: #166534;
+    --ktai-color-success-strong-background: #dcfce7;
     --ktai-color-warning: #b45309;
     --ktai-color-warning-background: #fffbeb;
+    --ktai-color-warning-emphasis: #92400e;
+    --ktai-color-warning-emphasis-background: #fef3c7;
     --ktai-color-danger: #b91c1c;
     --ktai-color-danger-background: #fef2f2;
+    --ktai-color-danger-strong-background: #fee2e2;
     --ktai-color-info: #2563eb;
     --ktai-color-info-background: #eff6ff;
+    --ktai-color-info-emphasis-background: #dbeafe;
     --ktai-color-focus: #2563eb;
+    --ktai-color-code-background: #f1f5f9;
+    --ktai-color-code-block-background: #0f172a;
+    --ktai-color-code-block-text: #e2e8f0;
 
     /* Abstandsskala */
     --ktai-space-1: 4px;
