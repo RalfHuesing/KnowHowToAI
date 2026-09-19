@@ -39,6 +39,16 @@ public static class HistoryMapper
             release.ReleasedAtUtc);
     }
 
+    public static CreateReleaseViewModel ToCreateReleaseViewModel(CreateReleaseResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return new CreateReleaseViewModel(
+            result.Release.ReleaseId.Value,
+            result.Release.SnapshotId.Value,
+            result.Release.Name,
+            result.Findings.Select(static finding => $"{finding.Code}: {finding.Message}").ToArray());
+    }
+
     public static ReleasePageViewModel ToReleasePageViewModel(ReleasePage page)
     {
         ArgumentNullException.ThrowIfNull(page);

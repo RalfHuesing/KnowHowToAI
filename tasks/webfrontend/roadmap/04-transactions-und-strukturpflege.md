@@ -61,7 +61,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Erfolg, Validierungsfehler, Konflikt, Wiederholung und Discard.
     - Abnahme: Transaction-Lebenszyklus ist vollständig ohne MCP bedienbar.
 
-  - [ ] **M4.2-T4 – Release aus committed Snapshot anlegen**
+  - [x] **M4.2-T4 – Release aus committed Snapshot anlegen**
     - Umfang: Release-Name und optionale Beschreibung erfassen, einen committed Snapshot explizit auswählen und `ReleaseService.CreateReleaseAsync` aufrufen.
     - Regeln: keine Transaction erforderlich; Working oder nicht vorhandene Snapshots bleiben unzulässig; Warnungen blockieren das Release nicht.
     - Tests: Erfolg, Namenskonflikt, fehlender/uncommitted Snapshot, Findingsanzeige und Navigation zum erzeugten Release.

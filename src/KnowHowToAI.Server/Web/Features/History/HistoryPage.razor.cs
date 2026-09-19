@@ -46,6 +46,8 @@ public sealed partial class HistoryPage
     private string? _diffErrorMessage;
     private bool _isLoadingDiff;
     private bool _isLoading = true;
+    private CreateReleaseDialog? _createReleaseDialog;
+    private CreateReleaseViewModel? _createdRelease;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,6 +64,19 @@ public sealed partial class HistoryPage
     private Task LoadNextReleasePageAsync() => LoadReleasePageAsync(_releases?.NextCursor);
 
     private Task LoadNextDiffPageAsync() => LoadDiffPageAsync(_diff?.NextCursor);
+
+    private async Task OpenCreateReleaseDialogAsync()
+    {
+        _createdRelease = null;
+        if (_createReleaseDialog is not null)
+            await _createReleaseDialog.OpenAsync();
+    }
+
+    private async Task ReleaseCreatedAsync(CreateReleaseViewModel release)
+    {
+        _createdRelease = release;
+        await LoadReleasePageAsync(cursor: null);
+    }
 
     private async Task SelectBaseSnapshotAsync(long snapshotId)
     {

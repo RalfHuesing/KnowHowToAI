@@ -70,3 +70,11 @@
     padding: var(--ktai-space-1) var(--ktai-space-2);
     font: inherit;
 }
+
+.history-page__release-result {
+    display: grid;
+    gap: var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-primary);
+    border-radius: var(--ktai-radius-small);
+    padding: var(--ktai-space-3);
+}

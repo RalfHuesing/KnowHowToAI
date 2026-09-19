@@ -162,6 +162,7 @@ public sealed class HistoryReadParityTests : BunitContext
         Services.AddSingleton(historyService);
         Services.AddSingleton(releaseService);
         Services.AddSingleton(new PageRegionState());
+        JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js").Mode = JSRuntimeMode.Loose;
         Services.GetRequiredService<NavigationManager>().NavigateTo(
             $"/history?baseSnapshotId={BaseSnapshotId.Value}&targetSnapshotId={TargetSnapshotId.Value}");
 

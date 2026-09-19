@@ -1,4 +1,5 @@
 @page "/history"
+@using KnowHowToAI.Server.Web.Components.Shared.Dialogs
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.History
@@ -9,6 +10,10 @@
     <header class="history-page__header">
         <h1>Historie und Releases</h1>
         <p>Committed Snapshots und Releases sind unveränderliche Wissensstände.</p>
+        <button type="button" class="history-page__next" @onclick="OpenCreateReleaseDialogAsync"
+                disabled="@(_snapshots is null || _snapshots.Items.Count == 0)" data-testid="create-release-button">
+            Release anlegen
+        </button>
     </header>
 
     <section class="history-page__notice" aria-label="Abgrenzung von Working Transactions" data-testid="history-working-separation">
@@ -95,6 +100,29 @@
 
         <section class="history-page__section" aria-labelledby="releases-heading">
             <h2 id="releases-heading">Releases</h2>
+            @if (_createdRelease is not null)
+            {
+                <section class="history-page__release-result" role="status" data-testid="release-created">
+                    <p>Release „@_createdRelease.Name“ für Snapshot @_createdRelease.SnapshotId wurde angelegt.</p>
+                    @if (_createdRelease.Findings.Count == 0)
+                    {
+                        <p>Für den Snapshot liegen keine Qualitätsbefunde vor.</p>
+                    }
+                    else
+                    {
+                        <p>Der Release wurde trotz folgender Qualitätsbefunde angelegt:</p>
+                        <ul data-testid="release-created-findings">
+                            @foreach (var finding in _createdRelease.Findings)
+                            {
+                                <li>@finding</li>
+                            }
+                        </ul>
+                    }
+                    <button type="button" @onclick="() => NavigateToRelease(_createdRelease.ReleaseId)" data-testid="release-created-navigate">
+                        Release öffnen
+                    </button>
+                </section>
+            }
             @if (!string.IsNullOrWhiteSpace(_releaseErrorMessage))
             {
                 <div role="alert" data-testid="release-list-error">
@@ -131,4 +159,8 @@
             }
         </section>
     }
+
+    <CreateReleaseDialog @ref="_createReleaseDialog"
+                         Snapshots="@(_snapshots?.Items ?? [])"
+                         OnCreated="ReleaseCreatedAsync" />
 </section>
