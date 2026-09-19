@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using KnowHowToAI.Web.Tests.TestSupport;
 
-namespace KnowHowToAI.Web.Tests.Features.Shell;
+namespace KnowHowToAI.Web.Tests.Components.Layout;
 
 [Trait("Category", "Unit")]
 public sealed class MainLayoutTests : ShellTestContext

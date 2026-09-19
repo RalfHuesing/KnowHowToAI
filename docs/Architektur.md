@@ -313,8 +313,10 @@ erfordern eine manuelle Diff-Prüfung, eine automatische Baselineaktualisierung
 im regulären Lauf findet nicht statt.
 
 Die Testablagen sind nach Prüfgegenstand benannt: Komponententests liegen in
-`KnowHowToAI.Web.Tests` unter `Components/{Layout,Shared}` beziehungsweise
-`Features/<Feature>`; vollständige Benutzerabläufe entstehen in
+`KnowHowToAI.Web.Tests` unter `Components/{Layout,Shared}` (Layout- und
+Shared-Komponenten), `Features/<Feature>` (echte Feature-Seiten wie Dashboard)
+und `TestSupport/` (Showcase- und Token-Fixture-Tests: `UiBasisShowcase`,
+`DesignTokens`); vollständige Benutzerabläufe entstehen in
 `KnowHowToAI.BrowserTests` unter `ReadOnly/` (Shell, Navigation, Reconnect)
 und den featurebezogenen Ordnern `Transactions/`, `Content/`, `PdfExport/`
 und `Assets/`, sobald die zuständigen Milestones sie befüllen.

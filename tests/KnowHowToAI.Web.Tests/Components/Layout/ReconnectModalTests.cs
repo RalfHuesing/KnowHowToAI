@@ -1,7 +1,7 @@
 using Bunit;
 using KnowHowToAI.Server.Web.Components.Layout;
 
-namespace KnowHowToAI.Web.Tests.Features.Shell;
+namespace KnowHowToAI.Web.Tests.Components.Layout;
 
 [Trait("Category", "Unit")]
 public sealed class ReconnectModalTests : BunitContext

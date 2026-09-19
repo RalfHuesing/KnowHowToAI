@@ -1,9 +1,8 @@
 using Bunit;
 using KnowHowToAI.TestSupport;
-using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.Playwright;
-
-namespace KnowHowToAI.Web.Tests.Features.DesignTokens;
+ 
+namespace KnowHowToAI.Web.Tests.TestSupport;
 
 /// <summary>
 /// Rendert das Showcase-Fixture (nur Testunterstützung, keine Route im

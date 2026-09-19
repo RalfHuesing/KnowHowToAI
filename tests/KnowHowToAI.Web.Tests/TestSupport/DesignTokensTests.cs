@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using KnowHowToAI.TestSupport;
 
-namespace KnowHowToAI.Web.Tests.Features.DesignTokens;
+namespace KnowHowToAI.Web.Tests.TestSupport;
 
 /// <summary>
 /// Belegt die zentralen Design-Tokens aus <c>wwwroot/css/app.css</c>

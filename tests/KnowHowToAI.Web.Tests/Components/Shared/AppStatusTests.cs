@@ -1,7 +1,7 @@
 using Bunit;
 using KnowHowToAI.Server.Web.Components.Shared;
 
-namespace KnowHowToAI.Web.Tests.Features.Shared;
+namespace KnowHowToAI.Web.Tests.Components.Shared;
 
 [Trait("Category", "Unit")]
 public sealed class AppStatusTests : BunitContext
