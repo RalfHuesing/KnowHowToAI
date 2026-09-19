@@ -22,4 +22,6 @@ public sealed record McpNodeData(
     [property: JsonPropertyName("contentRevisionId")]
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ContentRevisionId = null,
     [property: JsonPropertyName("content")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Content = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Content = null,
+    [property: JsonPropertyName("sourceRevisions")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<McpSourceRevisionData>? SourceRevisions = null);

@@ -1,7 +1,12 @@
 using Bunit;
+using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
+using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.TestSupport;
@@ -16,6 +21,21 @@ public sealed class KnowledgeTreeTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
     private static readonly RoleId DefaultRoleId = new("Developer");
+
+    private sealed class CountingHierarchyRepository(IHierarchyRepository inner) : IHierarchyRepository
+    {
+        public int CallCount { get; private set; }
+
+        public async Task<IReadOnlyList<Node>> ListBySnapshotAsync(
+            SnapshotId snapshotId,
+            CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            return await inner.ListBySnapshotAsync(snapshotId, cancellationToken);
+        }
+
+        public void Reset() => CallCount = 0;
+    }
 
     [Fact]
     public void KnowledgeTree_RendersEmptyState_WhenNoVisualRoot()
@@ -202,5 +222,76 @@ public sealed class KnowledgeTreeTests : BunitContext
         // Zurückblättern auf Seite 1
         await cut.InvokeAsync(() => prevBtn.Click());
         Assert.Equal(100, treeState.RootNode.Children.Count);
+    }
+
+    [Fact]
+    public async Task KnowledgeTree_RendersAvailabilityFreshnessAndFindingBadgesFromTheChildrenPage()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        var explicitId = new NodeId(Guid.NewGuid());
+        var fallbackId = new NodeId(Guid.NewGuid());
+        var staleId = new NodeId(Guid.NewGuid());
+        var sourceId = new NodeId(Guid.NewGuid());
+        var defaultRoleId = new RoleId("Default");
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+        harness.AddNode(new Node(DefaultSnapshotId, explicitId, rootId, "Explicit", null, 1, false));
+        harness.AddNode(new Node(DefaultSnapshotId, fallbackId, rootId, "Fallback", null, 2, false));
+        harness.AddNode(new Node(DefaultSnapshotId, staleId, rootId, "Stale", null, 3, false));
+        harness.AddNode(new Node(DefaultSnapshotId, sourceId, rootId, "Source", null, 4, false));
+        harness.AddRole(new Role(DefaultSnapshotId, defaultRoleId, "Default", null, false));
+        harness.AddRoleResolution(new RoleResolution(DefaultSnapshotId, DefaultRoleId, defaultRoleId, 2));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, explicitId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Explicit", false));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, fallbackId, defaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Fallback", false));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, staleId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Stale", false));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, sourceId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Changed source", false));
+        harness.AddDependency(new ContentDependency(DefaultSnapshotId, staleId, DefaultRoleId, sourceId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid())));
+
+        var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
+        Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.ExpandNodeAsync(rootId.Value);
+
+        var cut = Render<KnowledgeTree>();
+
+        Assert.NotNull(cut.Find($"[data-testid='tree-badge-none-{rootId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='tree-badge-explicit-{explicitId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='tree-badge-fallback-{fallbackId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='tree-badge-stale-{staleId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='tree-badge-findings-{staleId.Value}']"));
+        Assert.Empty(cut.FindAll($"[data-testid='tree-badge-findings-{explicitId.Value}']"));
+    }
+
+    [Fact]
+    public async Task KnowledgeTree_Expand_LoadsExactlyOneHundredItemPage()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+        for (var index = 1; index <= 101; index++)
+            harness.AddNode(new Node(DefaultSnapshotId, new NodeId(Guid.NewGuid()), rootId, $"Child {index:D3}", null, index, false));
+
+        var repositories = harness.CreateRepositories();
+        var hierarchy = new CountingHierarchyRepository(repositories.Hierarchy);
+        var service = new NavigationService(
+            repositories with { Hierarchy = hierarchy },
+            new RetrievalPolicy
+            {
+                DefaultPageSize = 100,
+                MaximumPageSize = 100,
+                SearchPageSize = 10,
+                SearchMaximumPageSize = 100,
+                SnippetMaximumCharacters = 100
+            });
+        var treeState = new KnowledgeTreeState(service);
+
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        hierarchy.Reset();
+        await treeState.ExpandNodeAsync(rootId.Value);
+
+        Assert.Equal(1, hierarchy.CallCount);
+        Assert.Equal(100, treeState.RootNode!.Children.Count);
+        Assert.True(treeState.RootNode.HasNextPage);
     }
 }

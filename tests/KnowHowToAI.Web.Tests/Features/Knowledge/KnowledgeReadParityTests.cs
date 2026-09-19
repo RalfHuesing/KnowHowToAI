@@ -211,6 +211,34 @@ public sealed class KnowledgeReadParityTests
     }
 
     [Fact]
+    public void GetNode_WithDerivedProvenance_UiAndMcpMapTheSameSourceRevisionAndFreshness()
+    {
+        var sourceNodeId = new NodeId(Guid.NewGuid());
+        var sourceRevisionId = new ContentRevisionId(Guid.NewGuid());
+        var node = new Node(TestSnapshotId, RootId, null, "Derived", null, 0, false);
+        var content = new NodeContent(TestSnapshotId, RootId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false);
+        var nodeWithContent = new NodeWithContent(
+            node,
+            RoleDeveloper,
+            RoleDeveloper,
+            Availability.Explicit,
+            FallbackUsed: false,
+            content,
+            Freshness.Stale,
+            [new DerivedSourceRevision(sourceNodeId, RoleDefault, sourceRevisionId, Freshness.Stale)]);
+
+        var mcp = McpNavigationMapper.ToEnvelope(Result<NodeWithContent>.Success(nodeWithContent)).Data!;
+        var ui = KnowledgeNavigationMapper.ToNodeDetailsViewModel(nodeWithContent)!;
+
+        var mcpSource = Assert.Single(mcp.SourceRevisions!);
+        var uiSource = Assert.Single(ui.SourceRevisions);
+        Assert.Equal(mcpSource.SourceNodeId, uiSource.SourceNodeId.ToString("D"));
+        Assert.Equal(mcpSource.SourceRoleId, uiSource.SourceRoleId);
+        Assert.Equal(mcpSource.SourceContentRevisionId, uiSource.SourceContentRevisionId.ToString("D"));
+        Assert.Equal(mcpSource.Freshness, uiSource.Freshness);
+    }
+
+    [Fact]
     public void GetNode_WithNoContent_UiAndMcpReflectNoneAvailability()
     {
         var node = new Node(TestSnapshotId, RootId, null, "Root", "Desc", 0, false);
@@ -292,6 +320,7 @@ public sealed class KnowledgeReadParityTests
             Assert.Equal(mcpChild.Availability, uiChild.Availability);
             Assert.Equal(mcpChild.ResolvedRole, uiChild.ResolvedRoleId);
             Assert.Equal(mcpChild.Freshness, uiChild.Freshness);
+            Assert.Equal(mcpChild.Findings ?? [], uiChild.Findings ?? []);
         }
     }
 

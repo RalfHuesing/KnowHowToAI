@@ -235,7 +235,6 @@ public sealed partial class KnowledgePage : IDisposable
 
         _nodeDetailsViewModel = KnowledgeNavigationMapper.ToNodeDetailsViewModel(
             result.Value,
-            allDependencies: null,
             changeVersion: WorkspaceState.CurrentChangeVersion);
         _markdownDownloadUrl = CreateMarkdownDownloadUrl(nodeId, roleId);
     }

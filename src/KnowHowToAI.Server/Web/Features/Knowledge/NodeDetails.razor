@@ -112,6 +112,10 @@ else if (ViewModel is not null)
                                 Knoten <code>@rev.SourceNodeId.ToString("N")[..8]…</code>
                                 Rolle <strong>@rev.SourceRoleId</strong>
                                 Revision <code>@rev.SourceContentRevisionId.ToString("N")[..8]…</code>
+                                <span class="node-meta-badge node-meta-badge--@rev.Freshness.ToLowerInvariant()"
+                                      data-testid="node-provenance-freshness">
+                                    Quelle: @MapFreshnessLabel(rev.Freshness)
+                                </span>
                             </span>
                         </li>
                     }

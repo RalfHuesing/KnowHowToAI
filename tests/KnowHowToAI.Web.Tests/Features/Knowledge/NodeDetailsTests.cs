@@ -169,9 +169,10 @@ public sealed class NodeDetailsTests : BunitContext
     public void NodeDetails_WithSourceRevisions_RendersProvenanceSection()
     {
         var sourceRev = new SourceRevisionViewModel(
-            Guid.NewGuid(), "Developer",
-            Guid.NewGuid(), "Architect",
-            Guid.NewGuid());
+            Guid.NewGuid(),
+            "Architect",
+            Guid.NewGuid(),
+            "Stale");
 
         var vm = MakeViewModel(contentMode: "Derived") with
         {
@@ -186,6 +187,7 @@ public sealed class NodeDetailsTests : BunitContext
         var items = cut.FindAll("[data-testid='node-provenance-item']");
         Assert.Single(items);
         Assert.Contains("Architect", items[0].TextContent);
+        Assert.Equal("Quelle: Veraltet", cut.Find("[data-testid='node-provenance-freshness']").TextContent.Trim());
     }
 
     [Fact]

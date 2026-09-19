@@ -13,6 +13,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// <param name="Availability">Verfügbarkeitsstatus als UI-Text.</param>
 /// <param name="ResolvedRoleId">Aufgelöste Rolle (falls vorhanden).</param>
 /// <param name="Freshness">Aktualitätsstatus als UI-Text.</param>
+/// <param name="Findings">Metadata-first Qualitätsbefunde der aufgelösten Node.</param>
 public sealed record ChildNodeViewModel(
     Guid NodeId,
     string Title,
@@ -22,4 +23,5 @@ public sealed record ChildNodeViewModel(
     int ContentSizeBytes,
     string Availability,
     string? ResolvedRoleId,
-    string Freshness);
+    string Freshness,
+    IReadOnlyList<string>? Findings = null);

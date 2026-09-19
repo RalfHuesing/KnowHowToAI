@@ -21,4 +21,5 @@ public sealed record ChildNodeSummary(
     int ContentSizeBytes,
     Availability Availability,
     RoleId? ResolvedRoleId,
-    Freshness Freshness);
+    Freshness Freshness,
+    IReadOnlyList<string>? Findings = null);

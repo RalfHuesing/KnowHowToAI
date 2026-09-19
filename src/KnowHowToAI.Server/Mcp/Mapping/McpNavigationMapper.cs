@@ -66,7 +66,12 @@ internal static class McpNavigationMapper
         node.Availability.ToString(),
         node.Freshness.ToString(),
         node.Content?.ContentRevisionId.ToString(),
-        node.Content?.ContentMd);
+        node.Content?.ContentMd,
+        node.SourceRevisions?.Select(source => new McpSourceRevisionData(
+            source.SourceNodeId.ToString(),
+            source.SourceRoleId.ToString(),
+            source.StoredContentRevisionId.ToString(),
+            source.Freshness.ToString())).ToArray());
 
     private static McpChildrenPageData ToChildrenData(ChildrenPage page) => new(
         page.ParentNodeId?.ToString(),
@@ -79,7 +84,8 @@ internal static class McpNavigationMapper
             item.ContentSizeBytes,
             item.Availability.ToString(),
             item.ResolvedRoleId?.ToString(),
-            item.Freshness.ToString())).ToArray(),
+            item.Freshness.ToString(),
+            item.Findings)).ToArray(),
         page.NextCursor);
 
     private static McpRolePageData ToRolePageData(RolePage page) => new(

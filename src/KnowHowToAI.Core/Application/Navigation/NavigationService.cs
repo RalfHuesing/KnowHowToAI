@@ -1,9 +1,12 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Validation;
+using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Navigation;
 
@@ -220,7 +223,43 @@ public sealed class NavigationService
             resolution.Availability,
             resolution.FallbackUsed,
             resolution.Content,
-            resolution.Freshness));
+            resolution.Freshness,
+            BuildSourceRevisions(node.NodeId, resolution, data)));
+    }
+
+    private static IReadOnlyList<DerivedSourceRevision> BuildSourceRevisions(
+        NodeId targetNodeId,
+        ResolvedNodeContent resolution,
+        SnapshotReadData data)
+    {
+        if (resolution.Content?.ContentMode != ContentMode.Derived || resolution.ResolvedRole is null)
+            return [];
+
+        return data.Dependencies
+            .Where(dependency => dependency.TargetNodeId == targetNodeId
+                && dependency.TargetRoleId == resolution.ResolvedRole)
+            .OrderBy(dependency => dependency.SourceNodeId.Value)
+            .ThenBy(dependency => dependency.SourceRoleId.Value, StringComparer.Ordinal)
+            .Select(dependency => new DerivedSourceRevision(
+                dependency.SourceNodeId,
+                dependency.SourceRoleId,
+                dependency.SourceContentRevisionId,
+                GetSourceFreshness(dependency, data)))
+            .ToArray();
+    }
+
+    private static Freshness GetSourceFreshness(ContentDependency dependency, SnapshotReadData data)
+    {
+        var source = data.Contents.SingleOrDefault(content =>
+            content.NodeId == dependency.SourceNodeId
+            && content.RoleId == dependency.SourceRoleId
+            && !content.IsDeleted);
+
+        return source is not null
+            && source.ContentRevisionId == dependency.SourceContentRevisionId
+            && FreshnessEvaluator.Evaluate(source, data.Contents, data.Dependencies) == Freshness.Current
+            ? Freshness.Current
+            : Freshness.Stale;
     }
 
     private static Result<int> ResolveStartIndex(
@@ -415,6 +454,9 @@ public sealed class NavigationService
             contentSizeBytes,
             resolution.Availability,
             resolution.ResolvedRole,
-            resolution.Freshness));
+            resolution.Freshness,
+            resolution.Freshness == Freshness.Stale
+                ? [QualityWarningCodes.StaleDerivedContent]
+                : []));
     }
 }

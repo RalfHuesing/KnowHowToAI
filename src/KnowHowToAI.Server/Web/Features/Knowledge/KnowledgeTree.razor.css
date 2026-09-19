@@ -115,6 +115,42 @@
     white-space: nowrap;
 }
 
+.tree-node-badges {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-1);
+}
+
+.tree-node-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px var(--ktai-space-1);
+    border-radius: var(--ktai-radius-small);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tree-node-badge--explicit {
+    background-color: var(--ktai-color-success-background);
+    color: var(--ktai-color-success);
+}
+
+.tree-node-badge--fallback,
+.tree-node-badge--stale,
+.tree-node-badge--finding {
+    background-color: var(--ktai-color-warning-background);
+    color: var(--ktai-color-warning);
+}
+
+.tree-node-badge--none {
+    background-color: var(--ktai-color-surface);
+    border: 1px solid var(--ktai-color-border);
+    color: var(--ktai-color-text-secondary);
+}
+
 .tree-node-spinner {
     font-size: 0.8125rem;
     color: var(--ktai-color-primary);

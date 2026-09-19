@@ -2,7 +2,10 @@ using Bunit;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
+using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
@@ -130,5 +133,93 @@ public sealed class KnowledgePageTests : BunitContext
         await cut.InvokeAsync(() => rootNode.Click());
 
         Assert.Contains($"/knowledge/{rootId.Value}", navMan.Uri);
+    }
+
+    [Theory]
+    [InlineData("current", "Eigener Inhalt", "Independent", 0, null)]
+    [InlineData("snapshot", "Eigener Inhalt", "Derived", 1, "Quelle: Aktuell")]
+    [InlineData("working", "Eigener Inhalt", "Derived", 1, "Quelle: Veraltet")]
+    [InlineData("fallback", "Fallback", "Derived", 1, "Quelle: Aktuell")]
+    public void KnowledgePage_RoutedRead_RendersResolvedProvenanceForEveryReadContext(
+        string scenario,
+        string availability,
+        string contentMode,
+        int sourceCount,
+        string? sourceFreshness)
+    {
+        var rootId = new NodeId(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        var sourceId = new NodeId(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+        var historicalSnapshotId = new SnapshotId(2);
+        var workingSnapshotId = new SnapshotId(3);
+        var fallbackSnapshotId = new SnapshotId(4);
+        var transactionId = new TransactionId(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
+        var defaultRoleId = new RoleId("Default");
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Independent", null, 0, false));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, rootId, new RoleId("Developer"), new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Independent content", false));
+        harness.AddRole(new Role(DefaultSnapshotId, defaultRoleId, "Default", null, false));
+        harness.AddRoleResolution(new RoleResolution(DefaultSnapshotId, DefaultRoleId, DefaultRoleId, 1));
+
+        harness.AddHistoricalSnapshot(new Snapshot(historicalSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+        AddDerivedScenario(harness, historicalSnapshotId, rootId, sourceId, new RoleId("Developer"), sourceIsCurrent: true);
+
+        var transaction = new KnowledgeTransaction(transactionId, DefaultSnapshotId, workingSnapshotId, TransactionState.Open, 7, DateTimeOffset.UtcNow, null, null, null, null, null);
+        harness.SetTransaction(transaction);
+        AddDerivedScenario(harness, workingSnapshotId, rootId, sourceId, new RoleId("Developer"), sourceIsCurrent: false);
+
+        harness.AddHistoricalSnapshot(new Snapshot(fallbackSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+        harness.AddRole(new Role(fallbackSnapshotId, defaultRoleId, "Default", null, false));
+        harness.AddRoleResolution(new RoleResolution(fallbackSnapshotId, defaultRoleId, defaultRoleId, 1));
+        harness.AddRoleResolution(new RoleResolution(fallbackSnapshotId, new RoleId("Developer"), defaultRoleId, 2));
+        AddDerivedScenario(harness, fallbackSnapshotId, rootId, sourceId, defaultRoleId, sourceIsCurrent: true);
+
+        var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
+        var treeState = new KnowledgeTreeState(service);
+        var workspaceState = new WorkspaceState();
+        var contextResolver = new WebReadContextResolver(new FakeReleaseRepository(), harness.CreateRepositories().Transactions);
+        Services.AddSingleton(service);
+        Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddSingleton(workspaceState);
+        Services.AddSingleton(new PageRegionState());
+        Services.AddSingleton(contextResolver);
+        Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
+        Services.AddSingleton(new ContextSelectorState());
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
+
+        var query = scenario switch
+        {
+            "snapshot" => $"?snapshotId={historicalSnapshotId.Value}&roleId=Developer",
+            "working" => $"?transactionId={transactionId.Value:D}&roleId=Developer",
+            "fallback" => $"?snapshotId={fallbackSnapshotId.Value}&roleId=Developer",
+            _ => "?roleId=Developer"
+        };
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"/knowledge/{rootId.Value:D}{query}");
+
+        var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, rootId.Value));
+
+        Assert.Equal(availability, cut.Find("[data-testid='node-details-availability']").TextContent.Trim());
+        Assert.Equal(contentMode == "Derived" ? "Abgeleitet" : "Eigenständig", cut.Find("[data-testid='node-details-content-mode']").TextContent.Trim());
+        Assert.Equal(sourceCount, cut.FindAll("[data-testid='node-provenance-item']").Count);
+        if (sourceFreshness is not null)
+            Assert.Equal(sourceFreshness, cut.Find("[data-testid='node-provenance-freshness']").TextContent.Trim());
+    }
+
+    private static void AddDerivedScenario(
+        NavigationTestHarness harness,
+        SnapshotId snapshotId,
+        NodeId rootId,
+        NodeId sourceId,
+        RoleId contentRoleId,
+        bool sourceIsCurrent)
+    {
+        var storedRevision = new ContentRevisionId(Guid.NewGuid());
+        var currentRevision = sourceIsCurrent ? storedRevision : new ContentRevisionId(Guid.NewGuid());
+        harness.AddNode(new Node(snapshotId, rootId, null, "Derived", null, 0, false));
+        harness.AddNode(new Node(snapshotId, sourceId, rootId, "Source", null, 1, false));
+        harness.AddContent(new NodeContent(snapshotId, rootId, contentRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
+        harness.AddContent(new NodeContent(snapshotId, sourceId, contentRoleId, currentRevision, ContentMode.Independent, "Source content", false));
+        harness.AddDependency(new ContentDependency(snapshotId, rootId, contentRoleId, sourceId, contentRoleId, storedRevision));
     }
 }

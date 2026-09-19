@@ -16,4 +16,5 @@ public sealed record NodeWithContent(
     Availability Availability,
     bool FallbackUsed,
     NodeContent? Content,
-    Freshness Freshness);
+    Freshness Freshness,
+    IReadOnlyList<DerivedSourceRevision>? SourceRevisions = null);

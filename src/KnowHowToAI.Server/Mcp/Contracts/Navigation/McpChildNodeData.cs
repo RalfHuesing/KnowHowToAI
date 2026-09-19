@@ -17,4 +17,6 @@ public sealed record McpChildNodeData(
     [property: JsonPropertyName("availability")] string Availability,
     [property: JsonPropertyName("resolvedRole")]
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ResolvedRole,
-    [property: JsonPropertyName("freshness")] string Freshness);
+    [property: JsonPropertyName("freshness")] string Freshness,
+    [property: JsonPropertyName("findings")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<string>? Findings = null);

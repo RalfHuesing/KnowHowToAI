@@ -6,6 +6,7 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
 
@@ -101,6 +102,47 @@ public sealed class NavigationServiceTests
         Assert.Equal(Child1NodeId, result.Value.Node!.NodeId);
         Assert.Equal("Child 1", result.Value.Node.Title);
         Assert.Equal(Availability.Explicit, result.Value.Availability);
+    }
+
+    [Fact]
+    public async Task GetNodeAsync_DerivedContent_ReturnsStoredSourceRevisionAndCurrentFreshness()
+    {
+        var testHarness = new NavigationTestHarness(CurrentSnapshotId);
+        var sourceRevision = new ContentRevisionId(Guid.NewGuid());
+        testHarness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Derived", null, 0, false));
+        testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Source", null, 1, false));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, RootNodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child1NodeId, RoleDeveloper, sourceRevision, ContentMode.Independent, "Source content", false));
+        testHarness.AddDependency(new ContentDependency(CurrentSnapshotId, RootNodeId, RoleDeveloper, Child1NodeId, RoleDeveloper, sourceRevision));
+
+        var result = await testHarness.CreateService().GetNodeAsync(RootNodeId, new ReadContext(), RoleDeveloper);
+
+        Assert.True(result.IsSuccess);
+        var source = Assert.Single(result.Value!.SourceRevisions!);
+        Assert.Equal(Child1NodeId, source.SourceNodeId);
+        Assert.Equal(RoleDeveloper, source.SourceRoleId);
+        Assert.Equal(sourceRevision, source.StoredContentRevisionId);
+        Assert.Equal(Freshness.Current, source.Freshness);
+    }
+
+    [Fact]
+    public async Task ListChildrenAsync_StaleDerivedContent_ReturnsFindingWithoutLoadingContent()
+    {
+        var testHarness = new NavigationTestHarness(CurrentSnapshotId);
+        var storedRevision = new ContentRevisionId(Guid.NewGuid());
+        testHarness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Root", null, 0, false));
+        testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Derived", null, 1, false));
+        testHarness.AddNode(new Node(CurrentSnapshotId, Child2NodeId, RootNodeId, "Source", null, 2, false));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child1NodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child2NodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Changed source", false));
+        testHarness.AddDependency(new ContentDependency(CurrentSnapshotId, Child1NodeId, RoleDeveloper, Child2NodeId, RoleDeveloper, storedRevision));
+
+        var result = await testHarness.CreateService().ListChildrenAsync(new ListChildrenQuery(RootNodeId, new ReadContext(), RoleDeveloper));
+
+        Assert.True(result.IsSuccess);
+        var derived = Assert.Single(result.Value!.Items.Where(item => item.NodeId == Child1NodeId));
+        Assert.Equal(Freshness.Stale, derived.Freshness);
+        Assert.Equal([QualityWarningCodes.StaleDerivedContent], derived.Findings);
     }
 
     [Fact]

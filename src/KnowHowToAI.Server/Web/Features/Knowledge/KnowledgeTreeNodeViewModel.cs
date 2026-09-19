@@ -1,5 +1,7 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Validation;
+using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge;
 
@@ -58,7 +60,10 @@ public sealed record KnowledgeTreeNodeViewModel
             contentSizeBytes,
             nodeWithContent.Availability.ToString(),
             nodeWithContent.ResolvedRoleId?.Value,
-            nodeWithContent.Freshness.ToString());
+            nodeWithContent.Freshness.ToString(),
+            nodeWithContent.Freshness == Freshness.Stale
+                ? [QualityWarningCodes.StaleDerivedContent]
+                : []);
 
         return new KnowledgeTreeNodeViewModel
         {
