@@ -14,7 +14,7 @@ internal static class McpRetrievalMapper
 {
     public static McpToolEnvelope<McpSearchPageData> ToEnvelope(Result<SearchResultPage> result) =>
         result.IsSuccess
-            ? McpToolEnvelope<McpSearchPageData>.Success(ToSearchData(result.Value!))
+            ? McpToolEnvelope<McpSearchPageData>.Success(ToSearchData(result.Value!), MapWarnings(result))
             : McpToolEnvelope<McpSearchPageData>.Failure(result.Error!, MapWarnings(result));
 
     public static McpToolEnvelope<McpExportTreeData> ToExportEnvelope(Result<string> result) =>
