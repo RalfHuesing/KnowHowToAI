@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge;
 
@@ -7,15 +8,25 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// Nativer Blazor-Wissensbaum mit seitenbegrenztem Paging,
 /// WAI-ARIA-Treeview-Semantik und Roving-Tabindex-Tastaturnavigation.
 /// </summary>
-public sealed partial class KnowledgeTree : IDisposable
+public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
 {
+    private const string ModulePath = "./Web/Features/Knowledge/KnowledgeTree.razor.js";
+
     [Inject]
     public IKnowledgeTreeWorkspace TreeWorkspace { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; } = default!;
+
+    [Inject]
+    private ILogger<KnowledgeTree>? Logger { get; set; }
 
     [Parameter]
     public EventCallback<Guid> OnNodeSelected { get; set; }
 
     private readonly Dictionary<Guid, ElementReference> _nodeElements = new();
+    private ElementReference _treeElement;
+    private Task<IJSObjectReference>? _moduleTask;
     private Guid? _focusedNodeId;
     private Guid? _lastSelectedNodeId;
     private bool _isDisposed;
@@ -45,6 +56,19 @@ public sealed partial class KnowledgeTree : IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender && _treeElement.Id is not null)
+        {
+            try
+            {
+                var module = await EnsureModuleAsync();
+                await module.InvokeVoidAsync("initTreeKeyboard", _treeElement);
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogDebug(ex, "Wissensbaum-Tastaturmodul konnte nicht initialisiert werden.");
+            }
+        }
+
         var selectedNodeId = TreeWorkspace.SelectedNodeId;
         if (selectedNodeId is not { } nodeId || _lastSelectedNodeId == nodeId || !_nodeElements.TryGetValue(nodeId, out var element))
             return;
@@ -209,6 +233,29 @@ public sealed partial class KnowledgeTree : IDisposable
             foreach (var child in node.Children)
             {
                 AddVisible(child, list);
+            }
+        }
+    }
+
+    private Task<IJSObjectReference> EnsureModuleAsync() =>
+        _moduleTask ??= JSRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath).AsTask();
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_moduleTask is not null)
+        {
+            try
+            {
+                var module = await _moduleTask;
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException ex)
+            {
+                Logger?.LogDebug(ex, "JS-Verbindung beim Entsorgen des Wissensbaum-Moduls bereits getrennt.");
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogDebug(ex, "Wissensbaum-Tastaturmodul konnte nicht regulär freigegeben werden.");
             }
         }
     }

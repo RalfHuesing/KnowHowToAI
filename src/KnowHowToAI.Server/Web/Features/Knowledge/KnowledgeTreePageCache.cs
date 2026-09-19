@@ -90,12 +90,17 @@ internal sealed class KnowledgeTreePageCache
 
     public EvictionResult? EvictIfNecessary(
         Func<Guid, KnowledgeTreeNodeViewModel?> nodeResolver,
-        Guid? selectedNodeId)
+        Guid? selectedNodeId,
+        IEnumerable<Guid>? protectedPath = null)
     {
         if (_loadedPages.Count < MaxLoadedPages)
             return null;
 
         var selectionPath = BuildSelectionPath(nodeResolver, selectedNodeId);
+        if (protectedPath is not null)
+        {
+            selectionPath.UnionWith(protectedPath);
+        }
 
         // 1. Suche unselektierten Teilbaum
         var unselectedPages = _loadedPages

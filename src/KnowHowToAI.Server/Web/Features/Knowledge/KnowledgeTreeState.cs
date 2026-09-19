@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 
@@ -16,11 +15,10 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     private readonly NavigationService _navigationService;
     private readonly KnowledgeTreePageCache _cache = new();
     private readonly Dictionary<Guid, KnowledgeTreeNodeViewModel> _knownNodes = new();
-    private readonly ConcurrentDictionary<Guid, ActiveNodeRequest> _activeNodeRequests = new();
-    private long _nextRequestId;
+    private readonly KnowledgeTreeRequestCoordinator _requestCoordinator = new();
+    private HashSet<Guid>? _activeTargetPath;
 
     private int _contextGeneration;
-    private CancellationTokenSource _globalCts = new();
     private bool _isDisposed;
 
     public KnowledgeTreeState(NavigationService navigationService)
@@ -31,47 +29,32 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     public KnowledgeTreeNodeViewModel? RootNode { get; private set; }
 
     public KnowledgeTreeNodeViewModel? VisualRootNode =>
-        VisualRootNodeId.HasValue && RootNode is not null
-            ? FindNode(VisualRootNodeId.Value) ?? RootNode
-            : RootNode;
+        VisualRootNodeId.HasValue && RootNode is not null ? FindNode(VisualRootNodeId.Value) ?? RootNode : RootNode;
 
     public Guid? SelectedNodeId { get; private set; }
-
     public string? StatusMessage { get; private set; }
-
     public bool IsLoading { get; private set; }
-
     public string? RootError { get; private set; }
-
     public IReadOnlyList<KnowledgeTreeNodeViewModel> Breadcrumbs => GetBreadcrumbPath();
-
     public event Action? Changed;
 
     internal ReadContext CurrentReadContext { get; private set; } = new();
-
     internal string? CurrentRoleId { get; private set; }
-
     internal Guid? VisualRootNodeId { get; private set; }
-
     internal int LoadedPageCount => _cache.LoadedPageCount;
-
     internal int KnownNodeCount => _knownNodes.Count;
 
     bool IKnowledgeTreeWorkspace.HasContext(ReadContext readContext, string roleId) =>
         CurrentReadContext == readContext && CurrentRoleId == roleId;
 
-    public async Task InitializeAsync(
-        ReadContext context,
-        string roleId,
-        CancellationToken cancellationToken = default)
+    public async Task InitializeAsync(ReadContext context, string roleId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentException.ThrowIfNullOrWhiteSpace(roleId);
-
         ThrowIfDisposed();
 
         var generation = Interlocked.Increment(ref _contextGeneration);
-        CancelAllActiveRequests();
+        _requestCoordinator.CancelAll();
 
         CurrentReadContext = context;
         CurrentRoleId = roleId;
@@ -83,21 +66,21 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
         _cache.Clear();
         _knownNodes.Clear();
-
         IsLoading = true;
         Changed?.Invoke();
 
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_globalCts.Token, cancellationToken);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_requestCoordinator.GlobalToken, cancellationToken);
         await LoadRootAsync(context, roleId, generation, linkedCts.Token).ConfigureAwait(false);
     }
 
     public async Task ExpandNodeAsync(Guid nodeId, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-
         var node = FindNode(nodeId);
         if (node is null || !node.HasChildren || (node.IsExpanded && node.Children.Count > 0))
+        {
             return;
+        }
 
         var success = await LoadChildrenPageAsync(node, cursor: null, cancellationToken).ConfigureAwait(false);
         if (success)
@@ -110,12 +93,13 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     public void CollapseNode(Guid nodeId)
     {
         ThrowIfDisposed();
-
         var node = FindNode(nodeId);
         if (node is null)
+        {
             return;
+        }
 
-        CancelActiveNodeRequest(nodeId);
+        _requestCoordinator.CancelRequest(nodeId);
         node.IsExpanded = false;
         Changed?.Invoke();
     }
@@ -123,14 +107,14 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     public async Task PageNextAsync(Guid nodeId, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-
         var node = FindNode(nodeId);
         if (node is null || string.IsNullOrEmpty(node.NextCursor))
+        {
             return;
+        }
 
         var nextCursor = node.NextCursor;
         _cache.PushCurrentCursor(nodeId);
-
         var success = await LoadChildrenPageAsync(node, nextCursor, cancellationToken).ConfigureAwait(false);
         if (!success)
         {
@@ -141,10 +125,11 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     public async Task PagePreviousAsync(Guid nodeId, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-
         var node = FindNode(nodeId);
         if (node is null || !_cache.TryPopPreviousCursor(nodeId, out var previousCursor))
+        {
             return;
+        }
 
         var success = await LoadChildrenPageAsync(node, previousCursor, cancellationToken).ConfigureAwait(false);
         if (!success)
@@ -158,18 +143,17 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         ThrowIfDisposed();
 
         if (SelectedNodeId == nodeId && nodeId is not null && _knownNodes.ContainsKey(nodeId.Value))
+        {
             return;
+        }
 
         if (nodeId.HasValue && !_knownNodes.ContainsKey(nodeId.Value))
         {
-            var loader = new KnowledgeTreePathLoader(
-                _navigationService,
-                (id, ct) => ExpandNodeAsync(id, ct),
-                (id, ct) => PageNextAsync(id, ct),
-                id => _knownNodes.ContainsKey(id),
-                FindNode);
-
-            await loader.EnsurePathLoadedAsync(nodeId.Value, CurrentReadContext, CurrentRoleId, cancellationToken).ConfigureAwait(false);
+            var loaded = await TryLoadNodePathAsync(nodeId.Value, cancellationToken).ConfigureAwait(false);
+            if (!loaded)
+            {
+                return;
+            }
         }
 
         SelectedNodeId = nodeId;
@@ -177,16 +161,62 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
         if (nodeId.HasValue && _knownNodes.TryGetValue(nodeId.Value, out var selectedNode))
         {
+            ExpandAncestors(selectedNode);
             if (selectedNode.ParentNodeId.HasValue)
             {
                 _cache.RecordAccess(selectedNode.ParentNodeId.Value);
             }
-
             await RecenterIfAboveVisualRootAsync(selectedNode, cancellationToken).ConfigureAwait(false);
         }
 
         PruneOffPathNodes();
         Changed?.Invoke();
+    }
+
+    private async Task<bool> TryLoadNodePathAsync(Guid nodeId, CancellationToken cancellationToken)
+    {
+        var callbacks = new TreePathLoaderCallbacks(
+            (id, ct) => ExpandNodeAsync(id, ct),
+            (id, ct) => PageNextAsync(id, ct),
+            id => _knownNodes.ContainsKey(id),
+            FindNode,
+            (id, ct) => PagePreviousAsync(id, ct),
+            path => _activeTargetPath = new HashSet<Guid>(path));
+
+        var loader = new KnowledgeTreePathLoader(_navigationService, callbacks);
+        try
+        {
+            var result = await loader.EnsurePathLoadedAsync(nodeId, CurrentReadContext, CurrentRoleId, cancellationToken).ConfigureAwait(false);
+            if (!result.IsSuccess)
+            {
+                if (result.FailedNodeId.HasValue && FindNode(result.FailedNodeId.Value) is { } failedNode)
+                {
+                    failedNode.Error = result.ErrorMessage;
+                }
+
+                StatusMessage = result.ErrorMessage;
+                SelectedNodeId = null;
+                UpdateSelectionFlags(null);
+                PruneOffPathNodes();
+                Changed?.Invoke();
+                return false;
+            }
+            return true;
+        }
+        finally
+        {
+            _activeTargetPath = null;
+        }
+    }
+
+    private void ExpandAncestors(KnowledgeTreeNodeViewModel selectedNode)
+    {
+        var parentId = selectedNode.ParentNodeId;
+        while (parentId.HasValue && _knownNodes.TryGetValue(parentId.Value, out var parentNode))
+        {
+            parentNode.IsExpanded = true;
+            parentId = parentNode.ParentNodeId;
+        }
     }
 
     private void UpdateSelectionFlags(Guid? selectedNodeId)
@@ -201,11 +231,35 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         KnowledgeTreeNodeViewModel selectedNode,
         CancellationToken cancellationToken)
     {
+        if (!IsUnderVisualRoot(selectedNode))
+        {
+            VisualRootNodeId = RootNode?.NodeId;
+        }
+
         if (VisualRootNode is null || selectedNode.Depth >= VisualRootNode.Depth)
+        {
             return;
+        }
 
         VisualRootNodeId = selectedNode.ParentNodeId ?? RootNode?.NodeId;
+        await EnsureVisualRootLoadedAsync(selectedNode, cancellationToken).ConfigureAwait(false);
+        StatusMessage = $"Der Baum wurde auf „{VisualRootNode?.Title ?? RootNode?.Title}“ zentriert.";
+    }
 
+    private bool IsUnderVisualRoot(KnowledgeTreeNodeViewModel selectedNode)
+    {
+        for (var n = selectedNode; n is not null; n = n.ParentNodeId.HasValue && _knownNodes.TryGetValue(n.ParentNodeId.Value, out var p) ? p : null)
+        {
+            if (n.NodeId == VisualRootNodeId)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private async Task EnsureVisualRootLoadedAsync(KnowledgeTreeNodeViewModel selectedNode, CancellationToken cancellationToken)
+    {
         if (selectedNode.ParentNodeId.HasValue && !_cache.IsLoaded(selectedNode.ParentNodeId.Value))
         {
             await ExpandNodeAsync(selectedNode.ParentNodeId.Value, cancellationToken).ConfigureAwait(false);
@@ -214,8 +268,6 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         {
             await ExpandNodeAsync(RootNode.NodeId, cancellationToken).ConfigureAwait(false);
         }
-
-        StatusMessage = $"Der Baum wurde auf „{VisualRootNode?.Title ?? RootNode?.Title}“ zentriert.";
     }
 
     internal KnowledgeTreeNodeViewModel? FindNode(Guid nodeId) =>
@@ -235,7 +287,9 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
                 cancellationToken).ConfigureAwait(false);
 
             if (generation != _contextGeneration)
+            {
                 return;
+            }
 
             if (!result.IsSuccess)
             {
@@ -272,46 +326,16 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         }
     }
 
-    private bool IsCurrentRequest(Guid nodeId, long requestId, int generation) =>
-        _contextGeneration == generation &&
-        _activeNodeRequests.TryGetValue(nodeId, out var active) &&
-        active.RequestId == requestId;
-
-    private ActiveNodeRequest RegisterActiveRequest(
-        Guid nodeId,
-        int generation,
-        CancellationToken cancellationToken)
-    {
-        var requestId = Interlocked.Increment(ref _nextRequestId);
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(_globalCts.Token, cancellationToken);
-        var request = new ActiveNodeRequest(requestId, generation, cts);
-
-        _activeNodeRequests.AddOrUpdate(
-            nodeId,
-            request,
-            (_, old) =>
-            {
-                try { old.Cts.Cancel(); } catch (ObjectDisposedException) { }
-                old.Cts.Dispose();
-                return request;
-            });
-
-        return request;
-    }
-
     private void CompleteActiveRequest(
         Guid nodeId,
         ActiveNodeRequest request,
         KnowledgeTreeNodeViewModel node)
     {
-        if (IsCurrentRequest(nodeId, request.RequestId, request.ContextGeneration))
+        if (_requestCoordinator.TryCompleteRequest(nodeId, request, _contextGeneration))
         {
             node.IsLoading = false;
             Changed?.Invoke();
-            _activeNodeRequests.TryRemove(new KeyValuePair<Guid, ActiveNodeRequest>(nodeId, request));
         }
-
-        request.Cts.Dispose();
     }
 
     private async Task<bool> LoadChildrenPageAsync(
@@ -321,7 +345,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     {
         var generation = _contextGeneration;
         var nodeId = node.NodeId;
-        var activeRequest = RegisterActiveRequest(nodeId, generation, cancellationToken);
+        var activeRequest = _requestCoordinator.RegisterRequest(nodeId, generation, cancellationToken);
 
         node.IsLoading = true;
         node.Error = null;
@@ -338,8 +362,10 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
             var result = await _navigationService.ListChildrenAsync(query, activeRequest.Cts.Token).ConfigureAwait(false);
 
-            if (!IsCurrentRequest(nodeId, activeRequest.RequestId, generation))
+            if (!_requestCoordinator.IsCurrentRequest(nodeId, activeRequest.RequestId, generation, _contextGeneration))
+            {
                 return false;
+            }
 
             if (!result.IsSuccess)
             {
@@ -361,7 +387,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         }
         catch (Exception ex)
         {
-            if (IsCurrentRequest(nodeId, activeRequest.RequestId, generation))
+            if (_requestCoordinator.IsCurrentRequest(nodeId, activeRequest.RequestId, generation, _contextGeneration))
             {
                 node.Error = ex.Message;
             }
@@ -404,7 +430,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
     private void PruneOffPathNodes()
     {
-        var context = new CircuitPruneContext(RootNode, _cache, _knownNodes);
+        var context = new CircuitPruneContext(RootNode, _cache, _knownNodes, _activeTargetPath);
         var (selectedId, visualRootId) = KnowledgeTreeCircuitPruner.Prune(context, SelectedNodeId, VisualRootNodeId);
         SelectedNodeId = selectedId;
         VisualRootNodeId = visualRootId;
@@ -412,9 +438,11 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
     private void ApplyEvictionIfNecessary()
     {
-        var eviction = _cache.EvictIfNecessary(FindNode, SelectedNodeId);
+        var eviction = _cache.EvictIfNecessary(FindNode, SelectedNodeId, _activeTargetPath);
         if (eviction is null)
+        {
             return;
+        }
 
         StatusMessage = eviction.StatusMessage;
         if (eviction.NewVisualRoot is not null)
@@ -426,7 +454,9 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     private IReadOnlyList<KnowledgeTreeNodeViewModel> GetBreadcrumbPath()
     {
         if (SelectedNodeId is not { } selectedId || !_knownNodes.TryGetValue(selectedId, out var current))
+        {
             return RootNode is not null ? new[] { RootNode } : Array.Empty<KnowledgeTreeNodeViewModel>();
+        }
 
         var path = new List<KnowledgeTreeNodeViewModel>();
         for (var node = current; node is not null; node = node.ParentNodeId is { } parentId && _knownNodes.TryGetValue(parentId, out var parent) ? parent : null)
@@ -437,33 +467,6 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         return path;
     }
 
-    private void CancelActiveNodeRequest(Guid nodeId)
-    {
-        if (_activeNodeRequests.TryRemove(nodeId, out var existing))
-        {
-            try { existing.Cts.Cancel(); } catch (ObjectDisposedException) { }
-            existing.Cts.Dispose();
-        }
-    }
-
-    private void CancelAllActiveRequests()
-    {
-        try { _globalCts.Cancel(); } catch (ObjectDisposedException) { }
-        _globalCts.Dispose();
-        _globalCts = new CancellationTokenSource();
-
-        foreach (var kvp in _activeNodeRequests)
-        {
-            if (_activeNodeRequests.TryRemove(kvp.Key, out var req))
-            {
-                try { req.Cts.Cancel(); } catch (ObjectDisposedException) { }
-                req.Cts.Dispose();
-            }
-        }
-
-        _activeNodeRequests.Clear();
-    }
-
     private void ThrowIfDisposed()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
@@ -472,10 +475,11 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     public void Dispose()
     {
         if (_isDisposed)
+        {
             return;
+        }
 
         _isDisposed = true;
-        CancelAllActiveRequests();
-        _globalCts.Dispose();
+        _requestCoordinator.Dispose();
     }
 }

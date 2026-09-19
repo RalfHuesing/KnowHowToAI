@@ -53,60 +53,46 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToBeVisibleAsync();
 
-        // 4. Prüfe, ob Wissensbaum oder Leerer Zustand angezeigt wird
+        // 4. Prüfe, ob Wissensbaum angezeigt wird
         var tree = page.GetByTestId("knowledge-tree");
-        var emptyTree = page.GetByTestId("tree-empty");
+        await Assertions.Expect(tree).ToBeVisibleAsync();
 
-        var hasTree = await tree.CountAsync() > 0;
-        if (hasTree)
+        var rootItem = page.GetByRole(AriaRole.Treeitem).First;
+        await Assertions.Expect(rootItem).ToBeVisibleAsync();
+        await Assertions.Expect(rootItem).ToHaveAttributeAsync("aria-level", "1");
+        await Assertions.Expect(rootItem).ToHaveAttributeAsync("tabindex", "0");
+
+        // Root expandieren über Toggle-Button
+        var toggleBtn = rootItem.Locator("button.tree-toggle-btn");
+        await Assertions.Expect(toggleBtn).ToBeVisibleAsync();
+        await toggleBtn.ClickAsync();
+
+        // Kindknoten auf Ebene 2 prüfen
+        var childItem = page.Locator("div[role='treeitem'][aria-level='2']").First;
+        await Assertions.Expect(childItem).ToBeVisibleAsync();
+
+        // Klick auf Kindknoten -> URL wird aktualisiert
+        await childItem.ClickAsync();
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge/[0-9a-fA-F-]+"));
+
+        // Breadcrumbs zeigen den ausgewählten Knoten als aria-current="page"
+        var currentBreadcrumb = page.Locator("span[aria-current='page']");
+        await Assertions.Expect(currentBreadcrumb).ToBeVisibleAsync();
+
+        // Tastaturnavigation im realen Browser prüfen und sicherstellen, dass kein Fenster-Scrollen stattfand
+        await page.Keyboard.PressAsync("ArrowUp");
+        await page.Keyboard.PressAsync("ArrowDown");
+        var scrollY = await page.EvaluateAsync<double>("() => window.scrollY");
+        Assert.Equal(0, scrollY);
+
+        // Browser-Reload prüfen: Auswahl bleibt aus Route rekonstruiert
+        await page.ReloadAsync(new PageReloadOptions
         {
-            await Assertions.Expect(tree).ToBeVisibleAsync();
-            var rootItem = page.GetByRole(AriaRole.Treeitem).First;
-            await Assertions.Expect(rootItem).ToBeVisibleAsync();
-            await Assertions.Expect(rootItem).ToHaveAttributeAsync("aria-level", "1");
-            await Assertions.Expect(rootItem).ToHaveAttributeAsync("tabindex", "0");
+            WaitUntil = WaitUntilState.DOMContentLoaded,
+            Timeout = 30_000
+        });
 
-            // Wenn der Root Kinder hat (Toggle-Button vorhanden), expandieren
-            var toggleBtn = rootItem.Locator("button.tree-toggle-btn");
-            if (await toggleBtn.CountAsync() > 0)
-            {
-                await toggleBtn.ClickAsync();
-
-                // Kindknoten auf Ebene 2 prüfen
-                var childItem = page.Locator("div[role='treeitem'][aria-level='2']").First;
-                if (await childItem.CountAsync() > 0)
-                {
-                    await Assertions.Expect(childItem).ToBeVisibleAsync();
-
-                    // Klick auf Kindknoten -> URL wird aktualisiert
-                    await childItem.ClickAsync();
-                    await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge/[0-9a-fA-F-]+"));
-
-                    // Breadcrumbs zeigen den ausgewählten Knoten als aria-current="page"
-                    var currentBreadcrumb = page.Locator("span[aria-current='page']");
-                    await Assertions.Expect(currentBreadcrumb).ToBeVisibleAsync();
-
-                    // Tastaturnavigation im realen Browser prüfen
-                    await page.Keyboard.PressAsync("ArrowUp");
-                    await page.Keyboard.PressAsync("ArrowDown");
-
-                    // Browser-Reload prüfen: Auswahl bleibt aus Route rekonstruiert
-                    await page.ReloadAsync(new PageReloadOptions
-                    {
-                        WaitUntil = WaitUntilState.DOMContentLoaded,
-                        Timeout = 30_000
-                    });
-
-                    await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
-                    await Assertions.Expect(currentBreadcrumb).ToBeVisibleAsync();
-                }
-            }
-        }
-        else
-        {
-            // Leerer Zustand bei initialer Datenbank ohne Root
-            await Assertions.Expect(emptyTree).ToBeVisibleAsync();
-            await Assertions.Expect(emptyTree).ToHaveTextAsync("Keine Wissensknoten vorhanden.");
-        }
+        await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
+        await Assertions.Expect(currentBreadcrumb).ToBeVisibleAsync();
     }
 }

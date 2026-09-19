@@ -275,4 +275,129 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         Assert.Equal("Child", breadcrumbs[1].Title);
         Assert.Equal("Grandchild", breadcrumbs[2].Title);
     }
+
+    [Fact]
+    public async Task SelectNodeAsync_TargetOnLaterPagesOfMultipleDeepParents_ReconstructsTreeAndSelection()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+
+        // Root hat 150 Kinder, Branch liegt auf Seite 2 (Kind #120)
+        NodeId? branchId = null;
+        for (var i = 1; i <= 150; i++)
+        {
+            var cid = new NodeId(Guid.NewGuid());
+            if (i == 120) branchId = cid;
+            harness.AddNode(new Node(DefaultSnapshotId, cid, rootId, $"RootChild {i:D3}", null, i, false));
+        }
+
+        // Branch hat 150 Kinder, SubBranch liegt auf Seite 2 (Kind #130)
+        NodeId? subBranchId = null;
+        for (var i = 1; i <= 150; i++)
+        {
+            var cid = new NodeId(Guid.NewGuid());
+            if (i == 130) subBranchId = cid;
+            harness.AddNode(new Node(DefaultSnapshotId, cid, branchId!.Value, $"BranchChild {i:D3}", null, i, false));
+        }
+
+        // SubBranch hat 120 Kinder, Target liegt auf Seite 2 (Kind #110)
+        NodeId? targetId = null;
+        for (var i = 1; i <= 120; i++)
+        {
+            var cid = new NodeId(Guid.NewGuid());
+            if (i == 110) targetId = cid;
+            harness.AddNode(new Node(DefaultSnapshotId, cid, subBranchId!.Value, $"SubBranchChild {i:D3}", null, i, false));
+        }
+
+        var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
+        using var treeState = new KnowledgeTreeState(service);
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+
+        // Direkter Einstieg (z.B. per URL /knowledge/{targetId})
+        await treeState.SelectNodeAsync(targetId!.Value.Value);
+
+        Assert.Equal(targetId.Value.Value, treeState.SelectedNodeId);
+        var targetNode = treeState.FindNode(targetId.Value.Value);
+        Assert.NotNull(targetNode);
+        Assert.True(targetNode.IsSelected);
+
+        // Ancestors sind expandiert
+        var rootNode = treeState.FindNode(rootId.Value);
+        Assert.NotNull(rootNode);
+        Assert.True(rootNode.IsExpanded);
+
+        var branchNode = treeState.FindNode(branchId!.Value.Value);
+        Assert.NotNull(branchNode);
+        Assert.True(branchNode.IsExpanded);
+
+        var subBranchNode = treeState.FindNode(subBranchId!.Value.Value);
+        Assert.NotNull(subBranchNode);
+        Assert.True(subBranchNode.IsExpanded);
+
+        // Vollständige Breadcrumbs
+        var breadcrumbs = treeState.Breadcrumbs;
+        Assert.Equal(4, breadcrumbs.Count);
+        Assert.Equal("Root", breadcrumbs[0].Title);
+        Assert.Equal("RootChild 120", breadcrumbs[1].Title);
+        Assert.Equal("BranchChild 130", breadcrumbs[2].Title);
+        Assert.Equal("SubBranchChild 110", breadcrumbs[3].Title);
+    }
+
+    [Fact]
+    public async Task SelectNodeAsync_NodeNotFound_DoesNotSetInvisibleSelectionAndAnnouncesStatus()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+
+        var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
+        using var treeState = new KnowledgeTreeState(service);
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+
+        var missingId = Guid.NewGuid();
+        await treeState.SelectNodeAsync(missingId);
+
+        // Keine unsichtbare Auswahl!
+        Assert.Null(treeState.SelectedNodeId);
+        Assert.False(treeState.RootNode!.IsSelected);
+        Assert.NotNull(treeState.StatusMessage);
+        Assert.Contains("existiert nicht", treeState.StatusMessage);
+    }
+
+    [Fact]
+    public async Task SelectNodeAsync_BreadcrumbAboveRecenteredVisualRoot_RecentersAndLoadsSubtree()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var currentParentId = (NodeId?)null;
+        var nodeIds = new List<NodeId>();
+
+        for (var depth = 0; depth < 12; depth++)
+        {
+            var nodeId = new NodeId(Guid.NewGuid());
+            nodeIds.Add(nodeId);
+            harness.AddNode(new Node(DefaultSnapshotId, nodeId, currentParentId, $"Level {depth}", null, 1, false));
+            currentParentId = nodeId;
+        }
+
+        var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
+        using var treeState = new KnowledgeTreeState(service);
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+
+        // Direkter Einstieg auf tiefstem Knoten Level 11
+        await treeState.SelectNodeAsync(nodeIds[11].Value);
+
+        Assert.Equal(nodeIds[11].Value, treeState.SelectedNodeId);
+        Assert.True(treeState.LoadedPageCount <= 10);
+
+        // VisualRoot wurde wegen Zehn-Seiten-Grenze rezentriert
+        Assert.NotEqual(nodeIds[0].Value, treeState.VisualRootNodeId);
+
+        // Breadcrumb-Klick auf Level 0 (oberhalb des rezentrierten Ausschnitts)
+        await treeState.SelectNodeAsync(nodeIds[0].Value);
+
+        Assert.Equal(nodeIds[0].Value, treeState.SelectedNodeId);
+        Assert.Equal(nodeIds[0].Value, treeState.VisualRootNodeId);
+        Assert.True(treeState.LoadedPageCount <= 10);
+    }
 }

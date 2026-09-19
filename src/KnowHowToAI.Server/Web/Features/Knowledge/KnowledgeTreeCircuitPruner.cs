@@ -6,7 +6,8 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 internal readonly record struct CircuitPruneContext(
     KnowledgeTreeNodeViewModel? RootNode,
     KnowledgeTreePageCache Cache,
-    Dictionary<Guid, KnowledgeTreeNodeViewModel> KnownNodes);
+    Dictionary<Guid, KnowledgeTreeNodeViewModel> KnownNodes,
+    IEnumerable<Guid>? ProtectedPath = null);
 
 /// <summary>
 /// Bereinigt nicht mehr erreichbare Off-Path-Knoten und deren Cursor-Zustand aus dem Wissensbaum-Circuit.
@@ -54,6 +55,11 @@ internal static class KnowledgeTreeCircuitPruner
         if (context.RootNode is not null)
         {
             allowed.Add(context.RootNode.NodeId);
+        }
+
+        if (context.ProtectedPath is not null)
+        {
+            allowed.UnionWith(context.ProtectedPath);
         }
 
         foreach (var parentId in context.Cache.LoadedPageParentIds)
