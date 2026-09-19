@@ -7,4 +7,5 @@ public sealed record Snapshot(
     SnapshotId? BaseSnapshotId,
     SnapshotState State,
     DateTimeOffset CreatedAtUtc,
-    DateTimeOffset? CommittedAtUtc);
+    DateTimeOffset? CommittedAtUtc,
+    SnapshotCommitMetadata? CommitMetadata = null);

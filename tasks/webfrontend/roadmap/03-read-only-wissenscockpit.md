@@ -183,7 +183,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: isolierter Fehler je Bereich, große Transaction-/Quality-/Diff-Mengen, dependency-only Nodeänderung, stale Deep-Link und fehlender Vorgänger. Repository-Instrumentierung belegt begrenzte Calls/Items; UI zeigt niemals Exception-, SQL- oder Pfadtext.
     - Abnahme: Dashboard bleibt bei Teilausfall verständlich und bei großen Beständen begrenzt; jede Karte führt in den fachlich passenden Detailkontext.
 
-  - [ ] **M3.9-T6 – Historienmetadaten und echten Browser-Diff nachweisen**
+  - [x] **M3.9-T6 – Historienmetadaten und echten Browser-Diff nachweisen**
     - Befund: Die Snapshotliste zeigt ID/Zeit/Basis, aber nicht die im Bedienkonzept verlangte erzeugende Transaction und Commit-Metadaten. Der Browser-Smoke prüft nur Überschriften und den Zustand „Vergleich auswählen“; Listeninhalt, Paging, Kontextübernahme und tatsächliche Diffdarstellung sind damit nicht belegt.
     - Umsetzung: History-Application-Result metadata-first um erzeugende `TransactionId`, Actor/Client/Purpose und Commit Message ergänzen, soweit für den committed Snapshot vorhanden; UI zeigt kompakte Kernmetadaten ohne Storagekopplung. Browserbestand reproduzierbar mit mindestens zwei fachlich unterschiedlichen committed Snapshots und einem Release herstellen.
     - Tests: Application-/SQL-/Mappingfälle für initialen Snapshot und Snapshot mit Transaction-Metadaten. Headless Chrome wählt Snapshot und Release, übernimmt deren Read Context, vergleicht zwei Stände, zeigt repräsentative Node-/Content-/Rollen-/Resolution-/Dependencywerte, blättert eine Diffseite und prüft Nodefilter/Leerergebnis; kein bedingter Erfolgsweg bei leerem Bestand.

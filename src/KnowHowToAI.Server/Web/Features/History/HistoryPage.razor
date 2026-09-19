@@ -48,6 +48,28 @@
                                 {
                                     <span class="history-page__metadata">Basis: Snapshot @baseSnapshotId</span>
                                 }
+                                @if (snapshot.TransactionId is { } transactionId)
+                                {
+                                    <span class="history-page__metadata" data-testid="snapshot-transaction-@snapshot.SnapshotId">
+                                        Transaction @transactionId
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.Actor))
+                                        {
+                                            @: · Actor: @snapshot.Actor
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.Client))
+                                        {
+                                            @: · Client: @snapshot.Client
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.Purpose))
+                                        {
+                                            @: · Zweck: @snapshot.Purpose
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.CommitMessage))
+                                        {
+                                            @: · Commit: @snapshot.CommitMessage
+                                        }
+                                    </span>
+                                }
                             </button>
                             <div class="history-page__selection-actions">
                                 <button type="button" @onclick="() => SelectBaseSnapshotAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-base-@snapshot.SnapshotId">Als Ausgang wählen</button>

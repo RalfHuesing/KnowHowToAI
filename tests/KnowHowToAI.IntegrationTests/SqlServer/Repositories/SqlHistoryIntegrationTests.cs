@@ -52,10 +52,15 @@ public sealed class SqlHistoryIntegrationTests
         var snapshotResult = await historyService.GetSnapshotAsync(initialSnapshot.SnapshotId);
         Assert.True(snapshotResult.IsSuccess);
         Assert.Equal(initialSnapshot.SnapshotId, snapshotResult.Value!.SnapshotId);
+        Assert.Null(snapshotResult.Value.CommitMetadata);
 
         // 2. Begin Transaction
         var tx = await transactionRepo.BeginAsync(
-            new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "HistoryTest"));
+            new BeginTransactionRequest(
+                new TransactionId(Guid.NewGuid()),
+                "History purpose",
+                "History actor",
+                "History client"));
 
         // 3. Add a Node in the working snapshot
         var newNodeId = new NodeId(Guid.Parse("90000000-0000-0000-0000-000000000001"));
@@ -85,7 +90,13 @@ public sealed class SqlHistoryIntegrationTests
         // 7. Die Web-Historie sieht ausschließlich committed Stände und paginiert per Keyset.
         var historyPage = await historyService.ListCommittedSnapshotsAsync(limit: 1, cursor: null);
         Assert.True(historyPage.IsSuccess);
-        Assert.Equal(commitResult.Transaction.WorkingSnapshotId, Assert.Single(historyPage.Value!.Items).SnapshotId);
+        var committedSnapshot = Assert.Single(historyPage.Value!.Items);
+        Assert.Equal(commitResult.Transaction.WorkingSnapshotId, committedSnapshot.SnapshotId);
+        Assert.Equal(tx.TransactionId, committedSnapshot.CommitMetadata!.TransactionId);
+        Assert.Equal("History actor", committedSnapshot.CommitMetadata.Actor);
+        Assert.Equal("History client", committedSnapshot.CommitMetadata.Client);
+        Assert.Equal("History purpose", committedSnapshot.CommitMetadata.Purpose);
+        Assert.Equal("Commit node for history test", committedSnapshot.CommitMetadata.CommitMessage);
         Assert.NotNull(historyPage.Value.NextCursor);
 
         var previousPage = await historyService.ListCommittedSnapshotsAsync(limit: 1, historyPage.Value.NextCursor);

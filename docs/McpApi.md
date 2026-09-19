@@ -191,7 +191,7 @@ Regeln:
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `get_snapshot` | `snapshotId` (erforderlich) | `snapshotId`, `state`, `createdAtUtc`, optional `baseSnapshotId`, optional `committedAtUtc` |
+| `get_snapshot` | `snapshotId` (erforderlich) | `snapshotId`, `state`, `createdAtUtc`, optional `baseSnapshotId`, optional `committedAtUtc`, bei transaktional erzeugten Snapshots optional `transactionId`, `actor`, `client`, `purpose`, `commitMessage` |
 | `list_releases` | `limit`, `cursor` | `items` (je `releaseId`, `snapshotId`, `name`, `releasedAtUtc`, optional `description`), optional `nextCursor` |
 | `compare_snapshots` | `baseSnapshotId`, `targetSnapshotId`, `limit`, `cursor` | paginierte Diff-Kategorien ([Transaktionen und Historie](Transaktionen-und-Historie.md)) |
 | `get_transaction_changes` | `transactionId`, `limit`, `cursor` | paginierte Diff-Kategorien gegen Base/Working beziehungsweise Base/Committed |

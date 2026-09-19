@@ -18,17 +18,21 @@ Die Konfiguration ist strikt nach Verantwortlichkeit getrennt:
 2. **Quality-Policies** warnen, blockieren aber keinen fachlich gültigen Commit.
 3. **Retrieval-/Transportgrenzen** begrenzen Seiten- und Snippetgrößen.
 4. **Storage-/Startparameter** steuern SQL-Timeout und Migrationsverhalten.
-5. **Datenbankverbindungen**: Die versionierten Sektionen `DatabaseConnection`
-   und `BrowserTestDatabaseConnection` in `appsettings.json` enthalten jeweils
-   `Server`, `Database`, `UserName`, `Password`, `UseWindowsAuthentication`.
-   Erstere ist die Verbindung eines normalen Serverprozesses; letztere bezeichnet
-   ausschließlich die manuell bereitgestellte, dedizierte Browser-Testdatenbank
-   `KnowHowToAi_Test`. Der Browser-Testhost liest die zweite Sektion ausschließlich
-   aus der versionierten Datei und übergibt ihre fünf Werte nur prozesslokal als
-   Environment-Overrides der veröffentlichten Test-EXE auf `DatabaseConnection`.
-   Damit bleibt die Produktbindung unverändert, die Browser-Suite benötigt nach
-   Rechnerneustart keine gesetzte Testumgebung und Zugangsdaten stehen nie in
-   Prozessargumenten oder Testdiagnosen. Beide Serverwerte dürfen
+5. **Datenbankverbindungen**: Die versionierten Sektionen `DatabaseConnection`,
+   `BrowserTestDatabaseConnection` und `BrowserVisualTestDatabaseConnection` in
+   `appsettings.json` enthalten jeweils `Server`, `Database`, `UserName`,
+   `Password`, `UseWindowsAuthentication`. Erstere ist die Verbindung eines
+   normalen Serverprozesses. `BrowserTestDatabaseConnection` bezeichnet
+   ausschließlich die manuell bereitgestellte Workflow-Datenbank
+   `KnowHowToAi_BrowserTests`; `BrowserVisualTestDatabaseConnection` bezeichnet
+   den separaten minimalen Datenbestand `KnowHowToAi_Test` für bytegenaue
+   Shell-Baselines. Der Browser-Testhost liest die jeweils benötigte Sektion
+   ausschließlich aus der versionierten Datei und übergibt ihre fünf Werte nur
+   prozesslokal als Environment-Overrides der veröffentlichten Test-EXE auf
+   `DatabaseConnection`. Damit bleibt die Produktbindung unverändert, die
+   Browser-Suite benötigt nach Rechnerneustart keine gesetzte Testumgebung und
+   Zugangsdaten stehen nie in Prozessargumenten oder Testdiagnosen. Alle
+   Serverwerte dürfen
    Windows-Umgebungsplatzhalter enthalten (Default
    `%COMPUTERNAME%\MSSQLSERVER2022`, erst zur Laufzeit expandiert). Es gibt
    **keine** alternative Connection-String-Umgebungsvariable, User Secrets oder
@@ -151,18 +155,25 @@ pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatab
   Die Abhängigkeits- und Befehlsregeln stehen im Strukturkonzept unter
   „Feste Testabhängigkeiten und Befehle“
   (`tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md`).
-- Die Browser-Suite verwendet ausschließlich die manuell bereitgestellte
-  `BrowserTestDatabaseConnection` und startet die veröffentlichte Server-EXE
-  mit `Migrations:ApplyOnStartup=true`. Der Host migriert und initialisiert diese
-  dedizierte Datenbank vor seiner Betriebsbereitschaft selbst. Die gemeinsame
-  Browser-Host-Fixture ergänzt anschließend ausschließlich über den realen MCP-
-  Transport einen deterministischen Read-only-Testbestand mit den Rollen
-  `Default` und `BrowserDownloadReader` sowie einem exportierbaren Teilbaum.
-  Dieser Seed betrifft nie `DatabaseConnection`, erzeugt oder entfernt keine
-  Datenbanken und wird bei erneutem Lauf an seinem festen Testknoten erkannt.
-  Die destruktive `ManualDatabaseIntegration`-Suite
-  verwendet weiterhin ausschließlich `DatabaseConnection`, sodass weder
-  Reihenfolge noch Restzustand der beiden Suiten relevant sind.
+- Die funktionalen Browser-Smokes verwenden ausschließlich die manuell
+  bereitgestellte `BrowserTestDatabaseConnection` (`KnowHowToAi_BrowserTests`)
+  und starten die veröffentlichte Server-EXE mit
+  `Migrations:ApplyOnStartup=true`. Ihr Host migriert und initialisiert diese
+  dedizierte Datenbank vor der Betriebsbereitschaft selbst. Die gemeinsame
+  Workflow-Fixture ergänzt anschließend ausschließlich über den realen
+  MCP-Transport einen deterministischen Bestand mit `Default`,
+  `BrowserDownloadReader`, exportierbarem Teilbaum, Historienständen und Release.
+  Diese Seedoperation und Browser-Smokes, die eine Working Transaction öffnen,
+  teilen einen schmalen Prozess-Gate; die erzeugte Transaction wird im `finally`
+  über `discard_transaction` auf dem echten MCP-Produktpfad verworfen.
+  Read-only-Smokes bleiben parallel ausführbar.
+- Visuelle Shell-Baselines verwenden ausschließlich
+  `BrowserVisualTestDatabaseConnection` mit einem eigenen Host und dem stabilen,
+  minimalen Read-only-Bestand. Workflow-Smokes beschreiben diese Datenbank nie.
+  Kein Browser-Seed betrifft `DatabaseConnection`, erzeugt oder entfernt eine
+  Datenbank. Die destruktive `ManualDatabaseIntegration`-Suite verwendet
+  weiterhin ausschließlich `DatabaseConnection`, sodass weder Reihenfolge noch
+  Restzustand der drei Datenbanken relevant sind.
 - Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
   die Shell bei 1280 × 720 und 1024 × 720 gegen die versionierten PNG-Baselines
   unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`. Im regulären

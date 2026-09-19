@@ -7,9 +7,21 @@ namespace KnowHowToAI.BrowserTests.TestSupport;
 public sealed class BrowserTestDatabaseSettingsTests
 {
     [Fact]
-    public void Load_ReadsTheDedicatedManuallyProvisionedBrowserDatabase()
+    public void LoadWorkflow_ReadsTheDedicatedManuallyProvisionedWorkflowDatabase()
     {
-        var settings = BrowserTestDatabaseSettings.Load(TestRepositoryRoot.Resolve());
+        var settings = BrowserTestDatabaseSettings.LoadWorkflow(TestRepositoryRoot.Resolve());
+
+        Assert.Equal("KnowHowToAi_BrowserTests", settings.Database);
+        Assert.False(settings.UseWindowsAuthentication);
+        Assert.False(string.IsNullOrWhiteSpace(settings.Server));
+        Assert.False(string.IsNullOrWhiteSpace(settings.UserName));
+        Assert.False(string.IsNullOrWhiteSpace(settings.Password));
+    }
+
+    [Fact]
+    public void LoadVisualShell_ReadsTheDedicatedMinimalVisualDatabase()
+    {
+        var settings = BrowserTestDatabaseSettings.LoadVisualShell(TestRepositoryRoot.Resolve());
 
         Assert.Equal("KnowHowToAi_Test", settings.Database);
         Assert.False(settings.UseWindowsAuthentication);
@@ -25,16 +37,18 @@ public sealed class BrowserTestDatabaseSettingsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                [$"{BrowserTestDatabaseSettings.SectionName}:Server"] = "sqlserver",
-                [$"{BrowserTestDatabaseSettings.SectionName}:Database"] = "KnowHowToAi_Test",
-                [$"{BrowserTestDatabaseSettings.SectionName}:UserName"] = string.Empty,
-                [$"{BrowserTestDatabaseSettings.SectionName}:Password"] = password,
-                [$"{BrowserTestDatabaseSettings.SectionName}:UseWindowsAuthentication"] = "false"
+                [$"{BrowserTestDatabaseSettings.WorkflowSectionName}:Server"] = "sqlserver",
+                [$"{BrowserTestDatabaseSettings.WorkflowSectionName}:Database"] = "KnowHowToAi_BrowserTests",
+                [$"{BrowserTestDatabaseSettings.WorkflowSectionName}:UserName"] = string.Empty,
+                [$"{BrowserTestDatabaseSettings.WorkflowSectionName}:Password"] = password,
+                [$"{BrowserTestDatabaseSettings.WorkflowSectionName}:UseWindowsAuthentication"] = "false"
             })
             .Build();
 
         var exception = Assert.Throws<InvalidOperationException>(
-            () => BrowserTestDatabaseSettings.FromConfiguration(configuration));
+            () => BrowserTestDatabaseSettings.FromConfiguration(
+                configuration,
+                BrowserTestDatabaseSettings.WorkflowSectionName));
 
         Assert.Contains("UserName", exception.Message);
         Assert.DoesNotContain(password, exception.Message);

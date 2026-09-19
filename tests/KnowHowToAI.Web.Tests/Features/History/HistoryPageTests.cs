@@ -37,7 +37,11 @@ public sealed class HistoryPageTests : BunitContext
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='snapshot-diff-target-3']").Click());
         await cut.InvokeAsync(() => cut.Find("[data-testid='snapshot-list-next']").Click());
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-testid='snapshot-select-2']")));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Single(cut.FindAll("[data-testid='snapshot-select-2']"));
+            Assert.Contains("Historie prüfen", cut.Find("[data-testid='snapshot-transaction-2']").TextContent);
+        });
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='snapshot-diff-base-2']").Click());
         cut.WaitForAssertion(() =>
@@ -102,7 +106,18 @@ public sealed class HistoryPageTests : BunitContext
         var harness = new NavigationTestHarness(new SnapshotId(3));
         if (includeHistory)
         {
-            harness.AddHistoricalSnapshot(new Snapshot(new SnapshotId(2), new SnapshotId(1), SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+            harness.AddHistoricalSnapshot(new Snapshot(
+                new SnapshotId(2),
+                new SnapshotId(1),
+                SnapshotState.Committed,
+                DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow,
+                new SnapshotCommitMetadata(
+                    new TransactionId(Guid.Parse("20000000-0000-0000-0000-000000000001")),
+                    "Tester",
+                    "Web",
+                    "Historie prüfen",
+                    "History commit")));
             harness.AddHistoricalSnapshot(new Snapshot(new SnapshotId(1), null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
             var nodeId = new NodeId(ChangedNodeId);
             harness.AddNode(new Node(new SnapshotId(2), nodeId, null, "Vorher", null, 1, false));

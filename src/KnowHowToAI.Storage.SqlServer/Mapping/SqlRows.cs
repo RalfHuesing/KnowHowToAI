@@ -6,7 +6,12 @@ internal sealed record SnapshotRow(
     long? BaseSnapshotId,
     string State,
     DateTime CreatedAtUtc,
-    DateTime? CommittedAtUtc);
+    DateTime? CommittedAtUtc,
+    Guid? TransactionId = null,
+    string? Actor = null,
+    string? Client = null,
+    string? Purpose = null,
+    string? CommitMessage = null);
 
 internal sealed record TransactionRow(
     Guid TransactionId,

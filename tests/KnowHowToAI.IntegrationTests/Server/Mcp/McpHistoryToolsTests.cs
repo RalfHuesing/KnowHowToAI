@@ -346,7 +346,13 @@ public sealed class McpHistoryToolsTests
             new EmptyDependencyRepository());
 
     private static Snapshot CommittedSnapshot(SnapshotId id, SnapshotId? baseId) =>
-        new(id, baseId, SnapshotState.Committed, DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch);
+        new(
+            id,
+            baseId,
+            SnapshotState.Committed,
+            DateTimeOffset.UnixEpoch,
+            DateTimeOffset.UnixEpoch,
+            new SnapshotCommitMetadata(SampleTransactionId, "MCP actor", "MCP client", "MCP purpose", "MCP commit"));
 
     private static Snapshot WorkingSnapshot(SnapshotId id, SnapshotId? baseId = null) =>
         new(id, baseId, SnapshotState.Working, DateTimeOffset.UnixEpoch, null);

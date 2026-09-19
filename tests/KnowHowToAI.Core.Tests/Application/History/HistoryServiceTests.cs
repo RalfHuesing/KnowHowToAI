@@ -59,6 +59,11 @@ public sealed class HistoryServiceTests
         Assert.True(firstPage.IsSuccess);
         var first = Assert.Single(firstPage.Value!.Items);
         Assert.Equal(CommittedSnap2, first.SnapshotId);
+        Assert.Equal(CommittedTxId, first.CommitMetadata!.TransactionId);
+        Assert.Equal("tester", first.CommitMetadata.Actor);
+        Assert.Equal("client", first.CommitMetadata.Client);
+        Assert.Equal("test", first.CommitMetadata.Purpose);
+        Assert.Equal("commit message", first.CommitMetadata.CommitMessage);
         Assert.NotNull(firstPage.Value.NextCursor);
 
         var secondPage = await service.ListCommittedSnapshotsAsync(limit: 1, firstPage.Value.NextCursor);
@@ -283,7 +288,13 @@ public sealed class HistoryServiceTests
         public HistoryTestHarness()
         {
             _store.Snapshots.Add(new Snapshot(CommittedSnap1, null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-            _store.Snapshots.Add(new Snapshot(CommittedSnap2, CommittedSnap1, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+            _store.Snapshots.Add(new Snapshot(
+                CommittedSnap2,
+                CommittedSnap1,
+                SnapshotState.Committed,
+                DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow,
+                new SnapshotCommitMetadata(CommittedTxId, "tester", "client", "test", "commit message")));
             _store.Snapshots.Add(new Snapshot(WorkingSnap, CommittedSnap1, SnapshotState.Working, DateTimeOffset.UtcNow, null));
 
             _store.Transactions[OpenTxId] = new KnowledgeTransaction(

@@ -19,7 +19,12 @@ public static class HistoryMapper
             snapshot.State.ToString(),
             snapshot.CreatedAtUtc,
             snapshot.BaseSnapshotId?.Value,
-            snapshot.CommittedAtUtc);
+            snapshot.CommittedAtUtc,
+            snapshot.CommitMetadata?.TransactionId.Value,
+            snapshot.CommitMetadata?.Actor,
+            snapshot.CommitMetadata?.Client,
+            snapshot.CommitMetadata?.Purpose,
+            snapshot.CommitMetadata?.CommitMessage);
     }
 
     public static ReleaseItemViewModel ToReleaseItemViewModel(Release release)

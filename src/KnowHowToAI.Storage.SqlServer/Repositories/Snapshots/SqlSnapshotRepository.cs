@@ -12,15 +12,26 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Snapshots;
 internal sealed class SqlSnapshotRepository : SqlRepository, ISnapshotRepository
 {
     private const string SelectColumns = """
-        SELECT SnapshotId, BaseSnapshotId, State, CreatedAtUtc, CommittedAtUtc
-        FROM dbo.KnowHowToAI_Snapshot
+        SELECT snapshotRow.SnapshotId,
+               snapshotRow.BaseSnapshotId,
+               snapshotRow.State,
+               snapshotRow.CreatedAtUtc,
+               snapshotRow.CommittedAtUtc,
+               transactionRow.TransactionId,
+               transactionRow.Actor,
+               transactionRow.Client,
+               transactionRow.Purpose,
+               transactionRow.CommitMessage
+        FROM dbo.KnowHowToAI_Snapshot AS snapshotRow
+        LEFT JOIN dbo.KnowHowToAI_Transaction AS transactionRow
+          ON transactionRow.WorkingSnapshotId = snapshotRow.SnapshotId
 
         """;
 
-    private const string FindSql = SelectColumns + "WHERE SnapshotId = @snapshotId;";
+    private const string FindSql = SelectColumns + "WHERE snapshotRow.SnapshotId = @snapshotId;";
 
     private const string CurrentSql = SelectColumns + """
-        WHERE SnapshotId = (
+        WHERE snapshotRow.SnapshotId = (
             SELECT CurrentSnapshotId
             FROM dbo.KnowHowToAI_SystemState
             WHERE Id = 1
@@ -28,9 +39,9 @@ internal sealed class SqlSnapshotRepository : SqlRepository, ISnapshotRepository
         """;
 
     private const string ListCommittedSql = SelectColumns + """
-        WHERE State = @committedState
-          AND (@beforeSnapshotId IS NULL OR SnapshotId < @beforeSnapshotId)
-        ORDER BY SnapshotId DESC
+        WHERE snapshotRow.State = @committedState
+          AND (@beforeSnapshotId IS NULL OR snapshotRow.SnapshotId < @beforeSnapshotId)
+        ORDER BY snapshotRow.SnapshotId DESC
         OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY;
         """;
 

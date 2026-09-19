@@ -174,6 +174,11 @@ Transactions bleiben davon klar getrennt; sie sind keine historische Auswahl und
 werden im Transaction-Arbeitsbereich behandelt. Ein Release navigiert über seine
 stabile `ReleaseId` auf den referenzierten committed Snapshot.
 
+Für jeden durch eine Transaction erzeugten committed Snapshot werden die
+Herkunftsmetadaten metadata-first mitgelesen: `TransactionId`, Actor, Client,
+Purpose und Commit Message. Der initiale Snapshot hat keine erzeugende
+Transaction und zeigt deshalb keine dieser Metadaten.
+
 ## Strukturierter Netto-Diff
 
 `compare_snapshots` vergleicht zwei beliebige committed Snapshots;

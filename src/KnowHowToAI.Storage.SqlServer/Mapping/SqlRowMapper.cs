@@ -14,7 +14,15 @@ internal static class SqlRowMapper
         row.BaseSnapshotId is long baseSnapshotId ? new SnapshotId(baseSnapshotId) : null,
         ToSnapshotState(row.State),
         ToUtc(row.CreatedAtUtc),
-        row.CommittedAtUtc is DateTime committedAtUtc ? ToUtc(committedAtUtc) : null);
+        row.CommittedAtUtc is DateTime committedAtUtc ? ToUtc(committedAtUtc) : null,
+        row.TransactionId is Guid transactionId
+            ? new SnapshotCommitMetadata(
+                new TransactionId(transactionId),
+                row.Actor,
+                row.Client,
+                row.Purpose,
+                row.CommitMessage)
+            : null);
 
     public static KnowledgeTransaction ToTransaction(TransactionRow row) => new(
         new TransactionId(row.TransactionId),

@@ -26,8 +26,32 @@ public sealed class SqlStorageMappingTests
         Assert.Equal(new SnapshotId(42), snapshot.SnapshotId);
         Assert.Equal(SnapshotState.Committed, snapshot.State);
         Assert.Equal(TimeSpan.Zero, snapshot.CreatedAtUtc.Offset);
+        Assert.Null(snapshot.CommitMetadata);
         Assert.Equal(ContentMode.Derived, content.ContentMode);
         Assert.Equal(new RoleId("Developer"), content.RoleId);
+    }
+
+    [Fact]
+    public void ToDomain_MapsCommitMetadataForTransactionGeneratedSnapshot()
+    {
+        var transactionId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+        var snapshot = SqlRowMapper.ToSnapshot(new SnapshotRow(
+            42,
+            41,
+            "Committed",
+            DateTime.UnixEpoch,
+            DateTime.UnixEpoch,
+            transactionId,
+            "Actor",
+            "Client",
+            "Purpose",
+            "Commit message"));
+
+        Assert.Equal(new TransactionId(transactionId), snapshot.CommitMetadata!.TransactionId);
+        Assert.Equal("Actor", snapshot.CommitMetadata.Actor);
+        Assert.Equal("Client", snapshot.CommitMetadata.Client);
+        Assert.Equal("Purpose", snapshot.CommitMetadata.Purpose);
+        Assert.Equal("Commit message", snapshot.CommitMetadata.CommitMessage);
     }
 
     [Fact]

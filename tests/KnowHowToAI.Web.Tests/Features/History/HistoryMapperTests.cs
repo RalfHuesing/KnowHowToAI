@@ -20,7 +20,13 @@ public sealed class HistoryMapperTests
             new SnapshotId(11),
             SnapshotState.Committed,
             now.AddHours(-1),
-            now);
+            now,
+            new SnapshotCommitMetadata(
+                new TransactionId(Guid.Parse("10000000-0000-0000-0000-000000000001")),
+                "Ada",
+                "Web UI",
+                "Katalog aktualisieren",
+                "Metadaten ergänzt"));
 
         var vm = HistoryMapper.ToSnapshotViewModel(snapshot);
 
@@ -29,6 +35,11 @@ public sealed class HistoryMapperTests
         Assert.Equal(now.AddHours(-1), vm.CreatedAtUtc);
         Assert.Equal(11L, vm.BaseSnapshotId);
         Assert.Equal(now, vm.CommittedAtUtc);
+        Assert.Equal(Guid.Parse("10000000-0000-0000-0000-000000000001"), vm.TransactionId);
+        Assert.Equal("Ada", vm.Actor);
+        Assert.Equal("Web UI", vm.Client);
+        Assert.Equal("Katalog aktualisieren", vm.Purpose);
+        Assert.Equal("Metadaten ergänzt", vm.CommitMessage);
     }
 
     [Fact]

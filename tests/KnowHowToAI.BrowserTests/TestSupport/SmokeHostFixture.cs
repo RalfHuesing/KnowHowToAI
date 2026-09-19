@@ -15,7 +15,7 @@ public sealed class SmokeHostFixture : IAsyncLifetime
         var host = await PublishedServerHost.StartAsync();
         try
         {
-            await BrowserKnowledgeSeed.EnsureAsync(host.Address);
+            await BrowserKnowledgeSeed.EnsureWorkflowAsync(host.Address);
             _host = host;
         }
         catch

@@ -147,7 +147,10 @@ Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
 erhalten; Domain-Typen erscheinen nicht im Rendering.
 
 `Web.Features.History` stellt unter `/history` getrennte paginierte Listen für
-committed Snapshots und Releases bereit. Die Seite ruft `HistoryService` und
+committed Snapshots und Releases bereit. Snapshot-Zeilen zeigen neben Zeit und
+Basis die metadata-first gelesene erzeugende Transaction einschließlich Actor,
+Client, Purpose und Commit-Nachricht, soweit der Stand nicht der initiale
+Snapshot ist. Die Seite ruft `HistoryService` und
 `ReleaseService` direkt in-process auf, verwendet ausschließlich History-
 ViewModels und übergibt bei einer Auswahl den jeweiligen `snapshotId`- oder
 `releaseId`-Queryparameter an den bestehenden Web-Read-Context-Resolver. Working
@@ -421,9 +424,10 @@ einer klaren deutschen Fehlermeldung fehl.
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
 kein Produktionsprojekt. Der Serverstart erfolgt einmal pro Testkollektion über
 eine gemeinsame Kollektions-Fixture; Reconnect-Smokes behalten bewusst eigene Hosts.
-Die Suite arbeitet dabei gegen die von der manuellen SQL-Integrationssuite
-getrennte Browser-Testdatenbank gemäß
-[Konfiguration und Betrieb](Konfiguration-und-Betrieb.md#konfigurationstrennung).
+Die funktionalen Smokes arbeiten dabei gegen die von der manuellen
+SQL-Integrationssuite getrennte Browser-Workflowdatenbank; die visuellen
+Shell-Smokes starten ihren eigenen Host gegen einen minimalen, stabilen
+Browserbestand gemäß [Konfiguration und Betrieb](Konfiguration-und-Betrieb.md#konfigurationstrennung).
 Der Testhost wartet nach dem Serverstart auf eine
 erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt;
 die Prozessausgabe wird dabei begrenzt und redigiert im Speicher gesammelt und
@@ -441,7 +445,9 @@ Viewport erst nach den Verhaltensassertionen einen maskierten Light-Theme-
 Screenshot der Shell auf und vergleicht ihn mit der versionierten Baseline
 unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`; Abweichungen
 erfordern eine manuelle Diff-Prüfung, eine automatische Baselineaktualisierung
-im regulären Lauf findet nicht statt.
+im regulären Lauf findet nicht statt. Da sein Host ausschließlich den minimalen
+Read-only-Bestand nutzt, können Historien-, Release- und Transaction-Workflows
+die Pixelbaseline nicht verändern.
 
 Die Testablagen sind nach Prüfgegenstand benannt: Komponententests liegen in
 `KnowHowToAI.Web.Tests` unter `Components/{Layout,Shared}` (Layout- und

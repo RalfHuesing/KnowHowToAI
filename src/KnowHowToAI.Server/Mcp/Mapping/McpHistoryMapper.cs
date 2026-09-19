@@ -25,7 +25,12 @@ internal static class McpHistoryMapper
         s.State.ToString(),
         s.CreatedAtUtc,
         s.BaseSnapshotId?.ToString(),
-        s.CommittedAtUtc);
+        s.CommittedAtUtc,
+        s.CommitMetadata?.TransactionId.ToString(),
+        s.CommitMetadata?.Actor,
+        s.CommitMetadata?.Client,
+        s.CommitMetadata?.Purpose,
+        s.CommitMetadata?.CommitMessage);
 
     // ── compare_snapshots ─────────────────────────────────────────────────────
 

@@ -16,13 +16,13 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 /// regulären Lauf automatisch aktualisiert; eine Abweichung erfordert eine
 /// bewusste Diff-Prüfung mit anschließendem manuellen Übernehmen.
 /// </summary>
-[Collection("Smoke-Host")]
+[Collection("Visual-Shell-Host")]
 [Trait("Category", "Integration")]
 public sealed class VisualShellSmokeTests
 {
     private readonly PublishedServerHost _host;
 
-    public VisualShellSmokeTests(SmokeHostFixture fixture)
+    public VisualShellSmokeTests(VisualShellHostFixture fixture)
     {
         _host = fixture.Host;
     }

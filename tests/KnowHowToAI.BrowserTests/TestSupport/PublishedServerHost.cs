@@ -38,7 +38,12 @@ public sealed class PublishedServerHost : IAsyncDisposable
     /// </summary>
     public BoundedProcessLog Log { get; }
 
-    public static async Task<PublishedServerHost> StartAsync(string? address = null)
+    public static Task<PublishedServerHost> StartAsync(string? address = null) =>
+        StartAsync(BrowserTestDatabaseKind.Workflow, address);
+
+    internal static async Task<PublishedServerHost> StartAsync(
+        BrowserTestDatabaseKind databaseKind,
+        string? address = null)
     {
         ChromeStablePreflight.EnsureIsInstalled();
         var repositoryRoot = TestRepositoryRoot.Resolve();
@@ -46,7 +51,12 @@ public sealed class PublishedServerHost : IAsyncDisposable
 
         try
         {
-            var databaseSettings = BrowserTestDatabaseSettings.Load(repositoryRoot);
+            var databaseSettings = databaseKind switch
+            {
+                BrowserTestDatabaseKind.Workflow => BrowserTestDatabaseSettings.LoadWorkflow(repositoryRoot),
+                BrowserTestDatabaseKind.VisualShell => BrowserTestDatabaseSettings.LoadVisualShell(repositoryRoot),
+                _ => throw new ArgumentOutOfRangeException(nameof(databaseKind), databaseKind, "Unbekannter Browser-Testdatenbanktyp.")
+            };
             var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);
             // Explizite Adresse für Tests, die denselben Circuit-Origin erneut
