@@ -102,7 +102,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.6 – Historie und Releases
 
-- [ ] **M3.6 abschließen**
+- [x] **M3.6 abschließen**
 
   - [x] **M3.6-T1 – Snapshot- und Releaseübersichten implementieren**
     - Umfang: paginierte Listen, Kernmetadaten, Auswahl und Navigation in den jeweiligen Read Context.
@@ -110,7 +110,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Paging, leere Historie, ungültige Auswahl und Kontextübernahme.
     - Abnahme: historische und benannte Stände sind ohne MCP zugänglich.
 
-  - [ ] **M3.6-T2 – Snapshot-Diff-Ansicht implementieren**
+  - [x] **M3.6-T2 – Snapshot-Diff-Ansicht implementieren**
     - Umfang: strukturierte Node-, Content-, Rollen- und Dependency-Änderungen zwischen unterstützten Ständen anzeigen.
     - Prüfen: Paging, große Diffs, stabile Sortierung und verständliche leere Ergebnisse.
     - Nicht enthalten: Merge oder Reapply.
