@@ -46,7 +46,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.3 – Hierarchienavigation
 
-- [ ] **M3.3 abschließen**
+- [x] **M3.3 abschließen**
 
   - [x] **M3.3-T1 – Lazy-Loading-Datenadapter für den Wissensbaum implementieren**
     - Umfang: den einzelnen Root über `NavigationService.GetRootAsync` laden; pro Expand `NavigationService.ListChildrenAsync` mit explizitem `ReadContext`, `RoleId`, `Limit: 100` und dem unverändert weitergereichten opaken Cursor aufrufen. `ChildCount > 0` bestimmt `HasChildren`; kein separater HTTP-Endpunkt und kein neuer Persistence-Port.
@@ -57,7 +57,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: bUnit-Adapter-/Pagingtests instrumentieren jeden `GetRootAsync`-/`ListChildrenAsync`-Aufruf und prüfen Parent, Rolle, Read Context, `Limit = 100`, Cursor, Aufrufanzahl, Cache-Eviction und dass nie ein Vollbaum angefordert oder im ViewModel gehalten wird.
     - Abnahme: jede Datenanforderung betrifft ausschließlich Root oder eine 100er-Childseite; höchstens zehn Seiten bleiben im Circuit; Cursor-, Kontext- und Evictionverhalten sind automatisiert belegt.
 
-  - [ ] **M3.3-T2 – Read-only Knowledge Tree und Breadcrumbs implementieren**
+  - [x] **M3.3-T2 – Read-only Knowledge Tree und Breadcrumbs implementieren**
     - Umfang: nativen `KnowledgeTree` gemäß [Bedienkonzept](../konzept/02-bedienkonzept-und-ui.md#wissensbaum) mit Expand/Collapse, seitenbegrenzt gerenderten Treeitems, Auswahl und Breadcrumbs implementieren. Keine Fremdkomponente und keine behauptete Viewport-Virtualisierung.
     - Zustände: selektierter, geladener, teilweise geladener, leerer und fehlerhafter Node.
     - Nicht enthalten: Drag-and-drop, Erstellen, Löschen oder Sortieren.
