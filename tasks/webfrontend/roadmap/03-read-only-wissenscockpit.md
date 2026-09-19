@@ -84,7 +84,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.5 – Suche
 
-- [ ] **M3.5 abschließen**
+- [x] **M3.5 abschließen**
 
   - [x] **M3.5-T1 – Paginierte Wissenssuche implementieren**
     - Umfang: Suchtext, Rolle, Read Context, Cursor, Treffer-Snippet, Breadcrumb und Navigation zum Node.
@@ -93,7 +93,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Application-/Web-Mapping, Komponenten und Browser-Smoke.
     - Abnahme: Benutzer findet Content ohne Kenntnis der Baumposition.
 
-  - [ ] **M3.5-T2 – Wissensfilter implementieren**
+  - [x] **M3.5-T2 – Wissensfilter implementieren**
     - Umfang: Filter für Rolle, Availability, Freshness und Findings auf der paginierten Such-/Filtertrefferliste; Trefferauswahl fokussiert den Node im unveränderten Knowledge Tree.
     - Semantik: Werte derselben Gruppe werden ODER-verknüpft, unterschiedliche Gruppen UND-verknüpft; kein Filter ist der Default.
     - Prüfen: Paging bleibt stabil, Filterwechsel verwirft alte Cursor und leere Ergebnisse werden erklärt.
