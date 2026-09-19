@@ -24,6 +24,12 @@ Bei C#-Aufgaben (Code-Erkundung, Symbole, Methoden, Aufrufer, Hierarchien, Impac
 - **Budget-Limit**: Bei Fehler `RESPONSE_BUDGET_TOO_SMALL` denselben Aufruf mit `maxResponseBytes = minimumResponseBytes` wiederholen.
 - **Qualitätsprüfung**: Während Änderungen `verify(targetPath)` ohne zusätzliche Scope-, Filter-, Schwellenwert- oder Detektorparameter aufrufen. Für den vollständigen Abschluss ausschließlich `verify(targetPath, scope: "solution")` verwenden; ein Gate ist nur bei `verdict=pass`, `score=10.0` und `violationCount=0` erfüllt.
 
+## Verstöße architektonisch beheben
+
+- Jeder Verstoß ist zuerst ein Signal für eine mögliche Verantwortungs-, Abhängigkeits- oder Strukturgrenze. Vor einer Änderung mit `get_feature_context` und den zum Befund passenden Graph-/Impact-Tools Ursache, Kontextpfade, Aufrufer und Tests ermitteln.
+- Die kleinste Lösung wählen, die eine fachlich kohärente Verantwortung oder Grenze wiederherstellt; vorhandene Bausteine bevorzugen. Neue Komponenten, Typen oder Facades nur bei einer belegbaren, eigenständigen Verantwortung – nicht als bloße Indirektion.
+- Keine lokale Umgehung: keine Regel-/Schwellenwert-Ausnahmen, Suppressions, kosmetischen Verschiebungen oder sachfremden Refactorings allein für eine Kennzahl. Verhalten, Verträge und Tests bleiben erhalten; Tests folgen einer tatsächlich neuen Grenze.
+
 ---
 
 ## Workflow & Tool-Referenz
