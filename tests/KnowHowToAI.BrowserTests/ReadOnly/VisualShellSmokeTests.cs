@@ -16,9 +16,17 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 /// regulären Lauf automatisch aktualisiert; eine Abweichung erfordert eine
 /// bewusste Diff-Prüfung mit anschließendem manuellen Übernehmen.
 /// </summary>
+[Collection("Smoke-Host")]
 [Trait("Category", "Integration")]
 public sealed class VisualShellSmokeTests
 {
+    private readonly PublishedServerHost _host;
+
+    public VisualShellSmokeTests(SmokeHostFixture fixture)
+    {
+        _host = fixture.Host;
+    }
+
     public static TheoryData<int, int, string> ShellViewports => new()
     {
         { 1280, 720, "Shell-1280x720-light.png" },
@@ -29,7 +37,6 @@ public sealed class VisualShellSmokeTests
     [MemberData(nameof(ShellViewports))]
     public async Task ShellMatchesTheVersionedLightThemeBaseline(int width, int height, string baselineFileName)
     {
-        await using var host = await PublishedServerHost.StartAsync();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
@@ -42,7 +49,7 @@ public sealed class VisualShellSmokeTests
             ReducedMotion = ReducedMotion.Reduce
         });
 
-        var response = await page.GotoAsync(host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000

@@ -13,13 +13,20 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 /// an die Bereichsüberschrift und gibt ihn beim Schließen an den Auslöser
 /// zurück.
 /// </summary>
+[Collection("Smoke-Host")]
 [Trait("Category", "Integration")]
 public sealed class LayoutShellSmokeTests
 {
+    private readonly PublishedServerHost _host;
+
+    public LayoutShellSmokeTests(SmokeHostFixture fixture)
+    {
+        _host = fixture.Host;
+    }
+
     [Fact]
     public async Task DesktopViewportShowsColumnsAndScrollsLongContentWithoutHorizontalOverflow()
     {
-        await using var host = await PublishedServerHost.StartAsync();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
@@ -31,7 +38,7 @@ public sealed class LayoutShellSmokeTests
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
         });
 
-        var response = await page.GotoAsync(host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -65,7 +72,6 @@ public sealed class LayoutShellSmokeTests
     [Fact]
     public async Task CompactViewportCollapsesSideRegionsWithFocusAndEscapeHandoff()
     {
-        await using var host = await PublishedServerHost.StartAsync();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
@@ -77,7 +83,7 @@ public sealed class LayoutShellSmokeTests
             ViewportSize = new ViewportSize { Width = 1024, Height = 720 }
         });
 
-        var response = await page.GotoAsync(host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000

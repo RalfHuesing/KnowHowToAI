@@ -4,13 +4,20 @@ using Microsoft.Playwright;
 
 namespace KnowHowToAI.BrowserTests.ReadOnly;
 
+[Collection("Smoke-Host")]
 [Trait("Category", "Integration")]
 public sealed class DialogKeyboardSmokeTests
 {
+    private readonly PublishedServerHost _host;
+
+    public DialogKeyboardSmokeTests(SmokeHostFixture fixture)
+    {
+        _host = fixture.Host;
+    }
+
     [Fact]
     public async Task DialogKeyboardSequenceTrapsFocusAndReturnsItOnEscape()
     {
-        await using var host = await PublishedServerHost.StartAsync();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
@@ -21,7 +28,7 @@ public sealed class DialogKeyboardSmokeTests
         var observedRequests = new List<string>();
         page.Request += (_, request) => observedRequests.Add(request.Url);
 
-        var response = await page.GotoAsync(host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -33,7 +40,7 @@ public sealed class DialogKeyboardSmokeTests
         // Die Dialogprüfung ersetzt die Shell durch eine Prüfseite, die
         // ausschließlich Ressourcen des real gestarteten Servers lädt
         // (app.css und AppDialog.razor.js); es gibt keine Demo-Route im Produkt.
-        await page.SetContentAsync(BuildHarnessHtml(host.Address));
+        await page.SetContentAsync(BuildHarnessHtml(_host.Address));
         await page.WaitForFunctionAsync("() => window.__dialogHarnessReady === true");
 
         var opener = page.Locator("#dialog-opener");
@@ -61,7 +68,7 @@ public sealed class DialogKeyboardSmokeTests
         await Assertions.Expect(opener).ToBeFocusedAsync();
 
         Assert.NotEmpty(observedRequests);
-        Assert.All(observedRequests, request => Assert.StartsWith(host.Address, request, StringComparison.OrdinalIgnoreCase));
+        Assert.All(observedRequests, request => Assert.StartsWith(_host.Address, request, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string BuildHarnessHtml(string hostAddress) => $$"""

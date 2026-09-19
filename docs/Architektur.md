@@ -287,7 +287,9 @@ Formular mit Validierung, Button, nativer Dialog über JS-Isolation, kleine
 Tabelle, Inlinehinweis, Toast) und besitzt keine Route im Produkt.
 `KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
-kein Produktionsprojekt. Der Testhost wartet nach dem Serverstart auf eine
+kein Produktionsprojekt. Der Serverstart erfolgt einmal pro Testkollektion über
+eine gemeinsame Kollektions-Fixture; Reconnect-Smokes behalten bewusst eigene Hosts.
+Der Testhost wartet nach dem Serverstart auf eine
 erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt;
 die Prozessausgabe wird dabei begrenzt und redigiert im Speicher gesammelt und
 ausschließlich für Diagnosen fehlgeschlagener Läufe herangezogen.

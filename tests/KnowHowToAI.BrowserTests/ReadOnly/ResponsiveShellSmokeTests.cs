@@ -21,13 +21,20 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 /// M2.4-Assertions liegen bewusst in dieser einen Klasse, damit der reguläre
 /// Sammellauf nicht vom Publish-Race mehrerer Smoke-Klassen abhängt.
 /// </summary>
+[Collection("Smoke-Host")]
 [Trait("Category", "Integration")]
 public sealed class ResponsiveShellSmokeTests
 {
+    private readonly PublishedServerHost _host;
+
+    public ResponsiveShellSmokeTests(SmokeHostFixture fixture)
+    {
+        _host = fixture.Host;
+    }
+
     [Fact]
     public async Task NarrowReflowWidthsShowAllContentWithoutHorizontalOverflow()
     {
-        await using var host = await PublishedServerHost.StartAsync();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
@@ -39,7 +46,7 @@ public sealed class ResponsiveShellSmokeTests
             ViewportSize = new ViewportSize { Width = 640, Height = 720 }
         });
 
-        var response = await page.GotoAsync(host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -57,7 +64,6 @@ public sealed class ResponsiveShellSmokeTests
     [Fact]
     public async Task KeyboardSequenceFromDocumentStartUsesSkipLinkNavigationAndPanel()
     {
-        await using var host = await PublishedServerHost.StartAsync();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
@@ -69,7 +75,7 @@ public sealed class ResponsiveShellSmokeTests
             ViewportSize = new ViewportSize { Width = 1024, Height = 720 }
         });
 
-        var response = await page.GotoAsync(host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
