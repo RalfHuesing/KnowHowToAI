@@ -14,9 +14,9 @@ Gemessener Ausgangszustand (2026-09-19, siehe [Roadmap-Index](Roadmap.md)): 10 `
 
 ## AF1.1 – Host-Lifecycle
 
-- [ ] **AF1.1 abschließen**
+- [x] **AF1.1 abschließen**
 
-  - [ ] **AF1.1-T1 – Serverhost pro Testkollektion starten**
+  - [x] **AF1.1-T1 – Serverhost pro Testkollektion starten**
     - Neue Datei `tests/KnowHowToAI.BrowserTests/TestSupport/SmokeHostFixture.cs`: `public sealed class SmokeHostFixture : IAsyncLifetime`. `InitializeAsync` ruft `PublishedServerHost.StartAsync()` auf und hält das Ergebnis in der Eigenschaft `Host`; `DisposeAsync` gibt den Host frei. Klasse enthält keine Assertions und keine andere Logik. Namespace `KnowHowToAI.BrowserTests.TestSupport`.
     - Neue Datei `tests/KnowHowToAI.BrowserTests/TestSupport/SmokeHostCollection.cs`: `[CollectionDefinition("Smoke-Host")] public sealed class SmokeHostCollection : ICollectionFixture<SmokeHostFixture>;` — nur diese Deklaration, keine Member. Zwei separate Dateien, weil jede `.cs`-Datei genau einen öffentlichen Top-Level-Typ besitzt.
     - Anpassen der fünf Smoke-Klassen `ShellSmokeTests`, `DialogKeyboardSmokeTests`, `LayoutShellSmokeTests`, `ResponsiveShellSmokeTests` und `VisualShellSmokeTests` im Ordner `ReadOnly/`: Attribut `[Collection("Smoke-Host")]`, Konstruktor nimmt einen `SmokeHostFixture`-Parameter und merkt sich `fixture.Host`. Jeder bisherige Aufruf `await PublishedServerHost.StartAsync()` in diesen Klassen wird durch den geteilten Host ersetzt; die Tests nutzen dessen `Address` unverändert weiter.
