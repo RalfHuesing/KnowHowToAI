@@ -112,6 +112,7 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 - Drag-and-drop persistiert beim Drop unmittelbar in die aktive Transaction. Bei Serverablehnung kehrt der Tree zum bestätigten Serverzustand zurück und zeigt den strukturierten Fehler.
 - Resolution Orders werden lokal sortiert und erst mit `Speichern` als vollständige Reihenfolge ersetzt.
 - Commit und Discard besitzen immer einen expliziten Bestätigungsdialog.
+- **Undo-Umfang (O-027):** Lokales Browser-Undo (`Strg+Z`) wirkt ausschließlich innerhalb eines Textfeldes oder Editors bis zum letzten Speichern. Es gibt keinen globalen Undo-Stack für persistierte Mutationen innerhalb einer Transaction; Korrekturen erfolgen durch Gegenänderung oder vollständiges Discard der Transaction.
 
 Editor-, TODO- und Assetdetails: [Content und Assets](03-content-und-assets.md).
 
@@ -119,6 +120,9 @@ Editor-, TODO- und Assetdetails: [Content und Assets](03-content-und-assets.md).
 
 - Transaction beginnen oder fortsetzen.
 - Zweck, Akteur und Client werden beim Beginnen gesetzt, bleiben danach immutable und sind sichtbar. Die Commit Message wird erst im Commitdialog erfasst.
+- **Actor (O-007):** Der Actor wird beim Starten einer neuen Transaction durch `ICurrentUserService.GetCurrentUserName()` gesetzt. Die initiale Implementierung ist ein Dummy-Service, der einen konfigurierten oder festen Platzhalternamen zurückgibt; der Service wird später durch echte Authentifizierung ersetzt, ohne dass Transaction-Komponenten angepasst werden müssen. Der Actor-Wert ist nach dem Start immutable.
+- **Gleichzeitige Clients (O-025):** Mehrere UI- oder MCP-Clients dürfen gleichzeitig in derselben offenen Transaction schreiben. Es gibt keine Locks. Jede Mutation überträgt `ChangeVersion`; stale Writes werden vom Server deterministisch abgelehnt. Der Client zeigt einen fachlichen Hinweis und fordert zum Neuladen des betroffenen Bereichs auf.
+- **Transaction-Lebensdauer (O-026):** Offene Transactions verfallen nicht automatisch. Das Dashboard zeigt das Alter einer Transaction deutlich an; Transactions älter als sieben Tage erhalten ein Warnbadge. Schließen erfolgt ausschließlich durch explizites Commit oder Discard.
 - Strukturierter Netto-Diff nach Rollen, Resolution Orders, Nodes, Contents und Dependencies.
 - Validierung mit Errors, Warnings, Stale Contents und Refactoring-Kandidaten.
 - Bewusste Diff- und Validation-Sicht vor Commit.

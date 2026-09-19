@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../Roadmap.md)
 
-- [ ] **M3 abschließen**
+- [x] **M3 abschließen**
 
 Abhängigkeit: [M2](02-designsystem-und-shell.md)
 
@@ -16,12 +16,11 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.0 – Manuelle Planung und Konzeptschärfung
 
-- [ ] **M3.0 abschließen**
-  - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M2; kein delegierbarer Implementierungs-Leaf-Task.
-  - Entscheiden: konkreter Informationsbedarf für Dashboard und Node-Ansicht, initiale Rollenwahl (O-008), sichere Contentdarstellung sowie Such-, Historien- und Export-UX. Komponentenbasis, Tree-Variante, Paginggröße und Testwerkzeuge werden nicht erneut entschieden.
-  - Prüfen: tatsächliche Application-Reads, Pagingverträge, native UI-Basis, feste Tree-Cache-/Neuzentrierungsregeln und Erkenntnisse aus M0–M2 gegen die bisherigen Entwurfstasks.
-  - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M3-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
-  - Gate: M3.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
+- [x] **M3.0 abschließen**
+  - Durchgeführt am 2026-09-19 gemeinsam mit dem Benutzer.
+  - Entschieden: O-008 (initiale Rolle: letzten gespeicherten `localStorage`-Wert verwenden, Pflichtauswahl bei fehlendem/ungültigem Eintrag), O-007 (Actor über `ICurrentUserService`-Seam, initiale Dummy-Implementierung), O-025 (mehrere gleichzeitige Clients erlaubt, keine Locks, `ChangeVersion`-Ablehnung), O-026 (keine automatische Transaction-Lebensdauer, Alter im Dashboard sichtbar, Warnbadge ab 7 Tagen), O-027 (Undo nur im Editor bis Speichern, kein globaler Undo-Stack).
+  - Konzepte aktualisiert: [Bedienkonzept und UI](../konzept/02-bedienkonzept-und-ui.md), [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md), [Offene Fragen](../konzept/07-entscheidungen-und-offene-fragen.md).
+  - Gate: M3.1 und folgende Arbeitspakete sind durch Implementierungsagenten ausführbar.
 
 ## M3.1 – Web-Lesegrenze
 
@@ -71,8 +70,8 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M3.4 abschließen**
 
   - [ ] **M3.4-T1 – Globalen Rollen- und Lesekontext-Selektor implementieren**
-    - Voraussetzung: O-008 zum Verhalten ohne gewählte Rolle ist durch den Benutzer entschieden.
     - Umfang: Rolle sowie Current Snapshot, historischer Snapshot, Release oder vorhandene Working Transaction auswählen.
+    - Rollenwahl (O-008 entschieden): letzte Rolle aus `localStorage` (Schlüssel `knowhowtoai.lastRoleId`) vorladen und gegen Rollenliste prüfen; fehlt der Eintrag oder existiert die Rolle nicht mehr, erscheint ein modaler Pflichtauswahl-Selektor; es gibt keine stille Standardrolle.
     - Prüfen: Kontext ist global sichtbar, URL-/Navigationsverhalten ist definiert und ungültige Kombinationen werden erklärt.
     - Tests: Kontextwechsel, leere Rollenliste, nicht mehr vorhandener Kontext und Reconnect.
     - Abnahme: jede Leseansicht verwendet denselben expliziten Kontext.

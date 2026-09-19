@@ -16,20 +16,21 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M4.0 – Manuelle Planung und Konzeptschärfung
 
-- [ ] **M4.0 abschließen**
-  - Durchführung: gemeinsam mit dem Benutzer nach Abschluss von M3; kein delegierbarer Implementierungs-Leaf-Task.
-  - Entscheiden: Transaction-Actor (O-007), Zusammenarbeit mehrerer Clients (O-025), Lebensdauer offener Transactions (O-026), Undo-Grenzen (O-027) und konkrete Sicherheitsdialoge für Strukturmutationen.
-  - Prüfen: reale Lese-UX aus M3, bestehende Mutationsverträge, `ChangeVersion`, Konfliktverhalten sowie Paging-/Cachegrenzen des nativen Trees gegen die bisherigen Entwurfstasks. Tree-Variante und Paginggröße sind keine offenen Entscheidungen.
-  - Ergebnis: betroffene Konzepte, offene Fragen und alle nachfolgenden M4-Leaf-Tasks sind aktualisiert, eindeutig abnehmbar und atomar committed.
-  - Gate: M4.1 und folgende Arbeitspakete dürfen erst danach durch Implementierungsagenten begonnen werden.
+- [x] **M4.0 abschließen**
+  - Durchgeführt am 2026-09-19 gemeinsam mit dem Benutzer (zusammen mit M3.0).
+  - Entschieden: O-007 (Actor per `ICurrentUserService`-Seam, Dummy-Implementierung jetzt; keine Änderung an Transaction-Komponenten nötig wenn Auth kommt), O-025 (mehrere gleichzeitige Clients erlaubt, keine Locks, stale `ChangeVersion` deterministisch ablehnen), O-026 (keine automatische Transaction-Lebensdauer, Warnbadge ab 7 Tagen), O-027 (Undo nur im Editor bis Speichern; kein globaler Undo-Stack).
+  - Konzepte aktualisiert: [Bedienkonzept und UI](../konzept/02-bedienkonzept-und-ui.md), [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md), [Offene Fragen](../konzept/07-entscheidungen-und-offene-fragen.md).
+  - Gate: M4.1 und folgende Arbeitspakete sind durch Implementierungsagenten ausführbar.
 
 ## M4.1 – Transaction-Arbeitskontext
 
 - [ ] **M4.1 abschließen**
 
   - [ ] **M4.1-T1 – Transaction beginnen, auflisten und fortsetzen**
-    - Voraussetzung: O-007 zum Transaction-`Actor`, O-025 zur Zusammenarbeit in derselben Transaction und O-026 zur Transaction-Lebensdauer sind durch den Benutzer entschieden.
     - Umfang: Beginnen mit Optionen, alle offenen Transactions auflisten, explizit auswählen und als Working Read Context öffnen. Ohne Auth existiert kein belastbares „eigene Transactions“.
+    - Actor (O-007 entschieden): Actor wird beim Starten per `ICurrentUserService.GetCurrentUserName()` gesetzt; die aktuelle Dummy-Implementierung liefert den Wert aus `KnowHowToAI:Auth:DummyUserName`; danach immutable.
+    - Gleichzeitige Clients (O-025 entschieden): mehrere Clients dürfen in derselben Transaction schreiben; keine Locks; stale `ChangeVersion` wird deterministisch abgelehnt und der Client zum Neuladen aufgefordert.
+    - Lebensdauer (O-026 entschieden): keine automatische Verfällszeit; Alter im Dashboard sichtbar; Warnbadge ab sieben Tagen.
     - UI-Regel: pro Browserarbeitskontext genau eine aktive Transaction; Wechsel ist bewusst und sichtbar.
     - Tests: neue/vorhandene Transaction, leere Liste, ungültige ID, Refresh und Reconnect.
     - Abnahme: Working Context bleibt nach Navigation rekonstruierbar.
@@ -71,23 +72,25 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 - [ ] **M4.3 abschließen**
 
   - [ ] **M4.3-T1 – Nodes erstellen und Stammdaten bearbeiten**
-    - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction und O-027 zum Undo-Umfang sind durch den Benutzer entschieden.
     - Umfang: Node unter gewähltem Parent erstellen sowie Titel und Description bearbeiten.
     - Regeln: Änderungen nur in aktiver Transaction; serverseitige Normalisierung/Validierung bleibt maßgeblich.
+    - Undo (O-027 entschieden): kein globaler Undo-Stack; Korrektur durch Gegenänderung oder vollständiges Discard.
     - Tests: gültige Werte, Duplikate, Grenzlängen, ungültiger Parent und gleichzeitige Aktualisierung.
     - Abnahme: Ergebnis ist unmittelbar im Working Tree sichtbar.
 
   - [ ] **M4.3-T2 – Nodes kontrolliert löschen**
-    - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction und O-027 zum Undo-Umfang sind durch den Benutzer entschieden.
-    - Umfang: Löschaktion, Auswirkungsübersicht, Bestätigung und serverseitige Fehlerdarstellung.
+    - Umfang: Löschaktion, Auswirkungskurzansicht, Bestätigung und serverseitige Fehlerdarstellung.
     - Prüfen: Teilbaum, Referenzen/Dependencies, bereits gelöschter Node und Rootschutz gemäß Ist-Regeln.
+    - Gleichzeitige Clients (O-025 entschieden): stale `ChangeVersion` deterministisch ablehnen und zum Neuladen auffordern.
+    - Undo (O-027 entschieden): kein globaler Undo-Stack; Korrektur durch Gegenänderung oder vollständiges Discard.
     - Tests: Erfolgs- und Ablehnungsfälle sowie Diffdarstellung.
     - Abnahme: keine Löschung erfolgt ohne sichtbare Ziel- und Auswirkungsprüfung.
 
   - [ ] **M4.3-T3 – Nodes per Drag-and-drop verschieben und sortieren**
-    - Voraussetzung: O-025 zur Zusammenarbeit in derselben Transaction und O-027 zum Undo-Umfang sind durch den Benutzer entschieden.
     - Umfang: Move/Reorder im nativen Tree mit den Zielpositionen `Parent`, `Before` und `After`, sichtbarer Zielvorschau und anschließender Working-Tree-Aktualisierung. Native HTML-Drag-Ereignisse und die drei fokussierbaren Aktionsbuttons rufen denselben UI-Movevertrag auf.
     - Regeln: UI optimiert nur die Interaktion; serverseitige Hierarchievalidierung entscheidet.
+    - Gleichzeitige Clients (O-025 entschieden): stale `ChangeVersion` deterministisch ablehnen; bei Ablehnung Tree vom Serverzustand neu laden.
+    - Undo (O-027 entschieden): kein globaler Undo-Stack; Korrektur durch Gegenänderung oder vollständiges Discard.
     - Prüfen: Zyklus, ungültiges Ziel, Root, Source/Target auf verschiedenen 100er-Seiten, Cache-Eviction während der Auswahl, gleiches Ziel und vollständige Tastaturalternative.
     - Tests: bUnit-Komponentenfälle für alle drei Zielpositionen und Serverablehnung; Application-Tests für fachliche Varianten; je ein headless Playwright-Ablauf per Drag-and-drop und Aktionsbuttons. Beide Wege müssen identische Mutationseingaben und dieselbe bestätigte Serveraktualisierung erzeugen.
     - Abnahme: alle drei Zielpositionen sind per Maus und Tastatur präzise ausführbar; bei Ablehnung wird die betroffene Seite aus dem Serverzustand neu geladen und kein optimistischer Phantomzustand bleibt sichtbar.

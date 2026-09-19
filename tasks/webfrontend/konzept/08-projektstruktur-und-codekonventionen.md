@@ -125,6 +125,9 @@ Request-, Query-, Result- und Page-Records liegen im Namespace des zugehörigen 
 | M3 | `SqlDashboardRepository` | `Storage.SqlServer/Repositories/Retrieval` | SQL-Implementierung des Dashboard-Ports |
 | M3 | `WorkspaceState` | `Server/Web/State` | aus URL rekonstruierbarer Circuit-Cache für Node, Rolle und Read Context |
 | M3 | `MarkdownDownloadEndpoint` | `Server/Web/Endpoints` | Markdown-Download auf `MarkdownExportService` mappen |
+| M3 | `ICurrentUserService` | `Core/Application/Abstractions/Runtime` | gibt `CurrentUser` (Name, Id) zurück; einziger Actor-Einstiegspunkt; enthält keine Auth-Logik |
+| M3 | `CurrentUser` | `Core/Application/Abstractions/Runtime` | immutable record mit `Id` (string) und `Name` (string); kein Domain-Typ |
+| M3 | `DummyCurrentUserService` | `Server/Hosting` | `ICurrentUserService`-Implementierung für den authfreien Stand; gibt konfigurierten Benutzernamen aus `KnowHowToAI:Auth:DummyUserName` (Default: `„System"`) zurück; wird 1:1 durch eine Auth-Implementierung ersetzt |
 | M7 | `IPdfRenderer`, `PdfRenderRequest`, `PdfRenderResult` | `Core/Application/Abstractions/Documents` | transportneutraler PDF-Renderer-Port |
 | M7 | `PdfExportService`, `PdfExportRequest`, `PdfExportResult` | `Core/Application/Retrieval/Export` | Markdown-Teilbaum und Renderer orchestrieren |
 | M7 | `PdfOptions`, `PdfOptionsValidator` | `Server/Pdf/Configuration` | PDF-Konfiguration binden und vollständig validieren |
@@ -262,7 +265,7 @@ Der fachliche Lesekontext ist rekonstruierbar und wird nicht ausschließlich im 
 - Ohne Selektor wird der Current Snapshot gelesen.
 - Genau einer der Query-Parameter `transactionId`, `snapshotId` oder `releaseId` darf gesetzt sein.
 - `releaseId` wird an der Web-Grenze auf den unveränderlichen Snapshot des Releases aufgelöst.
-- `roleId` ist für rollenaufgelösten Content, Suche sowie Markdown- und PDF-Export verpflichtend. O-008 legt nur fest, ob die UI beim Einstieg keine Rolle, eine feste Standardrolle oder die zuletzt verwendete Rolle auswählt; jeder fachliche Aufruf übergibt anschließend eine explizite `RoleId`.
+- `roleId` ist für rollenaufgelösten Content, Suche sowie Markdown- und PDF-Export verpflichtend. Die letzte Rolle wird pro Browsertab im `localStorage` (Schlüssel `knowhowtoai.lastRoleId`) gespeichert. Beim Laden wird der Wert gegen die Rollenliste geprüft; fehlt er oder ist die Rolle nicht mehr vorhanden, zeigt die UI einen modalen Pflichtauswahl-Selektor; es gibt keine stille Standardrolle. Jeder fachliche Aufruf übergibt anschließend eine explizite `RoleId`.
 - Der ausgewählte Node steht in der Route `/knowledge/{NodeId}`.
 - Filter, Paging-Cursor und Dialogzustand sind kein globaler fachlicher Kontext und bleiben featurelokal.
 - Eine URL mit ungültigem oder nicht mehr vorhandenem Kontext zeigt einen fachlichen Fehler und fällt nicht still auf Current zurück.
