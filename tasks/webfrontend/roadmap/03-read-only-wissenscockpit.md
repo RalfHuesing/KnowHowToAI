@@ -86,7 +86,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M3.5 abschließen**
 
-  - [ ] **M3.5-T1 – Paginierte Wissenssuche implementieren**
+  - [x] **M3.5-T1 – Paginierte Wissenssuche implementieren**
     - Umfang: Suchtext, Rolle, Read Context, Cursor, Treffer-Snippet, Breadcrumb und Navigation zum Node.
     - Prüfen: normale TODO-Texte verhalten sich wie jeder andere Suchinhalt.
     - Zustände: kein Treffer, weitere Seite, Kontextwechsel, ungültiger Cursor und abgebrochene Suche.
