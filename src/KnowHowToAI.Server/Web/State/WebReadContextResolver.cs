@@ -24,7 +24,7 @@ public sealed record WebReadContextResolution(
 /// Stellt den gegenseitigen Ausschluss der Selektoren sicher und löst ReleaseId
 /// und TransactionId asynchron über deren Repositories auf.
 /// </summary>
-public sealed class WebReadContextResolver
+public sealed class WebReadContextResolver : IWebReadContextResolver
 {
     private readonly IReleaseRepository _releaseRepository;
     private readonly ITransactionRepository _transactionRepository;

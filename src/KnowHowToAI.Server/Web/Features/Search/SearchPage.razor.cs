@@ -26,7 +26,7 @@ public sealed partial class SearchPage : IDisposable
     private NavigationService NavigationService { get; set; } = default!;
 
     [Inject]
-    private WebReadContextResolver ReadContextResolver { get; set; } = default!;
+    private IWebReadContextResolver ReadContextResolver { get; set; } = default!;
 
     [Inject]
     private WorkspaceState WorkspaceState { get; set; } = default!;

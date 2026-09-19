@@ -228,7 +228,7 @@ public sealed class SearchPageTests : BunitContext
         Services.AddSingleton(searchService);
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton(new WebReadContextResolver(new FakeReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
+        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new FakeReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
         Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleId.Value));
         Services.AddSingleton(new ContextSelectorState());
     }

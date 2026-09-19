@@ -27,6 +27,8 @@ internal static class WebServiceRegistration
 
         // Löst URL-Query-Parameter auf Core-ReadContext und KnowledgeContextViewModel auf.
         services.AddScoped<WebReadContextResolver>();
+        services.AddScoped<IWebReadContextResolver>(serviceProvider =>
+            serviceProvider.GetRequiredService<WebReadContextResolver>());
 
         // Flüchtiger Circuit-State und Lazy-Loading-Datenadapter für den Wissensbaum.
         services.AddScoped<KnowledgeTreeState>();
