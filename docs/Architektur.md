@@ -284,7 +284,11 @@ benötigen; Testnamen beschreiben Verhalten.
 Application-Persistence-Ports. Das Test-Fixture `TestSupport/UiBasisShowcase`
 rendert ausschließlich in diesem Projekt die native UI-Basis (beschriftetes
 Formular mit Validierung, Button, nativer Dialog über JS-Isolation, kleine
-Tabelle, Inlinehinweis, Toast) und besitzt keine Route im Produkt.
+Tabelle, Inlinehinweis, Toast) und besitzt keine Route im Produkt. Das Fixture
+`TestSupport/DesignTokensShowcase` belegt per Headless Chrome berechnete Stile und
+den Light-Theme-Screenshot; der Test führt vor dem Chrome-Start den Chrome-Stable-Preflight
+aus `KnowHowToAI.TestSupport` aus und schlägt deshalb ohne installiertes Chrome mit
+einer klaren deutschen Fehlermeldung fehl.
 `KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
 kein Produktionsprojekt. Der Serverstart erfolgt einmal pro Testkollektion über

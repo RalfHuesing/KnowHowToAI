@@ -49,6 +49,8 @@ public sealed class DesignTokensShowcaseTests : ShellTestContext
     [Fact]
     public async Task ShowcaseRendersThemeAndCapturesTheLightThemeScreenshot()
     {
+        ChromeStablePreflight.EnsureIsInstalled();
+
         var showcaseMarkup = Render<DesignTokensShowcase>().Markup;
 
         using var playwright = await Playwright.CreateAsync();
