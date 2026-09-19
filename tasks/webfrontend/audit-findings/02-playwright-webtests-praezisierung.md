@@ -14,7 +14,8 @@ Entscheidung (durch diese Roadmap getroffen, keine neue Offenheit): Playwright b
 
 - [ ] **AF2.1 abschließen**
 
-  - [ ] **AF2.1-T1 – Zielkonzept-Zeile zu Playwright präzisieren**
+  - [x] **AF2.1-T1 – Zielkonzept-Zeile zu Playwright präzisieren**
+    - Bereits am 2026-09-19 durch den Audit-Agenten ausgeführt und committet (`0a8706c`; genau eine Tabellenzeile per Byte-Ersatz geändert). Dieser Punkt wird von ausführenden Agenten nicht erneut bearbeitet.
     - **Dokumentierte Readonly-Ausnahme** (siehe Roadmap-Index): Nur für die hier angegebenen Bytes in `tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md` ist die Konzeptänderung vom Benutzer ausdrücklich freigegeben. Nichts darüber hinaus am Konzept ändern.
     - Einzige Änderung ist die Zeile in der Tabelle „Feste Testabhängigkeiten und Befehle". Alt (wortwörtlich, inklusive Rahmen):
 

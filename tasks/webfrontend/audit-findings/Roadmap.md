@@ -51,9 +51,50 @@ Alle Leaf-Tasks sind am 2026-09-19 geprüft und zur Agentenausführung freigegeb
 ### Dokumentierte Ausnahme: Konzept-Edit in AF2
 
 Der Orchestrator-Prompt erklärt `konzept/`-Dateien zu readonly. Für **AF2.1-T1 allein** und ausschließlich für die dort wortwörtlich angegebenen Bytes in `tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md` hebt der Benutzer diese Regel mit Erschaffung dieser Roadmap auf: Der Ist-Zustand (Playwright in `Web.Tests`) war nie ins Zielkonzept zurückgeschrieben worden. Der Task enthält die exakte Alt-/Neu-Fassung; der ausführende Agent darf nichts darüber hinaus am Konzept ändern.
+AF2.1-T1 wurde bereits am 2026-09-19 durch den Audit-Agenten ausgeführt und committet (`0a8706c`); der Punkt ist abgehakt.
+
+## Bekannte Fallstricke für ausführende Agenten
+
+Diese Roadmap wird von Agenten bearbeitet, die keinen Zugriff auf projektspezifische
+Skills haben. Die folgenden Fallstricke sind hier vollständig notiert und für jeden
+Leaf-Task verbindlich:
+
+- **Testlauf-Auswertung:** Script-Ausgaben immer in eine Logdatei umleiten und die
+  Datei auswerten (`pwsh -NoProfile -File scripts/... > temp/run.log 2>&1`),
+  anschließend `grep -E "Bestanden!|Fehlgeschlagen|Fehler: " temp/run.log`. Der
+  Exitcode allein genügt nicht, und direkte Pipes (grep/head) im git-bash-Terminal
+  können endlos hängen.
+- **Lange Läufe:** Testläufe können das 600-Sekunden-Foreground-Limit sprengen. Solche
+  Läufe als Hintergrundprozess mit Abschlussbenachrichtigung starten und auf die
+  Benachrichtigung warten, statt blind neu zu starten.
+- **DLL-Sperren (MSB3021/MSB3027):** Ein laufender `KnowHowToAI.Server.exe`
+  (z. B. Restprozess abgebrochener Browsertests) sperrt Core-/Storage-DLLs und bricht
+  jeden `dotnet build` mit Copy-Fehlern. Vor dem Bauen die Prozessliste prüfen,
+  sperrende Server-Prozesse samt dotnet-Parents per Commandline-Match killen und den
+  Build im selben Terminalaufruf nachziehen.
+- **AiNetLinter:** Meldet der erste `verify`-Aufruf, die Solution werde noch geladen,
+  den Aufruf einfach erneut versuchen. `verify` zählt Warnungen als Verstöße —
+  `verdict=failed` gilt auch bei `severity=warning`.
+- **Roadmap-Checkboxen** dieser Dateien per Byte-Ersatz setzen (Python: `p.read_bytes()`,
+  `data.replace(old, new)` mit `assert count == 1`, `p.write_bytes(...)`), nicht mit einem
+  Patch-Werkzeug: dieses kann die Zeilenenden der gesamten Datei umstellen. Danach
+  `git diff --stat` prüfen — nur die Checkbox-Zeilen dürfen erscheinen.
+- **Pathspec-Commits:** im geteilten Worktree nur die eigenen Dateien committen
+  (`git add <datei> && git commit -m "..." -- <datei>`), niemals `git commit -am`
+  oder `git add .`.
+- **FQN-Testfilter matchen als Substring:** `FullyQualifiedName~ShellSmokeTests`
+  zieht auch `LayoutShellSmokeTests` und `ResponsiveShellSmokeTests` an; erwartete
+  Testzahlen vor und nach gefilterten Läufen abgleichen.
+- **PowerShell-Snippets** nie als Inline-`-Command` aus dem git-bash-Terminal schicken
+  (MSYS verfälscht `$_`, `\n` und Slashes); Snippet in eine Datei unter
+  `$LOCALAPPDATA/Temp` schreiben und `pwsh -NoProfile -ExecutionPolicy Bypass -File
+  <datei>` ausführen.
+- **Umgebungsvariablen** persistieren über Terminalaufrufe und verfälschen
+  Konfigurationstests: vor Gate-Läufen `env | grep KnowHowToAI` prüfen und
+  gesetzte Werte `unset`en.
 
 ## Verbindliche Arbeitsregeln
 
 - Es gelten `AGENTS.md`, `.agents/rules/*.mdc`, die Lese-Matrix in [`docs/README.md`](../../docs/README.md) und [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md) als Pflichtlektüre für jeden Task mit Strukturänderung.
 - Keine Fachfeatures aus M3+ vorziehen; keine neuen produktiven Test-Hooks; keine Test-Löschungen zur Laufzeitoptimierung.
-- Bekannte Fallstricke aus dem Skill `knowhowtoai-development` sind von jedem Subagenten zu beachten; die relevanten stehen zusätzlich in den jeweiligen Tasks.
+- Die [bekannten Fallstricke](#bekannte-fallstricke-für-ausführende-agenten) dieser Roadmap sind für jeden Leaf-Task verbindlich; sie stehen vollständig hier und benötigen keinen Zugriff auf externe Skills.
