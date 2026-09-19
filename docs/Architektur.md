@@ -223,7 +223,11 @@ höchstens einen Read-Context-Selektor, löst diesen über `WebReadContextResolv
 und delegiert an `MarkdownExportService`. Erfolgreiche Antworten sind UTF-8-Markdown
 als Attachment mit `Cache-Control: no-store`; der Dateiname besteht aus bereinigtem
 Node-Titel und Rolle. Fehler werden als RFC-9457-`ProblemDetails` mit stabilem
-Fehlercode und Correlation-ID ausgeliefert, niemals als Teil-Datei.
+Fehlercode und Correlation-ID ausgeliefert, niemals als Teil-Datei. Bekannte
+fachliche Fehlercodes werden explizit auf `400`, `404` oder `409` abgebildet;
+unbekannte Codes und unerwartete Ausnahmen liefern neutral `500` mit einem
+endpunktspezifischen technischen Fehlercode. Ein Request-Abbruch wird nicht als
+Serverfehler protokolliert.
 
 Die routable Seite `SearchPage` (`/search`) verwendet mit der globalen Rolle und dem
 aus Query-Parametern aufgelösten Lesekontext direkt den transportneutralen

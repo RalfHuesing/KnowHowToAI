@@ -189,7 +189,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Application-/SQL-/Mappingfälle für initialen Snapshot und Snapshot mit Transaction-Metadaten. Headless Chrome wählt Snapshot und Release, übernimmt deren Read Context, vergleicht zwei Stände, zeigt repräsentative Node-/Content-/Rollen-/Resolution-/Dependencywerte, blättert eine Diffseite und prüft Nodefilter/Leerergebnis; kein bedingter Erfolgsweg bei leerem Bestand.
     - Abnahme: Historie erklärt Herkunft und Änderung eines Standes; der reale Browsernachweis scheitert bei fehlenden Daten, falschem Kontext oder nicht gerendertem Diff.
 
-  - [ ] **M3.9-T7 – Markdown-Downloadfehler vertragstreu abschließen**
+  - [x] **M3.9-T7 – Markdown-Downloadfehler vertragstreu abschließen**
     - Befund: Erwartete Domainfehler werden gemappt, unerwartete Service-/IO-Ausnahmen besitzen jedoch keinen Endpoint-spezifischen RFC-9457-Vertrag; außerdem fällt jeder unbekannte Fehlercode pauschal auf `400`, obwohl exogene Fehler `500` sein müssen.
     - Umsetzung: Zentrale explizite Fehlercode→Status-Zuordnung mit sicherem Default `500`; unerwartete Exceptions loggen und ausschließlich neutrales `ProblemDetails` mit stabilem technischen Code und Correlation-ID liefern. Nie Attachment/Teilinhalt oder interne Meldung im Fehlerfall; Request-Abbruch nicht als Serverfehler loggen.
     - Tests: Export-/Navigation-Exception, unbekannter Domaincode, Abbruch und bestehende 400/404/409-Fälle gegen echten Host; Status, `application/problem+json`, Code, Correlation-ID, fehlendes `Content-Disposition` und fehlende interne Details prüfen.

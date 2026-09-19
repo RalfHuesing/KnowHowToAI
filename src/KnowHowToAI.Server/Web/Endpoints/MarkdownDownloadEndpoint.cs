@@ -17,6 +17,8 @@ internal static class MarkdownDownloadEndpoint
 {
     private const int MaximumFileNameBaseLength = 120;
     private const string MarkdownMediaType = "text/markdown; charset=utf-8";
+    private const string TechnicalErrorCode = "MarkdownDownloadTechnicalError";
+    private const string TechnicalErrorDetail = "Der Markdown-Export konnte nicht bereitgestellt werden.";
 
     public static void Map(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
     {
@@ -25,12 +27,71 @@ internal static class MarkdownDownloadEndpoint
 
     private static async Task<IResult> DownloadAsync(
         [AsParameters] MarkdownDownloadRequest request,
-        WebReadContextResolver readContextResolver,
+        IWebReadContextResolver readContextResolver,
         NavigationService navigationService,
         MarkdownExportService markdownExportService,
-        HttpContext httpContext)
+        HttpContext httpContext,
+        ILoggerFactory loggerFactory)
     {
-        if (!Guid.TryParseExact(request.NodeId, "D", out var parsedNodeId))
+        try
+        {
+            var requestError = ValidateRequest(request, httpContext, out var parsedNodeId, out var roleId);
+            if (requestError is not null)
+                return requestError;
+
+            var contextResult = await readContextResolver
+                .ResolveAsync(request.TransactionId, request.SnapshotId, request.ReleaseId, httpContext.RequestAborted)
+                .ConfigureAwait(false);
+            if (!contextResult.IsSuccess)
+                return Problem(httpContext, contextResult.Error!);
+
+            var rootNodeId = new NodeId(parsedNodeId);
+            var readContext = contextResult.Value!.ReadContext;
+            var requestedRole = new RoleId(roleId);
+            var nodeResult = await navigationService
+                .GetNodeAsync(rootNodeId, readContext, requestedRole, httpContext.RequestAborted)
+                .ConfigureAwait(false);
+            if (!nodeResult.IsSuccess)
+                return Problem(httpContext, nodeResult.Error!);
+
+            var exportResult = await markdownExportService
+                .ExportTreeAsync(rootNodeId, readContext, requestedRole, httpContext.RequestAborted)
+                .ConfigureAwait(false);
+            if (!exportResult.IsSuccess)
+                return Problem(httpContext, exportResult.Error!);
+
+            httpContext.Response.Headers.CacheControl = "no-store";
+            return Results.File(
+                Encoding.UTF8.GetBytes(exportResult.Value!),
+                MarkdownMediaType,
+                CreateFileName(nodeResult.Value!.Node!.Title, roleId, parsedNodeId));
+        }
+        catch (OperationCanceledException) when (httpContext.RequestAborted.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            loggerFactory.CreateLogger(nameof(MarkdownDownloadEndpoint)).LogError(
+                exception,
+                "Der Markdown-Download ist fehlgeschlagen. CorrelationId: {CorrelationId}",
+                httpContext.TraceIdentifier);
+            return Problem(
+                httpContext,
+                Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError,
+                TechnicalErrorCode,
+                TechnicalErrorDetail);
+        }
+    }
+
+    private static IResult? ValidateRequest(
+        MarkdownDownloadRequest request,
+        HttpContext httpContext,
+        out Guid parsedNodeId,
+        out string roleId)
+    {
+        roleId = request.RoleId ?? string.Empty;
+        if (!Guid.TryParseExact(request.NodeId, "D", out parsedNodeId))
         {
             return Problem(
                 httpContext,
@@ -39,45 +100,22 @@ internal static class MarkdownDownloadEndpoint
                 "Die Node-ID für den Markdown-Export ist ungültig.");
         }
 
-        if (string.IsNullOrWhiteSpace(request.RoleId))
-        {
-            return Problem(
+        return string.IsNullOrWhiteSpace(roleId)
+            ? Problem(
                 httpContext,
                 Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
                 RoleMutationErrorCodes.RoleIdRequired,
-                "Für den Markdown-Export muss eine Rolle ausgewählt sein.");
-        }
-
-        var contextResult = await readContextResolver
-            .ResolveAsync(request.TransactionId, request.SnapshotId, request.ReleaseId, httpContext.RequestAborted)
-            .ConfigureAwait(false);
-        if (!contextResult.IsSuccess)
-            return Problem(httpContext, contextResult.Error!);
-
-        var rootNodeId = new NodeId(parsedNodeId);
-        var readContext = contextResult.Value!.ReadContext;
-        var requestedRole = new RoleId(request.RoleId);
-        var nodeResult = await navigationService
-            .GetNodeAsync(rootNodeId, readContext, requestedRole, httpContext.RequestAborted)
-            .ConfigureAwait(false);
-        if (!nodeResult.IsSuccess)
-            return Problem(httpContext, nodeResult.Error!);
-
-        var exportResult = await markdownExportService
-            .ExportTreeAsync(rootNodeId, readContext, requestedRole, httpContext.RequestAborted)
-            .ConfigureAwait(false);
-        if (!exportResult.IsSuccess)
-            return Problem(httpContext, exportResult.Error!);
-
-        httpContext.Response.Headers.CacheControl = "no-store";
-        return Results.File(
-            Encoding.UTF8.GetBytes(exportResult.Value!),
-            MarkdownMediaType,
-            CreateFileName(nodeResult.Value!.Node!.Title, request.RoleId, parsedNodeId));
+                "Für den Markdown-Export muss eine Rolle ausgewählt sein.")
+            : null;
     }
 
-    private static IResult Problem(HttpContext httpContext, DomainError error) =>
-        Problem(httpContext, MapStatusCode(error.Code), error.Code, error.Message);
+    private static IResult Problem(HttpContext httpContext, DomainError error)
+    {
+        var statusCode = MapStatusCode(error.Code);
+        return statusCode == Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError
+            ? Problem(httpContext, statusCode, TechnicalErrorCode, TechnicalErrorDetail)
+            : Problem(httpContext, statusCode, error.Code, error.Message);
+    }
 
     private static IResult Problem(HttpContext httpContext, int statusCode, string code, string detail) =>
         Results.Problem(
@@ -106,7 +144,10 @@ internal static class MarkdownDownloadEndpoint
         NavigationErrorCodes.TransactionClosed or
         ReadContextErrorCodes.SnapshotNotCommitted or
         ReadContextErrorCodes.TransactionClosed => Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict,
-        _ => Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest
+        NavigationErrorCodes.InvalidNodeId or
+        ReadContextErrorCodes.InvalidReadContext or
+        RoleMutationErrorCodes.RoleIdRequired => Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
+        _ => Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError
     };
 
     private static string CreateFileName(string title, string roleId, Guid nodeId)
