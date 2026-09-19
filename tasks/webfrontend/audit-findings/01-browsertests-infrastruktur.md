@@ -2,7 +2,7 @@
 
 [Roadmap-Index](Roadmap.md)
 
-- [ ] **AF1 abschließen**
+- [x] **AF1 abschließen**
 
 Abhängigkeit: keine. Referenz-Audit: `temp/webfrontend-audit-M1-M2.md` (Befunde A1, B1, B2; Wegwerf-Ablage, nicht eingecheckt).
 
