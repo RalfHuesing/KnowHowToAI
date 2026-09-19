@@ -24,9 +24,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.1 – Web-Lesegrenze
 
-- [ ] **M3.1 abschließen**
+- [x] **M3.1 abschließen**
 
-  - [ ] **M3.1-T1 – Transportneutrale Lese-Use-Cases für die UI anbinden**
+  - [x] **M3.1-T1 – Transportneutrale Lese-Use-Cases für die UI anbinden**
     - Umfang: UI-nahe Facades/ViewModels und Mapper für Navigation, Rollen, Search, Historie und Read Context strukturieren.
     - Regel: Komponenten rufen Application Services direkt auf; keine REST-Schicht und keine Domain-Typen im Rendering.
     - Prüfen: Fehler, Warnungen, Cursor und `ChangeVersion` bleiben vollständig erhalten.
