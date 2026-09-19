@@ -1,4 +1,5 @@
 using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +26,9 @@ internal static class WebServiceRegistration
 
         // Löst URL-Query-Parameter auf Core-ReadContext und KnowledgeContextViewModel auf.
         services.AddScoped<WebReadContextResolver>();
+
+        // Flüchtiger Circuit-State und Lazy-Loading-Datenadapter für den Wissensbaum.
+        services.AddScoped<KnowledgeTreeState>();
 
         return services;
     }

@@ -145,6 +145,18 @@ Mapper (`KnowledgeNavigationMapper`, `RoleMapper`, `SearchMapper`,
 Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
 erhalten; Domain-Typen erscheinen nicht im Rendering.
 
+Der native Wissensbaum (`Web.Features.Knowledge`) nutzt den flüchtigen Circuit-State
+`KnowledgeTreeState` als Lazy-Loading-Datenadapter. Er lädt den Root-Knoten über
+`NavigationService.GetRootAsync` und Kindknoten ausschließlich bei Expand über
+`NavigationService.ListChildrenAsync` (mit `Limit = 100` und unverändert
+weitergereichten opaken Cursors). Höchstens zehn 100er-Seiten liegen gleichzeitig im
+Circuit-Cache (`KnowledgeTreePageCache`). Bei der elften Seite greift eine LRU-Eviction:
+Ein unselektierter Teilbaum wird geschlossen; liegen alle zehn Seiten auf dem Auswahlpfad,
+wird die rootnächste Seite entfernt und ihr Kind auf dem Auswahlpfad zum `VisualRoot`
+des Tree-Ausschnitts (der globale Pfad bleibt in den Breadcrumbs). Paging („Zurück“ /
+„Weitere“) ersetzt die sichtbare 100er-Seite vollständig über eine rein opaque
+Cursor-Historie, ohne Seiten zu einer wachsenden Liste zusammenzufügen.
+
 Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
 wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,
 `Fehler`) und rendern Inhalt und Farbe über die zentrale
