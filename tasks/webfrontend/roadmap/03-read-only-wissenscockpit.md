@@ -67,7 +67,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.4 – Rolle, Lesekontext und Node
 
-- [ ] **M3.4 abschließen**
+- [x] **M3.4 abschließen**
 
   - [x] **M3.4-T1 – Globalen Rollen- und Lesekontext-Selektor implementieren**
     - Umfang: Rolle sowie Current Snapshot, historischer Snapshot, Release oder vorhandene Working Transaction auswählen.
@@ -76,7 +76,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Kontextwechsel, leere Rollenliste, nicht mehr vorhandener Kontext und Reconnect.
     - Abnahme: jede Leseansicht verwendet denselben expliziten Kontext.
 
-  - [ ] **M3.4-T2 – Read-only Node-Detailansicht implementieren**
+  - [x] **M3.4-T2 – Read-only Node-Detailansicht implementieren**
     - Umfang: Titel, Description, Position, Rolle, aufgelöster Content, Fallback/Provenienz, Revision und Freshness.
     - Darstellung: gerendertes Markdown plus klar getrennte Metadaten; keine Bearbeitungscontrols, keine Ausführung von Raw HTML und kein Nachladen externer oder lokaler Ressourcen gemäß O-020.
     - Tests: eigener Content, Fallback, leerer Content, stale/derived und fehlender Node.
