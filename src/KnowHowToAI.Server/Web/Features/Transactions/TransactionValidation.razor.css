@@ -1,0 +1,97 @@
+.transaction-validation {
+    background: var(--ktai-color-surface);
+    border: 1px solid var(--ktai-color-border-light);
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.transaction-validation__header {
+    align-items: flex-start;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.transaction-validation__header h2 {
+    color: var(--ktai-color-text);
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.transaction-validation__header p,
+.transaction-validation__group p {
+    color: var(--ktai-color-text-muted);
+    margin: 0.35rem 0 0;
+}
+
+.transaction-validation__notice,
+.transaction-validation__success,
+.transaction-validation__error,
+.transaction-validation__stale {
+    border-radius: 6px;
+    margin: 1rem 0 0;
+    padding: 0.75rem 1rem;
+}
+
+.transaction-validation__notice {
+    background: var(--ktai-color-surface-subtle);
+    color: var(--ktai-color-text-secondary);
+}
+
+.transaction-validation__success {
+    background: var(--ktai-color-success-emphasis-background);
+    color: var(--ktai-color-success-emphasis);
+}
+
+.transaction-validation__error {
+    background: var(--ktai-color-danger-emphasis-background);
+    color: var(--ktai-color-danger-emphasis);
+}
+
+.transaction-validation__stale {
+    background: var(--ktai-color-warning-emphasis-background);
+    color: var(--ktai-color-warning-emphasis);
+}
+
+.transaction-validation__group {
+    border-left: 4px solid var(--ktai-color-border-input);
+    margin-top: 1rem;
+    padding: 0.75rem 0 0.75rem 1rem;
+}
+
+.transaction-validation__group--error {
+    border-left-color: var(--ktai-color-danger-emphasis);
+}
+
+.transaction-validation__group--warning,
+.transaction-validation__group--stale {
+    border-left-color: var(--ktai-color-warning-emphasis);
+}
+
+.transaction-validation__group h3 {
+    color: var(--ktai-color-text);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.transaction-validation__group ul {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+}
+
+.transaction-validation__group a {
+    color: var(--ktai-color-primary);
+    display: inline-block;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .transaction-validation__header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

@@ -45,7 +45,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M4.2 abschließen**
 
-  - [ ] **M4.2-T1 – Transaction validieren und Findings darstellen**
+  - [x] **M4.2-T1 – Transaction validieren und Findings darstellen**
     - Umfang: serverseitige Validierung auslösen, Fehler/Warnungen gruppieren, zu betroffenen Nodes navigieren und veraltete Ergebnisse kennzeichnen.
     - Tests: valide, Fehler, Warnungen, gemischte Findings und Änderung nach Validierung.
     - Abnahme: Findings sind vor Commit verständlich und handlungsorientiert.

@@ -22,6 +22,8 @@
         <TransactionHeader Transaction="@_transaction"
                            IsOlderThan7Days="@(_transaction.CreatedAtUtc <= Clock.UtcNow.AddDays(-7))" />
 
+        <TransactionValidation Transaction="@_transaction" />
+
         <div class="transaction-page__actions" data-testid="transaction-page-actions">
             <a href="@KnowledgeUrl" class="btn btn-primary" data-testid="tx-open-knowledge-link">
                 Im Wissensbaum öffnen
