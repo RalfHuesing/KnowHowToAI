@@ -119,9 +119,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.7 – Markdown-Export
 
-- [ ] **M3.7 abschließen**
+- [x] **M3.7 abschließen**
 
-  - [ ] **M3.7-T1 – Bestehenden Markdown-Teilbaumexport in der UI bereitstellen**
+  - [x] **M3.7-T1 – Bestehenden Markdown-Teilbaumexport in der UI bereitstellen**
     - Umfang: aktueller Node, Rolle und Read Context an vorhandenen Export-Use-Case übergeben und Datei herunterladen.
     - Prüfen: Root/Teilbaum, Fallback, Dateiname, MIME-Type, Fehler und große Ausgabe.
     - Nicht enthalten: PDF oder Exportprofile.
