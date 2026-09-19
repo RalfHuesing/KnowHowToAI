@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Versioning;
 using KnowHowToAI.TestSupport;
-using Microsoft.Win32;
 
 namespace KnowHowToAI.BrowserTests.TestSupport;
 
@@ -42,10 +40,7 @@ public sealed class PublishedServerHost : IAsyncDisposable
 
     public static async Task<PublishedServerHost> StartAsync(string? address = null)
     {
-        if (!OperatingSystem.IsWindows())
-            throw new PlatformNotSupportedException("Die Browsertests benötigen Windows mit Google Chrome Stable.");
-
-        EnsureChromeStableIsInstalled();
+        ChromeStablePreflight.EnsureIsInstalled();
         var repositoryRoot = TestRepositoryRoot.Resolve();
         var testDirectory = TestTempDirectory.Create("browser-tests");
 
@@ -96,15 +91,6 @@ public sealed class PublishedServerHost : IAsyncDisposable
             _serverProcess.Dispose();
             _testDirectory.Dispose();
         }
-    }
-
-    [SupportedOSPlatform("windows")]
-    private static void EnsureChromeStableIsInstalled()
-    {
-        var version = ReadChromeVersion(Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"))
-            ?? ReadChromeVersion(Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"));
-        if (string.IsNullOrWhiteSpace(version))
-            throw new InvalidOperationException("Google Chrome Stable ist erforderlich; es wurde keine installierte Version gefunden.");
     }
 
     private static async Task PublishServerAsync(string repositoryRoot, string publishDirectory)
@@ -187,12 +173,5 @@ public sealed class PublishedServerHost : IAsyncDisposable
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         return $"http://127.0.0.1:{port}";
-    }
-
-    [SupportedOSPlatform("windows")]
-    private static string? ReadChromeVersion(RegistryKey? key)
-    {
-        using (key)
-            return key?.GetValue("DisplayVersion") as string;
     }
 }
