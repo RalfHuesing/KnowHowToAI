@@ -183,10 +183,14 @@ internal sealed class KnowledgeTreePageCache
         return new EvictionResult(rootNearest, childOnPath, message);
     }
 
-    private void RemovePage(Guid parentId)
+    public IEnumerable<Guid> LoadedPageParentIds => _loadedPages.Keys;
+
+    public void RemovePageAndCursors(Guid parentId)
     {
         _loadedPages.Remove(parentId);
         _cursorHistories.Remove(parentId);
         _currentCursors.Remove(parentId);
     }
+
+    private void RemovePage(Guid parentId) => RemovePageAndCursors(parentId);
 }

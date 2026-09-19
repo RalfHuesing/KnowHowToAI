@@ -168,9 +168,16 @@ weitergereichten opaken Cursors). Höchstens zehn 100er-Seiten liegen gleichzeit
 Circuit-Cache (`KnowledgeTreePageCache`). Bei der elften Seite greift eine LRU-Eviction:
 Ein unselektierter Teilbaum wird geschlossen; liegen alle zehn Seiten auf dem Auswahlpfad,
 wird die rootnächste Seite entfernt und ihr Kind auf dem Auswahlpfad zum `VisualRoot`
-des Tree-Ausschnitts (der globale Pfad bleibt in den Breadcrumbs). Paging („Zurück“ /
-„Weitere“) ersetzt die sichtbare 100er-Seite vollständig über eine rein opaque
-Cursor-Historie, ohne Seiten zu einer wachsenden Liste zusammenzufügen.
+des Tree-Ausschnitts (der globale Pfad bleibt in den Breadcrumbs). Die Eviction wird
+erst für eine erfolgreich übernommene neue Seite wirksam. Beim Seitenersatz sowie bei
+Eviction werden alle nicht mehr erreichbaren Off-Path-Knoten samt Nachfahren aus Index,
+Auswahl und Cursorhistorie bereinigt; im Circuit verbleiben ausschließlich der Root-Knoten,
+die Knoten der höchstens zehn geladenen Seiten und die minimale Breadcrumb-Kette des
+selektierten Knotens. Pro Parent sichert eine monotone Requestgeneration, dass konkurrierende
+oder überholte Antworten (auch bei ignoriertem CancellationToken) weder Zustand, Ladeanzeige
+noch Registrierung verändern können. Paging („Zurück“ / „Weitere“) ersetzt die sichtbare
+100er-Seite vollständig über eine rein opaque Cursor-Historie, ohne Seiten zu einer
+wachsenden Liste zusammenzufügen.
 
 `KnowledgePage` und `KnowledgeTree` erhalten diesen Adapter ausschließlich über
 den featurelokalen Vertrag `IKnowledgeTreeWorkspace`. Der Vertrag enthält nur

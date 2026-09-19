@@ -16,7 +16,8 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     private readonly NavigationService _navigationService;
     private readonly KnowledgeTreePageCache _cache = new();
     private readonly Dictionary<Guid, KnowledgeTreeNodeViewModel> _knownNodes = new();
-    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeNodeRequests = new();
+    private readonly ConcurrentDictionary<Guid, ActiveNodeRequest> _activeNodeRequests = new();
+    private long _nextRequestId;
 
     private int _contextGeneration;
     private CancellationTokenSource _globalCts = new();
@@ -29,16 +30,10 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
     public KnowledgeTreeNodeViewModel? RootNode { get; private set; }
 
-    public KnowledgeTreeNodeViewModel? VisualRootNode
-    {
-        get
-        {
-            if (VisualRootNodeId is null || RootNode is null)
-                return RootNode;
-
-            return FindNode(VisualRootNodeId.Value) ?? RootNode;
-        }
-    }
+    public KnowledgeTreeNodeViewModel? VisualRootNode =>
+        VisualRootNodeId.HasValue && RootNode is not null
+            ? FindNode(VisualRootNodeId.Value) ?? RootNode
+            : RootNode;
 
     public Guid? SelectedNodeId { get; private set; }
 
@@ -59,6 +54,8 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     internal Guid? VisualRootNodeId { get; private set; }
 
     internal int LoadedPageCount => _cache.LoadedPageCount;
+
+    internal int KnownNodeCount => _knownNodes.Count;
 
     bool IKnowledgeTreeWorkspace.HasContext(ReadContext readContext, string roleId) =>
         CurrentReadContext == readContext && CurrentRoleId == roleId;
@@ -102,11 +99,6 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         if (node is null || !node.HasChildren || (node.IsExpanded && node.Children.Count > 0))
             return;
 
-        if (!_cache.IsLoaded(nodeId))
-        {
-            ApplyEvictionIfNecessary();
-        }
-
         var success = await LoadChildrenPageAsync(node, cursor: null, cancellationToken).ConfigureAwait(false);
         if (success)
         {
@@ -123,6 +115,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         if (node is null)
             return;
 
+        CancelActiveNodeRequest(nodeId);
         node.IsExpanded = false;
         Changed?.Invoke();
     }
@@ -192,6 +185,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
             await RecenterIfAboveVisualRootAsync(selectedNode, cancellationToken).ConfigureAwait(false);
         }
 
+        PruneOffPathNodes();
         Changed?.Invoke();
     }
 
@@ -278,6 +272,48 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         }
     }
 
+    private bool IsCurrentRequest(Guid nodeId, long requestId, int generation) =>
+        _contextGeneration == generation &&
+        _activeNodeRequests.TryGetValue(nodeId, out var active) &&
+        active.RequestId == requestId;
+
+    private ActiveNodeRequest RegisterActiveRequest(
+        Guid nodeId,
+        int generation,
+        CancellationToken cancellationToken)
+    {
+        var requestId = Interlocked.Increment(ref _nextRequestId);
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(_globalCts.Token, cancellationToken);
+        var request = new ActiveNodeRequest(requestId, generation, cts);
+
+        _activeNodeRequests.AddOrUpdate(
+            nodeId,
+            request,
+            (_, old) =>
+            {
+                try { old.Cts.Cancel(); } catch (ObjectDisposedException) { }
+                old.Cts.Dispose();
+                return request;
+            });
+
+        return request;
+    }
+
+    private void CompleteActiveRequest(
+        Guid nodeId,
+        ActiveNodeRequest request,
+        KnowledgeTreeNodeViewModel node)
+    {
+        if (IsCurrentRequest(nodeId, request.RequestId, request.ContextGeneration))
+        {
+            node.IsLoading = false;
+            Changed?.Invoke();
+            _activeNodeRequests.TryRemove(new KeyValuePair<Guid, ActiveNodeRequest>(nodeId, request));
+        }
+
+        request.Cts.Dispose();
+    }
+
     private async Task<bool> LoadChildrenPageAsync(
         KnowledgeTreeNodeViewModel node,
         string? cursor,
@@ -285,10 +321,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     {
         var generation = _contextGeneration;
         var nodeId = node.NodeId;
-
-        CancelActiveNodeRequest(nodeId);
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(_globalCts.Token, cancellationToken);
-        _activeNodeRequests[nodeId] = cts;
+        var activeRequest = RegisterActiveRequest(nodeId, generation, cancellationToken);
 
         node.IsLoading = true;
         node.Error = null;
@@ -303,9 +336,9 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
                 Limit: PageLimit,
                 Cursor: cursor);
 
-            var result = await _navigationService.ListChildrenAsync(query, cts.Token).ConfigureAwait(false);
+            var result = await _navigationService.ListChildrenAsync(query, activeRequest.Cts.Token).ConfigureAwait(false);
 
-            if (generation != _contextGeneration)
+            if (!IsCurrentRequest(nodeId, activeRequest.RequestId, generation))
                 return false;
 
             if (!result.IsSuccess)
@@ -314,16 +347,21 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
                 return false;
             }
 
+            if (!_cache.IsLoaded(nodeId))
+            {
+                ApplyEvictionIfNecessary();
+            }
+
             ApplyPageResult(node, result.Value!, cursor);
             return true;
         }
-        catch (OperationCanceledException) when (generation != _contextGeneration || cts.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
             return false;
         }
         catch (Exception ex)
         {
-            if (generation == _contextGeneration)
+            if (IsCurrentRequest(nodeId, activeRequest.RequestId, generation))
             {
                 node.Error = ex.Message;
             }
@@ -331,14 +369,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         }
         finally
         {
-            if (generation == _contextGeneration)
-            {
-                node.IsLoading = false;
-                Changed?.Invoke();
-            }
-
-            _activeNodeRequests.TryRemove(nodeId, out _);
-            cts.Dispose();
+            CompleteActiveRequest(nodeId, activeRequest, node);
         }
     }
 
@@ -368,6 +399,15 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         node.HasPreviousPage = _cache.HasPreviousCursor(node.NodeId);
 
         _cache.RecordPageLoaded(node.NodeId, cursor);
+        PruneOffPathNodes();
+    }
+
+    private void PruneOffPathNodes()
+    {
+        var context = new CircuitPruneContext(RootNode, _cache, _knownNodes);
+        var (selectedId, visualRootId) = KnowledgeTreeCircuitPruner.Prune(context, SelectedNodeId, VisualRootNodeId);
+        SelectedNodeId = selectedId;
+        VisualRootNodeId = visualRootId;
     }
 
     private void ApplyEvictionIfNecessary()
@@ -385,27 +425,13 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
     private IReadOnlyList<KnowledgeTreeNodeViewModel> GetBreadcrumbPath()
     {
-        if (SelectedNodeId is null || !_knownNodes.TryGetValue(SelectedNodeId.Value, out var current))
-        {
-            return RootNode is not null
-                ? new[] { RootNode }
-                : Array.Empty<KnowledgeTreeNodeViewModel>();
-        }
+        if (SelectedNodeId is not { } selectedId || !_knownNodes.TryGetValue(selectedId, out var current))
+            return RootNode is not null ? new[] { RootNode } : Array.Empty<KnowledgeTreeNodeViewModel>();
 
         var path = new List<KnowledgeTreeNodeViewModel>();
-        var node = current;
-
-        while (node is not null)
+        for (var node = current; node is not null; node = node.ParentNodeId is { } parentId && _knownNodes.TryGetValue(parentId, out var parent) ? parent : null)
         {
             path.Insert(0, node);
-            if (node.ParentNodeId.HasValue && _knownNodes.TryGetValue(node.ParentNodeId.Value, out var parent))
-            {
-                node = parent;
-            }
-            else
-            {
-                break;
-            }
         }
 
         return path;
@@ -413,49 +439,25 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
     private void CancelActiveNodeRequest(Guid nodeId)
     {
-        if (_activeNodeRequests.TryRemove(nodeId, out var existingCts))
+        if (_activeNodeRequests.TryRemove(nodeId, out var existing))
         {
-            try
-            {
-                existingCts.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-            finally
-            {
-                existingCts.Dispose();
-            }
+            try { existing.Cts.Cancel(); } catch (ObjectDisposedException) { }
+            existing.Cts.Dispose();
         }
     }
 
     private void CancelAllActiveRequests()
     {
-        try
-        {
-            _globalCts.Cancel();
-        }
-        catch (ObjectDisposedException)
-        {
-        }
-        finally
-        {
-            _globalCts.Dispose();
-            _globalCts = new CancellationTokenSource();
-        }
+        try { _globalCts.Cancel(); } catch (ObjectDisposedException) { }
+        _globalCts.Dispose();
+        _globalCts = new CancellationTokenSource();
 
         foreach (var kvp in _activeNodeRequests)
         {
-            try
+            if (_activeNodeRequests.TryRemove(kvp.Key, out var req))
             {
-                kvp.Value.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-            finally
-            {
-                kvp.Value.Dispose();
+                try { req.Cts.Cancel(); } catch (ObjectDisposedException) { }
+                req.Cts.Dispose();
             }
         }
 
