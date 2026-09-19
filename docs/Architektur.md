@@ -91,6 +91,7 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 | `Application.Retrieval.Export` | deterministischer Markdown-Export |
 | `Application.Retrieval.Search` | begrenzte Suche, Snippets, Paging |
 | `Application.History` | Snapshots, Diffs, Transaction Changes, Releases |
+| `Application.Dashboard` | transportneutrale Dashboardaggregation (Current Snapshot, Release, offene Transactions, Qualität, geänderte Nodes) |
 
 **`KnowHowToAI.Storage.SqlServer`**: `Connections` (Connection Factory),
 `Configuration` (validierte SQL-/Migrations-Policies),
@@ -100,7 +101,7 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 `Repositories.Snapshots` (Current-/Working-/historische Snapshot-Reads),
 `Repositories.History` (historische Snapshot-/Diff-Reads),
 `Repositories.Releases` (unveränderliche Releases),
-`Repositories.Retrieval` (Navigation, Search, Paging, Diff-Abfragen),
+`Repositories.Retrieval` (Navigation, Search, Paging, Diff-Abfragen, Dashboard-Reads via `SqlDashboardRepository`),
 `Mapping` (interne Dapper-Zeilenmodelle und explizites Domain-Mapping).
 
 **`KnowHowToAI.Server`**: `Configuration` (bindbare Options, zentrale

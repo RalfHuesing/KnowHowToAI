@@ -1,10 +1,40 @@
 @page "/"
 @using Microsoft.AspNetCore.Components.Web
-@inject KnowHowToAI.Core.Application.Navigation.NavigationService NavigationService
 
 <PageTitle>KnowHowToAI</PageTitle>
 
-<h1>KnowHowToAI</h1>
-<p data-testid="shell-status" aria-live="polite">@_shellStatus</p>
-<button type="button" @onclick="CheckInteractivity">Interaktivität prüfen</button>
-<p data-testid="interaction-status" aria-live="polite">@_interactionStatus</p>
+<div class="dashboard-page" data-testid="dashboard-page">
+    <header class="dashboard-header">
+        <div class="header-title-group">
+            <h1>KnowHowToAI</h1>
+            <span class="dashboard-badge">Wissensdashboard</span>
+        </div>
+        <div class="header-probe-group">
+            <button type="button" class="probe-button" @onclick="CheckInteractivity">Interaktivität prüfen</button>
+            <p data-testid="shell-status" aria-live="polite" class="probe-text">Shell bereit.</p>
+            <p data-testid="interaction-status" aria-live="polite" class="probe-text">@_interactionStatus</p>
+        </div>
+    </header>
+
+    @if (_isLoading)
+    {
+        <div class="loading-state" data-testid="dashboard-loading" role="status">
+            Lade Wissensdashboard...
+        </div>
+    }
+    else if (_errorMessage is not null)
+    {
+        <div class="error-state" data-testid="dashboard-error" role="alert">
+            <p>@_errorMessage</p>
+        </div>
+    }
+    else if (_model is not null)
+    {
+        <div class="dashboard-grid">
+            <SnapshotSummary CurrentSnapshot="_model.CurrentSnapshot" LatestRelease="_model.LatestRelease" />
+            <OpenTransactionList Transactions="_model.OpenTransactions" />
+            <QualitySummary Quality="_model.QualitySummary" />
+            <RecentChanges Changes="_model.RecentChanges" HasPredecessor="_model.CurrentSnapshot.BaseSnapshotId.HasValue" />
+        </div>
+    }
+</div>

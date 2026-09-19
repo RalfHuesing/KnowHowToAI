@@ -1,0 +1,29 @@
+<section class="dashboard-card recent-changes" aria-labelledby="recent-changes-heading" data-testid="recent-changes">
+    <h2 id="recent-changes-heading">Zuletzt geänderte Nodes (@Changes.Count)</h2>
+
+    @if (Changes.Count == 0)
+    {
+        <p class="empty-state" data-testid="empty-recent-changes">
+            @(HasPredecessor ? "Keine kürzlich geänderten Nodes vorhanden." : "Initialer Stand ohne vorherigen Snapshot – keine Änderungen vorhanden.")
+        </p>
+    }
+    else
+    {
+        <ul class="changes-list" role="list">
+            @foreach (var item in Changes)
+            {
+                <li class="change-item" role="listitem" data-testid="change-item-@item.NodeId">
+                    <span class="change-kind badge badge-@item.ChangeKind.ToLowerInvariant()">@item.ChangeKind</span>
+                    @if (string.Equals(item.ChangeKind, "Deleted", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="node-title deleted" data-testid="node-deleted-@item.NodeId">@item.Title</span>
+                    }
+                    else
+                    {
+                        <a href="/knowledge/@item.NodeId" class="dashboard-link node-title" data-testid="node-link-@item.NodeId">@item.Title</a>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</section>

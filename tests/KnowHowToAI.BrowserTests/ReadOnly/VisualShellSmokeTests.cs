@@ -89,7 +89,7 @@ public sealed class VisualShellSmokeTests
             () => {
                 const mask = document.createElement('style');
                 mask.id = 'visual-smoke-mask';
-                mask.textContent = '*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition: none !important; caret-color: transparent !important; scroll-behavior: auto !important; }';
+                mask.textContent = '*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition: none !important; caret-color: transparent !important; scroll-behavior: auto !important; } [data-volatile] { visibility: hidden !important; }';
                 document.head.appendChild(mask);
             }
             """);

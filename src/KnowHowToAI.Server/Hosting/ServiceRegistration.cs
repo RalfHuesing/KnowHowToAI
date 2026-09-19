@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.Dashboard;
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Mutations;
 using KnowHowToAI.Core.Application.Mutations.Content;
@@ -63,6 +64,7 @@ internal static class ServiceRegistration
         services.AddSingleton<IReleaseRepository>(sp => sp.GetRequiredService<SqlReleaseRepository>());
         services.AddSingleton<IReleaseMutationRepository>(sp => sp.GetRequiredService<SqlReleaseRepository>());
         services.AddSingleton<IRetrievalRepository, SqlRetrievalRepository>();
+        services.AddSingleton<IDashboardRepository, SqlDashboardRepository>();
         services.AddHostedService<SchemaMigrationHostedService>();
 
         return services;
@@ -125,6 +127,7 @@ internal static class ServiceRegistration
         services.AddSingleton<MarkdownExportService>();
         services.AddSingleton<HistoryService>();
         services.AddSingleton<ReleaseService>();
+        services.AddSingleton<DashboardService>();
 
         return services;
     }

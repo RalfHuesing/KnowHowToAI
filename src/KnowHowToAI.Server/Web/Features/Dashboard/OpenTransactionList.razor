@@ -1,0 +1,51 @@
+<section class="dashboard-card open-transactions" aria-labelledby="open-transactions-heading" data-testid="open-transactions">
+    <h2 id="open-transactions-heading">Offene Transactions (@Transactions.Count)</h2>
+    @if (Transactions.Count == 0)
+    {
+        <p class="empty-state" data-testid="empty-transactions">Keine offenen Transactions vorhanden.</p>
+    }
+    else
+    {
+        <div class="transaction-list" role="list">
+            @foreach (var tx in Transactions)
+            {
+                <article class="transaction-item" role="listitem" data-testid="transaction-item-@tx.TransactionId">
+                    <div class="transaction-header">
+                        <h3 class="transaction-title">@(string.IsNullOrWhiteSpace(tx.Purpose) ? "Ohne Zweckangabe" : tx.Purpose)</h3>
+                        @if (tx.IsOlderThan7Days)
+                        {
+                            <span class="badge badge-warning" data-testid="tx-age-warning">Älter als 7 Tage</span>
+                        }
+                    </div>
+                    <dl class="transaction-meta">
+                        <dt>Akteur:</dt>
+                        <dd>@(tx.Actor ?? "Unbekannt")</dd>
+                        <dt>Client:</dt>
+                        <dd>@(tx.Client ?? "Unbekannt")</dd>
+                        <dt>Erstellt am:</dt>
+                        <dd data-volatile="" title="@tx.CreatedAtUtc.ToString("u")">@tx.CreatedAtUtc.ToString("g")</dd>
+                        <dt>Base-Snapshot:</dt>
+                        <dd>@tx.BaseSnapshotId</dd>
+                        <dt>ChangeVersion:</dt>
+                        <dd>@tx.ChangeVersion</dd>
+                    </dl>
+                    @if (tx.ValidationErrors.Count > 0)
+                    {
+                        <div class="validation-errors" data-testid="tx-validation-errors" role="alert">
+                            <span class="error-badge">@tx.ValidationErrors.Count harte Validierungsfehler</span>
+                            <ul>
+                                @foreach (var error in tx.ValidationErrors)
+                                {
+                                    <li>@error</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    <div class="transaction-actions">
+                        <a href="/transactions/@tx.TransactionId" class="dashboard-link" data-testid="tx-link-@tx.TransactionId">Transaction anzeigen</a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

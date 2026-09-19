@@ -1,4 +1,5 @@
-using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.Dashboard;
 using KnowHowToAI.Server.Web.Components.Layout;
 using Microsoft.AspNetCore.Components;
 
@@ -7,27 +8,47 @@ namespace KnowHowToAI.Server.Web.Features.Dashboard;
 public sealed partial class DashboardPage
 {
     [Inject]
+    private DashboardService DashboardService { get; set; } = default!;
+
+    [Inject]
     private PageRegionState PageRegions { get; set; } = default!;
 
-    private string _shellStatus = "Shell wird initialisiert.";
-    private string _interactionStatus = "Interaktivität wurde noch nicht geprüft.";
+    [Inject]
+    private IClock Clock { get; set; } = default!;
+
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private DashboardViewModel? _model;
 
     protected override async Task OnInitializedAsync()
     {
-        // Die Dashboard-Seite zeigt den Current Snapshot; daraus entsteht der
-        // initiale Wissenskontext ohne Rolle und ohne ungespeicherte Änderungen.
         PageRegions.SetKnowledgeContext(new KnowledgeContextViewModel(KnowledgeReadContextKind.Current));
+        _isLoading = true;
+        _errorMessage = null;
 
-        var result = await NavigationService.ListRolesAsync(
-            new ListRolesQuery(new ReadContext(), Limit: 1),
-            CancellationToken.None);
-
-        _shellStatus = result.IsSuccess
-            ? result.Value!.Items.Count == 0
-                ? "Shell bereit; keine Rollen vorhanden."
-                : "Shell bereit."
-            : "Shell bereit; der Read-only-Status konnte nicht ermittelt werden.";
+        try
+        {
+            var result = await DashboardService.GetDashboardAsync(new DashboardQuery(), CancellationToken.None);
+            if (result.IsSuccess && result.Value is not null)
+            {
+                _model = DashboardMapper.ToDashboardViewModel(result.Value, Clock.UtcNow);
+            }
+            else
+            {
+                _errorMessage = result.Error?.Message ?? "Das Wissensdashboard konnte nicht geladen werden.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "Fehler beim Laden des Wissensdashboards: " + ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
+
+    private string _interactionStatus = "Interaktivität wurde noch nicht geprüft.";
 
     private void CheckInteractivity() =>
         _interactionStatus = "Interaktivität ist verfügbar.";
