@@ -1,0 +1,20 @@
+---
+description: SqlToAi MCP-Server für SQL-Abfragen gegen die KnowHowToAI-Datenbank.
+globs:
+alwaysApply: true
+---
+
+# SqlToAi MCP-Server (SQL-Abfragen KnowHowToAI)
+
+Bei SQL-Abfragen gegen die Datenbank `KnowHowToAi` den konfigurierten SqlToAi MCP-Server verwenden, nicht manuelle SQL-Clients oder Skripte. Prüfen, was existiert: `sql_list_databases` (Whitelist), `sql_get_schema`/`sql_search_objects` (Schema & Objekte), `sql_execute_query` (SELECT).
+
+## Leitplanken
+
+- **Nur `KnowHowToAi`**: Ausdrücklich nur die Datenbank `KnowHowToAi` adressieren (`database: "KnowHowToAi"`); die übrigen Datenbanken auf der Whitelist sind für dieses Projekt tabu. Datenbankname nicht raten oder weglassen.
+- **Nur lesend**: `sql_execute_query` führt ausschließlich `SELECT` aus (eine Anweisung, in Rollback-Transaktion). Schreib- oder DDL-Versuche sind unterlassen und scheitern ohnehin; Schema-/Datenänderungen laufen über den dokumentierten MCP-/Service-Stack der Anwendung.
+- **Voller Zugriff**: Innerhalb von `KnowHowToAi` bestehen volle Rechte — weder Verbindung noch Berechtigungen sind Begrenzungsgrund; nur Server-Zeilenlimits greifen (`requested_row_limit`).
+- **Token-Effizienz**: Erst `sql_get_schema`/`sql_search_objects` statt `SELECT *`-Sondierung; `requested_row_limit` klein wählen; resultsetarme, präzise Queries statt Breitbandabfragen.
+
+## Fallback
+
+Schlägt der Server fehl (nicht erreichbar, nicht konfiguriert), nicht still eigene Workarounds bauen: dem Nutzer melden. Keine Credentials, Connection Strings oder Serverliste in Diagnosen/Antworten.
