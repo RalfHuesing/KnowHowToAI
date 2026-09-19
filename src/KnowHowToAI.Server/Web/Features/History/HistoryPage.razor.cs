@@ -3,6 +3,7 @@ using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
+using KnowHowToAI.Server.Web.Components.Shared.Diffs;
 using Microsoft.AspNetCore.Components;
 
 namespace KnowHowToAI.Server.Web.Features.History;

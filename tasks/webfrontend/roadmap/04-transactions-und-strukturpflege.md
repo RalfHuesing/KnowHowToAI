@@ -50,7 +50,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: valide, Fehler, Warnungen, gemischte Findings und Änderung nach Validierung.
     - Abnahme: Findings sind vor Commit verständlich und handlungsorientiert.
 
-  - [ ] **M4.2-T2 – Transaction-Diff vor Commit darstellen**
+  - [x] **M4.2-T2 – Transaction-Diff vor Commit darstellen**
     - Umfang: strukturierte Änderungen der Working Transaction gegenüber ihrer Base anzeigen.
     - Prüfen: Erstellen, Ändern, Verschieben, Löschen und leere Transaction; große Diffs paginieren.
     - Abnahme: Benutzer kann den geplanten Commit vollständig prüfen.

@@ -1,0 +1,81 @@
+.transaction-diff {
+    display: grid;
+    gap: var(--ktai-space-3);
+    margin-top: var(--ktai-space-5);
+}
+
+.transaction-diff__header {
+    align-items: start;
+    display: flex;
+    gap: var(--ktai-space-3);
+    justify-content: space-between;
+}
+
+.transaction-diff__header h2,
+.transaction-diff__header p {
+    margin: 0;
+}
+
+.transaction-diff__header p {
+    color: var(--ktai-color-text-secondary);
+    margin-top: var(--ktai-space-1);
+}
+
+.transaction-diff__list {
+    display: grid;
+    gap: var(--ktai-space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.transaction-diff__entry {
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    display: grid;
+    gap: var(--ktai-space-3);
+    grid-template-columns: auto 1fr;
+    padding: var(--ktai-space-3);
+}
+
+.transaction-diff__kind {
+    border-radius: var(--ktai-radius-small);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    height: fit-content;
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+}
+
+.transaction-diff__kind--added { background: var(--ktai-color-success-strong-background); color: var(--ktai-color-success-strong); }
+.transaction-diff__kind--modified { background: var(--ktai-color-info-emphasis-background); color: var(--ktai-color-primary-hover); }
+.transaction-diff__kind--deleted { background: var(--ktai-color-danger-strong-background); color: var(--ktai-color-danger); }
+
+.transaction-diff__ids,
+.transaction-diff__detail,
+.transaction-diff__before,
+.transaction-diff__after {
+    color: var(--ktai-color-text-secondary);
+    margin: var(--ktai-space-1) 0 0;
+    overflow-wrap: anywhere;
+}
+
+.transaction-diff__before span,
+.transaction-diff__after span {
+    color: var(--ktai-color-text);
+    font-weight: 700;
+}
+
+.transaction-diff__stale {
+    background: var(--ktai-color-warning-background);
+    border-inline-start: 0.25rem solid var(--ktai-color-warning);
+    color: var(--ktai-color-text);
+    margin: 0;
+    padding: var(--ktai-space-3);
+}
+
+@media (max-width: 48rem) {
+    .transaction-diff__header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

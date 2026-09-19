@@ -1,5 +1,7 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
+using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Runtime;
 using KnowHowToAI.Core.Application.Transactions;
@@ -15,6 +17,12 @@ public sealed class TransactionTestHarness
 {
     public InMemoryKnowledgeStore Store { get; } = new();
     private readonly InMemoryTransactionRepository _transactionRepo;
+    private readonly InMemorySnapshotRepository _snapshotRepo;
+    private readonly InMemoryHierarchyRepository _hierarchyRepo;
+    private readonly InMemoryContentRepository _contentRepo;
+    private readonly InMemoryRoleRepository _roleRepo;
+    private readonly InMemoryDependencyRepository _dependencyRepo;
+    private readonly InMemoryWorkingSnapshotReadRepository _workingSnapshotRepo;
     private readonly InMemoryWorkingSnapshotValidationDataRepository _validationDataRepo = new();
     public IIdentifierGenerator IdentifierGenerator { get; set; } = new GuidIdentifierGenerator();
     public ValidationPolicy ValidationPolicy { get; set; } = new();
@@ -28,6 +36,12 @@ public sealed class TransactionTestHarness
         Store.Snapshots.Add(new Snapshot(snapshotId, null, SnapshotState.Committed, timestamp, timestamp));
 
         _transactionRepo = new InMemoryTransactionRepository(Store);
+        _snapshotRepo = new InMemorySnapshotRepository(Store);
+        _hierarchyRepo = new InMemoryHierarchyRepository(Store);
+        _contentRepo = new InMemoryContentRepository(Store);
+        _roleRepo = new InMemoryRoleRepository(Store);
+        _dependencyRepo = new InMemoryDependencyRepository(Store);
+        _workingSnapshotRepo = new InMemoryWorkingSnapshotReadRepository(Store);
     }
 
     public void AddTransaction(KnowledgeTransaction tx)
@@ -44,4 +58,23 @@ public sealed class TransactionTestHarness
             _validationDataRepo,
             IdentifierGenerator,
             ValidationPolicy);
+
+    public HistoryService CreateHistoryService(RetrievalPolicy? retrievalPolicy = null) =>
+        new(
+            new SnapshotReadRepositories(
+                _snapshotRepo,
+                _transactionRepo,
+                _hierarchyRepo,
+                _contentRepo,
+                _roleRepo,
+                _dependencyRepo,
+                _workingSnapshotRepo),
+            retrievalPolicy ?? new RetrievalPolicy
+            {
+                DefaultPageSize = 100,
+                MaximumPageSize = 100,
+                SearchPageSize = 100,
+                SearchMaximumPageSize = 100,
+                SnippetMaximumCharacters = 200
+            });
 }

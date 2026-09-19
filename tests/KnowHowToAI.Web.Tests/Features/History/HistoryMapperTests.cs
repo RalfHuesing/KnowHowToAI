@@ -5,6 +5,7 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.History;
+using KnowHowToAI.Server.Web.Components.Shared.Diffs;
 
 namespace KnowHowToAI.Web.Tests.Features.History;
 

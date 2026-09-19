@@ -1,0 +1,74 @@
+@namespace KnowHowToAI.Server.Web.Features.Transactions
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+<section class="transaction-diff" aria-labelledby="transaction-diff-heading" data-testid="transaction-diff">
+    <div class="transaction-diff__header">
+        <div>
+            <h2 id="transaction-diff-heading">Geplanter Commit</h2>
+            <p>Strukturierter Netto-Diff zwischen Base Snapshot und Working Snapshot.</p>
+        </div>
+        <button type="button" class="btn btn-secondary" @onclick="RefreshAsync" disabled="@_isLoading" data-testid="transaction-diff-refresh">
+            Diff aktualisieren
+        </button>
+    </div>
+
+    @if (_isLoading)
+    {
+        <p role="status" data-testid="transaction-diff-loading">Transaction-Diff wird geladen …</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div role="alert" data-testid="transaction-diff-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+        </div>
+    }
+    else if (_viewModel is null || _viewModel.Entries.Count == 0)
+    {
+        <p role="status" data-testid="transaction-diff-empty">
+            Diese Transaction enthält gegenüber dem Base Snapshot keine Änderungen.
+        </p>
+    }
+    else
+    {
+        <p class="transaction-diff__summary" data-testid="transaction-diff-summary">
+            Snapshot @_viewModel.BaseSnapshotId → Working Snapshot @_viewModel.TargetSnapshotId: @_viewModel.TotalCount Änderung(en)
+        </p>
+        @if (IsStale)
+        {
+            <p class="transaction-diff__stale" role="status" data-testid="transaction-diff-stale">
+                Dieser Diff bezieht sich auf ChangeVersion @_loadedChangeVersion. Die Transaction wurde danach geändert; aktualisieren Sie den Diff vor dem Commit.
+            </p>
+        }
+        <ol class="transaction-diff__list" data-testid="transaction-diff-list">
+            @foreach (var entry in _viewModel.Entries)
+            {
+                <li class="transaction-diff__entry" data-testid="transaction-diff-entry-@entry.EntityType-@entry.PrimaryId">
+                    <span class="transaction-diff__kind transaction-diff__kind--@entry.Kind.ToLowerInvariant()">@MapKind(entry.Kind)</span>
+                    <div>
+                        <strong>@MapEntityType(entry.EntityType)</strong>
+                        <span class="transaction-diff__ids">@entry.PrimaryId@if (!string.IsNullOrWhiteSpace(entry.SecondaryId)) { <text> · @entry.SecondaryId</text> }</span>
+                        @if (!string.IsNullOrWhiteSpace(entry.Detail))
+                        {
+                            <p class="transaction-diff__detail">@entry.Detail</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(entry.Before))
+                        {
+                            <p class="transaction-diff__before"><span>Vorher</span> @entry.Before</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(entry.After))
+                        {
+                            <p class="transaction-diff__after"><span>Nachher</span> @entry.After</p>
+                        }
+                    </div>
+                </li>
+            }
+        </ol>
+        @if (!string.IsNullOrEmpty(_viewModel.NextCursor))
+        {
+            <button type="button" class="btn btn-secondary" @onclick="LoadNextAsync" disabled="@_isLoading" data-testid="transaction-diff-next">
+                Weitere Änderungen
+            </button>
+        }
+    }
+</section>

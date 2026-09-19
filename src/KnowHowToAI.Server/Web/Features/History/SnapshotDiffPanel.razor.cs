@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using KnowHowToAI.Server.Web.Components.Shared.Diffs;
 
 namespace KnowHowToAI.Server.Web.Features.History;
 

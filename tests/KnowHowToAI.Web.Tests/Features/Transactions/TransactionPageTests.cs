@@ -1,6 +1,8 @@
 using Bunit;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
@@ -14,6 +16,7 @@ using KnowHowToAI.Server.Web.Features.Transactions;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace KnowHowToAI.Web.Tests.Features.Transactions;
 
@@ -45,6 +48,7 @@ public sealed class TransactionPageTests : BunitContext
         Services.AddSingleton(_workspaceState);
         Services.AddSingleton<IClock>(new FixedClock(Now));
         Services.AddSingleton(_harness.CreateService());
+        Services.AddSingleton(_harness.CreateHistoryService());
     }
 
     [Fact]
@@ -225,6 +229,95 @@ public sealed class TransactionPageTests : BunitContext
         _workspaceState.SetChangeVersion(2);
 
         cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-testid='validation-results-stale']")));
+    }
+
+    [Fact]
+    public void TransactionPage_TransactionDiff_ShowsCreatedModifiedMovedAndDeletedNodes()
+    {
+        var transaction = AddOpenTransaction();
+        var baseSnapshotId = transaction.BaseSnapshotId;
+        var workingSnapshotId = transaction.WorkingSnapshotId;
+        var modifiedId = new NodeId(Guid.Parse("00000000-0000-0000-0000-000000000201"));
+        var movedId = new NodeId(Guid.Parse("00000000-0000-0000-0000-000000000202"));
+        var deletedId = new NodeId(Guid.Parse("00000000-0000-0000-0000-000000000203"));
+        var createdId = new NodeId(Guid.Parse("00000000-0000-0000-0000-000000000204"));
+
+        _harness.Store.Snapshots.Add(new Snapshot(workingSnapshotId, baseSnapshotId, SnapshotState.Working, Now, null));
+        _harness.Store.Nodes.AddRange(
+        [
+            new Node(baseSnapshotId, modifiedId, null, "Alt", "Alte Beschreibung", 0, false),
+            new Node(baseSnapshotId, movedId, null, "Verschieben", null, 1, false),
+            new Node(baseSnapshotId, deletedId, null, "Löschen", null, 2, false),
+            new Node(workingSnapshotId, modifiedId, null, "Neu", "Neue Beschreibung", 0, false),
+            new Node(workingSnapshotId, movedId, modifiedId, "Verschieben", null, 0, false),
+            new Node(workingSnapshotId, deletedId, null, "Löschen", null, 2, true),
+            new Node(workingSnapshotId, createdId, null, "Erstellen", null, 3, false)
+        ]);
+
+        var cut = Render<TransactionPage>(parameters => parameters.Add(p => p.TransactionId, transaction.TransactionId.Value));
+
+        var diff = cut.Find("[data-testid='transaction-diff-list']");
+        Assert.Contains("Hinzugefügt", diff.TextContent);
+        Assert.Contains("Geändert", diff.TextContent);
+        Assert.Contains("Gelöscht", diff.TextContent);
+        Assert.Contains("Neue Beschreibung", diff.TextContent);
+        Assert.Contains("Parent:", diff.TextContent);
+        Assert.Equal(4, cut.FindAll("[data-testid^='transaction-diff-entry-Node-']").Count);
+    }
+
+    [Fact]
+    public void TransactionPage_TransactionDiff_EmptyTransactionExplainsThatNoCommitIsPlanned()
+    {
+        var transaction = AddOpenTransaction();
+        _harness.Store.Snapshots.Add(new Snapshot(transaction.WorkingSnapshotId, transaction.BaseSnapshotId, SnapshotState.Working, Now, null));
+
+        var cut = Render<TransactionPage>(parameters => parameters.Add(p => p.TransactionId, transaction.TransactionId.Value));
+
+        Assert.Single(cut.FindAll("[data-testid='transaction-diff-empty']"));
+    }
+
+    [Fact]
+    public void TransactionPage_TransactionDiff_PaginatesAllChangesAndMarksStaleResults()
+    {
+        var transaction = AddOpenTransaction(changeVersion: 4);
+        var baseSnapshotId = transaction.BaseSnapshotId;
+        var workingSnapshotId = transaction.WorkingSnapshotId;
+        _harness.Store.Snapshots.Add(new Snapshot(workingSnapshotId, baseSnapshotId, SnapshotState.Working, Now, null));
+        _harness.Store.Nodes.AddRange(
+        [
+            new Node(workingSnapshotId, new NodeId(Guid.Parse("00000000-0000-0000-0000-000000000211")), null, "Erste Änderung", null, 0, false),
+            new Node(workingSnapshotId, new NodeId(Guid.Parse("00000000-0000-0000-0000-000000000212")), null, "Zweite Änderung", null, 1, false),
+            new Node(workingSnapshotId, new NodeId(Guid.Parse("00000000-0000-0000-0000-000000000213")), null, "Dritte Änderung", null, 2, false)
+        ]);
+        Services.RemoveAll<HistoryService>();
+        Services.AddSingleton(new HistoryService(
+            new SnapshotReadRepositories(
+                new InMemorySnapshotRepository(_harness.Store),
+                new InMemoryTransactionRepository(_harness.Store),
+                new InMemoryHierarchyRepository(_harness.Store),
+                new InMemoryContentRepository(_harness.Store),
+                new InMemoryRoleRepository(_harness.Store),
+                new InMemoryDependencyRepository(_harness.Store),
+                new InMemoryWorkingSnapshotReadRepository(_harness.Store)),
+            new RetrievalPolicy
+            {
+                DefaultPageSize = 2,
+                MaximumPageSize = 2,
+                SearchPageSize = 2,
+                SearchMaximumPageSize = 2,
+                SnippetMaximumCharacters = 200
+            }));
+
+        var cut = Render<TransactionPage>(parameters => parameters.Add(p => p.TransactionId, transaction.TransactionId.Value));
+
+        Assert.Single(cut.FindAll("[data-testid='transaction-diff-next']"));
+        cut.FindComponent<KnowHowToAI.Server.Web.Features.Transactions.TransactionDiff>()
+            .Find("[data-testid='transaction-diff-next']")
+            .Click();
+        Assert.Equal(3, cut.FindAll("[data-testid^='transaction-diff-entry-Node-']").Count);
+
+        _workspaceState.SetChangeVersion(5);
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-testid='transaction-diff-stale']")));
     }
 
     private KnowledgeTransaction AddOpenTransaction(long changeVersion = 1)
