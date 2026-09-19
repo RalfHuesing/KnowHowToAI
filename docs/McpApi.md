@@ -134,9 +134,9 @@ Transaction; `delete_node` wirkt global über alle Rollen
 | `update_node` | `transactionId`, `nodeId`, `title` (erforderlich), optional `description`, optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
 | `move_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `parentNodeId` (ohne Wert wird die Node zur Root-Node) | dieselben Feldnamen wie `create_node` |
 | `reorder_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich) | dieselben Feldnamen wie `create_node` |
-| `delete_node` | `transactionId`, `nodeId` (erforderlich), optional `deleteSubtree` (Standard `false`) | dieselben Feldnamen wie `create_node` |
+| `delete_node` | `transactionId`, `nodeId` (erforderlich), optional `deleteSubtree` (Standard `false`), optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
 
-Bei `update_node` macht `expectedChangeVersion` einen zuvor gelesenen
+Bei `update_node` und `delete_node` macht `expectedChangeVersion` einen zuvor gelesenen
 Working-Stand zur Vorbedingung. Weicht er beim atomaren Write ab, wird die Mutation mit
 `ChangeVersionConflict` abgelehnt; der Client lädt den betroffenen Bereich neu und sendet
 eine bewusste Gegenänderung, falls sie weiter gewünscht ist.

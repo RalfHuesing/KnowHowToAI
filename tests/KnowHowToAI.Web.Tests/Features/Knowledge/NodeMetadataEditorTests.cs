@@ -5,6 +5,7 @@ using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.Features.Knowledge.Components;
 using KnowHowToAI.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;

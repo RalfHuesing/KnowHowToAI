@@ -270,6 +270,7 @@ internal sealed class NodeMutationTools
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
         [Description("Optional: gesamten Teilbaum einschließlich aller Children und Contents löschen (Standard false).")] bool deleteSubtree = false,
+        [Description("Optionaler erwarteter ChangeVersion-Stand der Transaction; bei einer zwischenzeitlichen Mutation wird der Write abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -278,7 +279,7 @@ internal sealed class NodeMutationTools
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
         return McpMutationMapper.ToEnvelope(await _nodeMutationService
-            .DeleteAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, deleteSubtree, cancellationToken)
+            .DeleteAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, deleteSubtree, expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 

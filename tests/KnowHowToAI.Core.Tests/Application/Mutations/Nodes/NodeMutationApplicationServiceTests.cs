@@ -352,6 +352,24 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.Equal(1, repository.ChangeVersion);
     }
 
+    [Fact]
+    public async Task DeleteAsync_RejectsStaleChangeVersionWithoutChangingState()
+    {
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId), Node(FirstChildNodeId, RootNodeId)));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var first = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(FirstChildNodeId, "Von anderem Client", null, ExpectedChangeVersion: 0));
+        var stale = await service.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: false, expectedChangeVersion: 0);
+
+        Assert.True(first.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.False(Find(repository.State.Nodes, FirstChildNodeId).IsDeleted);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
     private static NodeMutationApplicationService CreateService(
         InMemoryNodeMutationRepository repository,
         NodeId generatedNodeId) =>

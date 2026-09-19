@@ -260,9 +260,13 @@ public sealed partial class KnowledgePage : IDisposable
         PageRegions.SetKnowledgeContext(updatedContext);
 
         await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, roleId, CancellationToken.None);
-        await TreeWorkspace.SelectNodeAsync(mutation.Node.NodeId.Value, CancellationToken.None);
-        WorkspaceState.SetNode(mutation.Node.NodeId.Value);
-        await LoadNodeDetailsAsync(mutation.Node.NodeId.Value, WorkspaceState.CurrentReadContext, roleId);
+        var selectedNodeId = mutation.Node.IsDeleted ? mutation.Node.ParentNodeId?.Value : mutation.Node.NodeId.Value;
+        await TreeWorkspace.SelectNodeAsync(selectedNodeId, CancellationToken.None);
+        WorkspaceState.SetNode(selectedNodeId);
+        if (selectedNodeId.HasValue)
+            await LoadNodeDetailsAsync(selectedNodeId.Value, WorkspaceState.CurrentReadContext, roleId);
+        else
+            ClearNodeDetails();
     }
 
     private string CreateMarkdownDownloadUrl(Guid nodeId, string roleId)

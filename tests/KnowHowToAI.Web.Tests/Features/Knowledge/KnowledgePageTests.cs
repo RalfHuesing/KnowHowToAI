@@ -17,6 +17,7 @@ using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -200,6 +201,8 @@ public sealed class KnowledgePageTests : BunitContext
                 HierarchyDepthWarning = 8,
                 PossibleEmbeddedHeadingWarning = true
             }));
+        Services.AddSingleton(new NodeDeletionPreviewService(harness.CreateRepositories().WorkingSnapshots!));
+        JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js").Mode = JSRuntimeMode.Loose;
 
         var query = scenario switch
         {

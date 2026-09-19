@@ -78,7 +78,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: gültige Werte, Duplikate, Grenzlängen, ungültiger Parent und gleichzeitige Aktualisierung.
     - Abnahme: Ergebnis ist unmittelbar im Working Tree sichtbar.
 
-  - [ ] **M4.3-T2 – Nodes kontrolliert löschen**
+  - [x] **M4.3-T2 – Nodes kontrolliert löschen**
     - Umfang: Löschaktion, Auswirkungskurzansicht, Bestätigung und serverseitige Fehlerdarstellung.
     - Prüfen: Teilbaum, Referenzen/Dependencies, bereits gelöschter Node und Rootschutz gemäß Ist-Regeln.
     - Gleichzeitige Clients (O-025 entschieden): stale `ChangeVersion` deterministisch ablehnen und zum Neuladen auffordern.

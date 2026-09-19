@@ -245,6 +245,15 @@ initialisiert nach einer bestätigten Mutation Tree, Auswahl und Details aus dem
 Working Snapshot neu. Bei `ChangeVersionConflict` bleibt der Formzustand sichtbar
 und der serverseitige Fehler wird am Formular angezeigt; Korrekturen erfolgen
 bewusst oder durch Discard, ohne globalen Undo-Stack.
+`NodeDeletionEditor` lädt vor jeder globalen Löschung den Working-Stand erneut
+über `NodeDeletionPreviewService` und zeigt Ziel, Root-Auswirkung, direkten und
+vollständigen Teilbaum, explizite Inhalte sowie entfernte oder als Provenienz
+erhaltene Dependencies. Children verlangen die explizite Teilbaumwahl; erst die
+anschließende destruktive Bestätigung ruft `NodeMutationApplicationService` mit
+der Vorschau-`ChangeVersion` auf. Bei `ChangeVersionConflict` bleibt die
+Löschung aus und die UI fordert eine neue Löschprüfung an. Nach Erfolg lädt
+`KnowledgePage` den Tree neu und selektiert den Parent oder bei einer Root-Löschung
+keine Node.
 Der Inhaltsbereich rendert Markdown sicher über `SafeMarkdownRenderer` (gemäß O-020:
 kein Raw-HTML-Rendering via `DisableHtml`, Neutralisierung von JavaScript-, Data- und
 File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine

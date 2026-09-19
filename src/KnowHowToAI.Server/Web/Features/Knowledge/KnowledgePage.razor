@@ -1,5 +1,6 @@
 @page "/knowledge"
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Features.Knowledge.Components
 @page "/knowledge/{NodeId:guid}"
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Knowledge
@@ -46,6 +47,10 @@
                                 Node="@_nodeDetailsViewModel"
                                 TransactionId="@WorkspaceState.ActiveTransactionId"
                                 ExpectedChangeVersion="@WorkspaceState.CurrentChangeVersion"
+                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
+                            <NodeDeletionEditor
+                                Node="@_nodeDetailsViewModel"
+                                TransactionId="@WorkspaceState.ActiveTransactionId.Value"
                                 OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
                         }
                     </div>

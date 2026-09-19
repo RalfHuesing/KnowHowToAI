@@ -89,12 +89,14 @@ public sealed class NodeMutationApplicationService
         TransactionId transactionId,
         NodeId nodeId,
         bool deleteSubtree,
+        long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var executionResult = await _repository.ExecuteAsync(
             transactionId,
             state => CreateDeletionDecision(state, nodeId, deleteSubtree),
-            cancellationToken: cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken,
+            expectedChangeVersion: expectedChangeVersion).ConfigureAwait(false);
         if (!executionResult.IsSuccess)
             return Result<NodeMutationResult>.Failure(executionResult.Error!);
 

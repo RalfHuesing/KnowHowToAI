@@ -1,8 +1,9 @@
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Server.Web.Features.Knowledge;
 using Microsoft.AspNetCore.Components;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
 
 /// <summary>Erfasst explizit speicherbare Node-Stammdaten und Child-Nodes im Working-Kontext.</summary>
 public sealed partial class NodeMetadataEditor

@@ -204,7 +204,7 @@ public sealed class McpTransactionToolRegistrationTests
             SortedPropertyNames(schemas["reorder_node"]));
 
         Assert.Equal(
-            new[] { "deleteSubtree", "nodeId", "transactionId" },
+            new[] { "deleteSubtree", "expectedChangeVersion", "nodeId", "transactionId" },
             SortedPropertyNames(schemas["delete_node"]));
         Assert.Equal(new[] { "nodeId", "transactionId" }, SortedRequiredNames(schemas["delete_node"]));
 
