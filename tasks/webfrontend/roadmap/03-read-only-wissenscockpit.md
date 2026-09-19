@@ -84,7 +84,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.5 – Suche
 
-- [x] **M3.5 abschließen**
+- [ ] **M3.5 abschließen**
 
   - [x] **M3.5-T1 – Paginierte Wissenssuche implementieren**
     - Umfang: Suchtext, Rolle, Read Context, Cursor, Treffer-Snippet, Breadcrumb und Navigation zum Node.
@@ -99,6 +99,10 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Prüfen: Paging bleibt stabil, Filterwechsel verwirft alte Cursor und leere Ergebnisse werden erklärt.
     - Tests: Query-/Repositoryverhalten, Web-Mapping, Komponenten und Browser-Smoke.
     - Abnahme: Filtersemantik aus dem Bedienkonzept ist vollständig serverseitig paginiert umgesetzt; der Tree wird nicht clientseitig beschnitten.
+
+  - [ ] **M3.5-T3 – Suche gegen den deterministischen Browserbestand stabilisieren**
+    - Befund aus dem M3.7-T2-Gate: `SearchSmoke` zeigt bei nichtleerem Bestand nach Auswahl des Fallback-Filters einen technischen Fehler statt einer Treffer- oder Leerergebnisdarstellung.
+    - Abnahme: Die Suche verarbeitet den repräsentativen, über den realen MCP-Transport bereitgestellten Browserbestand einschließlich Fallback-Rolle fehlerfrei; der vollständige Browserlauf ist wieder grün.
 
 ## M3.6 – Historie und Releases
 
