@@ -445,4 +445,45 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         Assert.True(treeState.RootNode.Children.Count <= 100);
         Assert.Equal(1, treeState.LoadedPageCount);
     }
+
+    [Fact]
+    public async Task SelectNodeAsync_DeepUnloadedNode_PathLoaderRevealsNodeAndExpandsAncestors()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+
+        var childId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, childId, rootId, "Child", null, 1, false));
+
+        var grandchildId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, grandchildId, childId, "Grandchild", null, 1, false));
+
+        var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
+        using var treeState = new KnowledgeTreeState(service);
+
+        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+
+        Assert.NotNull(treeState.RootNode);
+        Assert.False(treeState.RootNode.IsExpanded);
+        Assert.Null(treeState.FindNode(grandchildId.Value));
+
+        await treeState.SelectNodeAsync(grandchildId.Value);
+
+        Assert.Equal(grandchildId.Value, treeState.SelectedNodeId);
+        var grandchildNode = treeState.FindNode(grandchildId.Value);
+        Assert.NotNull(grandchildNode);
+        Assert.True(grandchildNode.IsSelected);
+
+        Assert.True(treeState.RootNode.IsExpanded);
+        var childNode = treeState.FindNode(childId.Value);
+        Assert.NotNull(childNode);
+        Assert.True(childNode.IsExpanded);
+
+        var breadcrumbs = treeState.Breadcrumbs;
+        Assert.Equal(3, breadcrumbs.Count);
+        Assert.Equal("Root", breadcrumbs[0].Title);
+        Assert.Equal("Child", breadcrumbs[1].Title);
+        Assert.Equal("Grandchild", breadcrumbs[2].Title);
+    }
 }

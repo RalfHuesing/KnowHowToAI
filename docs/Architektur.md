@@ -157,6 +157,25 @@ des Tree-Ausschnitts (der globale Pfad bleibt in den Breadcrumbs). Paging („Zu
 „Weitere“) ersetzt die sichtbare 100er-Seite vollständig über eine rein opaque
 Cursor-Historie, ohne Seiten zu einer wachsenden Liste zusammenzufügen.
 
+Die Benutzeroberfläche der Hierarchienavigation wird durch die routable Page
+`KnowledgePage` (`/knowledge`, `/knowledge/{NodeId:guid}`), den nativen
+`KnowledgeTree` und `Breadcrumbs` gebildet. `KnowledgeTree` setzt die
+WAI-ARIA-Treeview-1.2-Semantik um (`role="tree"`, `role="treeitem"`, `role="group"`,
+`aria-level`, `aria-selected`, `aria-expanded`) und steuert den aktiven Knoten über
+einen roving `tabindex` (`0` auf genau einem sichtbaren Knoten, `-1` auf allen anderen).
+Die Tastaturnavigation unterstützt `ArrowUp`/`ArrowDown` (sichtbare Knoten),
+`ArrowRight` (Expand bzw. erstes Kind), `ArrowLeft` (Collapse bzw. Elternknoten),
+`Home`/`End` (erster/letzter sichtbarer Knoten) sowie `Enter`/`Space` (Auswahl).
+Knoten-Zustände (selektiert, geladen, teilweise geladen, leer, ladend, fehlerhaft) werden
+klar differenziert; Paging-Buttons („Vorherige 100 Einträge“, „Weitere 100 Einträge“)
+erscheinen innerhalb des jeweiligen Teilbaums. `Breadcrumbs` bildet den hierarchischen
+Pfad bis zum aktuellen Knoten ab (`aria-current="page"` auf dem letzten Element) und
+erlaubt direkte Rücknavigation zu übergeordneten Ebenen. Die Auswahl eines Knotens
+aktualisiert die Route `/knowledge/{NodeId}` unter Erhalt bestehender Query-Parameter;
+beim Neuladen oder direktem Einstieg lädt der `KnowledgeTreePathLoader` den Pfad bis zum
+Zielknoten nach, sodass Zustand und Breadcrumbs aus der URL vollständig rekonstruierbar
+bleiben.
+
 Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
 wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,
 `Fehler`) und rendern Inhalt und Farbe über die zentrale

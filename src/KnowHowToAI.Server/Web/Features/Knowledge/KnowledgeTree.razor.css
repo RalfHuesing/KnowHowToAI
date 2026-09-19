@@ -1,0 +1,157 @@
+.tree-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-2);
+    width: 100%;
+}
+
+.tree-status {
+    padding: var(--ktai-space-2) var(--ktai-space-3);
+    background-color: var(--ktai-color-info-background);
+    border: 1px solid var(--ktai-color-info);
+    border-radius: var(--ktai-radius-small);
+    color: var(--ktai-color-info);
+    font-size: 0.875rem;
+}
+
+.tree-error {
+    padding: var(--ktai-space-2) var(--ktai-space-3);
+    background-color: var(--ktai-color-danger-background);
+    border: 1px solid var(--ktai-color-danger);
+    border-radius: var(--ktai-radius-small);
+    color: var(--ktai-color-danger);
+    font-size: 0.875rem;
+}
+
+.tree-loading,
+.tree-empty {
+    padding: var(--ktai-space-4);
+    text-align: center;
+    color: var(--ktai-color-text-secondary);
+    font-size: 0.9375rem;
+}
+
+.tree-spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    margin-right: var(--ktai-space-2);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.knowledge-tree {
+    display: flex;
+    flex-direction: column;
+    outline: none;
+    user-select: none;
+}
+
+.tree-node-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: var(--ktai-space-2);
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border-radius: var(--ktai-radius-small);
+    cursor: pointer;
+    font-size: 0.9375rem;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    border-left: 3px solid transparent;
+}
+
+.tree-node:hover {
+    background-color: rgb(37 99 235 / 0.06);
+}
+
+.tree-node.is-selected {
+    background-color: var(--ktai-color-info-background);
+    border-left-color: var(--ktai-color-primary);
+    font-weight: 600;
+    color: var(--ktai-color-primary);
+}
+
+.tree-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--ktai-color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--ktai-radius-small);
+    font-size: 0.75rem;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.tree-toggle-btn:hover {
+    color: var(--ktai-color-text);
+    background-color: rgb(0 0 0 / 0.05);
+}
+
+.toggle-icon {
+    display: inline-block;
+}
+
+.tree-toggle-placeholder {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+}
+
+.tree-node-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tree-node-spinner {
+    font-size: 0.8125rem;
+    color: var(--ktai-color-primary);
+    animation: spin 1s linear infinite;
+}
+
+.tree-node-error {
+    font-size: 0.75rem;
+    color: var(--ktai-color-danger);
+    background-color: var(--ktai-color-danger-background);
+    padding: 2px 6px;
+    border-radius: var(--ktai-radius-small);
+}
+
+.tree-children-group {
+    display: flex;
+    flex-direction: column;
+    padding-left: var(--ktai-space-4);
+    border-left: 1px dashed var(--ktai-color-border);
+    margin-left: 10px;
+}
+
+.tree-paging-row {
+    padding: var(--ktai-space-1) 0;
+}
+
+.tree-page-btn {
+    background: none;
+    border: 1px dashed var(--ktai-color-primary);
+    color: var(--ktai-color-primary);
+    font-size: 0.8125rem;
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border-radius: var(--ktai-radius-small);
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.tree-page-btn:hover {
+    background-color: var(--ktai-color-info-background);
+}

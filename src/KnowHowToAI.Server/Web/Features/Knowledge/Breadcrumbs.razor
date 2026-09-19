@@ -1,0 +1,34 @@
+@using Microsoft.AspNetCore.Components.Web
+@namespace KnowHowToAI.Server.Web.Features.Knowledge
+
+<nav class="breadcrumbs-nav" aria-label="Breadcrumb" data-testid="breadcrumbs">
+    <ol class="breadcrumb-list">
+        @if (Items is not null)
+        {
+            @for (var i = 0; i < Items.Count; i++)
+            {
+                var item = Items[i];
+                var isLast = i == Items.Count - 1;
+
+                <li class="breadcrumb-item @(isLast ? "is-current" : "")">
+                    @if (isLast)
+                    {
+                        <span class="breadcrumb-current" aria-current="page" data-testid="@($"breadcrumb-current-{item.NodeId}")">
+                            @item.Title
+                        </span>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="breadcrumb-link"
+                                data-testid="@($"breadcrumb-{item.NodeId}")"
+                                @onclick="() => OnSelectNode.InvokeAsync(item.NodeId)">
+                            @item.Title
+                        </button>
+                        <span class="breadcrumb-separator" aria-hidden="true">/</span>
+                    }
+                </li>
+            }
+        }
+    </ol>
+</nav>

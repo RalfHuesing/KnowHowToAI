@@ -1,0 +1,38 @@
+@page "/knowledge"
+@page "/knowledge/{NodeId:guid}"
+@using Microsoft.AspNetCore.Components.Web
+@namespace KnowHowToAI.Server.Web.Features.Knowledge
+
+<PageTitle>Wissensbasis – KnowHowToAI</PageTitle>
+
+<div class="knowledge-page" data-testid="knowledge-page">
+    <header class="knowledge-header">
+        <Breadcrumbs Items="TreeState.Breadcrumbs" OnSelectNode="NavigateToNode" />
+    </header>
+
+    <div class="knowledge-layout">
+        <aside class="knowledge-sidebar" aria-label="Wissensnavigation" data-testid="knowledge-sidebar">
+            <KnowledgeTree OnNodeSelected="NavigateToNode" />
+        </aside>
+
+        <main class="knowledge-content-pane" aria-label="Knotendetails" data-testid="knowledge-content-pane">
+            @if (TreeState.SelectedNodeId is not null)
+            {
+                <section class="node-details-placeholder" data-testid="node-details-section">
+                    <h2 class="node-title-placeholder" data-testid="selected-node-title">
+                        @(TreeState.FindNode(TreeState.SelectedNodeId.Value)?.Title ?? "Ausgewählter Knoten")
+                    </h2>
+                    <p class="node-id-placeholder" data-testid="selected-node-id">
+                        ID: @TreeState.SelectedNodeId
+                    </p>
+                </section>
+            }
+            else
+            {
+                <div class="empty-selection" data-testid="empty-selection">
+                    <p>Wählen Sie einen Knoten im Wissensbaum aus, um Details anzuzeigen.</p>
+                </div>
+            }
+        </main>
+    </div>
+</div>

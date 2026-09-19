@@ -161,8 +161,20 @@ public sealed class KnowledgeTreeState : IDisposable
     {
         ThrowIfDisposed();
 
-        if (SelectedNodeId == nodeId && nodeId is not null)
+        if (SelectedNodeId == nodeId && nodeId is not null && _knownNodes.ContainsKey(nodeId.Value))
             return;
+
+        if (nodeId.HasValue && !_knownNodes.ContainsKey(nodeId.Value))
+        {
+            var loader = new KnowledgeTreePathLoader(
+                _navigationService,
+                (id, ct) => ExpandNodeAsync(id, ct),
+                (id, ct) => PageNextAsync(id, ct),
+                id => _knownNodes.ContainsKey(id),
+                FindNode);
+
+            await loader.EnsurePathLoadedAsync(nodeId.Value, CurrentReadContext, CurrentRoleId, cancellationToken).ConfigureAwait(false);
+        }
 
         SelectedNodeId = nodeId;
         UpdateSelectionFlags(nodeId);
