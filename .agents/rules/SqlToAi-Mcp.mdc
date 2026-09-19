@@ -11,7 +11,8 @@ Bei SQL-Abfragen gegen die Datenbank `KnowHowToAi` den konfigurierten SqlToAi MC
 ## Leitplanken
 
 - **Nur `KnowHowToAi`**: Ausdrücklich nur die Datenbank `KnowHowToAi` adressieren (`database: "KnowHowToAi"`); die übrigen Datenbanken auf der Whitelist sind für dieses Projekt tabu. Datenbankname nicht raten oder weglassen.
-- **Nur lesend**: `sql_execute_query` führt ausschließlich `SELECT` aus (eine Anweisung, in Rollback-Transaktion). Schreib- oder DDL-Versuche sind unterlassen und scheitern ohnehin; Schema-/Datenänderungen laufen über den dokumentierten MCP-/Service-Stack der Anwendung.
+- **Lesen und Schreiben**: `sql_execute_query` ist nicht auf SELECT beschränkt — DDL (CREATE/ALTER/DROP) und DML (INSERT/UPDATE/DELETE) sind erlaubt und werden **persistiert** (die Toolbeschreibung nennt eine Rollback-Transaktion, das ist faktisch nicht der Fall; Änderungen bleiben dauerhaft). Getroffene Rows per `OUTPUT`-Klausel zurücklesen. Schemaänderungen am Produktionsmodell folgen weiterhin den Migrationsregeln, keine Ad-hoc-DDL als Ersatz für Migrationen.
+- **Eine Anweisung pro Aufruf**: Nur eine einzige Hauptanweisung (Fehler `SQL-AI-0101`); Multi-Batch/`GO`/mehrere SELECTs werden abgelehnt, optionaler DECLARE/SET-Vorspann ist erlaubt.
 - **Voller Zugriff**: Innerhalb von `KnowHowToAi` bestehen volle Rechte — weder Verbindung noch Berechtigungen sind Begrenzungsgrund; nur Server-Zeilenlimits greifen (`requested_row_limit`).
 - **Token-Effizienz**: Erst `sql_get_schema`/`sql_search_objects` statt `SELECT *`-Sondierung; `requested_row_limit` klein wählen; resultsetarme, präzise Queries statt Breitbandabfragen.
 
