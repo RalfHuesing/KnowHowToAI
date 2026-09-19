@@ -381,7 +381,7 @@ tests/KnowHowToAI.BrowserTests/
 |---|---|---|
 | Razor-Komponenten | `bunit` | nur `KnowHowToAI.Web.Tests`; Version gemäß allgemeiner Abhängigkeitsregel |
 | Testframework | `xunit.v3` | nur für die Testprojekte; Version gemäß allgemeiner Abhängigkeitsregel |
-| Browsersteuerung | `Microsoft.Playwright` | nur `KnowHowToAI.BrowserTests`; Version gemäß allgemeiner Abhängigkeitsregel |
+| Browsersteuerung | `Microsoft.Playwright` | `KnowHowToAI.BrowserTests` für alle Browserabläufe gegen den echten Host; zusätzlich `KnowHowToAI.Web.Tests` ausschließlich für TestSupport-Fixture-Renderings ohne Produkt-Route (berechnete Stile, Screenshot) mit Chrome-Preflight vor dem Start; kein weiteres Projekt; Version gemäß allgemeiner Abhängigkeitsregel |
 | Browser | Google Chrome Stable | installierte aktuelle Stable-Version, `Channel = "chrome"`, ausschließlich headless |
 
 Die Projekte werden über `pwsh -NoProfile -File scripts/test-fast.ps1` beziehungsweise `pwsh -NoProfile -File scripts/test-integration.ps1` ausgeführt. Für gezielte lokale Nachweise sind zusätzlich `dotnet test tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj` und `dotnet test tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj` zulässig. BrowserTests installieren keinen Playwright-Chromium-Browser. Die Chrome-Installation wird vor dem Lauf über den Windows-Uninstall-Eintrag auf Vorhandensein geprüft; die Version selbst wird nicht festgenagelt, jede installierte Stable-Version ist zulässig. Eine nichtinteraktive Bereitstellung darf `winget install --id Google.Chrome --exact --silent --accept-package-agreements --accept-source-agreements` verwenden.
