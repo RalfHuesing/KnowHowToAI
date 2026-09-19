@@ -61,6 +61,27 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+try {
+    $integrationTrxPath = Join-Path $resultsDir $trxFile
+    & (Join-Path $PSScriptRoot 'test-durations.ps1') -TrxPath $integrationTrxPath
+}
+catch {
+    Write-Warning "Testdauer-Auswertung fehlgeschlagen: $_"
+}
+
 $browserProjectPath = Join-Path $repoRoot 'tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj'
-& dotnet test $browserProjectPath '--filter' $Filter '--logger' 'trx;LogFileName=IntegrationTests.Browser.trx' '--results-directory' $resultsDir
-exit $LASTEXITCODE
+$browserTrxFile = 'IntegrationTests.Browser.trx'
+& dotnet test $browserProjectPath '--filter' $Filter '--logger' "trx;LogFileName=$browserTrxFile" '--results-directory' $resultsDir
+$browserExitCode = $LASTEXITCODE
+
+if ($browserExitCode -eq 0) {
+    try {
+        $browserTrxPath = Join-Path $resultsDir $browserTrxFile
+        & (Join-Path $PSScriptRoot 'test-durations.ps1') -TrxPath $browserTrxPath
+    }
+    catch {
+        Write-Warning "Testdauer-Auswertung fehlgeschlagen: $_"
+    }
+}
+
+exit $browserExitCode

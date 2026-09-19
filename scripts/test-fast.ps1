@@ -62,4 +62,12 @@ foreach ($relativeProjectPath in $testProjects) {
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
+
+    try {
+        $trxFilePath = Join-Path $resultsDir $trxFile
+        & (Join-Path $PSScriptRoot 'test-durations.ps1') -TrxPath $trxFilePath
+    }
+    catch {
+        Write-Warning "Testdauer-Auswertung fehlgeschlagen: $_"
+    }
 }
