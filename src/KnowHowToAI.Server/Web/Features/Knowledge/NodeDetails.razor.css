@@ -119,6 +119,10 @@
     color: var(--ktai-color-text-secondary);
 }
 
+.node-details-download {
+    align-self: flex-start;
+}
+
 /* Provenance (Derived Content) */
 .node-provenance-list {
     margin: 0;

@@ -12,6 +12,7 @@ using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
@@ -31,6 +32,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     private readonly WebReadContextResolver _contextResolver;
     private readonly InMemoryRoleStorageService _roleStorage;
     private readonly ContextSelectorState _contextSelector;
+    private readonly NodeId _historicalRootId;
 
     private static readonly RenderFragment<RouteData> RenderFoundRoute = routeData => builder =>
     {
@@ -71,8 +73,8 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
             SnapshotState.Committed,
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow));
-        var histRootId = new NodeId(Guid.NewGuid());
-        _harness.AddNode(new Node(HistoricalSnapshotId, histRootId, null, "Historical Root", null, 0, false));
+        _historicalRootId = new NodeId(Guid.NewGuid());
+        _harness.AddNode(new Node(HistoricalSnapshotId, _historicalRootId, null, "Historical Root", null, 0, false));
 
         _navigationService = _harness.CreateService();
         _treeState = new KnowledgeTreeState(_navigationService);
@@ -109,6 +111,21 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         Assert.Equal(KnowledgeReadContextKind.Snapshot, _workspaceState.CurrentContext.ReadContext);
         Assert.Equal("Developer", _workspaceState.CurrentRoleId);
         Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
+    }
+
+    [Fact]
+    public void HistoricalNode_MapsNodeRoleAndReadContextToMarkdownDownload()
+    {
+        var navMan = Services.GetRequiredService<NavigationManager>();
+        navMan.NavigateTo($"/knowledge/{_historicalRootId.Value:D}?snapshotId={HistoricalSnapshotId.Value}&roleId=Developer");
+
+        var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, _historicalRootId.Value));
+
+        var downloadUrl = new Uri($"https://localhost{cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href")!}");
+        var query = QueryHelpers.ParseQuery(downloadUrl.Query);
+        Assert.Equal(_historicalRootId.Value.ToString("D"), query["nodeId"]);
+        Assert.Equal("Developer", query["roleId"]);
+        Assert.Equal(HistoricalSnapshotId.Value.ToString(), query["snapshotId"]);
     }
 
     [Fact]

@@ -93,6 +93,13 @@ else if (ViewModel is not null)
 
         <a href="/history?nodeId=@ViewModel.NodeId" data-testid="node-details-history-link">Änderungshistorie dieses Knotens</a>
 
+        @if (!string.IsNullOrWhiteSpace(MarkdownDownloadUrl))
+        {
+            <a class="node-details-download" href="@MarkdownDownloadUrl" data-testid="node-details-markdown-download">
+                Teilbaum als Markdown herunterladen
+            </a>
+        }
+
         @if (ViewModel.SourceRevisions.Count > 0)
         {
             <section class="node-details-provenance" aria-label="Quellrevisionen" data-testid="node-details-provenance">

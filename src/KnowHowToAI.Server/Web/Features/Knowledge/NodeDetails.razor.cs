@@ -13,6 +13,9 @@ public sealed partial class NodeDetails
     public NodeDetailsViewModel? ViewModel { get; set; }
 
     [Parameter]
+    public string? MarkdownDownloadUrl { get; set; }
+
+    [Parameter]
     public bool IsLoading { get; set; }
 
     [Parameter]

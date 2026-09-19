@@ -207,6 +207,13 @@ kein Raw-HTML-Rendering via `DisableHtml`, Neutralisierung von JavaScript-, Data
 File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine
 Bearbeitungscontrols). Bei fehlendem Inhalt wird ein expliziter Hinweis angezeigt;
 Lade- und Fehlerzustände nutzen `LoadingState`, `InlineAlert` bzw. `NotFoundState`.
+Für den ausgewählten Knoten bietet die Ansicht außerdem einen Markdown-Teilbaumdownload.
+Der schmale Browserendpunkt `GET /downloads/markdown` erhält `nodeId`, `roleId` und
+höchstens einen Read-Context-Selektor, löst diesen über `WebReadContextResolver` auf
+und delegiert an `MarkdownExportService`. Erfolgreiche Antworten sind UTF-8-Markdown
+als Attachment mit `Cache-Control: no-store`; der Dateiname besteht aus bereinigtem
+Node-Titel und Rolle. Fehler werden als RFC-9457-`ProblemDetails` mit stabilem
+Fehlercode und Correlation-ID ausgeliefert, niemals als Teil-Datei.
 
 Die routable Seite `SearchPage` (`/search`) verwendet mit der globalen Rolle und dem
 aus Query-Parametern aufgelösten Lesekontext direkt den transportneutralen

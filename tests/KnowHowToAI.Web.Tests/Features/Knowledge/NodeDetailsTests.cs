@@ -105,6 +105,19 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
+    public void NodeDetails_WithMarkdownDownloadUrl_RendersDownloadLink()
+    {
+        var vm = MakeViewModel();
+        var downloadUrl = $"/downloads/markdown?nodeId={vm.NodeId:D}&roleId=Developer&snapshotId=7";
+
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.MarkdownDownloadUrl, downloadUrl));
+
+        Assert.Equal(downloadUrl, cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href"));
+    }
+
+    [Fact]
     public void NodeDetails_WithMarkdownContent_RendersRenderedHtml()
     {
         var vm = MakeViewModel(contentMd: "**fett** und _kursiv_");

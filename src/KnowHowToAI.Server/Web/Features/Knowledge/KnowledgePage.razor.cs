@@ -67,6 +67,7 @@ public sealed partial class KnowledgePage : IDisposable
     private bool _isLoadingNodeDetails;
     private string? _nodeDetailsErrorMessage;
     private bool _nodeDetailsNotFound;
+    private string? _markdownDownloadUrl;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -205,6 +206,7 @@ public sealed partial class KnowledgePage : IDisposable
         _nodeDetailsErrorMessage = null;
         _nodeDetailsNotFound = false;
         _nodeDetailsViewModel = null;
+        _markdownDownloadUrl = null;
 
         var result = await NavigationService.GetNodeAsync(
             new NodeId(nodeId),
@@ -228,6 +230,7 @@ public sealed partial class KnowledgePage : IDisposable
             result.Value,
             allDependencies: null,
             changeVersion: WorkspaceState.CurrentChangeVersion);
+        _markdownDownloadUrl = CreateMarkdownDownloadUrl(nodeId, roleId);
     }
 
     private void ClearNodeDetails()
@@ -236,6 +239,21 @@ public sealed partial class KnowledgePage : IDisposable
         _isLoadingNodeDetails = false;
         _nodeDetailsErrorMessage = null;
         _nodeDetailsNotFound = false;
+        _markdownDownloadUrl = null;
+    }
+
+    private string CreateMarkdownDownloadUrl(Guid nodeId, string roleId)
+    {
+        var query = new Dictionary<string, string?>
+        {
+            ["nodeId"] = nodeId.ToString("D"),
+            ["roleId"] = roleId,
+            ["transactionId"] = QueryTransactionId,
+            ["snapshotId"] = QuerySnapshotId,
+            ["releaseId"] = QueryReleaseId
+        };
+
+        return QueryHelpers.AddQueryString("/downloads/markdown", query);
     }
 
     private void UpdateUrlWithRole(Uri currentUri, string roleId)
