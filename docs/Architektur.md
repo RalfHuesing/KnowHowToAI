@@ -151,7 +151,14 @@ committed Snapshots und Releases bereit. Die Seite ruft `HistoryService` und
 `ReleaseService` direkt in-process auf, verwendet ausschließlich History-
 ViewModels und übergibt bei einer Auswahl den jeweiligen `snapshotId`- oder
 `releaseId`-Queryparameter an den bestehenden Web-Read-Context-Resolver. Working
-Transactions erscheinen dort bewusst nicht.
+Transactions erscheinen dort bewusst nicht. Zwei ausgewählte committed Snapshots
+werden über denselben `HistoryService` als strukturierter, cursor-paginierter
+Netto-Diff dargestellt; die UI zeigt die Kategorien Rollen, Rollenauflösungen,
+Nodes, Contents und Dependencies mit fachlichen Schlüsseln sowie Vorher-/Nachher-
+Werten. Ein Link aus der Node-Detailansicht setzt den optionalen `nodeId`-Filter;
+dieser begrenzt den Vergleich auf die fachlich zugehörigen Node-, Content- und
+Dependency-Änderungen. Die Web-Grenze bietet dabei keine Merge- oder Reapply-
+Operation.
 
 Der native Wissensbaum (`Web.Features.Knowledge`) nutzt den flüchtigen Circuit-State
 `KnowledgeTreeState` als Lazy-Loading-Datenadapter. Er lädt den Root-Knoten über

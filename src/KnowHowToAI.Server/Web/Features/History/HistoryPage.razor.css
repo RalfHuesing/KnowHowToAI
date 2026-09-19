@@ -54,3 +54,19 @@
     font: inherit;
     font-weight: 600;
 }
+
+.history-page__selection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-2);
+    margin-top: var(--ktai-space-1);
+}
+
+.history-page__selection-actions button {
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    background: var(--ktai-color-surface);
+    color: inherit;
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    font: inherit;
+}

@@ -142,6 +142,50 @@ public sealed class SnapshotDiffCalculatorTests
     }
 
     [Fact]
+    public void Compute_NodeFilter_OnlyIncludesMatchingNodeContentAndDependenciesAndBindsTheCursor()
+    {
+        var selectedNodeId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000001"));
+        var otherNodeId = new NodeId(Guid.Parse("20000000-0000-0000-0000-000000000002"));
+        var selectedRevision = new ContentRevisionId(Guid.Parse("30000000-0000-0000-0000-000000000003"));
+        var otherRevision = new ContentRevisionId(Guid.Parse("40000000-0000-0000-0000-000000000004"));
+
+        var targetData = new SnapshotData(
+            [
+                new Node(TargetSnap, selectedNodeId, null, "Ausgewählt", null, 1, false),
+                new Node(TargetSnap, otherNodeId, null, "Anderer", null, 2, false)
+            ],
+            [new Role(TargetSnap, RoleDev, "Developer", null, false)],
+            [],
+            [
+                new NodeContent(TargetSnap, selectedNodeId, RoleDev, selectedRevision, ContentMode.Independent, "Ausgewählt", false),
+                new NodeContent(TargetSnap, otherNodeId, RoleDev, otherRevision, ContentMode.Independent, "Anderer", false)
+            ],
+            [
+                new ContentDependency(TargetSnap, selectedNodeId, RoleDev, otherNodeId, RoleDev, otherRevision),
+                new ContentDependency(TargetSnap, otherNodeId, RoleDev, otherNodeId, RoleDev, otherRevision)
+            ]);
+
+        var diff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
+            BaseSnap,
+            TargetSnap,
+            new SnapshotData([], [], [], [], []),
+            targetData,
+            Limit: 2,
+            Offset: 0,
+            FilterNodeId: selectedNodeId));
+
+        Assert.Equal(3, diff.TotalCount);
+        Assert.Single(diff.Nodes);
+        Assert.Single(diff.Contents);
+        Assert.Empty(diff.Roles);
+        Assert.Empty(diff.RoleResolutions);
+        Assert.Empty(diff.Dependencies);
+
+        var cursor = Assert.IsType<DiffCursor>(DiffCursor.TryDecode(diff.NextCursor));
+        Assert.Equal(selectedNodeId, cursor.FilterNodeId);
+    }
+
+    [Fact]
     public void Compute_CategorySlicingAcrossMultiplePages_PaginatesDeterministically()
     {
         // 2 Roles, 3 Nodes, 2 Contents -> Total 7 items

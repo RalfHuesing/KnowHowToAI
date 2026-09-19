@@ -49,6 +49,10 @@
                                     <span class="history-page__metadata">Basis: Snapshot @baseSnapshotId</span>
                                 }
                             </button>
+                            <div class="history-page__selection-actions">
+                                <button type="button" @onclick="() => SelectBaseSnapshotAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-base-@snapshot.SnapshotId">Als Ausgang wählen</button>
+                                <button type="button" @onclick="() => SelectTargetSnapshotAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-target-@snapshot.SnapshotId">Als Ziel wählen</button>
+                            </div>
                         </li>
                     }
                 </ol>
@@ -58,6 +62,14 @@
                 }
             }
         </section>
+
+        <SnapshotDiffPanel ViewModel="@_diff"
+                           BaseSnapshotId="@_baseSnapshotId"
+                           TargetSnapshotId="@_targetSnapshotId"
+                           NodeFilterId="@_nodeFilterId"
+                           IsLoading="@_isLoadingDiff"
+                           ErrorMessage="@_diffErrorMessage"
+                           LoadNext="@LoadNextDiffPageAsync" />
 
         <section class="history-page__section" aria-labelledby="releases-heading">
             <h2 id="releases-heading">Releases</h2>

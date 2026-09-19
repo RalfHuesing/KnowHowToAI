@@ -9,9 +9,13 @@ namespace KnowHowToAI.Server.Web.Features.History;
 /// <param name="PrimaryId">Primäre ID der betroffenen Entität.</param>
 /// <param name="SecondaryId">Optionale sekundäre ID (z. B. RoleId bei Content oder CandidateRoleId).</param>
 /// <param name="Detail">Optionales Detail zur Änderung.</param>
+/// <param name="Before">Fachlich lesbare Ausgangsausprägung.</param>
+/// <param name="After">Fachlich lesbare Zielausprägung.</param>
 public sealed record SnapshotDiffEntryViewModel(
     string Kind,
     string EntityType,
     string PrimaryId,
     string? SecondaryId = null,
-    string? Detail = null);
+    string? Detail = null,
+    string? Before = null,
+    string? After = null);

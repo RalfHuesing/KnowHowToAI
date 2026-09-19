@@ -35,5 +35,6 @@ public sealed class HistorySmokeTests
         await Assertions.Expect(page.GetByTestId("history-working-separation")).ToContainTextAsync("Working Transactions gehören nicht");
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Committed Snapshots" })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Releases", Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("snapshot-diff-selection-required")).ToBeVisibleAsync();
     }
 }

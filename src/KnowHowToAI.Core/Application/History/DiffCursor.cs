@@ -14,7 +14,8 @@ public sealed record DiffCursor(
     SnapshotId BaseSnapshotId,
     SnapshotId TargetSnapshotId,
     long? ChangeVersion,
-    int NextOffset)
+    int NextOffset,
+    NodeId? FilterNodeId = null)
 {
     /// <summary>Serialisiert und kodiert den Cursor als opaken Base64Url-String.</summary>
     public string Encode()
@@ -23,7 +24,8 @@ public sealed record DiffCursor(
             BaseSnapshotId.Value,
             TargetSnapshotId.Value,
             ChangeVersion,
-            NextOffset);
+            NextOffset,
+            FilterNodeId?.Value);
 
         var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(dto);
         return Base64Url.EncodeToString(jsonBytes);
@@ -53,7 +55,8 @@ public sealed record DiffCursor(
                 new SnapshotId(dto.BaseSnapshotId),
                 new SnapshotId(dto.TargetSnapshotId),
                 dto.ChangeVersion,
-                dto.NextOffset);
+                dto.NextOffset,
+                dto.FilterNodeId is { } filterNodeId ? new NodeId(filterNodeId) : null);
         }
         catch
         {
@@ -65,5 +68,6 @@ public sealed record DiffCursor(
         long BaseSnapshotId,
         long TargetSnapshotId,
         long? ChangeVersion,
-        int NextOffset);
+        int NextOffset,
+        Guid? FilterNodeId);
 }

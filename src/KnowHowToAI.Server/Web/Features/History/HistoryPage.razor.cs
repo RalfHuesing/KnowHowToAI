@@ -1,5 +1,6 @@
 using System.Globalization;
 using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using Microsoft.AspNetCore.Components;
@@ -24,22 +25,54 @@ public sealed partial class HistoryPage
     [SupplyParameterFromQuery(Name = "roleId")]
     private string? QueryRoleId { get; set; }
 
+    [SupplyParameterFromQuery(Name = "baseSnapshotId")]
+    private string? QueryBaseSnapshotId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "targetSnapshotId")]
+    private string? QueryTargetSnapshotId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "nodeId")]
+    private string? QueryNodeId { get; set; }
+
     private SnapshotPageViewModel? _snapshots;
     private ReleasePageViewModel? _releases;
     private string? _snapshotErrorMessage;
     private string? _releaseErrorMessage;
+    private SnapshotDiffViewModel? _diff;
+    private long? _baseSnapshotId;
+    private long? _targetSnapshotId;
+    private Guid? _nodeFilterId;
+    private string? _diffErrorMessage;
+    private bool _isLoadingDiff;
     private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         PageRegions.SetKnowledgeContext(new KnowledgeContextViewModel(KnowledgeReadContextKind.Current));
+        InitializeComparisonFromQuery();
         await Task.WhenAll(LoadSnapshotPageAsync(cursor: null), LoadReleasePageAsync(cursor: null));
+        if (HasSnapshotComparison)
+            await LoadDiffPageAsync(cursor: null);
         _isLoading = false;
     }
 
     private Task LoadNextSnapshotPageAsync() => LoadSnapshotPageAsync(_snapshots?.NextCursor);
 
     private Task LoadNextReleasePageAsync() => LoadReleasePageAsync(_releases?.NextCursor);
+
+    private Task LoadNextDiffPageAsync() => LoadDiffPageAsync(_diff?.NextCursor);
+
+    private async Task SelectBaseSnapshotAsync(long snapshotId)
+    {
+        _baseSnapshotId = snapshotId;
+        await RefreshDiffAfterSelectionAsync();
+    }
+
+    private async Task SelectTargetSnapshotAsync(long snapshotId)
+    {
+        _targetSnapshotId = snapshotId;
+        await RefreshDiffAfterSelectionAsync();
+    }
 
     private async Task LoadSnapshotPageAsync(string? cursor)
     {
@@ -69,6 +102,77 @@ public sealed partial class HistoryPage
         {
             _releaseErrorMessage = mapped.Error!.Message;
         }
+    }
+
+    private async Task RefreshDiffAfterSelectionAsync()
+    {
+        _diff = null;
+        _diffErrorMessage = null;
+        if (!HasSnapshotComparison)
+            return;
+
+        if (_baseSnapshotId == _targetSnapshotId)
+        {
+            _diffErrorMessage = "Ausgangs- und Ziel-Snapshot müssen unterschiedlich sein.";
+            return;
+        }
+
+        await LoadDiffPageAsync(cursor: null);
+    }
+
+    private async Task LoadDiffPageAsync(string? cursor)
+    {
+        if (!HasSnapshotComparison || _baseSnapshotId == _targetSnapshotId)
+            return;
+
+        _isLoadingDiff = true;
+        _diffErrorMessage = null;
+        var result = await HistoryService.CompareSnapshotsAsync(
+            new SnapshotComparisonQuery(
+                new SnapshotId(_baseSnapshotId!.Value),
+                new SnapshotId(_targetSnapshotId!.Value),
+                Limit: null,
+                Cursor: cursor,
+                FilterNodeId: _nodeFilterId is { } nodeId ? new NodeId(nodeId) : null),
+            CancellationToken.None);
+        var mapped = HistoryMapper.ToSnapshotDiffResult(result);
+        _isLoadingDiff = false;
+        if (mapped.IsSuccess)
+        {
+            _diff = mapped.Value;
+        }
+        else
+        {
+            _diff = null;
+            _diffErrorMessage = mapped.Error!.Message;
+        }
+    }
+
+    private bool HasSnapshotComparison => _baseSnapshotId.HasValue && _targetSnapshotId.HasValue;
+
+    private void InitializeComparisonFromQuery()
+    {
+        _baseSnapshotId = TryParseSnapshotId(QueryBaseSnapshotId, "Ausgangs-Snapshot");
+        _targetSnapshotId = TryParseSnapshotId(QueryTargetSnapshotId, "Ziel-Snapshot");
+        if (!string.IsNullOrWhiteSpace(QueryNodeId))
+        {
+            if (Guid.TryParse(QueryNodeId, out var nodeId))
+                _nodeFilterId = nodeId;
+            else
+                _diffErrorMessage = "Der Knotenfilter ist ungültig.";
+        }
+    }
+
+    private long? TryParseSnapshotId(string? value, string label)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var snapshotId) && snapshotId > 0)
+            return snapshotId;
+
+        _diffErrorMessage = $"Der {label} ist ungültig.";
+        return null;
     }
 
     private void NavigateToSnapshot(long snapshotId) =>

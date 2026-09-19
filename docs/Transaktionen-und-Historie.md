@@ -206,3 +206,11 @@ Jeder Eintrag enthält `kind`, `entityType` und die vollständigen fachlichen
 Schlüsselfelder; zwei Dependencies desselben Targets bleiben unterscheidbar
 (Source-Felder inklusive). Kosten und bewusste Grenzen des Diff-Pagings:
 [Retrieval](Retrieval.md).
+
+Für die Node-Historie darf ein Snapshot-Diff auf eine stabile `NodeId` eingeschränkt
+werden. Dann enthält er ausschließlich Änderungen dieses Nodes, seines expliziten
+Contents und aller Dependencies, an denen er Quelle oder Ziel ist; Rollen und
+Rollenauflösungen gehören nicht zu einer einzelnen Node-Historie. Der Filter ist
+Teil der Cursorbindung, damit eine Fortsetzungsseite niemals Ergebnisse eines
+anderen Node-Filters liefert. Auch diese Ansicht bleibt ein read-only Netto-Diff;
+sie bietet weder Merge noch Reapply.

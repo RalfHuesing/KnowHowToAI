@@ -21,6 +21,19 @@ public static class SnapshotDiffCalculator
         var contentsDiff = ComputeContentsDiff(request.BaseData.Contents, request.TargetData.Contents);
         var dependenciesDiff = ComputeDependenciesDiff(request.BaseData.Dependencies, request.TargetData.Dependencies);
 
+        if (request.FilterNodeId is { } filterNodeId)
+        {
+            nodesDiff = nodesDiff.Where(entry => (entry.After ?? entry.Before)!.NodeId == filterNodeId).ToArray();
+            contentsDiff = contentsDiff.Where(entry => (entry.After ?? entry.Before)!.NodeId == filterNodeId).ToArray();
+            dependenciesDiff = dependenciesDiff.Where(entry =>
+            {
+                var dependency = entry.After ?? entry.Before;
+                return dependency!.TargetNodeId == filterNodeId || dependency.SourceNodeId == filterNodeId;
+            }).ToArray();
+            rolesDiff = Array.Empty<RoleDiffEntry>();
+            resolutionsDiff = Array.Empty<RoleResolutionDiffEntry>();
+        }
+
         var totalCount = rolesDiff.Count + resolutionsDiff.Count + nodesDiff.Count + contentsDiff.Count + dependenciesDiff.Count;
 
         var (pagedRoles, off1, lim1) = SliceCategory(rolesDiff, request.Offset, request.Limit);
@@ -31,7 +44,12 @@ public static class SnapshotDiffCalculator
 
         var hasNext = request.Offset + request.Limit < totalCount;
         var nextCursor = hasNext
-            ? new DiffCursor(request.BaseSnapshotId, request.TargetSnapshotId, request.ChangeVersion, request.Offset + request.Limit).Encode()
+            ? new DiffCursor(
+                request.BaseSnapshotId,
+                request.TargetSnapshotId,
+                request.ChangeVersion,
+                request.Offset + request.Limit,
+                request.FilterNodeId).Encode()
             : null;
 
         return new SnapshotDiff(
@@ -272,4 +290,5 @@ public sealed record SnapshotDiffCalculationRequest(
     SnapshotData TargetData,
     int Limit,
     int Offset,
-    long? ChangeVersion = null);
+    long? ChangeVersion = null,
+    NodeId? FilterNodeId = null);

@@ -95,6 +95,16 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
+    public void NodeDetails_WithViewModel_LinksToFilteredSnapshotHistory()
+    {
+        var vm = MakeViewModel();
+
+        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+
+        Assert.Equal($"/history?nodeId={vm.NodeId}", cut.Find("[data-testid='node-details-history-link']").GetAttribute("href"));
+    }
+
+    [Fact]
     public void NodeDetails_WithMarkdownContent_RendersRenderedHtml()
     {
         var vm = MakeViewModel(contentMd: "**fett** und _kursiv_");

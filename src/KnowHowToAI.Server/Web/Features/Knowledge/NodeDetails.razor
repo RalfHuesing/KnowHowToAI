@@ -91,6 +91,8 @@ else if (ViewModel is not null)
             </dl>
         </section>
 
+        <a href="/history?nodeId=@ViewModel.NodeId" data-testid="node-details-history-link">Änderungshistorie dieses Knotens</a>
+
         @if (ViewModel.SourceRevisions.Count > 0)
         {
             <section class="node-details-provenance" aria-label="Quellrevisionen" data-testid="node-details-provenance">

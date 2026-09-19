@@ -46,7 +46,7 @@ public static class HistoryMapper
         return new SnapshotPageViewModel(page.Items.Select(ToSnapshotViewModel).ToArray(), page.NextCursor);
     }
 
-    public static SnapshotDiffViewModel ToSnapshotDiffViewModel(SnapshotDiff diff)
+    public static SnapshotDiffViewModel ToSnapshotDiffViewModel(global::KnowHowToAI.Core.Application.History.SnapshotDiff diff)
     {
         ArgumentNullException.ThrowIfNull(diff);
         var entries = ToFlatEntries(diff);
@@ -91,7 +91,7 @@ public static class HistoryMapper
             result.Warnings);
     }
 
-    public static Result<SnapshotDiffViewModel> ToSnapshotDiffResult(Result<SnapshotDiff> result)
+    public static Result<SnapshotDiffViewModel> ToSnapshotDiffResult(Result<global::KnowHowToAI.Core.Application.History.SnapshotDiff> result)
     {
         ArgumentNullException.ThrowIfNull(result);
         if (!result.IsSuccess)
@@ -102,62 +102,77 @@ public static class HistoryMapper
             result.Warnings);
     }
 
-    private static IReadOnlyList<SnapshotDiffEntryViewModel> ToFlatEntries(SnapshotDiff diff)
+    private static IReadOnlyList<SnapshotDiffEntryViewModel> ToFlatEntries(global::KnowHowToAI.Core.Application.History.SnapshotDiff diff)
     {
         var entries = new List<SnapshotDiffEntryViewModel>(
             diff.Nodes.Count + diff.Roles.Count + diff.RoleResolutions.Count +
             diff.Contents.Count + diff.Dependencies.Count);
 
-        foreach (var e in diff.Roles)
-        {
-            var side = e.After ?? e.Before;
-            entries.Add(new SnapshotDiffEntryViewModel(
-                e.Kind.ToString(),
-                "Role",
-                side!.RoleId.Value));
-        }
-
-        foreach (var e in diff.RoleResolutions)
-        {
-            var side = e.After ?? e.Before;
-            entries.Add(new SnapshotDiffEntryViewModel(
-                e.Kind.ToString(),
-                "RoleResolution",
-                side!.RequestedRoleId.Value,
-                side.CandidateRoleId.Value));
-        }
-
-        foreach (var e in diff.Nodes)
-        {
-            var side = e.After ?? e.Before;
-            entries.Add(new SnapshotDiffEntryViewModel(
-                e.Kind.ToString(),
-                "Node",
-                side!.NodeId.Value.ToString(),
-                Detail: side.Title));
-        }
-
-        foreach (var e in diff.Contents)
-        {
-            var side = e.After ?? e.Before;
-            entries.Add(new SnapshotDiffEntryViewModel(
-                e.Kind.ToString(),
-                "Content",
-                side!.NodeId.Value.ToString(),
-                side.RoleId.Value));
-        }
-
-        foreach (var e in diff.Dependencies)
-        {
-            var side = e.After ?? e.Before;
-            entries.Add(new SnapshotDiffEntryViewModel(
-                e.Kind.ToString(),
-                "Dependency",
-                side!.TargetNodeId.Value.ToString(),
-                side.SourceNodeId.Value.ToString(),
-                $"{side.TargetRoleId} -> {side.SourceRoleId}"));
-        }
+        AddRoleEntries(entries, diff.Roles);
+        AddRoleResolutionEntries(entries, diff.RoleResolutions);
+        AddNodeEntries(entries, diff.Nodes);
+        AddContentEntries(entries, diff.Contents);
+        AddDependencyEntries(entries, diff.Dependencies);
 
         return entries;
     }
+
+    private static void AddRoleEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<RoleDiffEntry> changes)
+    {
+        foreach (var change in changes)
+        {
+            var side = change.After ?? change.Before;
+            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Role", side!.RoleId.Value,
+                Detail: side.RoleId.Value, Before: change.Before is null ? null : $"Name: {change.Before.Name}", After: change.After is null ? null : $"Name: {change.After.Name}"));
+        }
+    }
+
+    private static void AddRoleResolutionEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<RoleResolutionDiffEntry> changes)
+    {
+        foreach (var change in changes)
+        {
+            var side = change.After ?? change.Before;
+            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "RoleResolution", side!.RequestedRoleId.Value, side.CandidateRoleId.Value,
+                Detail: $"{side.RequestedRoleId} → {side.CandidateRoleId}", Before: change.Before is null ? null : $"Priorität: {change.Before.Priority}", After: change.After is null ? null : $"Priorität: {change.After.Priority}"));
+        }
+    }
+
+    private static void AddNodeEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<NodeDiffEntry> changes)
+    {
+        foreach (var change in changes)
+        {
+            var side = change.After ?? change.Before;
+            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Node", side!.NodeId.Value.ToString(), Detail: side.Title,
+                Before: change.Before is null ? null : DescribeNode(change.Before), After: change.After is null ? null : DescribeNode(change.After)));
+        }
+    }
+
+    private static void AddContentEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<ContentDiffEntry> changes)
+    {
+        foreach (var change in changes)
+        {
+            var side = change.After ?? change.Before;
+            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Content", side!.NodeId.Value.ToString(), side.RoleId.Value,
+                Detail: $"Knoten {side.NodeId} · Rolle {side.RoleId}", Before: change.Before is null ? null : DescribeContent(change.Before), After: change.After is null ? null : DescribeContent(change.After)));
+        }
+    }
+
+    private static void AddDependencyEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<DependencyDiffEntry> changes)
+    {
+        foreach (var change in changes)
+        {
+            var side = change.After ?? change.Before;
+            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Dependency", side!.TargetNodeId.Value.ToString(), side.SourceNodeId.Value.ToString(),
+                $"Zielrolle {side.TargetRoleId} → Quellrolle {side.SourceRoleId}", change.Before is null ? null : DescribeDependency(change.Before), change.After is null ? null : DescribeDependency(change.After)));
+        }
+    }
+
+    private static string DescribeNode(KnowHowToAI.Core.Domain.Hierarchy.Node node) =>
+        $"Titel: {node.Title}; Position: {node.SortOrder}; Parent: {node.ParentNodeId?.Value.ToString() ?? "Root"}";
+
+    private static string DescribeContent(KnowHowToAI.Core.Domain.Content.NodeContent content) =>
+        $"Modus: {content.ContentMode}; Revision: {content.ContentRevisionId}";
+
+    private static string DescribeDependency(KnowHowToAI.Core.Domain.Dependencies.ContentDependency dependency) =>
+        $"Quelle: {dependency.SourceNodeId}/{dependency.SourceRoleId}; Revision: {dependency.SourceContentRevisionId}";
 }

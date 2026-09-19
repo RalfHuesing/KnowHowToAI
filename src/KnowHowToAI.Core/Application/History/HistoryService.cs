@@ -84,33 +84,47 @@ public sealed class HistoryService
         SnapshotId targetSnapshotId,
         int? limit = null,
         string? cursor = null,
+        CancellationToken cancellationToken = default) =>
+        await CompareSnapshotsAsync(
+            new SnapshotComparisonQuery(baseSnapshotId, targetSnapshotId, limit, cursor),
+            cancellationToken).ConfigureAwait(false);
+
+    /// <summary>
+    /// Vergleicht zwei committed Snapshots optional für einen einzelnen Node.
+    /// Der Filter ist Teil der Cursorbindung und liefert nur Node-, Content- und Dependency-Änderungen.
+    /// </summary>
+    public async Task<Result<SnapshotDiff>> CompareSnapshotsAsync(
+        SnapshotComparisonQuery query,
         CancellationToken cancellationToken = default)
     {
-        var baseResult = await ValidateCommittedSnapshotAsync(baseSnapshotId, "Base-Snapshot", cancellationToken).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(query);
+
+        var baseResult = await ValidateCommittedSnapshotAsync(query.BaseSnapshotId, "Base-Snapshot", cancellationToken).ConfigureAwait(false);
         if (!baseResult.IsSuccess)
             return Result<SnapshotDiff>.Failure(baseResult.Error!);
 
-        var targetResult = await ValidateCommittedSnapshotAsync(targetSnapshotId, "Target-Snapshot", cancellationToken).ConfigureAwait(false);
+        var targetResult = await ValidateCommittedSnapshotAsync(query.TargetSnapshotId, "Target-Snapshot", cancellationToken).ConfigureAwait(false);
         if (!targetResult.IsSuccess)
             return Result<SnapshotDiff>.Failure(targetResult.Error!);
 
-        var (offset, cursorError) = ValidateCursor(cursor, baseSnapshotId, targetSnapshotId, null);
+        var (offset, cursorError) = ValidateCursor(query.Cursor, query.BaseSnapshotId, query.TargetSnapshotId, null, query.FilterNodeId);
         if (cursorError is not null)
             return Result<SnapshotDiff>.Failure(cursorError);
 
-        var effectiveLimit = ResolvePageSize(limit);
+        var effectiveLimit = ResolvePageSize(query.Limit);
 
-        var baseData = await LoadSnapshotDataAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
-        var targetData = await LoadSnapshotDataAsync(targetSnapshotId, cancellationToken).ConfigureAwait(false);
+        var baseData = await LoadSnapshotDataAsync(query.BaseSnapshotId, cancellationToken).ConfigureAwait(false);
+        var targetData = await LoadSnapshotDataAsync(query.TargetSnapshotId, cancellationToken).ConfigureAwait(false);
 
         var diff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
-            baseSnapshotId,
-            targetSnapshotId,
+            query.BaseSnapshotId,
+            query.TargetSnapshotId,
             baseData,
             targetData,
             effectiveLimit,
             offset,
-            ChangeVersion: null));
+            ChangeVersion: null,
+            FilterNodeId: query.FilterNodeId));
 
         return Result<SnapshotDiff>.Success(diff);
     }
@@ -231,7 +245,8 @@ public sealed class HistoryService
         string? cursor,
         SnapshotId baseSnapshotId,
         SnapshotId targetSnapshotId,
-        long? expectedChangeVersion)
+        long? expectedChangeVersion,
+        NodeId? expectedFilterNodeId = null)
     {
         if (cursor is null)
             return (0, null);
@@ -245,7 +260,9 @@ public sealed class HistoryService
                 new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
         }
 
-        if (parsedCursor.BaseSnapshotId != baseSnapshotId || parsedCursor.TargetSnapshotId != targetSnapshotId)
+        if (parsedCursor.BaseSnapshotId != baseSnapshotId
+            || parsedCursor.TargetSnapshotId != targetSnapshotId
+            || parsedCursor.FilterNodeId != expectedFilterNodeId)
         {
             return (0, new DomainError(
                 HistoryErrorCodes.InvalidCursor,
