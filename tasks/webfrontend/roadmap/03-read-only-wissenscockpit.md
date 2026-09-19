@@ -104,7 +104,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M3.6 abschließen**
 
-  - [ ] **M3.6-T1 – Snapshot- und Releaseübersichten implementieren**
+  - [x] **M3.6-T1 – Snapshot- und Releaseübersichten implementieren**
     - Umfang: paginierte Listen, Kernmetadaten, Auswahl und Navigation in den jeweiligen Read Context.
     - Prüfen: unveränderliche Stände sind klar von Working Transactions getrennt.
     - Tests: Paging, leere Historie, ungültige Auswahl und Kontextübernahme.
