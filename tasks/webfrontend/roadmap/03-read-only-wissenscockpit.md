@@ -140,9 +140,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.8 – Fachliche Parität
 
-- [ ] **M3.8 abschließen**
+- [x] **M3.8 abschließen**
 
-  - [ ] **M3.8-T1 – UI- und MCP-Leseergebnisse gegen gemeinsame Use Cases prüfen**
+  - [x] **M3.8-T1 – UI- und MCP-Leseergebnisse gegen gemeinsame Use Cases prüfen**
     - Umfang: repräsentative Navigation, Rollenauflösung, Search, Historie, Diff und Export vergleichen.
     - Ziel: Mappingfehler erkennen; keine Bytegleichheit unterschiedlicher Transportmodelle erzwingen.
     - Abnahme: UI und MCP zeigen denselben fachlichen Zustand, dieselben Warnungen und dieselben Kontextgrenzen.
