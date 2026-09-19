@@ -2,7 +2,7 @@
 
 [Roadmap-Index](Roadmap.md)
 
-- [ ] **AF2 abschließen**
+- [x] **AF2 abschließen**
 
 Abhängigkeit: [AF1](01-browsertests-infrastruktur.md) — konkret AF1.2-T1 (`ChromeStablePreflight` existiert im TestSupport-Projekt).
 
@@ -12,7 +12,7 @@ Entscheidung (durch diese Roadmap getroffen, keine neue Offenheit): Playwright b
 
 ## AF2.1 – Konzept und Preflight
 
-- [ ] **AF2.1 abschließen**
+- [x] **AF2.1 abschließen**
 
   - [x] **AF2.1-T1 – Zielkonzept-Zeile zu Playwright präzisieren**
     - Bereits am 2026-09-19 durch den Audit-Agenten ausgeführt und committet (`0a8706c`; genau eine Tabellenzeile per Byte-Ersatz geändert). Dieser Punkt wird von ausführenden Agenten nicht erneut bearbeitet.
@@ -31,7 +31,7 @@ Entscheidung (durch diese Roadmap getroffen, keine neue Offenheit): Playwright b
 
     - Danach `git diff` prüfen: es darf genau eine geänderte Zeile in genau dieser Datei stehen. Kein Umbrechen weiterer Zeilen, keine Umformatierung der Tabelle.
 
-  - [ ] **AF2.1-T2 – Chrome-Preflight im DesignTokens-Showcase-Test aufrufen**
+  - [x] **AF2.1-T2 – Chrome-Preflight im DesignTokens-Showcase-Test aufrufen**
     - Voraussetzung: AF1.2-T1 ist abgeschlossen und committed; `KnowHowToAI.TestSupport` enthält `ChromeStablePreflight.EnsureIsInstalled()`.
     - `tests/KnowHowToAI.Web.Tests/Features/DesignTokens/DesignTokensShowcaseTests.cs`: als erste Anweisung des Testkörpers `ChromeStablePreflight.EnsureIsInstalled();` ergänzen (using `KnowHowToAI.TestSupport` ist dort bereits vorhanden oder wird ergänzt). Nichts am Testablauf darüber hinaus ändern.
     - Doku: `docs/Architektur.md` — in dem Absatz, der das DesignTokens-Showcase-Fixture beschreibt, einen Satz ergänzen, dass der Test vor dem Chrome-Start den Chrome-Stable-Preflight aus `KnowHowToAI.TestSupport` ausführt und deshalb ohne installiertes Chrome mit einer klaren deutschen Fehlermeldung fehlschlägt.
