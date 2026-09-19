@@ -1,6 +1,5 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
@@ -35,6 +34,9 @@ public sealed partial class KnowledgePage : IDisposable
 
     [Inject]
     private NavigationService NavigationService { get; set; } = default!;
+
+    [Inject]
+    private IContextSelectionRoleCatalog RoleCatalog { get; set; } = default!;
 
     [Inject]
     private IRoleStorageService RoleStorage { get; set; } = default!;
@@ -95,13 +97,10 @@ public sealed partial class KnowledgePage : IDisposable
         var readContext = contextResolution.Value!.ReadContext;
         var contextVm = contextResolution.Value.ContextViewModel;
 
-        var rolesResult = await NavigationService.ListRolesAsync(
-            new ListRolesQuery(readContext, Limit: 100),
-            CancellationToken.None);
-
+        var rolesResult = await RoleCatalog.LoadAsync(readContext, CancellationToken.None);
         if (!rolesResult.IsSuccess)
         {
-            _errorMessage = rolesResult.Error!.Message;
+            _errorMessage = rolesResult.ErrorMessage!;
             PageRegions.SetKnowledgeContext(contextVm with
             {
                 DisplayName = contextVm.DisplayName ?? "Fehlerhafter Kontext"
@@ -109,7 +108,7 @@ public sealed partial class KnowledgePage : IDisposable
             return;
         }
 
-        var availableRoles = rolesResult.Value?.Items ?? [];
+        var availableRoles = rolesResult.Roles;
         if (availableRoles.Count == 0)
         {
             ApplyEmptyRolesState(contextVm, readContext);
@@ -139,18 +138,24 @@ public sealed partial class KnowledgePage : IDisposable
     }
 
     private async Task<string?> ResolveEffectiveRoleAsync(
-        IReadOnlyList<Role> availableRoles,
+        IReadOnlyList<ContextSelectionRoleOptionViewModel> availableRoles,
         string? queryRoleId,
         Uri uri)
     {
-        if (!string.IsNullOrWhiteSpace(queryRoleId) && availableRoles.Any(r => r.RoleId.Value == queryRoleId))
+        if (!string.IsNullOrWhiteSpace(queryRoleId))
         {
-            await RoleStorage.SetLastRoleIdAsync(queryRoleId);
-            return queryRoleId;
+            if (availableRoles.Any(r => r.Id == queryRoleId))
+            {
+                await RoleStorage.SetLastRoleIdAsync(queryRoleId);
+                return queryRoleId;
+            }
+
+            _errorMessage = $"[RequestedRoleNotFound] Die angefragte Rolle '{queryRoleId}' ist im gewählten Kontext nicht verfügbar.";
+            return null;
         }
 
         var lastRoleId = await RoleStorage.GetLastRoleIdAsync();
-        if (!string.IsNullOrWhiteSpace(lastRoleId) && availableRoles.Any(r => r.RoleId.Value == lastRoleId))
+        if (!string.IsNullOrWhiteSpace(lastRoleId) && availableRoles.Any(r => r.Id == lastRoleId))
         {
             UpdateUrlWithRole(uri, lastRoleId);
             return lastRoleId;
@@ -162,12 +167,12 @@ public sealed partial class KnowledgePage : IDisposable
     private async Task ApplySelectedRoleAndInitializeAsync(
         KnowledgeContextViewModel contextVm,
         ReadContext readContext,
-        IReadOnlyList<Role> availableRoles,
+        IReadOnlyList<ContextSelectionRoleOptionViewModel> availableRoles,
         string roleId,
         long? changeVersion)
     {
-        var matchedRole = availableRoles.First(r => r.RoleId.Value == roleId);
-        var effectiveContextVm = contextVm with { RoleName = matchedRole.Name };
+        var matchedRole = availableRoles.First(r => r.Id == roleId);
+        var effectiveContextVm = contextVm with { RoleName = matchedRole.Name, ChangeVersion = changeVersion };
         PageRegions.SetKnowledgeContext(effectiveContextVm);
 
         WorkspaceState.SetContext(effectiveContextVm, readContext);

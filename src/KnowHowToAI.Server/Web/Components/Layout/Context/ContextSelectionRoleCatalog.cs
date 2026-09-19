@@ -1,4 +1,7 @@
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Domain.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 
@@ -8,10 +11,19 @@ namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 public sealed class ContextSelectionRoleCatalog : IContextSelectionRoleCatalog
 {
     private readonly NavigationService _navigationService;
+    private readonly ILogger<ContextSelectionRoleCatalog> _logger;
 
     public ContextSelectionRoleCatalog(NavigationService navigationService)
+        : this(navigationService, NullLogger<ContextSelectionRoleCatalog>.Instance)
+    {
+    }
+
+    public ContextSelectionRoleCatalog(
+        NavigationService navigationService,
+        ILogger<ContextSelectionRoleCatalog> logger)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<ContextSelectionRoleLoadResult> LoadAsync(
@@ -20,29 +32,42 @@ public sealed class ContextSelectionRoleCatalog : IContextSelectionRoleCatalog
     {
         try
         {
-            var result = await _navigationService.ListRolesAsync(
-                new ListRolesQuery(readContext, Limit: 100),
-                cancellationToken);
-
-            if (!result.IsSuccess)
+            var roles = new List<ContextSelectionRoleOptionViewModel>();
+            string? cursor = null;
+            do
             {
-                return new ContextSelectionRoleLoadResult(
-                    [],
-                    result.Error?.Message ?? "Rollen konnten für den gewählten Kontext nicht geladen werden.");
-            }
+                var result = await _navigationService.ListRolesAsync(
+                    new ListRolesQuery(readContext, Limit: 100, Cursor: cursor),
+                    cancellationToken).ConfigureAwait(false);
 
-            var roles = result.Value?.Items.Select(role => new ContextSelectionRoleOptionViewModel(
-                role.RoleId.Value,
-                role.Name,
-                role.Description)).ToArray() ?? [];
+                if (!result.IsSuccess)
+                {
+                    return new ContextSelectionRoleLoadResult(
+                        [],
+                        ToDiagnostic(result.Error));
+                }
+
+                var page = result.Value!;
+                roles.AddRange(page.Items.Select(role => new ContextSelectionRoleOptionViewModel(
+                    role.RoleId.Value,
+                    role.Name,
+                    role.Description)));
+                cursor = page.NextCursor;
+            }
+            while (cursor is not null);
 
             return new ContextSelectionRoleLoadResult(roles, null);
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            _logger.LogError(exception, "Rollen konnten für den gewählten Kontext nicht geladen werden.");
             return new ContextSelectionRoleLoadResult(
                 [],
                 "Rollen konnten für den gewählten Kontext nicht geladen werden.");
         }
     }
+
+    private static string ToDiagnostic(DomainError? error) => error is null
+        ? "Rollen konnten für den gewählten Kontext nicht geladen werden."
+        : $"[{error.Code}] {error.Message}";
 }

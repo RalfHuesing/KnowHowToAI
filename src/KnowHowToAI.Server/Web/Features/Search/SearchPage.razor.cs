@@ -26,6 +26,9 @@ public sealed partial class SearchPage : IDisposable
     private NavigationService NavigationService { get; set; } = default!;
 
     [Inject]
+    private IContextSelectionRoleCatalog RoleCatalog { get; set; } = default!;
+
+    [Inject]
     private IWebReadContextResolver ReadContextResolver { get; set; } = default!;
 
     [Inject]
@@ -110,13 +113,10 @@ public sealed partial class SearchPage : IDisposable
     {
         var readContext = resolution.ReadContext;
         var contextViewModel = resolution.ContextViewModel;
-        var rolesResult = await NavigationService.ListRolesAsync(
-            new ListRolesQuery(readContext, Limit: 100),
-            CancellationToken.None);
-
+        var rolesResult = await RoleCatalog.LoadAsync(readContext, CancellationToken.None);
         if (!rolesResult.IsSuccess)
         {
-            _contextErrorMessage = rolesResult.Error!.Message;
+            _contextErrorMessage = rolesResult.ErrorMessage!;
             PageRegions.SetKnowledgeContext(contextViewModel with
             {
                 DisplayName = contextViewModel.DisplayName ?? "Fehlerhafter Kontext"
@@ -124,7 +124,7 @@ public sealed partial class SearchPage : IDisposable
             return;
         }
 
-        var roles = rolesResult.Value?.Items ?? [];
+        var roles = rolesResult.Roles;
         if (roles.Count == 0)
         {
             _hasNoRoles = true;
@@ -143,11 +143,12 @@ public sealed partial class SearchPage : IDisposable
             return;
         }
 
-        var selectedRole = roles.First(role => role.RoleId.Value == roleId);
-        _filterRoles = roles.Select(role => new SearchFilterOptionViewModel(role.RoleId.Value, role.Name)).ToArray();
-        var selectedContext = contextViewModel with { RoleName = selectedRole.Name };
+        var selectedRole = roles.First(role => role.Id == roleId);
+        _filterRoles = roles.Select(role => new SearchFilterOptionViewModel(role.Id, role.Name)).ToArray();
+        var selectedContext = contextViewModel with { RoleName = selectedRole.Name, ChangeVersion = resolution.ChangeVersion };
         PageRegions.SetKnowledgeContext(selectedContext);
         WorkspaceState.SetContext(selectedContext, readContext);
+        WorkspaceState.SetChangeVersion(resolution.ChangeVersion);
         WorkspaceState.SetRole(roleId);
         _readContext = readContext;
         _roleId = roleId;
@@ -156,18 +157,24 @@ public sealed partial class SearchPage : IDisposable
     }
 
     private async Task<string?> ResolveEffectiveRoleAsync(
-        IReadOnlyList<Role> roles,
+        IReadOnlyList<ContextSelectionRoleOptionViewModel> roles,
         string? queryRoleId,
         Uri uri)
     {
-        if (!string.IsNullOrWhiteSpace(queryRoleId) && roles.Any(role => role.RoleId.Value == queryRoleId))
+        if (!string.IsNullOrWhiteSpace(queryRoleId))
         {
-            await RoleStorage.SetLastRoleIdAsync(queryRoleId);
-            return queryRoleId;
+            if (roles.Any(role => role.Id == queryRoleId))
+            {
+                await RoleStorage.SetLastRoleIdAsync(queryRoleId);
+                return queryRoleId;
+            }
+
+            _contextErrorMessage = $"[RequestedRoleNotFound] Die angefragte Rolle '{queryRoleId}' ist im gewählten Kontext nicht verfügbar.";
+            return null;
         }
 
         var storedRoleId = await RoleStorage.GetLastRoleIdAsync();
-        if (string.IsNullOrWhiteSpace(storedRoleId) || !roles.Any(role => role.RoleId.Value == storedRoleId))
+        if (string.IsNullOrWhiteSpace(storedRoleId) || !roles.Any(role => role.Id == storedRoleId))
         {
             return null;
         }
@@ -233,11 +240,18 @@ public sealed partial class SearchPage : IDisposable
                 return;
             }
 
-            _page = await _breadcrumbLoader!.LoadAsync(
+            var breadcrumbResult = await _breadcrumbLoader!.LoadAsync(
                 mapped.Value!,
                 _readContext,
                 _roleId,
                 requestCts.Token);
+            if (!breadcrumbResult.IsSuccess)
+            {
+                _searchErrorMessage = $"[{breadcrumbResult.Error!.Code}] {breadcrumbResult.Error.Message}";
+                return;
+            }
+
+            _page = breadcrumbResult.Value;
         }
         catch (OperationCanceledException) when (requestCts.IsCancellationRequested)
         {

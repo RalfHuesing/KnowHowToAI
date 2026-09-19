@@ -108,6 +108,16 @@ public sealed class KnowledgeContextBarTests : BunitContext
         Assert.Contains("42", baseSnapElement.TextContent, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void RendersTheWorkingChangeVersionWhenProvided()
+    {
+        var cut = RenderBar(new KnowledgeContextViewModel(
+            KnowledgeReadContextKind.Transaction,
+            ChangeVersion: 7L));
+
+        Assert.Contains("7", cut.Find("[data-testid='context-change-version']").TextContent, StringComparison.Ordinal);
+    }
+
     private IRenderedComponent<KnowledgeContextBar> RenderBar(KnowledgeContextViewModel context) =>
         Render<KnowledgeContextBar>(parameters => parameters.Add(parameter => parameter.Context, context));
 }

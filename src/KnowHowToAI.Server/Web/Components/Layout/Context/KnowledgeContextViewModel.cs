@@ -14,10 +14,12 @@ namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 /// <param name="RoleName">Optional ausgewählte Rolle; ohne Auswahl bleibt der Platz neutral.</param>
 /// <param name="IsDirty">Gibt an, ob die Seite ungespeicherte Änderungen hält.</param>
 /// <param name="BaseSnapshotId">Optionale ID des Basis-Snapshots bei Working Transactions.</param>
+/// <param name="ChangeVersion">Aktuelle Version einer geöffneten Working Transaction.</param>
 public sealed record KnowledgeContextViewModel(
     KnowledgeReadContextKind ReadContext,
     string? ContextId = null,
     string? DisplayName = null,
     string? RoleName = null,
     bool IsDirty = false,
-    long? BaseSnapshotId = null);
+    long? BaseSnapshotId = null,
+    long? ChangeVersion = null);

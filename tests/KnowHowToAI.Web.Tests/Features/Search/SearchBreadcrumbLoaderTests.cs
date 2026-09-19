@@ -32,6 +32,7 @@ public sealed class SearchBreadcrumbLoaderTests
             roleId.Value,
             CancellationToken.None);
 
-        Assert.Equal(["Root", "Kind"], Assert.Single(resolved.Items).Breadcrumb);
+        Assert.True(resolved.IsSuccess);
+        Assert.Equal(["Root", "Kind"], Assert.Single(resolved.Value!.Items).Breadcrumb);
     }
 }

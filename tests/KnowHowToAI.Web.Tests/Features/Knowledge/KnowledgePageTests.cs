@@ -48,6 +48,7 @@ public sealed class KnowledgePageTests : BunitContext
         Services.AddSingleton(contextResolver);
         Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
         Services.AddSingleton(new ContextSelectorState());
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
 
         var cut = Render<KnowledgePage>();
 
@@ -82,6 +83,7 @@ public sealed class KnowledgePageTests : BunitContext
         Services.AddSingleton(contextResolver);
         Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
         Services.AddSingleton(new ContextSelectorState());
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
 
         var cut = Render<KnowledgePage>(parameters => parameters
             .Add(p => p.NodeId, childId.Value));
@@ -117,6 +119,7 @@ public sealed class KnowledgePageTests : BunitContext
         Services.AddSingleton(contextResolver);
         Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
         Services.AddSingleton(new ContextSelectorState());
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
 
         var navMan = Services.GetRequiredService<NavigationManager>();
 

@@ -17,7 +17,7 @@ internal sealed class SearchBreadcrumbLoader
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
     }
 
-    public async Task<SearchPageViewModel> LoadAsync(
+    public async Task<Result<SearchPageViewModel>> LoadAsync(
         SearchPageViewModel page,
         ReadContext readContext,
         string roleId,
@@ -30,13 +30,16 @@ internal sealed class SearchBreadcrumbLoader
         {
             var item = page.Items[index];
             var breadcrumb = await LoadPathAsync(item, readContext, roleId, cancellationToken).ConfigureAwait(false);
-            items[index] = item with { Breadcrumb = breadcrumb };
+            if (!breadcrumb.IsSuccess)
+                return Result<SearchPageViewModel>.Failure(breadcrumb.Error!);
+
+            items[index] = item with { Breadcrumb = breadcrumb.Value! };
         }
 
-        return page with { Items = items };
+        return Result<SearchPageViewModel>.Success(page with { Items = items });
     }
 
-    private async Task<IReadOnlyList<string>> LoadPathAsync(
+    private async Task<Result<IReadOnlyList<string>>> LoadPathAsync(
         SearchHitViewModel hit,
         ReadContext readContext,
         string roleId,
@@ -53,15 +56,23 @@ internal sealed class SearchBreadcrumbLoader
                 new RoleId(roleId),
                 cancellationToken).ConfigureAwait(false);
 
-            if (!result.IsSuccess || result.Value?.Node is not { } node)
+            if (!result.IsSuccess)
             {
-                return path.Count == 0 ? [hit.Title] : path;
+                return Result<IReadOnlyList<string>>.Failure(result.Error!);
+            }
+
+            if (result.Value?.Node is not { } node)
+            {
+                return Result<IReadOnlyList<string>>.Failure(new DomainError(
+                    NavigationErrorCodes.NodeNotFound,
+                    "Der Breadcrumb-Knoten ist nicht verfügbar.",
+                    new Dictionary<string, string> { [NavigationErrorCodes.NodeIdDetail] = currentNodeId.ToString("D") }));
             }
 
             path.Insert(0, node.Title);
             if (node.ParentNodeId is not { } parentNodeId)
             {
-                return path;
+                return Result<IReadOnlyList<string>>.Success(path);
             }
 
             currentNodeId = parentNodeId.Value;

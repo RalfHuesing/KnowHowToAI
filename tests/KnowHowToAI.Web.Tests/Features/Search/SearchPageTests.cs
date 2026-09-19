@@ -139,10 +139,12 @@ public sealed class SearchPageTests : BunitContext
         var setup = ConfigureSearch(searchPageSize: 10);
         var rootId = new NodeId(Guid.Parse("60000000-0000-0000-0000-000000000006"));
         setup.Harness.AddNode(new Node(SnapshotId, rootId, null, "Root", null, 0, false));
+        var fallbackNodeId = new NodeId(Guid.Parse("70000000-0000-0000-0000-000000000007"));
+        setup.Harness.AddNode(new Node(SnapshotId, fallbackNodeId, rootId, "Fallback Treffer", null, 1, false));
         setup.Repository.ResultsToReturn =
         [
             new SearchHit(rootId, "Eigener Treffer", null, "TODO", "Content", Availability.Explicit, RoleId, Freshness.Current, 1),
-            new SearchHit(new NodeId(Guid.Parse("70000000-0000-0000-0000-000000000007")), "Fallback Treffer", null, "TODO", "Content", Availability.Fallback, RoleId, Freshness.Current, 2)
+            new SearchHit(fallbackNodeId, "Fallback Treffer", null, "TODO", "Content", Availability.Fallback, RoleId, Freshness.Current, 2)
         ];
 
         var cut = Render<SearchPage>();
@@ -231,5 +233,18 @@ public sealed class SearchPageTests : BunitContext
         Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new FakeReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
         Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleId.Value));
         Services.AddSingleton(new ContextSelectorState());
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+    }
+
+    [Fact]
+    public void ExplicitlyInvalidRole_DoesNotFallBackToStoredRole()
+    {
+        ConfigureSearch(searchPageSize: 10);
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/search?roleId=Missing");
+
+        var cut = Render<SearchPage>();
+
+        Assert.Contains("RequestedRoleNotFound", cut.Find("[data-testid='search-context-error']").TextContent);
+        Assert.True(Services.GetRequiredService<ContextSelectorState>().IsOpen);
     }
 }

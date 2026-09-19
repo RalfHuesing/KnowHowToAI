@@ -120,7 +120,8 @@ public sealed class WebReadContextResolver : IWebReadContextResolver
             DisplayName: string.IsNullOrWhiteSpace(transaction.Purpose)
                 ? $"Transaktion {txId.Value:D}"
                 : transaction.Purpose,
-            BaseSnapshotId: transaction.BaseSnapshotId.Value);
+            BaseSnapshotId: transaction.BaseSnapshotId.Value,
+            ChangeVersion: transaction.ChangeVersion);
 
         return Result<WebReadContextResolution>.Success(new WebReadContextResolution(
             readContext,

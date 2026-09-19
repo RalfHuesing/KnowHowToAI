@@ -21,6 +21,13 @@
             <span class="knowledge-context__value">@Context.BaseSnapshotId</span>
         </span>
     }
+    @if (Context.ChangeVersion is not null)
+    {
+        <span class="knowledge-context__item" data-testid="context-change-version">
+            <span class="knowledge-context__label">Änderungsversion:</span>
+            <span class="knowledge-context__value">@Context.ChangeVersion</span>
+        </span>
+    }
     <span class="knowledge-context__item">
         <span class="knowledge-context__label">Rolle:</span>
         <span class="knowledge-context__value">@RoleText</span>

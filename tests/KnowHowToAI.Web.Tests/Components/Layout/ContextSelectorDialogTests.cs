@@ -183,4 +183,21 @@ public sealed class ContextSelectorDialogTests : BunitContext
         Assert.False(_selectorState.IsOpen);
         Assert.Equal(initialUri, navMan.Uri);
     }
+
+    [Fact]
+    public async Task RoleCatalog_LoadsRolesBeyondTheFirstOpaquePage()
+    {
+        for (var index = 0; index < 101; index++)
+        {
+            var id = new RoleId($"Role-{index:D3}");
+            _harness.AddRole(new Role(DefaultSnapshotId, id, id.Value, null, false));
+        }
+
+        var catalog = new ContextSelectionRoleCatalog(_navigationService);
+        var result = await catalog.LoadAsync(new ReadContext());
+
+        Assert.True(result.IsSuccess);
+        Assert.Contains(result.Roles, role => role.Id == "Role-100");
+        Assert.Equal(102, result.Roles.Count);
+    }
 }
