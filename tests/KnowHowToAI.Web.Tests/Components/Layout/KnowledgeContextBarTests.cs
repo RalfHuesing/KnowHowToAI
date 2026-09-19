@@ -40,6 +40,7 @@ public sealed class KnowledgeContextBarTests : BunitContext
         var cut = RenderBar(new KnowledgeContextViewModel(
             KnowledgeReadContextKind.Current, IsDirty: isDirty));
 
+        Assert.Equal(isDirty ? "true" : "false", cut.Find(".knowledge-context").GetAttribute("data-ktai-dirty"));
         Assert.Equal(expectedCount, cut.FindAll(".app-status--ungespeichert").Count);
         if (isDirty)
         {

@@ -22,11 +22,13 @@ resumeButton.addEventListener("click", resume);
 // Wiederherstellung verlassen; der Fokus bleibt deshalb im Dialog.
 reconnectModal.addEventListener("cancel", (event) => event.preventDefault());
 
-// Reload warnt nur bei tatsächlich ungespeicherten Änderungen: solange kein
-// Feature den Arbeitsstand als dirty meldet, wird nie gewarnt; eine
+// Reload warnt nur bei tatsächlich ungespeicherten Änderungen: die
+// Kontextleiste trägt den Dirty-Zustand als data-ktai-dirty-Attribut
+// (einzige Wahrheit ist der ViewModel-Vertrag, auch im Prerendering
+// vorhanden); fehlt das Element, gilt die Seite als nicht dirty; eine
 // persistierte Transaction gilt nie als ungespeichert.
 document.addEventListener("beforeunload", (event) => {
-    if (window.KnowHowToAI?.isDirty !== true) {
+    if (document.querySelector("[data-ktai-dirty]")?.dataset.ktaiDirty !== "true") {
         return;
     }
     event.preventDefault();

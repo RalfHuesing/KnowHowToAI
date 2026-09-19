@@ -35,6 +35,7 @@ public sealed class ShellSmokeTests
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync("Shell bereit");
         await CircuitProbe.WaitForInteractivityAsync(page);
+        await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "false");
 
         Assert.NotEmpty(observedRequests);
         Assert.All(observedRequests, request => Assert.StartsWith(_host.Address, request, StringComparison.OrdinalIgnoreCase));

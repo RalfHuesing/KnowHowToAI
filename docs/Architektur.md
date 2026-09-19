@@ -192,7 +192,8 @@ Verzeichnis
   ID/Bezeichnung, optionale Rolle und `IsDirty`. Die Komponente
   `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
   Kopfbereich nahe der Wortmarke – als Text und Status ohne Selektor, Links
-  oder Mutation; eine fehlende Rolle erscheint neutral als „Keine Rolle
+  oder Mutation; sie spiegelt `IsDirty` als `data-ktai-dirty`-Attribut ihres
+  Wurzelelements; eine fehlende Rolle erscheint neutral als „Keine Rolle
   ausgewählt“, der Dirty-Zustand nur bei Bedarf als „Ungespeicherte
   Änderungen“ mit Icon plus Text. Nicht gelieferte Angaben erscheinen nicht;
   die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
@@ -232,10 +233,11 @@ Verzeichnis
   Circuit; Escape schließt den Dialog nicht. Beim Öffnen liegt der Fokus
   deterministisch auf dem Dialog, in den Handlungsstates auf der sicheren
   nächsten Aktion. Ein erfolgreicher Reconnect schließt den Dialog ohne
-  fachlichen Erfolgshinweis. Ein Reload warnt nur, wenn ein Feature den
-  Arbeitsstand als ungespeichert meldet (`window.KnowHowToAI.isDirty`); M2
-  besitzt dafür noch keinen Produzenten, eine persistierte Transaction gilt
-  nie als ungespeichert.
+  fachlichen Erfolgshinweis. Ein Reload warnt nur bei tatsächlich ungespeicherten
+  Änderungen: `beforeunload` liest das Attribut `data-ktai-dirty` der
+  Kontextleiste zum Ereigniszeitpunkt; fehlt das Element, gilt die Seite als
+  nicht dirty; es existiert kein `window`-Flag mehr; M2 besitzt dafür noch
+  keinen Produzenten, eine persistierte Transaction gilt nie als ungespeichert.
 `wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
 Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
 Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie

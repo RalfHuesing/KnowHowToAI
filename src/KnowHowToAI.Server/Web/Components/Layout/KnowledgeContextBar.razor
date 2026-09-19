@@ -5,7 +5,7 @@
    Status, ohne Selektor, Links oder Mutation. Die fehlende Rolle ist
    neutral und kein technischer Fehler; der Dirty-Zustand nutzt AppStatus
    mit Icon plus Text, nie Farbe allein. *@
-<div class="knowledge-context" role="group" aria-label="Wissenskontext">
+<div class="knowledge-context" role="group" aria-label="Wissenskontext" data-ktai-dirty="@(Context.IsDirty ? "true" : "false")">
     <span class="knowledge-context__item">
         <span class="knowledge-context__label">Wissensbasis:</span>
         <span class="knowledge-context__value">@ReadContextText</span>
