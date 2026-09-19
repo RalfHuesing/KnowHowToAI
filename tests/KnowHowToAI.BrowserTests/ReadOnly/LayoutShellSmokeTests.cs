@@ -41,6 +41,7 @@ public sealed class LayoutShellSmokeTests
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
+        await CircuitProbe.WaitForInteractivityAsync(page);
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
         await Assertions.Expect(navigation).ToBeVisibleAsync();
@@ -81,6 +82,7 @@ public sealed class LayoutShellSmokeTests
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
+        await CircuitProbe.WaitForInteractivityAsync(page);
         // Der Schalter erscheint erst, wenn der Circuit verbunden ist und das
         // Modul die kompakte Breite gemeldet hat; das Warten auf Sichtbarkeit
         // belegt beides ohne feste Wartezeit.
@@ -117,23 +119,9 @@ public sealed class LayoutShellSmokeTests
 
     private static async Task OpenNavigationAsync(IPage page, ILocator navigationToggle)
     {
-        // Wie im Shell-Smoke kann ein Klick vor der fertigen Circuit-Verdrahtung
-        // ankommen und wird dann verworfen; erneut klicken, bis das Panel sichtbar ist.
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
-        const int maxAttempts = 10;
-        for (var attempt = 1; ; attempt++)
-        {
-            await navigationToggle.ClickAsync();
-            try
-            {
-                await Assertions.Expect(navigation).ToBeVisibleAsync(new() { Timeout = 2_000 });
-                return;
-            }
-            catch (PlaywrightException) when (attempt < maxAttempts)
-            {
-                // Circuit noch nicht verbunden; erneut klicken.
-            }
-        }
+        await navigationToggle.ClickAsync();
+        await Assertions.Expect(navigation).ToBeVisibleAsync();
     }
 
     private static async Task ExpectPanelClosedAsync(IPage page, ILocator navigationToggle)

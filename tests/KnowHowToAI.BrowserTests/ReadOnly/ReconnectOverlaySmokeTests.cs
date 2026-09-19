@@ -24,6 +24,8 @@ public sealed class ReconnectOverlaySmokeTests
         // Circuit bereit machen: Interaktivitätsnachweis wie im M1-Smoke.
         var interactionStatus = page.GetByTestId("interaction-status");
         await CircuitProbe.WaitForInteractivityAsync(page);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
+        await Assertions.Expect(interactionStatus).ToHaveTextAsync("Interaktivität ist verfügbar.");
 
         var reconnectDialog = page.Locator("#components-reconnect-modal");
         await page.Context.SetOfflineAsync(true);

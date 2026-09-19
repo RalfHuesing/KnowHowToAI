@@ -34,6 +34,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private readonly List<ShellPanel> _openPanels = [];
 
     private bool _isCompactMode;
+    private bool _isInteractive;
     private bool _isNavigationOpen = true;
     private bool _isContextOpen = true;
     private ShellPanel? _pendingFocusPanel;
@@ -95,6 +96,8 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
             _selfReference = DotNetObjectReference.Create(this);
             var module = await EnsureModuleAsync();
             await module.InvokeVoidAsync("observeBreakpoint", _selfReference);
+            _isInteractive = true;
+            await InvokeAsync(StateHasChanged);
         }
 
         if (_pendingFocusPanel is { } focusPanel)

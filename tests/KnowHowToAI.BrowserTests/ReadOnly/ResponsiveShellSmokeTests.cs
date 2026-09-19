@@ -49,6 +49,7 @@ public sealed class ResponsiveShellSmokeTests
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
+        await CircuitProbe.WaitForInteractivityAsync(page);
         foreach (var width in new[] { 640, 320 })
         {
             await page.SetViewportSizeAsync(width, 720);
@@ -72,6 +73,7 @@ public sealed class ResponsiveShellSmokeTests
         });
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
+        await CircuitProbe.WaitForInteractivityAsync(page);
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
 
         // Zuerst auf den stabilen Kompaktzustand warten: der Kopfbutton
@@ -176,28 +178,11 @@ public sealed class ResponsiveShellSmokeTests
             $"Der horizontale Scroll der Testfläche erzeugt bei {viewportWidth} CSS-Pixeln einen Seitenüberlauf.");
     }
 
-    /// <summary>
-    /// Wie im Shell-Smoke kann eine Tastatureingabe vor der fertigen
-    /// Circuit-Verdrahtung ankommen und wird dann verworfen; erneut senden,
-    /// bis das Panel sichtbar ist.
-    /// </summary>
     private static async Task OpenNavigationWithKeyboardAsync(IPage page, ILocator navigationToggle)
     {
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
-        const int maxAttempts = 10;
-        for (var attempt = 1; ; attempt++)
-        {
-            await navigationToggle.PressAsync("Enter");
-            try
-            {
-                await Assertions.Expect(navigation).ToBeVisibleAsync(new() { Timeout = 2_000 });
-                return;
-            }
-            catch (PlaywrightException) when (attempt < maxAttempts)
-            {
-                // Circuit noch nicht verbunden; erneut senden.
-            }
-        }
+        await navigationToggle.PressAsync("Enter");
+        await Assertions.Expect(navigation).ToBeVisibleAsync();
     }
 
     private static async Task AppendTwoDimensionalSurfaceAsync(IPage page) =>

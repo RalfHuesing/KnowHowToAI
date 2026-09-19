@@ -57,6 +57,9 @@ public sealed class VisualShellSmokeTests
         // ihren Status zurück und rendert „Shell wird initialisiert.“ erneut;
         // erst danach ist der Shell-Status stabil.
         await CircuitProbe.WaitForInteractivityAsync(page);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
+        await Assertions.Expect(page.GetByTestId("interaction-status"))
+            .ToHaveTextAsync("Interaktivität ist verfügbar.");
 
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync("Shell bereit");

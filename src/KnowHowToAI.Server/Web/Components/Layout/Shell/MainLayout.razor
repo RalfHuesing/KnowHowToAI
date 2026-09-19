@@ -1,7 +1,9 @@
 @inherits LayoutComponentBase
 @namespace KnowHowToAI.Server.Web.Components.Layout.Shell
 
-<div class="shell-root @(_isCompactMode ? "shell-root--compact" : "")">
+<div class="shell-root @(_isCompactMode ? "shell-root--compact" : "")"
+     data-testid="shell-root"
+     data-ktai-interactive="@(_isInteractive ? "true" : "false")">
     <a class="shell-skip-link" href="#shell-main" @onclick="SkipToMainAsync"
        @onclick:preventDefault="true">Zum Hauptinhalt springen</a>
     <header class="shell-header">
