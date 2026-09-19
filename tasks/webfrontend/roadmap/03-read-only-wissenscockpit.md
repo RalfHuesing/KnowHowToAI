@@ -69,7 +69,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 - [ ] **M3.4 abschließen**
 
-  - [ ] **M3.4-T1 – Globalen Rollen- und Lesekontext-Selektor implementieren**
+  - [x] **M3.4-T1 – Globalen Rollen- und Lesekontext-Selektor implementieren**
     - Umfang: Rolle sowie Current Snapshot, historischer Snapshot, Release oder vorhandene Working Transaction auswählen.
     - Rollenwahl (O-008 entschieden): letzte Rolle aus `localStorage` (Schlüssel `knowhowtoai.lastRoleId`) vorladen und gegen Rollenliste prüfen; fehlt der Eintrag oder existiert die Rolle nicht mehr, erscheint ein modaler Pflichtauswahl-Selektor; es gibt keine stille Standardrolle.
     - Prüfen: Kontext ist global sichtbar, URL-/Navigationsverhalten ist definiert und ungültige Kombinationen werden erklärt.

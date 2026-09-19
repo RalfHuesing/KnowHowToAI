@@ -51,7 +51,21 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private ToastState ToastState { get; set; } = default!;
 
     [Inject]
+    private WorkspaceState? WorkspaceState { get; set; }
+
+    [Inject]
+    private ContextSelectorState? ContextSelector { get; set; }
+
+    [Inject]
     private IJSRuntime JSRuntime { get; set; } = default!;
+
+    private void OpenContextSelector()
+    {
+        ContextSelector?.Open(
+            ContextSelectorMode.Full,
+            WorkspaceState?.CurrentReadContext,
+            WorkspaceState?.CurrentRoleId);
+    }
 
     protected override void OnInitialized()
     {

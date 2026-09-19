@@ -9,7 +9,7 @@
             <span class="shell-brand">KnowHowToAI</span>
             @if (PageRegions.KnowledgeContext is { } knowledgeContext)
             {
-                <KnowledgeContextBar Context="@knowledgeContext" />
+                <KnowledgeContextBar Context="@knowledgeContext" OnOpenSelector="OpenContextSelector" />
             }
         </div>
         <div class="shell-header-actions">
@@ -72,4 +72,7 @@
     @* Einzige globale Toastregion: bestätigt nichtkritische abgeschlossene
        Aktionen und bleibt im Ruhezustand unsichtbar. *@
     <ToastRegion State="@ToastState" />
+
+    @* Globaler Rollen- und Lesekontext-Selektor *@
+    <ContextSelectorDialog />
 </div>

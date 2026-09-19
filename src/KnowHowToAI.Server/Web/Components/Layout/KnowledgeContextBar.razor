@@ -22,4 +22,14 @@
     {
         <AppStatus Kind="AppStatusKind.Ungespeichert" Text="Ungespeicherte Änderungen" />
     }
+    @if (OnOpenSelector.HasDelegate)
+    {
+        <button type="button" class="knowledge-context__trigger"
+                @onclick="HandleOpenSelectorAsync"
+                aria-label="Kontext und Rolle anpassen"
+                title="Kontext und Rolle anpassen"
+                data-testid="context-selector-trigger">
+            Anpassen
+        </button>
+    }
 </div>

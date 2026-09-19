@@ -1,0 +1,159 @@
+/* Komponentenlokale Gestaltung des Rollen- und Kontext-Selektors.
+   Alle Werte stammen aus den globalen CSS-Tokens in wwwroot/css/app.css. */
+
+.context-selector-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-4);
+    min-width: 20rem;
+    max-width: 32rem;
+    padding: var(--ktai-space-2) 0;
+}
+
+.context-selector-dialog__error {
+    margin-bottom: var(--ktai-space-2);
+}
+
+.context-selector-dialog__group {
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-md);
+    padding: var(--ktai-space-3);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-3);
+}
+
+.context-selector-dialog__legend {
+    font-weight: 600;
+    font-size: var(--ktai-font-size-sm);
+    color: var(--ktai-color-text);
+    padding: 0 var(--ktai-space-2);
+}
+
+.context-selector-dialog__options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-2);
+}
+
+.context-selector-dialog__option {
+    display: flex;
+    align-items: center;
+    gap: var(--ktai-space-2);
+    cursor: pointer;
+    font-size: var(--ktai-font-size-sm);
+    color: var(--ktai-color-text);
+}
+
+.context-selector-dialog__subfield {
+    margin-left: var(--ktai-space-5);
+    margin-top: var(--ktai-space-1);
+    margin-bottom: var(--ktai-space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-1);
+    font-size: var(--ktai-font-size-xs);
+    color: var(--ktai-color-text-secondary);
+}
+
+.context-selector-dialog__input,
+.context-selector-dialog__select {
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-sm);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-sm);
+    width: 100%;
+}
+
+.context-selector-dialog__input:focus,
+.context-selector-dialog__select:focus {
+    outline: 2px solid var(--ktai-color-primary);
+    outline-offset: 1px;
+}
+
+.context-selector-dialog__roles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-2);
+    max-height: 14rem;
+    overflow-y: auto;
+}
+
+.context-selector-dialog__role-option {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ktai-space-2);
+    padding: var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--ktai-transition-fast);
+}
+
+.context-selector-dialog__role-option:hover {
+    background-color: var(--ktai-color-surface-hover);
+}
+
+.context-selector-dialog__role-name {
+    font-weight: 500;
+    font-size: var(--ktai-font-size-sm);
+    color: var(--ktai-color-text);
+}
+
+.context-selector-dialog__role-desc {
+    display: block;
+    font-size: var(--ktai-font-size-xs);
+    color: var(--ktai-color-text-secondary);
+    margin-top: 2px;
+}
+
+.context-selector-dialog__loading,
+.context-selector-dialog__empty {
+    font-size: var(--ktai-font-size-sm);
+    color: var(--ktai-color-text-secondary);
+    padding: var(--ktai-space-2) 0;
+}
+
+.context-selector-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ktai-space-2);
+    margin-top: var(--ktai-space-2);
+}
+
+.context-selector-dialog__button {
+    padding: var(--ktai-space-2) var(--ktai-space-4);
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 500;
+    border-radius: var(--ktai-radius-sm);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color var(--ktai-transition-fast), border-color var(--ktai-transition-fast);
+}
+
+.context-selector-dialog__button--primary {
+    background-color: var(--ktai-color-primary);
+    color: var(--ktai-color-primary-contrast);
+}
+
+.context-selector-dialog__button--primary:hover:not(:disabled) {
+    background-color: var(--ktai-color-primary-hover);
+}
+
+.context-selector-dialog__button--primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.context-selector-dialog__button--secondary {
+    background-color: transparent;
+    border-color: var(--ktai-color-border);
+    color: var(--ktai-color-text);
+}
+
+.context-selector-dialog__button--secondary:hover {
+    background-color: var(--ktai-color-surface-hover);
+}

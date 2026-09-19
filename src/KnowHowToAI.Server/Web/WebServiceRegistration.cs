@@ -30,6 +30,12 @@ internal static class WebServiceRegistration
         // Flüchtiger Circuit-State und Lazy-Loading-Datenadapter für den Wissensbaum.
         services.AddScoped<KnowledgeTreeState>();
 
+        // Persistiert die letzte Rollenauswahl im Browser-LocalStorage.
+        services.AddScoped<IRoleStorageService, BrowserRoleStorageService>();
+
+        // Flüchtiger Circuit-State für den globalen Rollen- und Lesekontext-Selektor.
+        services.AddScoped<ContextSelectorState>();
+
         return services;
     }
 }

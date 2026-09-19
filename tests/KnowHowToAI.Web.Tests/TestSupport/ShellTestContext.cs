@@ -18,8 +18,13 @@ public abstract class ShellTestContext : BunitContext
     {
         Services.AddScoped<PageRegionState>();
         Services.AddScoped<ToastState>();
+        Services.AddScoped<WorkspaceState>();
+        Services.AddScoped<ContextSelectorState>();
         var module = JSInterop.SetupModule("./Web/Components/Layout/MainLayout.razor.js");
         module.Mode = JSRuntimeMode.Strict;
         module.SetupVoid("observeBreakpoint", _ => true);
+
+        var dialogModule = JSInterop.SetupModule("./Web/Components/Shared/AppDialog.razor.js");
+        dialogModule.Mode = JSRuntimeMode.Loose;
     }
 }
