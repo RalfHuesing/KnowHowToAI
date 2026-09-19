@@ -1,0 +1,100 @@
+@page "/history"
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+@namespace KnowHowToAI.Server.Web.Features.History
+
+<PageTitle>Historie und Releases – KnowHowToAI</PageTitle>
+
+<section class="history-page" data-testid="history-page">
+    <header class="history-page__header">
+        <h1>Historie und Releases</h1>
+        <p>Committed Snapshots und Releases sind unveränderliche Wissensstände.</p>
+    </header>
+
+    <section class="history-page__notice" aria-label="Abgrenzung von Working Transactions" data-testid="history-working-separation">
+        <InlineAlert Kind="AlertKind.Info" Message="Working Transactions gehören nicht zur Historie und werden separat im Transaction-Arbeitsbereich bearbeitet." />
+    </section>
+
+    @if (_isLoading)
+    {
+        <p role="status" data-testid="history-loading">Historie wird geladen …</p>
+    }
+    else
+    {
+        <section class="history-page__section" aria-labelledby="snapshots-heading">
+            <h2 id="snapshots-heading">Committed Snapshots</h2>
+            @if (!string.IsNullOrWhiteSpace(_snapshotErrorMessage))
+            {
+                <div role="alert" data-testid="snapshot-list-error">
+                    <InlineAlert Kind="AlertKind.Fehler" Message="@_snapshotErrorMessage" />
+                </div>
+            }
+            else if (_snapshots is null || _snapshots.Items.Count == 0)
+            {
+                <p role="status" data-testid="snapshot-list-empty">Es sind noch keine historischen Snapshots vorhanden.</p>
+            }
+            else
+            {
+                <ol class="history-page__list" data-testid="snapshot-list">
+                    @foreach (var snapshot in _snapshots.Items)
+                    {
+                        <li>
+                            <button type="button" class="history-page__item"
+                                    @onclick="() => NavigateToSnapshot(snapshot.SnapshotId)"
+                                    data-testid="snapshot-select-@snapshot.SnapshotId">
+                                <span class="history-page__item-title">Snapshot @snapshot.SnapshotId</span>
+                                <span class="history-page__metadata" title="@FormatUtc(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)">Committed @FormatTimestamp(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)</span>
+                                @if (snapshot.BaseSnapshotId is { } baseSnapshotId)
+                                {
+                                    <span class="history-page__metadata">Basis: Snapshot @baseSnapshotId</span>
+                                }
+                            </button>
+                        </li>
+                    }
+                </ol>
+                @if (!string.IsNullOrEmpty(_snapshots.NextCursor))
+                {
+                    <button type="button" class="history-page__next" @onclick="LoadNextSnapshotPageAsync" data-testid="snapshot-list-next">Weitere Snapshots</button>
+                }
+            }
+        </section>
+
+        <section class="history-page__section" aria-labelledby="releases-heading">
+            <h2 id="releases-heading">Releases</h2>
+            @if (!string.IsNullOrWhiteSpace(_releaseErrorMessage))
+            {
+                <div role="alert" data-testid="release-list-error">
+                    <InlineAlert Kind="AlertKind.Fehler" Message="@_releaseErrorMessage" />
+                </div>
+            }
+            else if (_releases is null || _releases.Items.Count == 0)
+            {
+                <p role="status" data-testid="release-list-empty">Es sind noch keine Releases benannt.</p>
+            }
+            else
+            {
+                <ol class="history-page__list" data-testid="release-list">
+                    @foreach (var release in _releases.Items)
+                    {
+                        <li>
+                            <button type="button" class="history-page__item"
+                                    @onclick="() => NavigateToRelease(release.ReleaseId)"
+                                    data-testid="release-select-@release.ReleaseId">
+                                <span class="history-page__item-title">@release.Name</span>
+                                <span class="history-page__metadata" title="@FormatUtc(release.ReleasedAtUtc)">Snapshot @release.SnapshotId · Release @FormatTimestamp(release.ReleasedAtUtc)</span>
+                                @if (!string.IsNullOrWhiteSpace(release.Description))
+                                {
+                                    <span class="history-page__metadata">@release.Description</span>
+                                }
+                            </button>
+                        </li>
+                    }
+                </ol>
+                @if (!string.IsNullOrEmpty(_releases.NextCursor))
+                {
+                    <button type="button" class="history-page__next" @onclick="LoadNextReleasePageAsync" data-testid="release-list-next">Weitere Releases</button>
+                }
+            }
+        </section>
+    }
+</section>

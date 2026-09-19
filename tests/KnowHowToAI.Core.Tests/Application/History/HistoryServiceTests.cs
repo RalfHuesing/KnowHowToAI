@@ -48,6 +48,50 @@ public sealed class HistoryServiceTests
     }
 
     [Fact]
+    public async Task ListCommittedSnapshotsAsync_PagesOnlyImmutableSnapshots_WithOpaqueCursor()
+    {
+        var harness = new HistoryTestHarness();
+        harness.Snapshots.Add(new Snapshot(new SnapshotId(9), null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+        var service = harness.CreateService();
+
+        var firstPage = await service.ListCommittedSnapshotsAsync(limit: 1, cursor: null);
+
+        Assert.True(firstPage.IsSuccess);
+        var first = Assert.Single(firstPage.Value!.Items);
+        Assert.Equal(CommittedSnap2, first.SnapshotId);
+        Assert.NotNull(firstPage.Value.NextCursor);
+
+        var secondPage = await service.ListCommittedSnapshotsAsync(limit: 1, firstPage.Value.NextCursor);
+
+        Assert.True(secondPage.IsSuccess);
+        Assert.Equal(CommittedSnap1, Assert.Single(secondPage.Value!.Items).SnapshotId);
+        Assert.DoesNotContain(secondPage.Value.Items, snapshot => snapshot.State == SnapshotState.Working);
+    }
+
+    [Fact]
+    public async Task ListCommittedSnapshotsAsync_EmptyHistory_ReturnsEmptyPage()
+    {
+        var harness = new HistoryTestHarness();
+        harness.Snapshots.RemoveAll(snapshot => snapshot.State == SnapshotState.Committed);
+
+        var result = await harness.CreateService().ListCommittedSnapshotsAsync(limit: 10, cursor: null);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value!.Items);
+        Assert.Null(result.Value.NextCursor);
+    }
+
+    [Fact]
+    public async Task ListCommittedSnapshotsAsync_InvalidCursor_ReturnsInvalidCursor()
+    {
+        var result = await new HistoryTestHarness().CreateService()
+            .ListCommittedSnapshotsAsync(limit: 10, cursor: "ungueltig");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(HistoryErrorCodes.InvalidCursor, result.Error!.Code);
+    }
+
+    [Fact]
     public async Task CompareSnapshotsAsync_BaseSnapshotNotFound_ReturnsError()
     {
         var harness = new HistoryTestHarness();
@@ -234,6 +278,7 @@ public sealed class HistoryServiceTests
         private readonly InMemoryKnowledgeStore _store = new();
 
         public List<Node> Nodes => _store.Nodes;
+        public List<Snapshot> Snapshots => _store.Snapshots;
 
         public HistoryTestHarness()
         {

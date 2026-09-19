@@ -9,4 +9,9 @@ public interface ISnapshotRepository
     Task<Snapshot?> FindAsync(SnapshotId snapshotId, CancellationToken cancellationToken = default);
 
     Task<Snapshot> GetCurrentAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Snapshot>> ListCommittedAsync(
+        int limit,
+        SnapshotId? beforeSnapshotId,
+        CancellationToken cancellationToken = default);
 }

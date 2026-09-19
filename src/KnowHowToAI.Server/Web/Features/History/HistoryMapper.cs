@@ -40,6 +40,12 @@ public static class HistoryMapper
         return new ReleasePageViewModel(items, page.NextCursor);
     }
 
+    public static SnapshotPageViewModel ToSnapshotPageViewModel(SnapshotPage page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        return new SnapshotPageViewModel(page.Items.Select(ToSnapshotViewModel).ToArray(), page.NextCursor);
+    }
+
     public static SnapshotDiffViewModel ToSnapshotDiffViewModel(SnapshotDiff diff)
     {
         ArgumentNullException.ThrowIfNull(diff);
@@ -71,6 +77,17 @@ public static class HistoryMapper
 
         return Result<ReleasePageViewModel>.Success(
             result.Value is null ? null : ToReleasePageViewModel(result.Value),
+            result.Warnings);
+    }
+
+    public static Result<SnapshotPageViewModel> ToSnapshotPageResult(Result<SnapshotPage> result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        if (!result.IsSuccess)
+            return Result<SnapshotPageViewModel>.Failure(result.Error!, result.Warnings);
+
+        return Result<SnapshotPageViewModel>.Success(
+            result.Value is null ? null : ToSnapshotPageViewModel(result.Value),
             result.Warnings);
     }
 

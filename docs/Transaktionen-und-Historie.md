@@ -168,6 +168,12 @@ Role Resolution Orders, rollenabhängige Contents und Content-Abhängigkeiten.
 Ändert sich beispielsweise eine Resolution Order später, verändert das den alten
 Snapshot nicht nachträglich.
 
+Die menschliche Historienübersicht zeigt ausschließlich committed Snapshots als
+unveränderliche Stände und paginiert sie absteigend nach `SnapshotId`. Working
+Transactions bleiben davon klar getrennt; sie sind keine historische Auswahl und
+werden im Transaction-Arbeitsbereich behandelt. Ein Release navigiert über seine
+stabile `ReleaseId` auf den referenzierten committed Snapshot.
+
 ## Strukturierter Netto-Diff
 
 `compare_snapshots` vergleicht zwei beliebige committed Snapshots;

@@ -23,7 +23,7 @@ entscheidet daran, welche Nodes er tatsächlich laden muss.
 
 ## Paginierung und Cursors
 
-Große Mengen (Kind-Nodes, Rollen, Suchergebnisse, Diffs, Releases) werden
+Große Mengen (Kind-Nodes, Rollen, Suchergebnisse, Diffs, committed Snapshots, Releases) werden
 seitenweise über **opake Keyset-Cursors** paginiert, gesteuert über die
 `RetrievalPolicy` (`DefaultPageSize`, `MaximumPageSize`, `SearchPageSize`,
 `SearchMaximumPageSize`; [Konfiguration und
@@ -38,6 +38,9 @@ Betrieb](Konfiguration-und-Betrieb.md)):
   Snapshot-/Filterbindung zu `InvalidCursor`.
 - `list_roles` sortiert deterministisch nach `RoleId` ordinal aufsteigend;
   `list_children` nach `sortOrder`, dann `NodeId`.
+- Die Historienübersicht liest ausschließlich committed Snapshots, absteigend nach
+  `SnapshotId`, über einen opaken Keyset-Cursor. Working und verworfene Snapshots
+  gehören nicht zu dieser unveränderlichen Historie.
 
 ## Export
 

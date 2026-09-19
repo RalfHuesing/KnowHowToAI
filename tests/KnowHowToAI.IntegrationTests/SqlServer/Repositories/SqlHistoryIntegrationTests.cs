@@ -81,6 +81,16 @@ public sealed class SqlHistoryIntegrationTests
         var committedAddedNode = Assert.Single(compareDiff.Nodes);
         Assert.Equal(DiffChangeKind.Added, committedAddedNode.Kind);
         Assert.Equal(newNodeId, committedAddedNode.After!.NodeId);
+
+        // 7. Die Web-Historie sieht ausschließlich committed Stände und paginiert per Keyset.
+        var historyPage = await historyService.ListCommittedSnapshotsAsync(limit: 1, cursor: null);
+        Assert.True(historyPage.IsSuccess);
+        Assert.Equal(commitResult.Transaction.WorkingSnapshotId, Assert.Single(historyPage.Value!.Items).SnapshotId);
+        Assert.NotNull(historyPage.Value.NextCursor);
+
+        var previousPage = await historyService.ListCommittedSnapshotsAsync(limit: 1, historyPage.Value.NextCursor);
+        Assert.True(previousPage.IsSuccess);
+        Assert.Equal(initialSnapshot.SnapshotId, Assert.Single(previousPage.Value!.Items).SnapshotId);
     }
 
     private static async Task InsertNodeAsync(SqlTestDatabase database, SnapshotId snapshotId, NodeId nodeId, string title)

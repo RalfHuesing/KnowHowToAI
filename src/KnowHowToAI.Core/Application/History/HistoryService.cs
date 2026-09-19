@@ -39,6 +39,44 @@ public sealed class HistoryService
     }
 
     /// <summary>
+    /// Liefert ausschließlich committed Snapshots als unveränderliche Historie,
+    /// absteigend nach Snapshot-ID und über einen opaken Keyset-Cursor paginiert.
+    /// </summary>
+    public async Task<Result<SnapshotPage>> ListCommittedSnapshotsAsync(
+        int? limit,
+        string? cursor,
+        CancellationToken cancellationToken = default)
+    {
+        SnapshotId? beforeSnapshotId = null;
+        if (cursor is not null)
+        {
+            var parsedCursor = SnapshotCursor.TryDecode(cursor);
+            if (parsedCursor is null)
+            {
+                return Result<SnapshotPage>.Failure(new DomainError(
+                    HistoryErrorCodes.InvalidCursor,
+                    "Der Cursor ist ungültig.",
+                    new Dictionary<string, string> { [HistoryErrorCodes.CursorDetail] = cursor }));
+            }
+
+            beforeSnapshotId = parsedCursor.BeforeSnapshotId;
+        }
+
+        var effectiveLimit = ResolvePageSize(limit);
+        var snapshots = await _repos.Snapshots.ListCommittedAsync(
+            effectiveLimit + 1,
+            beforeSnapshotId,
+            cancellationToken).ConfigureAwait(false);
+        var hasNext = snapshots.Count > effectiveLimit;
+        var items = snapshots.Take(effectiveLimit).ToArray();
+        var nextCursor = hasNext && items.Length > 0
+            ? new SnapshotCursor(items[^1].SnapshotId).Encode()
+            : null;
+
+        return Result<SnapshotPage>.Success(new SnapshotPage(Array.AsReadOnly(items), nextCursor));
+    }
+
+    /// <summary>
     /// Vergleicht zwei committed Snapshots und liefert einen strukturierten Netto-Diff.
     /// </summary>
     public async Task<Result<SnapshotDiff>> CompareSnapshotsAsync(

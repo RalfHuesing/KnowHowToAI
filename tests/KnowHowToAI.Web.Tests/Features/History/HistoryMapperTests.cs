@@ -55,6 +55,24 @@ public sealed class HistoryMapperTests
     }
 
     [Fact]
+    public void ToSnapshotPageViewModel_MapsSnapshotsAndPreservesCursor()
+    {
+        var snapshot = new Snapshot(
+            new SnapshotId(15),
+            new SnapshotId(14),
+            SnapshotState.Committed,
+            DateTimeOffset.UtcNow.AddMinutes(-1),
+            DateTimeOffset.UtcNow);
+
+        var page = new SnapshotPage([snapshot], "snapshot-cursor-15");
+        var vm = HistoryMapper.ToSnapshotPageViewModel(page);
+
+        Assert.Equal("snapshot-cursor-15", vm.NextCursor);
+        Assert.Equal(15L, Assert.Single(vm.Items).SnapshotId);
+        Assert.Equal("Committed", vm.Items[0].State);
+    }
+
+    [Fact]
     public void ToSnapshotDiffViewModel_FlattensEntriesCorrectly()
     {
         var nodeId = new NodeId(Guid.NewGuid());

@@ -146,6 +146,13 @@ Mapper (`KnowledgeNavigationMapper`, `RoleMapper`, `SearchMapper`,
 Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
 erhalten; Domain-Typen erscheinen nicht im Rendering.
 
+`Web.Features.History` stellt unter `/history` getrennte paginierte Listen für
+committed Snapshots und Releases bereit. Die Seite ruft `HistoryService` und
+`ReleaseService` direkt in-process auf, verwendet ausschließlich History-
+ViewModels und übergibt bei einer Auswahl den jeweiligen `snapshotId`- oder
+`releaseId`-Queryparameter an den bestehenden Web-Read-Context-Resolver. Working
+Transactions erscheinen dort bewusst nicht.
+
 Der native Wissensbaum (`Web.Features.Knowledge`) nutzt den flüchtigen Circuit-State
 `KnowledgeTreeState` als Lazy-Loading-Datenadapter. Er lädt den Root-Knoten über
 `NavigationService.GetRootAsync` und Kindknoten ausschließlich bei Expand über

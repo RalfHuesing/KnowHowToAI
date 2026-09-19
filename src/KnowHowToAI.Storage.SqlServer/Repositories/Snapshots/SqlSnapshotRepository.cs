@@ -27,6 +27,13 @@ internal sealed class SqlSnapshotRepository : SqlRepository, ISnapshotRepository
         );
         """;
 
+    private const string ListCommittedSql = SelectColumns + """
+        WHERE State = @committedState
+          AND (@beforeSnapshotId IS NULL OR SnapshotId < @beforeSnapshotId)
+        ORDER BY SnapshotId DESC
+        OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY;
+        """;
+
     public SqlSnapshotRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
         : base(connectionFactory, storagePolicy)
     {
@@ -48,5 +55,23 @@ internal sealed class SqlSnapshotRepository : SqlRepository, ISnapshotRepository
         return row is null
             ? throw new InvalidOperationException("KnowHowToAI_SystemState enthält keinen aktuellen Snapshot.")
             : SqlRowMapper.ToSnapshot(row);
+    }
+
+    public async Task<IReadOnlyList<Snapshot>> ListCommittedAsync(
+        int limit,
+        SnapshotId? beforeSnapshotId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await connection.QueryAsync<SnapshotRow>(CreateCommand(
+            ListCommittedSql,
+            new
+            {
+                committedState = SnapshotState.Committed.ToString(),
+                beforeSnapshotId = beforeSnapshotId?.Value,
+                limit
+            },
+            cancellationToken)).ConfigureAwait(false);
+        return rows.Select(SqlRowMapper.ToSnapshot).ToArray();
     }
 }

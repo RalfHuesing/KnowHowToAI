@@ -39,4 +39,15 @@ public sealed class InMemorySnapshotRepository(InMemoryKnowledgeStore store) : I
         return Task.FromResult(current ?? throw new InvalidOperationException(
             "Der In-Memory-Store enthält keinen aktuellen Snapshot."));
     }
+
+    public Task<IReadOnlyList<Snapshot>> ListCommittedAsync(
+        int limit,
+        SnapshotId? beforeSnapshotId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<IReadOnlyList<Snapshot>>(store.Snapshots
+            .Where(snapshot => snapshot.State == SnapshotState.Committed)
+            .Where(snapshot => beforeSnapshotId is null || snapshot.SnapshotId.Value < beforeSnapshotId.Value.Value)
+            .OrderByDescending(snapshot => snapshot.SnapshotId.Value)
+            .Take(limit)
+            .ToArray());
 }

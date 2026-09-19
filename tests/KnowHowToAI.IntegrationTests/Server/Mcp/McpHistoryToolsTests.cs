@@ -385,6 +385,17 @@ public sealed class McpHistoryToolsTests
             Task.FromResult(
                 _byId.Values.LastOrDefault(s => s.State == SnapshotState.Committed)
                 ?? new Snapshot(new SnapshotId(1), null, SnapshotState.Committed, DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch));
+
+        public Task<IReadOnlyList<Snapshot>> ListCommittedAsync(
+            int limit,
+            SnapshotId? beforeSnapshotId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<Snapshot>>(_byId.Values
+                .Where(snapshot => snapshot.State == SnapshotState.Committed)
+                .Where(snapshot => beforeSnapshotId is null || snapshot.SnapshotId.Value < beforeSnapshotId.Value.Value)
+                .OrderByDescending(snapshot => snapshot.SnapshotId.Value)
+                .Take(limit)
+                .ToArray());
     }
 
     private sealed class ScriptedTransactionRepository(KnowledgeTransaction? transaction) : ITransactionRepository
