@@ -67,11 +67,12 @@ Leaf-Task verbindlich:
 - **Lange Läufe:** Testläufe können das 600-Sekunden-Foreground-Limit sprengen. Solche
   Läufe als Hintergrundprozess mit Abschlussbenachrichtigung starten und auf die
   Benachrichtigung warten, statt blind neu zu starten.
-- **DLL-Sperren (MSB3021/MSB3027):** Ein laufender `KnowHowToAI.Server.exe`
-  (z. B. Restprozess abgebrochener Browsertests) sperrt Core-/Storage-DLLs und bricht
-  jeden `dotnet build` mit Copy-Fehlern. Vor dem Bauen die Prozessliste prüfen,
-  sperrende Server-Prozesse samt dotnet-Parents per Commandline-Match killen und den
-  Build im selben Terminalaufruf nachziehen.
+- **Build immer über das Skript:** `pwsh -NoProfile -File scripts/build.ps1` killt
+  vor dem Build blockierende Prozesse (`KnowHowToAI.Server.exe`, `testhost.exe` —
+  DLL-Sperren/MSB3021) und schreibt den kompletten Output statisch nach
+  `temp/build.log`; bei Exitcode != 0 diese Datei lesen (Regel
+  `.agents/rules/BuildWorkflow.mdc`). Kein bare `dotnet build`, keine parallelen
+  Builds im selben Worktree.
 - **AiNetLinter:** Meldet der erste `verify`-Aufruf, die Solution werde noch geladen,
   den Aufruf einfach erneut versuchen. `verify` zählt Warnungen als Verstöße —
   `verdict=failed` gilt auch bei `severity=warning`.

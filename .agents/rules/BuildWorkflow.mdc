@@ -1,0 +1,11 @@
+---
+description: Build-Ausführung inkl. Prozess-Freigabe und statischer Logdatei für KnowHowToAI.
+globs:
+alwaysApply: true
+---
+
+# KnowHowToAI-BuildWorkflow
+
+- Build **immer** über `pwsh -NoProfile -File scripts/build.ps1` (nie bare `dotnet build`): das Skript killt vorher `KnowHowToAI.Server.exe`/`testhost.exe` (DLL-Sperren, MSB3021/MSB3027), baut `KnowHowToAI.slnx` und reicht den Exitcode durch.
+- Der komplette Build-Output steht **statisch** in `temp/build.log` (pro Lauf überschrieben). Exitcode `0` = grün, Log nicht nötig. Exitcode `!= 0`: `temp/build.log` lesen, Ursache beheben, erneut bauen — nicht blind neu starten oder Fehler ignorieren.
+- Keine parallelen Builds im selben Worktree; Kill und Build gehören zusammen in einen Aufruf (ein frisch gespawnter Server sperrt zwischen zwei Aufrufen wieder).
