@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using KnowHowToAI.BrowserTests.TestSupport;
 using Microsoft.Playwright;
@@ -34,19 +35,20 @@ public sealed class MarkdownDownloadSmokeTests
 
         var roleSelector = page.GetByTestId("context-selector-dialog");
         await Assertions.Expect(roleSelector).ToBeVisibleAsync();
-        await roleSelector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
+        await roleSelector.GetByTestId("role-option-BrowserDownloadReader").GetByRole(AriaRole.Radio).CheckAsync();
         await roleSelector.GetByTestId("selector-apply-button").ClickAsync();
-        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"roleId=Default"));
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"roleId=BrowserDownloadReader"));
 
         var tree = page.GetByTestId("knowledge-tree");
-        if (await tree.CountAsync() == 0)
-        {
-            await Assertions.Expect(page.GetByTestId("tree-empty")).ToBeVisibleAsync();
-            return;
-        }
+        await Assertions.Expect(tree).ToBeVisibleAsync();
 
         var rootNode = page.GetByRole(AriaRole.Treeitem).First;
-        await rootNode.ClickAsync();
+        await Assertions.Expect(rootNode).ToBeVisibleAsync();
+        await rootNode.Locator("button.tree-toggle-btn").ClickAsync();
+
+        var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle, Exact = true });
+        await Assertions.Expect(exportNode).ToBeVisibleAsync();
+        await exportNode.ClickAsync();
 
         var downloadLink = page.GetByTestId("node-details-markdown-download");
         await Assertions.Expect(downloadLink).ToBeVisibleAsync();
@@ -58,8 +60,14 @@ public sealed class MarkdownDownloadSmokeTests
         var download = await downloadTask;
         var downloadResponse = await downloadResponseTask;
         Assert.Equal((int)HttpStatusCode.OK, downloadResponse.Status);
-        Assert.StartsWith("text/markdown", downloadResponse.Headers["content-type"], StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("text/markdown; charset=utf-8", downloadResponse.Headers["content-type"]);
         Assert.Contains("attachment", downloadResponse.Headers["content-disposition"], StringComparison.OrdinalIgnoreCase);
-        Assert.EndsWith(".md", download.SuggestedFilename, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("no-store", downloadResponse.Headers["cache-control"]);
+        Assert.Equal("Browser-Export-Teilbaum-BrowserDownloadReader.md", download.SuggestedFilename);
+        await using var content = await download.CreateReadStreamAsync();
+        using var reader = new StreamReader(content, Encoding.UTF8);
+        Assert.Equal(
+            "# Browser-Export-Teilbaum\n\nBrowser-Testinhalt für den Markdown-Download.\n",
+            await reader.ReadToEndAsync());
     }
 }

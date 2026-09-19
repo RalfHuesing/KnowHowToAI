@@ -154,8 +154,13 @@ pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatab
 - Die Browser-Suite verwendet ausschließlich die manuell bereitgestellte
   `BrowserTestDatabaseConnection` und startet die veröffentlichte Server-EXE
   mit `Migrations:ApplyOnStartup=true`. Der Host migriert und initialisiert diese
-  dedizierte Datenbank vor seiner Betriebsbereitschaft selbst; er erstellt oder
-  entfernt keine Datenbanken. Die destruktive `ManualDatabaseIntegration`-Suite
+  dedizierte Datenbank vor seiner Betriebsbereitschaft selbst. Die gemeinsame
+  Browser-Host-Fixture ergänzt anschließend ausschließlich über den realen MCP-
+  Transport einen deterministischen Read-only-Testbestand mit den Rollen
+  `Default` und `BrowserDownloadReader` sowie einem exportierbaren Teilbaum.
+  Dieser Seed betrifft nie `DatabaseConnection`, erzeugt oder entfernt keine
+  Datenbanken und wird bei erneutem Lauf an seinem festen Testknoten erkannt.
+  Die destruktive `ManualDatabaseIntegration`-Suite
   verwendet weiterhin ausschließlich `DatabaseConnection`, sodass weder
   Reihenfolge noch Restzustand der beiden Suiten relevant sind.
 - Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
