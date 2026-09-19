@@ -35,6 +35,7 @@ public sealed class SearchMapperTests
         Assert.Equal(resolvedRoleId.Value, vm.ResolvedRoleId);
         Assert.Equal("Current", vm.Freshness);
         Assert.Equal(3, vm.SortOrder);
+        Assert.Equal(["Schnittstellen"], vm.Breadcrumb);
     }
 
     [Fact]

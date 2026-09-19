@@ -1,0 +1,14 @@
+@namespace KnowHowToAI.Server.Web.Features.Search
+@using Microsoft.AspNetCore.Components.Web
+
+<form class="search-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
+    <label class="search-form__label" for="knowledge-search-text">Wissenssuche</label>
+    <div class="search-form__controls">
+        <input id="knowledge-search-text" class="search-form__input" type="search"
+               @bind="_text" disabled="@IsSearching"
+               data-testid="search-text" autocomplete="off" />
+        <button type="submit" class="search-form__submit" disabled="@IsSearching" data-testid="search-submit">
+            @(IsSearching ? "Suche läuft …" : "Suchen")
+        </button>
+    </div>
+</form>

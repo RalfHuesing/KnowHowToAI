@@ -13,6 +13,7 @@ namespace KnowHowToAI.Server.Web.Features.Search;
 /// <param name="ResolvedRoleId">Aufgelöste Rolle des Inhalts (falls vorhanden).</param>
 /// <param name="Freshness">Aktualitätsstatus als UI-Text.</param>
 /// <param name="SortOrder">Sortierreihenfolge des Knotens.</param>
+/// <param name="Breadcrumb">Hierarchischer Pfad vom Root bis zum Treffer.</param>
 public sealed record SearchHitViewModel(
     Guid NodeId,
     string Title,
@@ -22,4 +23,5 @@ public sealed record SearchHitViewModel(
     string Availability,
     string? ResolvedRoleId,
     string Freshness,
-    int SortOrder);
+    int SortOrder,
+    IReadOnlyList<string> Breadcrumb);

@@ -1,0 +1,19 @@
+.search-page {
+    display: grid;
+    gap: var(--ktai-space-4);
+    max-width: 900px;
+}
+
+.search-page__header h1,
+.search-page__header p {
+    margin: 0;
+}
+
+.search-page__header {
+    display: grid;
+    gap: var(--ktai-space-1);
+}
+
+.search-page__header p {
+    color: var(--ktai-color-text-secondary);
+}

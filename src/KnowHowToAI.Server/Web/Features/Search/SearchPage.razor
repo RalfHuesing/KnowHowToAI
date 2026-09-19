@@ -1,0 +1,32 @@
+@page "/search"
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+@namespace KnowHowToAI.Server.Web.Features.Search
+
+<PageTitle>Suche – KnowHowToAI</PageTitle>
+
+<section class="search-page" data-testid="search-page">
+    <header class="search-page__header">
+        <h1>Wissenssuche</h1>
+        <p>Durchsucht Titel, Beschreibungen und den für die gewählte Rolle aufgelösten Inhalt.</p>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(_contextErrorMessage))
+    {
+        <div data-testid="search-context-error" role="alert">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_contextErrorMessage" />
+        </div>
+    }
+    else if (_hasNoRoles)
+    {
+        <div data-testid="search-empty-roles" role="status">
+            <InlineAlert Kind="AlertKind.Info" Message="Im aktuellen Wissenskontext sind keine Rollen definiert." />
+        </div>
+    }
+    else if (_isReady)
+    {
+        <SearchForm IsSearching="@_isSearching" OnSearch="StartSearchAsync" />
+        <SearchResults Page="@_page" IsSearching="@_isSearching" ErrorMessage="@_searchErrorMessage"
+                       OnNext="LoadNextPageAsync" OnNavigate="NavigateToNode" />
+    }
+</section>

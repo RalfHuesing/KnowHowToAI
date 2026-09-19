@@ -194,6 +194,18 @@ File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine
 Bearbeitungscontrols). Bei fehlendem Inhalt wird ein expliziter Hinweis angezeigt;
 Lade- und Fehlerzustände nutzen `LoadingState`, `InlineAlert` bzw. `NotFoundState`.
 
+Die routable Seite `SearchPage` (`/search`) verwendet mit der globalen Rolle und dem
+aus Query-Parametern aufgelösten Lesekontext direkt den transportneutralen
+`SearchService`. `SearchForm` hält nur den unpersistierten Suchtext;
+`SearchResults` rendert genau eine Trefferseite mit Snippet, hierarchischem Breadcrumb
+und Navigation zur kanonischen `/knowledge/{NodeId}`-Route unter Erhalt der
+Kontext-Query. Der featurelokale Cursor wird unverändert an den Use Case
+zurückgegeben und nie dekodiert. Ein neuer Suchauftrag oder Kontextwechsel bricht den
+vorherigen Request ab; verspätete Ergebnisse werden nicht gerendert. Die ergänzende
+`SearchBreadcrumbLoader`-Grenze liest Pfadtitel einzeln über den bestehenden
+`NavigationService`, sodass Razor weiterhin nur Search-ViewModels und keine
+Domain-Typen rendert.
+
 Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
 wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,
 `Fehler`) und rendern Inhalt und Farbe über die zentrale
