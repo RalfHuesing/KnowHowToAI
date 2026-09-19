@@ -28,7 +28,7 @@ Gemessener Ausgangszustand (2026-09-19, siehe [Roadmap-Index](Roadmap.md)): 10 `
 
 ## AF1.2 – Gemeinsame Helfer
 
-- [ ] **AF1.2 abschließen**
+- [x] **AF1.2 abschließen**
 
   - [x] **AF1.2-T1 – Chrome-Preflight ins TestSupport-Projekt heben**
     - Neue Datei `tests/KnowHowToAI.TestSupport/ChromeStablePreflight.cs`: `public static class ChromeStablePreflight` mit `public static void EnsureIsInstalled()`. Die Methode übernimmt die Logik aus `PublishedServerHost.EnsureChromeStableIsInstalled` und `PublishedServerHost.ReadChromeVersion` (Uninstall-Eintrag `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome` sowie WOW6432Node-Variante, `DisplayVersion`-Wert; fehlt beides: `InvalidOperationException` mit der bestehenden deutschen Meldung). Nicht-Windows wirft `PlatformNotSupportedException` via `OperatingSystem.IsWindows()`-Prüfung. XML-Doku aus der bestehenden Implementierung übernehmen.
@@ -38,7 +38,7 @@ Gemessener Ausgangszustand (2026-09-19, siehe [Roadmap-Index](Roadmap.md)): 10 `
     - Tests: Build grün; BrowserTests-Projekt einmal grün; `verify(targetPath, scope: "changes")` grün.
     - Abnahme: `PublishedServerHost` enthält keine Registry-Logik mehr; das Projekt `KnowHowToAI.TestSupport` bleibt xunit-frei (keine Testframework-Referenz).
 
-  - [ ] **AF1.2-T2 – Chrome-Start und Interaktivitätsprobe zentralisieren**
+  - [x] **AF1.2-T2 – Chrome-Start und Interaktivitätsprobe zentralisieren**
     - Neue Datei `tests/KnowHowToAI.BrowserTests/TestSupport/ChromeBrowser.cs`: `public sealed class ChromeBrowser : IAsyncDisposable`. Statische Factory `LaunchAsync(BrowserTypeLaunchOptions? options = null)` setzt erzwingend `Channel = "chrome"` und `Headless = true` (Aufrufer-Optionen werden danach angewandt und dürfen nur Viewport/ReducedMotion ergänzen), erzeugt `Playwright` und Browser und stellt über `NewPageAsync(BrowserNewPageOptions? options = null)` Seiten bereit. `DisposeAsync` gibt Browser und Playwright frei. Keine Assertions, kein Preflight (der Host übernimmt ihn).
     - Neue Datei `tests/KnowHowToAI.BrowserTests/TestSupport/CircuitProbe.cs`: `public static class CircuitProbe` mit `public static async Task WaitForInteractivityAsync(IPage page)`. Die Methode übernimmt den bestehenden Klick-Retry-Loop aus `ShellSmokeTests` unverändert in Verhalten und Kommentar: Klick auf den Button „Interaktivität prüfen" (Rolle Button, exakter Name), danach `Expect(...).ToHaveTextAsync("Interaktivität ist verfügbar.", Timeout 2000 ms)`, bei `PlaywrightException` erneut klicken, maximal 10 Versuche, danach schlägt der letzte Erwartungswartende fehl. Nur beobachtbare Zustände, keine Sleeps.
     - Umarbeitung aller sechs Smoke-Klassen in `ReadOnly/`: Chrome-Start-Block ersetzt durch `ChromeBrowser.LaunchAsync`, jeder kopierte Retry-Loop ersetzt durch `CircuitProbe.WaitForInteractivityAsync(page)`. Testkörper, Assertions, Viewports, Maskierungen und Baselines bleiben inhaltlich identisch.
