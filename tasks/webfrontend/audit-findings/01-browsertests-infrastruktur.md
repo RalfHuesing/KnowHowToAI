@@ -30,7 +30,7 @@ Gemessener Ausgangszustand (2026-09-19, siehe [Roadmap-Index](Roadmap.md)): 10 `
 
 - [ ] **AF1.2 abschließen**
 
-  - [ ] **AF1.2-T1 – Chrome-Preflight ins TestSupport-Projekt heben**
+  - [x] **AF1.2-T1 – Chrome-Preflight ins TestSupport-Projekt heben**
     - Neue Datei `tests/KnowHowToAI.TestSupport/ChromeStablePreflight.cs`: `public static class ChromeStablePreflight` mit `public static void EnsureIsInstalled()`. Die Methode übernimmt die Logik aus `PublishedServerHost.EnsureChromeStableIsInstalled` und `PublishedServerHost.ReadChromeVersion` (Uninstall-Eintrag `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome` sowie WOW6432Node-Variante, `DisplayVersion`-Wert; fehlt beides: `InvalidOperationException` mit der bestehenden deutschen Meldung). Nicht-Windows wirft `PlatformNotSupportedException` via `OperatingSystem.IsWindows()`-Prüfung. XML-Doku aus der bestehenden Implementierung übernehmen.
     - `PublishedServerHost` gibt die beiden privaten Methoden auf und ruft stattdessen `ChromeStablePreflight.EnsureIsInstalled()` auf; Verhalten und Fehlermeldungen bleiben identisch.
     - Paket: `tests/KnowHowToAI.TestSupport/KnowHowToAI.TestSupport.csproj` erhält `<PackageReference Include="Microsoft.Win32.Registry" />`. Zentrale Version `<PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />` in `Directory.Packages.props` ergänzen — exakt 5.0.0, weil diese Version bereits transitiv über xunit im Graph aufgelöst ist; keine neuere Version suchen oder wählen (Abhängigkeitsregel des Strukturkonzepts).
