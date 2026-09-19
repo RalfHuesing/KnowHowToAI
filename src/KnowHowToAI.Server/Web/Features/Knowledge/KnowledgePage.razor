@@ -1,4 +1,5 @@
 @page "/knowledge"
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @page "/knowledge/{NodeId:guid}"
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Knowledge
@@ -13,13 +14,13 @@
     @if (_errorMessage is not null)
     {
         <div class="knowledge-error-state" data-testid="knowledge-error" role="alert">
-            <KnowHowToAI.Server.Web.Components.Shared.InlineAlert Kind="KnowHowToAI.Server.Web.Components.Shared.AlertKind.Fehler" Message="@_errorMessage" />
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
         </div>
     }
     else if (_hasNoRoles)
     {
         <div class="knowledge-empty-roles" data-testid="knowledge-empty-roles" role="status">
-            <KnowHowToAI.Server.Web.Components.Shared.InlineAlert Kind="KnowHowToAI.Server.Web.Components.Shared.AlertKind.Info" Message="Im aktuellen Wissenskontext sind keine Rollen definiert." />
+            <InlineAlert Kind="AlertKind.Info" Message="Im aktuellen Wissenskontext sind keine Rollen definiert." />
         </div>
     }
     else if (!_isAwaitingRoleSelection)

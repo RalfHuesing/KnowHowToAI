@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
 
 namespace KnowHowToAI.Server.Web.State;
 

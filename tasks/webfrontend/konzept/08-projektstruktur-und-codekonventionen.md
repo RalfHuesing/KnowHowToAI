@@ -184,7 +184,13 @@ KnowHowToAI.Server/
 │  │  ├─ Routes.razor
 │  │  ├─ _Imports.razor
 │  │  ├─ Layout/
+│  │  │  ├─ Shell/                 # MainLayout, ReconnectModal
+│  │  │  ├─ Context/               # Kontextleiste, -auswahl und ViewModels
+│  │  │  └─ PageRegions/           # Navigation, Breadcrumbs, Aktionen und Slot
 │  │  └─ Shared/
+│  │     ├─ Dialogs/               # AppDialog, ConfirmationDialog
+│  │     ├─ Feedback/              # Status-, Warn- und Toastdarstellung
+│  │     └─ States/                # Lade-, Leer- und Fehlerzustände
 │  ├─ Features/
 │  │  ├─ Dashboard/
 │  │  ├─ Knowledge/

@@ -1,0 +1,24 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared.Feedback
+
+@* Einzige globale Toastregion, vom Layout gehostet: bestätigt nur
+   nichtkritische abgeschlossene Aktionen. Die Live-Region bleibt dauerhaft
+   vorhanden, damit neue Meldungen höflich angekündigt werden, ohne den
+   Fokus zu verschieben; jede Meldung lässt sich schließen und läuft nicht
+   zeitgesteuert ab. *@
+<div class="toast-region" aria-live="polite" aria-label="Meldungen">
+    @foreach (var entry in State.Entries)
+    {
+        <div class="toast-region__toast">
+            <svg class="toast-region__icon" width="16" height="16" viewBox="0 0 16 16"
+                 fill="none" aria-hidden="true" focusable="false">
+                <path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2"
+                      fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="toast-region__message">@entry.Message</span>
+            <button type="button" class="toast-region__dismiss"
+                    @onclick="@(() => State.Dismiss(entry.Id))">
+                Meldung schließen
+            </button>
+        </div>
+    }
+</div>

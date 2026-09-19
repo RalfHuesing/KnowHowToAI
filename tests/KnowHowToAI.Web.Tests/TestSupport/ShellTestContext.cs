@@ -1,5 +1,5 @@
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,11 +20,11 @@ public abstract class ShellTestContext : BunitContext
         Services.AddScoped<ToastState>();
         Services.AddScoped<WorkspaceState>();
         Services.AddScoped<ContextSelectorState>();
-        var module = JSInterop.SetupModule("./Web/Components/Layout/MainLayout.razor.js");
+        var module = JSInterop.SetupModule("./Web/Components/Layout/Shell/MainLayout.razor.js");
         module.Mode = JSRuntimeMode.Strict;
         module.SetupVoid("observeBreakpoint", _ => true);
 
-        var dialogModule = JSInterop.SetupModule("./Web/Components/Shared/AppDialog.razor.js");
+        var dialogModule = JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js");
         dialogModule.Mode = JSRuntimeMode.Loose;
     }
 }

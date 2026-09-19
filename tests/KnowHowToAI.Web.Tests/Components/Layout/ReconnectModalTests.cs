@@ -1,5 +1,5 @@
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Shell;
 
 namespace KnowHowToAI.Web.Tests.Components.Layout;
 
@@ -72,6 +72,6 @@ public sealed class ReconnectModalTests : BunitContext
         var cut = Render<ReconnectModal>();
 
         var script = cut.Find("script[type='module']");
-        Assert.Contains("Components/Layout/ReconnectModal.razor.js", script.GetAttribute("src"), StringComparison.Ordinal);
+Assert.Contains("Components/Layout/Shell/ReconnectModal.razor.js", script.GetAttribute("src"), StringComparison.Ordinal);
     }
 }

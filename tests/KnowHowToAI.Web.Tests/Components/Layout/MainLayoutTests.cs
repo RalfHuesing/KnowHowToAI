@@ -1,6 +1,8 @@
 using AngleSharp.Dom;
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Shell;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using KnowHowToAI.Web.Tests.TestSupport;

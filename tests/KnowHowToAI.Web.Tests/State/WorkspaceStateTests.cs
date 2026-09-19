@@ -1,6 +1,6 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.State;
 
 namespace KnowHowToAI.Web.Tests.State;

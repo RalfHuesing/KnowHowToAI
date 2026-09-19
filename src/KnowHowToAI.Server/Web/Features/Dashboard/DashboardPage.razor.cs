@@ -1,6 +1,7 @@
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Dashboard;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
 using Microsoft.AspNetCore.Components;
 
 namespace KnowHowToAI.Server.Web.Features.Dashboard;

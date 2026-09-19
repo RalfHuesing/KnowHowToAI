@@ -1,6 +1,6 @@
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Layout;
-using KnowHowToAI.Server.Web.Components.Shared;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Components.Shared.Feedback;
 
 namespace KnowHowToAI.Web.Tests.Components.Layout;
 

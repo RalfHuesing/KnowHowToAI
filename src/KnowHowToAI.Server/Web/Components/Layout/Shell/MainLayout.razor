@@ -1,0 +1,78 @@
+@inherits LayoutComponentBase
+@namespace KnowHowToAI.Server.Web.Components.Layout.Shell
+
+<div class="shell-root @(_isCompactMode ? "shell-root--compact" : "")">
+    <a class="shell-skip-link" href="#shell-main" @onclick="SkipToMainAsync"
+       @onclick:preventDefault="true">Zum Hauptinhalt springen</a>
+    <header class="shell-header">
+        <div class="shell-header-brand">
+            <span class="shell-brand">KnowHowToAI</span>
+            @if (PageRegions.KnowledgeContext is { } knowledgeContext)
+            {
+                <KnowledgeContextBar Context="@knowledgeContext" OnOpenSelector="OpenContextSelector" />
+            }
+        </div>
+        <div class="shell-header-actions">
+            @if (_isCompactMode)
+            {
+                <button type="button" class="shell-toggle"
+                        @onclick="@(() => TogglePanelAsync(ShellPanel.Navigation))"
+                        @ref="_navigationToggleButton"
+                        aria-expanded="@(IsOpen(ShellPanel.Navigation) ? "true" : "false")"
+                        aria-controls="shell-navigation">
+                    @(IsOpen(ShellPanel.Navigation) ? "Navigation ausblenden" : "Navigation einblenden")
+                </button>
+                @if (PageRegions.Context is not null)
+                {
+                    <button type="button" class="shell-toggle"
+                            @onclick="@(() => TogglePanelAsync(ShellPanel.Context))"
+                            @ref="_contextToggleButton"
+                            aria-expanded="@(IsOpen(ShellPanel.Context) ? "true" : "false")"
+                            aria-controls="shell-context">
+                        @(IsOpen(ShellPanel.Context) ? "Kontext ausblenden" : "Kontext einblenden")
+                    </button>
+                }
+            }
+        </div>
+    </header>
+
+    @if (IsOpen(ShellPanel.Navigation))
+    {
+        <PrimaryNavigation @ref="_primaryNavigation"
+                           OnClose="@(() => ClosePanelAsync(ShellPanel.Navigation))"
+                           OnEscape="@EscapeTopPanelAsync" />
+    }
+    @if (PageRegions.Context is not null && IsOpen(ShellPanel.Context))
+    {
+        <ContextPanel @ref="_contextPanel"
+                      Content="@PageRegions.Context"
+                      OnClose="@(() => ClosePanelAsync(ShellPanel.Context))"
+                      OnEscape="@EscapeTopPanelAsync" />
+    }
+
+    <div class="shell-workspace">
+        @if (PageRegions.Breadcrumbs is not null || PageRegions.Actions is not null)
+        {
+            <div class="shell-workspace-head">
+                @if (PageRegions.Breadcrumbs is not null)
+                {
+                    <BreadcrumbRegion Content="@PageRegions.Breadcrumbs" />
+                }
+                @if (PageRegions.Actions is not null)
+                {
+                    <PageActions Content="@PageRegions.Actions" />
+                }
+            </div>
+        }
+        <main id="shell-main" class="shell-main" tabindex="-1" @ref="_mainElement">
+            @Body
+        </main>
+    </div>
+
+    @* Einzige globale Toastregion: bestätigt nichtkritische abgeschlossene
+       Aktionen und bleibt im Ruhezustand unsichtbar. *@
+    <ToastRegion State="@ToastState" />
+
+    @* Globaler Rollen- und Lesekontext-Selektor *@
+    <ContextSelectorDialog />
+</div>

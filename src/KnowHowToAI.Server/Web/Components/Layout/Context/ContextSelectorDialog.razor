@@ -1,0 +1,159 @@
+@namespace KnowHowToAI.Server.Web.Components.Layout.Context
+@using KnowHowToAI.Server.Web.Components.Shared.Dialogs
+@using KnowHowToAI.Server.Web.State
+
+@if (State.IsOpen)
+{
+    <AppDialog @ref="_dialog" Title="@DialogTitle" OnClosed="HandleDialogClosedAsync">
+    <div class="context-selector-dialog" data-testid="context-selector-dialog">
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <div class="context-selector-dialog__error" role="alert" data-testid="selector-error">
+                <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+            </div>
+        }
+
+        @if (State.Mode == ContextSelectorMode.Full)
+        {
+            <fieldset class="context-selector-dialog__group">
+                <legend class="context-selector-dialog__legend">Lesekontext auswählen</legend>
+                <div class="context-selector-dialog__options">
+                    <label class="context-selector-dialog__option">
+                        <input type="radio" name="contextKind" value="Current"
+                               checked="@(_selectedKind == KnowledgeReadContextKind.Current)"
+                               @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Current))" />
+                        <span>Current Snapshot</span>
+                    </label>
+                    <label class="context-selector-dialog__option">
+                        <input type="radio" name="contextKind" value="Snapshot"
+                               checked="@(_selectedKind == KnowledgeReadContextKind.Snapshot)"
+                               @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Snapshot))" />
+                        <span>Snapshot</span>
+                    </label>
+                    @if (_selectedKind == KnowledgeReadContextKind.Snapshot)
+                    {
+                        <div class="context-selector-dialog__subfield">
+                            <label for="snapshot-id-input">Snapshot-ID:</label>
+                            <input id="snapshot-id-input" type="number" min="1"
+                                   class="context-selector-dialog__input"
+                                   @bind="_snapshotIdInput" @bind:after="OnContextParameterChangedAsync"
+                                   placeholder="z. B. 42" data-testid="snapshot-id-input" />
+                        </div>
+                    }
+                    <label class="context-selector-dialog__option">
+                        <input type="radio" name="contextKind" value="Release"
+                               checked="@(_selectedKind == KnowledgeReadContextKind.Release)"
+                               @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Release))" />
+                        <span>Release</span>
+                    </label>
+                    @if (_selectedKind == KnowledgeReadContextKind.Release)
+                    {
+                        <div class="context-selector-dialog__subfield">
+                            <label for="release-select">Release:</label>
+                            @if (_availableReleases.Count > 0)
+                            {
+                                <select id="release-select" class="context-selector-dialog__select"
+                                        @bind="_selectedReleaseId" @bind:after="OnContextParameterChangedAsync"
+                                        data-testid="release-select">
+                                    <option value="">-- Release auswählen --</option>
+                                    @foreach (var rel in _availableReleases)
+                                    {
+                                        <option value="@rel.Id">@rel.Name (Snapshot @rel.SnapshotId)</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input id="release-id-input" type="number" min="1"
+                                       class="context-selector-dialog__input"
+                                       @bind="_releaseIdInput" @bind:after="OnContextParameterChangedAsync"
+                                       placeholder="Release-ID (z. B. 1)" data-testid="release-id-input" />
+                            }
+                        </div>
+                    }
+                    <label class="context-selector-dialog__option">
+                        <input type="radio" name="contextKind" value="Transaction"
+                               checked="@(_selectedKind == KnowledgeReadContextKind.Transaction)"
+                               @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Transaction))" />
+                        <span>Working Transaction</span>
+                    </label>
+                    @if (_selectedKind == KnowledgeReadContextKind.Transaction)
+                    {
+                        <div class="context-selector-dialog__subfield">
+                            <label for="transaction-select">Offene Transaktion:</label>
+                            @if (_availableTransactions.Count > 0)
+                            {
+                                <select id="transaction-select" class="context-selector-dialog__select"
+                                        @bind="_selectedTransactionId" @bind:after="OnContextParameterChangedAsync"
+                                        data-testid="transaction-select">
+                                    <option value="">-- Transaktion auswählen --</option>
+                                    @foreach (var tx in _availableTransactions)
+                                    {
+                                        <option value="@tx.Id">@tx.Title (@tx.Id)</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input id="transaction-id-input" type="text"
+                                       class="context-selector-dialog__input"
+                                       @bind="_transactionIdInput" @bind:after="OnContextParameterChangedAsync"
+                                       placeholder="Transaktions-GUID" data-testid="transaction-id-input" />
+                            }
+                        </div>
+                    }
+                </div>
+            </fieldset>
+        }
+
+        <fieldset class="context-selector-dialog__group">
+            <legend class="context-selector-dialog__legend">
+                @(State.Mode == ContextSelectorMode.MandatoryRole ? "Rolle auswählen (Pflichtauswahl)" : "Rolle auswählen")
+            </legend>
+            @if (_isLoadingRoles)
+            {
+                <div class="context-selector-dialog__loading" role="status">Lade Rollen...</div>
+            }
+            else if (_availableRoles.Count == 0)
+            {
+                <p class="context-selector-dialog__empty" data-testid="empty-roles-message">
+                    Keine Rollen im aktuellen Kontext vorhanden.
+                </p>
+            }
+            else
+            {
+                <div class="context-selector-dialog__roles" role="radiogroup" aria-label="Verfügbare Rollen">
+                    @foreach (var role in _availableRoles)
+                    {
+                        <label class="context-selector-dialog__role-option" data-testid="role-option-@role.Id">
+                            <input type="radio" name="selectedRole" value="@role.Id"
+                                   checked="@(_selectedRoleId == role.Id)"
+                                   @onchange="@(() => _selectedRoleId = role.Id)" />
+                            <span class="context-selector-dialog__role-name">@role.Name</span>
+                            @if (!string.IsNullOrWhiteSpace(role.Description))
+                            {
+                                <span class="context-selector-dialog__role-desc">@role.Description</span>
+                            }
+                        </label>
+                    }
+                </div>
+            }
+        </fieldset>
+
+        <div class="context-selector-dialog__actions">
+            @if (State.Mode == ContextSelectorMode.Full)
+            {
+                <button type="button" class="context-selector-dialog__button context-selector-dialog__button--secondary"
+                        @onclick="CancelAsync" data-testid="selector-cancel-button">
+                    Abbrechen
+                </button>
+            }
+            <button type="button" class="context-selector-dialog__button context-selector-dialog__button--primary"
+                    disabled="@(_isLoadingRoles || (_availableRoles.Count > 0 && string.IsNullOrWhiteSpace(_selectedRoleId)))"
+                    @onclick="ApplyAsync" data-testid="selector-apply-button">
+                @(State.Mode == ContextSelectorMode.MandatoryRole ? "Auswählen" : "Übernehmen")
+            </button>
+        </div>
+    </div>
+</AppDialog>
+}

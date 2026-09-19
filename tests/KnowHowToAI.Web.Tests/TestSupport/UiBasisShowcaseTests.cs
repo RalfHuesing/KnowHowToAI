@@ -1,5 +1,5 @@
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Shared;
+using KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -8,7 +8,7 @@ namespace KnowHowToAI.Web.Tests.TestSupport;
 [Trait("Category", "Unit")]
 public sealed class UiBasisShowcaseTests : BunitContext
 {
-    private const string ModulePath = "./Web/Components/Shared/AppDialog.razor.js";
+    private const string ModulePath = "./Web/Components/Shared/Dialogs/AppDialog.razor.js";
 
     [Fact]
     public void RendersLabeledFormTableHintAndDialog()

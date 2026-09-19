@@ -1,7 +1,8 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;

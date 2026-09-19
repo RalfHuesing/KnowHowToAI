@@ -82,7 +82,7 @@ public sealed class DialogKeyboardSmokeTests
                 <button id="dialog-last" type="button">Dialog schließen</button>
             </dialog>
             <script type="module">
-                import { initialize, show } from "{{hostAddress}}/Web/Components/Shared/AppDialog.razor.js";
+                import { initialize, show } from "{{hostAddress}}/Web/Components/Shared/Dialogs/AppDialog.razor.js";
                 const dialog = document.getElementById("dialog-under-test");
                 initialize(dialog, { invokeMethodAsync: () => Promise.resolve() });
                 document.getElementById("dialog-opener").addEventListener("click", () => show(dialog));

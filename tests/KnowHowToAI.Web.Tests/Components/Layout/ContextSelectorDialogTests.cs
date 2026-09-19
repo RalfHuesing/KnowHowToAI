@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;

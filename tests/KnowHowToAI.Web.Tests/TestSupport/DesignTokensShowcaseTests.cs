@@ -123,8 +123,8 @@ public sealed class DesignTokensShowcaseTests : ShellTestContext
             "wwwroot",
             "css",
             "app.css"));
-        var shellStyles = ReadIsolatedStylesheet(Path.Combine("Layout", "MainLayout.razor.css"));
-        var statusStyles = ReadIsolatedStylesheet(Path.Combine("Shared", "AppStatus.razor.css"));
+        var shellStyles = ReadIsolatedStylesheet(Path.Combine("Layout", "Shell", "MainLayout.razor.css"));
+        var statusStyles = ReadIsolatedStylesheet(Path.Combine("Shared", "Feedback", "AppStatus.razor.css"));
 
         return $"""
             <!DOCTYPE html>

@@ -1,5 +1,5 @@
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Shared;
+using KnowHowToAI.Server.Web.Components.Shared.Feedback;
 
 namespace KnowHowToAI.Web.Tests.Components.Shared;
 

@@ -1,0 +1,29 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared.States
+
+@* Technischer Fehler: ausschließlich neutraler Text und optionale opaque
+   Correlation-ID; Exceptiondetails, Pfade, SQL- oder Toolausgabe haben
+   hier bewusst keinen Parameter. role="alert" kündigt den Fehler einmal
+   an, tabindex="-1" macht die Region fokussierbar, aria-labelledby verknüpft
+   sie mit ihrer Überschrift. Icon verborgen, weil der Text die Bedeutung trägt. *@
+<section class="technical-error" role="alert" tabindex="-1"
+         aria-labelledby="technical-error-title">
+    <svg class="technical-error__icon" width="32" height="32" viewBox="0 0 32 32"
+         fill="none" aria-hidden="true" focusable="false">
+        <path d="M16 4 29 27H3z" stroke="currentColor" stroke-width="1.5"
+              stroke-linejoin="round" fill="none" />
+        <path d="M16 12v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <circle cx="16" cy="23" r="1.4" fill="currentColor" />
+    </svg>
+    <h2 id="technical-error-title" class="technical-error__title">Technischer Fehler</h2>
+    <p class="technical-error__message">
+        Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es erneut.
+    </p>
+    @if (CorrelationId is not null)
+    {
+        <p class="technical-error__correlation">Fehlerkennung: @CorrelationId</p>
+    }
+    @if (OnRetry.HasDelegate)
+    {
+        <button type="button" class="technical-error__retry" @onclick="OnRetry">Erneut versuchen</button>
+    }
+</section>

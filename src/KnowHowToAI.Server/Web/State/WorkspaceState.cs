@@ -1,5 +1,5 @@
 using KnowHowToAI.Core.Application.Navigation;
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
 
 namespace KnowHowToAI.Server.Web.State;
 

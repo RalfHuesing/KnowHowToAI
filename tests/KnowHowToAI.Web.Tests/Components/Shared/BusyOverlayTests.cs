@@ -1,5 +1,5 @@
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Shared;
+using KnowHowToAI.Server.Web.Components.Shared.States;
 using Microsoft.AspNetCore.Components;
 
 namespace KnowHowToAI.Web.Tests.Components.Shared;

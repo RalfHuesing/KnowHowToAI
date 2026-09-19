@@ -110,10 +110,11 @@ kontrollierter Shutdown), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgrupp
 `Mcp.Tools.*` (dünne Handler), `Mcp.Mapping` (ausschließlich
 Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout,
 zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
-`Web/Components/Shared` – darunter der native Dialog-Wrapper `AppDialog`
-mit schmaler JS-Isolation in `AppDialog.razor.js` sowie die
-Statusdarstellung `AppStatus`, die jeden Zustand als Icon plus Text zeigt
-und die wiederverwendbaren Lade-, Leer- und Fehlerzustände
+`Web/Components/Shared/Dialogs` (nativer Dialog-Wrapper `AppDialog` mit
+schmaler JS-Isolation in `AppDialog.razor.js` und `ConfirmationDialog`),
+`Web/Components/Shared/Feedback` (Status-, Warn- und Toastdarstellungen)
+und `Web/Components/Shared/States` (wiederverwendbare Lade-, Leer- und
+Fehlerzustände). `AppStatus` zeigt jeden Zustand als Icon plus Text;
 `LoadingState`, `BusyOverlay`, `EmptyState`, `NotFoundState` und
 `TechnicalErrorState`: rein darstellende Komponenten nur mit
 Anzeigeparametern und optionalem Retry-Callback, ohne Application-Aufrufe
@@ -223,7 +224,9 @@ zusätzlich oder ausschließlich im Seitenzustand über `InlineAlert` oder
 
 Das
 Verzeichnis
-`Web/Components/Layout` enthält das Hauptlayout und seine Bausteine:
+`Web/Components/Layout` gliedert seine Bausteine in `Shell` (Hauptlayout
+und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
+`PageRegions` (Breadcrumbs, Aktionen, Navigation und Seitenbereichs-Slot):
 
 - `MainLayout` zeichnet den Kopf mit der Produktbezeichnung als reine
   Textwortmarke ohne Logo-Asset, das Sprungziel, genau ein
@@ -241,7 +244,7 @@ Verzeichnis
   belegen keinen Platz und erhalten keine Dummytexte.
 - Fachseiten liefern über denselben Slot den Vertrag
   `KnowledgeContextViewModel` (immutable `record` unter
-  `Web/Components/Layout`) für die globale Wissenskontextleiste: Art des
+  `Web/Components/Layout/Context`) für die globale Wissenskontextleiste: Art des
   Lese-Kontexts (`Current`, `Snapshot`, `Transaction`, `Release`), optionale
   ID/Bezeichnung, optionale Rolle und `IsDirty`. Die Komponente
   `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
@@ -268,7 +271,7 @@ Verzeichnis
   Smartphone-Navigation.
 - Der Verbindungsverlust des Interactive-Server-Circuits wird durch die
   offizielle .NET-10-Reconnect-Oberfläche behandelt: Die Komponente
-  `ReconnectModal` (unter `Web/Components/Layout`, aus `App.razor`
+  `ReconnectModal` (unter `Web/Components/Layout/Shell`, aus `App.razor`
   eingebunden) stellt das Markup mit der ID `components-reconnect-modal`
   bereit, auf die die Blazor-Runtime die Klassen `components-reconnect-*`
   setzt und das Ereignis `components-reconnect-state-changed` sendet; das

@@ -1,4 +1,5 @@
-using KnowHowToAI.Server.Web.Components.Layout;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.Extensions.DependencyInjection;

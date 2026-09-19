@@ -1,0 +1,31 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared.Dialogs
+
+@* Bestätigungsdialog auf dem nativen Dialogwrapper: Abbrechen ist das
+   erste Element und erhält deshalb beim Öffnen den Fokus. Der Schutz
+   gegen Doppelaufruf liegt im Code-behind; die Fokusfalle, Escape und die
+   Fokusrückgabe übernimmt die Dialogisolation von AppDialog. *@
+<AppDialog @ref="_dialog"
+           Title="@Title"
+           OnClosed="HandleDialogClosedAsync">
+    <p class="confirmation-dialog__message" id="@_messageId">@Message</p>
+    <div class="confirmation-dialog__actions">
+        <button type="button"
+                class="confirmation-dialog__button confirmation-dialog__button--secondary"
+                disabled="@_isBusy" @onclick="CancelAsync">
+            Abbrechen
+        </button>
+        <button type="button"
+                class="confirmation-dialog__button @(IsDestructive ? "confirmation-dialog__button--destructive" : "confirmation-dialog__button--primary")"
+                disabled="@_isBusy" @onclick="ConfirmAsync" aria-describedby="@_messageId">
+            @if (IsDestructive)
+            {
+                <svg class="confirmation-dialog__button-icon" width="16" height="16" viewBox="0 0 16 16"
+                     fill="none" aria-hidden="true" focusable="false">
+                    <path d="M8 3v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="8" cy="12.5" r="1.4" fill="currentColor" />
+                </svg>
+            }
+            @ConfirmText
+        </button>
+    </div>
+</AppDialog>
