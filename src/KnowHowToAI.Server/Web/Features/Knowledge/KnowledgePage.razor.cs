@@ -19,7 +19,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 public sealed partial class KnowledgePage : IDisposable
 {
     [Inject]
-    private KnowledgeTreeState TreeState { get; set; } = default!;
+    private IKnowledgeTreeWorkspace TreeWorkspace { get; set; } = default!;
 
     [Inject]
     private WorkspaceState WorkspaceState { get; set; } = default!;
@@ -45,6 +45,18 @@ public sealed partial class KnowledgePage : IDisposable
     [Parameter]
     public Guid? NodeId { get; set; }
 
+    [SupplyParameterFromQuery(Name = "transactionId")]
+    private string? QueryTransactionId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "snapshotId")]
+    private string? QuerySnapshotId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "releaseId")]
+    private string? QueryReleaseId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "roleId")]
+    private string? QueryRoleId { get; set; }
+
     private string? _errorMessage;
     private bool _hasNoRoles;
     private bool _isAwaitingRoleSelection;
@@ -63,12 +75,11 @@ public sealed partial class KnowledgePage : IDisposable
         _isAwaitingRoleSelection = false;
 
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var queryParams = QueryHelpers.ParseQuery(uri.Query);
 
         var contextResolution = await ReadContextResolver.ResolveAsync(
-            queryParams.TryGetValue("transactionId", out var tx) ? tx.FirstOrDefault() : null,
-            queryParams.TryGetValue("snapshotId", out var snap) ? snap.FirstOrDefault() : null,
-            queryParams.TryGetValue("releaseId", out var rel) ? rel.FirstOrDefault() : null,
+            QueryTransactionId,
+            QuerySnapshotId,
+            QueryReleaseId,
             CancellationToken.None);
 
         if (!contextResolution.IsSuccess)
@@ -104,8 +115,7 @@ public sealed partial class KnowledgePage : IDisposable
             return;
         }
 
-        var queryRoleId = queryParams.TryGetValue("roleId", out var r) ? r.FirstOrDefault() : null;
-        var roleId = await ResolveEffectiveRoleAsync(availableRoles, queryRoleId, uri);
+        var roleId = await ResolveEffectiveRoleAsync(availableRoles, QueryRoleId, uri);
 
         if (string.IsNullOrWhiteSpace(roleId))
         {
@@ -161,9 +171,9 @@ public sealed partial class KnowledgePage : IDisposable
         WorkspaceState.SetContext(effectiveContextVm, readContext);
         WorkspaceState.SetRole(roleId);
 
-        if (TreeState.CurrentReadContext != readContext || TreeState.CurrentRoleId != roleId)
+        if (!TreeWorkspace.HasContext(readContext, roleId))
         {
-            await TreeState.InitializeAsync(readContext, roleId, CancellationToken.None);
+            await TreeWorkspace.InitializeAsync(readContext, roleId, CancellationToken.None);
         }
 
         await ApplyNodeSelectionAsync(readContext, roleId);
@@ -173,13 +183,13 @@ public sealed partial class KnowledgePage : IDisposable
     {
         if (NodeId.HasValue)
         {
-            await TreeState.SelectNodeAsync(NodeId.Value, CancellationToken.None);
+            await TreeWorkspace.SelectNodeAsync(NodeId.Value, CancellationToken.None);
             WorkspaceState.SetNode(NodeId.Value);
             await LoadNodeDetailsAsync(NodeId.Value, readContext, roleId);
         }
-        else if (TreeState.SelectedNodeId.HasValue)
+        else if (TreeWorkspace.SelectedNodeId.HasValue)
         {
-            await TreeState.SelectNodeAsync(null, CancellationToken.None);
+            await TreeWorkspace.SelectNodeAsync(null, CancellationToken.None);
             WorkspaceState.SetNode(null);
             ClearNodeDetails();
         }

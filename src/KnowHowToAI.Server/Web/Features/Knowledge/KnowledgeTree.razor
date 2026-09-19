@@ -2,41 +2,41 @@
 @namespace KnowHowToAI.Server.Web.Features.Knowledge
 
 <div class="tree-container" data-testid="knowledge-tree-container">
-    @if (!string.IsNullOrEmpty(TreeState.StatusMessage))
+    @if (!string.IsNullOrEmpty(TreeWorkspace.StatusMessage))
     {
         <div class="tree-status" role="status" aria-live="polite" data-testid="tree-status">
-            @TreeState.StatusMessage
+            @TreeWorkspace.StatusMessage
         </div>
     }
 
-    @if (!string.IsNullOrEmpty(TreeState.RootError))
+    @if (!string.IsNullOrEmpty(TreeWorkspace.RootError))
     {
         <div class="tree-error" role="alert" data-testid="tree-error">
-            @TreeState.RootError
+            @TreeWorkspace.RootError
         </div>
     }
 
-    @if (TreeState.IsLoading)
+    @if (TreeWorkspace.IsLoading)
     {
         <div class="tree-loading" role="status" data-testid="tree-loading">
             <span class="tree-spinner" aria-hidden="true">⟳</span>
             <span>Lade Wissensbaum...</span>
         </div>
     }
-    else if (TreeState.VisualRootNode is null && string.IsNullOrEmpty(TreeState.RootError))
+    else if (TreeWorkspace.VisualRootNode is null && string.IsNullOrEmpty(TreeWorkspace.RootError))
     {
         <div class="tree-empty" data-testid="tree-empty">
             Keine Wissensknoten vorhanden.
         </div>
     }
-    else if (TreeState.VisualRootNode is not null)
+    else if (TreeWorkspace.VisualRootNode is not null)
     {
         <div class="knowledge-tree"
              role="tree"
              aria-label="Wissensbaum"
              data-testid="knowledge-tree"
              @onkeydown="HandleKeyDownAsync">
-            @RenderNode(TreeState.VisualRootNode)
+            @RenderNode(TreeWorkspace.VisualRootNode)
         </div>
     }
 </div>

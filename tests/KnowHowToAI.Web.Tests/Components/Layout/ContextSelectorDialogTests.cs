@@ -10,7 +10,6 @@ using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace KnowHowToAI.Web.Tests.Components.Layout;
 
@@ -24,6 +23,12 @@ public sealed class ContextSelectorDialogTests : BunitContext
     private readonly ContextSelectorState _selectorState;
     private readonly InMemoryRoleStorageService _roleStorage;
 
+    private sealed class EmptyContextSelectionCatalog : IContextSelectionCatalog
+    {
+        public Task<ContextSelectionOptionsViewModel> LoadAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(ContextSelectionOptionsViewModel.Empty);
+    }
+
     public ContextSelectorDialogTests()
     {
         _harness = new NavigationTestHarness(DefaultSnapshotId);
@@ -34,7 +39,8 @@ public sealed class ContextSelectorDialogTests : BunitContext
         Services.AddSingleton(_navigationService);
         Services.AddSingleton(_selectorState);
         Services.AddSingleton<IRoleStorageService>(_roleStorage);
-        Services.AddSingleton(NullLogger<ContextSelectorDialog>.Instance);
+        Services.AddSingleton<IContextSelectionCatalog, EmptyContextSelectionCatalog>();
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(_navigationService));
 
         JSInterop.Mode = JSRuntimeMode.Loose;
     }

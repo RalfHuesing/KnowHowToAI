@@ -41,6 +41,14 @@ public sealed class KnowledgeTreeSmokeTests
 
         await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge"));
 
+        // Ohne ausgewählte Rolle verlangt die Shell eine explizite Auswahl.
+        var roleSelector = page.GetByTestId("context-selector-dialog");
+        await Assertions.Expect(roleSelector).ToBeVisibleAsync();
+        await roleSelector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
+        await roleSelector.GetByTestId("selector-apply-button").ClickAsync();
+        await Assertions.Expect(roleSelector).ToHaveCountAsync(0);
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"roleId=Default"));
+
         // 3. Prüfe Hauptcontainer der Wissensseite
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToBeVisibleAsync();

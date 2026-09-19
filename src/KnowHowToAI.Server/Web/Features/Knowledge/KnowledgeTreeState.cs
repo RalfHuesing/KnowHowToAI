@@ -9,7 +9,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// Verwaltet Root, geladene Seiten, Auswahl, Paging, LRU-Cache-Eviction (maximal 10 Seiten)
 /// und isolierte Request-Cancellation.
 /// </summary>
-public sealed class KnowledgeTreeState : IDisposable
+public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 {
     internal const int PageLimit = 100;
 
@@ -59,6 +59,9 @@ public sealed class KnowledgeTreeState : IDisposable
     internal Guid? VisualRootNodeId { get; private set; }
 
     internal int LoadedPageCount => _cache.LoadedPageCount;
+
+    bool IKnowledgeTreeWorkspace.HasContext(ReadContext readContext, string roleId) =>
+        CurrentReadContext == readContext && CurrentRoleId == roleId;
 
     public async Task InitializeAsync(
         ReadContext context,

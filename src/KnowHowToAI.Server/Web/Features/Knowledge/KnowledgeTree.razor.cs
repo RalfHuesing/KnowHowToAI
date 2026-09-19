@@ -10,7 +10,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 public sealed partial class KnowledgeTree : IDisposable
 {
     [Inject]
-    public KnowledgeTreeState TreeState { get; set; } = default!;
+    public IKnowledgeTreeWorkspace TreeWorkspace { get; set; } = default!;
 
     [Parameter]
     public EventCallback<Guid> OnNodeSelected { get; set; }
@@ -30,8 +30,8 @@ public sealed partial class KnowledgeTree : IDisposable
             if (_focusedNodeId.HasValue && visible.Any(n => n.NodeId == _focusedNodeId.Value))
                 return _focusedNodeId.Value;
 
-            if (TreeState.SelectedNodeId.HasValue && visible.Any(n => n.NodeId == TreeState.SelectedNodeId.Value))
-                return TreeState.SelectedNodeId.Value;
+            if (TreeWorkspace.SelectedNodeId.HasValue && visible.Any(n => n.NodeId == TreeWorkspace.SelectedNodeId.Value))
+                return TreeWorkspace.SelectedNodeId.Value;
 
             return visible[0].NodeId;
         }
@@ -39,7 +39,7 @@ public sealed partial class KnowledgeTree : IDisposable
 
     protected override void OnInitialized()
     {
-        TreeState.Changed += HandleTreeStateChanged;
+        TreeWorkspace.Changed += HandleTreeStateChanged;
     }
 
     private void HandleTreeStateChanged()
@@ -51,7 +51,7 @@ public sealed partial class KnowledgeTree : IDisposable
     private async Task HandleSelectNodeAsync(Guid nodeId)
     {
         _focusedNodeId = nodeId;
-        await TreeState.SelectNodeAsync(nodeId);
+        await TreeWorkspace.SelectNodeAsync(nodeId);
         await OnNodeSelected.InvokeAsync(nodeId);
     }
 
@@ -64,22 +64,22 @@ public sealed partial class KnowledgeTree : IDisposable
     {
         if (node.IsExpanded)
         {
-            TreeState.CollapseNode(node.NodeId);
+            TreeWorkspace.CollapseNode(node.NodeId);
         }
         else
         {
-            await TreeState.ExpandNodeAsync(node.NodeId);
+            await TreeWorkspace.ExpandNodeAsync(node.NodeId);
         }
     }
 
     private async Task HandlePageNextAsync(Guid nodeId)
     {
-        await TreeState.PageNextAsync(nodeId);
+        await TreeWorkspace.PageNextAsync(nodeId);
     }
 
     private async Task HandlePagePreviousAsync(Guid nodeId)
     {
-        await TreeState.PagePreviousAsync(nodeId);
+        await TreeWorkspace.PagePreviousAsync(nodeId);
     }
 
     private async Task HandleKeyDownAsync(KeyboardEventArgs e)
@@ -150,7 +150,7 @@ public sealed partial class KnowledgeTree : IDisposable
     {
         if (currentNode.HasChildren && !currentNode.IsExpanded)
         {
-            await TreeState.ExpandNodeAsync(currentNode.NodeId);
+            await TreeWorkspace.ExpandNodeAsync(currentNode.NodeId);
         }
         else if (currentNode.HasChildren && currentNode.IsExpanded && currentNode.Children.Count > 0)
         {
@@ -162,7 +162,7 @@ public sealed partial class KnowledgeTree : IDisposable
     {
         if (currentNode.HasChildren && currentNode.IsExpanded)
         {
-            TreeState.CollapseNode(currentNode.NodeId);
+            TreeWorkspace.CollapseNode(currentNode.NodeId);
         }
         else if (currentNode.ParentNodeId.HasValue)
         {
@@ -182,9 +182,9 @@ public sealed partial class KnowledgeTree : IDisposable
     private List<KnowledgeTreeNodeViewModel> GetVisibleNodes()
     {
         var list = new List<KnowledgeTreeNodeViewModel>();
-        if (TreeState.VisualRootNode is not null)
+        if (TreeWorkspace.VisualRootNode is not null)
         {
-            AddVisible(TreeState.VisualRootNode, list);
+            AddVisible(TreeWorkspace.VisualRootNode, list);
         }
         return list;
     }
@@ -207,6 +207,6 @@ public sealed partial class KnowledgeTree : IDisposable
             return;
 
         _isDisposed = true;
-        TreeState.Changed -= HandleTreeStateChanged;
+        TreeWorkspace.Changed -= HandleTreeStateChanged;
     }
 }

@@ -42,6 +42,7 @@ public sealed class KnowledgePageTests : BunitContext
 
         Services.AddSingleton(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
         Services.AddSingleton(workspaceState);
         Services.AddSingleton(pageRegions);
         Services.AddSingleton(contextResolver);
@@ -75,6 +76,7 @@ public sealed class KnowledgePageTests : BunitContext
 
         Services.AddSingleton(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
         Services.AddSingleton(workspaceState);
         Services.AddSingleton(pageRegions);
         Services.AddSingleton(contextResolver);
@@ -109,6 +111,7 @@ public sealed class KnowledgePageTests : BunitContext
 
         Services.AddSingleton(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
         Services.AddSingleton(workspaceState);
         Services.AddSingleton(pageRegions);
         Services.AddSingleton(contextResolver);

@@ -31,11 +31,23 @@ internal static class WebServiceRegistration
         // Flüchtiger Circuit-State und Lazy-Loading-Datenadapter für den Wissensbaum.
         services.AddScoped<KnowledgeTreeState>();
 
+        // Schmale Präsentationsgrenze für Wissensseite und nativen Baum.
+        services.AddScoped<IKnowledgeTreeWorkspace>(serviceProvider =>
+            serviceProvider.GetRequiredService<KnowledgeTreeState>());
+
         // Persistiert die letzte Rollenauswahl im Browser-LocalStorage.
         services.AddScoped<IRoleStorageService, BrowserRoleStorageService>();
 
         // Flüchtiger Circuit-State für den globalen Rollen- und Lesekontext-Selektor.
         services.AddScoped<ContextSelectorState>();
+
+        // UI-Grenzen für Auswahlwerte und kontextabhängige Rollen im Selektor.
+        services.AddScoped<ContextSelectionCatalog>();
+        services.AddScoped<IContextSelectionCatalog>(serviceProvider =>
+            serviceProvider.GetRequiredService<ContextSelectionCatalog>());
+        services.AddScoped<ContextSelectionRoleCatalog>();
+        services.AddScoped<IContextSelectionRoleCatalog>(serviceProvider =>
+            serviceProvider.GetRequiredService<ContextSelectionRoleCatalog>());
 
         return services;
     }

@@ -8,7 +8,7 @@
 
 <div class="knowledge-page" data-testid="knowledge-page">
     <header class="knowledge-header">
-        <Breadcrumbs Items="TreeState.Breadcrumbs" OnSelectNode="NavigateToNode" />
+        <Breadcrumbs Items="TreeWorkspace.Breadcrumbs" OnSelectNode="NavigateToNode" />
     </header>
 
     @if (_errorMessage is not null)
@@ -31,7 +31,7 @@
             </aside>
 
             <main class="knowledge-content-pane" aria-label="Knotendetails" data-testid="knowledge-content-pane">
-                @if (TreeState.SelectedNodeId is not null)
+                @if (TreeWorkspace.SelectedNodeId is not null)
                 {
                     <div data-testid="node-details-section">
                         <NodeDetails

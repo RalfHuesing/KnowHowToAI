@@ -1,0 +1,92 @@
+@namespace KnowHowToAI.Server.Web.Components.Layout.Context
+@using KnowHowToAI.Core.Application.Navigation
+
+<fieldset class="context-selector-dialog__group">
+    <legend class="context-selector-dialog__legend">Lesekontext auswählen</legend>
+    <div class="context-selector-dialog__options">
+        <label class="context-selector-dialog__option">
+            <input type="radio" name="contextKind" value="Current"
+                   checked="@(Draft.SelectedKind == KnowledgeReadContextKind.Current)"
+                   @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Current))" />
+            <span>Current Snapshot</span>
+        </label>
+        <label class="context-selector-dialog__option">
+            <input type="radio" name="contextKind" value="Snapshot"
+                   checked="@(Draft.SelectedKind == KnowledgeReadContextKind.Snapshot)"
+                   @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Snapshot))" />
+            <span>Snapshot</span>
+        </label>
+        @if (Draft.SelectedKind == KnowledgeReadContextKind.Snapshot)
+        {
+            <div class="context-selector-dialog__subfield">
+                <label for="snapshot-id-input">Snapshot-ID:</label>
+                <input id="snapshot-id-input" type="number" min="1"
+                       class="context-selector-dialog__input"
+                       @bind="Draft.SnapshotIdInput" @bind:after="NotifySelectionChangedAsync"
+                       placeholder="z. B. 42" data-testid="snapshot-id-input" />
+            </div>
+        }
+        <label class="context-selector-dialog__option">
+            <input type="radio" name="contextKind" value="Release"
+                   checked="@(Draft.SelectedKind == KnowledgeReadContextKind.Release)"
+                   @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Release))" />
+            <span>Release</span>
+        </label>
+        @if (Draft.SelectedKind == KnowledgeReadContextKind.Release)
+        {
+            <div class="context-selector-dialog__subfield">
+                <label for="release-select">Release:</label>
+                @if (Options.Releases.Count > 0)
+                {
+                    <select id="release-select" class="context-selector-dialog__select"
+                            @bind="Draft.SelectedReleaseId" @bind:after="NotifySelectionChangedAsync"
+                            data-testid="release-select">
+                        <option value="">-- Release auswählen --</option>
+                        @foreach (var release in Options.Releases)
+                        {
+                            <option value="@release.Id">@release.Name (Snapshot @release.SnapshotId)</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <input id="release-id-input" type="number" min="1"
+                           class="context-selector-dialog__input"
+                           @bind="Draft.ReleaseIdInput" @bind:after="NotifySelectionChangedAsync"
+                           placeholder="Release-ID (z. B. 1)" data-testid="release-id-input" />
+                }
+            </div>
+        }
+        <label class="context-selector-dialog__option">
+            <input type="radio" name="contextKind" value="Transaction"
+                   checked="@(Draft.SelectedKind == KnowledgeReadContextKind.Transaction)"
+                   @onchange="@(() => SelectKindAsync(KnowledgeReadContextKind.Transaction))" />
+            <span>Working Transaction</span>
+        </label>
+        @if (Draft.SelectedKind == KnowledgeReadContextKind.Transaction)
+        {
+            <div class="context-selector-dialog__subfield">
+                <label for="transaction-select">Offene Transaktion:</label>
+                @if (Options.Transactions.Count > 0)
+                {
+                    <select id="transaction-select" class="context-selector-dialog__select"
+                            @bind="Draft.SelectedTransactionId" @bind:after="NotifySelectionChangedAsync"
+                            data-testid="transaction-select">
+                        <option value="">-- Transaktion auswählen --</option>
+                        @foreach (var transaction in Options.Transactions)
+                        {
+                            <option value="@transaction.Id">@transaction.Title (@transaction.Id)</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <input id="transaction-id-input" type="text"
+                           class="context-selector-dialog__input"
+                           @bind="Draft.TransactionIdInput" @bind:after="NotifySelectionChangedAsync"
+                           placeholder="Transaktions-GUID" data-testid="transaction-id-input" />
+                }
+            </div>
+        }
+    </div>
+</fieldset>

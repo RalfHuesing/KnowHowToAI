@@ -34,6 +34,9 @@ public sealed partial class AppDialog : ComponentBase, IAsyncDisposable
     [Parameter]
     public EventCallback OnClosed { get; set; }
 
+    [Parameter]
+    public EventCallback OnReady { get; set; }
+
     public async Task OpenAsync()
     {
         var module = await EnsureModuleAsync();
@@ -59,6 +62,7 @@ public sealed partial class AppDialog : ComponentBase, IAsyncDisposable
         var module = await EnsureModuleAsync();
 
         await module.InvokeVoidAsync("initialize", _dialogElement, _selfReference);
+        await OnReady.InvokeAsync();
     }
 
     [JSInvokable]

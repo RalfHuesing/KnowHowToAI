@@ -24,6 +24,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
 
         var cut = Render<KnowledgeTree>();
         Assert.NotNull(cut.Find("[data-testid='tree-empty']"));
@@ -42,6 +43,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
 
@@ -73,6 +75,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
 
@@ -119,6 +122,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
@@ -171,6 +175,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
         Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);

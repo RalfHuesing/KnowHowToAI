@@ -1,0 +1,59 @@
+.context-selector-dialog__group {
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-md);
+    padding: var(--ktai-space-3);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-3);
+}
+
+.context-selector-dialog__legend {
+    font-weight: 600;
+    font-size: var(--ktai-font-size-sm);
+    color: var(--ktai-color-text);
+    padding: 0 var(--ktai-space-2);
+}
+
+.context-selector-dialog__options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-2);
+}
+
+.context-selector-dialog__option {
+    display: flex;
+    align-items: center;
+    gap: var(--ktai-space-2);
+    cursor: pointer;
+    font-size: var(--ktai-font-size-sm);
+    color: var(--ktai-color-text);
+}
+
+.context-selector-dialog__subfield {
+    margin-left: var(--ktai-space-5);
+    margin-top: var(--ktai-space-1);
+    margin-bottom: var(--ktai-space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-1);
+    font-size: var(--ktai-font-size-xs);
+    color: var(--ktai-color-text-secondary);
+}
+
+.context-selector-dialog__input,
+.context-selector-dialog__select {
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-sm);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-sm);
+    width: 100%;
+}
+
+.context-selector-dialog__input:focus,
+.context-selector-dialog__select:focus {
+    outline: 2px solid var(--ktai-color-primary);
+    outline-offset: 1px;
+}

@@ -158,6 +158,13 @@ des Tree-Ausschnitts (der globale Pfad bleibt in den Breadcrumbs). Paging („Zu
 „Weitere“) ersetzt die sichtbare 100er-Seite vollständig über eine rein opaque
 Cursor-Historie, ohne Seiten zu einer wachsenden Liste zusammenzufügen.
 
+`KnowledgePage` und `KnowledgeTree` erhalten diesen Adapter ausschließlich über
+den featurelokalen Vertrag `IKnowledgeTreeWorkspace`. Der Vertrag enthält nur
+die für Rendering und Interaktion gemeinsame Baumansicht sowie die zugehörigen
+Baumoperationen; Cache, Navigation und Request-Cancellation bleiben im
+`KnowledgeTreeState`. Damit teilen die beiden Komponenten eine konkrete
+Präsentationsgrenze und können sie mit einem schmalen Test Double prüfen.
+
 Die Benutzeroberfläche der Hierarchienavigation wird durch die routable Page
 `KnowledgePage` (`/knowledge`, `/knowledge/{NodeId:guid}`), den nativen
 `KnowledgeTree` und `Breadcrumbs` gebildet. `KnowledgeTree` setzt die
@@ -256,6 +263,13 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
   Rolle und ohne `IsDirty`. Domain-Typen und der M3-`WorkspaceState` sind
   bewusst nicht Teil dieses Vertrags.
+- `ContextSelectorDialog` hostet ausschließlich den nativen Dialog-Lifecycle.
+  Das featurekonkrete `ContextSelectionForm` hält den unpersistierten
+  Auswahlentwurf, validiert und bildet die kanonische Ziel-URL. Die beiden
+  schmalen UI-Grenzen `IContextSelectionCatalog` und
+  `IContextSelectionRoleCatalog` übersetzen Application-Ergebnisse in
+  darstellbare Auswahlwerte; dadurch kennt weder Dialoghost noch Formular
+  Release-, Dashboard- oder `NavigationService` direkt.
 - Ab 1280 CSS-Pixeln (vom schmalen Modul `MainLayout.razor.js` über
   `matchMedia` gemeldet) stehen Navigation, Arbeitsfläche und optionaler
   Kontextbereich nebeneinander; die Arbeitsfläche nutzt

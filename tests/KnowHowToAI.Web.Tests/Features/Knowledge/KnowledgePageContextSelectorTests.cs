@@ -11,6 +11,7 @@ using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
@@ -31,6 +32,13 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     private readonly InMemoryRoleStorageService _roleStorage;
     private readonly ContextSelectorState _contextSelector;
 
+    private static readonly RenderFragment<RouteData> RenderFoundRoute = routeData => builder =>
+    {
+        builder.OpenComponent<RouteView>(0);
+        builder.AddAttribute(1, nameof(RouteView.RouteData), routeData);
+        builder.CloseComponent();
+    };
+
     private sealed class FakeReleaseRepository : IReleaseRepository
     {
         private readonly Dictionary<ReleaseId, Release> _releases = new();
@@ -42,6 +50,12 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
             _releases.TryGetValue(releaseId, out var release);
             return Task.FromResult(release);
         }
+    }
+
+    private sealed class EmptyContextSelectionCatalog : IContextSelectionCatalog
+    {
+        public Task<ContextSelectionOptionsViewModel> LoadAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(ContextSelectionOptionsViewModel.Empty);
     }
 
     public KnowledgePageContextSelectorTests()
@@ -71,11 +85,14 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
 
         Services.AddSingleton(_navigationService);
         Services.AddSingleton(_treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(_treeState);
         Services.AddSingleton(_workspaceState);
         Services.AddSingleton(_pageRegions);
         Services.AddSingleton(_contextResolver);
         Services.AddSingleton<IRoleStorageService>(_roleStorage);
         Services.AddSingleton(_contextSelector);
+        Services.AddSingleton<IContextSelectionCatalog, EmptyContextSelectionCatalog>();
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(_navigationService));
 
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
@@ -164,6 +181,57 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         Assert.True(_contextSelector.IsOpen);
         Assert.Equal(ContextSelectorMode.MandatoryRole, _contextSelector.Mode);
         Assert.Null(_workspaceState.CurrentRoleId);
+    }
+
+    [Fact]
+    public void O008_RoleQueryAddedAfterMandatorySelection_InitializesKnowledgePage()
+    {
+        _roleStorage.LastRoleId = null;
+        var navMan = Services.GetRequiredService<NavigationManager>();
+        navMan.NavigateTo("/knowledge");
+
+        var cut = Render<Router>(parameters => parameters
+            .Add(router => router.AppAssembly, typeof(KnowledgePage).Assembly)
+            .Add(router => router.Found, RenderFoundRoute));
+
+        cut.WaitForAssertion(() => Assert.True(_contextSelector.IsOpen));
+        Assert.Empty(cut.FindAll("[data-testid='knowledge-sidebar']"));
+
+        // Der Dialog schließt seinen Circuit-State vor der Navigation nach erfolgreicher Auswahl.
+        _contextSelector.Close();
+        navMan.NavigateTo("/knowledge?roleId=Developer");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.False(_contextSelector.IsOpen);
+            Assert.Equal("Developer", _workspaceState.CurrentRoleId);
+            Assert.Single(cut.FindAll("[data-testid='knowledge-sidebar']"));
+        });
+    }
+
+    [Fact]
+    public async Task O008_MandatoryDialogSelection_ReinitializesTheRoutedKnowledgePage()
+    {
+        _roleStorage.LastRoleId = null;
+        var navMan = Services.GetRequiredService<NavigationManager>();
+        navMan.NavigateTo("/knowledge");
+
+        var dialog = Render<ContextSelectorDialog>();
+        var router = Render<Router>(parameters => parameters
+            .Add(component => component.AppAssembly, typeof(KnowledgePage).Assembly)
+            .Add(component => component.Found, RenderFoundRoute));
+
+        dialog.WaitForState(() => dialog.FindAll("[data-testid='role-option-Developer']").Count == 1);
+        var role = dialog.Find("[data-testid='role-option-Developer'] input");
+        await dialog.InvokeAsync(() => role.Change(true));
+        var apply = dialog.Find("[data-testid='selector-apply-button']");
+        await dialog.InvokeAsync(() => apply.Click());
+
+        router.WaitForAssertion(() =>
+        {
+            Assert.Equal("Developer", _workspaceState.CurrentRoleId);
+            Assert.Single(router.FindAll("[data-testid='knowledge-sidebar']"));
+        });
     }
 
     [Fact]
