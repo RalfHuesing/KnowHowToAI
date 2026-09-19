@@ -34,9 +34,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.2 – Dashboard
 
-- [ ] **M3.2 abschließen**
+- [x] **M3.2 abschließen**
 
-  - [ ] **M3.2-T1 – Wissensdashboard implementieren**
+  - [x] **M3.2-T1 – Wissensdashboard implementieren**
     - Umfang: Current Snapshot, letzter Release, alle offenen Transactions, Current-Qualität über alle Rollen und zuletzt geänderte Nodes als kompakte Einstiegsübersicht.
     - Semantik: harte Fehler gehören zu offenen Transactions; letzte Nodeänderungen stammen aus dem Diff zum direkten committed Vorgänger; ohne Vorgänger bleibt diese Liste leer.
     - Interaktion: Karten und Listen verlinken auf vorhandene Detailkontexte; keine Mutation.
