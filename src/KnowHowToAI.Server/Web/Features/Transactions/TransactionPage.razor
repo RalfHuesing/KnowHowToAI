@@ -1,6 +1,8 @@
 @page "/transactions/{TransactionId:guid}"
 @namespace KnowHowToAI.Server.Web.Features.Transactions
+@using KnowHowToAI.Core.Domain.Common
 @using Microsoft.AspNetCore.Components.Web
+@using KnowHowToAI.Server.Web.Components.Shared.Dialogs
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 
 <div class="transaction-page" data-testid="transaction-page">
@@ -27,6 +29,26 @@
         <TransactionDiff Transaction="@_transaction" />
 
         <div class="transaction-page__actions" data-testid="transaction-page-actions">
+            @if (!string.IsNullOrWhiteSpace(_completionError))
+            {
+                <div class="transaction-page__completion-error" role="alert" data-testid="transaction-completion-error">
+                    <InlineAlert Kind="AlertKind.Fehler" Message="@_completionError" />
+                </div>
+            }
+            @if (_transaction.State != TransactionState.Open)
+            {
+                <p role="status" data-testid="transaction-completion-unavailable">
+                    Diese Transaction ist bereits abgeschlossen und kann nicht erneut committed oder verworfen werden.
+                </p>
+            }
+            <button type="button" class="btn btn-primary" @onclick="OpenCommitDialogAsync"
+                    disabled="@(!CanComplete)" data-testid="commit-transaction-button">
+                Commit
+            </button>
+            <button type="button" class="btn btn-secondary" @onclick="OpenDiscardDialogAsync"
+                    disabled="@(!CanComplete)" data-testid="discard-transaction-button">
+                Verwerfen
+            </button>
             <a href="@KnowledgeUrl" class="btn btn-primary" data-testid="tx-open-knowledge-link">
                 Im Wissensbaum öffnen
             </a>
@@ -36,3 +58,19 @@
         </div>
     }
 </div>
+
+<ConfirmationDialog @ref="_commitDialog"
+                    Title="Transaction committen"
+                    Message="Der Working Snapshot wird zum neuen Current Snapshot. Dieser Schritt kann nicht rückgängig gemacht werden."
+                    ConfirmText="Commit ausführen"
+                    InputLabel="Commit-Nachricht (optional)"
+                    OnConfirmWithInput="CommitAsync"
+                    OnCancel="DismissDialogAsync" />
+
+<ConfirmationDialog @ref="_discardDialog"
+                    Title="Transaction verwerfen"
+                    Message="Alle Änderungen im Working Snapshot werden verworfen. Der aktuelle Snapshot bleibt unverändert."
+                    ConfirmText="Transaction verwerfen"
+                    IsDestructive="true"
+                    OnConfirm="DiscardAsync"
+                    OnCancel="DismissDialogAsync" />

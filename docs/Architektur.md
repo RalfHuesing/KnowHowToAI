@@ -163,6 +163,20 @@ dieser begrenzt den Vergleich auf die fachlich zugehörigen Node-, Content- und
 Dependency-Änderungen. Die Web-Grenze bietet dabei keine Merge- oder Reapply-
 Operation.
 
+`Web.Features.Transactions` stellt unter `/transactions` die offenen
+Transactions und unter `/transactions/{transactionId}` ihren Arbeitsbereich
+bereit. Die Detailseite ruft `TransactionService` und `HistoryService` direkt
+in-process auf und zeigt Validierung sowie cursor-paginierten Netto-Diff. Commit
+und Discard werden jeweils über einen expliziten nativen Bestätigungsdialog
+ausgelöst; der Commitdialog übergibt eine optionale Commit-Nachricht. Während
+einer Abschlussanfrage sind beide Aktionen gesperrt. Ein abweichender lokaler
+`ChangeVersion`-Stand, ein geschlossener Status oder ein fachlich abgelehnter
+Commit bleibt als verständlicher Seitenfehler im Working Context sichtbar.
+Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
+den Kontextbereich auf den Current-Read-Context, navigiert zum Wissensbaum
+unter Erhalt der Rolle und bestätigt den Abschluss über die globale
+Toastregion.
+
 Der native Wissensbaum (`Web.Features.Knowledge`) nutzt den flüchtigen Circuit-State
 `KnowledgeTreeState` als Lazy-Loading-Datenadapter. Er lädt den Root-Knoten über
 `NavigationService.GetRootAsync` und Kindknoten ausschließlich bei Expand über

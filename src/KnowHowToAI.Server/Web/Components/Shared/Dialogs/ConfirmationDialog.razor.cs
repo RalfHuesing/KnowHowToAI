@@ -9,7 +9,8 @@ namespace KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 /// „Abbrechen“ (erstes Element), Fokusfalle und Fokusrückgabe übernimmt die
 /// Dialogisolation von <see cref="AppDialog"/>; Escape entspricht
 /// „Abbrechen“. Eine destruktive Aktion ist optisch und inhaltlich
-/// eindeutig; eine Texteingabe zur Bestätigung gibt es bewusst nicht.
+/// eindeutig; optionale Eingaben erläutern die bestätigte Aktion, ersetzen aber
+/// niemals deren expliziten Button.
 /// Während eines Requests sind beide Aktionen gegen Doppelaufruf geschützt:
 /// Der Bestätigungs-Callback läuft höchstens einmal gleichzeitig, beide
 /// Aktionen sind deaktiviert, und der Abschluss schließt über
@@ -20,9 +21,11 @@ public sealed partial class ConfirmationDialog : ComponentBase
     private static int _instanceCounter;
 
     private readonly string _messageId = $"confirmation-dialog-message-{Interlocked.Increment(ref _instanceCounter)}";
+    private readonly string _inputId = $"confirmation-dialog-input-{Interlocked.Increment(ref _instanceCounter)}";
     private AppDialog? _dialog;
     private bool _isBusy;
     private bool _isCloseWithoutCancel;
+    private string? _inputValue;
 
     [Parameter, EditorRequired]
     public string Title { get; set; } = string.Empty;
@@ -36,16 +39,31 @@ public sealed partial class ConfirmationDialog : ComponentBase
     [Parameter]
     public bool IsDestructive { get; set; }
 
-    [Parameter, EditorRequired]
+    [Parameter]
     public EventCallback OnConfirm { get; set; }
 
-    [Parameter, EditorRequired]
+    [Parameter]
     public EventCallback OnCancel { get; set; }
+
+    /// <summary>Optionale Beschriftung eines Eingabefelds für die bestätigte Aktion.</summary>
+    [Parameter]
+    public string? InputLabel { get; set; }
+
+    /// <summary>Startwert des optionalen Eingabefelds beim Öffnen.</summary>
+    [Parameter]
+    public string? InputValue { get; set; }
+
+    /// <summary>Optionaler Bestätigungs-Callback, der den eingegebenen Wert erhält.</summary>
+    [Parameter]
+    public EventCallback<string?> OnConfirmWithInput { get; set; }
+
+    private bool HasInput => !string.IsNullOrWhiteSpace(InputLabel);
 
     public async Task OpenAsync()
     {
         _isBusy = false;
         _isCloseWithoutCancel = false;
+        _inputValue = InputValue;
 
         if (_dialog is not null)
         {
@@ -90,7 +108,14 @@ public sealed partial class ConfirmationDialog : ComponentBase
         StateHasChanged();
         try
         {
-            await OnConfirm.InvokeAsync();
+            if (OnConfirmWithInput.HasDelegate)
+            {
+                await OnConfirmWithInput.InvokeAsync(_inputValue);
+            }
+            else
+            {
+                await OnConfirm.InvokeAsync();
+            }
         }
         finally
         {

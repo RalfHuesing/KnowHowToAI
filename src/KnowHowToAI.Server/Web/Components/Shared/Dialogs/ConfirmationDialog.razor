@@ -8,6 +8,13 @@
            Title="@Title"
            OnClosed="HandleDialogClosedAsync">
     <p class="confirmation-dialog__message" id="@_messageId">@Message</p>
+    @if (HasInput)
+    {
+        <div class="confirmation-dialog__input">
+            <label for="@_inputId">@InputLabel</label>
+            <textarea id="@_inputId" @bind="_inputValue" disabled="@_isBusy" rows="3"></textarea>
+        </div>
+    }
     <div class="confirmation-dialog__actions">
         <button type="button"
                 class="confirmation-dialog__button confirmation-dialog__button--secondary"

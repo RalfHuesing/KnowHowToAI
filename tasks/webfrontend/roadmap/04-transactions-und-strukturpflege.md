@@ -55,7 +55,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Prüfen: Erstellen, Ändern, Verschieben, Löschen und leere Transaction; große Diffs paginieren.
     - Abnahme: Benutzer kann den geplanten Commit vollständig prüfen.
 
-  - [ ] **M4.2-T3 – Commit und Discard implementieren**
+  - [x] **M4.2-T3 – Commit und Discard implementieren**
     - Umfang: bestätigter Commit, bestätigtes Verwerfen, Erfolgs-/Fehlerzustand und Wechsel auf resultierenden Current Snapshot.
     - Schutz: Doppelaktion, stale `ChangeVersion` und ungültiger Status.
     - Tests: Erfolg, Validierungsfehler, Konflikt, Wiederholung und Discard.

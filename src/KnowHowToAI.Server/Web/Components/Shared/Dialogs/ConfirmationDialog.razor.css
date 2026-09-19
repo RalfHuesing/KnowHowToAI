@@ -4,6 +4,22 @@
     margin: 0 0 var(--ktai-space-4);
 }
 
+.confirmation-dialog__input {
+    display: grid;
+    gap: var(--ktai-space-1);
+    margin-bottom: var(--ktai-space-4);
+}
+
+.confirmation-dialog__input textarea {
+    min-height: 5rem;
+    padding: var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border-input);
+    border-radius: var(--ktai-radius-small);
+    color: var(--ktai-color-text);
+    font: inherit;
+    resize: vertical;
+}
+
 .confirmation-dialog__actions {
     display: flex;
     justify-content: flex-end;
@@ -43,7 +59,7 @@
 }
 
 /* Destruktive Aktion: Umriss in der Fehlerfarbe plus Warnicon, zusätzlich
-   zur Beschriftung; es gibt keine Texteingabe zur Bestätigung. */
+   zur Beschriftung; ein optionales Eingabefeld ersetzt nie den Bestätigungsklick. */
 .confirmation-dialog__button--destructive {
     border: 1px solid var(--ktai-color-danger);
     background-color: var(--ktai-color-surface);
