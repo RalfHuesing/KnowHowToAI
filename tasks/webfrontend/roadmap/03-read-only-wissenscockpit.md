@@ -119,7 +119,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.7 – Markdown-Export
 
-- [x] **M3.7 abschließen**
+- [ ] **M3.7 abschließen**
 
   - [x] **M3.7-T1 – Bestehenden Markdown-Teilbaumexport in der UI bereitstellen**
     - Umfang: aktueller Node, Rolle und Read Context an vorhandenen Export-Use-Case übergeben und Datei herunterladen.
@@ -127,6 +127,12 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Nicht enthalten: PDF oder Exportprofile.
     - Tests: Mapping, Download-Endpunkt und Browser-Smoke.
     - Abnahme: bestehende Exportfunktion ist ohne Agent nutzbar.
+
+  - [ ] **M3.7-T2 – Deterministischen Browsernachweis für den Markdown-Download herstellen**
+    - Befund aus dem M3.7-Review: Der aktuelle Browser-Smoke beendet sich bei einer leeren Browser-Testdatenbank erfolgreich und prüft dadurch weder Link noch Download.
+    - Umfang: Die bestehende Browser-Testinfrastruktur stellt für diesen Test einen reproduzierbaren, nichtleeren Read-only-Wissensstand mit Rolle und auswählbarem Node bereit; der Smoke wartet anschließend auf einen tatsächlichen Download und prüft Status, `text/markdown; charset=utf-8`, `Content-Disposition: attachment`, `Cache-Control: no-store` und den `.md`-Dateinamen.
+    - Grenze: Keine Produktdaten-Seeds, keine Produktionsmutation und kein Überspringen des Download-Nachweises bei leerem Zustand.
+    - Abnahme: Der Browser-Smoke schlägt fehl, wenn der exportierbare Node, der Link oder die erfolgreiche Dateiauslieferung fehlt.
 
 ## M3.8 – Fachliche Parität
 
