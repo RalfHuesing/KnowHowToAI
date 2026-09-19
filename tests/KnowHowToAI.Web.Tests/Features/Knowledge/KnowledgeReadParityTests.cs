@@ -1,18 +1,25 @@
 using System.Text;
+using Bunit;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Retrieval.Export;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Navigation;
 using KnowHowToAI.Server.Mcp.Mapping;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -21,7 +28,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 /// Navigation, Rollenauflösung, Markdown-Export und Kontextgrenzen gegen gemeinsame Core-Use-Cases.
 /// </summary>
 [Trait("Category", "Unit")]
-public sealed class KnowledgeReadParityTests
+public sealed class KnowledgeReadParityTests : BunitContext
 {
     private static readonly SnapshotId TestSnapshotId = new(100);
     private static readonly RoleId RoleDeveloper = new("Developer");
@@ -43,6 +50,69 @@ public sealed class KnowledgeReadParityTests
     }
 
     // ── Navigation & Node Details ─────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetNode_CommonUseCaseResult_ReachesRoutedKnowledgePageAndMcpContract()
+    {
+        var sourceNodeId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000003"));
+        var sourceRevisionId = new ContentRevisionId(Guid.Parse("10000000-0000-0000-0000-000000000004"));
+        var derivedRevisionId = new ContentRevisionId(Guid.Parse("10000000-0000-0000-0000-000000000005"));
+        var harness = new NavigationTestHarness(TestSnapshotId);
+        harness.AddNode(new Node(TestSnapshotId, RootId, null, "Abgeleitete Architektur", "Produktpfad", 0, false));
+        harness.AddNode(new Node(TestSnapshotId, sourceNodeId, RootId, "Quelle", null, 1, false));
+        harness.AddContent(new NodeContent(
+            TestSnapshotId,
+            RootId,
+            RoleDeveloper,
+            derivedRevisionId,
+            ContentMode.Derived,
+            "Gemeinsamer Inhalt",
+            false));
+        harness.AddContent(new NodeContent(
+            TestSnapshotId,
+            sourceNodeId,
+            RoleDeveloper,
+            sourceRevisionId,
+            ContentMode.Independent,
+            "Quellinhalt",
+            false));
+        harness.AddDependency(new ContentDependency(
+            TestSnapshotId,
+            RootId,
+            RoleDeveloper,
+            sourceNodeId,
+            RoleDeveloper,
+            sourceRevisionId));
+
+        var navigationService = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
+        var applicationResult = await navigationService.GetNodeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var mcp = McpNavigationMapper.ToEnvelope(applicationResult).Data!;
+
+        var treeState = new KnowledgeTreeState(navigationService);
+        Services.AddSingleton(navigationService);
+        Services.AddSingleton(treeState);
+        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton(new PageRegionState());
+        Services.AddSingleton(new WebReadContextResolver(new FakeReleaseRepository(), harness.CreateRepositories().Transactions));
+        Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleDeveloper.Value));
+        Services.AddSingleton(new ContextSelectorState());
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"/knowledge/{RootId.Value:D}?roleId={RoleDeveloper.Value}");
+
+        var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, RootId.Value));
+
+        Assert.Equal(mcp.Title, cut.Find("[data-testid='node-details-title']").TextContent.Trim());
+        Assert.Contains(mcp.Description!, cut.Find("[data-testid='node-details-description']").TextContent, StringComparison.Ordinal);
+        Assert.Contains(mcp.RequestedRole, cut.Find("[data-testid='node-details-role']").TextContent, StringComparison.Ordinal);
+        Assert.Contains(mcp.Content!, cut.Find("[data-testid='node-details-content']").TextContent, StringComparison.Ordinal);
+        var mcpSource = Assert.Single(mcp.SourceRevisions!);
+        var provenance = cut.Find("[data-testid='node-provenance-item']").TextContent;
+        Assert.Contains(mcpSource.SourceNodeId.Replace("-", string.Empty, StringComparison.Ordinal)[..8], provenance, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(mcpSource.SourceContentRevisionId.Replace("-", string.Empty, StringComparison.Ordinal)[..8], provenance, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(mcpSource.SourceRoleId, provenance, StringComparison.Ordinal);
+        Assert.Contains("Quelle: Aktuell", provenance, StringComparison.Ordinal);
+    }
 
     [Fact]
     public void GetNode_WithResolvedContent_UiAndMcpShowIdenticalState()

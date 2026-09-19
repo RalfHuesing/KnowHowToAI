@@ -1,4 +1,7 @@
+using Bunit;
 using KnowHowToAI.Core.Application.History;
+using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Runtime;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
@@ -6,7 +9,11 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Mcp.Mapping;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.History;
+using KnowHowToAI.TestSupport;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Features.History;
 
@@ -15,7 +22,7 @@ namespace KnowHowToAI.Web.Tests.Features.History;
 /// Snapshots, Releases, Snapshot-Diffs und Fehlerbehandlung gegen gemeinsame Core-Use-Cases.
 /// </summary>
 [Trait("Category", "Unit")]
-public sealed class HistoryReadParityTests
+public sealed class HistoryReadParityTests : BunitContext
 {
     private static readonly SnapshotId BaseSnapshotId = new(10);
     private static readonly SnapshotId TargetSnapshotId = new(20);
@@ -113,6 +120,65 @@ public sealed class HistoryReadParityTests
     }
 
     // ── Snapshot-Diff ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task CompareSnapshots_CommonUseCaseResult_ReachesHistoryPageAndMcpContract()
+    {
+        var nodeId = new NodeId(Guid.Parse("30000000-0000-0000-0000-000000000010"));
+        var harness = new NavigationTestHarness(TargetSnapshotId);
+        harness.AddHistoricalSnapshot(new Snapshot(
+            BaseSnapshotId,
+            null,
+            SnapshotState.Committed,
+            DateTimeOffset.UnixEpoch,
+            DateTimeOffset.UnixEpoch));
+        harness.AddNode(new Node(BaseSnapshotId, nodeId, null, "Vorher", null, 0, false));
+        harness.AddNode(new Node(TargetSnapshotId, nodeId, null, "Nachher", null, 0, false));
+        var policy = new RetrievalPolicy
+        {
+            DefaultPageSize = 10,
+            MaximumPageSize = 10,
+            SearchPageSize = 10,
+            SearchMaximumPageSize = 10,
+            SnippetMaximumCharacters = 100
+        };
+        var historyService = new HistoryService(harness.CreateRepositories(), policy);
+        var releaseService = new ReleaseService(
+            harness.CreateRepositories(),
+            new InMemoryReleaseMutationRepository(),
+            new SystemClock(),
+            policy,
+            new ValidationPolicy
+            {
+                ContentSizeWarningBytes = 4096,
+                ChildCountWarning = 25,
+                HierarchyDepthWarning = 8,
+                PossibleEmbeddedHeadingWarning = true
+            });
+        var query = new SnapshotComparisonQuery(BaseSnapshotId, TargetSnapshotId);
+        var applicationResult = await historyService.CompareSnapshotsAsync(query);
+        var mcp = McpHistoryMapper.ToSnapshotDiffEnvelope(applicationResult).Data!;
+
+        Services.AddSingleton(historyService);
+        Services.AddSingleton(releaseService);
+        Services.AddSingleton(new PageRegionState());
+        Services.GetRequiredService<NavigationManager>().NavigateTo(
+            $"/history?baseSnapshotId={BaseSnapshotId.Value}&targetSnapshotId={TargetSnapshotId.Value}");
+
+        var cut = Render<HistoryPage>();
+
+        var mcpEntry = Assert.Single(mcp.Items);
+        cut.WaitForAssertion(() =>
+        {
+            var summary = cut.Find("[data-testid='snapshot-diff-summary']").TextContent;
+            Assert.Contains($"Snapshot {mcp.BaseSnapshotId} → Snapshot {mcp.TargetSnapshotId}", summary, StringComparison.Ordinal);
+            Assert.Contains(mcp.TotalCount.ToString(), summary, StringComparison.Ordinal);
+            var renderedEntry = cut.Find($"[data-testid='snapshot-diff-entry-Node-{mcpEntry.Id}']").TextContent;
+            Assert.Contains(mcpEntry.Id, renderedEntry, StringComparison.Ordinal);
+            Assert.Contains("Vorher", renderedEntry, StringComparison.Ordinal);
+            Assert.Contains("Nachher", renderedEntry, StringComparison.Ordinal);
+        });
+    }
 
     [Fact]
     public void CompareSnapshots_DiffContainsAllEntityKinds_UiAndMcpReflectSameChanges()

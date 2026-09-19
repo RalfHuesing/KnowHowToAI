@@ -203,15 +203,26 @@ klar differenziert; Paging-Buttons („Vorherige 100 Einträge“, „Weitere 10
 erscheinen innerhalb des jeweiligen Teilbaums. `Breadcrumbs` bildet den hierarchischen
 Pfad bis zum aktuellen Knoten ab (`aria-current="page"` auf dem letzten Element) und
 erlaubt direkte Rücknavigation zu übergeordneten Ebenen. Die Auswahl eines Knotens
-aktualisiert die Route `/knowledge/{NodeId}` unter Erhalt bestehender Query-Parameter;
-beim Neuladen oder direktem Einstieg lädt der `KnowledgeTreePathLoader` den Pfad bis zum
-Zielknoten nach, sodass Zustand und Breadcrumbs aus der URL vollständig rekonstruierbar
-bleiben.
+aktualisiert die Route `/knowledge/{NodeId}` unter Erhalt bestehender Query-Parameter.
+Beim Neuladen oder direkten Einstieg ermittelt der `KnowledgeTreePathLoader` die
+Ancestor-Kette metadata-first über `NavigationService.GetNodeAsync` und lädt danach
+für jedes Segment die opaken 100er-Childseiten des Parents, bis das Segment sichtbar
+ist. Nur ein vollständig erfolgreich geladener Pfad wird im Tree ausgewählt; ein
+`NodeNotFound`-, `InvalidCursor`- oder `CursorExpired`-Ergebnis bleibt als erklärter
+Node-/Zweigzustand sichtbar und erzeugt keine unsichtbare Auswahl. Bereits geladene
+Off-Path-Teilbäume gehören ausdrücklich nicht zur Rekonstruktion und bleiben der
+Zehn-Seiten-Eviction unterworfen.
 
 Die Read-only Node-Detailansicht (`NodeDetails`) zeigt Titel, Beschreibung, Position,
 Rolle (inklusive Fallback-Kennzeichnung mit Pfeil und aufgelöster Rolle), Verfügbarkeit,
 Freshness-Status, Inhaltsmodus (`Independent` vs. `Derived`), optionale Revisions-ID
-sowie bei abgeleitetem Inhalt (`Derived`) die Quellrevisionen (`SourceRevisions`).
+sowie bei wirksam aufgelöstem abgeleitetem Inhalt (`Derived`) dessen direkt
+gespeicherte Quellrevisionen (`SourceRevisions`). `NavigationService.GetNodeAsync`
+liefert dafür je direkter Dependency Source-Node, Source-Rolle, gespeicherte
+Source-Revision und deren aktuell ausgewertete Freshness; die Liste ist keine
+transitive Provenienzauflistung. `KnowledgePage` und MCP mappen dasselbe
+transportneutrale Ergebnis, auch wenn der wirksame Derived Content aus einer
+Fallback-Rolle stammt.
 Der Inhaltsbereich rendert Markdown sicher über `SafeMarkdownRenderer` (gemäß O-020:
 kein Raw-HTML-Rendering via `DisableHtml`, Neutralisierung von JavaScript-, Data- und
 File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine

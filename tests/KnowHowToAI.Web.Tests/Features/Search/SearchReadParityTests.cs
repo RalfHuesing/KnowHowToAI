@@ -1,10 +1,22 @@
+using Bunit;
+using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Hierarchy;
+using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Navigation;
 using KnowHowToAI.Server.Mcp.Mapping;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Search;
+using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Features.Search;
 
@@ -13,10 +25,72 @@ namespace KnowHowToAI.Web.Tests.Features.Search;
 /// Search, Snippets, Findings und Treffermetadaten gegen gemeinsame Core-Use-Cases.
 /// </summary>
 [Trait("Category", "Unit")]
-public sealed class SearchReadParityTests
+public sealed class SearchReadParityTests : BunitContext
 {
+    private static readonly SnapshotId SnapshotId = new(1);
     private static readonly RoleId RoleDeveloper = new("Developer");
     private static readonly RoleId RoleDefault = new("Default");
+
+    private sealed class FakeReleaseRepository : IReleaseRepository
+    {
+        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<Release?>(null);
+    }
+
+    [Fact]
+    public async Task Search_CommonUseCaseResult_ReachesSearchPageAndMcpContract()
+    {
+        var rootNodeId = new NodeId(Guid.Parse("20000000-0000-0000-0000-000000000010"));
+        var hitNodeId = new NodeId(Guid.Parse("20000000-0000-0000-0000-000000000011"));
+        var harness = new NavigationTestHarness(SnapshotId);
+        harness.AddNode(new Node(SnapshotId, rootNodeId, null, "Wissensbasis", null, 0, false));
+        harness.AddNode(new Node(SnapshotId, hitNodeId, rootNodeId, "Produktpfad", "Parität", 1, false));
+        var retrieval = new InMemoryRetrievalRepository(SnapshotId);
+        retrieval.ConfigureActiveRole(RoleDeveloper);
+        retrieval.ResultsToReturn =
+        [
+            new SearchHit(
+                hitNodeId,
+                "Produktpfad",
+                "Parität",
+                "Gemeinsamer Suchtreffer",
+                "Content",
+                Availability.Explicit,
+                RoleDeveloper,
+                Freshness.Current,
+                1,
+                ["VerifiedFinding"])
+        ];
+        var navigationService = harness.CreateService();
+        var searchService = harness.CreateSearchService(retrieval);
+        var query = new SearchQuery("Gemeinsam", RoleId: RoleDeveloper);
+        var applicationResult = await searchService.SearchAsync(query, new ReadContext());
+        var mcp = McpRetrievalMapper.ToEnvelope(applicationResult).Data!;
+
+        Services.AddSingleton(navigationService);
+        Services.AddSingleton(searchService);
+        Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton(new PageRegionState());
+        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new FakeReleaseRepository(), harness.CreateRepositories().Transactions));
+        Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleDeveloper.Value));
+        Services.AddSingleton(new ContextSelectorState());
+        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?roleId={RoleDeveloper.Value}");
+
+        var cut = Render<SearchPage>();
+        await cut.InvokeAsync(() => cut.Find("[data-testid='search-text']").Change(query.Text));
+        await cut.InvokeAsync(() => cut.Find("[data-testid='search-submit']").Click());
+
+        var mcpHit = Assert.Single(mcp.Items);
+        cut.WaitForAssertion(() =>
+        {
+            var renderedHit = cut.Find($"[data-testid='search-result-{mcpHit.NodeId}']").TextContent;
+            Assert.Contains(mcpHit.Title, renderedHit, StringComparison.Ordinal);
+            Assert.Contains(mcpHit.Snippet!, renderedHit, StringComparison.Ordinal);
+            Assert.Contains("Wissensbasis › Produktpfad", renderedHit, StringComparison.Ordinal);
+            Assert.Contains("VerifiedFinding", renderedHit, StringComparison.Ordinal);
+        });
+    }
 
     [Fact]
     public void SearchResults_UiAndMcpShowIdenticalHitsAndMetadata()

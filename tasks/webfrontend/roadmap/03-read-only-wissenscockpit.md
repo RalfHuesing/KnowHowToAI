@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../Roadmap.md)
 
-- [ ] **M3 abschließen**
+- [x] **M3 abschließen**
 
 Abhängigkeit: [M2](02-designsystem-und-shell.md)
 
@@ -149,7 +149,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
 
 ## M3.9 – Audit-Nacharbeiten
 
-- [ ] **M3.9 abschließen**
+- [x] **M3.9 abschließen**
   - Auditbasis: Code- und Nachweisprüfung am 2026-09-19 gegen `603f830`; M4-Arbeitsstand ist nicht Teil des Befunds.
 
   - [x] **M3.9-T1 – Tree-Circuit tatsächlich begrenzen und Request-Rennen schließen**
@@ -195,7 +195,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: Export-/Navigation-Exception, unbekannter Domaincode, Abbruch und bestehende 400/404/409-Fälle gegen echten Host; Status, `application/problem+json`, Code, Correlation-ID, fehlendes `Content-Disposition` und fehlende interne Details prüfen.
     - Abnahme: Jeder Downloadfehler erfüllt den dokumentierten HTTP-Vertrag; erfolgreiche Header/Inhalt und der deterministische Browserdownload bleiben unverändert grün.
 
-  - [ ] **M3.9-T8 – M3 erneut gesamthaft abnehmen**
+  - [x] **M3.9-T8 – M3 erneut gesamthaft abnehmen**
     - Umfang: Ist-Dokumentation erst mit dem jeweiligen implementierten Verhalten synchronisieren; insbesondere die derzeit zu weit gehenden Aussagen zu Tree-Rekonstruktion und Source-Revisions in `docs/Architektur.md` gegen echte Produktpfade prüfen. Paritätstests müssen gemeinsame Use-Case-Ergebnisse durch die tatsächlich konsumierenden Webpfade führen, nicht nur isolierte Mapper mit künstlich befüllten ViewModels vergleichen.
     - Gate: `dotnet build`, Solution-Linter mit `verdict=pass`, `score=10.0`, `violationCount=0`, vollständige FastTests und Integrationstests einschließlich Browser-Suite. Keine M3.9-Abnahme wird wegen leerem Bestand, bedingtem Testpfad oder bloßem Cachezähler grün.
     - Abnahme: Milestone-Abnahme unten ist vollständig automatisiert belegt; erst danach M3.9 und „M3 abschließen“ markieren.
