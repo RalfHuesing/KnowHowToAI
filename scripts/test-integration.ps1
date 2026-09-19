@@ -37,10 +37,12 @@ if (-not (Test-Path $resultsDir)) {
 $trxFile = 'IntegrationTests.trx'
 $projectPath = Join-Path $repoRoot 'tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj'
 
-Write-Host '[INFO] SQL-Preflight: Verbindung zur manuell bereitgestellten DatabaseConnection aus appsettings.json' -ForegroundColor Cyan
-& dotnet test $projectPath '--filter' 'FullyQualifiedName~SqlIntegrationPreflightTests' '--nologo'
-if ($LASTEXITCODE -ne 0) {
-    throw 'SQL-Preflight fehlgeschlagen. Prüfe DatabaseConnection in src/KnowHowToAI.Server/appsettings.json sowie Erreichbarkeit der manuell bereitgestellten Datenbank.'
+if ($Filter -eq 'Category=ManualDatabaseIntegration') {
+    Write-Host '[INFO] SQL-Preflight: Verbindung zur manuell bereitgestellten DatabaseConnection aus appsettings.json' -ForegroundColor Cyan
+    & dotnet test $projectPath '--filter' 'FullyQualifiedName~SqlIntegrationPreflightTests' '--nologo'
+    if ($LASTEXITCODE -ne 0) {
+        throw 'SQL-Preflight fehlgeschlagen. Prüfe DatabaseConnection in src/KnowHowToAI.Server/appsettings.json sowie Erreichbarkeit der manuell bereitgestellten Datenbank.'
+    }
 }
 
 Write-Host "[INFO] IntegrationTests (Filter: $Filter) -> TestResults/$trxFile" -ForegroundColor Cyan

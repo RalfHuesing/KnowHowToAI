@@ -46,19 +46,20 @@ public sealed class PublishedServerHost : IAsyncDisposable
 
         try
         {
+            var databaseSettings = BrowserTestDatabaseSettings.Load(repositoryRoot);
             var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);
             // Explizite Adresse für Tests, die denselben Circuit-Origin erneut
             // erreichen müssen (Hostneustart); sonst eine freie Loopback-Adresse.
             address ??= AllocateLoopbackAddress();
             var processLog = new BoundedProcessLog();
-            var serverProcess = StartServer(publishDirectory, address, processLog);
+            var serverProcess = StartServer(publishDirectory, address, processLog, databaseSettings);
             try
             {
                 // Der Server wird erst weitergereicht, wenn er tatsächlich antwortet;
                 // der erste Start einer frisch veröffentlichten EXE kann mehrere
                 // Sekunden dauern, und Browser-Navigation würde sonst ins Leere laufen.
-                await WaitForReadinessAsync(address, processLog);
+                await WaitForReadinessAsync(address, serverProcess, processLog);
                 return new PublishedServerHost(testDirectory, serverProcess, address, processLog);
             }
             catch
@@ -116,7 +117,11 @@ public sealed class PublishedServerHost : IAsyncDisposable
         }
     }
 
-    private static Process StartServer(string publishDirectory, string address, BoundedProcessLog processLog)
+    private static Process StartServer(
+        string publishDirectory,
+        string address,
+        BoundedProcessLog processLog,
+        BrowserTestDatabaseSettings databaseSettings)
     {
         var executable = Path.Combine(publishDirectory, "KnowHowToAI.Server.exe");
         if (!File.Exists(executable))
@@ -133,11 +138,26 @@ public sealed class PublishedServerHost : IAsyncDisposable
         start.ArgumentList.Add(address);
         start.ArgumentList.Add("--contentRoot");
         start.ArgumentList.Add(publishDirectory);
-        start.ArgumentList.Add("--KnowHowToAI:Migrations:ApplyOnStartup=false");
+        start.ArgumentList.Add("--KnowHowToAI:Migrations:ApplyOnStartup=true");
+        ApplyBrowserDatabaseConfiguration(start, databaseSettings);
         var process = Process.Start(start) ?? throw new InvalidOperationException("Die veröffentlichte Server-EXE konnte nicht gestartet werden.");
         _ = CollectOutputAsync(process.StandardOutput, processLog);
         _ = CollectOutputAsync(process.StandardError, processLog);
         return process;
+    }
+
+    private static void ApplyBrowserDatabaseConfiguration(
+        ProcessStartInfo start,
+        BrowserTestDatabaseSettings databaseSettings)
+    {
+        // Zugangsdaten werden nicht in ArgumentList übergeben: Betriebssysteme
+        // können Prozessargumente sichtbar machen. Die Child-Environment ist
+        // ausschließlich für die veröffentlichte Test-EXE gültig.
+        start.Environment["DatabaseConnection__Server"] = databaseSettings.Server;
+        start.Environment["DatabaseConnection__Database"] = databaseSettings.Database;
+        start.Environment["DatabaseConnection__UserName"] = databaseSettings.UserName;
+        start.Environment["DatabaseConnection__Password"] = databaseSettings.Password;
+        start.Environment["DatabaseConnection__UseWindowsAuthentication"] = databaseSettings.UseWindowsAuthentication.ToString();
     }
 
     private static async Task CollectOutputAsync(StreamReader reader, BoundedProcessLog processLog)
@@ -146,12 +166,19 @@ public sealed class PublishedServerHost : IAsyncDisposable
             processLog.Append(line);
     }
 
-    private static async Task WaitForReadinessAsync(string address, BoundedProcessLog processLog)
+    private static async Task WaitForReadinessAsync(string address, Process serverProcess, BoundedProcessLog processLog)
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(60);
         while (DateTime.UtcNow < deadline)
         {
+            if (serverProcess.HasExited)
+            {
+                throw new InvalidOperationException(
+                    $"Der veröffentlichte Server ist vor der Betriebsbereitschaft mit Exitcode {serverProcess.ExitCode} beendet worden. " +
+                    $"Letzte begrenzte Logzeilen: {string.Join(" | ", processLog.Snapshot())}");
+            }
+
             try
             {
                 _ = await client.GetAsync(address);

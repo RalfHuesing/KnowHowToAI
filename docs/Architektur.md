@@ -366,6 +366,9 @@ einer klaren deutschen Fehlermeldung fehl.
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
 kein Produktionsprojekt. Der Serverstart erfolgt einmal pro Testkollektion über
 eine gemeinsame Kollektions-Fixture; Reconnect-Smokes behalten bewusst eigene Hosts.
+Die Suite arbeitet dabei gegen die von der manuellen SQL-Integrationssuite
+getrennte Browser-Testdatenbank gemäß
+[Konfiguration und Betrieb](Konfiguration-und-Betrieb.md#konfigurationstrennung).
 Der Testhost wartet nach dem Serverstart auf eine
 erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt;
 die Prozessausgabe wird dabei begrenzt und redigiert im Speicher gesammelt und

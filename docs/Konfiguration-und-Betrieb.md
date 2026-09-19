@@ -18,15 +18,24 @@ Die Konfiguration ist strikt nach Verantwortlichkeit getrennt:
 2. **Quality-Policies** warnen, blockieren aber keinen fachlich gültigen Commit.
 3. **Retrieval-/Transportgrenzen** begrenzen Seiten- und Snippetgrößen.
 4. **Storage-/Startparameter** steuern SQL-Timeout und Migrationsverhalten.
-5. **Datenbankverbindung**: eigene, versionierte `DatabaseConnection`-Sektion in
-   `appsettings.json` mit `Server`, `Database`, `UserName`, `Password`,
-   `UseWindowsAuthentication`. Der Serverwert darf Windows-Umgebungsplatzhalter
-   enthalten (Default `%COMPUTERNAME%\MSSQLSERVER2022`, erst zur Laufzeit
-   expandiert). Es gibt **keine** alternative Connection-String-Umgebungsvariable,
-   User Secrets oder Secretstore für die Verbindung. Alle produktiven Verbindungen
-   tragen den festen `ApplicationName` `KnowHowToAi` (in `SqlConnectionFactory`
-   gesetzt, bestehende Werte im Connection String werden überschrieben) — das
-   erlaubt eindeutige Zuordnung in SQL Profiler und `sys.dm_exec_sessions`.
+5. **Datenbankverbindungen**: Die versionierten Sektionen `DatabaseConnection`
+   und `BrowserTestDatabaseConnection` in `appsettings.json` enthalten jeweils
+   `Server`, `Database`, `UserName`, `Password`, `UseWindowsAuthentication`.
+   Erstere ist die Verbindung eines normalen Serverprozesses; letztere bezeichnet
+   ausschließlich die manuell bereitgestellte, dedizierte Browser-Testdatenbank
+   `KnowHowToAi_Test`. Der Browser-Testhost liest die zweite Sektion ausschließlich
+   aus der versionierten Datei und übergibt ihre fünf Werte nur prozesslokal als
+   Environment-Overrides der veröffentlichten Test-EXE auf `DatabaseConnection`.
+   Damit bleibt die Produktbindung unverändert, die Browser-Suite benötigt nach
+   Rechnerneustart keine gesetzte Testumgebung und Zugangsdaten stehen nie in
+   Prozessargumenten oder Testdiagnosen. Beide Serverwerte dürfen
+   Windows-Umgebungsplatzhalter enthalten (Default
+   `%COMPUTERNAME%\MSSQLSERVER2022`, erst zur Laufzeit expandiert). Es gibt
+   **keine** alternative Connection-String-Umgebungsvariable, User Secrets oder
+   Secretstore für die Verbindung. Alle produktiven Verbindungen tragen den festen
+   `ApplicationName` `KnowHowToAi` (in `SqlConnectionFactory` gesetzt, bestehende
+   Werte im Connection String werden überschrieben) — das erlaubt eindeutige
+   Zuordnung in SQL Profiler und `sys.dm_exec_sessions`.
 
 ## Schlüssel, Defaults und Bereiche
 
@@ -124,7 +133,9 @@ pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatab
 - Integrationstests mit echtem SQL Server (Kategorie `ManualDatabaseIntegration`)
   laufen gegen die manuell bereitgestellte, konfigurierte Datenbank; der Harness
   erzeugt oder entfernt keine Datenbanken. Fehlende SQL-Voraussetzungen sind ein
-  klarer Preflight-Fehler, kein grüner Skip.
+  klarer Preflight-Fehler, kein grüner Skip. Das Integrationsskript führt diesen
+  Preflight ausschließlich für den expliziten `ManualDatabaseIntegration`-Lauf
+  aus, damit ein Browser-Gate nicht von dieser Datenbank abhängt.
 - Der Browser-Shell-Smoke verlangt Google Chrome Stable (installierte aktuelle
   Version) im headless `chrome`-Channel. Eine fehlende Installation ist ein
   Preflight-Fehler; Chromium oder ein anderer Browser ist kein Fallback. Der
@@ -140,6 +151,13 @@ pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatab
   Die Abhängigkeits- und Befehlsregeln stehen im Strukturkonzept unter
   „Feste Testabhängigkeiten und Befehle“
   (`tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md`).
+- Die Browser-Suite verwendet ausschließlich die manuell bereitgestellte
+  `BrowserTestDatabaseConnection` und startet die veröffentlichte Server-EXE
+  mit `Migrations:ApplyOnStartup=true`. Der Host migriert und initialisiert diese
+  dedizierte Datenbank vor seiner Betriebsbereitschaft selbst; er erstellt oder
+  entfernt keine Datenbanken. Die destruktive `ManualDatabaseIntegration`-Suite
+  verwendet weiterhin ausschließlich `DatabaseConnection`, sodass weder
+  Reihenfolge noch Restzustand der beiden Suiten relevant sind.
 - Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
   die Shell bei 1280 × 720 und 1024 × 720 gegen die versionierten PNG-Baselines
   unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`. Im regulären
