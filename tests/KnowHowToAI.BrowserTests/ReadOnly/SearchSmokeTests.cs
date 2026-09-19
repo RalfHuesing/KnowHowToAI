@@ -17,7 +17,7 @@ public sealed class SearchSmokeTests
     }
 
     [Fact]
-    public async Task Search_RendersAndExecutesAgainstTheSelectedRoleAndContext()
+    public async Task Search_FiltersFallbackContentFromTheSelectedRoleAndContext()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync();
@@ -34,28 +34,23 @@ public sealed class SearchSmokeTests
 
         var roleSelector = page.GetByTestId("context-selector-dialog");
         await Assertions.Expect(roleSelector).ToBeVisibleAsync();
-        await roleSelector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
+        await roleSelector.GetByTestId("role-option-BrowserDownloadReader").GetByRole(AriaRole.Radio).CheckAsync();
         await roleSelector.GetByTestId("selector-apply-button").ClickAsync();
-        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/search\?roleId=Default"));
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/search\?roleId=BrowserDownloadReader"));
 
         await Assertions.Expect(page.GetByTestId("search-page")).ToBeVisibleAsync();
-        await page.GetByTestId("search-text").FillAsync("TODO");
+        await page.GetByTestId("search-text").FillAsync("Markdown-Download");
         await page.GetByTestId("search-submit").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("search-results")).ToBeVisibleAsync();
 
         var fallbackFilter = page.GetByTestId("filter-availability-fallback");
         await fallbackFilter.CheckAsync();
         await Assertions.Expect(fallbackFilter).ToBeCheckedAsync();
 
         var results = page.GetByTestId("search-results");
-        var empty = page.GetByTestId("search-empty");
-        if (await results.CountAsync() > 0)
-        {
-            await Assertions.Expect(results).ToBeVisibleAsync();
-            await Assertions.Expect(results.Locator(".search-results__breadcrumb").First).ToBeVisibleAsync();
-        }
-        else
-        {
-            await Assertions.Expect(empty).ToBeVisibleAsync();
-        }
+        await Assertions.Expect(results).ToBeVisibleAsync();
+        await Assertions.Expect(results.GetByText(BrowserKnowledgeSeed.ExportNodeTitle, new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(results.Locator(".search-results__breadcrumb").First).ToBeVisibleAsync();
+        Assert.Empty(await page.GetByTestId("search-error").AllAsync());
     }
 }
