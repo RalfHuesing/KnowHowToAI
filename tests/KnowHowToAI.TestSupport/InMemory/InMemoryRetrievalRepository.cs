@@ -47,6 +47,7 @@ public sealed class InMemoryRetrievalRepository(SnapshotId snapshotId) : IRetrie
         LastRequest = request;
         var cursor = SearchCursor.TryDecode(request.Cursor);
         var hits = ResultsToReturn
+            .Where(hit => request.Filter is null || request.Filter.IsEmpty || request.Filter.Matches(hit))
             .Where(hit => cursor is null
                 || hit.SortOrder > cursor.LastSortOrder
                 || (hit.SortOrder == cursor.LastSortOrder

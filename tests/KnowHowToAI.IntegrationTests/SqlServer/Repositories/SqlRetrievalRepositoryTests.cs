@@ -1,9 +1,11 @@
 using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.IntegrationTests.TestSupport;
@@ -115,6 +117,62 @@ public sealed class SqlRetrievalRepositoryTests
         Assert.Equal(RoleDev, hit.ResolvedRoleId);
         Assert.NotNull(hit.Snippet);
         Assert.Contains("architectural", hit.Snippet);
+    }
+
+    [Fact]
+    public async Task SearchAsync_FilteredFacets_AreAppliedBeforeKeysetPaging()
+    {
+        await using var database = await SqlTestDatabase.ConnectFreshAsync();
+        await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
+
+        await using var session = await WorkingTransactionSession.BeginAsync(
+            database, new TransactionId(Guid.NewGuid()), new SequentialIdentifierGenerator(), "Filtertest");
+        await session.CreateRoleAsync(RoleDev.Value, null);
+        await session.SetResolutionAsync(RoleDev, RoleDev);
+        var source = await session.CreateNodeAsync(null, "Quelle", null, 1);
+        var target = await session.CreateNodeAsync(source.NodeId, "Gefilterter Treffer", null, 2);
+        var secondTarget = await session.CreateNodeAsync(source.NodeId, "Gefilterter zweiter Treffer", null, 3);
+        var sourceContent = await session.ReplaceIndependentContentAsync(source.NodeId, RoleDev, "Aktueller Quellinhalt");
+        await session.ReplaceDerivedContentAsync(
+            target.NodeId,
+            RoleDev,
+            "Gefilterter Inhalt",
+            [new ContentDependencySource(source.NodeId, RoleDev, sourceContent.ContentRevisionId)]);
+        await session.ReplaceDerivedContentAsync(
+            secondTarget.NodeId,
+            RoleDev,
+            "Gefilterter zweiter Inhalt",
+            [new ContentDependencySource(source.NodeId, RoleDev, sourceContent.ContentRevisionId)]);
+        await session.ReplaceIndependentContentAsync(source.NodeId, RoleDev, "Neuere Quellrevision");
+        var committed = await session.CommitAsync(database, "Filtertest committen");
+
+        var filter = new SearchFilter(
+            [RoleDev, new RoleId("AndereRolle")],
+            [Availability.Explicit, Availability.Fallback],
+            [Freshness.Stale],
+            ["StaleDerivedContent"]);
+        var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
+        var result = await repository.SearchAsync(new SearchRequest(
+            committed.WorkingSnapshotId, "Gefilterter", RoleDev, 1, null, 100, Filter: filter));
+
+        Assert.True(result.IsSuccess);
+        var hit = Assert.Single(result.Value!);
+        Assert.Equal(target.NodeId, hit.NodeId);
+        Assert.Equal(Freshness.Stale, hit.Freshness);
+        Assert.Equal(["StaleDerivedContent"], hit.Findings);
+
+        var cursor = new SearchCursor(
+            committed.WorkingSnapshotId,
+            null,
+            "Gefilterter",
+            RoleDev,
+            1,
+            hit.SortOrder,
+            hit.NodeId,
+            filter.Fingerprint).Encode();
+        var nextPage = await repository.SearchAsync(new SearchRequest(
+            committed.WorkingSnapshotId, "Gefilterter", RoleDev, 1, cursor, 100, Filter: filter));
+        Assert.Equal(secondTarget.NodeId, Assert.Single(nextPage.Value!).NodeId);
     }
 
     [Fact]

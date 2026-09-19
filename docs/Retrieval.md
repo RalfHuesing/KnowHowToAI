@@ -99,7 +99,11 @@ Die Suche kann Treffer zusätzlich nach der aufgelösten Content-Rolle,
 `Availability`, `Freshness` und vorhandenen Findings filtern. Mehrere Werte
 derselben Facette gelten als Oder; unterschiedliche Facetten als Und. Ein
 fehlender oder leerer Filter ist identisch zur ungefilterten Suche. Die Filterung
-findet vor der Rückgabe einer Trefferseite im serverseitigen Search-Use-Case statt;
+findet im Repository vor der SQL-Keyset-Seite statt; der Search-Use-Case reicht
+die unveränderte Filterauswahl nur durch. Der bestehende Search-Finding-Vertrag
+enthält den Befund `StaleDerivedContent` für den tatsächlich aufgelösten,
+veralteten Derived Content; weitere transaktionsweite Qualitätswarnungen gehören
+nicht zu einem einzelnen Suchtreffer.
 Cursor sind deshalb an die normalisierte Filterauswahl gebunden. Ein Cursor einer
 anderen Filterauswahl ist `InvalidCursor` und darf nicht für die neue Seite
 weiterverwendet werden.

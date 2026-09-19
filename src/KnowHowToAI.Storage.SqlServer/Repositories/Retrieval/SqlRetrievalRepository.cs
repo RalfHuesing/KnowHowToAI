@@ -1,11 +1,9 @@
 using Dapper;
+using System.Text.Json;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Content;
-using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Roles;
-using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -43,6 +41,48 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
             FROM ResolvedContent
             WHERE RowNum = 1
         ),
+        StaleContents AS (
+            SELECT nc.NodeId, nc.RoleId
+            FROM dbo.KnowHowToAI_NodeContent nc
+            WHERE nc.SnapshotId = @snapshotId
+              AND nc.IsDeleted = 0
+              AND nc.ContentMode = 'Derived'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM dbo.KnowHowToAI_ContentDependency cd
+                  WHERE cd.SnapshotId = nc.SnapshotId
+                    AND cd.TargetNodeId = nc.NodeId
+                    AND cd.TargetRoleId = nc.RoleId)
+            UNION ALL
+            SELECT cd.TargetNodeId, cd.TargetRoleId
+            FROM dbo.KnowHowToAI_ContentDependency cd
+            INNER JOIN dbo.KnowHowToAI_NodeContent target
+                ON target.SnapshotId = cd.SnapshotId
+               AND target.NodeId = cd.TargetNodeId
+               AND target.RoleId = cd.TargetRoleId
+               AND target.IsDeleted = 0
+               AND target.ContentMode = 'Derived'
+            LEFT JOIN dbo.KnowHowToAI_NodeContent source
+                ON source.SnapshotId = cd.SnapshotId
+               AND source.NodeId = cd.SourceNodeId
+               AND source.RoleId = cd.SourceRoleId
+               AND source.IsDeleted = 0
+            WHERE cd.SnapshotId = @snapshotId
+              AND (source.NodeId IS NULL OR source.ContentRevisionId <> cd.SourceContentRevisionId)
+            UNION ALL
+            SELECT cd.TargetNodeId, cd.TargetRoleId
+            FROM dbo.KnowHowToAI_ContentDependency cd
+            INNER JOIN dbo.KnowHowToAI_NodeContent target
+                ON target.SnapshotId = cd.SnapshotId
+               AND target.NodeId = cd.TargetNodeId
+               AND target.RoleId = cd.TargetRoleId
+               AND target.IsDeleted = 0
+               AND target.ContentMode = 'Derived'
+            INNER JOIN StaleContents stale
+                ON stale.NodeId = cd.SourceNodeId
+               AND stale.RoleId = cd.SourceRoleId
+            WHERE cd.SnapshotId = @snapshotId
+        ),
         MatchedNodes AS (
             SELECT
                 n.NodeId,
@@ -58,6 +98,20 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
                     WHEN arc.RoleId = @roleId THEN 1
                     ELSE 2
                 END AS AvailabilityCode,
+                CASE
+                    WHEN arc.RoleId IS NULL THEN 0
+                    WHEN arc.ContentMode = 'Independent' THEN 1
+                    WHEN arc.ContentMode = 'Derived'
+                         AND EXISTS (SELECT 1 FROM StaleContents stale WHERE stale.NodeId = arc.NodeId AND stale.RoleId = arc.RoleId) THEN 2
+                    WHEN arc.ContentMode = 'Derived' THEN 1
+                    ELSE 0
+                END AS FreshnessCode,
+                CASE
+                    WHEN arc.ContentMode = 'Derived'
+                         AND EXISTS (SELECT 1 FROM StaleContents stale WHERE stale.NodeId = arc.NodeId AND stale.RoleId = arc.RoleId)
+                        THEN 'StaleDerivedContent'
+                    ELSE NULL
+                END AS FindingCode,
                 CASE
                     WHEN n.Title LIKE @likePattern ESCAPE '\' THEN 1
                     WHEN n.Description LIKE @likePattern ESCAPE '\' THEN 2
@@ -86,17 +140,24 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
             ContentMode,
             ContentMd,
             AvailabilityCode,
+            FreshnessCode,
+            FindingCode,
             HitRank,
             HitField
         FROM MatchedNodes
         WHERE HitRank IS NOT NULL
+          AND (@hasResolvedRoleFilter = 0 OR ResolvedRoleId IN (SELECT [value] FROM OPENJSON(@resolvedRoleFilter)))
+          AND (@hasAvailabilityFilter = 0 OR AvailabilityCode IN (SELECT CONVERT(int, [value]) FROM OPENJSON(@availabilityFilter)))
+          AND (@hasFreshnessFilter = 0 OR FreshnessCode IN (SELECT CONVERT(int, [value]) FROM OPENJSON(@freshnessFilter)))
+          AND (@hasFindingFilter = 0 OR FindingCode IN (SELECT [value] FROM OPENJSON(@findingFilter)))
           AND (
               @hasCursor = 0
               OR HitRank > @lastRank
               OR (HitRank = @lastRank AND SortOrder > @lastSortOrder)
               OR (HitRank = @lastRank AND SortOrder = @lastSortOrder AND NodeId > @lastNodeId)
           )
-        ORDER BY HitRank ASC, SortOrder ASC, NodeId ASC;
+        ORDER BY HitRank ASC, SortOrder ASC, NodeId ASC
+        OPTION (MAXRECURSION 32767);
         """;
 
     internal const string ListDependenciesSql = """
@@ -148,6 +209,7 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
 
         var cursor = SearchCursor.TryDecode(request.Cursor);
         var escapedText = LikeEscaping.Escape(request.Text);
+        var filterParameters = CreateFilterParameters(request.Filter);
         var parameters = new
         {
             snapshotId = request.SnapshotId.Value,
@@ -157,7 +219,15 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
             hasCursor = cursor is not null ? 1 : 0,
             lastRank = cursor?.LastRank ?? 0,
             lastSortOrder = cursor?.LastSortOrder ?? 0,
-            lastNodeId = cursor?.LastNodeId.Value ?? Guid.Empty
+            lastNodeId = cursor?.LastNodeId.Value ?? Guid.Empty,
+            hasResolvedRoleFilter = filterParameters.HasResolvedRoleFilter,
+            resolvedRoleFilter = filterParameters.ResolvedRoleFilter,
+            hasAvailabilityFilter = filterParameters.HasAvailabilityFilter,
+            availabilityFilter = filterParameters.AvailabilityFilter,
+            hasFreshnessFilter = filterParameters.HasFreshnessFilter,
+            freshnessFilter = filterParameters.FreshnessFilter,
+            hasFindingFilter = filterParameters.HasFindingFilter,
+            findingFilter = filterParameters.FindingFilter
         };
 
         await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -223,33 +293,25 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
                 Array.Empty<SearchHit>(), changeVersion, roleData?.Roles, roleData?.Resolutions);
         }
 
-        var derivedHitsExist = rows.Any(r => string.Equals(r.ContentMode, SqlPersistedValues.ContentDerived, StringComparison.Ordinal));
-        var (allContents, allDependencies) = derivedHitsExist
-            ? await LoadDerivedContentsAndDependenciesAsync(connection, databaseTransaction, request.SnapshotId.Value, cancellationToken).ConfigureAwait(false)
-            : (null, null);
-
         await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
-        var hits = rows.Select(r => MapRowToSearchHit(r, request, allContents, allDependencies)).ToArray();
+        var hits = rows.Select(row => MapRowToSearchHit(row, request)).ToArray();
         return new SearchRepositoryResult(hits, changeVersion, roleData?.Roles, roleData?.Resolutions);
     }
 
-    private async Task<(IReadOnlyList<NodeContent> Contents, IReadOnlyList<ContentDependency> Dependencies)> LoadDerivedContentsAndDependenciesAsync(
-        SqlConnection connection,
-        Microsoft.Data.SqlClient.SqlTransaction databaseTransaction,
-        long snapshotId,
-        CancellationToken cancellationToken)
-    {
-        var contentRows = await connection.QueryAsync<NodeContentRow>(
-            CreateCommand(ListContentsSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
-        var contents = contentRows.Select(SqlRowMapper.ToNodeContent).ToArray();
+    private static SearchFilterParameters CreateFilterParameters(SearchFilter? filter) => new(
+        HasValues(filter?.ResolvedRoleIds),
+        Serialize(filter?.ResolvedRoleIds?.Select(role => role.Value)),
+        HasValues(filter?.Availabilities),
+        Serialize(filter?.Availabilities?.Select(value => (int)value)),
+        HasValues(filter?.Freshnesses),
+        Serialize(filter?.Freshnesses?.Select(value => (int)value)),
+        HasValues(filter?.FindingCodes),
+        Serialize(filter?.FindingCodes));
 
-        var depRows = await connection.QueryAsync<ContentDependencyRow>(
-            CreateCommand(ListDependenciesSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
-        var dependencies = depRows.Select(SqlRowMapper.ToContentDependency).ToArray();
+    private static int HasValues<T>(IReadOnlyList<T>? values) => values is { Count: > 0 } ? 1 : 0;
 
-        return (contents, dependencies);
-    }
+    private static string Serialize<T>(IEnumerable<T>? values) => JsonSerializer.Serialize(values ?? []);
 
     private async Task<(IReadOnlyList<Role> Roles, IReadOnlyList<RoleResolution> Resolutions)> LoadRoleResolutionDataAsync(
         SqlConnection connection,
@@ -270,9 +332,7 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
 
     private static SearchHit MapRowToSearchHit(
         SearchHitRow row,
-        SearchRequest request,
-        IReadOnlyList<NodeContent>? contents,
-        IReadOnlyList<ContentDependency>? dependencies)
+        SearchRequest request)
     {
         var snippet = row.HitField switch
         {
@@ -282,12 +342,10 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
             _ => null
         };
 
-        var freshness = DetermineFreshness(row, contents, dependencies, request.SnapshotId);
+        var freshness = (Freshness)row.FreshnessCode;
         var resolvedRoleId = row.ResolvedRoleId is not null ? new RoleId(row.ResolvedRoleId) : (RoleId?)null;
 
-        var findings = freshness == Freshness.Stale
-            ? new[] { QualityWarningCodes.StaleDerivedContent }
-            : Array.Empty<string>();
+        var findings = row.FindingCode is null ? Array.Empty<string>() : [row.FindingCode];
 
         return new SearchHit(
             new NodeId(row.NodeId),
@@ -302,38 +360,6 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
             findings);
     }
 
-    private static Freshness DetermineFreshness(
-        SearchHitRow row,
-        IReadOnlyList<NodeContent>? contents,
-        IReadOnlyList<ContentDependency>? dependencies,
-        SnapshotId snapshotId)
-    {
-        if (row.ResolvedRoleId is null)
-            return Freshness.Unknown;
-
-        if (string.Equals(row.ContentMode, SqlPersistedValues.ContentIndependent, StringComparison.Ordinal))
-            return Freshness.Current;
-
-        if (string.Equals(row.ContentMode, SqlPersistedValues.ContentDerived, StringComparison.Ordinal)
-            && contents is not null
-            && dependencies is not null
-            && row.ContentRevisionId.HasValue)
-        {
-            var nodeContent = new NodeContent(
-                snapshotId,
-                new NodeId(row.NodeId),
-                new RoleId(row.ResolvedRoleId),
-                new ContentRevisionId(row.ContentRevisionId.Value),
-                ContentMode.Derived,
-                row.ContentMd ?? string.Empty,
-                false);
-
-            return FreshnessEvaluator.Evaluate(nodeContent, contents, dependencies);
-        }
-
-        return Freshness.Unknown;
-    }
-
     private sealed class SearchHitRow
     {
         public Guid NodeId { get; init; }
@@ -345,7 +371,19 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         public string? ContentMode { get; init; }
         public string? ContentMd { get; init; }
         public int AvailabilityCode { get; init; }
+        public int FreshnessCode { get; init; }
+        public string? FindingCode { get; init; }
         public int HitRank { get; init; }
         public string HitField { get; init; } = string.Empty;
     }
+
+    private sealed record SearchFilterParameters(
+        int HasResolvedRoleFilter,
+        string ResolvedRoleFilter,
+        int HasAvailabilityFilter,
+        string AvailabilityFilter,
+        int HasFreshnessFilter,
+        string FreshnessFilter,
+        int HasFindingFilter,
+        string FindingFilter);
 }

@@ -60,73 +60,40 @@ public sealed class SearchService
             return Result<SearchResultPage>.Failure(cursorError);
 
         var effectiveLimit = ResolveEffectiveLimit(query.Limit);
-        var filteredResult = await LoadFilteredHitsAsync(query, resolvedContext, effectiveLimit, cancellationToken)
-            .ConfigureAwait(false);
-        if (!filteredResult.IsSuccess)
-            return Result<SearchResultPage>.Failure(filteredResult.Error!);
+        var request = new SearchRequest(
+            resolvedContext.SnapshotId,
+            query.Text,
+            query.RoleId,
+            effectiveLimit + 1,
+            query.Cursor,
+            _retrievalPolicy.SnippetMaximumCharacters,
+            resolvedContext.TransactionId,
+            query.Filter);
 
-        var filtered = filteredResult.Value!;
-        var effectiveContext = filtered.ChangeVersion != resolvedContext.ChangeVersion
-            ? resolvedContext with { ChangeVersion = filtered.ChangeVersion }
+        var searchResult = await _repos.Retrieval.SearchAsync(request, cancellationToken).ConfigureAwait(false);
+        if (!searchResult.IsSuccess)
+            return Result<SearchResultPage>.Failure(searchResult.Error!);
+
+        var results = searchResult.Value!;
+        var effectiveChangeVersion = results.ChangeVersion ?? resolvedContext.ChangeVersion;
+
+        var validationError = ValidateBatch(query, resolvedContext, results, effectiveChangeVersion);
+        if (validationError is not null)
+            return Result<SearchResultPage>.Failure(validationError);
+
+        var hasNext = results.Count > effectiveLimit;
+        var pageItems = results.Take(effectiveLimit).ToArray();
+
+        var effectiveContext = effectiveChangeVersion != resolvedContext.ChangeVersion
+            ? resolvedContext with { ChangeVersion = effectiveChangeVersion }
             : resolvedContext;
 
-        var nextCursor = filtered.HasNext && filtered.Items.Count > 0
-            ? CreateNextCursor(filtered.Items[^1], effectiveContext, query)
+        var nextCursor = hasNext && pageItems.Length > 0
+            ? CreateNextCursor(pageItems[^1], effectiveContext, query)
             : null;
 
         return Result<SearchResultPage>.Success(
-            new SearchResultPage(query.Text, filtered.Items, nextCursor));
-    }
-
-    private async Task<Result<FilteredSearchHits>> LoadFilteredHitsAsync(
-        SearchQuery query,
-        ResolvedReadContext resolvedContext,
-        int effectiveLimit,
-        CancellationToken cancellationToken)
-    {
-        var items = new List<SearchHit>(effectiveLimit + 1);
-        var repositoryCursor = query.Cursor;
-        var batchSize = effectiveLimit + 1;
-        long? effectiveChangeVersion = resolvedContext.ChangeVersion;
-
-        while (items.Count <= effectiveLimit)
-        {
-            var request = new SearchRequest(
-                resolvedContext.SnapshotId,
-                query.Text,
-                query.RoleId,
-                batchSize,
-                repositoryCursor,
-                _retrievalPolicy.SnippetMaximumCharacters,
-                resolvedContext.TransactionId,
-                query.Filter);
-
-            var searchResult = await _repos.Retrieval.SearchAsync(request, cancellationToken).ConfigureAwait(false);
-            if (!searchResult.IsSuccess)
-                return Result<FilteredSearchHits>.Failure(searchResult.Error!);
-
-            var results = searchResult.Value!;
-            effectiveChangeVersion = results.ChangeVersion ?? effectiveChangeVersion;
-
-            var validationError = ValidateBatch(query, resolvedContext, results, effectiveChangeVersion);
-            if (validationError is not null)
-                return Result<FilteredSearchHits>.Failure(validationError);
-
-            AddMatchingHits(items, results, query.Filter, effectiveLimit);
-
-            if (items.Count > effectiveLimit || results.Count < batchSize)
-                return Result<FilteredSearchHits>.Success(new FilteredSearchHits(
-                    items.Take(effectiveLimit).ToArray(),
-                    items.Count > effectiveLimit,
-                    effectiveChangeVersion));
-
-            repositoryCursor = CreateNextCursor(results[^1], resolvedContext with { ChangeVersion = effectiveChangeVersion }, query);
-        }
-
-        return Result<FilteredSearchHits>.Success(new FilteredSearchHits(
-            items.Take(effectiveLimit).ToArray(),
-            items.Count > effectiveLimit,
-            effectiveChangeVersion));
+            new SearchResultPage(query.Text, Array.AsReadOnly(pageItems), nextCursor));
     }
 
     private static DomainError? ValidateBatch(
@@ -136,22 +103,6 @@ public sealed class SearchService
         long? effectiveChangeVersion) =>
         ValidateRequestedRoleResolution(query, resolvedContext, results)
         ?? ValidateLockedCursorChangeVersion(query.Cursor, resolvedContext.Source, effectiveChangeVersion);
-
-    private static void AddMatchingHits(
-        ICollection<SearchHit> target,
-        IReadOnlyList<SearchHit> hits,
-        SearchFilter? filter,
-        int effectiveLimit)
-    {
-        foreach (var hit in hits)
-        {
-            if (filter is null || filter.IsEmpty || filter.Matches(hit))
-                target.Add(hit);
-
-            if (target.Count > effectiveLimit)
-                return;
-        }
-    }
 
     private static DomainError? ValidateRequestedRoleResolution(
         SearchQuery query,
@@ -272,8 +223,4 @@ public sealed class SearchService
         _ => 3
     };
 
-    private sealed record FilteredSearchHits(
-        IReadOnlyList<SearchHit> Items,
-        bool HasNext,
-        long? ChangeVersion);
 }
