@@ -2,7 +2,7 @@
 
 [Roadmap-Index](Roadmap.md)
 
-- [ ] **AF4 abschließen**
+- [x] **AF4 abschließen**
 
 Abhängigkeit: keine inhaltliche; AF1.1-T1 sollte abgeschlossen sein, damit der erweiterte Shell-Smoke auf dem Kollektions-Host läuft (kein hartes Kriterium — der Test funktioniert auch mit dem bisherigen pro-Test-Host).
 
@@ -12,9 +12,9 @@ Entscheidung (durch diese Roadmap getroffen, keine neue Offenheit): **Das Wurzel
 
 ## AF4.1 – Attribut und Lesung
 
-- [ ] **AF4.1 abschließen**
+- [x] **AF4.1 abschließen**
 
-  - [ ] **AF4.1-T1 – `data-ktai-dirty`-Attribut etablieren und `beforeunload` darauf umstellen**
+  - [x] **AF4.1-T1 – `data-ktai-dirty`-Attribut etablieren und `beforeunload` darauf umstellen**
     - `src/KnowHowToAI.Server/Web/Components/Layout/KnowledgeContextBar.razor`: am Wurzelelement `<div class="knowledge-context" role="group" aria-label="Wissenskontext">` das Attribut `data-ktai-dirty="@(Context.IsDirty ? "true" : "false")"` ergänzen. Keine weiteren Markup-Änderungen; das bestehende `AppStatus`-Verhalten (Icon plus Text nur bei `IsDirty`) bleibt unverändert.
     - `src/KnowHowToAI.Server/Web/Components/Layout/ReconnectModal.razor.js`: den `beforeunload`-Listener ersetzen. Alt (wortwörtlich):
 
