@@ -166,6 +166,48 @@ public sealed class SearchServiceTests
     }
 
     [Fact]
+    public async Task SearchAsync_FiltersFacetsWithOrInsideAndAcrossGroupsBeforePaging()
+    {
+        var harness = new SearchTestHarness(CurrentSnapshotId);
+        var fallbackRole = new RoleId("Shared");
+        harness.RetrievalRepo.ConfigureActiveRole(RoleDev);
+        harness.RetrievalRepo.ResultsToReturn =
+        [
+            new(new NodeId(Guid.Parse("11111111-1111-1111-1111-111111111111")), "Explicit", null, null, "Title", Availability.Explicit, RoleDev, Freshness.Current, 1),
+            new(new NodeId(Guid.Parse("22222222-2222-2222-2222-222222222222")), "Fallback", null, null, "Title", Availability.Fallback, fallbackRole, Freshness.Stale, 2, ["StaleDerivedContent"]),
+            new(new NodeId(Guid.Parse("33333333-3333-3333-3333-333333333333")), "Other", null, null, "Title", Availability.Fallback, new RoleId("Other"), Freshness.Stale, 3, ["StaleDerivedContent"])
+        ];
+        var filter = new SearchFilter(
+            [RoleDev, fallbackRole],
+            [Availability.Explicit, Availability.Fallback],
+            [Freshness.Stale],
+            ["StaleDerivedContent"]);
+
+        var result = await harness.CreateService().SearchAsync(
+            new SearchQuery("text", Limit: 1, RoleId: RoleDev, Filter: filter), new ReadContext());
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Fallback", Assert.Single(result.Value!.Items).Title);
+        Assert.Equal(filter, harness.RetrievalRepo.LastRequest!.Filter);
+    }
+
+    [Fact]
+    public async Task SearchAsync_CursorFromAnotherFilter_ReturnsInvalidCursor()
+    {
+        var harness = new SearchTestHarness(CurrentSnapshotId);
+        var oldFilter = new SearchFilter(Availabilities: [Availability.Explicit]);
+        var cursor = new SearchCursor(
+            CurrentSnapshotId, null, "text", null, 1, 0, new NodeId(Guid.NewGuid()), oldFilter.Fingerprint).Encode();
+
+        var result = await harness.CreateService().SearchAsync(
+            new SearchQuery("text", Cursor: cursor, Filter: new SearchFilter(Availabilities: [Availability.Fallback])),
+            new ReadContext());
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(SearchErrorCodes.InvalidCursor, result.Error!.Code);
+    }
+
+    [Fact]
     public async Task SearchAsync_WithoutRole_DoesNotRequireRoleResolutionData()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);

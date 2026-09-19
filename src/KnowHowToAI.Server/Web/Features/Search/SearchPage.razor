@@ -26,7 +26,8 @@
     else if (_isReady)
     {
         <SearchForm IsSearching="@_isSearching" OnSearch="StartSearchAsync" />
-        <SearchResults Page="@_page" IsSearching="@_isSearching" ErrorMessage="@_searchErrorMessage"
+        <KnowledgeFilter Filter="@_filter" Roles="@_filterRoles" IsSearching="@_isSearching" OnChanged="ApplyFilterAsync" />
+        <SearchResults Page="@_page" IsSearching="@_isSearching" ErrorMessage="@_searchErrorMessage" HasFilter="@(!_filter.IsEmpty)"
                        OnNext="LoadNextPageAsync" OnNavigate="NavigateToNode" />
     }
 </section>

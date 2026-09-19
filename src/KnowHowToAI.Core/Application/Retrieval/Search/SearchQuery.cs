@@ -10,7 +10,8 @@ public sealed record SearchQuery(
     string Text,
     int? Limit = null,
     string? Cursor = null,
-    RoleId? RoleId = null);
+    RoleId? RoleId = null,
+    SearchFilter? Filter = null);
 
 /// <summary>Paginiertes Suchergebnis mit Snippets.</summary>
 public sealed record SearchResultPage(
@@ -28,4 +29,5 @@ public sealed record SearchHit(
     Availability Availability,
     RoleId? ResolvedRoleId,
     Freshness Freshness,
-    int SortOrder = 0);
+    int SortOrder = 0,
+    IReadOnlyList<string>? Findings = null);

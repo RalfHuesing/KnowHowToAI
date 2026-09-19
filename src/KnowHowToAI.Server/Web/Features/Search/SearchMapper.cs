@@ -23,7 +23,8 @@ public static class SearchMapper
             hit.ResolvedRoleId?.Value,
             hit.Freshness.ToString(),
             hit.SortOrder,
-            [hit.Title]);
+            [hit.Title],
+            hit.Findings ?? []);
     }
 
     public static SearchPageViewModel ToSearchPageViewModel(SearchResultPage page)

@@ -5,6 +5,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -284,6 +285,10 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         var freshness = DetermineFreshness(row, contents, dependencies, request.SnapshotId);
         var resolvedRoleId = row.ResolvedRoleId is not null ? new RoleId(row.ResolvedRoleId) : (RoleId?)null;
 
+        var findings = freshness == Freshness.Stale
+            ? new[] { QualityWarningCodes.StaleDerivedContent }
+            : Array.Empty<string>();
+
         return new SearchHit(
             new NodeId(row.NodeId),
             row.Title,
@@ -293,7 +298,8 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
             (Availability)row.AvailabilityCode,
             resolvedRoleId,
             freshness,
-            row.SortOrder);
+            row.SortOrder,
+            findings);
     }
 
     private static Freshness DetermineFreshness(

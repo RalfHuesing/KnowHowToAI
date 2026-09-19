@@ -17,6 +17,7 @@ public sealed partial class KnowledgeTree : IDisposable
 
     private readonly Dictionary<Guid, ElementReference> _nodeElements = new();
     private Guid? _focusedNodeId;
+    private Guid? _lastSelectedNodeId;
     private bool _isDisposed;
 
     private Guid? EffectiveFocusedNodeId
@@ -40,6 +41,17 @@ public sealed partial class KnowledgeTree : IDisposable
     protected override void OnInitialized()
     {
         TreeWorkspace.Changed += HandleTreeStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var selectedNodeId = TreeWorkspace.SelectedNodeId;
+        if (selectedNodeId is not { } nodeId || _lastSelectedNodeId == nodeId || !_nodeElements.TryGetValue(nodeId, out var element))
+            return;
+
+        _lastSelectedNodeId = nodeId;
+        _focusedNodeId = nodeId;
+        await element.FocusAsync();
     }
 
     private void HandleTreeStateChanged()

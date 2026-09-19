@@ -206,6 +206,13 @@ vorherigen Request ab; verspätete Ergebnisse werden nicht gerendert. Die ergän
 `NavigationService`, sodass Razor weiterhin nur Search-ViewModels und keine
 Domain-Typen rendert.
 
+`KnowledgeFilter` hält die Auswahl von aufgelöster Rolle, Availability,
+Freshness und Findings ausschließlich featurelokal. Werte innerhalb einer
+Facette werden als Oder, verschiedene Facetten als Und an `SearchService`
+übergeben. Ein Filterwechsel verwirft Trefferseite und Cursor; der Tree bleibt
+unverändert. Die Navigation eines Treffers lädt dessen Pfad über den bestehenden
+Tree-Workspace und setzt den Fokus auf das ausgewählte Treeitem.
+
 Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
 wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,
 `Fehler`) und rendern Inhalt und Farbe über die zentrale

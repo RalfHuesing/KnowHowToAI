@@ -45,7 +45,15 @@ public sealed class InMemoryRetrievalRepository(SnapshotId snapshotId) : IRetrie
     {
         CallCount++;
         LastRequest = request;
+        var cursor = SearchCursor.TryDecode(request.Cursor);
+        var hits = ResultsToReturn
+            .Where(hit => cursor is null
+                || hit.SortOrder > cursor.LastSortOrder
+                || (hit.SortOrder == cursor.LastSortOrder
+                    && hit.NodeId.Value.CompareTo(cursor.LastNodeId.Value) > 0))
+            .Take(request.Limit)
+            .ToArray();
         return Task.FromResult(Result<SearchRepositoryResult>.Success(new SearchRepositoryResult(
-            ResultsToReturn, ChangeVersionToReturn, Roles, Resolutions)));
+            hits, ChangeVersionToReturn, Roles, Resolutions)));
     }
 }

@@ -22,7 +22,8 @@ public sealed class SearchMapperTests
             Availability.Explicit,
             resolvedRoleId,
             Freshness.Current,
-            SortOrder: 3);
+            SortOrder: 3,
+            Findings: ["StaleDerivedContent"]);
 
         var vm = SearchMapper.ToSearchHitViewModel(hit);
 
@@ -36,6 +37,7 @@ public sealed class SearchMapperTests
         Assert.Equal("Current", vm.Freshness);
         Assert.Equal(3, vm.SortOrder);
         Assert.Equal(["Schnittstellen"], vm.Breadcrumb);
+        Assert.Equal(["StaleDerivedContent"], vm.Findings);
     }
 
     [Fact]

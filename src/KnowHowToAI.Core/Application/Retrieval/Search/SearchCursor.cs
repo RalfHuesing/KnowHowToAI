@@ -16,7 +16,8 @@ public sealed record SearchCursor(
     RoleId? RoleId,
     int LastRank,
     int LastSortOrder,
-    NodeId LastNodeId)
+    NodeId LastNodeId,
+    string? FilterFingerprint = null)
 {
     /// <summary>Serialisiert und kodiert den Cursor als opaken Base64Url-String.</summary>
     public string Encode()
@@ -28,7 +29,8 @@ public sealed record SearchCursor(
             RoleId?.Value,
             LastRank,
             LastSortOrder,
-            LastNodeId.Value);
+            LastNodeId.Value,
+            FilterFingerprint);
 
         var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(dto);
         return Base64Url.EncodeToString(jsonBytes);
@@ -58,7 +60,8 @@ public sealed record SearchCursor(
                 validDto.RoleId is not null ? new RoleId(validDto.RoleId) : null,
                 validDto.LastRank,
                 validDto.LastSortOrder,
-                new NodeId(validDto.LastNodeId));
+                new NodeId(validDto.LastNodeId),
+                validDto.FilterFingerprint);
         }
         catch
         {
@@ -83,5 +86,6 @@ public sealed record SearchCursor(
         string? RoleId,
         int LastRank,
         int LastSortOrder,
-        Guid LastNodeId);
+        Guid LastNodeId,
+        string? FilterFingerprint = null);
 }

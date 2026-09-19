@@ -1,0 +1,27 @@
+.knowledge-filter {
+    display: grid;
+    gap: var(--ktai-space-3);
+    margin: var(--ktai-space-4) 0;
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-small);
+    padding: var(--ktai-space-3);
+}
+
+.knowledge-filter__hint {
+    margin: 0;
+}
+
+.knowledge-filter__group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-2);
+}
+
+.knowledge-filter__group label {
+    white-space: nowrap;
+}
+
+.knowledge-filter__label {
+    width: 100%;
+    font-weight: 600;
+}

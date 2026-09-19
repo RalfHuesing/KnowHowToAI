@@ -42,6 +42,10 @@ public sealed class SearchSmokeTests
         await page.GetByTestId("search-text").FillAsync("TODO");
         await page.GetByTestId("search-submit").ClickAsync();
 
+        var fallbackFilter = page.GetByTestId("filter-availability-fallback");
+        await fallbackFilter.CheckAsync();
+        await Assertions.Expect(fallbackFilter).ToBeCheckedAsync();
+
         var results = page.GetByTestId("search-results");
         var empty = page.GetByTestId("search-empty");
         if (await results.CountAsync() > 0)

@@ -24,4 +24,5 @@ public sealed record SearchHitViewModel(
     string? ResolvedRoleId,
     string Freshness,
     int SortOrder,
-    IReadOnlyList<string> Breadcrumb);
+    IReadOnlyList<string> Breadcrumb,
+    IReadOnlyList<string>? Findings = null);

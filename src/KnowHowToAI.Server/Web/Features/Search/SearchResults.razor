@@ -15,7 +15,7 @@ else if (!string.IsNullOrWhiteSpace(ErrorMessage))
 else if (Page is { } resultPage && resultPage.Items.Count == 0)
 {
     <p class="search-results__empty" data-testid="search-empty" role="status">
-        Keine Treffer für „@resultPage.Query“ gefunden.
+        @(HasFilter ? $"Keine Treffer für „{resultPage.Query}“ mit den gewählten Filtern gefunden." : $"Keine Treffer für „{resultPage.Query}“ gefunden.")
     </p>
 }
 else if (Page is { } results)
@@ -37,6 +37,10 @@ else if (Page is { } results)
                             <span class="search-results__snippet">@hit.Snippet</span>
                         }
                         <span class="search-results__metadata">Treffer in @MapHitField(hit.HitField)</span>
+                        @if (hit.Findings is { Count: > 0 })
+                        {
+                            <span class="search-results__metadata">@string.Join(", ", hit.Findings)</span>
+                        }
                     </button>
                 </li>
             }

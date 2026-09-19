@@ -15,6 +15,9 @@ public sealed partial class SearchResults
     public string? ErrorMessage { get; set; }
 
     [Parameter]
+    public bool HasFilter { get; set; }
+
+    [Parameter]
     public EventCallback OnNext { get; set; }
 
     [Parameter]

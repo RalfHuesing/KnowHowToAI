@@ -13,4 +13,5 @@ public sealed record SearchRequest(
     int Limit,
     string? Cursor,
     int SnippetMaxChars,
-    TransactionId? TransactionId = null);
+    TransactionId? TransactionId = null,
+    SearchFilter? Filter = null);

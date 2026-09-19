@@ -1,0 +1,31 @@
+@namespace KnowHowToAI.Server.Web.Features.Search
+@using Microsoft.AspNetCore.Components.Web
+
+<fieldset class="knowledge-filter" data-testid="knowledge-filter">
+    <legend>Treffer filtern</legend>
+    <p class="knowledge-filter__hint">Mehrere Werte einer Gruppe erweitern die Auswahl. Gruppen werden gemeinsam eingeschränkt.</p>
+
+    <div class="knowledge-filter__group">
+        <span class="knowledge-filter__label">Aufgelöste Rolle</span>
+        @foreach (var role in Roles)
+        {
+            <label><input type="checkbox" checked="@Filter.ResolvedRoleIds.Contains(role.Value)" @onclick="() => ToggleRoleAsync(role.Value)" data-testid="filter-role-@role.Value" /> @role.Label</label>
+        }
+    </div>
+    <div class="knowledge-filter__group">
+        <span class="knowledge-filter__label">Verfügbarkeit</span>
+        <label><input type="checkbox" checked="@Filter.Availabilities.Contains(Explicit)" @onclick="() => ToggleAvailabilityAsync(Explicit)" data-testid="filter-availability-explicit" /> Eigener Inhalt</label>
+        <label><input type="checkbox" checked="@Filter.Availabilities.Contains(Fallback)" @onclick="() => ToggleAvailabilityAsync(Fallback)" data-testid="filter-availability-fallback" /> Fallback</label>
+        <label><input type="checkbox" checked="@Filter.Availabilities.Contains(None)" @onclick="() => ToggleAvailabilityAsync(None)" data-testid="filter-availability-none" /> Kein Inhalt</label>
+    </div>
+    <div class="knowledge-filter__group">
+        <span class="knowledge-filter__label">Freshness</span>
+        <label><input type="checkbox" checked="@Filter.Freshnesses.Contains(Current)" @onclick="() => ToggleFreshnessAsync(Current)" data-testid="filter-freshness-current" /> Aktuell</label>
+        <label><input type="checkbox" checked="@Filter.Freshnesses.Contains(Stale)" @onclick="() => ToggleFreshnessAsync(Stale)" data-testid="filter-freshness-stale" /> Veraltet</label>
+        <label><input type="checkbox" checked="@Filter.Freshnesses.Contains(Unknown)" @onclick="() => ToggleFreshnessAsync(Unknown)" data-testid="filter-freshness-unknown" /> Unbekannt</label>
+    </div>
+    <div class="knowledge-filter__group">
+        <span class="knowledge-filter__label">Findings</span>
+        <label><input type="checkbox" checked="@Filter.FindingCodes.Contains(StaleDerivedContent)" @onclick="() => ToggleFindingAsync(StaleDerivedContent)" data-testid="filter-finding-stale" /> Abgeleiteter Inhalt ist veraltet</label>
+    </div>
+</fieldset>

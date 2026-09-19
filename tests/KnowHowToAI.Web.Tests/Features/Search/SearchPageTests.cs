@@ -134,6 +134,34 @@ public sealed class SearchPageTests : BunitContext
     }
 
     [Fact]
+    public async Task SearchPage_FilterChange_ClearsOldCursorAndRequestsServerSideFilter()
+    {
+        var setup = ConfigureSearch(searchPageSize: 10);
+        var rootId = new NodeId(Guid.Parse("60000000-0000-0000-0000-000000000006"));
+        setup.Harness.AddNode(new Node(SnapshotId, rootId, null, "Root", null, 0, false));
+        setup.Repository.ResultsToReturn =
+        [
+            new SearchHit(rootId, "Eigener Treffer", null, "TODO", "Content", Availability.Explicit, RoleId, Freshness.Current, 1),
+            new SearchHit(new NodeId(Guid.Parse("70000000-0000-0000-0000-000000000007")), "Fallback Treffer", null, "TODO", "Content", Availability.Fallback, RoleId, Freshness.Current, 2)
+        ];
+
+        var cut = Render<SearchPage>();
+        await cut.InvokeAsync(() => cut.Find("[data-testid='search-text']").Change("TODO"));
+        await cut.InvokeAsync(() => cut.Find("[data-testid='search-submit']").Click());
+        cut.WaitForAssertion(() => Assert.Contains("Eigener Treffer", cut.Find("[data-testid='search-results']").TextContent));
+
+        await cut.InvokeAsync(() => cut.Find("[data-testid='filter-availability-fallback']").Click());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("Fallback Treffer", cut.Find("[data-testid='search-results']").TextContent);
+            Assert.DoesNotContain("Eigener Treffer", cut.Find("[data-testid='search-results']").TextContent);
+            Assert.Null(setup.Repository.LastRequest!.Cursor);
+            Assert.Equal([Availability.Fallback], setup.Repository.LastRequest.Filter!.Availabilities);
+        });
+    }
+
+    [Fact]
     public void SearchPage_ContextSwitch_ClearsFeatureLocalResultsAndUsesTheNewReadContext()
     {
         var setup = ConfigureSearch(searchPageSize: 10);

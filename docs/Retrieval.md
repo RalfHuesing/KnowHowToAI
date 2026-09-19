@@ -32,7 +32,7 @@ Betrieb](Konfiguration-und-Betrieb.md)):
 - `limit` gilt einheitlich: fehlend oder ≤ 0 ergibt die konfigurierte
   Standardseitengröße, Werte über dem Maximum werden auf das Maximum geklemmt.
 - Cursor-Strings bleiben opak und werden unverändert weitergereicht.
-- Der Cursor ist an Snapshot, Suchtext, Rolle und – bei Working Reads – an die
+- Der Cursor ist an Snapshot, Suchtext, Rolle, die normalisierte Suchfilterauswahl und – bei Working Reads – an die
   `ChangeVersion` der Transaction gebunden. Eine zwischenzeitliche Mutation oder
   ein Wechsel des Current Snapshots führt stabil zu `CursorExpired`; eine falsche
   Snapshot-/Filterbindung zu `InvalidCursor`.
@@ -94,6 +94,15 @@ Deterministisches Ranking:
 
 Bei gleichem Rang erfolgt die Sortierung stabil nach `sortOrder` aufsteigend, dann
 nach `NodeId`.
+
+Die Suche kann Treffer zusätzlich nach der aufgelösten Content-Rolle,
+`Availability`, `Freshness` und vorhandenen Findings filtern. Mehrere Werte
+derselben Facette gelten als Oder; unterschiedliche Facetten als Und. Ein
+fehlender oder leerer Filter ist identisch zur ungefilterten Suche. Die Filterung
+findet vor der Rückgabe einer Trefferseite im serverseitigen Search-Use-Case statt;
+Cursor sind deshalb an die normalisierte Filterauswahl gebunden. Ein Cursor einer
+anderen Filterauswahl ist `InvalidCursor` und darf nicht für die neue Seite
+weiterverwendet werden.
 
 Sicherheit und Snippets: alle Abfragen sind ausnahmslos parametrisiert, es gibt
 keine dynamische SQL-Konkatenation; SQL-LIKE-Sonderzeichen (`%`, `_`, `[`, `\`)

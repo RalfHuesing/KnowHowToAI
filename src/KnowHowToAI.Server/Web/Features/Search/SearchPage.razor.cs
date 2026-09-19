@@ -64,6 +64,8 @@ public sealed partial class SearchPage : IDisposable
     private string? _activeText;
     private string? _contextErrorMessage;
     private string? _searchErrorMessage;
+    private SearchFilterViewModel _filter = SearchFilterViewModel.Empty;
+    private IReadOnlyList<SearchFilterOptionViewModel> _filterRoles = [];
     private bool _hasNoRoles;
     private bool _isReady;
     private bool _isSearching;
@@ -100,6 +102,8 @@ public sealed partial class SearchPage : IDisposable
         _isReady = false;
         _readContext = null;
         _roleId = null;
+        _filter = SearchFilterViewModel.Empty;
+        _filterRoles = [];
     }
 
     private async Task ApplyResolvedContextAsync(WebReadContextResolution resolution)
@@ -140,6 +144,7 @@ public sealed partial class SearchPage : IDisposable
         }
 
         var selectedRole = roles.First(role => role.RoleId.Value == roleId);
+        _filterRoles = roles.Select(role => new SearchFilterOptionViewModel(role.RoleId.Value, role.Name)).ToArray();
         var selectedContext = contextViewModel with { RoleName = selectedRole.Name };
         PageRegions.SetKnowledgeContext(selectedContext);
         WorkspaceState.SetContext(selectedContext, readContext);
@@ -179,6 +184,14 @@ public sealed partial class SearchPage : IDisposable
 
     private Task LoadNextPageAsync() => ExecuteSearchAsync(_page?.NextCursor);
 
+    private Task ApplyFilterAsync(SearchFilterViewModel filter)
+    {
+        _filter = filter;
+        CancelSearch(clearResults: false);
+        _page = null;
+        return _activeText is null ? Task.CompletedTask : ExecuteSearchAsync(cursor: null);
+    }
+
     private async Task ExecuteSearchAsync(string? cursor)
     {
         if (_readContext is null || string.IsNullOrWhiteSpace(_roleId) || _activeText is null)
@@ -202,7 +215,11 @@ public sealed partial class SearchPage : IDisposable
 
         try
         {
-            var query = new SearchQuery(_activeText, Cursor: cursor, RoleId: new RoleId(_roleId));
+            var query = new SearchQuery(
+                _activeText,
+                Cursor: cursor,
+                RoleId: new RoleId(_roleId),
+                Filter: ToSearchFilter());
             var result = await SearchService.SearchAsync(query, _readContext, requestCts.Token);
             if (generation != _searchGeneration || requestCts.IsCancellationRequested)
             {
@@ -247,6 +264,18 @@ public sealed partial class SearchPage : IDisposable
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         NavigationManager.NavigateTo($"/knowledge/{nodeId}{uri.Query}");
+    }
+
+    private KnowHowToAI.Core.Application.Retrieval.Search.SearchFilter? ToSearchFilter()
+    {
+        if (_filter.IsEmpty)
+            return null;
+
+        return new KnowHowToAI.Core.Application.Retrieval.Search.SearchFilter(
+            _filter.ResolvedRoleIds.Select(value => new RoleId(value)).ToArray(),
+            _filter.Availabilities.Select(Enum.Parse<Availability>).ToArray(),
+            _filter.Freshnesses.Select(Enum.Parse<Freshness>).ToArray(),
+            _filter.FindingCodes);
     }
 
     private void CancelSearch(bool clearResults)
