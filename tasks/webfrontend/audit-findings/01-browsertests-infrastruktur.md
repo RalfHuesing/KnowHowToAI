@@ -49,9 +49,9 @@ Gemessener Ausgangszustand (2026-09-19, siehe [Roadmap-Index](Roadmap.md)): 10 `
 
 ## AF1.3 – Testdauer-Sichtbarkeit
 
-- [ ] **AF1.3 abschließen**
+- [x] **AF1.3 abschließen**
 
-  - [ ] **AF1.3-T1 – Testdauer-Auswertung in den Testskripten etablieren**
+  - [x] **AF1.3-T1 – Testdauer-Auswertung in den Testskripten etablieren**
     - Neue Datei `scripts/test-durations.ps1` (`#requires -Version 7.0`): Parameter `[string[]]$TrxPath` (Pflicht) und `[int]$Top = 15`. Das Skript parst die übergebenen TRX-Dateien (XML-Namespace `http://microsoft.com/schemas/VisualStudio/TeamTest/2010`), ordnet über `UnitTestResult.testId` → `UnitTest/TestMethod.className` zu, summiert Dauern je Klasse (Dauerformat `HH:MM:SS.fffffff`) und druckt: Gesamtsumme, Testanzahl und eine absteigend sortierte Tabelle der `Top`-Klassen mit Summe, Anzahl und längstem Einzeltest. Fehlende Datei: klare deutsche Fehlermeldung, Exit 1. Keine Abhängigkeit außer PowerShell-Bordmitteln.
     - `scripts/test-fast.ps1`: nach jedem erfolgreichen `dotnet test`-Lauf eines Projekts den Aufruf `& (Join-Path $PSScriptRoot 'test-durations.ps1') -TrxPath $trxFilePath` ergänzen (Pfad der gerade geschriebenen TRX). Der Aufruf darf den Exitcode des Skripts nicht beeinflussen (Eigene `try/catch`-Klammer mit Warnungsausgabe).
     - `scripts/test-integration.ps1`: gleiche Ergänzung für beide erzeugten TRX-Dateien `TestResults/IntegrationTests.trx` und `TestResults/IntegrationTests.Browser.trx`.
