@@ -2,7 +2,7 @@
 
 [Roadmap-Index](Roadmap.md)
 
-- [ ] **AF3 abschließen**
+- [x] **AF3 abschließen**
 
 Abhängigkeit: keine (unabhängig von AF1/AF2/AF4; darf parallel oder danach ausgeführt werden, aber seriell im Worktree wie jeder andere Leaf-Task).
 
@@ -16,9 +16,9 @@ Es geht ausschließlich um Ablage und Namespaces — kein Testinhalt, keine Asse
 
 ## AF3.1 – Ordner und Namespaces
 
-- [ ] **AF3.1 abschließen**
+- [x] **AF3.1 abschließen**
 
-  - [ ] **AF3.1-T1 – Testdateien an die Produktionsstruktur verschieben**
+  - [x] **AF3.1-T1 – Testdateien an die Produktionsstruktur verschieben**
     - Verschiebungen mit `git mv` (erhält die Historie):
       - `tests/KnowHowToAI.Web.Tests/Features/Shell/MainLayoutTests.cs` → `tests/KnowHowToAI.Web.Tests/Components/Layout/MainLayoutTests.cs`
       - `tests/KnowHowToAI.Web.Tests/Features/Shell/KnowledgeContextBarTests.cs` → `tests/KnowHowToAI.Web.Tests/Components/Layout/KnowledgeContextBarTests.cs`
