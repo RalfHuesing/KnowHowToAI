@@ -27,12 +27,7 @@ public sealed class LayoutShellSmokeTests
     [Fact]
     public async Task DesktopViewportShowsColumnsAndScrollsLongContentWithoutHorizontalOverflow()
     {
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
@@ -72,12 +67,7 @@ public sealed class LayoutShellSmokeTests
     [Fact]
     public async Task CompactViewportCollapsesSideRegionsWithFocusAndEscapeHandoff()
     {
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             ViewportSize = new ViewportSize { Width = 1024, Height = 720 }
@@ -130,6 +120,7 @@ public sealed class LayoutShellSmokeTests
         // Wie im Shell-Smoke kann ein Klick vor der fertigen Circuit-Verdrahtung
         // ankommen und wird dann verworfen; erneut klicken, bis das Panel sichtbar ist.
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
+        const int maxAttempts = 10;
         for (var attempt = 1; ; attempt++)
         {
             await navigationToggle.ClickAsync();
@@ -138,7 +129,7 @@ public sealed class LayoutShellSmokeTests
                 await Assertions.Expect(navigation).ToBeVisibleAsync(new() { Timeout = 2_000 });
                 return;
             }
-            catch (PlaywrightException) when (attempt < 10)
+            catch (PlaywrightException) when (attempt < maxAttempts)
             {
                 // Circuit noch nicht verbunden; erneut klicken.
             }

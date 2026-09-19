@@ -10,12 +10,7 @@ public sealed class ReconnectOverlaySmokeTests
     public async Task InterruptedConnection_ShowsReconnectOverlayAndContinuesCircuitAfterSuccessfulReconnect()
     {
         await using var host = await PublishedServerHost.StartAsync();
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
@@ -28,7 +23,7 @@ public sealed class ReconnectOverlaySmokeTests
 
         // Circuit bereit machen: Interaktivitätsnachweis wie im M1-Smoke.
         var interactionStatus = page.GetByTestId("interaction-status");
-        await EnsureInteractivityAsync(page, interactionStatus);
+        await CircuitProbe.WaitForInteractivityAsync(page);
 
         var reconnectDialog = page.Locator("#components-reconnect-modal");
         await page.Context.SetOfflineAsync(true);
@@ -55,7 +50,7 @@ public sealed class ReconnectOverlaySmokeTests
         // und der M1-Interaktionsnachweis antwortet erneut.
         await Assertions.Expect(interactionStatus).ToHaveTextAsync(
             "Interaktivität ist verfügbar.", new() { Timeout = 5_000 });
-        await EnsureInteractivityAsync(page, interactionStatus);
+        await CircuitProbe.WaitForInteractivityAsync(page);
 
         // Erfolgreicher Reconnect zeigt keinen fachlichen Erfolgshinweis.
         Assert.Empty(await page.Locator(".toast-region__toast").AllAsync());
@@ -65,12 +60,7 @@ public sealed class ReconnectOverlaySmokeTests
     public async Task ExpiredCircuitAfterHostRestart_ShowsSessionLostOverlayAndReloadRestoresShell()
     {
         var host = await PublishedServerHost.StartAsync();
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
@@ -85,7 +75,7 @@ public sealed class ReconnectOverlaySmokeTests
         // etabliert ist, dessen Verlust die Reconnect-Oberfläche auslöst.
         await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync(
             "Shell bereit", new() { Timeout = 15_000 });
-        await EnsureInteractivityAsync(page, page.GetByTestId("interaction-status"));
+        await CircuitProbe.WaitForInteractivityAsync(page);
 
         // Hostneustart am selben Loopback-Origin: der Circuit des Browsers
         // existiert im neuen Prozess nicht mehr und wird beim nächsten
@@ -112,26 +102,5 @@ public sealed class ReconnectOverlaySmokeTests
         await reloadButton.ClickAsync();
         await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync(
             "Shell bereit", new() { Timeout = 30_000 });
-    }
-
-    private static async Task EnsureInteractivityAsync(IPage page, ILocator interactionStatus)
-    {
-        // Der Klick kann ankommen, bevor der Circuit das Ereignis verdrahtet
-        // hat; erneut klicken, bis der beobachtbare Statuswechsel vorliegt.
-        for (var attempt = 1; ; attempt++)
-        {
-            await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
-            try
-            {
-                await Assertions.Expect(interactionStatus).ToHaveTextAsync(
-                    "Interaktivität ist verfügbar.",
-                    new() { Timeout = 2_000 });
-                break;
-            }
-            catch (PlaywrightException) when (attempt < 10)
-            {
-                // Circuit noch nicht verbunden; erneut klicken.
-            }
-        }
     }
 }

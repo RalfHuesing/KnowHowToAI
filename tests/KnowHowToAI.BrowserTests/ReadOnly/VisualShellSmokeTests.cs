@@ -37,12 +37,7 @@ public sealed class VisualShellSmokeTests
     [MemberData(nameof(ShellViewports))]
     public async Task ShellMatchesTheVersionedLightThemeBaseline(int width, int height, string baselineFileName)
     {
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             ViewportSize = new ViewportSize { Width = width, Height = height },
@@ -61,22 +56,7 @@ public sealed class VisualShellSmokeTests
         // Circuit-Interaktivität belegen, denn beim Verbinden setzt die Seite
         // ihren Status zurück und rendert „Shell wird initialisiert.“ erneut;
         // erst danach ist der Shell-Status stabil.
-        var interactionStatus = page.GetByTestId("interaction-status");
-        for (var attempt = 1; ; attempt++)
-        {
-            await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
-            try
-            {
-                await Assertions.Expect(interactionStatus).ToHaveTextAsync(
-                    "Interaktivität ist verfügbar.",
-                    new() { Timeout = 2_000 });
-                break;
-            }
-            catch (PlaywrightException) when (attempt < 10)
-            {
-                // Circuit noch nicht verbunden; erneut klicken.
-            }
-        }
+        await CircuitProbe.WaitForInteractivityAsync(page);
 
         await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync("Shell bereit");

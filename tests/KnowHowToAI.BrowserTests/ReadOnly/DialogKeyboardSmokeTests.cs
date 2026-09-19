@@ -18,12 +18,7 @@ public sealed class DialogKeyboardSmokeTests
     [Fact]
     public async Task DialogKeyboardSequenceTrapsFocusAndReturnsItOnEscape()
     {
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync();
         var observedRequests = new List<string>();
         page.Request += (_, request) => observedRequests.Add(request.Url);

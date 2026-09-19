@@ -35,12 +35,7 @@ public sealed class ResponsiveShellSmokeTests
     [Fact]
     public async Task NarrowReflowWidthsShowAllContentWithoutHorizontalOverflow()
     {
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             ViewportSize = new ViewportSize { Width = 640, Height = 720 }
@@ -64,12 +59,7 @@ public sealed class ResponsiveShellSmokeTests
     [Fact]
     public async Task KeyboardSequenceFromDocumentStartUsesSkipLinkNavigationAndPanel()
     {
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Channel = "chrome",
-            Headless = true
-        });
+        await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
             ViewportSize = new ViewportSize { Width = 1024, Height = 720 }
@@ -194,6 +184,7 @@ public sealed class ResponsiveShellSmokeTests
     private static async Task OpenNavigationWithKeyboardAsync(IPage page, ILocator navigationToggle)
     {
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
+        const int maxAttempts = 10;
         for (var attempt = 1; ; attempt++)
         {
             await navigationToggle.PressAsync("Enter");
@@ -202,7 +193,7 @@ public sealed class ResponsiveShellSmokeTests
                 await Assertions.Expect(navigation).ToBeVisibleAsync(new() { Timeout = 2_000 });
                 return;
             }
-            catch (PlaywrightException) when (attempt < 10)
+            catch (PlaywrightException) when (attempt < maxAttempts)
             {
                 // Circuit noch nicht verbunden; erneut senden.
             }
