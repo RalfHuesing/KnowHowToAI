@@ -123,7 +123,9 @@ public static class HistoryMapper
         {
             var side = change.After ?? change.Before;
             entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Role", side!.RoleId.Value,
-                Detail: side.RoleId.Value, Before: change.Before is null ? null : $"Name: {change.Before.Name}", After: change.After is null ? null : $"Name: {change.After.Name}"));
+                Detail: side.RoleId.Value,
+                Before: change.Before is null ? null : DescribeRole(change.Before),
+                After: change.After is null ? null : DescribeRole(change.After)));
         }
     }
 
@@ -168,10 +170,13 @@ public static class HistoryMapper
     }
 
     private static string DescribeNode(KnowHowToAI.Core.Domain.Hierarchy.Node node) =>
-        $"Titel: {node.Title}; Position: {node.SortOrder}; Parent: {node.ParentNodeId?.Value.ToString() ?? "Root"}";
+        $"Titel: {node.Title}; Beschreibung: {node.Description ?? "Keine"}; Position: {node.SortOrder}; Parent: {node.ParentNodeId?.Value.ToString() ?? "Root"}";
+
+    private static string DescribeRole(KnowHowToAI.Core.Domain.Roles.Role role) =>
+        $"Name: {role.Name}; Beschreibung: {role.Description ?? "Keine"}";
 
     private static string DescribeContent(KnowHowToAI.Core.Domain.Content.NodeContent content) =>
-        $"Modus: {content.ContentMode}; Revision: {content.ContentRevisionId}";
+        $"Modus: {content.ContentMode}; Revision: {content.ContentRevisionId}; Inhalt: {content.ContentMd}";
 
     private static string DescribeDependency(KnowHowToAI.Core.Domain.Dependencies.ContentDependency dependency) =>
         $"Quelle: {dependency.SourceNodeId}/{dependency.SourceRoleId}; Revision: {dependency.SourceContentRevisionId}";

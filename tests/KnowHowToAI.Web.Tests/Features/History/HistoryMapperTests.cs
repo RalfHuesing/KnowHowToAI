@@ -1,5 +1,6 @@
 using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
@@ -110,6 +111,50 @@ public sealed class HistoryMapperTests
         Assert.Equal("Added", nEntry.Kind);
         Assert.Equal(nodeId.Value.ToString(), nEntry.PrimaryId);
         Assert.Equal("Neuer Node", nEntry.Detail);
+    }
+
+    [Fact]
+    public void ToSnapshotDiffViewModel_DescribesChangedDomainValuesForHumanComparison()
+    {
+        var snapshotId = new SnapshotId(2);
+        var nodeId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000001"));
+        var roleId = new RoleId("Developer");
+        var oldRevisionId = new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000001"));
+        var newRevisionId = new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000002"));
+
+        var diff = new SnapshotDiff(
+            new SnapshotId(1),
+            snapshotId,
+            [new NodeDiffEntry(
+                DiffChangeKind.Modified,
+                new Node(new SnapshotId(1), nodeId, null, "Titel", "Alte Beschreibung", 1, false),
+                new Node(snapshotId, nodeId, null, "Titel", "Neue Beschreibung", 1, false))],
+            [new RoleDiffEntry(
+                DiffChangeKind.Modified,
+                new Role(new SnapshotId(1), roleId, "Entwickler", "Alte Rollenbeschreibung", false),
+                new Role(snapshotId, roleId, "Entwickler", "Neue Rollenbeschreibung", false))],
+            [],
+            [new ContentDiffEntry(
+                DiffChangeKind.Modified,
+                new NodeContent(new SnapshotId(1), nodeId, roleId, oldRevisionId, ContentMode.Independent, "Alter Inhalt", false),
+                new NodeContent(snapshotId, nodeId, roleId, newRevisionId, ContentMode.Independent, "Neuer Inhalt", false))],
+            [],
+            NextCursor: null,
+            TotalCount: 3);
+
+        var entries = HistoryMapper.ToSnapshotDiffViewModel(diff).Entries;
+
+        var node = Assert.Single(entries, entry => entry.EntityType == "Node");
+        Assert.Contains("Alte Beschreibung", node.Before);
+        Assert.Contains("Neue Beschreibung", node.After);
+
+        var role = Assert.Single(entries, entry => entry.EntityType == "Role");
+        Assert.Contains("Alte Rollenbeschreibung", role.Before);
+        Assert.Contains("Neue Rollenbeschreibung", role.After);
+
+        var content = Assert.Single(entries, entry => entry.EntityType == "Content");
+        Assert.Contains("Alter Inhalt", content.Before);
+        Assert.Contains("Neuer Inhalt", content.After);
     }
 
     [Fact]
