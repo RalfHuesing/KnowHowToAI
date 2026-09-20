@@ -224,6 +224,40 @@ public sealed class ContentMutationApplicationServiceTests
         Assert.Equal(1, repository.ChangeVersion);
     }
 
+    [Fact]
+    public async Task ReplaceContentAsync_StaleChangeVersion_IsRejectedWithoutChangingWorkingState()
+    {
+        var repository = new InMemoryContentMutationRepository(State([Content(DeveloperRoleId, SourceRevisionId, "Alt")]));
+        var service = CreateService(repository);
+
+        var current = await service.ReplaceContentAsync(
+            TransactionId,
+            new ReplaceContentRequest(
+                NodeId,
+                DeveloperRoleId,
+                ContentMode.Independent,
+                "Aktuell",
+                [],
+                ExpectedChangeVersion: 0));
+        var stale = await service.ReplaceContentAsync(
+            TransactionId,
+            new ReplaceContentRequest(
+                NodeId,
+                DeveloperRoleId,
+                ContentMode.Independent,
+                "Veraltet",
+                [],
+                ExpectedChangeVersion: 0));
+
+        Assert.True(current.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal("Aktuell", repository.State.Contents.Single().ContentMd);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
     private static ContentMutationApplicationService CreateService(InMemoryContentMutationRepository repository) =>
         new(
             repository,

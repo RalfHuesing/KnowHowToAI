@@ -12,5 +12,6 @@ public interface IRoleMutationRepository
     Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        long? expectedChangeVersion = null);
 }

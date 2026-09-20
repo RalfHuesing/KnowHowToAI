@@ -249,6 +249,28 @@ public sealed class RoleMutationServiceTests
         Assert.Equal(1, repository.ChangeVersion);
     }
 
+    [Fact]
+    public async Task UpdateRoleAsync_StaleChangeVersion_IsRejectedWithoutChangingWorkingState()
+    {
+        var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId, "Alt")]));
+        var service = new RoleMutationService(repository);
+
+        var current = await service.UpdateRoleMutationAsync(
+            TransactionId,
+            new UpdateRoleMutationRequest(DefaultRoleId, DefaultRoleId.Value, "Aktuell", ExpectedChangeVersion: 0));
+        var stale = await service.UpdateRoleMutationAsync(
+            TransactionId,
+            new UpdateRoleMutationRequest(DefaultRoleId, DefaultRoleId.Value, "Veraltet", ExpectedChangeVersion: 0));
+
+        Assert.True(current.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal("Aktuell", repository.State.Roles.Single().Description);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
     private static WorkingRoleMutationState State(
         IReadOnlyList<Role>? roles = null,
         IReadOnlyList<RoleResolution>? resolutions = null,

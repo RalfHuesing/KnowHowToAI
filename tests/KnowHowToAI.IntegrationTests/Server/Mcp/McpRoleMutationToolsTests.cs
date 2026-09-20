@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
@@ -38,7 +39,28 @@ public sealed class McpRoleMutationToolsTests
         Assert.Equal("Developer", envelope.Data!.RoleId);
         Assert.Equal("Developer", envelope.Data.Name);
         Assert.Equal("Entwicklerrolle", envelope.Data.Description);
+        Assert.Equal(SnapshotId.ToString(), envelope.Data.SnapshotId);
+        Assert.Equal(1, envelope.Data.ChangeVersion);
         Assert.Null(envelope.Message);
+    }
+
+    [Fact]
+    public async Task UpdateRole_StaleChangeVersion_IsRejectedWithStableDetails()
+    {
+        var repository = StateWithRoles(RoleDeveloper);
+        var tools = CreateTools(repository);
+
+        var current = await tools.UpdateRole(
+            TransactionId.ToString(), RoleDeveloper.Value, "Aktuell", null, expectedChangeVersion: 0);
+        var stale = await tools.UpdateRole(
+            TransactionId.ToString(), RoleDeveloper.Value, "Veraltet", null, expectedChangeVersion: 0);
+
+        Assert.True(current.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details![TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal("Aktuell", repository.State.Roles.Single().Name);
     }
 
     [Fact]

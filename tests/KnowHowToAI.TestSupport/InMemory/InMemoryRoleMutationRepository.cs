@@ -2,6 +2,7 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Mutations.Roles;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.Core.Application.Transactions;
 
 namespace KnowHowToAI.TestSupport;
 
@@ -27,10 +28,23 @@ public sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState stat
     public Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long? expectedChangeVersion = null)
     {
         if (Rejection is not null)
             return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(Rejection));
+
+        if (expectedChangeVersion.HasValue && expectedChangeVersion.Value != ChangeVersion)
+        {
+            return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(new DomainError(
+                TransactionValidationErrorCodes.ChangeVersionConflict,
+                "Die Transaction wurde zwischen Laden und Speichern geändert.",
+                new Dictionary<string, string>
+                {
+                    [TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expectedChangeVersion.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    [TransactionValidationErrorCodes.ActualChangeVersionDetail] = ChangeVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                })));
+        }
 
         var previousState = State;
         var decisionResult = mutate(previousState);

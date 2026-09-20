@@ -9,27 +9,82 @@ public sealed class RoleMutationService(IRoleMutationRepository repository)
 {
     private readonly IRoleMutationRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
-    public Task<Result<Role>> CreateRoleAsync(TransactionId transactionId, string name, string? description, CancellationToken cancellationToken = default)
+    public async Task<Result<Role>> CreateRoleAsync(TransactionId transactionId, string name, string? description, CancellationToken cancellationToken = default, long? expectedChangeVersion = null)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return Task.FromResult(Result<Role>.Failure(RoleNameRequiredError()));
-        return ExecuteRoleAsync(transactionId, state => CreateRoleDecision(state, name, description), cancellationToken);
+            return Result<Role>.Failure(RoleNameRequiredError());
+        var result = await CreateRoleMutationAsync(transactionId, name, description, expectedChangeVersion, cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? Result<Role>.Success(result.Value!.Role) : Result<Role>.Failure(result.Error!, result.Warnings);
     }
 
-    public Task<Result<Role>> UpdateRoleAsync(TransactionId transactionId, RoleId roleId, string name, string? description, CancellationToken cancellationToken = default)
+    public async Task<Result<Role>> UpdateRoleAsync(TransactionId transactionId, RoleId roleId, string name, string? description, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return Task.FromResult(Result<Role>.Failure(RoleNameRequiredError()));
-        return ExecuteRoleAsync(transactionId, state => UpdateRoleDecision(state, roleId, name, description), cancellationToken);
+            return Result<Role>.Failure(RoleNameRequiredError());
+        var result = await UpdateRoleMutationAsync(transactionId, new UpdateRoleMutationRequest(roleId, name, description), cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? Result<Role>.Success(result.Value!.Role) : Result<Role>.Failure(result.Error!, result.Warnings);
     }
 
-    public Task<Result<Role>> DeleteRoleAsync(TransactionId transactionId, RoleId roleId, CancellationToken cancellationToken = default) =>
-        ExecuteRoleAsync(transactionId, state => DeleteRoleDecision(state, roleId), cancellationToken);
+    public async Task<Result<Role>> DeleteRoleAsync(TransactionId transactionId, RoleId roleId, CancellationToken cancellationToken = default, long? expectedChangeVersion = null)
+    {
+        var result = await DeleteRoleMutationAsync(transactionId, roleId, expectedChangeVersion, cancellationToken).ConfigureAwait(false);
+        return result.IsSuccess ? Result<Role>.Success(result.Value!.Role) : Result<Role>.Failure(result.Error!, result.Warnings);
+    }
+
+    public Task<Result<RoleMutationResult>> CreateRoleMutationAsync(
+        TransactionId transactionId,
+        string name,
+        string? description,
+        long? expectedChangeVersion = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return Task.FromResult(Result<RoleMutationResult>.Failure(RoleNameRequiredError()));
+        return ExecuteRoleMutationAsync(transactionId, state => CreateRoleDecision(state, name, description), expectedChangeVersion, cancellationToken);
+    }
+
+    public Task<Result<RoleMutationResult>> UpdateRoleMutationAsync(
+        TransactionId transactionId,
+        UpdateRoleMutationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return Task.FromResult(Result<RoleMutationResult>.Failure(RoleNameRequiredError()));
+        return ExecuteRoleMutationAsync(transactionId, state => UpdateRoleDecision(state, request.RoleId, request.Name, request.Description), request.ExpectedChangeVersion, cancellationToken);
+    }
+
+    public Task<Result<RoleMutationResult>> DeleteRoleMutationAsync(
+        TransactionId transactionId,
+        RoleId roleId,
+        long? expectedChangeVersion = null,
+        CancellationToken cancellationToken = default) =>
+        ExecuteRoleMutationAsync(transactionId, state => DeleteRoleDecision(state, roleId), expectedChangeVersion, cancellationToken);
 
     public async Task<Result<IReadOnlyList<RoleResolution>>> SetRoleResolutionAsync(
         TransactionId transactionId,
         RoleId requestedRoleId,
         IEnumerable<RoleId> candidateRoleIds,
+        CancellationToken cancellationToken = default,
+        long? expectedChangeVersion = null)
+    {
+        ArgumentNullException.ThrowIfNull(candidateRoleIds);
+        var candidates = candidateRoleIds.ToArray();
+        var result = await _repository.ExecuteAsync(
+            transactionId,
+            state => SetResolutionDecision(state, requestedRoleId, candidates),
+            cancellationToken,
+            expectedChangeVersion).ConfigureAwait(false);
+        return result.IsSuccess
+            ? Result<IReadOnlyList<RoleResolution>>.Success(result.Value!.Value)
+            : Result<IReadOnlyList<RoleResolution>>.Failure(result.Error!);
+    }
+
+    public async Task<Result<RoleResolutionMutationResult>> SetRoleResolutionMutationAsync(
+        TransactionId transactionId,
+        RoleId requestedRoleId,
+        IEnumerable<RoleId> candidateRoleIds,
+        long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(candidateRoleIds);
@@ -37,19 +92,31 @@ public sealed class RoleMutationService(IRoleMutationRepository repository)
         var result = await _repository.ExecuteAsync(
             transactionId,
             state => SetResolutionDecision(state, requestedRoleId, candidates),
-            cancellationToken).ConfigureAwait(false);
-        return result.IsSuccess
-            ? Result<IReadOnlyList<RoleResolution>>.Success(result.Value!.Value)
-            : Result<IReadOnlyList<RoleResolution>>.Failure(result.Error!);
+            cancellationToken,
+            expectedChangeVersion).ConfigureAwait(false);
+        if (!result.IsSuccess)
+            return Result<RoleResolutionMutationResult>.Failure(result.Error!, result.Warnings);
+
+        var execution = result.Value!;
+        return Result<RoleResolutionMutationResult>.Success(
+            new RoleResolutionMutationResult(requestedRoleId, execution.Value, execution.SnapshotId, execution.ChangeVersion),
+            result.Warnings);
     }
 
-    private async Task<Result<Role>> ExecuteRoleAsync(
+    private async Task<Result<RoleMutationResult>> ExecuteRoleMutationAsync(
         TransactionId transactionId,
         Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<Role>>> mutate,
+        long? expectedChangeVersion,
         CancellationToken cancellationToken)
     {
-        var result = await _repository.ExecuteAsync(transactionId, mutate, cancellationToken).ConfigureAwait(false);
-        return result.IsSuccess ? Result<Role>.Success(result.Value!.Value) : Result<Role>.Failure(result.Error!);
+        var result = await _repository.ExecuteAsync(transactionId, mutate, cancellationToken, expectedChangeVersion).ConfigureAwait(false);
+        if (!result.IsSuccess)
+            return Result<RoleMutationResult>.Failure(result.Error!, result.Warnings);
+
+        var execution = result.Value!;
+        return Result<RoleMutationResult>.Success(
+            new RoleMutationResult(execution.Value, execution.SnapshotId, execution.ChangeVersion),
+            result.Warnings);
     }
 
     private static Result<WorkingRoleMutationDecision<Role>> CreateRoleDecision(WorkingRoleMutationState state, string name, string? description)

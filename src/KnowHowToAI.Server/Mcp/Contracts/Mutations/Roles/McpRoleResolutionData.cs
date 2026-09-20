@@ -8,7 +8,9 @@ namespace KnowHowToAI.Server.Mcp.Contracts.Mutations.Roles;
 /// </summary>
 public sealed record McpRoleResolutionData(
     [property: JsonPropertyName("requestedRoleId")] string RequestedRoleId,
-    [property: JsonPropertyName("items")] IReadOnlyList<McpRoleResolutionItemData> Items);
+    [property: JsonPropertyName("items")] IReadOnlyList<McpRoleResolutionItemData> Items,
+    [property: JsonPropertyName("snapshotId")] string? SnapshotId = null,
+    [property: JsonPropertyName("changeVersion")] long? ChangeVersion = null);
 
 /// <summary>Ein expliziter Kandidat der Resolution Order mit seiner 1-basierten Priorität.</summary>
 public sealed record McpRoleResolutionItemData(

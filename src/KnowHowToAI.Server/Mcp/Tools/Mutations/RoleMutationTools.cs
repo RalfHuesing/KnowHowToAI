@@ -29,14 +29,15 @@ internal sealed class RoleMutationTools
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Name der neuen Rolle; er bestimmt den roleId.")] string name,
         [Description("Optionale Beschreibung der Rolle.")] string? description = null,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
         if (!parsedTransactionId.IsSuccess)
             return McpToolEnvelope<McpRoleData>.Failure(parsedTransactionId.Error!);
 
-        return McpMutationMapper.ToEnvelope(await _roleMutationService
-            .CreateRoleAsync(parsedTransactionId.Value, name, description, cancellationToken)
+        return McpMutationMapper.ToRoleMutationEnvelope(await _roleMutationService
+            .CreateRoleMutationAsync(parsedTransactionId.Value, name, description, expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 
@@ -48,14 +49,15 @@ internal sealed class RoleMutationTools
         [Description("Rollen-ID aus einer vorherigen Tool-Antwort.")] string roleId,
         [Description("Neuer Name der Rolle.")] string name,
         [Description("Optionale neue Beschreibung der Rolle.")] string? description = null,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
         if (!parsedTransactionId.IsSuccess)
             return McpToolEnvelope<McpRoleData>.Failure(parsedTransactionId.Error!);
 
-        return McpMutationMapper.ToEnvelope(await _roleMutationService
-            .UpdateRoleAsync(parsedTransactionId.Value, new RoleId(roleId), name, description, cancellationToken)
+        return McpMutationMapper.ToRoleMutationEnvelope(await _roleMutationService
+            .UpdateRoleMutationAsync(parsedTransactionId.Value, new UpdateRoleMutationRequest(new RoleId(roleId), name, description, expectedChangeVersion), cancellationToken)
             .ConfigureAwait(false));
     }
 
@@ -65,14 +67,15 @@ internal sealed class RoleMutationTools
     public async Task<McpToolEnvelope<McpRoleData>> DeleteRole(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Rollen-ID aus einer vorherigen Tool-Antwort.")] string roleId,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
         if (!parsedTransactionId.IsSuccess)
             return McpToolEnvelope<McpRoleData>.Failure(parsedTransactionId.Error!);
 
-        return McpMutationMapper.ToEnvelope(await _roleMutationService
-            .DeleteRoleAsync(parsedTransactionId.Value, new RoleId(roleId), cancellationToken)
+        return McpMutationMapper.ToRoleMutationEnvelope(await _roleMutationService
+            .DeleteRoleMutationAsync(parsedTransactionId.Value, new RoleId(roleId), expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 
@@ -83,6 +86,7 @@ internal sealed class RoleMutationTools
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Rollen-ID der angefragten Rolle.")] string roleId,
         [Description("Kandidaten-Rollen in gewünschter Reihenfolge; ersetzt die bisherige Order vollständig.")] string[] candidateRoleIds,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -90,12 +94,13 @@ internal sealed class RoleMutationTools
             return McpToolEnvelope<McpRoleResolutionData>.Failure(parsedTransactionId.Error!);
 
         var result = await _roleMutationService
-            .SetRoleResolutionAsync(
+            .SetRoleResolutionMutationAsync(
                 parsedTransactionId.Value,
                 new RoleId(roleId),
                 candidateRoleIds.Select(candidateRoleId => new RoleId(candidateRoleId)),
+                expectedChangeVersion,
                 cancellationToken)
             .ConfigureAwait(false);
-        return McpMutationMapper.ToEnvelope(new RoleId(roleId), result);
+        return McpMutationMapper.ToRoleResolutionMutationEnvelope(result);
     }
 }

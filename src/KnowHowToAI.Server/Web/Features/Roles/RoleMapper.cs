@@ -24,7 +24,7 @@ public static class RoleMapper
     {
         ArgumentNullException.ThrowIfNull(page);
         var items = page.Items.Select(ToRoleItemViewModel).ToArray();
-        return new RolePageViewModel(items, page.NextCursor);
+        return new RolePageViewModel(items, page.NextCursor, page.ChangeVersion);
     }
 
     public static Result<RolePageViewModel> ToRolePageResult(Result<RolePage> result)

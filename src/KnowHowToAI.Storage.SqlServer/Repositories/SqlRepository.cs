@@ -155,7 +155,9 @@ internal abstract class SqlRepository
 
         throw new WorkingSnapshotMutationRejectedException(
             TransactionValidationErrorCodes.ChangeVersionConflict,
-            "Die Transaction wurde zwischen Laden und Speichern geändert.");
+            "Die Transaction wurde zwischen Laden und Speichern geändert.",
+            expectedChangeVersion.Value,
+            guard.ChangeVersion);
     }
 
     protected sealed record WorkingSnapshotGuard(

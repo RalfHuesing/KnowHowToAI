@@ -7,4 +7,5 @@ namespace KnowHowToAI.Server.Web.Features.Roles;
 /// <param name="NextCursor">Opaker Cursor für die nächste Seite (falls vorhanden).</param>
 public sealed record RolePageViewModel(
     IReadOnlyList<RoleItemViewModel> Items,
-    string? NextCursor);
+    string? NextCursor,
+    long? ChangeVersion = null);

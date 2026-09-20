@@ -73,7 +73,7 @@ internal sealed class NodeMutationTools
 
         return parsedContent is null
             ? McpMutationMapper.ToEnvelope(created)
-            : await WriteCombinedContentAsync(parsedTransactionId, created, parsedContent.Value, cancellationToken)
+            : await WriteCombinedContentAsync(parsedTransactionId, created, parsedContent.Value, expectedChangeVersion, cancellationToken)
                 .ConfigureAwait(false);
     }
 
@@ -120,6 +120,7 @@ internal sealed class NodeMutationTools
         TransactionId transactionId,
         Result<NodeMutationResult> created,
         CombinedContentSpec spec,
+        long? expectedChangeVersion,
         CancellationToken cancellationToken)
     {
         var contentRequest = new ReplaceContentRequest(
@@ -127,7 +128,8 @@ internal sealed class NodeMutationTools
             spec.Role,
             spec.ContentMode,
             spec.ContentMd,
-            spec.Sources);
+            spec.Sources,
+            expectedChangeVersion.HasValue ? created.Value.ChangeVersion : null);
         var content = await _contentMutationService
             .ReplaceContentAsync(transactionId, contentRequest, cancellationToken)
             .ConfigureAwait(false);

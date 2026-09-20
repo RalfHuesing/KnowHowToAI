@@ -34,6 +34,7 @@ internal sealed class ContentMutationTools
         [Description("Vollständiger Markdown-Inhalt ohne Überschriften; Gliederung über Listen " +
             "und Fließtext, Ersatztitel ggf. als freistehender Fettabsatz (Warnung PossibleEmbeddedHeading).")] string contentMd,
         [Description("Optionale Source-Revisions für Derived Content (je nodeId, roleId, contentRevisionId).")] McpContentSourceData[]? sources = null,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -55,7 +56,8 @@ internal sealed class ContentMutationTools
             new RoleId(roleId),
             parsedContentMode.Value,
             contentMd,
-            parsedSources.Value!);
+            parsedSources.Value!,
+            expectedChangeVersion);
         return McpMutationMapper.ToEnvelope(await _contentMutationService
             .ReplaceContentAsync(parsedTransactionId.Value, request, cancellationToken)
             .ConfigureAwait(false));
@@ -70,6 +72,7 @@ internal sealed class ContentMutationTools
         [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
         [Description("Exakt einmal vorkommender Textabschnitt.")] string oldText,
         [Description("Ersatztext für das Vorkommen.")] string newText,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -81,7 +84,8 @@ internal sealed class ContentMutationTools
             parsedNodeId.Value!.Value,
             new RoleId(roleId),
             oldText,
-            newText);
+            newText,
+            expectedChangeVersion);
         return McpMutationMapper.ToEnvelope(await _contentMutationService
             .ReplaceTextAsync(parsedTransactionId.Value, request, cancellationToken)
             .ConfigureAwait(false));
@@ -94,6 +98,7 @@ internal sealed class ContentMutationTools
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
         [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -102,7 +107,7 @@ internal sealed class ContentMutationTools
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
         return McpMutationMapper.ToEnvelope(await _contentMutationService
-            .DeleteContentAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, new RoleId(roleId), cancellationToken)
+            .DeleteContentAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, new RoleId(roleId), expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 

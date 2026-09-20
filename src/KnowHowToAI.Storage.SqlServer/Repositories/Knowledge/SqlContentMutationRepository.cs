@@ -3,6 +3,7 @@ using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -56,7 +57,8 @@ internal sealed class SqlContentMutationRepository : SqlRepository, IContentMuta
     public async Task<Result<WorkingContentMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingContentMutationState, Result<WorkingContentMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long? expectedChangeVersion = null)
     {
         ArgumentNullException.ThrowIfNull(mutate);
         WorkingContentMutationState? previousState = null;
@@ -85,7 +87,8 @@ internal sealed class SqlContentMutationRepository : SqlRepository, IContentMuta
                         Result<WorkingContentMutationDecision<T>>.Success(decision),
                         stateChanged);
                 },
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                expectedChangeVersion).ConfigureAwait(false);
 
             if (!execution.Value.IsSuccess)
                 return Result<WorkingContentMutationExecution<T>>.Failure(execution.Value.Error!, execution.Value.Warnings);
@@ -100,10 +103,15 @@ internal sealed class SqlContentMutationRepository : SqlRepository, IContentMuta
         }
         catch (WorkingSnapshotMutationRejectedException exception)
         {
+            var details = new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() };
+            if (exception.ExpectedChangeVersion is { } expected)
+                details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expected.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (exception.ActualChangeVersion is { } actual)
+                details[TransactionValidationErrorCodes.ActualChangeVersionDetail] = actual.ToString(System.Globalization.CultureInfo.InvariantCulture);
             return Result<WorkingContentMutationExecution<T>>.Failure(new DomainError(
                 exception.Code,
                 exception.Message,
-                new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() }));
+                details));
         }
     }
 

@@ -2,6 +2,7 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Mutations.Roles;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -23,7 +24,7 @@ internal sealed class SqlRoleMutationRepository : SqlRepository, IRoleMutationRe
 
     public SqlRoleMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy) : base(connectionFactory, storagePolicy) { }
 
-    public async Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(TransactionId transactionId, Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate, CancellationToken cancellationToken = default)
+    public async Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(TransactionId transactionId, Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate, CancellationToken cancellationToken = default, long? expectedChangeVersion = null)
     {
         WorkingRoleMutationState? previous = null;
         try
@@ -38,14 +39,19 @@ internal sealed class SqlRoleMutationRepository : SqlRepository, IRoleMutationRe
                 var changed = !SetEquals(previous.Roles, decision.State.Roles) || !SetEquals(previous.Resolutions, decision.State.Resolutions);
                 if (changed) await SaveAsync(context, previous, decision.State, token).ConfigureAwait(false);
                 return new SqlWorkingSnapshotMutationResult<Result<WorkingRoleMutationDecision<T>>>(Result<WorkingRoleMutationDecision<T>>.Success(decision), changed);
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken, expectedChangeVersion).ConfigureAwait(false);
             if (!execution.Value.IsSuccess) return Result<WorkingRoleMutationExecution<T>>.Failure(execution.Value.Error!);
             var decision = execution.Value.Value!;
             return Result<WorkingRoleMutationExecution<T>>.Success(new WorkingRoleMutationExecution<T>(decision.Value, decision.State.SnapshotId, execution.ChangeVersion, previous!, decision.State));
         }
         catch (WorkingSnapshotMutationRejectedException exception)
         {
-            return Result<WorkingRoleMutationExecution<T>>.Failure(new DomainError(exception.Code, exception.Message, new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() }));
+            var details = new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() };
+            if (exception.ExpectedChangeVersion is { } expected)
+                details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expected.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (exception.ActualChangeVersion is { } actual)
+                details[TransactionValidationErrorCodes.ActualChangeVersionDetail] = actual.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return Result<WorkingRoleMutationExecution<T>>.Failure(new DomainError(exception.Code, exception.Message, details));
         }
     }
 

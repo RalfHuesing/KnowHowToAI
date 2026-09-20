@@ -193,7 +193,7 @@ public sealed class NavigationService
                 pageItems[^1].RoleId).Encode()
             : null;
 
-        return Result<RolePage>.Success(new RolePage(pageItems, nextCursor));
+        return Result<RolePage>.Success(new RolePage(pageItems, nextCursor, resolvedContext.ChangeVersion));
     }
 
     // ── Private Helpers ──────────────────────────────────────────────────────

@@ -209,7 +209,7 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.Equal(new[] { "nodeId", "transactionId" }, SortedRequiredNames(schemas["delete_node"]));
 
         Assert.Equal(
-            new[] { "contentMd", "contentMode", "nodeId", "roleId", "sources", "transactionId" },
+            new[] { "contentMd", "contentMode", "expectedChangeVersion", "nodeId", "roleId", "sources", "transactionId" },
             SortedPropertyNames(schemas["replace_content"]));
         Assert.Equal(
             new[] { "contentMd", "contentMode", "nodeId", "roleId", "transactionId" },
@@ -219,21 +219,21 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.Contains("contentRevisionId", schemas["replace_content"].GetRawText(), StringComparison.Ordinal);
 
         Assert.Equal(
-            new[] { "newText", "nodeId", "oldText", "roleId", "transactionId" },
+            new[] { "expectedChangeVersion", "newText", "nodeId", "oldText", "roleId", "transactionId" },
             SortedPropertyNames(schemas["replace_text"]));
         Assert.Equal(new[] { "nodeId", "roleId", "transactionId" }, SortedRequiredNames(schemas["delete_content"]));
 
         Assert.Equal(
-            new[] { "description", "name", "transactionId" },
+            new[] { "description", "expectedChangeVersion", "name", "transactionId" },
             SortedPropertyNames(schemas["create_role"]));
         Assert.Equal(new[] { "name", "transactionId" }, SortedRequiredNames(schemas["create_role"]));
 
         Assert.Equal(
-            new[] { "description", "name", "roleId", "transactionId" },
+            new[] { "description", "expectedChangeVersion", "name", "roleId", "transactionId" },
             SortedPropertyNames(schemas["update_role"]));
 
         Assert.Equal(
-            new[] { "candidateRoleIds", "roleId", "transactionId" },
+            new[] { "candidateRoleIds", "expectedChangeVersion", "roleId", "transactionId" },
             SortedPropertyNames(schemas["set_role_resolution"]));
         Assert.Equal(
             new[] { "candidateRoleIds", "roleId", "transactionId" },

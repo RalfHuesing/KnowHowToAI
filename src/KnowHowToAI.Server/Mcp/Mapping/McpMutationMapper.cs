@@ -52,18 +52,17 @@ internal static class McpMutationMapper
             : McpToolEnvelope<McpNodeMutationData>.Failure(content.Error!, warnings);
     }
 
-    public static McpToolEnvelope<McpRoleData> ToEnvelope(Result<Role> result) =>
+    public static McpToolEnvelope<McpRoleData> ToRoleMutationEnvelope(Result<RoleMutationResult> result) =>
         result.IsSuccess
             ? McpToolEnvelope<McpRoleData>.Success(ToRoleData(result.Value!))
             : McpToolEnvelope<McpRoleData>.Failure(result.Error!, MapWarnings(result));
 
-    public static McpToolEnvelope<McpRoleResolutionData> ToEnvelope(
-        RoleId requestedRoleId,
-        Result<IReadOnlyList<RoleResolution>> result)
+    public static McpToolEnvelope<McpRoleResolutionData> ToRoleResolutionMutationEnvelope(
+        Result<RoleResolutionMutationResult> result)
     {
         var warnings = MapWarnings(result);
         return result.IsSuccess
-            ? McpToolEnvelope<McpRoleResolutionData>.Success(ToResolutionData(requestedRoleId, result.Value!), warnings)
+            ? McpToolEnvelope<McpRoleResolutionData>.Success(ToResolutionData(result.Value!), warnings)
             : McpToolEnvelope<McpRoleResolutionData>.Failure(result.Error!, warnings);
     }
 
@@ -169,18 +168,20 @@ internal static class McpMutationMapper
         result.SnapshotId.ToString(),
         result.ChangeVersion);
 
-    private static McpRoleData ToRoleData(Role role) => new(
-        role.RoleId.ToString(),
-        role.Name,
-        role.Description);
+    private static McpRoleData ToRoleData(RoleMutationResult result) => new(
+        result.Role.RoleId.ToString(),
+        result.Role.Name,
+        result.Role.Description,
+        result.SnapshotId.ToString(),
+        result.ChangeVersion);
 
-    private static McpRoleResolutionData ToResolutionData(
-        RoleId requestedRoleId,
-        IReadOnlyList<RoleResolution> resolutions) => new(
-        requestedRoleId.ToString(),
-        resolutions.Select(static resolution => new McpRoleResolutionItemData(
+    private static McpRoleResolutionData ToResolutionData(RoleResolutionMutationResult result) => new(
+        result.RequestedRoleId.ToString(),
+        result.Resolutions.Select(static resolution => new McpRoleResolutionItemData(
             resolution.CandidateRoleId.ToString(),
-            resolution.Priority)).ToArray());
+            resolution.Priority)).ToArray(),
+        result.SnapshotId.ToString(),
+        result.ChangeVersion);
 
     private static IReadOnlyList<McpWarning> MapWarnings<T>(Result<T> result) =>
         result.Warnings.Select(McpResultMapper.ToWarning).ToArray();

@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Application.Mutations.Content;
+using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Domain.Common;
@@ -47,6 +48,25 @@ public sealed class McpContentMutationToolsTests
         Assert.Equal(SnapshotId.ToString(), envelope.Data.SnapshotId);
         Assert.Equal(1, envelope.Data.ChangeVersion);
         Assert.False(string.IsNullOrWhiteSpace(envelope.Data.ContentRevisionId));
+    }
+
+    [Fact]
+    public async Task ReplaceContent_StaleChangeVersion_IsRejectedWithStableDetails()
+    {
+        var repository = StateWithNodeRoleAndDeveloperContent("Alt");
+        var tools = CreateTools(repository);
+
+        var current = await tools.ReplaceContent(
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Aktuell", expectedChangeVersion: 0);
+        var stale = await tools.ReplaceContent(
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Veraltet", expectedChangeVersion: 0);
+
+        Assert.True(current.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details![TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal("Aktuell", repository.State.Contents.Single().ContentMd);
     }
 
     [Fact]

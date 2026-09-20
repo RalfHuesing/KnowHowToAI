@@ -9,7 +9,8 @@ public sealed record ReplaceContentRequest(
     RoleId RoleId,
     ContentMode ContentMode,
     string ContentMd,
-    IReadOnlyList<ContentDependencySource> Sources);
+    IReadOnlyList<ContentDependencySource> Sources,
+    long? ExpectedChangeVersion = null);
 
 /// <summary>Bezeichnet eine beim Ableiten verwendete explizite Source-Revision.</summary>
 public sealed record ContentDependencySource(

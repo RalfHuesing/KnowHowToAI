@@ -11,6 +11,16 @@ einer Transaction über die Service-/MCP-Grenzen gepflegt (`create_role`,
 `update_role`, `delete_role`, `set_role_resolution`). Eine
 Administrationsoberfläche ist kein Bestandteil von V1.
 
+## Atomarer Schreibschutz gegen stale Writes
+
+Alle Rollen- und Content-Mutationen benötigen eine offene `TransactionId` und
+akzeptieren den zuvor gelesenen `expectedChangeVersion`-Stand. Die Prüfung
+erfolgt unter derselben kurzen Working-Snapshot-Sperre wie die fachliche
+Mutation. Bei einer Abweichung wird der stabile Fehler `ChangeVersionConflict`
+mit `expectedChangeVersion` und `actualChangeVersion` geliefert; Working
+Snapshot und ChangeVersion bleiben unverändert. Erfolgreiche Mutationen liefern
+die neue ChangeVersion bis zu MCP und Web zurück.
+
 ## Wissensrolle ist keine Berechtigungsrolle
 
 Eine Rolle beschreibt: *Für welche Zielgruppe ist dieser Inhalt geschrieben?*

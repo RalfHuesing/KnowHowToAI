@@ -113,8 +113,10 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         catch (WorkingSnapshotMutationRejectedException exception)
         {
             var details = new Dictionary<string, string> { ["transactionId"] = transactionId.ToString() };
-            if (expectedChangeVersion.HasValue && exception.Code == TransactionValidationErrorCodes.ChangeVersionConflict)
-                details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expectedChangeVersion.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (exception.ExpectedChangeVersion is { } expected)
+                details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expected.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (exception.ActualChangeVersion is { } actual)
+                details[TransactionValidationErrorCodes.ActualChangeVersionDetail] = actual.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
             return Result<WorkingNodeMutationExecution<T>>.Failure(new DomainError(
                 exception.Code,

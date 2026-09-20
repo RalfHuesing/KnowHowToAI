@@ -68,11 +68,21 @@ internal readonly record struct SqlWorkingSnapshotMutationExecution<TResult>(TRe
 /// <summary>Signalisiert einen abgelehnten Zugriff auf keinen mehr bearbeitbaren Snapshot.</summary>
 internal sealed class WorkingSnapshotMutationRejectedException : InvalidOperationException
 {
-    public WorkingSnapshotMutationRejectedException(string code, string message)
+    public WorkingSnapshotMutationRejectedException(
+        string code,
+        string message,
+        long? expectedChangeVersion = null,
+        long? actualChangeVersion = null)
         : base(message)
     {
         Code = code;
+        ExpectedChangeVersion = expectedChangeVersion;
+        ActualChangeVersion = actualChangeVersion;
     }
 
     public string Code { get; }
+
+    public long? ExpectedChangeVersion { get; }
+
+    public long? ActualChangeVersion { get; }
 }
