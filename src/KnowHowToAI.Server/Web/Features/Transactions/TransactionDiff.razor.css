@@ -31,7 +31,7 @@
 
 .transaction-diff__entry {
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     display: grid;
     gap: var(--ktai-space-3);
     grid-template-columns: auto 1fr;
@@ -39,8 +39,8 @@
 }
 
 .transaction-diff__kind {
-    border-radius: var(--ktai-radius-small);
-    font-size: 0.8125rem;
+    border-radius: var(--ktai-radius-sm);
+    font-size: var(--ktai-font-size-xs);
     font-weight: 700;
     height: fit-content;
     padding: var(--ktai-space-1) var(--ktai-space-2);
@@ -67,7 +67,7 @@
 
 .transaction-diff__stale {
     background: var(--ktai-color-warning-background);
-    border-inline-start: 0.25rem solid var(--ktai-color-warning);
+    border-inline-start: var(--ktai-space-1) solid var(--ktai-color-warning);
     color: var(--ktai-color-text);
     margin: 0;
     padding: var(--ktai-space-3);

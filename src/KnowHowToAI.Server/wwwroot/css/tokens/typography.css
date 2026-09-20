@@ -1,0 +1,14 @@
+:root {
+    --ktai-font-family: "Segoe UI", Arial, sans-serif;
+
+    --ktai-font-size-xs: 0.75rem;    /* 12px */
+    --ktai-font-size-sm: 0.875rem;   /* 14px */
+    --ktai-font-size-base: 1rem;     /* 16px */
+    --ktai-font-size-lg: 1.125rem;   /* 18px */
+    --ktai-font-size-xl: 1.25rem;    /* 20px */
+    --ktai-font-size-2xl: 1.5rem;    /* 24px */
+
+    --ktai-line-height-tight: 1.25;
+    --ktai-line-height-base: 1.5;
+    --ktai-line-height-relaxed: 1.75;
+}

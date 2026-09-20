@@ -31,16 +31,16 @@
     background: none;
     border: 1px solid var(--ktai-color-border);
     border-radius: var(--ktai-radius-sm);
-    padding: var(--ktai-space-0-5) var(--ktai-space-2);
+    padding: var(--ktai-space-1) var(--ktai-space-2);
     font-size: var(--ktai-font-size-xs);
     color: var(--ktai-color-primary);
     cursor: pointer;
     line-height: 1.2;
-    transition: background-color var(--ktai-transition-fast), border-color var(--ktai-transition-fast);
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 }
 
 .knowledge-context__trigger:hover {
-    background-color: var(--ktai-color-surface-hover);
+    background-color: var(--ktai-color-surface-subtle);
     border-color: var(--ktai-color-primary);
 }
 

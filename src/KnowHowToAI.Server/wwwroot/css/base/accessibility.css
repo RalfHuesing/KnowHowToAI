@@ -1,0 +1,19 @@
+/*
+ * Fokusring für alle fokussierbaren Elemente; mindestens 3px stark, in
+ * Primary, mit 2px Abstand und niemals entfernt (Startwerte M2.1-T2).
+ */
+:focus-visible {
+    outline: var(--ktai-focus-ring-width) solid var(--ktai-color-focus);
+    outline-offset: var(--ktai-focus-ring-offset);
+}
+
+/*
+ * Deaktivierter Zustand: zusätzlich zur sichtbaren Abschwächung bleibt die
+ * native Semantik (disabled / aria-disabled) die alleinige Wahrheitsquelle;
+ * die Zustandsfarben liegen in den Tokens, nicht hier. Der Ring selbst wird
+ * nie über outline unterdrückt.
+ */
+:where(button, input, select, textarea, fieldset):disabled,
+:where(button, a, [role="button"])[aria-disabled="true"] {
+    opacity: 0.6;
+}

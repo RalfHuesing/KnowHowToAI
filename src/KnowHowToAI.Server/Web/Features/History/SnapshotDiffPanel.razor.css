@@ -16,15 +16,15 @@
     grid-template-columns: auto 1fr;
     gap: var(--ktai-space-3);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     padding: var(--ktai-space-3);
 }
 
 .snapshot-diff__kind {
     height: fit-content;
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     padding: var(--ktai-space-1) var(--ktai-space-2);
-    font-size: 0.8125rem;
+    font-size: var(--ktai-font-size-xs);
     font-weight: 700;
 }
 

@@ -4,7 +4,7 @@
     padding: var(--ktai-space-3) var(--ktai-space-4);
     border: 1px solid var(--ktai-color-border);
     border-left-width: 4px;
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     background-color: var(--ktai-color-surface);
 }
 

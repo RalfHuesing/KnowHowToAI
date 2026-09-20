@@ -116,7 +116,7 @@ public sealed class DesignTokensShowcaseTests : ShellTestContext
 
     private static string BuildShowcaseDocument(string showcaseMarkup)
     {
-        var globalStyles = File.ReadAllText(Path.Combine(
+        var globalStyles = DesignTokensTests.LoadStylesheetWithImports(Path.Combine(
             TestRepositoryRoot.Resolve(),
             "src",
             "KnowHowToAI.Server",

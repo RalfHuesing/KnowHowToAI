@@ -20,7 +20,7 @@
     width: 100%;
     padding: var(--ktai-space-2);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     color: var(--ktai-color-text);
     font: inherit;
 }

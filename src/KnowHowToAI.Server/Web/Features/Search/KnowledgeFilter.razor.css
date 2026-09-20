@@ -3,7 +3,7 @@
     gap: var(--ktai-space-3);
     margin: var(--ktai-space-4) 0;
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     padding: var(--ktai-space-3);
 }
 

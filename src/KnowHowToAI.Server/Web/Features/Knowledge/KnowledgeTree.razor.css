@@ -9,18 +9,18 @@
     padding: var(--ktai-space-2) var(--ktai-space-3);
     background-color: var(--ktai-color-info-background);
     border: 1px solid var(--ktai-color-info);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     color: var(--ktai-color-info);
-    font-size: 0.875rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 .tree-error {
     padding: var(--ktai-space-2) var(--ktai-space-3);
     background-color: var(--ktai-color-danger-background);
     border: 1px solid var(--ktai-color-danger);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     color: var(--ktai-color-danger);
-    font-size: 0.875rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 .tree-loading,
@@ -28,7 +28,7 @@
     padding: var(--ktai-space-4);
     text-align: center;
     color: var(--ktai-color-text-secondary);
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 .tree-spinner {
@@ -59,9 +59,9 @@
     align-items: center;
     gap: var(--ktai-space-2);
     padding: var(--ktai-space-1) var(--ktai-space-2);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     cursor: pointer;
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
     transition: background-color 0.12s ease, color 0.12s ease;
     border-left: 3px solid transparent;
 }
@@ -88,8 +88,8 @@
     border: none;
     color: var(--ktai-color-text-secondary);
     cursor: pointer;
-    border-radius: var(--ktai-radius-small);
-    font-size: 0.75rem;
+    border-radius: var(--ktai-radius-sm);
+    font-size: var(--ktai-font-size-xs);
     transition: transform 0.15s ease, color 0.15s ease;
 }
 
@@ -120,13 +120,13 @@
     padding: var(--ktai-space-2);
     background: var(--ktai-color-info-background);
     border: 1px solid var(--ktai-color-info);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
 }
 
 .tree-move-source-btn,
 .tree-move-target {
     border: 1px solid var(--ktai-color-primary);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     background: var(--ktai-color-surface);
     color: var(--ktai-color-primary);
     cursor: pointer;
@@ -135,7 +135,7 @@
 
 .tree-move-source-btn {
     padding: 2px var(--ktai-space-1);
-    font-size: 0.75rem;
+    font-size: var(--ktai-font-size-xs);
 }
 
 .tree-move-source-btn.is-active {
@@ -157,7 +157,7 @@
 
 .tree-move-target {
     padding: 2px var(--ktai-space-2);
-    font-size: 0.8125rem;
+    font-size: var(--ktai-font-size-xs);
 }
 
 .tree-move-source-btn:hover,
@@ -183,8 +183,8 @@
     align-items: center;
     gap: 2px;
     padding: 1px var(--ktai-space-1);
-    border-radius: var(--ktai-radius-small);
-    font-size: 0.75rem;
+    border-radius: var(--ktai-radius-sm);
+    font-size: var(--ktai-font-size-xs);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -208,17 +208,17 @@
 }
 
 .tree-node-spinner {
-    font-size: 0.8125rem;
+    font-size: var(--ktai-font-size-xs);
     color: var(--ktai-color-primary);
     animation: spin 1s linear infinite;
 }
 
 .tree-node-error {
-    font-size: 0.75rem;
+    font-size: var(--ktai-font-size-xs);
     color: var(--ktai-color-danger);
     background-color: var(--ktai-color-danger-background);
-    padding: 2px 6px;
-    border-radius: var(--ktai-radius-small);
+    padding: 2px var(--ktai-space-1);
+    border-radius: var(--ktai-radius-sm);
 }
 
 .tree-children-group {
@@ -237,9 +237,9 @@
     background: none;
     border: 1px dashed var(--ktai-color-primary);
     color: var(--ktai-color-primary);
-    font-size: 0.8125rem;
+    font-size: var(--ktai-font-size-xs);
     padding: var(--ktai-space-1) var(--ktai-space-2);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     cursor: pointer;
     transition: background-color 0.12s ease;
 }

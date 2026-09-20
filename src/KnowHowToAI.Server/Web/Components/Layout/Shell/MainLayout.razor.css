@@ -32,7 +32,7 @@
     background-color: var(--ktai-color-surface);
     color: var(--ktai-color-primary);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
 }
 
 .shell-skip-link:focus-visible {
@@ -76,7 +76,7 @@
     background-color: var(--ktai-color-surface);
     color: var(--ktai-color-text);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     cursor: pointer;
 }
 
@@ -154,7 +154,7 @@
     width: min(20rem, calc(100% - var(--ktai-space-8)));
     overflow-y: auto;
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     box-shadow: var(--ktai-shadow-surface);
 }
 

@@ -27,7 +27,7 @@
 .empty-state__retry {
     padding: var(--ktai-space-2) var(--ktai-space-4);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     background-color: var(--ktai-color-surface);
     color: var(--ktai-color-text);
     font: inherit;

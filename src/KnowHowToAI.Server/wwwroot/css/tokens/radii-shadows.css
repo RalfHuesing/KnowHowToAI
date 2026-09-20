@@ -1,0 +1,19 @@
+:root {
+    /* Einheitliche Kurzformen mit Rückwärtskompatibilität */
+    --ktai-radius-sm: 4px;
+    --ktai-radius-md: 8px;
+    --ktai-radius-lg: 12px;
+    --ktai-radius-full: 9999px;
+
+    /* Aliase zur Absicherung bestehender Tests / Code */
+    --ktai-radius-small: var(--ktai-radius-sm);
+    --ktai-radius-medium: var(--ktai-radius-md);
+
+    /* Schatten */
+    --ktai-shadow-surface: 0 1px 2px rgb(15 23 42 / 0.08);
+    --ktai-shadow-overlay: 0 4px 6px -1px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.1);
+
+    /* Fokusring */
+    --ktai-focus-ring-width: 3px;
+    --ktai-focus-ring-offset: 2px;
+}

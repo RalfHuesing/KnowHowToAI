@@ -28,7 +28,7 @@
 .knowledge-sidebar {
     background-color: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     padding: var(--ktai-space-3);
     box-shadow: var(--ktai-shadow-surface);
     overflow-y: auto;
@@ -38,7 +38,7 @@
 .knowledge-content-pane {
     background-color: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     padding: var(--ktai-space-6);
     box-shadow: var(--ktai-shadow-surface);
     min-height: 300px;
@@ -52,13 +52,13 @@
 
 .node-title-placeholder {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: var(--ktai-font-size-2xl);
     color: var(--ktai-color-text);
 }
 
 .node-id-placeholder {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--ktai-font-size-sm);
     color: var(--ktai-color-text-secondary);
     font-family: monospace;
 }
@@ -69,5 +69,5 @@
     justify-content: center;
     height: 200px;
     color: var(--ktai-color-text-secondary);
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
 }

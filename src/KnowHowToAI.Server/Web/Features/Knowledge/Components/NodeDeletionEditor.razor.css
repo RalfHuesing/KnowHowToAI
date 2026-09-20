@@ -2,7 +2,7 @@
     margin-top: var(--ktai-space-3);
     padding: var(--ktai-space-3);
     border: 1px solid var(--ktai-color-danger);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     background: var(--ktai-color-danger-background);
 }
 

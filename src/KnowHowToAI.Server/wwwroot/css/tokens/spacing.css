@@ -1,0 +1,12 @@
+:root {
+    --ktai-space-0: 0;
+    --ktai-space-1: 4px;   /* 0.25rem */
+    --ktai-space-2: 8px;   /* 0.5rem */
+    --ktai-space-3: 12px;  /* 0.75rem */
+    --ktai-space-4: 16px;  /* 1rem */
+    --ktai-space-5: 20px;  /* 1.25rem - SCHLIESST DIE LÜCKE! */
+    --ktai-space-6: 24px;  /* 1.5rem */
+    --ktai-space-8: 32px;  /* 2rem */
+    --ktai-space-10: 40px; /* 2.5rem */
+    --ktai-space-12: 48px; /* 3rem */
+}

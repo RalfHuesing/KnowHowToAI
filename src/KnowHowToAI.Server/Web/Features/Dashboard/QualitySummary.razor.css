@@ -1,7 +1,7 @@
 .quality-summary {
     background-color: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     padding: var(--ktai-space-6);
     box-shadow: var(--ktai-shadow-surface);
     display: flex;
@@ -13,7 +13,7 @@
 
 h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: var(--ktai-font-size-xl);
     font-weight: 600;
     color: var(--ktai-color-text);
     border-bottom: 1px solid var(--ktai-color-border);
@@ -22,13 +22,13 @@ h2 {
 
 h3 {
     margin: 0 0 var(--ktai-space-2) 0;
-    font-size: 1rem;
+    font-size: var(--ktai-font-size-base);
     font-weight: 600;
     color: var(--ktai-color-text-secondary);
 }
 
 .quality-info-note {
-    font-size: 0.85rem;
+    font-size: var(--ktai-font-size-sm);
     color: var(--ktai-color-text-secondary);
     margin: 0;
 }
@@ -54,7 +54,7 @@ h3 {
     display: flex;
     align-items: center;
     gap: var(--ktai-space-2);
-    font-size: 0.9rem;
+    font-size: var(--ktai-font-size-sm);
     flex-wrap: wrap;
 }
 
@@ -65,9 +65,9 @@ h3 {
 .badge {
     display: inline-flex;
     align-items: center;
-    border-radius: var(--ktai-radius-small);
-    padding: 2px 6px;
-    font-size: 0.75rem;
+    border-radius: var(--ktai-radius-sm);
+    padding: 2px var(--ktai-space-1);
+    font-size: var(--ktai-font-size-xs);
     font-weight: 600;
     line-height: 1.2;
 }
@@ -93,7 +93,7 @@ h3 {
 .empty-hint {
     color: var(--ktai-color-text-secondary);
     font-style: italic;
-    font-size: 0.9rem;
+    font-size: var(--ktai-font-size-sm);
     margin: 0;
 }
 

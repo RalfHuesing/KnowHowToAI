@@ -1,7 +1,7 @@
 .snapshot-summary {
     background-color: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     padding: var(--ktai-space-6);
     box-shadow: var(--ktai-shadow-surface);
     display: flex;
@@ -13,7 +13,7 @@
 
 h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: var(--ktai-font-size-xl);
     font-weight: 600;
     color: var(--ktai-color-text);
     border-bottom: 1px solid var(--ktai-color-border);
@@ -22,7 +22,7 @@ h2 {
 
 h3 {
     margin: 0 0 var(--ktai-space-2) 0;
-    font-size: 1rem;
+    font-size: var(--ktai-font-size-base);
     font-weight: 600;
     color: var(--ktai-color-text-secondary);
 }
@@ -38,7 +38,7 @@ dl {
     grid-template-columns: auto 1fr;
     gap: var(--ktai-space-1) var(--ktai-space-3);
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 dt {
@@ -73,7 +73,7 @@ dd {
 .empty-hint {
     color: var(--ktai-color-text-secondary);
     font-style: italic;
-    font-size: 0.9rem;
+    font-size: var(--ktai-font-size-sm);
     margin: 0;
 }
 

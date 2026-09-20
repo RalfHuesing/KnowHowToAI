@@ -12,7 +12,7 @@
     margin: 0;
     padding: 0;
     gap: var(--ktai-space-1);
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 .breadcrumb-item {
@@ -29,7 +29,7 @@
     cursor: pointer;
     font-size: inherit;
     font-family: inherit;
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     transition: background-color 0.15s ease, color 0.15s ease;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -43,7 +43,7 @@
 .breadcrumb-separator {
     color: var(--ktai-color-text-secondary);
     user-select: none;
-    font-size: 0.8125rem;
+    font-size: var(--ktai-font-size-xs);
 }
 
 .breadcrumb-current {

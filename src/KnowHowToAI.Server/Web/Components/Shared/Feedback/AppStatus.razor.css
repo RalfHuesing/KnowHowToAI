@@ -5,7 +5,7 @@
     align-items: center;
     gap: var(--ktai-space-1);
     padding: var(--ktai-space-1) var(--ktai-space-2);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
 }
 
 .app-status__icon {

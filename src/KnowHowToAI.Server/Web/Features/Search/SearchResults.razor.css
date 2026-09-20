@@ -22,7 +22,7 @@
     width: 100%;
     gap: var(--ktai-space-1);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     background: var(--ktai-color-surface);
     padding: var(--ktai-space-3);
     color: inherit;
@@ -41,7 +41,7 @@
 .search-results__breadcrumb,
 .search-results__metadata {
     color: var(--ktai-color-text-secondary);
-    font-size: 0.875rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 .search-results__snippet {
@@ -51,7 +51,7 @@
 .search-results__next {
     justify-self: start;
     border: 1px solid var(--ktai-color-primary);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     background: var(--ktai-color-surface);
     color: var(--ktai-color-primary);
     padding: var(--ktai-space-2) var(--ktai-space-3);

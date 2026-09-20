@@ -1,7 +1,7 @@
 .open-transactions {
     background-color: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     padding: var(--ktai-space-6);
     box-shadow: var(--ktai-shadow-surface);
     display: flex;
@@ -13,7 +13,7 @@
 
 h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: var(--ktai-font-size-xl);
     font-weight: 600;
     color: var(--ktai-color-text);
     border-bottom: 1px solid var(--ktai-color-border);
@@ -30,7 +30,7 @@ h2 {
 
 .transaction-item {
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     padding: var(--ktai-space-3);
     display: flex;
     flex-direction: column;
@@ -47,7 +47,7 @@ h2 {
 
 .transaction-title {
     margin: 0;
-    font-size: 1rem;
+    font-size: var(--ktai-font-size-base);
     font-weight: 600;
     color: var(--ktai-color-text);
 }
@@ -57,7 +57,7 @@ h2 {
     grid-template-columns: auto 1fr;
     gap: var(--ktai-space-1) var(--ktai-space-3);
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 dt {
@@ -73,9 +73,9 @@ dd {
 .validation-errors {
     background-color: var(--ktai-color-danger-background);
     border: 1px solid var(--ktai-color-danger);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     padding: var(--ktai-space-2);
-    font-size: 0.85rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 .error-badge {
@@ -94,9 +94,9 @@ dd {
 .badge {
     display: inline-flex;
     align-items: center;
-    border-radius: var(--ktai-radius-small);
-    padding: 2px 6px;
-    font-size: 0.75rem;
+    border-radius: var(--ktai-radius-sm);
+    padding: 2px var(--ktai-space-1);
+    font-size: var(--ktai-font-size-xs);
     font-weight: 600;
     line-height: 1.2;
 }
@@ -121,7 +121,7 @@ dd {
 .empty-state {
     color: var(--ktai-color-text-secondary);
     font-style: italic;
-    font-size: 0.9rem;
+    font-size: var(--ktai-font-size-sm);
     margin: 0;
 }
 

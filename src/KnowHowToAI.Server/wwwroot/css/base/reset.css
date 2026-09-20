@@ -1,0 +1,18 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: var(--ktai-color-page);
+    color: var(--ktai-color-text);
+    font-family: var(--ktai-font-family);
+    font-size: var(--ktai-font-size-base);
+    line-height: var(--ktai-line-height-base);
+}
+
+[hidden] {
+    display: none !important;
+}

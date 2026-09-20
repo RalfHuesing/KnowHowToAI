@@ -35,7 +35,7 @@
     margin: 20vh auto;
     padding: var(--ktai-space-6);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     box-shadow: var(--ktai-shadow-surface);
 }
 
@@ -99,7 +99,7 @@
     background-color: var(--ktai-color-primary);
     color: var(--ktai-color-primary-contrast);
     padding: var(--ktai-space-2) var(--ktai-space-6);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     font-family: var(--ktai-font-family);
     font-size: var(--ktai-font-size-base);
     line-height: var(--ktai-line-height-base);

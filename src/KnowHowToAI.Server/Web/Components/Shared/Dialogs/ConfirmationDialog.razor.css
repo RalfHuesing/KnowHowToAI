@@ -14,7 +14,7 @@
     min-height: 5rem;
     padding: var(--ktai-space-2);
     border: 1px solid var(--ktai-color-border-input);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     color: var(--ktai-color-text);
     font: inherit;
     resize: vertical;
@@ -31,7 +31,7 @@
     align-items: center;
     gap: var(--ktai-space-1);
     padding: var(--ktai-space-2) var(--ktai-space-4);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     font: inherit;
     cursor: pointer;
 }

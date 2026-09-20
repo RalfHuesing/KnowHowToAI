@@ -19,7 +19,7 @@
     padding: var(--ktai-space-3) var(--ktai-space-4);
     border: 1px solid var(--ktai-color-border);
     border-left: 4px solid var(--ktai-color-success);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     background-color: var(--ktai-color-surface);
     color: var(--ktai-color-text);
     box-shadow: var(--ktai-shadow-surface);
@@ -38,7 +38,7 @@
     flex-shrink: 0;
     padding: var(--ktai-space-1) var(--ktai-space-2);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     background-color: var(--ktai-color-surface);
     color: var(--ktai-color-text);
     font: inherit;

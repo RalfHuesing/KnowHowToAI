@@ -16,7 +16,7 @@ public sealed class DesignTokensTests
     private const double TextContrastMinimum = 4.5;
     private const double NonTextContrastMinimum = 3.0;
 
-    private static readonly Lazy<string> Stylesheet = new(() => File.ReadAllText(
+    private static readonly Lazy<string> Stylesheet = new(() => LoadStylesheetWithImports(
         Path.Combine(
             TestRepositoryRoot.Resolve(),
             "src",
@@ -67,18 +67,34 @@ public sealed class DesignTokensTests
             ["--ktai-color-code-background"] = "#f1f5f9",
             ["--ktai-color-code-block-background"] = "#0f172a",
             ["--ktai-color-code-block-text"] = "#e2e8f0",
+            ["--ktai-space-0"] = "0",
             ["--ktai-space-1"] = "4px",
             ["--ktai-space-2"] = "8px",
             ["--ktai-space-3"] = "12px",
             ["--ktai-space-4"] = "16px",
+            ["--ktai-space-5"] = "20px",
             ["--ktai-space-6"] = "24px",
             ["--ktai-space-8"] = "32px",
-            ["--ktai-radius-small"] = "4px",
-            ["--ktai-radius-medium"] = "8px",
+            ["--ktai-space-10"] = "40px",
+            ["--ktai-space-12"] = "48px",
+            ["--ktai-radius-sm"] = "4px",
+            ["--ktai-radius-md"] = "8px",
+            ["--ktai-radius-lg"] = "12px",
+            ["--ktai-radius-full"] = "9999px",
+            ["--ktai-radius-small"] = "var(--ktai-radius-sm)",
+            ["--ktai-radius-medium"] = "var(--ktai-radius-md)",
             ["--ktai-shadow-surface"] = "0 1px 2px rgb(15 23 42 / 0.08)",
+            ["--ktai-shadow-overlay"] = "0 4px 6px -1px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.1)",
             ["--ktai-font-family"] = "\"Segoe UI\", Arial, sans-serif",
-            ["--ktai-font-size-base"] = "16px",
+            ["--ktai-font-size-xs"] = "0.75rem",
+            ["--ktai-font-size-sm"] = "0.875rem",
+            ["--ktai-font-size-base"] = "1rem",
+            ["--ktai-font-size-lg"] = "1.125rem",
+            ["--ktai-font-size-xl"] = "1.25rem",
+            ["--ktai-font-size-2xl"] = "1.5rem",
+            ["--ktai-line-height-tight"] = "1.25",
             ["--ktai-line-height-base"] = "1.5",
+            ["--ktai-line-height-relaxed"] = "1.75",
             ["--ktai-focus-ring-width"] = "3px",
             ["--ktai-focus-ring-offset"] = "2px"
         };
@@ -139,18 +155,10 @@ public sealed class DesignTokensTests
             TestRepositoryRoot.Resolve(),
             "src",
             "KnowHowToAI.Server");
-        var centralStylesheet = Path.GetFullPath(Path.Combine(
-            serverDirectory,
-            "wwwroot",
-            "css",
-            "app.css"));
 
         var localStylesheets = Directory.EnumerateFiles(serverDirectory, "*.css", SearchOption.AllDirectories)
             .Where(path => !IsBuildArtifact(path))
-            .Where(path => !string.Equals(
-                Path.GetFullPath(path),
-                centralStylesheet,
-                StringComparison.OrdinalIgnoreCase));
+            .Where(path => !path.Contains(Path.Combine("wwwroot", "css"), StringComparison.OrdinalIgnoreCase));
 
         foreach (var stylesheet in localStylesheets)
         {
@@ -164,6 +172,44 @@ public sealed class DesignTokensTests
                 scatteredColorLiterals.Count == 0,
                 $"{stylesheet} enthält {scatteredColorLiterals.Count} verstreute Hex-Farbliterale; Farben gehören ausschließlich in die globalen Tokens in wwwroot/css/app.css.");
         }
+    }
+
+    [Fact]
+    public void AllReferencedKtaiTokensInLocalStylesheetsMustBeDefinedInCentralTokens()
+    {
+        var serverDirectory = Path.Combine(
+            TestRepositoryRoot.Resolve(),
+            "src",
+            "KnowHowToAI.Server");
+
+        var definedTokens = Tokens.Value.Keys.ToHashSet(StringComparer.Ordinal);
+
+        var localStylesheets = Directory.EnumerateFiles(serverDirectory, "*.css", SearchOption.AllDirectories)
+            .Where(path => !IsBuildArtifact(path))
+            .Where(path => !path.Contains(Path.Combine("wwwroot", "css"), StringComparison.OrdinalIgnoreCase));
+
+        var undefinedUsages = new List<string>();
+
+        foreach (var stylesheet in localStylesheets)
+        {
+            var content = File.ReadAllText(stylesheet);
+            var matches = Regex.Matches(content, @"var\((--ktai-[a-z0-9-]+)\)");
+
+            foreach (Match match in matches)
+            {
+                var tokenName = match.Groups[1].Value;
+                if (!definedTokens.Contains(tokenName))
+                {
+                    var relativePath = Path.GetRelativePath(serverDirectory, stylesheet);
+                    undefinedUsages.Add($"{relativePath}: Verwendet undefinierten Token '{tokenName}'");
+                }
+            }
+        }
+
+        Assert.True(
+            undefinedUsages.Count == 0,
+            $"Es wurden {undefinedUsages.Count} Verwendungen nicht-definierter Tokens gefunden:\n" +
+            string.Join("\n", undefinedUsages));
     }
 
     private static bool IsBuildArtifact(string path)
@@ -217,5 +263,20 @@ public sealed class DesignTokensTests
         return channel <= 0.04045
             ? channel / 12.92
             : Math.Pow((channel + 0.055) / 1.055, 2.4);
+    }
+
+    internal static string LoadStylesheetWithImports(string rootCssPath)
+    {
+        var baseDir = Path.GetDirectoryName(rootCssPath)!;
+        var content = File.ReadAllText(rootCssPath);
+        return Regex.Replace(
+            content,
+            @"@import\s+[""']([^""']+)[""'];",
+            match =>
+            {
+                var relativeImport = match.Groups[1].Value;
+                var importPath = Path.Combine(baseDir, relativeImport);
+                return LoadStylesheetWithImports(importPath);
+            });
     }
 }

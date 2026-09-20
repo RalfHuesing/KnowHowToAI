@@ -15,7 +15,7 @@
 
 .node-details-title {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: var(--ktai-font-size-2xl);
     font-weight: 700;
     color: var(--ktai-color-text);
     line-height: 1.25;
@@ -23,14 +23,14 @@
 
 .node-details-description {
     margin: 0;
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
     color: var(--ktai-color-text-secondary);
 }
 
 /* Metadata */
 .node-section-heading {
     margin: 0 0 var(--ktai-space-3) 0;
-    font-size: 0.875rem;
+    font-size: var(--ktai-font-size-sm);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -53,7 +53,7 @@
 }
 
 .node-meta-item dt {
-    font-size: 0.75rem;
+    font-size: var(--ktai-font-size-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -62,22 +62,22 @@
 
 .node-meta-item dd {
     margin: 0;
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
     color: var(--ktai-color-text);
     word-break: break-word;
 }
 
 .node-meta-fallback {
     margin-left: var(--ktai-space-2);
-    font-size: 0.8125rem;
+    font-size: var(--ktai-font-size-xs);
     color: var(--ktai-color-warning);
 }
 
 .node-meta-badge {
     display: inline-block;
     padding: 2px var(--ktai-space-2);
-    border-radius: var(--ktai-radius-small);
-    font-size: 0.8125rem;
+    border-radius: var(--ktai-radius-sm);
+    font-size: var(--ktai-font-size-xs);
     font-weight: 600;
 }
 
@@ -115,7 +115,7 @@
 .node-meta-revision,
 .node-meta-id {
     font-family: monospace;
-    font-size: 0.8125rem;
+    font-size: var(--ktai-font-size-xs);
     color: var(--ktai-color-text-secondary);
 }
 
@@ -137,8 +137,8 @@
     padding: var(--ktai-space-2) var(--ktai-space-3);
     background-color: var(--ktai-color-warning-background);
     border: 1px solid var(--ktai-color-warning);
-    border-radius: var(--ktai-radius-small);
-    font-size: 0.875rem;
+    border-radius: var(--ktai-radius-sm);
+    font-size: var(--ktai-font-size-sm);
 }
 
 .node-provenance-source {
@@ -153,7 +153,7 @@
 }
 
 .node-content-markdown {
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
     line-height: 1.7;
     color: var(--ktai-color-text);
     overflow-wrap: break-word;
@@ -190,7 +190,7 @@
 .node-content-markdown code {
     background-color: var(--ktai-color-code-background);
     padding: 1px 5px;
-    border-radius: var(--ktai-radius-small);
+    border-radius: var(--ktai-radius-sm);
     font-family: monospace;
     font-size: 0.875em;
 }
@@ -199,7 +199,7 @@
     background-color: var(--ktai-color-code-block-background);
     color: var(--ktai-color-code-block-text);
     padding: var(--ktai-space-4);
-    border-radius: var(--ktai-radius-medium);
+    border-radius: var(--ktai-radius-md);
     overflow-x: auto;
     margin: 0 0 var(--ktai-space-4) 0;
 }
@@ -207,7 +207,7 @@
 .node-content-markdown pre code {
     background: none;
     padding: 0;
-    font-size: 0.875rem;
+    font-size: var(--ktai-font-size-sm);
     color: inherit;
 }
 
@@ -222,7 +222,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: var(--ktai-space-4);
-    font-size: 0.9375rem;
+    font-size: var(--ktai-font-size-sm);
 }
 
 .node-content-markdown th,
