@@ -28,20 +28,20 @@ public sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState stat
     public Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default,
-        long? expectedChangeVersion = null)
+        long expectedChangeVersion,
+        CancellationToken cancellationToken = default)
     {
         if (Rejection is not null)
             return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(Rejection));
 
-        if (expectedChangeVersion.HasValue && expectedChangeVersion.Value != ChangeVersion)
+        if (expectedChangeVersion != ChangeVersion)
         {
             return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(new DomainError(
                 TransactionValidationErrorCodes.ChangeVersionConflict,
                 "Die Transaction wurde zwischen Laden und Speichern geändert.",
                 new Dictionary<string, string>
                 {
-                    [TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expectedChangeVersion.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    [TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expectedChangeVersion.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     [TransactionValidationErrorCodes.ActualChangeVersionDetail] = ChangeVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 })));
         }

@@ -48,6 +48,8 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     private RoleMutationService Roles { get; }
 
+    private long ExpectedChangeVersion { get; set; }
+
     public static async Task<WorkingTransactionSession> BeginAsync(
         SqlTestDatabase database,
         TransactionId transactionId,
@@ -66,7 +68,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
         var transaction = await transactionRepository.BeginAsync(
             new BeginTransactionRequest(transactionId, purpose, "Abnahmetest", "xUnit")).ConfigureAwait(false);
 
-        return new WorkingTransactionSession(
+        var session = new WorkingTransactionSession(
             transaction,
             new NodeMutationApplicationService(
                 new SqlNodeMutationRepository(database.ConnectionFactory, policy),
@@ -77,6 +79,8 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
                 new ContentMutationService(new ContentRevisionService(identifierGenerator)),
                 validationPolicy),
             new RoleMutationService(new SqlRoleMutationRepository(database.ConnectionFactory, policy)));
+        session.ExpectedChangeVersion = transaction.ChangeVersion;
+        return session;
     }
 
     public async Task<Node> CreateNodeAsync(NodeId? parentNodeId, string title, string? description, int sortOrder)
@@ -84,13 +88,17 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
         var result = await Nodes.CreateAsync(
             TransactionId,
             new CreateNodeRequest(parentNodeId, title, description, sortOrder)).ConfigureAwait(false);
-        return Require(result).Node;
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
+        return value.Node;
     }
 
     public async Task<Node> DeleteNodeSubtreeAsync(NodeId nodeId)
     {
         var result = await Nodes.DeleteAsync(TransactionId, nodeId, deleteSubtree: true).ConfigureAwait(false);
-        return Require(result).Node;
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
+        return value.Node;
     }
 
     public async Task<Node> UpdateNodeAsync(NodeId nodeId, string title, string? description)
@@ -98,7 +106,9 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
         var result = await Nodes.UpdateAsync(
             TransactionId,
             new UpdateNodeRequest(nodeId, title, description)).ConfigureAwait(false);
-        return Require(result).Node;
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
+        return value.Node;
     }
 
     public async Task<NodeContent> ReplaceIndependentContentAsync(NodeId nodeId, RoleId roleId, string contentMd) =>
@@ -113,27 +123,35 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     public async Task<Role> CreateRoleAsync(string name, string? description)
     {
-        var result = await Roles.CreateRoleAsync(TransactionId, name, description).ConfigureAwait(false);
-        return Require(result);
+        var result = await Roles.CreateRoleMutationAsync(TransactionId, name, description, ExpectedChangeVersion).ConfigureAwait(false);
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
+        return value.Role;
     }
 
     public async Task<Role> UpdateRoleDescriptionAsync(RoleId roleId, string name, string? description)
     {
-        var result = await Roles.UpdateRoleAsync(TransactionId, roleId, name, description).ConfigureAwait(false);
-        return Require(result);
+        var result = await Roles.UpdateRoleMutationAsync(
+            TransactionId,
+            new UpdateRoleMutationRequest(roleId, name, description, ExpectedChangeVersion)).ConfigureAwait(false);
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
+        return value.Role;
     }
 
     public async Task DeleteRoleAsync(RoleId roleId)
     {
-        var result = await Roles.DeleteRoleAsync(TransactionId, roleId).ConfigureAwait(false);
-        Require(result);
+        var result = await Roles.DeleteRoleMutationAsync(TransactionId, roleId, ExpectedChangeVersion).ConfigureAwait(false);
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
     }
 
     public async Task SetResolutionAsync(RoleId requestedRoleId, params RoleId[] candidateRoleIds)
     {
-        var result = await Roles.SetRoleResolutionAsync(
-            TransactionId, requestedRoleId, candidateRoleIds).ConfigureAwait(false);
-        Require(result);
+        var result = await Roles.SetRoleResolutionMutationAsync(
+            TransactionId, requestedRoleId, candidateRoleIds, ExpectedChangeVersion).ConfigureAwait(false);
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
     }
 
     public async Task<KnowledgeTransaction> CommitAsync(SqlTestDatabase database, string commitMessage)
@@ -164,8 +182,10 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
     {
         var result = await Contents.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(nodeId, roleId, contentMode, contentMd, sources)).ConfigureAwait(false);
-        return Require(result).Content;
+            new ReplaceContentRequest(nodeId, roleId, contentMode, contentMd, sources, ExpectedChangeVersion)).ConfigureAwait(false);
+        var value = Require(result);
+        ExpectedChangeVersion = value.ChangeVersion;
+        return value.Content;
     }
 
     private static T Require<T>(Result<T> result) =>

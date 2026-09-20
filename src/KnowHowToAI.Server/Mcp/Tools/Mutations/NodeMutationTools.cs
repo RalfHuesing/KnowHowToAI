@@ -129,7 +129,7 @@ internal sealed class NodeMutationTools
             spec.ContentMode,
             spec.ContentMd,
             spec.Sources,
-            expectedChangeVersion.HasValue ? created.Value.ChangeVersion : null);
+            created.Value.ChangeVersion);
         var content = await _contentMutationService
             .ReplaceContentAsync(transactionId, contentRequest, cancellationToken)
             .ConfigureAwait(false);

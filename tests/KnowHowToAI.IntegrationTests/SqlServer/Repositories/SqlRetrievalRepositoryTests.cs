@@ -447,7 +447,7 @@ public sealed class SqlRetrievalRepositoryTests
             var roles = state.Roles.Select(candidate => candidate.RoleId == roleId ? deleted : candidate).ToArray();
             return Result<WorkingRoleMutationDecision<Role>>.Success(
                 new WorkingRoleMutationDecision<Role>(deleted, state with { Roles = roles }));
-        });
+        }, 0);
         Assert.True(result.IsSuccess);
     }
 }

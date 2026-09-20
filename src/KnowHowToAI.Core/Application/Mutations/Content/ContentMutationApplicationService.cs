@@ -29,8 +29,8 @@ public sealed class ContentMutationApplicationService(
         var executionResult = await _repository.ExecuteAsync(
             transactionId,
             state => CreateReplaceContentDecision(state, request),
-            cancellationToken,
-            request.ExpectedChangeVersion).ConfigureAwait(false);
+            request.ExpectedChangeVersion,
+            cancellationToken).ConfigureAwait(false);
         return ToUseCaseResult(executionResult);
     }
 
@@ -44,8 +44,8 @@ public sealed class ContentMutationApplicationService(
         var executionResult = await _repository.ExecuteAsync(
             transactionId,
             state => CreateReplaceTextDecision(state, request),
-            cancellationToken,
-            request.ExpectedChangeVersion).ConfigureAwait(false);
+            request.ExpectedChangeVersion,
+            cancellationToken).ConfigureAwait(false);
         return ToUseCaseResult(executionResult);
     }
 
@@ -53,14 +53,14 @@ public sealed class ContentMutationApplicationService(
         TransactionId transactionId,
         NodeId nodeId,
         RoleId roleId,
-        long? expectedChangeVersion = null,
+        long expectedChangeVersion,
         CancellationToken cancellationToken = default)
     {
         var executionResult = await _repository.ExecuteAsync(
             transactionId,
             state => CreateDeletionDecision(state, nodeId, roleId),
-            cancellationToken,
-            expectedChangeVersion).ConfigureAwait(false);
+            expectedChangeVersion,
+            cancellationToken).ConfigureAwait(false);
         return ToUseCaseResult(executionResult);
     }
 

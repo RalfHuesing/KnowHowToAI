@@ -14,7 +14,8 @@ Administrationsoberfläche ist kein Bestandteil von V1.
 ## Atomarer Schreibschutz gegen stale Writes
 
 Alle Rollen- und Content-Mutationen benötigen eine offene `TransactionId` und
-akzeptieren den zuvor gelesenen `expectedChangeVersion`-Stand. Die Prüfung
+ein verpflichtendes `expectedChangeVersion`-Feld mit dem zuvor gelesenen Stand.
+Fehlt der Versionsstand, wird der Aufruf bereits am jeweiligen Vertrag abgelehnt. Die Prüfung
 erfolgt unter derselben kurzen Working-Snapshot-Sperre wie die fachliche
 Mutation. Bei einer Abweichung wird der stabile Fehler `ChangeVersionConflict`
 mit `expectedChangeVersion` und `actualChangeVersion` geliefert; Working

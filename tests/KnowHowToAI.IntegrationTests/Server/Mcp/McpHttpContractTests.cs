@@ -70,7 +70,7 @@ public sealed class McpHttpContractTests
 
         required = RequiredArgumentsOf(tools, "replace_content");
         Assert.Subset(
-            new[] { "transactionId", "nodeId", "roleId", "contentMode", "contentMd" }.ToHashSet(StringComparer.Ordinal),
+            new[] { "transactionId", "nodeId", "roleId", "contentMode", "contentMd", "expectedChangeVersion" }.ToHashSet(StringComparer.Ordinal),
             required);
     }
 

@@ -20,7 +20,7 @@ public sealed record UpdateRoleMutationRequest(
     RoleId RoleId,
     string Name,
     string? Description,
-    long? ExpectedChangeVersion = null);
+    long ExpectedChangeVersion);
 
 /// <summary>Ergebnis einer Resolution-Order-Mutation mit dem danach gültigen Working-Stand.</summary>
 public sealed record RoleResolutionMutationResult(

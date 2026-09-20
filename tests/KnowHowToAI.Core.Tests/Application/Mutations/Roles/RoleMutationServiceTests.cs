@@ -32,7 +32,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State()) { Rejection = rejection };
         var service = new RoleMutationService(repository);
 
-        var result = await service.CreateRoleAsync(TransactionId, "Developer", null);
+        var result = await service.CreateRoleAsync(TransactionId, "Developer", null, 0);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -52,7 +52,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)])) { Rejection = rejection };
         var service = new RoleMutationService(repository);
 
-        var result = await service.UpdateRoleAsync(TransactionId, DefaultRoleId, "Neu", null);
+        var result = await service.UpdateRoleAsync(TransactionId, new UpdateRoleMutationRequest(DefaultRoleId, "Neu", null, 0));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -72,7 +72,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)])) { Rejection = rejection };
         var service = new RoleMutationService(repository);
 
-        var result = await service.DeleteRoleAsync(TransactionId, DefaultRoleId);
+        var result = await service.DeleteRoleAsync(TransactionId, DefaultRoleId, 0);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -97,7 +97,7 @@ public sealed class RoleMutationServiceTests
         };
         var service = new RoleMutationService(repository);
 
-        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId]);
+        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId], 0);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -113,7 +113,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([role]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.UpdateRoleAsync(TransactionId, DefaultRoleId, DefaultRoleId.ToString(), "Beschreibung");
+        var result = await service.UpdateRoleAsync(TransactionId, new UpdateRoleMutationRequest(DefaultRoleId, DefaultRoleId.ToString(), "Beschreibung", 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(0, repository.ChangeVersion);
@@ -127,7 +127,7 @@ public sealed class RoleMutationServiceTests
             State([Role(DefaultRoleId), Role(DeveloperRoleId)], [resolution]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId]);
+        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId], 0);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(0, repository.ChangeVersion);
@@ -140,7 +140,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([role]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.UpdateRoleAsync(TransactionId, DefaultRoleId, DefaultRoleId.ToString(), "Neu");
+        var result = await service.UpdateRoleAsync(TransactionId, new UpdateRoleMutationRequest(DefaultRoleId, DefaultRoleId.ToString(), "Neu", 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, repository.ChangeVersion);
@@ -152,7 +152,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId)]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.CreateRoleAsync(TransactionId, " Developer ", " Beschreibung ");
+        var result = await service.CreateRoleAsync(TransactionId, " Developer ", " Beschreibung ", 0);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(DeveloperRoleId, result.Value!.RoleId);
@@ -169,7 +169,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), deletedRole]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.CreateRoleAsync(TransactionId, " Developer ", " Neu ");
+        var result = await service.CreateRoleAsync(TransactionId, " Developer ", " Neu ", 0);
 
         Assert.True(result.IsSuccess);
         Assert.False(result.Value!.IsDeleted);
@@ -185,7 +185,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), Role(DeveloperRoleId, "Alt")]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.UpdateRoleAsync(TransactionId, DeveloperRoleId, " Entwickler ", " Neu ");
+        var result = await service.UpdateRoleAsync(TransactionId, new UpdateRoleMutationRequest(DeveloperRoleId, " Entwickler ", " Neu ", 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal("Entwickler", result.Value!.Name);
@@ -203,7 +203,7 @@ public sealed class RoleMutationServiceTests
             [new RoleResolution(SnapshotId, DefaultRoleId, DefaultRoleId, 1), preservedResolution]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId, EndUserRoleId]);
+        var result = await service.SetRoleResolutionAsync(TransactionId, DefaultRoleId, [DeveloperRoleId, EndUserRoleId], 0);
 
         Assert.True(result.IsSuccess);
         Assert.Collection(
@@ -224,7 +224,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), Role(DeveloperRoleId)], [resolution], [content], [dependency]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.DeleteRoleAsync(TransactionId, DeveloperRoleId);
+        var result = await service.DeleteRoleAsync(TransactionId, DeveloperRoleId, 0);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(RoleMutationErrorCodes.RoleInUse, result.Code);
@@ -241,7 +241,7 @@ public sealed class RoleMutationServiceTests
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId), Role(DeveloperRoleId)]));
         var service = new RoleMutationService(repository);
 
-        var result = await service.DeleteRoleAsync(TransactionId, DeveloperRoleId);
+        var result = await service.DeleteRoleAsync(TransactionId, DeveloperRoleId, 0);
 
         Assert.True(result.IsSuccess);
         Assert.True(result.Value!.IsDeleted);

@@ -33,7 +33,7 @@ public sealed class McpRoleMutationToolsTests
     {
         var tools = CreateTools(EmptyState());
 
-        var envelope = await tools.CreateRole(TransactionId.ToString(), "Developer", "Entwicklerrolle");
+        var envelope = await tools.CreateRole(TransactionId.ToString(), "Developer", 0, "Entwicklerrolle");
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal("Developer", envelope.Data!.RoleId);
@@ -51,9 +51,9 @@ public sealed class McpRoleMutationToolsTests
         var tools = CreateTools(repository);
 
         var current = await tools.UpdateRole(
-            TransactionId.ToString(), RoleDeveloper.Value, "Aktuell", null, expectedChangeVersion: 0);
+            TransactionId.ToString(), RoleDeveloper.Value, "Aktuell", expectedChangeVersion: 0, description: null);
         var stale = await tools.UpdateRole(
-            TransactionId.ToString(), RoleDeveloper.Value, "Veraltet", null, expectedChangeVersion: 0);
+            TransactionId.ToString(), RoleDeveloper.Value, "Veraltet", expectedChangeVersion: 0, description: null);
 
         Assert.True(current.IsSuccess);
         Assert.False(stale.IsSuccess);
@@ -68,7 +68,7 @@ public sealed class McpRoleMutationToolsTests
     {
         var tools = CreateTools(EmptyState());
 
-        var envelope = await tools.CreateRole(TransactionId.ToString(), "   ");
+        var envelope = await tools.CreateRole(TransactionId.ToString(), "   ", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(RoleMutationErrorCodes.RoleNameRequired, envelope.Code);
@@ -80,7 +80,7 @@ public sealed class McpRoleMutationToolsTests
     {
         var tools = CreateTools(StateWithRoles(RoleDeveloper));
 
-        var envelope = await tools.CreateRole(TransactionId.ToString(), "Developer");
+        var envelope = await tools.CreateRole(TransactionId.ToString(), "Developer", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(RoleMutationErrorCodes.RoleInUse, envelope.Code);
@@ -93,7 +93,7 @@ public sealed class McpRoleMutationToolsTests
         var tools = CreateTools(StateWithRoles(RoleDeveloper));
 
         var envelope = await tools.UpdateRole(
-            TransactionId.ToString(), RoleDeveloper.Value, "Entwickler", "Neue Beschreibung");
+            TransactionId.ToString(), RoleDeveloper.Value, "Entwickler", 0, "Neue Beschreibung");
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(RoleDeveloper.Value, envelope.Data!.RoleId);
@@ -106,7 +106,7 @@ public sealed class McpRoleMutationToolsTests
     {
         var tools = CreateTools(EmptyState());
 
-        var envelope = await tools.UpdateRole(TransactionId.ToString(), "Fehlend", "Name");
+        var envelope = await tools.UpdateRole(TransactionId.ToString(), "Fehlend", "Name", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(RoleMutationErrorCodes.RoleNotFound, envelope.Code);
@@ -118,7 +118,7 @@ public sealed class McpRoleMutationToolsTests
     {
         var tools = CreateTools(StateWithRolesAndDeveloperContent());
 
-        var envelope = await tools.DeleteRole(TransactionId.ToString(), RoleDeveloper.Value);
+        var envelope = await tools.DeleteRole(TransactionId.ToString(), RoleDeveloper.Value, 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(RoleMutationErrorCodes.RoleInUse, envelope.Code);
@@ -131,7 +131,7 @@ public sealed class McpRoleMutationToolsTests
         var repository = StateWithRoles(RoleDeveloper, RoleConsultant);
         var tools = CreateTools(repository);
 
-        var envelope = await tools.DeleteRole(TransactionId.ToString(), RoleDeveloper.Value);
+        var envelope = await tools.DeleteRole(TransactionId.ToString(), RoleDeveloper.Value, 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.True(repository.State.Roles.Single(role => role.RoleId == RoleDeveloper).IsDeleted);
@@ -147,7 +147,8 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.SetRoleResolution(
             TransactionId.ToString(),
             RoleDeveloper.Value,
-            [RoleConsultant.Value, RoleDeveloper.Value]);
+            [RoleConsultant.Value, RoleDeveloper.Value],
+            0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(RoleDeveloper.Value, envelope.Data!.RequestedRoleId);
@@ -167,7 +168,8 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.SetRoleResolution(
             TransactionId.ToString(),
             RoleDeveloper.Value,
-            [RoleConsultant.Value, RoleConsultant.Value]);
+            [RoleConsultant.Value, RoleConsultant.Value],
+            0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(RoleResolutionErrorCodes.DuplicateCandidateRole, envelope.Code);
@@ -182,7 +184,8 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.SetRoleResolution(
             TransactionId.ToString(),
             RoleDeveloper.Value,
-            ["Fehlend"]);
+            ["Fehlend"],
+            0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(RoleResolutionErrorCodes.CandidateRoleNotFound, envelope.Code);
@@ -196,7 +199,7 @@ public sealed class McpRoleMutationToolsTests
     {
         var tools = CreateTools(EmptyState());
 
-        var envelope = await tools.CreateRole(rawTransactionId, "Developer");
+        var envelope = await tools.CreateRole(rawTransactionId, "Developer", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal("TransactionNotFound", envelope.Code);

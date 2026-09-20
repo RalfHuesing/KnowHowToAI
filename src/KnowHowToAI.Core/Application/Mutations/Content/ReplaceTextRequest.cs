@@ -8,4 +8,4 @@ public sealed record ReplaceTextRequest(
     RoleId RoleId,
     string OldText,
     string NewText,
-    long? ExpectedChangeVersion = null);
+    long ExpectedChangeVersion);

@@ -169,7 +169,7 @@ public sealed class McpNodeMutationToolsTests
         Assert.Equal(ContentRevisionIdFor(10).ToString(), envelope.Data.ContentRevisionId);
         Assert.Equal("Independent", envelope.Data.ContentMode);
         Assert.Equal("Current", envelope.Data.Freshness);
-        Assert.Equal(1, contentRepository.ChangeVersion);
+        Assert.Equal(2, contentRepository.ChangeVersion);
     }
 
     [Fact]
@@ -365,7 +365,15 @@ public sealed class McpNodeMutationToolsTests
     private static NodeMutationTools CreateTools(
         InMemoryNodeMutationRepository repository,
         InMemoryContentMutationRepository? contentRepository = null) =>
-        new(
+        CreateToolsWithContentSync(repository, contentRepository);
+
+    private static NodeMutationTools CreateToolsWithContentSync(
+        InMemoryNodeMutationRepository repository,
+        InMemoryContentMutationRepository? contentRepository)
+    {
+        var contents = contentRepository ?? new InMemoryContentMutationRepository(new WorkingContentMutationState(SnapshotId, [], [], [], []));
+        repository.ChangeVersionChanged = contents.SynchronizeChangeVersion;
+        return new(
             new NodeMutationApplicationService(
                 repository,
                 new NodeMutationService(new FixedIdentifierGenerator()),
@@ -375,9 +383,9 @@ public sealed class McpNodeMutationToolsTests
                     ChildCountWarning = 2,
                     HierarchyDepthWarning = 8,
                     PossibleEmbeddedHeadingWarning = true
-                }),
+            }),
             new ContentMutationApplicationService(
-                contentRepository ?? new InMemoryContentMutationRepository(new WorkingContentMutationState(SnapshotId, [], [], [], [])),
+                contents,
                 new ContentMutationService(new ContentRevisionService(new RevisionIdentifierGenerator())),
                 new ValidationPolicy
                 {
@@ -386,6 +394,7 @@ public sealed class McpNodeMutationToolsTests
                     HierarchyDepthWarning = 8,
                     PossibleEmbeddedHeadingWarning = true
                 }));
+    }
 
     private static InMemoryContentMutationRepository ContentStateForCreatedNode() =>
         new(new WorkingContentMutationState(

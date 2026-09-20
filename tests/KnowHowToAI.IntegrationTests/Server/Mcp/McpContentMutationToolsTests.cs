@@ -38,7 +38,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeAndRole());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Inhalt ohne Struktur.");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Inhalt ohne Struktur.", 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(NodeId.ToString(), envelope.Data!.NodeId);
@@ -80,6 +80,7 @@ public sealed class McpContentMutationToolsTests
             RoleEndUser.Value,
             "Derived",
             "Abgeleiteter Inhalt.",
+            0,
             [new McpContentSourceData(SourceNodeId.ToString(), RoleDeveloper.Value, SourceRevisionId.ToString())]);
 
         Assert.True(envelope.IsSuccess);
@@ -93,7 +94,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeAndRole());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "# Überschrift");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "# Überschrift", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(ContentStructureCodes.HeadingNotAllowed, envelope.Code);
@@ -106,7 +107,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeAndRole());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Titel");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Titel", 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Contains(
@@ -123,7 +124,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeAndRole());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, rawContentMode, "Inhalt");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, rawContentMode, "Inhalt", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(DependencyErrorCodes.InvalidDependency, envelope.Code);
@@ -141,6 +142,7 @@ public sealed class McpContentMutationToolsTests
             RoleEndUser.Value,
             "Derived",
             "Abgeleiteter Inhalt.",
+            0,
             [new McpContentSourceData("not-a-guid", RoleDeveloper.Value, SourceRevisionId.ToString())]);
 
         Assert.False(envelope.IsSuccess);
@@ -154,7 +156,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(EmptyState());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Inhalt");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Inhalt", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(HierarchyErrorCodes.NodeNotFound, envelope.Code);
@@ -168,7 +170,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(repository);
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Suchbegriff", "Ersatz");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Suchbegriff", "Ersatz", 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(nameof(Freshness.Current), envelope.Data!.Freshness);
@@ -182,7 +184,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeRoleAndDeveloperContent("Inhalt."));
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Fehlt", "Ersatz");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Fehlt", "Ersatz", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.TextNotFound, envelope.Code);
@@ -194,7 +196,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeRoleAndDeveloperContent("Doppelt Doppelt."));
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Doppelt", "Einfach");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Doppelt", "Einfach", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.MultipleTextMatches, envelope.Code);
@@ -206,7 +208,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeAndRole());
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Alt", "Neu");
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Alt", "Neu", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.ExplicitContentNotFound, envelope.Code);
@@ -220,7 +222,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(repository);
 
         var envelope = await tools.DeleteContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value);
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(nameof(Freshness.Unknown), envelope.Data!.Freshness);
@@ -234,7 +236,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(StateWithNodeAndRole());
 
         var envelope = await tools.DeleteContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value);
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.ExplicitContentNotFound, envelope.Code);

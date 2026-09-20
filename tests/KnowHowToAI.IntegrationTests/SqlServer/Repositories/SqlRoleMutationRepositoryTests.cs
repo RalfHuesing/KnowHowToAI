@@ -28,7 +28,7 @@ public sealed class SqlRoleMutationRepositoryTests
             var role = new Role(state.SnapshotId, roleId, "Developer", null, IsDeleted: false);
             return Result<WorkingRoleMutationDecision<RoleId>>.Success(
                 new WorkingRoleMutationDecision<RoleId>(roleId, state with { Roles = [..state.Roles, role] }));
-        });
+        }, 0);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.ChangeVersion);
@@ -60,7 +60,7 @@ public sealed class SqlRoleMutationRepositoryTests
                         Roles = state.Roles.Select(r => r.RoleId == defaultRole ? updatedRole : r).ToArray(),
                         Resolutions = [newResolution]
                     }));
-        });
+        }, 0);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.ChangeVersion);

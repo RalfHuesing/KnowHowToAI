@@ -57,8 +57,8 @@ internal sealed class SqlContentMutationRepository : SqlRepository, IContentMuta
     public async Task<Result<WorkingContentMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingContentMutationState, Result<WorkingContentMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default,
-        long? expectedChangeVersion = null)
+        long expectedChangeVersion,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(mutate);
         WorkingContentMutationState? previousState = null;
@@ -87,8 +87,8 @@ internal sealed class SqlContentMutationRepository : SqlRepository, IContentMuta
                         Result<WorkingContentMutationDecision<T>>.Success(decision),
                         stateChanged);
                 },
-                cancellationToken,
-                expectedChangeVersion).ConfigureAwait(false);
+                cancellationToken: cancellationToken,
+                expectedChangeVersion: expectedChangeVersion).ConfigureAwait(false);
 
             if (!execution.Value.IsSuccess)
                 return Result<WorkingContentMutationExecution<T>>.Failure(execution.Value.Error!, execution.Value.Warnings);

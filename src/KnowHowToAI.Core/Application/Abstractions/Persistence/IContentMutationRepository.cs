@@ -14,6 +14,6 @@ public interface IContentMutationRepository
     Task<Result<WorkingContentMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingContentMutationState, Result<WorkingContentMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default,
-        long? expectedChangeVersion = null);
+        long expectedChangeVersion,
+        CancellationToken cancellationToken = default);
 }

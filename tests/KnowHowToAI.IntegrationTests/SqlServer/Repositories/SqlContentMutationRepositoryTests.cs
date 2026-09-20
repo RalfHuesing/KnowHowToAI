@@ -52,7 +52,7 @@ public sealed class SqlContentMutationRepositoryTests
                                 "Text",
                                 IsDeleted: false)
                         ]
-                    })));
+                    })), 0);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.ChangeVersion);
@@ -101,7 +101,7 @@ public sealed class SqlContentMutationRepositoryTests
                         {
                             Contents = state.Contents.Select(c => c == existing ? updated : c).ToArray()
                         }));
-            });
+            }, 0);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.ChangeVersion);

@@ -33,8 +33,8 @@ internal sealed class ContentMutationTools
         [Description("Content-Modus: exakt 'Independent' oder 'Derived'.")] string contentMode,
         [Description("Vollständiger Markdown-Inhalt ohne Überschriften; Gliederung über Listen " +
             "und Fließtext, Ersatztitel ggf. als freistehender Fettabsatz (Warnung PossibleEmbeddedHeading).")] string contentMd,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long expectedChangeVersion,
         [Description("Optionale Source-Revisions für Derived Content (je nodeId, roleId, contentRevisionId).")] McpContentSourceData[]? sources = null,
-        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -72,7 +72,7 @@ internal sealed class ContentMutationTools
         [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
         [Description("Exakt einmal vorkommender Textabschnitt.")] string oldText,
         [Description("Ersatztext für das Vorkommen.")] string newText,
-        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long expectedChangeVersion,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -98,7 +98,7 @@ internal sealed class ContentMutationTools
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
         [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
-        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long? expectedChangeVersion = null,
+        [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long expectedChangeVersion,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);

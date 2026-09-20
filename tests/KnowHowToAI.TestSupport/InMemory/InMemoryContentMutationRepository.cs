@@ -21,26 +21,29 @@ public sealed class InMemoryContentMutationRepository(WorkingContentMutationStat
     /// <summary>Anzahl der persistierten Zustandsänderungen.</summary>
     public long ChangeVersion { get; private set; }
 
+    /// <summary>Übernimmt einen bereits persistierten ChangeVersion-Stand der gemeinsamen Transaction.</summary>
+    public void SynchronizeChangeVersion(long changeVersion) => ChangeVersion = changeVersion;
+
     /// <summary>Optionale Rejection-Injection: Fehler, der ExecuteAsync vorab zurückliefert.</summary>
     public DomainError? Rejection { get; set; }
 
     public Task<Result<WorkingContentMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
         Func<WorkingContentMutationState, Result<WorkingContentMutationDecision<T>>> mutate,
-        CancellationToken cancellationToken = default,
-        long? expectedChangeVersion = null)
+        long expectedChangeVersion,
+        CancellationToken cancellationToken = default)
     {
         if (Rejection is not null)
             return Task.FromResult(Result<WorkingContentMutationExecution<T>>.Failure(Rejection));
 
-        if (expectedChangeVersion.HasValue && expectedChangeVersion.Value != ChangeVersion)
+        if (expectedChangeVersion != ChangeVersion)
         {
             return Task.FromResult(Result<WorkingContentMutationExecution<T>>.Failure(new DomainError(
                 TransactionValidationErrorCodes.ChangeVersionConflict,
                 "Die Transaction wurde zwischen Laden und Speichern geändert.",
                 new Dictionary<string, string>
                 {
-                    [TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expectedChangeVersion.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    [TransactionValidationErrorCodes.ExpectedChangeVersionDetail] = expectedChangeVersion.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     [TransactionValidationErrorCodes.ActualChangeVersionDetail] = ChangeVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 })));
         }

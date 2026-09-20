@@ -38,7 +38,8 @@ public sealed class ContentMutationApplicationServiceTests
                 EndUserRoleId,
                 ContentMode.Derived,
                 "Langer\r\nText",
-                [new ContentDependencySource(NodeId, DeveloperRoleId, SourceRevisionId)]));
+                [new ContentDependencySource(NodeId, DeveloperRoleId, SourceRevisionId)],
+                ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(GeneratedRevisionId, result.Value!.Content.ContentRevisionId);
@@ -63,7 +64,8 @@ public sealed class ContentMutationApplicationServiceTests
                 EndUserRoleId,
                 ContentMode.Derived,
                 "Abgeleitet",
-                [new ContentDependencySource(NodeId, DeveloperRoleId, GeneratedRevisionId)]));
+                [new ContentDependencySource(NodeId, DeveloperRoleId, GeneratedRevisionId)],
+                ExpectedChangeVersion: 0));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(DependencyErrorCodes.InvalidDependency, result.Code);
@@ -82,7 +84,7 @@ public sealed class ContentMutationApplicationServiceTests
 
         var result = await service.ReplaceTextAsync(
             TransactionId,
-            new ReplaceTextRequest(NodeId, EndUserRoleId, "Alt", "Neu"));
+                new ReplaceTextRequest(NodeId, EndUserRoleId, "Alt", "Neu", ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(GeneratedRevisionId, result.Value!.Content.ContentRevisionId);
@@ -98,7 +100,7 @@ public sealed class ContentMutationApplicationServiceTests
         var repository = new InMemoryContentMutationRepository(State([explicitContent]));
         var service = CreateService(repository);
 
-        var result = await service.DeleteContentAsync(TransactionId, NodeId, EndUserRoleId);
+        var result = await service.DeleteContentAsync(TransactionId, NodeId, EndUserRoleId, 0);
 
         Assert.True(result.IsSuccess);
         Assert.True(result.Value!.Content.IsDeleted);
@@ -120,7 +122,7 @@ public sealed class ContentMutationApplicationServiceTests
 
         var result = await service.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(NodeId, EndUserRoleId, ContentMode.Independent, "Neu", []));
+            new ReplaceContentRequest(NodeId, EndUserRoleId, ContentMode.Independent, "Neu", [], ExpectedChangeVersion: 0));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -143,7 +145,7 @@ public sealed class ContentMutationApplicationServiceTests
 
         var result = await service.ReplaceTextAsync(
             TransactionId,
-            new ReplaceTextRequest(NodeId, DeveloperRoleId, "Quelle", "Neu"));
+            new ReplaceTextRequest(NodeId, DeveloperRoleId, "Quelle", "Neu", ExpectedChangeVersion: 0));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -164,7 +166,7 @@ public sealed class ContentMutationApplicationServiceTests
         var repository = new InMemoryContentMutationRepository(State([source])) { Rejection = rejection };
         var service = CreateService(repository);
 
-        var result = await service.DeleteContentAsync(TransactionId, NodeId, DeveloperRoleId);
+        var result = await service.DeleteContentAsync(TransactionId, NodeId, DeveloperRoleId, 0);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -182,7 +184,7 @@ public sealed class ContentMutationApplicationServiceTests
 
         var result = await service.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(NodeId, DeveloperRoleId, ContentMode.Independent, "Inhalt", []));
+            new ReplaceContentRequest(NodeId, DeveloperRoleId, ContentMode.Independent, "Inhalt", [], ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(SourceRevisionId, result.Value!.Content.ContentRevisionId);
@@ -199,7 +201,7 @@ public sealed class ContentMutationApplicationServiceTests
 
         var result = await service.ReplaceTextAsync(
             TransactionId,
-            new ReplaceTextRequest(NodeId, DeveloperRoleId, "Inhalt", "Inhalt"));
+            new ReplaceTextRequest(NodeId, DeveloperRoleId, "Inhalt", "Inhalt", ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(SourceRevisionId, result.Value!.Content.ContentRevisionId);
@@ -216,7 +218,7 @@ public sealed class ContentMutationApplicationServiceTests
 
         var result = await service.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(NodeId, DeveloperRoleId, ContentMode.Independent, "Neuer Inhalt", []));
+            new ReplaceContentRequest(NodeId, DeveloperRoleId, ContentMode.Independent, "Neuer Inhalt", [], ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(GeneratedRevisionId, result.Value!.Content.ContentRevisionId);

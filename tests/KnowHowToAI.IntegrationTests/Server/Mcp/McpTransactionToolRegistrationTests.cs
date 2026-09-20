@@ -212,7 +212,7 @@ public sealed class McpTransactionToolRegistrationTests
             new[] { "contentMd", "contentMode", "expectedChangeVersion", "nodeId", "roleId", "sources", "transactionId" },
             SortedPropertyNames(schemas["replace_content"]));
         Assert.Equal(
-            new[] { "contentMd", "contentMode", "nodeId", "roleId", "transactionId" },
+            new[] { "contentMd", "contentMode", "expectedChangeVersion", "nodeId", "roleId", "transactionId" },
             SortedRequiredNames(schemas["replace_content"]));
         var sourcesSchema = schemas["replace_content"].GetProperty("properties").GetProperty("sources");
         Assert.Contains("array", sourcesSchema.GetRawText(), StringComparison.Ordinal);
@@ -221,23 +221,55 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.Equal(
             new[] { "expectedChangeVersion", "newText", "nodeId", "oldText", "roleId", "transactionId" },
             SortedPropertyNames(schemas["replace_text"]));
-        Assert.Equal(new[] { "nodeId", "roleId", "transactionId" }, SortedRequiredNames(schemas["delete_content"]));
+        Assert.Equal(
+            new[] { "expectedChangeVersion", "newText", "nodeId", "oldText", "roleId", "transactionId" },
+            SortedRequiredNames(schemas["replace_text"]));
+        Assert.Equal(
+            new[] { "expectedChangeVersion", "nodeId", "roleId", "transactionId" },
+            SortedRequiredNames(schemas["delete_content"]));
 
         Assert.Equal(
             new[] { "description", "expectedChangeVersion", "name", "transactionId" },
             SortedPropertyNames(schemas["create_role"]));
-        Assert.Equal(new[] { "name", "transactionId" }, SortedRequiredNames(schemas["create_role"]));
+        Assert.Equal(new[] { "expectedChangeVersion", "name", "transactionId" }, SortedRequiredNames(schemas["create_role"]));
 
         Assert.Equal(
             new[] { "description", "expectedChangeVersion", "name", "roleId", "transactionId" },
             SortedPropertyNames(schemas["update_role"]));
+        Assert.Equal(
+            new[] { "expectedChangeVersion", "name", "roleId", "transactionId" },
+            SortedRequiredNames(schemas["update_role"]));
 
         Assert.Equal(
             new[] { "candidateRoleIds", "expectedChangeVersion", "roleId", "transactionId" },
             SortedPropertyNames(schemas["set_role_resolution"]));
         Assert.Equal(
-            new[] { "candidateRoleIds", "roleId", "transactionId" },
+            new[] { "candidateRoleIds", "expectedChangeVersion", "roleId", "transactionId" },
             SortedRequiredNames(schemas["set_role_resolution"]));
+
+        Assert.Equal(
+            new[] { "expectedChangeVersion", "roleId", "transactionId" },
+            SortedRequiredNames(schemas["delete_role"]));
+    }
+
+    [Fact]
+    public void RolesAndContentMutationSchemas_RejectMissingExpectedChangeVersion()
+    {
+        using var provider = BuildToolProvider();
+        var schemas = provider.GetServices<McpServerTool>()
+            .ToDictionary(
+                tool => tool.ProtocolTool.Name,
+                tool => JsonDocument.Parse(tool.ProtocolTool.InputSchema.GetRawText()).RootElement.Clone(),
+                StringComparer.Ordinal);
+
+        foreach (var toolName in new[]
+        {
+            "create_role", "update_role", "delete_role", "set_role_resolution",
+            "replace_content", "replace_text", "delete_content"
+        })
+        {
+            Assert.Contains("expectedChangeVersion", SortedRequiredNames(schemas[toolName]));
+        }
     }
 
     [Fact]

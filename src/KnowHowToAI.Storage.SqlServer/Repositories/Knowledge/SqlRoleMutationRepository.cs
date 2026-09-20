@@ -24,7 +24,7 @@ internal sealed class SqlRoleMutationRepository : SqlRepository, IRoleMutationRe
 
     public SqlRoleMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy) : base(connectionFactory, storagePolicy) { }
 
-    public async Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(TransactionId transactionId, Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate, CancellationToken cancellationToken = default, long? expectedChangeVersion = null)
+    public async Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(TransactionId transactionId, Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate, long expectedChangeVersion, CancellationToken cancellationToken = default)
     {
         WorkingRoleMutationState? previous = null;
         try
@@ -39,7 +39,7 @@ internal sealed class SqlRoleMutationRepository : SqlRepository, IRoleMutationRe
                 var changed = !SetEquals(previous.Roles, decision.State.Roles) || !SetEquals(previous.Resolutions, decision.State.Resolutions);
                 if (changed) await SaveAsync(context, previous, decision.State, token).ConfigureAwait(false);
                 return new SqlWorkingSnapshotMutationResult<Result<WorkingRoleMutationDecision<T>>>(Result<WorkingRoleMutationDecision<T>>.Success(decision), changed);
-            }, cancellationToken, expectedChangeVersion).ConfigureAwait(false);
+            }, cancellationToken: cancellationToken, expectedChangeVersion: expectedChangeVersion).ConfigureAwait(false);
             if (!execution.Value.IsSuccess) return Result<WorkingRoleMutationExecution<T>>.Failure(execution.Value.Error!);
             var decision = execution.Value.Value!;
             return Result<WorkingRoleMutationExecution<T>>.Success(new WorkingRoleMutationExecution<T>(decision.Value, decision.State.SnapshotId, execution.ChangeVersion, previous!, decision.State));

@@ -122,7 +122,8 @@ public sealed class McpHttpWriteContractTests
             ["nodeId"] = RootNodeId.ToString(),
             ["roleId"] = "Developer",
             ["contentMode"] = "Independent",
-            ["contentMd"] = "Inhalt ohne Struktur."
+            ["contentMd"] = "Inhalt ohne Struktur.",
+            ["expectedChangeVersion"] = 0L
         });
 
         var data = envelope.RootElement.GetProperty("data");
@@ -149,7 +150,8 @@ public sealed class McpHttpWriteContractTests
             ["nodeId"] = RootNodeId.ToString(),
             ["roleId"] = "Developer",
             ["contentMode"] = "Independent",
-            ["contentMd"] = "Titel"
+            ["contentMd"] = "Titel",
+            ["expectedChangeVersion"] = 0L
         });
 
         Assert.Equal("Success", envelope.RootElement.GetProperty("code").GetString());

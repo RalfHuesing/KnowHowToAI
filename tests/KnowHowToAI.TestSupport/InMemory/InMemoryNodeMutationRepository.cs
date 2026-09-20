@@ -22,6 +22,9 @@ public sealed class InMemoryNodeMutationRepository(WorkingNodeMutationState stat
     /// <summary>Anzahl der persistierten Zustandsänderungen.</summary>
     public long ChangeVersion { get; private set; }
 
+    /// <summary>Synchronisiert verbundene In-Memory-Write-Ports derselben Transaction.</summary>
+    public Action<long>? ChangeVersionChanged { get; set; }
+
     /// <summary>Optionale Rejection-Injection: Fehler, der ExecuteAsync vorab zurückliefert.</summary>
     public DomainError? Rejection { get; set; }
 
@@ -56,7 +59,10 @@ public sealed class InMemoryNodeMutationRepository(WorkingNodeMutationState stat
         var stateChanged = HasStateChanged(previousState, decision.State);
         State = decision.State;
         if (stateChanged)
+        {
             ChangeVersion++;
+            ChangeVersionChanged?.Invoke(ChangeVersion);
+        }
 
         return Task.FromResult(Result<WorkingNodeMutationExecution<T>>.Success(
             new WorkingNodeMutationExecution<T>(

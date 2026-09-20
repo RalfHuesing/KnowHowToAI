@@ -210,7 +210,8 @@ public sealed class McpHttpTransportTests
         var begin = await client.CallToolAsync("begin_transaction");
         var mutation = await client.CallToolAsync("create_role", new Dictionary<string, object?>
         {
-            ["transactionId"] = WorkflowTransactionRepository.Id.ToString(), ["name"] = "Reviewer"
+            ["transactionId"] = WorkflowTransactionRepository.Id.ToString(), ["name"] = "Reviewer",
+            ["expectedChangeVersion"] = 0L
         });
         var discard = await client.CallToolAsync("discard_transaction", new Dictionary<string, object?>
         {

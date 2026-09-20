@@ -146,16 +146,17 @@ und sendet eine bewusste Gegenänderung, falls sie weiter gewünscht ist.
 ## Request-/Response-Felder der Rollen- und Content-Tools
 
 Rollen- und Content-Mutationen erfordern neben der offenen `transactionId` den
-zuvor gelesenen `expectedChangeVersion`-Stand. Die Antwort enthält bei Erfolg
+zuvor gelesenen `expectedChangeVersion`-Stand als Pflichtfeld. Fehlt das Feld,
+weist das MCP-Eingabeschema den Aufruf vor der Mutation zurück. Die Antwort enthält bei Erfolg
 den Working-`snapshotId` und die danach gültige `changeVersion`.
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `create_role` | `transactionId`, `name` (erforderlich), optional `description`, `expectedChangeVersion` | `roleId`, `name`, optional `description`, `snapshotId`, `changeVersion` |
-| `update_role` | `transactionId`, `roleId`, `name` (erforderlich), optional `description`, `expectedChangeVersion` | dieselben Rollenfelder |
+| `create_role` | `transactionId`, `name`, `expectedChangeVersion` (erforderlich), optional `description` | `roleId`, `name`, optional `description`, `snapshotId`, `changeVersion` |
+| `update_role` | `transactionId`, `roleId`, `name`, `expectedChangeVersion` (erforderlich), optional `description` | dieselben Rollenfelder |
 | `delete_role` | `transactionId`, `roleId`, `expectedChangeVersion` | dieselben Rollenfelder |
 | `set_role_resolution` | `transactionId`, `roleId`, `candidateRoleIds`, `expectedChangeVersion` | `requestedRoleId`, `items`, `snapshotId`, `changeVersion` |
-| `replace_content` | `transactionId`, `nodeId`, `roleId`, `contentMode`, `contentMd`, optional `sources`, `expectedChangeVersion` | `nodeId`, `roleId`, `contentRevisionId`, `contentMode`, `freshness`, `snapshotId`, `changeVersion` |
+| `replace_content` | `transactionId`, `nodeId`, `roleId`, `contentMode`, `contentMd`, `expectedChangeVersion` (erforderlich), optional `sources` | `nodeId`, `roleId`, `contentRevisionId`, `contentMode`, `freshness`, `snapshotId`, `changeVersion` |
 | `replace_text` | `transactionId`, `nodeId`, `roleId`, `oldText`, `newText`, `expectedChangeVersion` | dieselben Contentfelder |
 | `delete_content` | `transactionId`, `nodeId`, `roleId`, `expectedChangeVersion` | dieselben Contentfelder |
 
