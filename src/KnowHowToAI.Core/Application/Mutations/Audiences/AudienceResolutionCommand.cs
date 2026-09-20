@@ -10,4 +10,3 @@ public sealed record AudienceResolutionCommand(
     TransactionId TransactionId,
     AudienceId RequestedAudienceId,
     IReadOnlyList<AudienceId> CandidateAudienceIds);
-
