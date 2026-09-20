@@ -63,20 +63,12 @@ public sealed class KnowledgePageRootNodeTests : BunitContext
             Services.AddSingleton(new NodeMutationApplicationService(
                 new InMemoryNodeMutationRepository(new WorkingNodeMutationState(WorkingSnapshotId, [], [], [], [])),
                 new NodeMutationService(new FixedIdentifierGenerator()),
-                CreateValidationPolicy()));
+                TestPolicies.DefaultValidation));
         }
 
         var navigationService = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
-        var treeState = new KnowledgeTreeState(navigationService);
-        Services.AddSingleton(navigationService);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
-        Services.AddSingleton(new WorkspaceState());
-        Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton(new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions));
-        Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService("Developer"));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        Services.AddWebPageStates()
+            .AddKnowledgePageServices(navigationService, transactionRepository: harness.CreateRepositories().Transactions);
 
         if (activeTransaction)
         {
@@ -86,12 +78,4 @@ public sealed class KnowledgePageRootNodeTests : BunitContext
 
         return Render<KnowledgePage>();
     }
-
-    private static ValidationPolicy CreateValidationPolicy() => new()
-    {
-        ContentSizeWarningBytes = 4096,
-        ChildCountWarning = 100,
-        HierarchyDepthWarning = 8,
-        PossibleEmbeddedHeadingWarning = true
-    };
 }

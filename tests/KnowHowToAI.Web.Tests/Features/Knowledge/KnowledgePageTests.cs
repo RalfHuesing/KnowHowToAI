@@ -15,6 +15,7 @@ using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
@@ -35,21 +36,8 @@ public sealed class KnowledgePageTests : BunitContext
         harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
-        var treeState = new KnowledgeTreeState(service);
-        var workspaceState = new WorkspaceState();
-        var pageRegions = new PageRegionState();
-        var releaseRepo = new InMemoryReleaseRepository();
-        var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
-
-        Services.AddSingleton(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
-        Services.AddSingleton(workspaceState);
-        Services.AddSingleton(pageRegions);
-        Services.AddSingleton(contextResolver);
-        Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
+        Services.AddWebPageStates()
+            .AddKnowledgePageServices(service, transactionRepository: harness.CreateRepositories().Transactions);
 
         var cut = Render<KnowledgePage>();
 
@@ -70,21 +58,8 @@ public sealed class KnowledgePageTests : BunitContext
         harness.AddNode(new Node(DefaultSnapshotId, childId, rootId, "Child", null, 1, false));
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
-        var treeState = new KnowledgeTreeState(service);
-        var workspaceState = new WorkspaceState();
-        var pageRegions = new PageRegionState();
-        var releaseRepo = new InMemoryReleaseRepository();
-        var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
-
-        Services.AddSingleton(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
-        Services.AddSingleton(workspaceState);
-        Services.AddSingleton(pageRegions);
-        Services.AddSingleton(contextResolver);
-        Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
+        Services.AddWebPageStates()
+            .AddKnowledgePageServices(service, transactionRepository: harness.CreateRepositories().Transactions);
 
         var cut = Render<KnowledgePage>(parameters => parameters
             .Add(p => p.NodeId, childId.Value));
@@ -106,21 +81,8 @@ public sealed class KnowledgePageTests : BunitContext
         harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
-        var treeState = new KnowledgeTreeState(service);
-        var workspaceState = new WorkspaceState();
-        var pageRegions = new PageRegionState();
-        var releaseRepo = new InMemoryReleaseRepository();
-        var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
-
-        Services.AddSingleton(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
-        Services.AddSingleton(workspaceState);
-        Services.AddSingleton(pageRegions);
-        Services.AddSingleton(contextResolver);
-        Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
+        Services.AddWebPageStates()
+            .AddKnowledgePageServices(service, transactionRepository: harness.CreateRepositories().Transactions);
 
         var navMan = Services.GetRequiredService<NavigationManager>();
 
@@ -173,30 +135,14 @@ public sealed class KnowledgePageTests : BunitContext
         AddDerivedScenario(harness, fallbackSnapshotId, rootId, sourceId, defaultRoleId, sourceIsCurrent: true);
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
-        var treeState = new KnowledgeTreeState(service);
-        var workspaceState = new WorkspaceState();
-        var contextResolver = new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions);
-        Services.AddSingleton(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
-        Services.AddSingleton(workspaceState);
-        Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton(contextResolver);
-        Services.AddSingleton<IRoleStorageService>(new KnowHowToAI.Web.Tests.TestSupport.InMemoryRoleStorageService("Developer"));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(service));
+        Services.AddWebPageStates()
+            .AddKnowledgePageServices(service, transactionRepository: harness.CreateRepositories().Transactions);
         Services.AddSingleton(new NodeMutationApplicationService(
             new InMemoryNodeMutationRepository(new WorkingNodeMutationState(workingSnapshotId, [], [], [], [])),
             new NodeMutationService(new GuidIdentifierGenerator()),
-            new ValidationPolicy
-            {
-                ContentSizeWarningBytes = 4096,
-                ChildCountWarning = 100,
-                HierarchyDepthWarning = 8,
-                PossibleEmbeddedHeadingWarning = true
-            }));
+            TestPolicies.DefaultValidation));
         Services.AddSingleton(new NodeDeletionPreviewService(harness.CreateRepositories().WorkingSnapshots!));
-        JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js").Mode = JSRuntimeMode.Loose;
+        JSInterop.SetupAppDialog();
 
         var query = scenario switch
         {
