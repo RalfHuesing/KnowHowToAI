@@ -65,7 +65,6 @@
                  aria-describedby="@statusDescriptionId"
                  data-testid="@($"treeitem-{node.NodeId}")"
                  data-nodeid="@node.NodeId"
-                 draggable="@CanMove"
                  @onclick="() => HandleSelectNodeAsync(node.NodeId)"
                  @onfocus="() => HandleFocus(node.NodeId)"
                  @ref="_nodeElements[node.NodeId]">

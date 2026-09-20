@@ -12,13 +12,16 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// </summary>
 public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
 {
-    private const string ModulePath = "./Web/Features/Knowledge/KnowledgeTree.razor.js";
+    private const string ModuleAssetPath = "Web/Features/Knowledge/KnowledgeTree.razor.js";
 
     [Inject]
     public IKnowledgeTreeWorkspace TreeWorkspace { get; set; } = default!;
 
     [Inject]
     private IJSRuntime JSRuntime { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
 
     [Inject]
     private ILogger<KnowledgeTree>? Logger { get; set; }
@@ -51,8 +54,6 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
     private Guid? _focusedNodeId;
     private Guid? _lastSelectedNodeId;
     private string? _moveErrorMessage;
-    private bool _keyboardInitialized;
-    private bool _dragAndDropInitialized;
     private bool _isDisposed;
 
     private Guid? EffectiveFocusedNodeId
@@ -80,29 +81,23 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_treeElement.Id is not null)
+        if (TreeWorkspace.VisualRootNode is not null)
         {
             try
             {
                 var module = await EnsureModuleAsync();
-                if (!_keyboardInitialized)
-                {
-                    await module.InvokeVoidAsync("initTreeKeyboard", _treeElement);
-                    _keyboardInitialized = true;
-                }
+                await module.InvokeVoidAsync("initTreeKeyboard", _treeElement);
 
-                if (CanMove && !_dragAndDropInitialized)
+                if (CanMove)
                 {
                     _dragAndDropReference ??= DotNetObjectReference.Create(this);
                     await module.InvokeVoidAsync("initTreeDragAndDrop", _treeElement, _dragAndDropReference);
-                    _dragAndDropInitialized = true;
                 }
-                else if (!CanMove && _dragAndDropInitialized)
+                else
                 {
                     await module.InvokeVoidAsync("disposeTreeDragAndDrop", _treeElement);
                     _dragAndDropReference?.Dispose();
                     _dragAndDropReference = null;
-                    _dragAndDropInitialized = false;
                 }
             }
             catch (Exception ex)
@@ -319,16 +314,20 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
         }
     }
 
-    private Task<IJSObjectReference> EnsureModuleAsync() =>
-        _moduleTask ??= JSRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath).AsTask();
+    private Task<IJSObjectReference> EnsureModuleAsync()
+    {
+        var moduleUri = NavigationManager.ToAbsoluteUri(Assets[ModuleAssetPath]);
+        return _moduleTask ??= JSRuntime.InvokeAsync<IJSObjectReference>("import", moduleUri.AbsoluteUri).AsTask();
+    }
 
     public async ValueTask DisposeAsync()
     {
-        if (_dragAndDropInitialized && _moduleTask is not null)
+        if (_moduleTask is not null)
         {
             try
             {
                 var module = await _moduleTask;
+                await module.InvokeVoidAsync("disposeTreeKeyboard", _treeElement);
                 await module.InvokeVoidAsync("disposeTreeDragAndDrop", _treeElement);
             }
             catch (JSDisconnectedException ex)

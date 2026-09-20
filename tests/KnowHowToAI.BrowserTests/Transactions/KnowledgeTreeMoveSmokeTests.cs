@@ -68,12 +68,24 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToContainTextAsync("Änderungsversion: 1");
             await Assertions.Expect(page.GetByTestId("tree-move-error")).ToHaveCountAsync(0);
             await Assertions.Expect(page.GetByTestId($"treeitem-{source}")).ToBeVisibleAsync();
+
+            await MoveVisibleSiblingAsync(page, sourceIndex: 0, targetIndex: 1, "After", 0.875);
+            await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToContainTextAsync("Änderungsversion: 2");
+            await Assertions.Expect(page.GetByTestId("tree-move-error")).ToHaveCountAsync(0);
         }
         finally
         {
             if (transactionId is not null)
                 await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId.Value);
         }
+    }
+
+    private static async Task MoveVisibleSiblingAsync(IPage page, int sourceIndex, int targetIndex, string position, double relativeY)
+    {
+        var children = page.Locator("div[role='treeitem'][aria-level='2']");
+        var source = await children.Nth(sourceIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Quellknoten fehlt.");
+        var target = await children.Nth(targetIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Zielknoten fehlt.");
+        await DragAndDropAsync(page, source, target, position, relativeY);
     }
 
     private static async Task DragAndDropAsync(IPage page, string source, string target, string position, double relativeY)

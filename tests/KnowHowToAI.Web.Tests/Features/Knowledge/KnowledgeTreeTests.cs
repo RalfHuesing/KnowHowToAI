@@ -291,7 +291,7 @@ public sealed class KnowledgeTreeTests : BunitContext
     }
 
     [Fact]
-    public async Task KnowledgeTree_DragAndDrop_RendersDraggableNodesWithoutMoveButtons()
+    public async Task KnowledgeTree_DragAndDrop_RendersPointerNodesWithoutMoveButtons()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -309,8 +309,8 @@ public sealed class KnowledgeTreeTests : BunitContext
         var cut = Render<KnowledgeTree>(parameters => parameters
             .Add(component => component.CanMove, true));
 
-        Assert.True(cut.Find($"[data-testid='treeitem-{sourceId.Value}']").HasAttribute("draggable"));
-        Assert.True(cut.Find($"[data-testid='treeitem-{targetId.Value}']").HasAttribute("draggable"));
+        Assert.False(cut.Find($"[data-testid='treeitem-{sourceId.Value}']").HasAttribute("draggable"));
+        Assert.False(cut.Find($"[data-testid='treeitem-{targetId.Value}']").HasAttribute("draggable"));
         Assert.Empty(cut.FindAll(".tree-move-source-btn, .tree-move-target, .tree-move-targets"));
         Assert.DoesNotContain("Verschieben", cut.Markup, StringComparison.Ordinal);
     }

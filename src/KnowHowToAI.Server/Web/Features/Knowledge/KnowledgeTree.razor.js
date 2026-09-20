@@ -1,14 +1,24 @@
 export function initTreeKeyboard(treeElement) {
-    if (!treeElement) return;
+    if (!treeElement || treeElement.__treeKeyboard) return;
+
     const navKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", " "]);
-    treeElement.addEventListener("keydown", (e) => {
-        if (navKeys.has(e.key)) {
-            e.preventDefault();
-        }
-    });
+    const handleKeyDown = event => {
+        if (navKeys.has(event.key)) event.preventDefault();
+    };
+
+    treeElement.addEventListener("keydown", handleKeyDown);
+    treeElement.__treeKeyboard = () => {
+        treeElement.removeEventListener("keydown", handleKeyDown);
+        delete treeElement.__treeKeyboard;
+    };
+}
+
+export function disposeTreeKeyboard(treeElement) {
+    treeElement?.__treeKeyboard?.();
 }
 
 const dropClasses = ["is-drop-before", "is-drop-parent", "is-drop-after"];
+let activeDragBinding = null;
 
 function resolveTreeNode(treeElement, target) {
     const node = target instanceof Element ? target.closest(".tree-node[data-nodeid]") : null;
@@ -25,7 +35,7 @@ function resolveDropPosition(node, clientY) {
 }
 
 function clearDropIndicator(node) {
-    if (node) node.classList.remove(...dropClasses);
+    node?.classList.remove(...dropClasses);
 }
 
 function setDropIndicator(node, position) {
@@ -33,130 +43,167 @@ function setDropIndicator(node, position) {
     node.classList.add(`is-drop-${position.toLowerCase()}`);
 }
 
-export function initTreeDragAndDrop(treeElement, dotNetReference) {
-    if (!treeElement || treeElement.__treeDragAndDrop) return;
-
-    let sourceNode = null;
-    let dropTarget = null;
-    let pointerStart = null;
-    let pointerDragActive = false;
-
-    const clearDragState = () => {
-        sourceNode?.classList.remove("is-dragging");
-        clearDropIndicator(dropTarget);
-        sourceNode = null;
-        dropTarget = null;
-        pointerStart = null;
-        pointerDragActive = false;
+function createDragBinding(treeElement, dotNetReference) {
+    let currentDotNetReference = dotNetReference;
+    const state = {
+        phase: "idle",
+        pointerId: null,
+        sourceNode: null,
+        targetNode: null,
+        pointerStart: null,
+        dropInFlight: null,
+        suppressClick: false
     };
 
-    const completeDrop = async (target, clientY) => {
-        if (!sourceNode || !target) return;
-
-        const sourceNodeId = sourceNode.dataset.nodeid;
-        const targetNodeId = target.dataset.nodeid;
-        const position = resolveDropPosition(target, clientY);
-        clearDragState();
-        await dotNetReference.invokeMethodAsync("HandleTreeDropAsync", sourceNodeId, targetNodeId, position);
+    const resetVisualState = () => {
+        state.sourceNode?.classList.remove("is-dragging");
+        clearDropIndicator(state.targetNode);
+        state.phase = "idle";
+        state.pointerId = null;
+        state.sourceNode = null;
+        state.targetNode = null;
+        state.pointerStart = null;
     };
 
-    const handleDragStart = event => {
-        sourceNode = resolveTreeNode(treeElement, event.target);
-        if (!sourceNode) return;
-
-        sourceNode.classList.add("is-dragging");
-        event.dataTransfer?.setData("text/plain", sourceNode.dataset.nodeid);
-        if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
-    };
-
-    const handleDragOver = event => {
-        if (!sourceNode) return;
-
-        const target = resolveTreeNode(treeElement, event.target);
-        if (!target) return;
-
-        event.preventDefault();
-        if (dropTarget !== target) clearDropIndicator(dropTarget);
-        dropTarget = target;
-        setDropIndicator(target, resolveDropPosition(target, event.clientY));
-    };
-
-    const handleDragLeave = event => {
-        const target = resolveTreeNode(treeElement, event.target);
-        if (target && target === dropTarget && !target.contains(event.relatedTarget)) {
-            clearDropIndicator(target);
-            dropTarget = null;
+    const cancelPointerCapture = () => {
+        if (state.sourceNode && state.pointerId !== null && state.sourceNode.hasPointerCapture(state.pointerId)) {
+            state.sourceNode.releasePointerCapture(state.pointerId);
         }
     };
 
-    const handleDrop = async event => {
-        const target = resolveTreeNode(treeElement, event.target);
-        if (!sourceNode || !target) return;
+    const finishDrop = async (targetNode, clientY) => {
+        const sourceNode = state.sourceNode;
+        const sourceNodeId = sourceNode?.dataset.nodeid;
+        const targetNodeId = targetNode?.dataset.nodeid;
+        if (!sourceNodeId || !targetNodeId || sourceNodeId === targetNodeId) {
+            cancelPointerCapture();
+            resetVisualState();
+            return;
+        }
 
-        event.preventDefault();
-        await completeDrop(target, event.clientY);
+        const position = resolveDropPosition(targetNode, clientY);
+        cancelPointerCapture();
+        resetVisualState();
+        state.suppressClick = true;
+        state.dropInFlight = currentDotNetReference.invokeMethodAsync(
+            "HandleTreeDropAsync",
+            sourceNodeId,
+            targetNodeId,
+            position);
+
+        try {
+            await state.dropInFlight;
+        }
+        catch {
+            // A disposed circuit may reject the in-flight interop call after the
+            // DOM has already been cleaned up. The next render owns the state.
+        }
+        finally {
+            state.dropInFlight = null;
+            window.setTimeout(() => { state.suppressClick = false; }, 0);
+        }
     };
 
     const handlePointerDown = event => {
-        if (event.button !== 0 || event.target.closest("button")) return;
+        if (!event.isPrimary || event.button !== 0 || state.dropInFlight || event.target.closest("button")) return;
 
-        const node = resolveTreeNode(treeElement, event.target);
-        if (!node) return;
+        const sourceNode = resolveTreeNode(treeElement, event.target);
+        if (!sourceNode) return;
 
-        sourceNode = node;
-        pointerStart = { x: event.clientX, y: event.clientY };
+        state.phase = "pressed";
+        state.pointerId = event.pointerId;
+        state.sourceNode = sourceNode;
+        state.pointerStart = { x: event.clientX, y: event.clientY };
+        sourceNode.setPointerCapture(event.pointerId);
     };
 
     const handlePointerMove = event => {
-        if (!sourceNode || !pointerStart) return;
+        if (event.pointerId !== state.pointerId || !state.sourceNode || !state.pointerStart) return;
 
-        const deltaX = event.clientX - pointerStart.x;
-        const deltaY = event.clientY - pointerStart.y;
-        if (!pointerDragActive && Math.hypot(deltaX, deltaY) < 5) return;
+        const deltaX = event.clientX - state.pointerStart.x;
+        const deltaY = event.clientY - state.pointerStart.y;
+        if (state.phase === "pressed" && Math.hypot(deltaX, deltaY) < 5) return;
 
-        pointerDragActive = true;
-        sourceNode.classList.add("is-dragging");
-        const target = resolveTreeNode(treeElement, document.elementFromPoint(event.clientX, event.clientY));
-        if (!target) return;
+        state.phase = "dragging";
+        state.sourceNode.classList.add("is-dragging");
+        const targetNode = resolveTreeNode(treeElement, document.elementFromPoint(event.clientX, event.clientY));
+        if (!targetNode || targetNode === state.sourceNode) {
+            clearDropIndicator(state.targetNode);
+            state.targetNode = null;
+            event.preventDefault();
+            return;
+        }
 
-        if (dropTarget !== target) clearDropIndicator(dropTarget);
-        dropTarget = target;
-        setDropIndicator(target, resolveDropPosition(target, event.clientY));
+        if (state.targetNode !== targetNode) clearDropIndicator(state.targetNode);
+        state.targetNode = targetNode;
+        setDropIndicator(targetNode, resolveDropPosition(targetNode, event.clientY));
         event.preventDefault();
     };
 
     const handlePointerUp = async event => {
-        if (!pointerDragActive || !dropTarget) {
-            clearDragState();
+        if (event.pointerId !== state.pointerId) return;
+        if (state.phase !== "dragging" || !state.targetNode) {
+            cancelPointerCapture();
+            resetVisualState();
             return;
         }
 
         event.preventDefault();
-        await completeDrop(dropTarget, event.clientY);
+        await finishDrop(state.targetNode, event.clientY);
     };
 
-    treeElement.addEventListener("dragstart", handleDragStart);
-    treeElement.addEventListener("dragover", handleDragOver);
-    treeElement.addEventListener("dragleave", handleDragLeave);
-    treeElement.addEventListener("drop", handleDrop);
-    treeElement.addEventListener("dragend", clearDragState);
-    treeElement.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", clearDragState);
-    treeElement.__treeDragAndDrop = () => {
-        clearDragState();
-        treeElement.removeEventListener("dragstart", handleDragStart);
-        treeElement.removeEventListener("dragover", handleDragOver);
-        treeElement.removeEventListener("dragleave", handleDragLeave);
-        treeElement.removeEventListener("drop", handleDrop);
-        treeElement.removeEventListener("dragend", clearDragState);
-        treeElement.removeEventListener("pointerdown", handlePointerDown);
-        window.removeEventListener("pointermove", handlePointerMove);
-        window.removeEventListener("pointerup", handlePointerUp);
-        window.removeEventListener("pointercancel", clearDragState);
-        delete treeElement.__treeDragAndDrop;
+    const handlePointerCancel = event => {
+        if (event.pointerId === state.pointerId) {
+            cancelPointerCapture();
+            resetVisualState();
+        }
     };
+
+    const handleClick = event => {
+        if (!state.suppressClick) return;
+        event.preventDefault();
+        event.stopPropagation();
+        state.suppressClick = false;
+    };
+
+    treeElement.addEventListener("pointerdown", handlePointerDown);
+    treeElement.addEventListener("pointermove", handlePointerMove);
+    treeElement.addEventListener("pointerup", handlePointerUp);
+    treeElement.addEventListener("pointercancel", handlePointerCancel);
+    treeElement.addEventListener("click", handleClick, true);
+
+    const dispose = () => {
+        cancelPointerCapture();
+        resetVisualState();
+        treeElement.removeEventListener("pointerdown", handlePointerDown);
+        treeElement.removeEventListener("pointermove", handlePointerMove);
+        treeElement.removeEventListener("pointerup", handlePointerUp);
+        treeElement.removeEventListener("pointercancel", handlePointerCancel);
+        treeElement.removeEventListener("click", handleClick, true);
+        delete treeElement.__treeDragAndDrop;
+        if (activeDragBinding?.treeElement === treeElement) activeDragBinding = null;
+    };
+
+    return {
+        treeElement,
+        dispose,
+        update(reference) {
+            currentDotNetReference = reference;
+        }
+    };
+}
+
+export function initTreeDragAndDrop(treeElement, dotNetReference) {
+    if (!treeElement) return;
+
+    if (activeDragBinding?.treeElement !== treeElement) {
+        activeDragBinding?.dispose();
+        activeDragBinding = createDragBinding(treeElement, dotNetReference);
+        treeElement.__treeDragAndDrop = activeDragBinding.dispose;
+    }
+    else {
+        activeDragBinding.update(dotNetReference);
+    }
 }
 
 export function disposeTreeDragAndDrop(treeElement) {

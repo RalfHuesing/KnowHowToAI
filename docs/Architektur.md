@@ -163,10 +163,13 @@ State- oder Host-Benachrichtigungen reihen Änderungen und Rendering über
 `KHTAI001`; Circuit-State- und Feature-Services bleiben dabei rendererfrei.
 
 Der native `KnowledgeTree` hält hochfrequentes Drag-Feedback in seinem
-komponentenlokalen JavaScript-Modul: Native Drag-Ereignisse und die
-Zeiger-Interaktion berechnen die drei sichtbaren Drop-Zonen clientseitig und
-übergeben beim tatsächlichen Drop nur Source, Target und Position über einen
-`DotNetObjectReference` an die Razor-Komponente.
+komponentenlokalen JavaScript-Modul: Eine einzige Pointer-Event-Interaktion
+mit Pointer-Capture berechnet die drei sichtbaren Drop-Zonen clientseitig,
+blockiert konkurrierende Mutationen bis zum Abschluss und übergibt beim
+tatsächlichen Drop nur Source, Target und Position über einen
+`DotNetObjectReference` an die Razor-Komponente. Die Bindung ist pro DOM-
+Element idempotent und wird beim Lifecycle-Dispose freigegeben; der Modulpfad
+wird über `@Assets` mit der Static-Web-Assets-Fingerabdruckroute aufgelöst.
 Diese delegiert die einzelne Mutation unverändert an den featurelokalen
 `TreeMoveCoordinator`; sie enthält keine Geschäftslogik.
 

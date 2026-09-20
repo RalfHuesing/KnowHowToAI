@@ -61,6 +61,7 @@
     padding: var(--ktai-space-1) var(--ktai-space-2);
     border-radius: var(--ktai-radius-sm);
     cursor: pointer;
+    touch-action: none;
     font-size: var(--ktai-font-size-sm);
     transition: background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, outline-color 0.12s ease;
     border-left: 3px solid transparent;
