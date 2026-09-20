@@ -28,7 +28,7 @@
         <textarea id="@_descriptionId" value="@_description" @onchange="UpdateDescription" disabled="@_isSubmitting" rows="3" data-testid="create-release-description"></textarea>
     </div>
     <div class="create-release-dialog__actions">
-        <button type="button" disabled="@_isSubmitting" @onclick="CancelAsync">Abbrechen</button>
-        <button type="button" disabled="@_isSubmitting" @onclick="CreateAsync" data-testid="create-release-submit">Release anlegen</button>
+        <button type="button" class="btn btn-secondary" disabled="@_isSubmitting" @onclick="CancelAsync">Abbrechen</button>
+        <button type="button" class="btn btn-primary" disabled="@_isSubmitting" @onclick="CreateAsync" data-testid="create-release-submit">Release anlegen</button>
     </div>
 </AppDialog>

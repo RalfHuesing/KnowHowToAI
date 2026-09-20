@@ -80,45 +80,6 @@
     margin-top: var(--ktai-space-2);
 }
 
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--ktai-space-2) var(--ktai-space-4);
-    font-size: var(--ktai-font-size-sm);
-    font-weight: 500;
-    border-radius: var(--ktai-radius-sm);
-    text-decoration: none;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-}
-
-.btn-primary {
-    background-color: var(--ktai-color-primary);
-    color: var(--ktai-color-primary-contrast);
-}
-
-.btn-primary:hover:not(:disabled) {
-    background-color: var(--ktai-color-primary-hover);
-}
-
-.btn-secondary {
-    background-color: var(--ktai-color-surface);
-    color: var(--ktai-color-text);
-    border-color: var(--ktai-color-border-input);
-}
-
-.btn-secondary:hover:not(:disabled) {
-    background-color: var(--ktai-color-surface-subtle);
-    border-color: var(--ktai-color-border-hover);
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
 .transaction-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

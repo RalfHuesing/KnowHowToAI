@@ -23,7 +23,7 @@
                     }
                 </ul>
             }
-            <button type="button" @onclick="() => NavigateToRelease(_createdRelease.ReleaseId)" data-testid="release-created-navigate">Release öffnen</button>
+            <button type="button" class="btn btn-secondary" @onclick="() => NavigateToRelease(_createdRelease.ReleaseId)" data-testid="release-created-navigate">Release öffnen</button>
         </section>
     }
     @if (!string.IsNullOrWhiteSpace(_errorMessage))

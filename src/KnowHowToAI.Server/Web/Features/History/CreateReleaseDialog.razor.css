@@ -7,6 +7,13 @@
 .create-release-dialog__field input,
 .create-release-dialog__field select,
 .create-release-dialog__field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--ktai-space-2) var(--ktai-space-3);
+    border: 1px solid var(--ktai-color-border-input);
+    border-radius: var(--ktai-radius-sm);
+    background: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
     font: inherit;
 }
 
