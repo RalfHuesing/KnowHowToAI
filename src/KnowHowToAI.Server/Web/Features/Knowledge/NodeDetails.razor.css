@@ -173,6 +173,28 @@
     align-self: flex-start;
 }
 
+.node-content-context {
+    padding: var(--ktai-space-3);
+    border-left: 3px solid var(--ktai-color-warning);
+    border-radius: var(--ktai-radius-sm);
+    background-color: var(--ktai-color-surface-subtle);
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-sm);
+    line-height: 1.5;
+}
+
+.node-content-context p {
+    margin: 0;
+}
+
+.node-content-context p + p {
+    margin-top: var(--ktai-space-2);
+}
+
+.node-content-context strong {
+    color: var(--ktai-color-text);
+}
+
 /* Provenance (Derived Content) */
 .node-provenance-list {
     margin: 0;

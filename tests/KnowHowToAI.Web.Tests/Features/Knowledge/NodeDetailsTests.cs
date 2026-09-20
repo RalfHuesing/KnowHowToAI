@@ -160,6 +160,11 @@ public sealed class NodeDetailsTests : BunitContext
         var roleElement = cut.Find("[data-testid='node-details-role']");
         Assert.Contains("Architect", roleElement.TextContent);
         Assert.Contains("→", roleElement.TextContent);
+
+        var fallbackContext = cut.Find("[data-testid='node-content-fallback-context']");
+        Assert.Contains("kein eigener Inhalt hinterlegt", fallbackContext.TextContent);
+        Assert.Contains("Fallback-Rolle „Architect“", fallbackContext.TextContent);
+        Assert.Contains("Wissenskontext bleiben unverändert", fallbackContext.TextContent);
     }
 
     [Fact]

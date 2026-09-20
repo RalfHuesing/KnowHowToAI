@@ -6,3 +6,14 @@
     max-width: 32rem;
     padding: var(--ktai-space-2) 0;
 }
+
+.context-selector-dialog__purpose {
+    margin: 0;
+    padding: var(--ktai-space-3);
+    border-left: 3px solid var(--ktai-color-primary);
+    border-radius: var(--ktai-radius-sm);
+    background-color: var(--ktai-color-surface-subtle);
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-sm);
+    line-height: 1.5;
+}

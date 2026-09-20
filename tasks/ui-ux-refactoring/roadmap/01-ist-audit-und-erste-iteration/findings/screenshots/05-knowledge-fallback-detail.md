@@ -44,3 +44,15 @@ Keine.
 ## M1.3-Re-Audit und Folgeentscheidung
 
 Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/05_knowledge_fallback-detail_desktop_1280x800.png`. Der Fallback bleibt ein fachlicher Inhalts-/Verfügbarkeitskontext, nicht der Anlass für eine neue Aktion oder Quelle. M1.4-T6 darf nur die vorhandene Bedeutung und den nächsten bekannten Kontextschritt sicherer formulieren; Fallback-Semantik, Datenquelle und technische Details bleiben unverändert.
+
+## M1.4-T6-Ergebnis
+
+Der bestehende Detailrahmen zeigt bei verwendeten Fallback-Inhalten jetzt eine
+kurze Einordnung vor dem Inhalt: Für die angefragte Rolle ist an diesem Knoten
+kein eigener Inhalt hinterlegt; angezeigt wird der vorhandene Inhalt der
+aufgelösten Fallback-Rolle. Die angefragte Rolle und der Wissenskontext bleiben
+dabei unverändert. Änderungshistorie, Download und technische Details bleiben
+als bestehende Wege beziehungsweise progressive Diagnose erhalten. Der
+Capture-Lauf `temp/ui-audit/2026-09-20_21-35-15/` bestätigt Zustand 05 bei
+1280×800; die Microcopy ist sichtbar, ohne neue Quelle, Aktion oder
+Fallback-Semantik einzuführen.

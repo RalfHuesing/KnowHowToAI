@@ -58,6 +58,9 @@ public sealed class ContextSelectorDialogTests : BunitContext
         Assert.NotNull(cut.Find("[data-testid='selector-cancel-button']"));
         Assert.NotNull(cut.Find("[data-testid='selector-apply-button']"));
         Assert.Equal("Übernehmen", cut.Find("[data-testid='selector-apply-button']").TextContent.Trim());
+        var purpose = cut.Find("[data-testid='selector-purpose']").TextContent;
+        Assert.Contains("Zielgruppe", purpose);
+        Assert.Contains("keine Zugriffsberechtigung", purpose);
 
         var options = cut.FindAll(".context-selector-dialog__option");
         Assert.Equal(4, options.Count);
@@ -76,6 +79,9 @@ public sealed class ContextSelectorDialogTests : BunitContext
         var applyButton = cut.Find("[data-testid='selector-apply-button']");
         Assert.NotNull(applyButton);
         Assert.Equal("Auswählen", applyButton.TextContent.Trim());
+        var purpose = cut.Find("[data-testid='selector-purpose']").TextContent;
+        Assert.Contains("in dieser Perspektive geöffnet", purpose);
+        Assert.Contains("keine Zugriffsberechtigung", purpose);
         Assert.Empty(cut.FindAll(".context-selector-dialog__options"));
     }
 

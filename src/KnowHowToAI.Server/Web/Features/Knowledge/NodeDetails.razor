@@ -130,6 +130,27 @@ else if (ViewModel is not null)
             </a>
         }
 
+        @if (ViewModel.FallbackUsed)
+        {
+            <section class="node-content-context node-content-context--fallback"
+                     aria-label="Einordnung des Inhalts" data-testid="node-content-fallback-context">
+                <p><strong>Inhalt aus Fallback-Rolle</strong></p>
+                <p>
+                    Für die angefragte Rolle <strong>@ViewModel.RequestedRoleId</strong> ist an diesem Knoten kein eigener Inhalt hinterlegt.
+                    Es wird der vorhandene Inhalt
+                    @if (ViewModel.ResolvedRoleId is not null)
+                    {
+                        <strong>der Fallback-Rolle „@ViewModel.ResolvedRoleId“</strong>
+                    }
+                    else
+                    {
+                        <strong>einer hinterlegten Fallback-Rolle</strong>
+                    }
+                    angezeigt. Die angefragte Rolle und der Wissenskontext bleiben unverändert.
+                </p>
+            </section>
+        }
+
         @if (ShowContent)
         {
             <section class="node-details-content" aria-label="Inhalt" data-testid="node-details-content">

@@ -17,6 +17,19 @@
                                OnSelectionChanged="OnContextParameterChangedAsync" />
 }
 
+<p class="context-selector-dialog__purpose" data-testid="selector-purpose">
+    Die Rolle bestimmt, für welche Zielgruppe der Wissensinhalt aufbereitet ist.
+    @if (State.Mode == ContextSelectorMode.MandatoryRole)
+    {
+        <text>Nach der Auswahl wird die Wissensbasis in dieser Perspektive geöffnet.</text>
+    }
+    else
+    {
+        <text>Nach dem Übernehmen sehen Sie die Wissensbasis in dieser Perspektive.</text>
+    }
+    Die Rolle ist ein Inhaltskontext, keine Zugriffsberechtigung.
+</p>
+
 <fieldset class="context-selector-dialog__group">
     <legend class="context-selector-dialog__legend">
         @(State.Mode == ContextSelectorMode.MandatoryRole ? "Rolle auswählen (Pflichtauswahl)" : "Rolle auswählen")

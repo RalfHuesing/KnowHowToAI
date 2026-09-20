@@ -105,3 +105,16 @@ Routen, Aktionen, Daten oder Verträge eingeführt. Der Capture-Lauf
 `temp/ui-audit/2026-09-20_21-26-50/` bestätigt Zustand 01 bei 1280×800; der
 gezielte Dashboard-Komponententest und Dashboard-Browser-Smoke sind grün.
 M1.4-T6 bleibt offen.
+
+## M1.4-T6-Ergebnis
+
+Zustände 02 und 05 führen die vorhandene fachliche Bedeutung jetzt direkt am
+Arbeitsabschnitt: Die Rollenauswahl erklärt Zielgruppe/Perspektive und die
+Trennung von Inhaltskontext und Zugriffsberechtigung; der Fallback-Detailzustand
+erklärt den fehlenden eigenen Inhalt und die Anzeige aus der aufgelösten
+Fallback-Rolle. Auswahl, Bestätigung, Rollenauflösung, Datenquelle,
+Änderungshistorie und Download bleiben unverändert. Der gezielte UiAudit-Lauf
+`temp/ui-audit/2026-09-20_21-35-15/` bestätigt 20/20 Zustände bei 1280×800;
+02 und 05 wurden visuell geprüft. Der kleinste Web-Komponententest und Build
+sind grün. Die ausdrücklich ausgeschlossene Änderung an `RolesPage.razor.cs`
+blieb unangetastet.
