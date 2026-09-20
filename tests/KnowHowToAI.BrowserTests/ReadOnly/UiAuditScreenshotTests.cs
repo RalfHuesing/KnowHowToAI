@@ -92,7 +92,11 @@ public sealed class UiAuditScreenshotTests
         await CaptureAsync(page, "02_knowledge_role-selection", viewport, output, captures);
         await selector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
         await selector.GetByTestId("selector-apply-button").ClickAsync();
+        await Assertions.Expect(selector).ToHaveCountAsync(0);
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge\?roleId=Default"));
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("knowledge-tree")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Treeitem).First.GetByText("Browser-Testwissen", new() { Exact = true })).ToBeVisibleAsync();
         await CaptureAsync(page, "03_knowledge_root", viewport, output, captures);
 
         var root = page.GetByRole(AriaRole.Treeitem).First;
@@ -133,19 +137,44 @@ public sealed class UiAuditScreenshotTests
         await Assertions.Expect(page.GetByTestId("snapshot-list")).ToBeVisibleAsync();
         await CaptureAsync(page, "08_history_list", viewport, output, captures);
 
-        var actions = page.Locator("[data-testid^='snapshot-diff-base-']");
-        if (await actions.CountAsync() > 1)
+        var snapshotItems = page.GetByTestId("snapshot-list").Locator(":scope > li");
+        var diffScenario = "09_history_snapshot-selection-required";
+        if (await snapshotItems.CountAsync() > 1)
         {
-            await actions.Nth(1).ClickAsync();
-            var target = page.Locator("[data-testid^='snapshot-diff-target-']");
-            await target.Nth(0).ClickAsync();
-            await Assertions.Expect(page.GetByTestId("snapshot-diff-list")).ToBeVisibleAsync();
+            var baseAction = snapshotItems.Last.Locator("[data-testid^='snapshot-diff-base-']");
+            var targetAction = snapshotItems.First.Locator("[data-testid^='snapshot-diff-target-']");
+            await baseAction.ClickAsync();
+            await targetAction.ClickAsync();
+
+            var diffList = page.GetByTestId("snapshot-diff-list");
+            var emptyDiff = page.GetByTestId("snapshot-diff-empty");
+            var selectionRequired = page.GetByTestId("snapshot-diff-selection-required");
+            await Assertions.Expect(selectionRequired).ToBeHiddenAsync();
+            var diffResult = page.Locator("[data-testid='snapshot-diff-list'], [data-testid='snapshot-diff-empty']");
+            await diffResult.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+            if (await diffList.IsVisibleAsync())
+            {
+                await Assertions.Expect(diffList).ToBeVisibleAsync();
+                await Assertions.Expect(diffList.Locator("li").First).ToBeVisibleAsync();
+                await diffList.ScrollIntoViewIfNeededAsync();
+                await Assertions.Expect(diffList.Locator("li").First).ToBeInViewportAsync();
+                diffScenario = "09_history_snapshot-diff";
+            }
+            else if (await emptyDiff.CountAsync() > 0)
+            {
+                await Assertions.Expect(emptyDiff).ToBeVisibleAsync();
+                diffScenario = "09_history_snapshot-empty";
+            }
+            else
+            {
+                await Assertions.Expect(selectionRequired).ToBeVisibleAsync();
+            }
         }
         else
         {
             await Assertions.Expect(page.GetByTestId("snapshot-diff-selection-required")).ToBeVisibleAsync();
         }
-        await CaptureAsync(page, "09_history_snapshot-diff", viewport, output, captures);
+        await CaptureAsync(page, diffScenario, viewport, output, captures);
     }
 
     private static async Task CaptureTransactionsAndWorkingKnowledgeAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
@@ -241,7 +270,14 @@ public sealed class UiAuditScreenshotTests
             var delete = page.GetByTestId("role-delete-BrowserDownloadReader");
             await Assertions.Expect(delete).ToBeVisibleAsync();
             await delete.ClickAsync();
-            await Assertions.Expect(page.GetByTestId("role-delete-confirmation")).ToBeVisibleAsync();
+            var confirmation = page.GetByTestId("role-delete-confirmation");
+            await Assertions.Expect(confirmation).ToBeVisibleAsync();
+            await Assertions.Expect(confirmation.GetByRole(AriaRole.Heading, new() { Name = "Rolle „BrowserDownloadReader“ löschen?", Exact = true })).ToBeVisibleAsync();
+            var confirmButton = confirmation.GetByTestId("role-delete-confirm");
+            await Assertions.Expect(confirmButton).ToBeVisibleAsync();
+            await confirmation.ScrollIntoViewIfNeededAsync();
+            await confirmButton.FocusAsync();
+            await Assertions.Expect(confirmButton).ToBeFocusedAsync();
             await CaptureAsync(page, "20_roles_delete-dialog", viewport, output, captures);
         }
         finally

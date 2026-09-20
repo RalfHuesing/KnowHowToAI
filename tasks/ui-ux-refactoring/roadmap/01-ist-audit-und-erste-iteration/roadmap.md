@@ -17,7 +17,7 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
 - [x] **M1.1 Ist-Audit**
   - [x] [M1.1-T1 – Ist-Audit anhand der 20 Screenshot-Zustände](tasks/M1.1-T1.md) – Befunde und Synthese abgeschlossen.
 - [ ] **M1.2 Erste Korrektur**
-  - [ ] [M1.2-T1 – Audit-Capture-Zustände 03, 09 und 20 stabilisieren](tasks/M1.2-T1.md) – Runner/Test-Zustände sichtbar und semantisch korrekt erfassen; keine Produktlösung vortäuschen.
+  - [x] [M1.2-T1 – Audit-Capture-Zustände 03, 09 und 20 stabilisieren](tasks/M1.2-T1.md) – Runner/Test-Zustände sichtbar und semantisch korrekt erfassen; keine Produktlösung vortäuschen.
   - [ ] [M1.2-T2 – Wissensarbeitsplatz und Editor im ersten Viewport](tasks/M1.2-T2.md) – bestehende Workflows handlungsfähig machen: Speichern sichtbar, Read-only/Working eindeutig, Metadaten progressiv, Struktur und Content unterscheidbar.
 - [ ] **M1.3 manueller Re-Audit** – ohne eigenes Leaf; nach dem Re-Audit werden neue kleine Tasks aus den Belegen geschnitten.
 

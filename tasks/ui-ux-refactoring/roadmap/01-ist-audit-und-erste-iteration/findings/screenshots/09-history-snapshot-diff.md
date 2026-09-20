@@ -40,3 +40,7 @@ M1.2-T1, Visual-Shell-Seed, Snapshotdaten und bestehender History-/Diff-Vertrag.
 ## Audit-Lücken
 
 **Ja.** Kein sichtbarer Diff-Nachweis; dieser Zustand ist bis zur Korrektur nicht als funktionierender Diff belegbar.
+
+## M1.2-Nachweis
+
+Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/09_history_snapshot-diff_desktop_1280x800.png` wählt den ältesten Snapshot als Ausgang und den neuesten als Ziel. Nach dem asynchronen Auswahl- und Ladezustand wird auf mindestens einen Diff-Eintrag gewartet und dieser in den 1280×800-Viewport gescrollt. Das Bild zeigt sichtbare Änderungen (unter anderem Rollenauflösung, Knoten und Inhalt); die ursprüngliche Audit-Lücke ist für den Runner geschlossen.

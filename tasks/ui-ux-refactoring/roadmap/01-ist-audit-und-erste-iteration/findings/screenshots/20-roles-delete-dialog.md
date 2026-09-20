@@ -40,3 +40,7 @@ M1.2-T1, bestehender Rollen-/Dialog-/Keyboard-Vertrag, Working-Transaction-Lifec
 ## Audit-Lücken
 
 **Ja.** Der Click ist belegt; ein sichtbarer Bestätigungsdialog ist im 1280×800-Capture nicht belegt.
+
+## M1.2-Nachweis
+
+Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/20_roles_delete-dialog_desktop_1280x800.png` prüft den vorhandenen Bestätigungstext und die primäre Löschaktion, scrollt den Bestätigungsbereich in den Viewport und setzt den Fokus auf die vorhandene Bestätigungsaktion. Das Bild zeigt den bestehenden Dialog vollständig; die ursprüngliche Audit-Lücke ist für den Runner geschlossen.

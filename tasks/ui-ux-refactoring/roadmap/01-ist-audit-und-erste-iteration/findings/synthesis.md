@@ -30,6 +30,8 @@ In 15 sind Strukturaktionen im ersten Viewport nicht sichtbar. In 16 und 17 sind
 
 03 ist nur der ausgewählte Zustand vor einer belastbaren Root-Bestätigung, 09 belegt keinen Snapshot-Diff, 20 zeigt keine sichtbare Löschbestätigung. Diese drei Lücken sind in den Einzeldateien markiert und bilden M1.2-T1. Bis dahin werden sie nicht als Produktbefund „behoben“ dargestellt.
 
+Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27` schließt diese drei Capture-Lücken ohne Produktänderung: 03 belegt den gerenderten Root nach geschlossener Rollenauswahl, 09 zeigt sichtbare Snapshot-Änderungen und 20 zeigt den fokussierten vorhandenen Löschdialog. Die ursprünglichen Befunde bleiben als historische M1.1-Beobachtung erhalten; sie sind nicht als Produktkorrektur zu lesen.
+
 ## Nächster kleiner Slice
 
 M1.2-T1 stabilisiert nur die capture-seitige Sichtbarkeit und Assertions. M1.2-T2 adressiert anschließend den bestehenden Wissensarbeitsplatz/Editor. Erst der manuelle Re-Audit entscheidet, ob daraus weitere kleine Tasks entstehen.
