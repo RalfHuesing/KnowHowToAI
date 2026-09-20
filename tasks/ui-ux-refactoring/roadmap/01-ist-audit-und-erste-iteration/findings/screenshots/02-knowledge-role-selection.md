@@ -55,3 +55,12 @@ Perspektive. Auswahl, Bestätigung, Rollenquelle und Navigation bleiben
 unverändert. Der Capture-Lauf `temp/ui-audit/2026-09-20_21-35-15/` bestätigt
 Zustand 02 bei 1280×800; die Erläuterung bleibt innerhalb des nativen Dialogs
 und verdrängt keine bestehende Aktion.
+
+## M1.5-T2-Ergebnis
+
+Der ContextSelector verwendet jetzt die gemeinsame `AppDialog`-Oberfläche:
+weiße Surface, feiner Rand, abgerundeter Radius, ruhiger Overlay-Schatten und
+ein gedämpfter Backdrop. Breite und Innenabstände entsprechen damit den
+Commit-/Verwerfen-Dialogen 13/14. Auswahl, Bestätigung, Abbruch, Rollenauflösung
+und der native Dialog-Lifecycle bleiben unverändert. Der Nachweis liegt im
+Capture `temp/ui-audit/m1-5-t2/2026-09-20_22-36-23/02_knowledge_role-selection_desktop_1280x800.png`.

@@ -1,6 +1,8 @@
-/* Bestätigungsdialoge erhalten über die zusätzliche Klasse die gemeinsame
-   Transaktionsdarstellung, ohne andere native Dialoge mitzuziehen. */
-.app-dialog.confirmation-app-dialog {
+/* Jeder AppDialog verwendet dieselbe ruhige Surface wie die
+   Transaktionsbestätigungen. Der optionale CssClass-Parameter bleibt für
+   dialogtypspezifische Ergänzungen erhalten, ändert aber nicht die
+   gemeinsame Dialoggrundfläche. */
+.app-dialog {
     width: min(100% - var(--ktai-space-8), 38rem);
     max-width: none;
     margin: auto;
@@ -12,15 +14,11 @@
     color: var(--ktai-color-text);
 }
 
-.app-dialog.confirmation-app-dialog::backdrop {
+.app-dialog::backdrop {
     background: rgb(15 23 42 / 0.38);
 }
 
 .app-dialog h2 {
-    margin-top: 0;
-}
-
-.app-dialog.confirmation-app-dialog h2 {
     margin: 0;
     color: var(--ktai-color-text);
     font-size: var(--ktai-font-size-xl);
@@ -28,7 +26,7 @@
 }
 
 @media (max-width: 38rem) {
-    .app-dialog.confirmation-app-dialog {
+    .app-dialog {
         width: calc(100% - var(--ktai-space-4));
         padding: var(--ktai-space-5);
     }

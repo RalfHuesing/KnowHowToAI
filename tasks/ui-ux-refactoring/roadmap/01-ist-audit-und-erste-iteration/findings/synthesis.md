@@ -165,6 +165,16 @@ tatsächlich gerenderte Präsenz. Bei fehlender Präsenz würde der Test als
 Audit-Lücke fehlschlagen. Es wurden ausschließlich Testbedingungen geändert;
 Produktdateien, Routen, Capture-Namen und Manifestformat blieben unverändert.
 
+## M1.5-T2-Ergebnis
+
+Der ContextSelector in Zustand 02 teilt jetzt die gemeinsame `AppDialog`-Basis
+mit den Zuständen 13/14: Surface, feiner Rand, Radius, Schatten, Backdrop,
+Breite und Innenabstände sind harmonisiert. Die bestehende Rollen-/Auswahl-
+und Dialogsemantik blieb unverändert; `CreateReleaseDialog` erhält als weiterer
+AppDialog-Nutzer nur dieselbe Basestyle. Der UiAudit-Lauf
+`temp/ui-audit/m1-5-t2/2026-09-20_22-36-23/` bestätigt 20/20 Zustände bei
+1280×800, einschließlich 02 sowie der Regressionen 13/14.
+
 ## M1.5-Folgepriorität aus dem Re-Audit
 
 M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:

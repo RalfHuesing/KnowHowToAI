@@ -42,7 +42,7 @@ Leaves geteilt.
 
 - [x] [M1.5-T0 – Dauerhafter Menübutton für die Shell-Navigation](tasks/M1.5-T0.md) – Desktop offen/schließen/wieder öffnen, kompakter Drawer bleibt erhalten; exakt vier bestehende Ziele.
 - [x] [M1.5-T1 – Capture 04 Shell/Header-Präsenz deterministisch absichern](tasks/M1.5-T1.md) – Test-only; der Capture darf Produktzustände weder kaschieren noch erzeugen.
-- [ ] [M1.5-T2 – ContextSelector als moderne AppDialog-Oberfläche](tasks/M1.5-T2.md) – Zustand 02, Darstellung passend zu 13/14; keine Dialogsemantik ändern.
+- [x] [M1.5-T2 – ContextSelector als moderne AppDialog-Oberfläche](tasks/M1.5-T2.md) – Zustand 02, Darstellung passend zu 13/14; keine Dialogsemantik ändern.
 - [ ] [M1.5-T3 – Read-only Knowledge Detail vor History/Download führen](tasks/M1.5-T3.md) – Zustände 04/05; Inhalt/Fallback vor bestehenden sekundären Links, Funktionen unverändert.
 - [ ] [M1.5-T4 – KnowledgeContextBar klar segmentieren](tasks/M1.5-T4.md) – Snapshot, Bereich und Working-Transaction getrennt lesbar; Verträge und Routen unverändert.
 - [ ] [M1.5-T5 – History-Auswahl und Vergleichskontext führen](tasks/M1.5-T5.md) – Zustände 08/09; bestehende Ausgang/Ziel-Auswahl sichtbar, IDs progressiv/sekundär.
