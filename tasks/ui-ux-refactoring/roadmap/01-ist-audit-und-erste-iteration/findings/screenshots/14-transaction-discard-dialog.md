@@ -44,3 +44,7 @@ Keine.
 ## M1.3-Re-Audit und Folgeentscheidung
 
 Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/14_transaction-discard-dialog_desktop_1280x800.png`. Der Dialog bleibt fachlich korrekt ausgelöst; der P1-Befund betrifft die gemeinsame visuelle Darstellung mit Zustand 13. [M1.4-T3](../../tasks/M1.4-T3.md) darf Rahmen, Abstände und Microcopy angleichen, aber Verwerfen-Semantik, sichere Abbruchaktion und Keyboard-Fokus nicht verändern.
+
+## M1.4-T3-Nachweis
+
+Der Verwerfen-Dialog teilt jetzt dieselbe ruhige, abgerundete Struktur, Breite und Abstandslogik mit dem Commit-Dialog. Die destruktive Bestätigung bleibt klar rot gekennzeichnet, Abbrechen bleibt sichtbar und sicher. Der Nachweis liegt im Capture `temp/ui-audit/2026-09-20_20-58-00/14_transaction_discard-dialog_desktop_1280x800.png`.

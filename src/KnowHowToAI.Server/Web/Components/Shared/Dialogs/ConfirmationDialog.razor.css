@@ -1,13 +1,25 @@
-/* Komponentenlokale Gestaltung; alle Werte kommen aus den globalen Tokens
-   in wwwroot/css/app.css. */
+/* Gemeinsame Darstellung für Commit-/Verwerfen-Bestätigungen. Der sichere
+   Abbruch bleibt das erste DOM-Element; die visuelle Primäraktion folgt rechts. */
+.confirmation-dialog__content {
+    display: grid;
+    gap: var(--ktai-space-5);
+}
+
 .confirmation-dialog__message {
-    margin: 0 0 var(--ktai-space-4);
+    margin: 0;
+    color: var(--ktai-color-text-secondary);
+    line-height: var(--ktai-line-height-relaxed);
 }
 
 .confirmation-dialog__input {
     display: grid;
     gap: var(--ktai-space-1);
-    margin-bottom: var(--ktai-space-4);
+}
+
+.confirmation-dialog__input label {
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 600;
 }
 
 .confirmation-dialog__input textarea {
@@ -17,6 +29,7 @@
     border-radius: var(--ktai-radius-sm);
     color: var(--ktai-color-text);
     font: inherit;
+    line-height: var(--ktai-line-height-base);
     resize: vertical;
 }
 
@@ -24,16 +37,22 @@
     display: flex;
     justify-content: flex-end;
     gap: var(--ktai-space-2);
+    flex-wrap: wrap;
 }
 
 .confirmation-dialog__button {
     display: inline-flex;
     align-items: center;
     gap: var(--ktai-space-1);
+    justify-content: center;
+    min-height: 2.75rem;
     padding: var(--ktai-space-2) var(--ktai-space-4);
     border-radius: var(--ktai-radius-sm);
     font: inherit;
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
 }
 
 .confirmation-dialog__button--secondary {
@@ -64,6 +83,19 @@
     border: 1px solid var(--ktai-color-danger);
     background-color: var(--ktai-color-surface);
     color: var(--ktai-color-danger);
+}
+
+.confirmation-dialog__button--destructive:hover:not(:disabled) {
+    background-color: var(--ktai-color-danger-background);
+}
+
+.confirmation-dialog__button--destructive:active:not(:disabled) {
+    background-color: var(--ktai-color-danger-strong-background);
+}
+
+.confirmation-dialog__button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .confirmation-dialog__button-icon {

@@ -29,6 +29,9 @@ public sealed partial class AppDialog : ComponentBase, IAsyncDisposable
     public string Title { get; set; } = string.Empty;
 
     [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]

@@ -1,4 +1,35 @@
-/* Komponentenlokale Grundregel; Designwerte (Tokens) folgen zentral in M2.1-T2. */
+/* Bestätigungsdialoge erhalten über die zusätzliche Klasse die gemeinsame
+   Transaktionsdarstellung, ohne andere native Dialoge mitzuziehen. */
+.app-dialog.confirmation-app-dialog {
+    width: min(100% - var(--ktai-space-8), 38rem);
+    max-width: none;
+    margin: auto;
+    padding: var(--ktai-space-6);
+    border: 1px solid var(--ktai-color-border-light);
+    border-radius: var(--ktai-radius-lg);
+    background: var(--ktai-color-surface);
+    box-shadow: var(--ktai-shadow-overlay);
+    color: var(--ktai-color-text);
+}
+
+.app-dialog.confirmation-app-dialog::backdrop {
+    background: rgb(15 23 42 / 0.38);
+}
+
 .app-dialog h2 {
     margin-top: 0;
+}
+
+.app-dialog.confirmation-app-dialog h2 {
+    margin: 0;
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-xl);
+    line-height: var(--ktai-line-height-tight);
+}
+
+@media (max-width: 38rem) {
+    .app-dialog.confirmation-app-dialog {
+        width: calc(100% - var(--ktai-space-4));
+        padding: var(--ktai-space-5);
+    }
 }

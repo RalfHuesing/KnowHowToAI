@@ -6,33 +6,36 @@
    Fokusrückgabe übernimmt die Dialogisolation von AppDialog. *@
 <AppDialog @ref="_dialog"
            Title="@Title"
+           CssClass="confirmation-app-dialog"
            OnClosed="HandleDialogClosedAsync">
-    <p class="confirmation-dialog__message" id="@_messageId">@Message</p>
-    @if (HasInput)
-    {
-        <div class="confirmation-dialog__input">
-            <label for="@_inputId">@InputLabel</label>
-            <textarea id="@_inputId" @bind="_inputValue" disabled="@_isBusy" rows="3"></textarea>
+    <div class="confirmation-dialog__content">
+        <p class="confirmation-dialog__message" id="@_messageId">@Message</p>
+        @if (HasInput)
+        {
+            <div class="confirmation-dialog__input">
+                <label for="@_inputId">@InputLabel</label>
+                <textarea id="@_inputId" @bind="_inputValue" disabled="@_isBusy" rows="3"></textarea>
+            </div>
+        }
+        <div class="confirmation-dialog__actions">
+            <button type="button"
+                    class="confirmation-dialog__button confirmation-dialog__button--secondary"
+                    disabled="@_isBusy" @onclick="CancelAsync">
+                Abbrechen
+            </button>
+            <button type="button"
+                    class="confirmation-dialog__button @(IsDestructive ? "confirmation-dialog__button--destructive" : "confirmation-dialog__button--primary")"
+                    disabled="@_isBusy" @onclick="ConfirmAsync" aria-describedby="@_messageId">
+                @if (IsDestructive)
+                {
+                    <svg class="confirmation-dialog__button-icon" width="16" height="16" viewBox="0 0 16 16"
+                         fill="none" aria-hidden="true" focusable="false">
+                        <path d="M8 3v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        <circle cx="8" cy="12.5" r="1.4" fill="currentColor" />
+                    </svg>
+                }
+                @ConfirmText
+            </button>
         </div>
-    }
-    <div class="confirmation-dialog__actions">
-        <button type="button"
-                class="confirmation-dialog__button confirmation-dialog__button--secondary"
-                disabled="@_isBusy" @onclick="CancelAsync">
-            Abbrechen
-        </button>
-        <button type="button"
-                class="confirmation-dialog__button @(IsDestructive ? "confirmation-dialog__button--destructive" : "confirmation-dialog__button--primary")"
-                disabled="@_isBusy" @onclick="ConfirmAsync" aria-describedby="@_messageId">
-            @if (IsDestructive)
-            {
-                <svg class="confirmation-dialog__button-icon" width="16" height="16" viewBox="0 0 16 16"
-                     fill="none" aria-hidden="true" focusable="false">
-                    <path d="M8 3v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    <circle cx="8" cy="12.5" r="1.4" fill="currentColor" />
-                </svg>
-            }
-            @ConfirmText
-        </button>
     </div>
 </AppDialog>

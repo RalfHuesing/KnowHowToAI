@@ -44,3 +44,7 @@ Keine.
 ## M1.3-Re-Audit und Folgeentscheidung
 
 Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/13_transaction_commit-dialog_desktop_1280x800.png`. Der Dialog bleibt fachlich korrekt ausgelöst; der P1-Befund betrifft die gemeinsame visuelle Darstellung mit Zustand 14. [M1.4-T3](../../tasks/M1.4-T3.md) darf Rahmen, Abstände und Microcopy angleichen, aber Commit-Semantik, Primäraktion, Abbruchweg und Keyboard-Fokus nicht verändern.
+
+## M1.4-T3-Nachweis
+
+Der gemeinsame ConfirmationDialog nutzt nun einen ruhigen, abgerundeten Rahmen mit konsistenter Breite, Innenabständen und Aktionshierarchie. Commit bleibt die blaue primäre Bestätigung; die bestehende Commit-Folge steht unverändert vor der Aktion. Der Nachweis liegt im Capture `temp/ui-audit/2026-09-20_20-58-00/13_transaction_commit-dialog_desktop_1280x800.png`.

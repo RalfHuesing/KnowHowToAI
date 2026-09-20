@@ -65,3 +65,7 @@ Zustand 11 ist mit dem Capture `temp/ui-audit/2026-09-20_20-25-44/11_transaction
 ## M1.4-T2-Ergebnis
 
 Zustand 12 ist mit dem Capture `temp/ui-audit/2026-09-20_20-45-17/12_transaction_detail_desktop_1280x800.png` belegt. Die bestehende Reihenfolge Validieren → Commit/Verwerfen ist im ersten Viewport als Arbeitsablauf geführt; Commit ist die primäre Abschlussaktion, Verwerfen bleibt sicher erreichbar und sekundär. Technische IDs, Statusdetails und bekannte Leerwerte sind unter „Technische Details“ progressiv angeordnet, der unveränderte Netto-Diff steht nach dem Abschlussabschnitt. Web-Komponententest, Transaktions-Browser-Smoke, UiAudit und Build sind grün; eigene Tastatur-/Fokusnachweise waren nicht Teil des Produktziels. M1.4-T3 bis T6 und T7 bleiben offen.
+
+## M1.4-T3-Ergebnis
+
+Zustände 13 und 14 teilen mit dem Capture-Lauf `temp/ui-audit/2026-09-20_20-58-00/` eine gemeinsame Bestätigungsdialogdarstellung: ruhige Oberfläche, konsistente Breite und Abstände sowie genau eine visuell primäre Abschlussaktion. Commit bleibt blau primär, Verwerfen bleibt als destruktive rote Aktion klar erkennbar. Die bestehenden Folgeformulierungen, Button-Reihenfolge, Escape-/Abbruchpfad und Lifecycle-Verträge wurden nicht verändert; native Fokussemantik bleibt im bestehenden `AppDialog`-Pfad. Beide 1280×800-Captures zeigen den vollständigen Dialog. M1.4-T4 bis T6 und T7 bleiben offen.

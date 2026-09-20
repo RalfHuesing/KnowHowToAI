@@ -1,6 +1,6 @@
 @namespace KnowHowToAI.Server.Web.Components.Shared.Dialogs
 
-<dialog @ref="_dialogElement" class="app-dialog" aria-labelledby="@_titleElementId" data-testid="app-dialog">
+<dialog @ref="_dialogElement" class="app-dialog @CssClass" aria-labelledby="@_titleElementId" data-testid="app-dialog">
     <h2 id="@_titleElementId">@Title</h2>
     @ChildContent
 </dialog>
