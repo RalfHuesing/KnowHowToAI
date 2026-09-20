@@ -619,6 +619,17 @@ und `TestSupport/` (Showcase- und Token-Fixture-Tests: `UiBasisShowcase`,
 und den featurebezogenen Ordnern `Transactions/`, `Content/`, `PdfExport/`
 und `Assets/`, sobald die zuständigen Milestones sie befüllen.
 
+Der Browser-Testlauf `Category=UiAudit` ist ein ausdrücklich aktivierter,
+separater Diagnose-Runner. `scripts/capture-ui-audit.ps1` startet ihn gegen
+die dedizierte minimale Visual-Shell-Browserdatenbank und erzeugt für den
+festen Desktop-Viewport (1280 × 800) semantisch benannte PNGs unter
+`temp/ui-audit/<yyyy-MM-dd_HH-mm-ss>/` einschließlich eines
+`manifest.json`. Der Test wird vom normalen Discovery-Lauf gefunden, ohne
+Aktivierung aber übersprungen und startet dabei keinen Host oder Browser;
+volatile Werte werden vor der Aufnahme maskiert und jede Aufnahme folgt auf
+Web-first-Verhaltensassertionen. Die temporären Artefakte sind keine
+visuellen Baselines.
+
 `KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die
 Repository-Root-Ermittlung (`TestRepositoryRoot`), Wegwerf-Verzeichnisse unter
 `temp/<prefix>_<random>` mit Selbstaufräumung beim Verlassen des `using`

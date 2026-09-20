@@ -1,6 +1,6 @@
 # Idee: Reproduzierbares UI-Screenshot-Audit und Use-Case-zentriertes Layout-Refactoring
 
-**Status:** Idee für die Phase nach Abschluss von Roadmap [M5 (Rollen-Content und Rich Text)](../webfrontend/roadmap/05-rollen-content-und-rich-text/roadmap.md). Betrifft Web-Frontend, Playwright-BrowserTests, UI/UX-Design und automatisiertes Agenten-Audit.
+**Status:** Step 1 ist als On-Demand-Runner umgesetzt; das eigentliche UI/UX-Audit und Layout-Refactoring bleiben spätere Schritte. Die verbindliche Betriebsbeschreibung steht in [Konfiguration und Betrieb](../../docs/Konfiguration-und-Betrieb.md). Betrifft Web-Frontend, Playwright-BrowserTests, UI/UX-Design und automatisiertes Agenten-Audit.
 
 ---
 
@@ -38,21 +38,25 @@ Damit Mensch und Agent über dieselben visuellen Fakten sprechen, wird ein isoli
 ### Anforderungen an den Runner
 - **Technologie:** Basiert auf dem bereits im Repo etablierten `Microsoft.Playwright` (`KnowHowToAI.BrowserTests`), läuft jedoch **nicht** im regulären Schnelltest- oder Build-Workflow (keine Verlangsamung der täglichen Arbeit).
 - **Aufruf nur bei Bedarf:** z. B. über ein PowerShell-Script `scripts/capture-ui-audit.ps1` oder einen dedizierten Testfilter `dotnet test --filter Category=UiAudit`.
-- **Feste Standardauflösung:**
-  - Standard-Desktop: z. B. 1440 × 900 px (inklusive vollständiger Navigation, Header, Content-Area).
-  - Optional kompakter Viewport: 1024 × 768 px zur Prüfung von Umbrüchen.
-- **Volle Abdeckung aller Kernzustände:**
+- **Feste Standardauflösung:** Desktop mit 1280 × 800 px. Der Viewport erhält den
+  Desktop-Charakter einschließlich Navigation, Header und Content-Area, bleibt
+  für die spätere multimodale Auswertung aber kompakter als 1440 × 900 px.
+- **Abgedeckte Kernzustände:**
   1. *Read-Only Cockpit:* Leerzustand / Startseite.
   2. *Read-Only Cockpit:* Ausgewählter Node (Hierarchiebaum, Breadcrumbs, Metadaten, gerenderter Markdown-Content).
   3. *Suche & Filter:* Suchansicht mit Eingabe und Trefferliste.
   4. *Working Transaction:* Strukturpflege (Node anlegen, umbenennen, verschieben).
   5. *Content-Editor (WYSIWYG):* Aktiver Bearbeitungsmodus mit Crepe-Toolbar und dirty state.
   6. *Content-Editor (Markdown-Quellcode):* Quelltextansicht mit Formatierungsoptionen.
-  7. *Rollen & Resolution Orders:* Rollenmatrix und Fallback-Vorschau.
-  8. *Feedback & Fehler:* Dialoge, Bestätigungs-Modals und Validierungsmeldungen.
-- **Ablage & Historie:**
-  - Ablage im Git unter z. B. `tasks/webfrontend/audit-findings/screenshots/YYYY-MM-DD/` mit semantischen Dateinamen (z. B. `01_cockpit_node_detail_1440.png`).
-  - Ermöglicht eine Vorher-/Nachher-Historie und dient als direkte Bildreferenz für LLM-Prompts.
+  7. *Rollen:* Read-only- und Working-Ansicht, Löschbestätigung sowie die
+     Fallback-Darstellung am ausgewählten Wissensknoten.
+  8. *Feedback:* Commit-, Verwerfen- und Löschbestätigungen.
+- **Ablage:**
+  - Temporäre, nicht versionierte Ablage unter
+    `temp/ui-audit/YYYY-MM-DD_HH-mm-ss/` mit semantischen Dateinamen und einem
+    maschinenlesbaren Manifest.
+  - Ein abweichender Ausgabe-Root kann beim bewussten Aufruf angegeben werden;
+    Git bleibt standardmäßig frei von großen binären Momentaufnahmen.
 
 ---
 

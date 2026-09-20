@@ -39,6 +39,8 @@ public sealed class ChromeBrowser : IAsyncDisposable
     public Task<IPage> NewPageAsync(BrowserNewPageOptions? options = null) =>
         _browser.NewPageAsync(options);
 
+    public string Version => _browser.Version;
+
     public async ValueTask DisposeAsync()
     {
         await _browser.DisposeAsync();

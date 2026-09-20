@@ -199,6 +199,19 @@ geprüft.
   manuellen Diff-Prüfung bewusst in die Baseline übernommen (per `git add`).
   Volatile Inhalte (Animationen, Caret, Schriftnachladung) maskiert der Test
   vor der Aufnahme.
+- On-demand UI-Audit-Aufnahmen werden ausschließlich über
+  `pwsh -NoProfile -File scripts/capture-ui-audit.ps1` gestartet. Der Runner
+  verwendet den separaten xUnit-Filter `Category=UiAudit`. Bei normaler
+  Testausführung wird der Test zwar entdeckt, ohne Aktivierungsvariable aber
+  übersprungen und startet keinen Host oder Browser. Die Standardausgabe liegt unter
+  `temp/ui-audit/<yyyy-MM-dd_HH-mm-ss>/`; sie enthält semantisch
+  benannte PNGs für den festen Desktop-Viewport (1280 × 800) sowie
+  ein `manifest.json`. Mit `-OutputRoot <Verzeichnis>` lässt sich bewusst ein
+  anderer Zielort schreiben. Der Runner nutzt dieselbe Chrome-/Host-/MCP-
+  Infrastruktur wie die Browser-Smokes, verwendet die dedizierte
+  `BrowserVisualTestDatabaseConnection` mit dem minimalen Visual-Shell-Bestand,
+  maskiert volatile Werte und schreibt keine Baselines. Die temporären
+  Artefakte sind nicht für die Versionierung vorgesehen.
 - Teilnachweis: `pwsh -NoProfile -File scripts/test-integration.ps1 -Filter
   'FullyQualifiedName~<Testklasse>'` führt nur berührte SQL-Tests aus.
 - Skriptausgaben in eine Logdatei umleiten und die Datei auswerten, statt pwsh
