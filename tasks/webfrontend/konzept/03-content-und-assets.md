@@ -6,7 +6,7 @@ Der erste schreibende Frontend-Schnitt verwendet ausschließlich Milkdown `@milk
 
 - Markdown bleibt kanonisches Ein-/Ausgabe- und Speicherformat.
 - Der Editor muss Markdown verlustarm roundtrippen; HTML-first mit nachträglicher verlustbehafteter Konvertierung reicht nicht.
-- WYSIWYG; der Markdown-Quellmodus bleibt die offene Produktentscheidung O-010 für M5.0.
+- WYSIWYG und ein kontrollierter Markdown-Quellmodus verwenden denselben kanonischen Markdown- und Validierungsvertrag; der Quellmodus wurde im M5.0-Gate aufgenommen.
 - Formatierungen, Links, Listen, Tabellen, Code und Zitate; Bilder werden erst in M8 über kontrollierte interne Assets aktiviert.
 - Die sichtbare Crepe-Toolbar enthält ausschließlich Bold, Italic, Strikethrough, Inline-Code und Link. Latex, ImageBlock, Headings und Bild-Upload sind deaktiviert.
 - Verbotene Markdown-/HTML-Headings werden unmittelbar markiert und serverseitig weiterhin abgelehnt.
@@ -18,6 +18,12 @@ Der erste schreibende Frontend-Schnitt verwendet ausschließlich Milkdown `@milk
 - Bekannte Sicherheitsfälle bleiben unverändert prüfbar: Raw HTML und Markdown-/HTML-Headings werden nicht still entfernt, sondern an der maßgeblichen Servergrenze abgelehnt; externe Bilder lösen keinen Request aus; Paste-Reduktionen erzeugen einen sichtbaren `role=status`-Hinweis; eine Serverablehnung überschreibt nie den ungespeicherten Editorwert.
 - Die spätere M8-Integration darf über den vorhandenen Hook ausschließlich eine bereits serverseitig erzeugte interne Assetreferenz einsetzen. Sie aktiviert keine externen Bild-URLs und keinen direkten Browserupload aus Milkdown heraus.
 
+### Rollen-Content-Modi
+
+- Aufgelöster Fallback ist read-only. Eigener Content wird nur über eine explizite Aktion angelegt oder ersetzt; ein Fallback darf nur bewusst als Ausgangstext übernommen werden.
+- Explizit leerer `ContentMd` ist gültiger eigener Content und unterdrückt Fallback nach Bestätigung. Löschen der eigenen Zuordnung ist eine getrennte Mutation und reaktiviert Fallback.
+- `Independent` und `Derived` sind explizite Modi. Derived speichert mindestens eine über Node-Suche und Rolle gewählte aktive explizite Source mit ihrer aktuellen Revision; Quellen dürfen nicht manuell als GUID eingegeben werden. Ein Wechsel zu Independent entfernt Quellen nur bestätigt.
+
 ## Sichere Markdown-, Link- und Paste-Policy
 
 Die Policy gilt einheitlich für MCP- und Web-Schreibvorgänge, Editor, Browserdarstellung, Markdown-Export und PDF. Sichere Darstellung ersetzt die serverseitige Validierung nicht.
@@ -25,6 +31,7 @@ Die Policy gilt einheitlich für MCP- und Web-Schreibvorgänge, Editor, Browserd
 ### Raw HTML
 
 - Raw HTML außerhalb von Inline- und Fenced-Code ist kein zulässiger `ContentMd` und wird serverseitig mit `RawHtmlNotAllowed` als harter Fehler abgelehnt. Es wird weder still entfernt noch lediglich im Browser versteckt.
+- Front Matter bleibt als Systemmetadatenkanal verboten und wird serverseitig mit `FrontMatterNotAllowed` abgelehnt.
 - HTML innerhalb eines Codebereichs bleibt normaler, nicht ausgeführter Beispieltext.
 - Browser- und PDF-Renderer führen Raw HTML auch als zusätzliche Abwehr nicht aus. Content wird nie ungeprüft als `MarkupString`, DOM-HTML oder Template-HTML übernommen.
 - Bei einer Ablehnung bleibt der vollständige ungespeicherte Editorinhalt erhalten und der konkrete Befund sichtbar.

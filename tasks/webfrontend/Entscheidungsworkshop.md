@@ -1,8 +1,8 @@
 # Entscheidungsworkshop: Arbeitsstand und Fortsetzung
 
-Stand: 2026-09-18
+Stand: 2026-09-20
 
-Status: M0 abgeschlossen; M1–M2 zur Agentenausführung freigegeben. Der Workshop wird vor M3 im manuellen M3.0-Gate fortgesetzt.
+Status: M0–M4 abgeschlossen; M5.0 am 2026-09-20 abgeschlossen und M5.1–M5.5 zur Agentenausführung freigegeben. Der Workshop wird vor M6 im manuellen M6.0-Gate fortgesetzt.
 
 ## Verbindlichkeit
 
@@ -16,8 +16,8 @@ Status: M0 abgeschlossen; M1–M2 zur Agentenausführung freigegeben. Der Worksh
 
 1. `git status` prüfen.
 2. Dieses Dokument und [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md) lesen.
-3. Für Umsetzung den ersten offenen Leaf-Task M1.1-T1 gemäß Roadmap bearbeiten. Die technischen Spikeentscheidungen O-001/O-003/O-002/O-015 sind geschlossen und werden nicht erneut aufgerollt.
-4. Nach abgeschlossenem M2 hier stoppen und gemeinsam das manuelle M3.0-Gate durchführen; M3+-Leaf-Tasks vorher nicht implementieren.
+3. Für Umsetzung den ersten nicht erledigten Leaf-Task gemäß der jeweiligen Milestone-Roadmap bearbeiten. Die technischen Spikeentscheidungen O-001/O-003/O-002/O-015 sowie die M3-/M4-/M5-Gate-Entscheidungen sind geschlossen und werden nicht erneut aufgerollt.
+4. Nach abgeschlossenem M5 hier stoppen und gemeinsam das manuelle M6.0-Gate durchführen; M6+-Leaf-Tasks vorher nicht implementieren.
 5. Neue Gesprächsentscheidungen sofort im fachlich zuständigen Konzept dokumentieren und atomar committen.
 
 Nächster Arbeitsschritt:
@@ -32,7 +32,7 @@ Nächster Arbeitsschritt:
 | B – Technische Spikes | O-001, O-003, O-002, O-015 | UI-Paket, Tree, Editor und Testwerkzeuge evidenzbasiert auswählen |
 | C – Theme und Sprache | O-009, O-014 | Branding und UI-Sprache für M2 definieren |
 
-Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M3 bearbeitet und nicht jetzt vorsorglich entschieden.
+Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M6 bearbeitet und nicht jetzt vorsorglich entschieden.
 
 Verbindliche M0-Ergebnisse: keine allgemeine UI-Bibliothek; nativer Knowledge Tree mit opakem serverseitigem 100er-Paging und höchstens zehn gleichzeitig gehaltenen Seiten; Milkdown `@milkdown/crepe`; bUnit mit xUnit v3; Microsoft.Playwright .NET ausschließlich headless mit `Channel = "chrome"` gegen die installierte aktuelle Chrome-Stable-Version; kein Vitest ohne tatsächlich eigene zustandsbehaftete JS-/TS-Logik. Konkrete Fremdversionsnummern folgen der Abhängigkeitsregel im [Strukturkonzept](konzept/08-projektstruktur-und-codekonventionen.md). Details stehen in den fachlich zuständigen Konzepten und in [M0](roadmap/00-komponenten-und-architektur/roadmap.md).
 
@@ -182,8 +182,6 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-010 | Markdown-Quellmodus | aufnehmen; kontrollierter Wechsel, gleiche Validierung und Dirty-State | gibt Experten Zugriff auf das kanonische Format |
-| O-029 | Milkdown-Buildtoolchain | im M5.0-Gate genau eine lokal reproduzierbare Toolchain mit Lockfile, Restore-/Buildbefehl, Outputpfad und CI-/Lizenzintegration wählen; die M0-Vite-Fixture nicht automatisch übernehmen | macht den gewählten Editor selbst gehostet und reproduzierbar, ohne eine unentschiedene Spike-Toolchain zum Produktvertrag zu erheben |
 | O-011 | PDF-Basislayout | A4, kein Deckblatt, Inhaltsverzeichnis ab zwei Ebenen, Logo im Header, Seitenzahl im Footer | hält ersten Export klein und brauchbar |
 | O-004 | Assetspeicher | im M8-Spike SQL-Metadaten plus getrennten immutable Binärspeicher gegen SQL-Varbinary bewerten; Backup/Mehrinstanzbetrieb mitentscheiden | keine vorzeitige Speicherfestlegung |
 | O-016 | Assetgrenzen | zunächst PNG/JPEG/WebP, 10 MiB, 40 MP; SVG aus Sicherheitsgründen nicht im ersten Stand | reduziert Sanitization- und Active-Content-Risiko |
@@ -199,7 +197,7 @@ Quellen:
 
 - Produktive Zielumgebung, SQL-Edition, vorhandener Proxy, Zertifikatsprozess, Backupplattform und Betriebsverantwortung.
 - Reale Größenordnung von Nutzern, Wissensbestand, Änderungsrate und Wiederherstellungsanforderung zur Kalibrierung von O-017/O-023.
-- Lokale npm-/Bundle-Erzeugung für die produktive Milkdown-Integration einschließlich Lockfile; Entscheidung im manuellen M5.0-Gate, nicht durch Wiederholung der Editorauswahl.
+- M5.0 hat npm + `package-lock.json` + esbuild mit lokalem Output unter `wwwroot/generated/content-editor` und vollständigem Lizenzinventar festgelegt; Details stehen im Strukturkonzept.
 
 ## Bereits verbindlich und nicht erneut zu diskutieren
 

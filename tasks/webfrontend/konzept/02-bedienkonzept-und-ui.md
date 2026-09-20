@@ -98,7 +98,7 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 - Struktur: Titel, Description, Parent, SortOrder, stabile NodeId.
 - Der globale Rollen-Selektor steuert die Node-Ansicht; die Ansicht zeigt `Explicit`, `Fallback` oder `None` und erzeugt keinen zweiten lokalen Rollenmechanismus.
 - `requestedRole`, `resolvedRole`, Content Mode, Revision und Freshness.
-- Rich-Text-Editor und optionale Markdown-Quellansicht.
+- Rich-Text-Editor und explizit zuschaltbare Markdown-Quellansicht. Beide Modi verwenden denselben kanonischen Markdown-, Dirty-State-, Validierungs- und Speicherkontext.
 - Vorschau erzeugt Node-Überschrift aus der Struktur, nicht aus `ContentMd`.
 - Derived Content zeigt Source-Revisions und deren Freshness.
 - Vergleich mit Base Snapshot und historischen Snapshots.
@@ -143,6 +143,13 @@ Routen, Query-Parameter und die Rekonstruktion des Arbeitskontexts: [Projektstru
 
 - Rollen erstellen, umbenennen und löschen.
 - Resolution Order als sortierbare Liste bearbeiten.
-- Fallback-Auswirkung transparent vorschauen.
+- Fallback-Auswirkung an einem auswählbaren Beispiel-Node transparent vorschauen; es gibt keine globale Bestandsanalyse und keine stille Umsortierung gespeicherter Reihenfolgen.
+- Rollenadministration ist Bestandteil der M5/V1-Weboberfläche und bleibt fachlich von Authentifizierung und ACL getrennt.
 - Änderungen erfolgen in einer Transaction.
 - Keine Vermischung mit Authentifizierung oder ACL.
+
+### Rollen-Content-Aktionen
+
+- Aufgelöster Fallback ist read-only. Die UI bietet ausdrücklich „Eigenen Inhalt anlegen“ und optional „Fallback als Ausgangstext übernehmen“; keine Aktion bearbeitet oder dupliziert still die Quellrolle.
+- Explizit leerer eigener Content ist zulässig, unterdrückt den Fallback aber erst nach klarer Bestätigung. „Eigenen Content löschen“ ist eine getrennte Aktion und aktiviert anschließend wieder den Fallback.
+- `Independent`/`Derived` wechseln nur explizit. Derived erhält mindestens eine über Node-Suche und Rolle ausgewählte aktive explizite Source und pinnt deren aktuelle Revision; manuelle GUID-Eingabe gibt es nicht.

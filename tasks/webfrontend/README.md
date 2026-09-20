@@ -1,6 +1,6 @@
 # Webfrontend und Wissensplattform
 
-Stand: 2026-09-18
+Stand: 2026-09-20
 
 Status: Fortlaufendes Zielkonzept; keine Beschreibung des implementierten Ist-Zustands.
 
@@ -11,7 +11,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 - Verbindlicher System-Ist-Stand bleibt [`docs/`](../../docs/README.md).
 - Konzeptaussagen werden nicht als bereits implementiertes Verhalten in `docs/` übernommen.
 - Relevante Gesprächsergebnisse werden hier fortgeschrieben und automatisch atomar committed.
-- Das Konzept wird nur bis zum jeweils aktuellen Detailplanungshorizont ausführungsreif geschärft. Aktuell umfasst dieser Horizont M0 bis einschließlich M2; dieser Bereich ist seit 2026-09-18 entschieden, abschließend geprüft und zur sequenziellen Agentenausführung freigegeben.
+- Das Konzept wird nur bis zum jeweils aktuellen Detailplanungshorizont ausführungsreif geschärft. M0–M4 sind abgeschlossen; M5 ist nach seinem manuellen M5.0-Gate am 2026-09-20 entschieden, abschließend geplant und zur sequenziellen Agentenausführung freigegeben. M6+ bleiben bis zu ihren eigenen manuellen Gates gesperrt.
 - Ab M3 beginnt jedes Milestone mit einem manuellen Planungs- und Konzept-Gate `Mx.0`. Spätere Tasks sind bis zum Abschluss dieses Gates nur ein Richtungsentwurf und nicht zur Agentenausführung freigegeben.
 - Jede umgesetzte Roadmap-Aufgabe aktualisiert im selben Commit Code, Tests, `docs/`, Konzeptstatus und Checkbox.
 - Detailaussagen stehen in genau einem Konzeptdokument; Index und Roadmap verlinken darauf.
@@ -64,7 +64,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-013 | Bilder und Assetverwaltung sind niedrig priorisiert und folgen erst nach dem einfachen PDF-Export |
 | K-014 | Web, MCP und PDF bleiben in `KnowHowToAI.Server`; die verbindliche Feature-, Namespace- und Teststruktur steht in einem eigenen Strukturkonzept |
 | K-015 | Keine kostenpflichtigen Komponenten; jede direkte und transitive Abhängigkeit muss kostenlos nutzbar und mit der MIT-Distribution vereinbar sein, Lizenzpflichten werden eingehalten |
-| K-016 | Rollierende Detailplanung: M0–M2 werden jetzt ausführungsreif geschärft; M3 und jedes folgende Milestone starten mit einem manuellen `Mx.0`-Planungs- und Konzept-Gate |
+| K-016 | Rollierende Detailplanung: M0–M5 werden nach ihren abgeschlossenen manuellen Gates ausführungsreif geschärft; M6 und jedes folgende Milestone starten mit einem manuellen `Mx.0`-Planungs- und Konzept-Gate |
 | K-017 | WCAG 2.2 AA ist Entwicklungsmaßstab für menschliche Kernworkflows ohne formale Zertifizierung; Agenten prüfen automatisiert headless, die manuelle Tastaturcheckliste führt ein Mensch aus |
 | K-018 | Content erlaubt kein ausführbares Raw HTML und keine fremden Bildquellen; Links, Paste, Browserdarstellung und PDF folgen einer zentralen sicheren Markdown-Policy |
 | K-019 | Im PoC gibt es keinen verbindlichen externen MCP-Zielclient; M1 wird automatisiert über den offiziellen SDK-Client abgenommen, Hermes bleibt ein optionaler Eval-Smoke |
@@ -75,5 +75,9 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-024 | Razor-Komponententests verwenden bUnit mit xUnit v3; Browser-E2E verwendet Microsoft.Playwright .NET ausschließlich headless mit `Channel = "chrome"` gegen die installierte aktuelle Google-Chrome-Stable-Version |
 | K-025 | Vitest und eine separate JavaScript-Testtoolchain werden nicht vorsorglich eingeführt; sie werden erst bei eigener zustandsbehafteter JavaScript-/TypeScript-Logik mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik erforderlich |
 | K-026 | Die ignorierten Verzeichnisse unter `temp/webfrontend-spikes/` bleiben uncommittete Referenz-Fixtures; sie sind weder Produktionscode noch kopierbare Implementierungsvorlagen oder dauerhafte Testprojekte |
+| K-027 | Der Markdown-Quellmodus ist Bestandteil von M5; er teilt mit WYSIWYG kanonisches Markdown, Validierung, Dirty-State und ChangeVersion. |
+| K-028 | Milkdown wird lokal mit npm, `package-lock.json` und esbuild gebündelt; Output liegt unter `wwwroot/generated/content-editor`, es gibt keinen CDN-/Runtime-Download und Node ist nur Buildvoraussetzung. |
+| K-029 | Rollenadministration gehört zur M5/V1-Weboberfläche; Fallback bleibt read-only, explizit leerer Content unterdrückt Fallback nach Bestätigung, und Derived-Quellen werden nur über Node-Suche und Rolle gewählt und revisioniert gepinnt. |
+| K-030 | Rollen- und Content-Writes folgen dem M4-ChangeVersion-Vertrag einschließlich atomarer stale-Ablehnung und Rücktransport der neuen Version bis UI/MCP. |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

@@ -224,7 +224,8 @@ KnowHowToAI.Server/
 │     ├─ logo.svg
 │     └─ fonts/
 └─ wwwroot/
-   └─ css/app.css
+   ├─ css/app.css
+   └─ generated/content-editor/       # M5; lokaler esbuild-Output, nicht versioniert
 ```
 
 ### Server-Namespaces
@@ -260,7 +261,7 @@ KnowHowToAI.Server/
 | Historie | `/history` | `HistoryPage.razor` | `SnapshotList`, `ReleaseList`, `SnapshotDiff`, `CreateReleaseDialog` |
 | Transactions | `/transactions`, `/transactions/{TransactionId:guid}` | `TransactionsPage.razor`, `TransactionPage.razor` | `TransactionHeader`, `TransactionValidation`, `TransactionDiff`, `CommitDialog` |
 | Rollen | `/roles` | `RolesPage.razor` | `RoleEditor`, `ResolutionOrderEditor`, `FallbackPreview` |
-| Content | keine eigene Route | – | `ContentEditor`, `ContentMetadata`, `SourceRevisionEditor`, `MarkdownSourceEditor` nach O-010 |
+| Content | keine eigene Route | – | `ContentEditor`, `ContentMetadata`, `SourceRevisionEditor`, `MarkdownSourceEditor` |
 | PDF | keine eigene Route | – | `PdfExportButton` in der Wissensansicht |
 | Assets | keine eigene Route | – | `AssetUpload`, `AssetImage`, Integration in `ContentEditor` |
 
@@ -271,8 +272,8 @@ Regeln:
 - Gemeinsam verwendet bedeutet Nutzung durch mindestens zwei Features. Erst dann wird ein rein darstellender Baustein nach `Web/Components/Shared` verschoben.
 - `ContentEditor` bleibt Bestandteil der Knowledge-Seite; es entsteht keine zweite, konkurrierende Node-Editor-Seite.
 - `KnowledgeTree` verwendet keine Fremdkomponente. Paging, Cachegrenze, Semantik und Move-Positionen sind im [Bedienkonzept](02-bedienkonzept-und-ui.md#wissensbaum) verbindlich festgelegt.
-- `ContentEditor` bindet ausschließlich Milkdown `@milkdown/crepe` über `ContentEditor.razor.js` ein. Die konkrete lokale npm-/Bundle-Erzeugung wird vor M5-Produktivcode im manuellen M5.0-Gate festgelegt; die dann aufgelösten Werkzeugversionen werden im Lockfile festgehalten. Die M0-Vite-Fixture ist ausdrücklich keine Vorentscheidung.
-- Das M5.0-Gate ergänzt vor M5.1-T1 in diesem Dokument den exakten Ablageort von Paketmanifest, Lockfile, Buildkonfiguration und erzeugten lokalen Milkdown-Assets. Vor dieser Entscheidung wird weder ein `package.json` noch ein vorläufiger Bundle-/Vendor-Ordner als Produktstruktur festgelegt.
+- `ContentEditor` bindet ausschließlich Milkdown `@milkdown/crepe` über `ContentEditor.razor.js` ein. Die featurelokale Quelle liegt unter `Web/Features/Content/`; das Manifest liegt unter `Frontend/package.json`, die aufgelösten Versionen in `Frontend/package-lock.json` und die Builddefinition in `Frontend/build.mjs`.
+- `npm ci` stellt ausschließlich aus `package-lock.json` wieder her; `npm run build` ruft `build.mjs` auf. npm und esbuild erzeugen damit im normalen Build/Publish deterministisch lokale Assets unter `wwwroot/generated/content-editor`. `node_modules` und der Generated Output werden nicht committet; Node/npm sind keine Runtime-Voraussetzung und es gibt keinen CDN-/Runtime-Download. Das vollständige direkte und transitive Lizenzinventar einschließlich NOTICE-Pflichten wird bei Produktaufnahme aktualisiert.
 
 ## URL- und Arbeitskontext
 
@@ -388,7 +389,7 @@ tests/KnowHowToAI.BrowserTests/
 - `BrowserTests` enthält nur vollständige Benutzerabläufe und verwendet Microsoft.Playwright .NET. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Jeder reguläre Lauf startet ausschließlich die installierte aktuelle Google-Chrome-Stable-Version mit `Channel = "chrome"` und `Headless = true`; fehlendes Chrome ist ein klarer Preflight-Fehler. Es gibt keinen Chromium-Fallback, keinen sichtbaren Browserstart und keine weitere Browsermatrix.
 - Der Browser-Testhost startet die veröffentlichte Server-EXE aus einem frisch erzeugten `dotnet publish`-Verzeichnis und verwendet dieses als Content Root. Funktionale Workflow-Smokes und bytegenaue visuelle Shell-Smokes verwenden getrennte, dedizierte Browser-Testdatenbanken; beide werden beim Start über die normalen Migrationen einschließlich Initial-Seed in den benötigten Zustand gebracht und sind nie die von `ManualDatabaseIntegration` destruktiv verwendete Datenbank. Die visuelle Datenbank enthält ausschließlich den stabilen minimalen Read-only-Bestand, die Workflowdatenbank darf ihren reproduzierbaren History-/Release-Bestand ergänzen. Readiness, Circuitzustand und Interaktionen werden ausschließlich über beobachtbare Zustände und Playwright-Web-first-Assertions abgewartet; feste Sleeps sind verboten. Der Host wird auch bei Testfehlern beendet und der gebundene Port freigegeben.
 - Locator-Priorität ist Rolle, Label und danach stabile Test-ID. Screenshots werden erst nach semantischen und Verhaltensassertionen erzeugt; volatile Inhalte werden stabil maskiert und Baselines nie im regulären Lauf automatisch überschrieben.
-- Vitest ist im aktuellen Zielstand nicht erforderlich und es wird kein `package.json` allein für JS-Tests angelegt. Erst wenn eigener JavaScript-/TypeScript-Code Zustand mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik verwaltet, muss der einführende Task vor dem Code Testablage und FastTest-Befehl in diesem Dokument ergänzen. Dünne `mount`-/`readMarkdown`-/`focus`-/`dispose`- und Dialogaufrufe lösen diese Pflicht nicht aus.
+- Vitest wird nur eingeführt, wenn produktiver JavaScript-/TypeScript-Code eigene Zustände mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik verwaltet. Dünne `mount`-/`readMarkdown`-/`focus`-/`dispose`-Aufrufe lösen diese Pflicht nicht aus; dann decken bUnit und Playwright den Interopvertrag ab.
 - Host-/Routing-/MCP-Tests bleiben in `KnowHowToAI.IntegrationTests/Server`.
 - SQL- und Assetmetadaten-Tests bleiben in `KnowHowToAI.IntegrationTests/SqlServer`.
 - PDF-Prozessgrenztests liegen in `KnowHowToAI.IntegrationTests/Server/Pdf`; reine PDF-Orchestrierungstests liegen in `Core.Tests/Application/Retrieval/Export`.
