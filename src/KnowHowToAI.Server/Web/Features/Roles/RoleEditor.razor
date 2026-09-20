@@ -1,0 +1,118 @@
+@namespace KnowHowToAI.Server.Web.Features.Roles
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+@if (_isLoading)
+{
+    <p class="loading-state" role="status" data-testid="roles-loading">Rollen werden geladen…</p>
+}
+else
+{
+    @if (_rolesErrorMessage is not null)
+    {
+        <div role="alert" data-testid="roles-load-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_rolesErrorMessage" />
+        </div>
+    }
+
+    @if (!CanMutate)
+    {
+        <div class="roles-page__readonly" role="status" data-testid="roles-readonly">
+            Rollen können nur in einer offenen Working Transaction geändert werden. Dieser Kontext ist schreibgeschützt.
+        </div>
+    }
+
+    @if (_mutationErrorMessage is not null)
+    {
+        <div class="roles-page__mutation-error" role="alert" data-testid="roles-mutation-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_mutationErrorMessage" />
+        </div>
+    }
+
+    @if (CanMutate)
+    {
+        <section class="roles-card roles-card--create" aria-labelledby="role-create-heading">
+            <h2 id="role-create-heading">Rolle anlegen</h2>
+            <form @onsubmit="CreateRoleAsync" @onsubmit:preventDefault="true" data-testid="role-create-form">
+                <div class="roles-form-grid">
+                    <div class="form-group">
+                        <label for="role-create-name">Name</label>
+                        <input id="role-create-name" class="form-input" @bind="NewRoleName" data-testid="role-create-name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="role-create-description">Beschreibung (optional)</label>
+                        <input id="role-create-description" class="form-input" @bind="NewRoleDescription" data-testid="role-create-description" />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="role-create-submit">Rolle anlegen</button>
+            </form>
+        </section>
+    }
+
+    <section class="roles-card" aria-labelledby="roles-list-heading">
+        <h2 id="roles-list-heading">Rollen (@_roles.Count)</h2>
+        @if (_roles.Count == 0)
+        {
+            <p class="empty-state" data-testid="roles-empty">Keine Rollen im gewählten Kontext.</p>
+        }
+        else
+        {
+            <div class="roles-list" role="list" data-testid="roles-list">
+                @foreach (var role in _roles)
+                {
+                    <article class="role-item" role="listitem" data-testid="role-item-@role.RoleId">
+                        @if (_editingRoleId == role.RoleId)
+                        {
+                            <form @onsubmit="() => UpdateRoleAsync(role)" @onsubmit:preventDefault="true" data-testid="role-edit-form-@role.RoleId">
+                                <div class="roles-form-grid">
+                                    <div class="form-group">
+                                        <label for="role-edit-name-@role.RoleId">Name</label>
+                                        <input id="role-edit-name-@role.RoleId" class="form-input" @bind="EditRoleName" data-testid="role-edit-name-@role.RoleId" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="role-edit-description-@role.RoleId">Beschreibung</label>
+                                        <input id="role-edit-description-@role.RoleId" class="form-input" @bind="EditRoleDescription" data-testid="role-edit-description-@role.RoleId" />
+                                    </div>
+                                </div>
+                                <div class="role-item__actions">
+                                    <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="role-save-@role.RoleId">Speichern</button>
+                                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit" disabled="@_isSubmitting" data-testid="role-cancel-@role.RoleId">Abbrechen</button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="role-item__content">
+                                <h3>@role.Name</h3>
+                                <p class="role-item__id">RoleId: <code>@role.RoleId</code></p>
+                                @if (!string.IsNullOrWhiteSpace(role.Description))
+                                {
+                                    <p>@role.Description</p>
+                                }
+                            </div>
+                            @if (CanMutate)
+                            {
+                                <div class="role-item__actions">
+                                    <button type="button" class="btn btn-secondary" @onclick="() => BeginEdit(role)" data-testid="role-edit-@role.RoleId">Umbenennen</button>
+                                    <button type="button" class="btn btn-danger" @onclick="() => OpenDeleteConfirmationAsync(role)" data-testid="role-delete-@role.RoleId">Löschen</button>
+                                </div>
+                            }
+                        }
+                    </article>
+                }
+            </div>
+        }
+    </section>
+}
+
+@if (_pendingDeleteRole is not null)
+{
+    <section class="roles-delete-confirmation" role="alert" aria-labelledby="role-delete-heading" data-testid="role-delete-confirmation">
+        <h2 id="role-delete-heading">Rolle „@_pendingDeleteRole.Name“ löschen?</h2>
+        <p>Die Rolle wird im Working Snapshot per Soft-Delete markiert. Rollen mit Content, Dependencies oder Resolution Orders werden vom Server abgelehnt.</p>
+        <div class="role-item__actions">
+            <button type="button" class="btn btn-secondary" @onclick="CancelDelete" disabled="@_isSubmitting" data-testid="role-delete-cancel">Abbrechen</button>
+            <button type="button" class="btn btn-danger" @onclick="DeleteRoleAsync" disabled="@_isSubmitting" data-testid="role-delete-confirm">Rolle löschen</button>
+        </div>
+    </section>
+}

@@ -214,18 +214,22 @@ damit der Benutzer die geprüften Änderungen manuell erneut anwendet. Die
 Web-Grenze kopiert, merged oder rebased dabei keine Änderungen und verwirft die
 konfliktbehaftete Transaction nicht implizit.
 
-`Web.Features.Roles` stellt unter `/roles` die Rollenpflege bereit. Die Seite löst
-den Read-Kontext über den gemeinsamen `WebReadContextResolver` auf und listet Rollen
-über `NavigationService`; die Formulare verwenden ausschließlich
-`RoleMutationService`. Erstellen, Umbenennen und Löschen sind nur bei einer offenen
-Working Transaction sichtbar und aktiv. Jede Mutation übergibt die gelesene
-`ChangeVersion`, setzt nach Erfolg den flüchtigen `WorkspaceState` auf die neue
-Version und markiert den Kontext dirty. `RoleInUse`, `RoleNameRequired`,
-`RoleNotFound` und `ChangeVersionConflict` werden mit ihrem stabilen Fehlercode und
-den strukturierten Details am Formular angezeigt; ein Fehler lässt die Eingaben und
-den Working-Zustand unverändert. Current-, Snapshot-, Release- und abgeschlossene
-Transaction-Kontexte bleiben schreibgeschützt. Die Seite bearbeitet keine
-Resolution Orders; das ist ein separater Rollen-Leaf.
+`Web.Features.Roles` stellt unter `/roles` die Rollenpflege bereit. `RolesPage` löst
+ausschließlich den Read-Kontext über den gemeinsamen `WebReadContextResolver` auf,
+spiegelt `PageRegionState` und `WorkspaceState` und reicht `ReadContext` sowie die
+aktuelle `ChangeVersion` an den zustandsbehafteten `RoleEditor` weiter. `RoleEditor`
+lädt die Rollenliste einschließlich opaker Paging-Fortsetzung über
+`NavigationService`, hält Formular- und Löschdialogzustand und ruft für Erstellen,
+Umbenennen und Löschen ausschließlich `RoleMutationService` auf. Die drei Aktionen
+sind nur bei einer offenen Working Transaction sichtbar und aktiv; erfolgreiche
+Antworten werden lokal aus dem Mutationsergebnis projiziert. Über ein schmales
+`EventCallback<long>` meldet der Editor die neue `ChangeVersion` an die Page, die
+damit `WorkspaceState` aktualisiert und den Kontext als dirty markiert.
+`RoleInUse`, `RoleNameRequired`, `RoleNotFound` und `ChangeVersionConflict` werden
+mit ihrem stabilen Fehlercode und den strukturierten Details am Editor-Formular
+angezeigt; ein Fehler lässt Eingaben und Working-Zustand unverändert. Current-,
+Snapshot-, Release- und abgeschlossene Transaction-Kontexte bleiben schreibgeschützt.
+Die Seite bearbeitet keine Resolution Orders; das ist ein separater Rollen-Leaf.
 
 Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus

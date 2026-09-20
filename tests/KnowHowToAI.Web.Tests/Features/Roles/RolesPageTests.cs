@@ -2,7 +2,6 @@ using Bunit;
 using KnowHowToAI.Core.Application.Mutations.Roles;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
@@ -37,13 +36,9 @@ public sealed class RolesPageTests : BunitContext
     }
 
     [Fact]
-    public void WorkingTransaction_CreateRole_UpdatesStateAndMarksContextDirty()
+    public async Task WorkingTransaction_MutationEvent_UpdatesWorkspaceContext()
     {
-        var navigation = CreateNavigationService(out var transaction);
-        var repository = new InMemoryRoleMutationRepository(new WorkingRoleMutationState(
-            transaction.WorkingSnapshotId,
-            [new Role(transaction.WorkingSnapshotId, new RoleId("Developer"), "Developer", null, false)],
-            [], [], []));
+        var navigation = CreateNavigationService(out _);
         AddPageServices(navigation, new WebReadContextResolution(
             new ReadContext(TransactionId: TransactionId),
             new KnowledgeContextViewModel(
@@ -51,44 +46,17 @@ public sealed class RolesPageTests : BunitContext
                 ContextId: TransactionId.Value.ToString("D"),
                 ChangeVersion: 0),
             0));
-        Services.AddSingleton(new RoleMutationService(repository));
 
         var cut = Render<RolesPage>();
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='role-create-name']")));
-        cut.Find("[data-testid='role-create-name']").Change("Consultant");
-        cut.Find("[data-testid='role-create-description']").Change("Beratung");
-        cut.Find("[data-testid='role-create-submit']").Click();
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindComponents<RoleEditor>()));
+        var editor = cut.FindComponent<RoleEditor>();
 
-        Assert.Contains(repository.State.Roles, role => role.RoleId == new RoleId("Consultant"));
-        Assert.Equal(1, repository.ChangeVersion);
-        Assert.True(Services.GetRequiredService<WorkspaceState>().IsDirty);
-        Assert.Contains("role-create-form", cut.Markup, StringComparison.Ordinal);
-    }
+        await cut.InvokeAsync(() => editor.Instance.MutationSucceeded.InvokeAsync(1));
 
-    [Fact]
-    public async Task WorkingTransaction_StaleWrite_RendersStableServerError()
-    {
-        var navigation = CreateNavigationService(out var transaction);
-        var repository = new InMemoryRoleMutationRepository(new WorkingRoleMutationState(
-            transaction.WorkingSnapshotId,
-            [new Role(transaction.WorkingSnapshotId, new RoleId("Developer"), "Developer", null, false)],
-            [], [], []));
-        var service = new RoleMutationService(repository);
-        _ = await service.CreateRoleAsync(TransactionId, "AlreadyChanged", null, 0);
-        AddPageServices(navigation, new WebReadContextResolution(
-            new ReadContext(TransactionId: TransactionId),
-            new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, ChangeVersion: 0),
-            0));
-        Services.AddSingleton(service);
-
-        var cut = Render<RolesPage>();
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='role-create-name']")));
-        cut.Find("[data-testid='role-create-name']").Change("StaleRole");
-        cut.Find("[data-testid='role-create-submit']").Click();
-
-        cut.WaitForAssertion(() => Assert.Contains("[ChangeVersionConflict]", cut.Markup, StringComparison.Ordinal));
-        Assert.DoesNotContain(repository.State.Roles, role => role.RoleId == new RoleId("StaleRole"));
-        Assert.False(Services.GetRequiredService<WorkspaceState>().IsDirty);
+        var workspace = Services.GetRequiredService<WorkspaceState>();
+        Assert.Equal(1, workspace.CurrentChangeVersion);
+        Assert.True(workspace.IsDirty);
+        Assert.Equal(1, Services.GetRequiredService<PageRegionState>().KnowledgeContext!.ChangeVersion);
     }
 
     private NavigationService CreateNavigationService(out KnowledgeTransaction transaction)

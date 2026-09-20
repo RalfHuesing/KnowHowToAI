@@ -37,4 +37,12 @@ public static class RoleMapper
             result.Value is null ? null : ToRolePageViewModel(result.Value),
             result.Warnings);
     }
+
+    public static string ToErrorMessage(DomainError error)
+    {
+        var details = error.Details.Count == 0
+            ? string.Empty
+            : $" ({string.Join(", ", error.Details.Select(pair => $"{pair.Key}={pair.Value}"))})";
+        return $"[{error.Code}] {error.Message}{details}";
+    }
 }
