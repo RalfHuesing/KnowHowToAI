@@ -111,4 +111,53 @@ public sealed class MarkdownStructureValidatorTests
         Assert.True(report.IsValid);
         Assert.Empty(report.Warnings);
     }
+
+    [Theory]
+    [InlineData("<span>unsicher</span>", ContentStructureCodes.RawHtmlNotAllowed)]
+    [InlineData("<script>alert('x')</script>", ContentStructureCodes.RawHtmlNotAllowed)]
+    [InlineData("![Bild](https://example.test/image.png)", ContentStructureCodes.ExternalImageNotAllowed)]
+    [InlineData("<img src=\"https://example.test/image.png\">", ContentStructureCodes.ExternalImageNotAllowed)]
+    [InlineData("[Link](javascript:alert('x'))", ContentStructureCodes.LinkTargetNotAllowed)]
+    [InlineData("[Link](http://example.test)", ContentStructureCodes.LinkTargetNotAllowed)]
+    [InlineData("[Link](//example.test)", ContentStructureCodes.LinkTargetNotAllowed)]
+    [InlineData("[Link](data:text/plain,unsafe)", ContentStructureCodes.LinkTargetNotAllowed)]
+    public void Validate_ContentPolicy_RejectsUnsafeSyntaxWithStableCode(string content, string expectedCode)
+    {
+        var report = MarkdownStructureValidator.Validate(content, "Installation", warnOnPossibleEmbeddedHeading: true);
+
+        var error = Assert.Single(report.Errors);
+        Assert.Equal(expectedCode, error.Code);
+        Assert.Equal("1", error.Details[ContentStructureCodes.LineDetail]);
+        Assert.True(int.Parse(error.Details[ContentStructureCodes.ColumnDetail]) > 0);
+    }
+
+    [Theory]
+    [InlineData("[HTTPS](https://example.test/docs)")]
+    [InlineData("[Mail](mailto:team@example.test)")]
+    [InlineData("[Fragment](#details)")]
+    [InlineData("[Root](/docs/start)")]
+    [InlineData("[Relative](../docs/start)")]
+    public void Validate_ContentPolicy_AllowsSafeLinks(string content)
+    {
+        var report = MarkdownStructureValidator.Validate(content, "Installation", warnOnPossibleEmbeddedHeading: true);
+
+        Assert.True(report.IsValid);
+    }
+
+    [Fact]
+    public void Validate_ContentPolicy_AllowsUnsafeLookingExamplesInsideCodeBlocks()
+    {
+        const string content = """
+            ```html
+            <script>alert('x')</script>
+            [Link](javascript:alert('x'))
+            ![Bild](https://example.test/image.png)
+            ```
+            """;
+
+        var report = MarkdownStructureValidator.Validate(content, "Installation", warnOnPossibleEmbeddedHeading: true);
+
+        Assert.True(report.IsValid);
+        Assert.Empty(report.Errors);
+    }
 }

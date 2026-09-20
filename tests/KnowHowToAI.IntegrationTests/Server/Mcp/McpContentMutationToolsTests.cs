@@ -116,6 +116,25 @@ public sealed class McpContentMutationToolsTests
     }
 
     [Theory]
+    [InlineData("<span>unsicher</span>", ContentStructureCodes.RawHtmlNotAllowed)]
+    [InlineData("[Link](http://example.test)", ContentStructureCodes.LinkTargetNotAllowed)]
+    [InlineData("![Bild](https://example.test/image.png)", ContentStructureCodes.ExternalImageNotAllowed)]
+    public async Task ReplaceContent_UnsafeContentPolicy_IsRejectedByMcpWithoutMutatingState(
+        string content,
+        string expectedCode)
+    {
+        var repository = StateWithNodeAndRole();
+        var tools = CreateTools(repository);
+
+        var envelope = await tools.ReplaceContent(
+            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", content, 0);
+
+        Assert.False(envelope.IsSuccess);
+        Assert.Equal(expectedCode, envelope.Code);
+        Assert.Empty(repository.State.Contents);
+    }
+
+    [Theory]
     [InlineData("unknown")]
     [InlineData("independent")]
     [InlineData("")]

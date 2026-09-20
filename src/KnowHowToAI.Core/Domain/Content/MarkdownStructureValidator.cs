@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Net;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Validation;
 using Markdig;
@@ -30,6 +31,7 @@ public static partial class MarkdownStructureValidator
         AddFrontMatterError(frontMatterEndPosition, errors);
         AddMarkdownHeadingErrors(content, document, errors);
         AddHtmlHeadingErrors(content, document, errors);
+        AddContentPolicyErrors(content, document, errors);
 
         if (warnOnPossibleEmbeddedHeading)
             AddEmbeddedHeadingWarnings(content, nodeTitle, document, warnings);
@@ -96,6 +98,110 @@ public static partial class MarkdownStructureValidator
         }
     }
 
+    private static void AddContentPolicyErrors(
+        string content,
+        MarkdownDocument document,
+        ICollection<DomainError> errors)
+    {
+        foreach (var link in document.Descendants<LinkInline>())
+        {
+            var target = WebUtility.HtmlDecode(link.Url ?? string.Empty);
+            if (link.IsImage)
+            {
+                errors.Add(CreateError(
+                    ContentStructureCodes.ExternalImageNotAllowed,
+                    "Externe oder nicht kontrollierte Bilder sind im gespeicherten Content nicht erlaubt.",
+                    content,
+                    link.Span.Start,
+                    "MarkdownImage",
+                    target));
+            }
+            else if (!IsAllowedLinkTarget(target))
+            {
+                errors.Add(CreateError(
+                    ContentStructureCodes.LinkTargetNotAllowed,
+                    "Das Ziel des Markdown-Links ist nicht erlaubt.",
+                    content,
+                    link.Span.Start,
+                    "MarkdownLink",
+                    target));
+            }
+        }
+
+        foreach (var htmlInline in document.Descendants<HtmlInline>())
+            AddHtmlContentPolicyError(content, htmlInline.Tag, htmlInline.Span.Start, errors, "InlineHtml");
+
+        foreach (var htmlBlock in document.Descendants<HtmlBlock>())
+        {
+            var html = ExtractSpanContent(content, htmlBlock.Span.Start, htmlBlock.Span.End);
+            AddHtmlContentPolicyError(content, html, htmlBlock.Span.Start, errors, "BlockHtml");
+        }
+    }
+
+    private static void AddHtmlContentPolicyError(
+        string content,
+        string html,
+        int htmlStartPosition,
+        ICollection<DomainError> errors,
+        string htmlKind)
+    {
+        if (string.IsNullOrWhiteSpace(html) || IsClosingHtmlTag(html))
+            return;
+
+        var imageMatch = HtmlImageTagRegex().Match(html);
+        if (imageMatch.Success)
+        {
+            errors.Add(CreateError(
+                ContentStructureCodes.ExternalImageNotAllowed,
+                "Externe oder nicht kontrollierte Bilder sind im gespeicherten Content nicht erlaubt.",
+                content,
+                htmlStartPosition + imageMatch.Index,
+                "HtmlImage",
+                ExtractHtmlAttribute(html[imageMatch.Index..], "src")));
+            return;
+        }
+
+        if (HtmlHeadingTagRegex().IsMatch(html))
+            return;
+
+        errors.Add(CreateError(
+            ContentStructureCodes.RawHtmlNotAllowed,
+            "Raw HTML ist im gespeicherten Content nicht erlaubt.",
+            content,
+            htmlStartPosition,
+            htmlKind,
+            html.Trim()));
+    }
+
+    private static bool IsAllowedLinkTarget(string target)
+    {
+        if (target.Length == 0 || target.StartsWith('#') || target.StartsWith('/') && !target.StartsWith("//"))
+            return true;
+
+        if (target.StartsWith("\\\\", StringComparison.Ordinal) || target.Any(char.IsControl))
+            return false;
+
+        if (!Uri.TryCreate(target, UriKind.Absolute, out var absoluteUri))
+            return true;
+
+        if (absoluteUri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            return !string.IsNullOrEmpty(absoluteUri.Host);
+
+        return absoluteUri.Scheme.Equals(Uri.UriSchemeMailto, StringComparison.OrdinalIgnoreCase)
+            && absoluteUri.OriginalString.Length > Uri.UriSchemeMailto.Length + 1;
+    }
+
+    private static bool IsClosingHtmlTag(string html) => html.TrimStart().StartsWith("</", StringComparison.Ordinal);
+
+    private static string ExtractHtmlAttribute(string html, string attributeName)
+    {
+        var match = Regex.Match(
+            html,
+            $"\\b{Regex.Escape(attributeName)}\\s*=\\s*(?:\"(?<value>[^\"]*)\"|'(?<value>[^']*)'|(?<value>[^\\s>]+))",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return match.Success ? match.Groups["value"].Value : string.Empty;
+    }
+
     private static void AddEmbeddedHeadingWarnings(
         string content,
         string nodeTitle,
@@ -152,6 +258,27 @@ public static partial class MarkdownStructureValidator
                 [ContentStructureCodes.ColumnDetail] = column.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 [ContentStructureCodes.KindDetail] = kind
             });
+
+    private static DomainError CreateError(
+        string code,
+        string message,
+        string content,
+        int position,
+        string kind,
+        string target)
+    {
+        var (line, column) = GetPosition(content, position);
+        var details = new Dictionary<string, string>
+        {
+            [ContentStructureCodes.LineDetail] = line.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            [ContentStructureCodes.ColumnDetail] = column.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            [ContentStructureCodes.KindDetail] = kind
+        };
+        if (!string.IsNullOrEmpty(target))
+            details[ContentStructureCodes.TargetDetail] = target;
+
+        return new DomainError(code, message, details);
+    }
 
     private static int? FindFrontMatterEndPosition(string content)
     {
@@ -219,4 +346,7 @@ public static partial class MarkdownStructureValidator
 
     [GeneratedRegex(@"<\s*h[1-6]\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex HtmlHeadingTagRegex();
+
+    [GeneratedRegex(@"<\s*img\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex HtmlImageTagRegex();
 }

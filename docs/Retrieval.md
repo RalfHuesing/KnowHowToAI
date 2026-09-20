@@ -163,7 +163,8 @@ Validatoren sind in zwei Kategorien getrennt:
 
 **Harte Invarianten** – Operation oder Commit schlägt fehl:
 
-- Markdown- oder HTML-Heading im Content
+- Raw HTML, Markdown- oder HTML-Heading im Content
+- Front Matter, nicht erlaubtes Linkziel oder Markdown-/HTML-Bild im Content
 - ungültige Parent-ID, Hierarchiezyklus, nicht existierende Node/Rolle
 - geschlossene Transaction
 - `replace_text` ohne oder mit mehreren Matches

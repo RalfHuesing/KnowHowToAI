@@ -25,7 +25,8 @@ public static class McpErrorCatalog
 
     private static readonly string[] ContentErrorCodes =
     [
-        "ExplicitContentNotFound", "HeadingNotAllowed", "FrontMatterNotAllowed", "TextNotFound",
+        "ExplicitContentNotFound", "HeadingNotAllowed", "FrontMatterNotAllowed", "RawHtmlNotAllowed",
+        "LinkTargetNotAllowed", "ExternalImageNotAllowed", "TextNotFound",
         "MultipleTextMatches", "InvalidDependency", "DependencyCycle"
     ];
 

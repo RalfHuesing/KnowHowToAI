@@ -207,9 +207,16 @@ Regeln:
 - Ein unbekannter `contentMode`-Wert ist eine harte Dependency-Verletzung und
   führt zu `InvalidDependency`; derselbe Code gilt für nicht parsebare
   Source-Revisions.
-- Markdown- oder HTML-Überschriften im `contentMd` sind harte Fehler
-  (`HeadingNotAllowed`), heuristisch erkennbare Ersatztitel liefern die Warnung
-  `PossibleEmbeddedHeading` auf Envelope-Ebene.
+- Die zentrale Contentpolicy lehnt Raw HTML (`RawHtmlNotAllowed`), Markdown- und
+  HTML-Überschriften (`HeadingNotAllowed`), Front Matter
+  (`FrontMatterNotAllowed`), nicht erlaubte Linkziele (`LinkTargetNotAllowed`)
+  sowie Markdown- und HTML-Bilder (`ExternalImageNotAllowed`) als harte Fehler
+  ab. Codeblöcke sind von dieser Prüfung ausgenommen. Zulässig sind
+  `https`-, `mailto`-, Fragment-, root-relative und normale pfadrelative Links;
+  heuristisch erkennbare Ersatztitel liefern weiterhin die Warnung
+  `PossibleEmbeddedHeading` auf Envelope-Ebene. Alle Policy-Befunde enthalten
+  deterministische `line`, `column` und `kind`-Details, sofern eine Position
+  ermittelbar ist.
 - `replace_text` verlangt exakt einen ordinalen Treffer: `TextNotFound`,
   `MultipleTextMatches`.
 - Bei Erfolg wird der Content-Text nicht zurückgegeben; die gültige Version ist
@@ -247,6 +254,7 @@ ergänzt werden; veröffentlichte Codes werden nicht beiläufig umbenannt.
   `CandidateRoleNotFound`, `DuplicateCandidateRole`, `DuplicatePriority`,
   `InvalidPriority`, `RequestedRoleDeleted`, `RequestedRoleNotFound`
 - Content: `ExplicitContentNotFound`, `HeadingNotAllowed`, `FrontMatterNotAllowed`,
+  `RawHtmlNotAllowed`, `LinkTargetNotAllowed`, `ExternalImageNotAllowed`,
   `TextNotFound`, `MultipleTextMatches`, `InvalidDependency`, `DependencyCycle`
 - Migration/Release: `MigrationChecksumMismatch`, `MigrationFailed`,
   `ReleaseNotFound`, `ReleaseNameConflict`, `ReleaseNameRequired`
