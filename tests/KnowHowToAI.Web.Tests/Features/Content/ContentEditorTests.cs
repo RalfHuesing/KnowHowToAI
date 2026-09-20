@@ -151,6 +151,58 @@ public sealed class ContentEditorTests : BunitContext
         Assert.False(workspace.IsDirty);
     }
 
+    [Fact]
+    public async Task ExplicitSourceModeRoundTripsMarkdownAndKeepsDirtyContext()
+    {
+        var module = ConfigureLooseModule("**WYSIWYG**\n\n- Eintrag");
+        AddServices();
+        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var cut = Render<ContentEditor>(parameters => parameters
+            .Add(editor => editor.NodeId, NodeId.Value)
+            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.Markdown, "Ausgangswert")
+            .Add(editor => editor.TransactionId, TransactionId)
+            .Add(editor => editor.ExpectedChangeVersion, 0L));
+
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-source']").Click());
+
+        var source = cut.Find("[data-testid='content-editor-source']");
+        Assert.Equal("**WYSIWYG**\n\n- Eintrag", source.GetAttribute("value"));
+        source.Input("[Link](https://example.test)\n\nUnicode: ä");
+        Assert.True(workspace.IsDirty);
+
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-wysiwyg']").Click());
+        cut.WaitForAssertion(() => Assert.Equal(2, module.Invocations["mount"].Count));
+        Assert.Equal(
+            "[Link](https://example.test)\n\nUnicode: ä",
+            module.Invocations["mount"].Last().Arguments[1]);
+    }
+
+    [Fact]
+    public async Task SourceModeRejectionPreservesCompleteInputAndDirtyState()
+    {
+        ConfigureLooseModule("Serverwert");
+        var repository = AddServices();
+        repository.Rejection = new DomainError("RawHtmlNotAllowed", "Raw HTML ist unzulässig.");
+        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var cut = Render<ContentEditor>(parameters => parameters
+            .Add(editor => editor.NodeId, NodeId.Value)
+            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.Markdown, "Ausgangswert")
+            .Add(editor => editor.TransactionId, TransactionId)
+            .Add(editor => editor.ExpectedChangeVersion, 0L));
+
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-source']").Click());
+        const string rejected = "<h2>Verboten</h2>\n\n![Bild](https://example.test/bild.png)";
+        cut.Find("[data-testid='content-editor-source']").Input(rejected);
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
+
+        Assert.True(workspace.IsDirty);
+        Assert.Equal(rejected, cut.Find("[data-testid='content-editor-source']").GetAttribute("value"));
+        Assert.Contains("RawHtmlNotAllowed", cut.Markup, StringComparison.Ordinal);
+        Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
+    }
+
     private InMemoryContentMutationRepository AddServices()
     {
         var repository = new InMemoryContentMutationRepository(new WorkingContentMutationState(

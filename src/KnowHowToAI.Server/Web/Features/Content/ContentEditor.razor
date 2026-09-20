@@ -6,9 +6,42 @@
          aria-label="Markdown-Inhalt"
          data-testid="content-editor"
          data-readonly="@IsReadOnly">
-    <div class="content-editor__surface"
-         @ref="_editorElement"
-         data-testid="content-editor-surface"></div>
+    <div class="content-editor__mode-switch" role="group" aria-label="Editor-Modus">
+        <button type="button"
+                class="btn @(IsSourceMode ? "btn-secondary" : "btn-primary")"
+                data-testid="content-editor-mode-wysiwyg"
+                aria-pressed="@(!IsSourceMode)"
+                disabled="@(!IsSourceMode)"
+                @onclick="ShowWysiwygAsync">
+            WYSIWYG
+        </button>
+        <button type="button"
+                class="btn @(IsSourceMode ? "btn-primary" : "btn-secondary")"
+                data-testid="content-editor-mode-source"
+                aria-pressed="@IsSourceMode"
+                disabled="@IsSourceMode"
+                @onclick="ShowSourceAsync">
+            Markdown-Quelle
+        </button>
+    </div>
+
+    @if (IsSourceMode)
+    {
+        <label class="content-editor__source-label" for="content-editor-source">Markdown-Quelle</label>
+        <textarea id="content-editor-source"
+                  class="content-editor__source"
+                  data-testid="content-editor-source"
+                  readonly="@IsReadOnly"
+                  @ref="_sourceElement"
+                  @bind="SourceMarkdown"
+                  @bind:event="oninput"></textarea>
+    }
+    else
+    {
+        <div class="content-editor__surface"
+             @ref="_editorElement"
+             data-testid="content-editor-surface"></div>
+    }
 
     @if (_errorMessage is not null)
     {

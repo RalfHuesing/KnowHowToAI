@@ -1,4 +1,3 @@
-using System.Text.Json;
 using KnowHowToAI.BrowserTests.TestSupport;
 using Markdig;
 using Microsoft.Playwright;
@@ -28,12 +27,12 @@ public sealed class ContentEditorPasteSmokeTests
                 TransportMode = HttpTransportMode.StreamableHttp
             }));
 
-        var transaction = await CallAsync(client, "begin_transaction");
-        var transactionId = RequiredString(transaction, "transactionId");
+        var transaction = await BrowserMcpAssertions.CallAsync(client, "begin_transaction");
+        var transactionId = BrowserMcpAssertions.RequiredString(transaction, "transactionId");
         try
         {
-            var root = await CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
-            var rootNodeId = RequiredString(root, "nodeId");
+            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
+            var rootNodeId = BrowserMcpAssertions.RequiredString(root, "nodeId");
             await using var page = await browser.NewPageAsync();
             var externalRequestObserved = false;
             await page.RouteAsync("https://example.test/**", route =>
@@ -89,16 +88,16 @@ public sealed class ContentEditorPasteSmokeTests
                 TransportMode = HttpTransportMode.StreamableHttp
             }));
 
-        var transaction = await CallAsync(client, "begin_transaction", new Dictionary<string, object?>
+        var transaction = await BrowserMcpAssertions.CallAsync(client, "begin_transaction", new Dictionary<string, object?>
         {
             ["purpose"] = "M5.2-T2 Golden-Master-Roundtrip"
         });
-        var transactionId = RequiredString(transaction, "transactionId");
+        var transactionId = BrowserMcpAssertions.RequiredString(transaction, "transactionId");
         try
         {
-            var root = await CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
-            var rootNodeId = RequiredString(root, "nodeId");
-            var created = await CallAsync(client, "create_node", new Dictionary<string, object?>
+            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
+            var rootNodeId = BrowserMcpAssertions.RequiredString(root, "nodeId");
+            var created = await BrowserMcpAssertions.CallAsync(client, "create_node", new Dictionary<string, object?>
             {
                 ["transactionId"] = transactionId,
                 ["title"] = "Golden-Master Browser Roundtrip",
@@ -106,7 +105,7 @@ public sealed class ContentEditorPasteSmokeTests
                 ["contentMd"] = markdown,
                 ["roleId"] = "Default"
             });
-            var nodeId = RequiredString(created, "nodeId");
+            var nodeId = BrowserMcpAssertions.RequiredString(created, "nodeId");
             var url = $"{_fixture.Host.Address}/knowledge/{nodeId}?roleId=Default&transactionId={transactionId}";
             await using var page = await browser.NewPageAsync();
 
@@ -130,7 +129,7 @@ public sealed class ContentEditorPasteSmokeTests
                 await Assertions.Expect(editor.GetByRole(AriaRole.Status))
                     .ToContainTextAsync("Gespeichert", new() { Timeout = 15_000 });
 
-                var readback = await CallAsync(client, "get_node", new Dictionary<string, object?>
+                var readback = await BrowserMcpAssertions.CallAsync(client, "get_node", new Dictionary<string, object?>
                 {
                     ["nodeId"] = nodeId,
                     ["roleId"] = "Default",
@@ -149,22 +148,6 @@ public sealed class ContentEditorPasteSmokeTests
             });
         }
     }
-
-    private static async Task<JsonElement> CallAsync(
-        McpClient client,
-        string toolName,
-        Dictionary<string, object?>? arguments = null)
-    {
-        var result = await client.CallToolAsync(toolName, arguments);
-        using var document = JsonDocument.Parse(result.Content.Single().ToString()!);
-        var response = document.RootElement.Clone();
-        Assert.Equal("Success", response.GetProperty("code").GetString());
-        return response;
-    }
-
-    private static string RequiredString(JsonElement response, string propertyName) =>
-        response.GetProperty("data").GetProperty(propertyName).GetString()
-        ?? throw new InvalidOperationException($"MCP-Feld '{propertyName}' fehlt.");
 
     private static string SemanticProjection(string markdown) => Markdown.ToHtml(markdown, MarkdownPipeline);
 }

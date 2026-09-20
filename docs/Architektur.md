@@ -246,6 +246,12 @@ verworfen; jede Reduktion bleibt als `role=status` sichtbar und wird als
 ungespeicherte Änderung markiert. Die Clipboard-Verarbeitung arbeitet
 ausschließlich auf den gelieferten Strings, lädt keine Bildquelle und ersetzt
 den vollständigen Editorwert bei einer serverseitigen Ablehnung nicht.
+Der Editor bietet zusätzlich einen expliziten Markdown-Quellmodus mit semantisch
+beschrifteter Textarea. WYSIWYG und Quellmodus teilen denselben flüchtigen Wert,
+Dirty-State, Save-/ChangeVersion-Pfad und die serverseitige Contentpolicy;
+Quellmoduswechsel remounten den Crepe-Editor nur mit dem unveränderten aktuellen
+Markdown und fokussieren die jeweils aktivierte Ansicht. Eine serverseitige
+Ablehnung lässt den vollständigen Quellwert und den Dirty-State bestehen.
 Der versionierte Golden Master wird zusätzlich im Browser mit dem gebündelten
 Crepe über fünf aufeinanderfolgende Save-/Remount-Roundtrips geführt; jeder
 Server-Readback wird gegen die Markdig-Semantik der Fixture geprüft.

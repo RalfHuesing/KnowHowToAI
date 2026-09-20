@@ -46,28 +46,82 @@ public sealed partial class ContentEditor : IAsyncDisposable
     public EventCallback<ContentMutationUseCaseResult> OnMutationSucceeded { get; set; }
 
     private ElementReference _editorElement;
+    private ElementReference _sourceElement;
     private IJSObjectReference? _module;
     private DotNetObjectReference<ContentEditor>? _selfReference;
-    private (Guid NodeId, string RoleId, string Markdown, bool IsReadOnly)? _mountedRequest;
+    private (Guid NodeId, string RoleId, bool IsReadOnly)? _mountedRequest;
+    private (Guid NodeId, string RoleId, bool IsReadOnly)? _parameterIdentity;
+    private string _editorMarkdown = string.Empty;
+    private string _sourceMarkdown = string.Empty;
     private string? _errorMessage;
     private bool _isSaving;
     private bool _pasteWasReduced;
     private bool _mountRequested = true;
     private bool _mountInProgress;
+    private bool _isSourceMode;
+    private bool _hasLocalEditorValue;
+    private bool _focusSourceAfterRender;
+    private bool _focusEditorAfterMount;
     private bool _isDisposed;
+
+    private bool IsSourceMode => _isSourceMode;
+
+    private string SourceMarkdown
+    {
+        get => _sourceMarkdown;
+        set
+        {
+            if (_sourceMarkdown == value)
+                return;
+
+            _sourceMarkdown = value;
+            _hasLocalEditorValue = true;
+            if (!IsReadOnly)
+            {
+                WorkspaceState.SetDirty(true);
+                _errorMessage = null;
+            }
+        }
+    }
 
     protected override void OnParametersSet()
     {
-        var request = (NodeId, RoleId, Markdown ?? string.Empty, IsReadOnly);
-        if (_mountedRequest != request)
+        var identity = (NodeId, RoleId, IsReadOnly);
+        var parameterMarkdown = Markdown ?? string.Empty;
+        if (_parameterIdentity != identity)
         {
+            _parameterIdentity = identity;
+            _editorMarkdown = parameterMarkdown;
+            _sourceMarkdown = parameterMarkdown;
+            _isSourceMode = false;
+            _hasLocalEditorValue = false;
+            _mountRequested = true;
+        }
+        else if (!_hasLocalEditorValue && _editorMarkdown != parameterMarkdown)
+        {
+            _editorMarkdown = parameterMarkdown;
+            _sourceMarkdown = parameterMarkdown;
             _mountRequested = true;
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_isDisposed || !_mountRequested || _mountInProgress)
+        if (_isDisposed || _mountInProgress)
+            return;
+
+        if (_isSourceMode)
+        {
+            if (_focusSourceAfterRender)
+            {
+                _focusSourceAfterRender = false;
+                await _sourceElement.FocusAsync();
+            }
+
+            return;
+        }
+
+        if (!_mountRequested)
             return;
 
         _mountInProgress = true;
@@ -85,10 +139,15 @@ public sealed partial class ContentEditor : IAsyncDisposable
                     await _module.InvokeVoidAsync(
                         "mount",
                         _editorElement,
-                        Markdown ?? string.Empty,
+                        _editorMarkdown,
                         _selfReference,
                         IsReadOnly);
-                    _mountedRequest = (NodeId, RoleId, Markdown ?? string.Empty, IsReadOnly);
+                    _mountedRequest = (NodeId, RoleId, IsReadOnly);
+                    if (_focusEditorAfterMount)
+                    {
+                        _focusEditorAfterMount = false;
+                        await _module.InvokeVoidAsync("focus", _editorElement);
+                    }
                 }
                 catch (JSDisconnectedException)
                 {
@@ -109,6 +168,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
     {
         if (!IsReadOnly)
         {
+            _hasLocalEditorValue = true;
             WorkspaceState.SetDirty(true);
             _errorMessage = null;
         }
@@ -138,7 +198,8 @@ public sealed partial class ContentEditor : IAsyncDisposable
         _errorMessage = null;
         try
         {
-            var markdown = await ReadMarkdownAsync();
+            var markdown = _isSourceMode ? _sourceMarkdown : await ReadMarkdownAsync();
+            _editorMarkdown = markdown;
             var result = await ServiceProvider.GetRequiredService<ContentMutationApplicationService>().ReplaceContentAsync(
                 TransactionId.Value,
                 new ReplaceContentRequest(
@@ -157,6 +218,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
             }
 
             WorkspaceState.SetDirty(false);
+            _hasLocalEditorValue = false;
             _pasteWasReduced = false;
             await OnMutationSucceeded.InvokeAsync(result.Value!);
         }
@@ -169,9 +231,34 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private async Task<string> ReadMarkdownAsync()
     {
         if (_module is null)
-            return Markdown ?? string.Empty;
+            return _editorMarkdown;
 
         return await _module.InvokeAsync<string>("readMarkdown", _editorElement);
+    }
+
+    private async Task ShowSourceAsync()
+    {
+        if (_isSourceMode)
+            return;
+
+        _sourceMarkdown = await ReadMarkdownAsync();
+        _editorMarkdown = _sourceMarkdown;
+        await DisposeEditorAsync();
+        _isSourceMode = true;
+        _focusSourceAfterRender = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ShowWysiwygAsync()
+    {
+        if (!_isSourceMode)
+            return;
+
+        _editorMarkdown = _sourceMarkdown;
+        _isSourceMode = false;
+        _mountRequested = true;
+        _focusEditorAfterMount = true;
+        await InvokeAsync(StateHasChanged);
     }
 
     public async ValueTask DisposeAsync()

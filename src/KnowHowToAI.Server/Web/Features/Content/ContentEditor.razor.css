@@ -11,6 +11,34 @@
     background: var(--ktai-color-surface);
 }
 
+.content-editor__mode-switch {
+    display: flex;
+    gap: var(--ktai-space-2);
+}
+
+.content-editor__source-label {
+    font-weight: 600;
+}
+
+.content-editor__source {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 14rem;
+    padding: var(--ktai-space-3);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-md);
+    background: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: var(--ktai-font-size-sm);
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.content-editor__source:read-only {
+    background: var(--ktai-color-page);
+}
+
 .content-editor--readonly .content-editor__surface {
     background: var(--ktai-color-page);
 }

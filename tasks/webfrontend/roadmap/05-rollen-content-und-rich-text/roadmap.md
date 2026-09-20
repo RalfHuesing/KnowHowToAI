@@ -38,10 +38,10 @@ Rollen, Resolution Orders und rollenabhängiger Markdown-Content können in eine
 
 ## M5.2 – Editorbasis
 
-- [ ] **M5.2 abschließen**
+- [x] **M5.2 abschließen**
   - [x] [M5.2-T1 – Crepe-Editor, Lifecycle und Dirty-State integrieren](tasks/M5.2-T1.md)
   - [x] [M5.2-T2 – Golden Master, Paste und Sicherheits-Roundtrip abnehmen](tasks/M5.2-T2.md)
-  - [ ] [M5.2-T3 – Markdown-Quellmodus integrieren](tasks/M5.2-T3.md)
+  - [x] [M5.2-T3 – Markdown-Quellmodus integrieren](tasks/M5.2-T3.md)
 
 ## M5.3 – Rollenverwaltung
 
