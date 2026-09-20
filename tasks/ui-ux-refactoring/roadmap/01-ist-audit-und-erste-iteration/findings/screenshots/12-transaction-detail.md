@@ -41,6 +41,10 @@ Transaction-Detailkomponente, Persistenz-/Commit-/Discard-Vertrag; M1.3-Kandidat
 
 Keine.
 
+## M1.4-T2-Ergebnis
+
+Der Capture `temp/ui-audit/2026-09-20_20-45-17/12_transaction_detail_desktop_1280x800.png` belegt die Folgekorrektur im 1280×800-Viewport: Der Arbeitsablauf führt zuerst „Validieren“ mit der bestehenden Validierungsaktion und zeigt danach den Abschlussabschnitt mit Commit als primärer und Verwerfen als sekundärer Aktion. Technische Transaction-ID, Akteur, Client, Zeit und Snapshot-/ChangeVersion-Metadaten liegen geschlossen unter „Technische Details“; der bestehende Diff folgt darunter als Diagnose. Routen, Validierungs-, Dirty-, Commit-/Discard- und Transaktionssemantik blieben unverändert.
+
 ## M1.3-Re-Audit und Folgeentscheidung
 
 Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/12_transaction_detail_desktop_1280x800.png`. Der P1-Befund bleibt bestehen: Die bestehende Reihenfolge Validieren → Commit/Verwerfen soll visuell führen; technische IDs und Leerwerte werden sekundär beziehungsweise progressiv angeordnet. [M1.4-T2](../../tasks/M1.4-T2.md) lässt Abschluss-, Dirty-, Transaktions- und Fokusvertrag unverändert.

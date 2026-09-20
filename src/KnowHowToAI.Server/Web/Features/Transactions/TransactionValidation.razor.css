@@ -2,8 +2,8 @@
     background: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border-light);
     border-radius: var(--ktai-radius-md);
-    margin-top: var(--ktai-space-6);
-    padding: var(--ktai-space-5) var(--ktai-space-6);
+    margin-top: var(--ktai-space-4);
+    padding: var(--ktai-space-4) var(--ktai-space-5);
 }
 
 .transaction-validation__header {
@@ -31,7 +31,7 @@
 .transaction-validation__stale {
     border-radius: var(--ktai-radius-sm);
     margin: var(--ktai-space-4) 0 0;
-    padding: var(--ktai-space-3) var(--ktai-space-4);
+    padding: var(--ktai-space-2) var(--ktai-space-3);
 }
 
 .transaction-validation__notice {

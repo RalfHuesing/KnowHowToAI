@@ -101,6 +101,39 @@ public sealed class TransactionPageTests : BunitContext
     }
 
     [Fact]
+    public void TransactionPage_GuidesValidationBeforeCompletionAndKeepsTechnicalDetailsProgressive()
+    {
+        var transaction = AddOpenTransaction();
+
+        var cut = Render<TransactionPage>(parameters => parameters
+            .Add(p => p.TransactionId, transaction.TransactionId.Value));
+
+        var workflow = cut.Find("[data-testid='transaction-workflow']");
+        var workflowMarkup = workflow.OuterHtml;
+        Assert.True(
+            workflowMarkup.IndexOf("data-testid=\"transaction-validation-step\"", StringComparison.Ordinal)
+            < workflowMarkup.IndexOf("data-testid=\"transaction-completion-step\"", StringComparison.Ordinal));
+
+        var technicalDetails = cut.Find("[data-testid='tx-technical-details']");
+        Assert.False(technicalDetails.HasAttribute("open"));
+        Assert.Contains(transaction.TransactionId.Value.ToString("D"), technicalDetails.TextContent);
+
+        var completionActions = cut.Find("[data-testid='transaction-page-actions']").QuerySelectorAll("button");
+        Assert.Equal(2, completionActions.Length);
+        Assert.Contains("btn-primary", completionActions[0].GetAttribute("class"));
+        Assert.Equal("Commit", completionActions[0].TextContent.Trim());
+        Assert.Contains("btn-secondary", completionActions[1].GetAttribute("class"));
+        Assert.Equal("Verwerfen", completionActions[1].TextContent.Trim());
+
+        var navigationActions = cut.Find("[data-testid='transaction-next-steps']").QuerySelectorAll("a");
+        Assert.Equal(3, navigationActions.Length);
+        Assert.Equal("tx-open-knowledge-link", navigationActions[0].GetAttribute("data-testid"));
+        Assert.Contains("btn-primary", navigationActions[0].GetAttribute("class"));
+        Assert.Contains("btn-secondary", navigationActions[1].GetAttribute("class"));
+        Assert.Contains("btn-secondary", navigationActions[2].GetAttribute("class"));
+    }
+
+    [Fact]
     public void TransactionPage_MissingTransaction_RendersErrorMessage()
     {
         var nonExistentId = Guid.NewGuid();

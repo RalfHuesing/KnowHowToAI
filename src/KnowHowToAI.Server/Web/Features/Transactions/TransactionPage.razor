@@ -25,7 +25,55 @@
         <TransactionHeader Transaction="@_transaction"
                            IsOlderThan7Days="@(_transaction.CreatedAtUtc <= Clock.UtcNow.AddDays(-7))" />
 
-        <TransactionValidation Transaction="@_transaction" />
+        <section class="transaction-workflow" aria-labelledby="transaction-workflow-heading" data-testid="transaction-workflow">
+            <div class="transaction-workflow__intro">
+                <p class="transaction-workflow__eyebrow">Arbeitsablauf</p>
+                <h2 id="transaction-workflow-heading">Prüfen und abschließen</h2>
+                <p>Arbeiten Sie die Schritte in dieser Reihenfolge ab: zuerst validieren, danach committen oder verwerfen.</p>
+            </div>
+
+            <div class="transaction-workflow__step" data-testid="transaction-validation-step">
+                <span class="transaction-workflow__step-number" aria-hidden="true">1</span>
+                <div>
+                    <h3>Validieren</h3>
+                    <p>Prüfen Sie den aktuellen Working Snapshot auf blockierende Fehler.</p>
+                </div>
+            </div>
+            <TransactionValidation Transaction="@_transaction" />
+
+            <section class="transaction-completion" aria-labelledby="transaction-completion-heading" data-testid="transaction-completion">
+                <div class="transaction-workflow__step" data-testid="transaction-completion-step">
+                    <span class="transaction-workflow__step-number" aria-hidden="true">2</span>
+                    <div>
+                        <h2 id="transaction-completion-heading">Transaction abschließen</h2>
+                        <p>Committen Sie die geprüften Änderungen oder verwerfen Sie sie vollständig.</p>
+                    </div>
+                </div>
+                <p class="transaction-completion__hint">Commit ist nicht rückgängig zu machen. Verwerfen lässt den aktuellen Snapshot unverändert.</p>
+                <div class="transaction-page__actions" data-testid="transaction-page-actions">
+                    @if (!string.IsNullOrWhiteSpace(_completionError))
+                    {
+                        <div class="transaction-page__completion-error" role="alert" data-testid="transaction-completion-error">
+                            <InlineAlert Kind="AlertKind.Fehler" Message="@_completionError" />
+                        </div>
+                    }
+                    @if (_transaction.State != TransactionState.Open)
+                    {
+                        <p role="status" data-testid="transaction-completion-unavailable">
+                            Diese Transaction ist bereits abgeschlossen und kann nicht erneut committed oder verworfen werden.
+                        </p>
+                    }
+                    <button type="button" class="btn btn-primary" @onclick="OpenCommitDialogAsync"
+                            disabled="@(!CanCommit)" data-testid="commit-transaction-button">
+                        Commit
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="OpenDiscardDialogAsync"
+                            disabled="@(!CanDiscard)" data-testid="discard-transaction-button">
+                        Verwerfen
+                    </button>
+                </div>
+            </section>
+        </section>
 
         <TransactionDiff Transaction="@_transaction" />
 
@@ -60,37 +108,21 @@
             </section>
         }
 
-        <div class="transaction-page__actions" data-testid="transaction-page-actions">
-            @if (!string.IsNullOrWhiteSpace(_completionError))
-            {
-                <div class="transaction-page__completion-error" role="alert" data-testid="transaction-completion-error">
-                    <InlineAlert Kind="AlertKind.Fehler" Message="@_completionError" />
-                </div>
-            }
-            @if (_transaction.State != TransactionState.Open)
-            {
-                <p role="status" data-testid="transaction-completion-unavailable">
-                    Diese Transaction ist bereits abgeschlossen und kann nicht erneut committed oder verworfen werden.
-                </p>
-            }
-            <button type="button" class="btn btn-primary" @onclick="OpenCommitDialogAsync"
-                    disabled="@(!CanCommit)" data-testid="commit-transaction-button">
-                Commit
-            </button>
-            <button type="button" class="btn btn-secondary" @onclick="OpenDiscardDialogAsync"
-                    disabled="@(!CanDiscard)" data-testid="discard-transaction-button">
-                Verwerfen
-            </button>
-            <a href="@KnowledgeUrl" class="btn btn-primary" data-testid="tx-open-knowledge-link">
-                Im Wissensbaum öffnen
-            </a>
-            <a href="/roles?transactionId=@TransactionId" class="btn btn-primary" data-testid="tx-open-roles-link">
-                Rollen pflegen
-            </a>
-            <a href="/transactions" class="btn btn-secondary" data-testid="tx-back-link">
-                Zur Übersicht
-            </a>
-        </div>
+        <section class="transaction-next-steps" aria-labelledby="transaction-next-steps-heading" data-testid="transaction-next-steps">
+            <h2 id="transaction-next-steps-heading">Weiterarbeiten</h2>
+            <p>Öffnen Sie den Arbeitskontext, pflegen Sie Rollen oder kehren Sie zur Übersicht zurück.</p>
+            <div class="transaction-page__actions">
+                <a href="@KnowledgeUrl" class="btn btn-primary" data-testid="tx-open-knowledge-link">
+                    Im Wissensbaum öffnen
+                </a>
+                <a href="/roles?transactionId=@TransactionId" class="btn btn-secondary" data-testid="tx-open-roles-link">
+                    Rollen pflegen
+                </a>
+                <a href="/transactions" class="btn btn-secondary" data-testid="tx-back-link">
+                    Zur Übersicht
+                </a>
+            </div>
+        </section>
     }
 </div>
 

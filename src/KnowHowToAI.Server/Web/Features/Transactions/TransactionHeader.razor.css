@@ -2,8 +2,8 @@
     background: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border-light);
     border-radius: var(--ktai-radius-md);
-    padding: var(--ktai-space-5) var(--ktai-space-6);
-    margin-bottom: var(--ktai-space-6);
+    padding: var(--ktai-space-4) var(--ktai-space-6);
+    margin-bottom: var(--ktai-space-4);
 }
 
 .transaction-header__title-row {
@@ -25,6 +25,33 @@
     color: var(--ktai-color-text-muted);
     margin: var(--ktai-space-1) 0 0 0;
     font-family: var(--font-mono, monospace);
+}
+
+.transaction-header__context {
+    color: var(--ktai-color-text-secondary);
+    margin: var(--ktai-space-2) 0 0;
+}
+
+.transaction-header__technical {
+    border-top: 1px solid var(--ktai-color-border-subtle);
+    margin-top: var(--ktai-space-3);
+    padding-top: var(--ktai-space-2);
+}
+
+.transaction-header__technical summary {
+    color: var(--ktai-color-text-secondary);
+    cursor: pointer;
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 600;
+    list-style-position: inside;
+}
+
+.transaction-header__technical summary:hover {
+    color: var(--ktai-color-primary);
+}
+
+.transaction-header__technical[open] summary {
+    margin-bottom: var(--ktai-space-3);
 }
 
 .badge-state {

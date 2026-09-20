@@ -15,35 +15,42 @@
                 <span class="badge badge-warning" data-testid="tx-age-warning">Älter als 7 Tage</span>
             }
         </div>
-        <p class="transaction-header__id" data-testid="tx-id">ID: @Transaction.TransactionId</p>
     </div>
 
-    <dl class="transaction-header__meta" data-testid="tx-meta">
-        <div class="transaction-header__meta-item">
-            <dt>Akteur:</dt>
-            <dd data-testid="tx-actor">@(Transaction.Actor ?? "Unbekannt")</dd>
-        </div>
-        <div class="transaction-header__meta-item">
-            <dt>Client:</dt>
-            <dd data-testid="tx-client">@(Transaction.Client ?? "Unbekannt")</dd>
-        </div>
-        <div class="transaction-header__meta-item">
-            <dt>Erstellt am:</dt>
-            <dd data-volatile="" title="@Transaction.CreatedAtUtc.ToString("u")" data-testid="tx-created-at">
-                @Transaction.CreatedAtUtc.ToString("g")
-            </dd>
-        </div>
-        <div class="transaction-header__meta-item">
-            <dt>Base-Snapshot:</dt>
-            <dd data-testid="tx-base-snapshot">@Transaction.BaseSnapshotId</dd>
-        </div>
-        <div class="transaction-header__meta-item">
-            <dt>Working-Snapshot:</dt>
-            <dd data-testid="tx-working-snapshot">@Transaction.WorkingSnapshotId</dd>
-        </div>
-        <div class="transaction-header__meta-item">
-            <dt>ChangeVersion:</dt>
-            <dd data-testid="tx-change-version">@Transaction.ChangeVersion</dd>
-        </div>
-    </dl>
+    <p class="transaction-header__context">
+        Prüfen Sie die Änderungen, bevor Sie die Transaction abschließen.
+    </p>
+
+    <details class="transaction-header__technical" data-testid="tx-technical-details">
+        <summary>Technische Details</summary>
+        <p class="transaction-header__id" data-testid="tx-id">ID: @Transaction.TransactionId</p>
+        <dl class="transaction-header__meta" data-testid="tx-meta">
+            <div class="transaction-header__meta-item">
+                <dt>Akteur:</dt>
+                <dd data-testid="tx-actor">@(Transaction.Actor ?? "Nicht angegeben")</dd>
+            </div>
+            <div class="transaction-header__meta-item">
+                <dt>Client:</dt>
+                <dd data-testid="tx-client">@(Transaction.Client ?? "Nicht angegeben")</dd>
+            </div>
+            <div class="transaction-header__meta-item">
+                <dt>Erstellt am:</dt>
+                <dd data-volatile="" title="@Transaction.CreatedAtUtc.ToString("u")" data-testid="tx-created-at">
+                    @Transaction.CreatedAtUtc.ToString("g")
+                </dd>
+            </div>
+            <div class="transaction-header__meta-item">
+                <dt>Basis-Snapshot:</dt>
+                <dd data-testid="tx-base-snapshot">@Transaction.BaseSnapshotId</dd>
+            </div>
+            <div class="transaction-header__meta-item">
+                <dt>Arbeits-Snapshot:</dt>
+                <dd data-testid="tx-working-snapshot">@Transaction.WorkingSnapshotId</dd>
+            </div>
+            <div class="transaction-header__meta-item">
+                <dt>Änderungsversion:</dt>
+                <dd data-testid="tx-change-version">@Transaction.ChangeVersion</dd>
+            </div>
+        </dl>
+    </details>
 </header>
