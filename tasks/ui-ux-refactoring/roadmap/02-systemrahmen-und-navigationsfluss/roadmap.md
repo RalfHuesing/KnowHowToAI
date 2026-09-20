@@ -7,7 +7,7 @@ M2 etabliert eine gemeinsame Layoutbasis und schließt die zwei belegten Handlun
 ## Status und Abhängigkeiten
 
 - **Status:** geplant, noch nicht zur Ausführung freigegeben; `planning.md` ist das M2-Planungsgate.
-- **Voraussetzungen:** M1.5-T0–T6 abgeschlossen; M1.5-T7 bleibt offen und wird nicht dupliziert.
+- **Voraussetzungen:** M1.5-T0–T7 abgeschlossen; der T7-Nachweis wird nicht dupliziert.
 - **Nicht im Scope:** `RolesPage`, Rollenverwaltung, neue Fachfunktionen, Fallback-/erster Content (M5.4-T1), Commit-Reihenfolge und neue Routen.
 - **Leitplanken:** [M2-Konzept](../../konzept/README.md), [Layout-/Aktionssystem](../../konzept/04-layout-und-aktionssystem.md), [Nutzerreisen](../../konzept/02-nutzerreisen-und-zustandsfluesse.md), [Findings](../../konzept/05-findings-und-evidenz.md).
 
@@ -17,7 +17,7 @@ M2 etabliert eine gemeinsame Layoutbasis und schließt die zwei belegten Handlun
 
 - [ ] [M2.1-T1 – Vollbreiten-Seitenrahmen, Prosa-Measure und Action-Group](tasks/M2.1-T1.md)
 
-Ergebnis: DRY `page-frame`/`readable`/`action-group`-Basis und featureweise Adoption außerhalb `RolesPage`; Nachweise bei 1280, 1920, 2560 und Responsive. M1.5-T7 wird nur als bestehender offener Nachweis beziehungsweise Regression berücksichtigt.
+Ergebnis: DRY `page-frame`/`readable`/`action-group`-Basis und featureweise Adoption außerhalb `RolesPage`; Nachweise bei 1280, 1920, 2560 und Responsive. M1.5-T7 wird nur als abgeschlossener Regressionsnachweis berücksichtigt.
 
 ### M2.2 – Mutation-URL und Auswahl
 

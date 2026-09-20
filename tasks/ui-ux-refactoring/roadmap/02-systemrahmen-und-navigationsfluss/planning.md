@@ -13,13 +13,13 @@ M2 ist die nächste kleine Etappe nach M1.5. Sie bearbeitet belegte Handlungs- u
 - [Layout- und Aktionssystem](../../konzept/04-layout-und-aktionssystem.md)
 - [Findings-/Evidenzinventar](../../konzept/05-findings-und-evidenz.md)
 - [Entscheidungsregister](../../konzept/06-entscheidungsregister.md)
-- [M1-Roadmap](../01-ist-audit-und-erste-iteration/roadmap.md), insbesondere offenes [M1.5-T7](../01-ist-audit-und-erste-iteration/tasks/M1.5-T7.md)
+- [M1-Roadmap](../01-ist-audit-und-erste-iteration/roadmap.md), insbesondere abgeschlossener Regressionsnachweis [M1.5-T7](../01-ist-audit-und-erste-iteration/tasks/M1.5-T7.md)
 - Ist-Dokumentation: [`docs/README.md`](../../../../docs/README.md), [`Invarianten`](../../../../docs/Invarianten.md), [`Retrieval`](../../../../docs/Retrieval.md), [`Transaktionen und Historie`](../../../../docs/Transaktionen-und-Historie.md)
 - Webfrontend-Zielkonzept: [`Bedienkonzept und UI`](../../../webfrontend/konzept/02-bedienkonzept-und-ui.md), [`Projektstruktur`](../../../webfrontend/konzept/08-projektstruktur-und-codekonventionen.md)
 
 ## Reihenfolge
 
-1. **M2.1-T1** erstellt die gemeinsame Layoutbasis und migriert nur benannte Features. `RolesPage` bleibt ausgeschlossen. M1.5-T7 wird weder kopiert noch in M2 als erledigt behauptet; seine offene Checkbox und die bestehende Transaction-Grid-Verantwortung bleiben in M1.
+1. **M2.1-T1** erstellt die gemeinsame Layoutbasis und migriert nur benannte Features. `RolesPage` bleibt ausgeschlossen. M1.5-T7 wird nicht kopiert; sein abgeschlossener Transaction-Grid-Nachweis bleibt in M1 und wird als Regression verwendet.
 2. **M2.2-T1** beginnt mit einem isolierten roten Test für URL-/Selection-Drift und deckt Create root, Create child, Update und Delete ab. Erst danach folgt die kleinste Korrektur.
 3. **M2.3-T1** führt den bestehenden `TransactionPage`-Link `Im Wissensbaum öffnen` in der sichtbaren Bearbeitungsreise; Linkziel bleibt `/knowledge?transactionId=...` mit vorhandener Rolle.
 4. **M2-Gate:** manueller Entscheid zu IA, Terminologie und node-lokalem Bearbeitungseinstieg. Ohne Gate keine neuen Routen und keine M2.4-Folgearbeit.

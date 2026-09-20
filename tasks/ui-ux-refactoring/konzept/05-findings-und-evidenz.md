@@ -18,8 +18,8 @@ Screenshots und Manifeste sind temporär und nicht zu committen; versioniert wer
 
 ## M1-Statusinventar
 
-- **Erledigt:** M1.0 Planung, M1.1 Audit, M1.2-T1/T2, M1.3 Re-Audit, M1.4-T1–T7 sowie M1.5-T0–T6.
-- **Offen:** M1.5-T7 „Offene Transactions als Ein-Karten-Grid harmonisieren“. M2 führt ihn als bestehende offene Abhängigkeit und prüft keinen zweiten Grid-Leaf ein.
+- **Erledigt:** M1.0 Planung, M1.1 Audit, M1.2-T1/T2, M1.3 Re-Audit, M1.4-T1–T7 sowie M1.5-T0–T7.
+- **Ein-Karten-Grid:** M1.5-T7 ist abgeschlossen. M2 übernimmt den Nachweis nur als Regression und führt keinen zweiten Grid-Leaf ein.
 - **Out of scope:** `RolesPage.razor.cs` und Rollenverwaltung; sie werden nicht als UI-Refactoring-Fix in M2 vermischt. Ein parallel bearbeiteter Linterbefund bleibt fremder Scope und ist hier nur historischer Kontext.
 - **Zurückgestellt:** „Commit vor Validierung“; bis zu einer fachlichen Entscheidung gilt Validieren → Commit/Verwerfen.
 
@@ -50,7 +50,7 @@ Screenshots und Manifeste sind temporär und nicht zu committen; versioniert wer
 2. **P1 – Transaction-Detail verliert Arbeitsfluss:** `TransactionPage` besitzt `Im Wissensbaum öffnen`, `Rollen pflegen` und `Zur Übersicht`; der erste Weg ist nach Commit-/Diff-Inhalt nicht prominent genug in der Bearbeitungsreise. M2.3-T1 führt ausschließlich diesen bestehenden Weg sichtbarer.
 3. **P1 – Mutation-URL/Selection-Drift:** `KnowledgePage.HandleNodeMutationSucceededAsync` aktualisiert `TreeWorkspace` und `WorkspaceState`, navigiert aber nicht auf die neue/Parent-URL. Create child/root/update/delete können damit sichtbare Auswahl und URL entkoppeln. M2.2-T1 ist red-test-first.
 4. **P1 – Systemrahmen:** Vollbreiten-Seitenrahmen, Prosa-Measure und Action-Group sind nicht als gemeinsame Basisfeatureweise standardisiert. M2.1-T1 schafft nur diese Primitive und migriert kontrolliert.
-5. **P2 – offener Grid-Harmonisierungspunkt:** M1.5-T7 bleibt offen; kein Duplikat in M2.
+5. **Erledigter Grid-Harmonisierungspunkt:** M1.5-T7 belegt den Ein-Karten-Fall; M2 prüft ihn nur als Regression.
 
 ## Befundgrenzen
 

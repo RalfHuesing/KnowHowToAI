@@ -36,6 +36,10 @@ Im Working-Kontext führt „Inhalt bearbeiten“ denselben Content in WYSIWYG u
 
 Nach erfolgreichem Commit/Discard führt der vorhandene Weg zurück zu Current Knowledge. Eine spätere Entscheidung kann die Reihenfolge oder Führung bewerten; M2 implementiert keine Änderung des Commit-Vertrags.
 
+### Offene Darstellungsoption: geführter Abschluss
+
+Der seltene, lineare und folgenreiche Abschluss kann nach dem M2-Gate als Assistent beziehungsweise Stepper innerhalb derselben Transaction-Route bewertet werden: `Validieren → Änderungen prüfen → Commit-Nachricht → Bestätigen`. Zurück, Weiter und Abbrechen führen dabei ausschließlich durch die Darstellung; Validierungs-, Commit-, Discard-, Conflict- und Dirty-Verträge bleiben unverändert. Mehrere neue Einzelseiten oder ein Assistent für alltägliche Aufgaben wie Suche und Content-Bearbeitung sind nicht vorweggenommen. Die Entscheidung steht als UX-011 im [Entscheidungsregister](06-entscheidungsregister.md).
+
 ## History
 
 `/history` zeigt Snapshot-/Release-Listen und den bestehenden Vergleich von Ausgang und Ziel. `nodeId` filtert die Node-Historie; `snapshotId` oder `releaseId` führen als ReadContext in `/knowledge`. IDs bleiben für Experten erreichbar, die fachliche Vergleichsbedeutung steht zuerst.
