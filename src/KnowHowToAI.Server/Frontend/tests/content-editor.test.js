@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { dispose, focus, mount, readMarkdown } from "../../Web/Features/Content/ContentEditor.razor.js";
+import { dispose, focus, mount, normalizePastedPlainText, readMarkdown, sanitizePastedHtml } from "../../Web/Features/Content/ContentEditor.razor.js";
 import { lastEditor, lifecycle } from "./fake-generated-editor.js";
 
 beforeEach(() => {
@@ -54,5 +54,24 @@ describe("ContentEditor JS interop", () => {
 
         expect(readMarkdown(element)).toBe("");
         await expect(dispose(element)).resolves.toBeUndefined();
+    });
+
+    it("reduces browser and office HTML without preserving executable or external content", () => {
+        const result = sanitizePastedHtml(`
+            <h2>Überschrift</h2><p><strong>Text</strong> <a href="javascript:alert(1)">Link</a></p>
+            <img src="https://example.test/remote.png" alt="Bild"><script>fetch('https://example.test')</script>
+        `);
+
+        expect(result.reduced).toBe(true);
+        expect(result.html).toContain("<p>Überschrift</p>");
+        expect(result.html).toContain("<strong>Text</strong>");
+        expect(result.html).toContain("Link");
+        expect(result.html).not.toContain("javascript:");
+        expect(result.html).not.toContain("<img");
+        expect(result.html).not.toContain("fetch(");
+    });
+
+    it("keeps plain text plain and normalizes clipboard line endings", () => {
+        expect(normalizePastedPlainText("erste\r\nzweite\rritte")).toBe("erste\nzweite\nritte");
     });
 });

@@ -239,7 +239,13 @@ weitere Assets. `scripts/test-fast.ps1` führt die Vitest-Suite vor den
 .NET-FastTests aus; sie prüft die eigene WeakMap-Instanzverwaltung, die
 Callbackweitergabe und die Reihenfolge von Dispose/Remount. Vitest ist hier
 erforderlich, weil der Adapter über reine Aufrufe hinaus Lifecyclezustand und
-idempotente Fehlpfade besitzt.
+idempotente Fehlpfade besitzt. Der Editor reduziert Browser- und Office-Paste
+lokal auf erlaubte Absätze, Formatierungen, Links, Listen, Tabellen, Code und
+Blockquotes. Unsichere Links, Headings, unbekannte Elemente sowie Bilder werden
+verworfen; jede Reduktion bleibt als `role=status` sichtbar und wird als
+ungespeicherte Änderung markiert. Die Clipboard-Verarbeitung arbeitet
+ausschließlich auf den gelieferten Strings, lädt keine Bildquelle und ersetzt
+den vollständigen Editorwert bei einer serverseitigen Ablehnung nicht.
 Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
 den Kontextbereich auf den Current-Read-Context, navigiert zum Wissensbaum
 unter Erhalt der Rolle und bestätigt den Abschluss über die globale

@@ -51,6 +51,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private (Guid NodeId, string RoleId, string Markdown, bool IsReadOnly)? _mountedRequest;
     private string? _errorMessage;
     private bool _isSaving;
+    private bool _pasteWasReduced;
     private bool _mountRequested = true;
     private bool _mountInProgress;
     private bool _isDisposed;
@@ -116,6 +117,16 @@ public sealed partial class ContentEditor : IAsyncDisposable
     }
 
     [JSInvokable]
+    public Task NotifyPasteReducedAsync()
+    {
+        if (IsReadOnly)
+            return Task.CompletedTask;
+
+        _pasteWasReduced = true;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
     public Task NotifyFocusAsync() => Task.CompletedTask;
 
     private async Task SaveAsync()
@@ -146,6 +157,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
             }
 
             WorkspaceState.SetDirty(false);
+            _pasteWasReduced = false;
             await OnMutationSucceeded.InvokeAsync(result.Value!);
         }
         finally

@@ -73,6 +73,30 @@ public sealed class ContentEditorTests : BunitContext
     }
 
     [Fact]
+    public async Task SaveRejectionDoesNotRemountOrReplaceTheCompleteEditorValue()
+    {
+        const string rejectedEditorValue = "<span>vollständiger ungespeicherter Wert</span>\n![Bild](https://example.test/bild.png)";
+        var module = ConfigureLooseModule(rejectedEditorValue);
+        var repository = AddServices();
+        repository.Rejection = new DomainError("RawHtmlNotAllowed", "Raw HTML ist unzulässig.");
+        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var cut = Render<ContentEditor>(parameters => parameters
+            .Add(editor => editor.NodeId, NodeId.Value)
+            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.Markdown, "Ausgangswert")
+            .Add(editor => editor.TransactionId, TransactionId)
+            .Add(editor => editor.ExpectedChangeVersion, 0L));
+
+        workspace.SetDirty(true);
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
+
+        Assert.True(workspace.IsDirty);
+        Assert.Contains("RawHtmlNotAllowed", cut.Markup, StringComparison.Ordinal);
+        Assert.Equal(1, module.Invocations["mount"].Count);
+        Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
+    }
+
+    [Fact]
     public async Task ParameterChange_DisposesBeforeRemountingEditor()
     {
         var module = JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js");
@@ -152,11 +176,12 @@ public sealed class ContentEditorTests : BunitContext
         return repository;
     }
 
-    private void ConfigureLooseModule()
+    private BunitJSModuleInterop ConfigureLooseModule(string markdown = "Neuer Inhalt")
     {
         var module = JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js");
         module.Mode = JSRuntimeMode.Loose;
-        module.Setup<string>("readMarkdown", _ => true).SetResult("Neuer Inhalt");
+        module.Setup<string>("readMarkdown", _ => true).SetResult(markdown);
+        return module;
     }
 
     private sealed class ContentEditorHost : ComponentBase
