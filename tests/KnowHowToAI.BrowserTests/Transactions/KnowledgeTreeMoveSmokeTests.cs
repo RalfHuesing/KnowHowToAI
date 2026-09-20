@@ -3,9 +3,17 @@ using Microsoft.Playwright;
 
 namespace KnowHowToAI.BrowserTests.Transactions;
 
+[Collection("Smoke-Host")]
 [Trait("Category", "Integration")]
 public sealed class KnowledgeTreeMoveSmokeTests
 {
+    private readonly PublishedServerHost _host;
+
+    public KnowledgeTreeMoveSmokeTests(SmokeHostFixture fixture)
+    {
+        _host = fixture.Host;
+    }
+
     [Fact]
     public async Task KnowledgeTree_MoveActionButtons_PersistsTheConfirmedWorkingTree()
     {
@@ -21,14 +29,18 @@ public sealed class KnowledgeTreeMoveSmokeTests
     {
         await RunMoveAsync(async (page, source, target) =>
         {
-            await page.GetByTestId($"treeitem-{source}").DragToAsync(page.GetByTestId($"tree-move-parent-{target}"));
+            var sourceNode = page.GetByTestId($"treeitem-{source}");
+            var parentTarget = page.GetByTestId($"tree-move-parent-{target}");
+            await sourceNode.EvaluateAsync("node => node.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
+            await Assertions.Expect(parentTarget).ToBeVisibleAsync();
+            await parentTarget.EvaluateAsync("node => node.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
+            await parentTarget.EvaluateAsync("node => node.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
         });
     }
 
-    private static async Task RunMoveAsync(Func<IPage, string, string, Task> move)
+    private async Task RunMoveAsync(Func<IPage, string, string, Task> move)
     {
-        await using var host = await PublishedServerHost.StartAsync();
-        await BrowserKnowledgeSeed.EnsureWorkflowAsync(host.Address);
+        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
@@ -38,7 +50,7 @@ public sealed class KnowledgeTreeMoveSmokeTests
         Guid? transactionId = null;
         try
         {
-            await page.GotoAsync($"{host.Address}/transactions", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+            await page.GotoAsync($"{_host.Address}/transactions", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
             await CircuitProbe.WaitForInteractivityAsync(page);
             await page.GetByTestId("tx-purpose-input").FillAsync("Tree-Move-Browsertest");
             await page.GetByTestId("begin-transaction-button").ClickAsync();
@@ -48,11 +60,15 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
 
             var roleSelector = page.GetByTestId("context-selector-dialog");
-            if (await roleSelector.CountAsync() > 0)
-            {
-                await roleSelector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
-                await roleSelector.GetByTestId("selector-apply-button").ClickAsync();
-            }
+            await Assertions.Expect(roleSelector).ToBeVisibleAsync();
+            var roleOption = roleSelector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio);
+            await roleOption.CheckAsync();
+            await Assertions.Expect(roleOption).ToBeCheckedAsync();
+            var applyButton = roleSelector.GetByTestId("selector-apply-button");
+            await Assertions.Expect(applyButton).ToBeEnabledAsync();
+            await applyButton.ClickAsync();
+            await Assertions.Expect(roleSelector).ToBeHiddenAsync();
+            await Assertions.Expect(page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("[?&]roleId=Default(?:&|$)"));
 
             var root = page.GetByRole(AriaRole.Treeitem).First;
             await Assertions.Expect(root).ToBeVisibleAsync();
@@ -70,7 +86,7 @@ public sealed class KnowledgeTreeMoveSmokeTests
         finally
         {
             if (transactionId is not null)
-                await BrowserTransactionDiscarder.DiscardAsync(host.Address, transactionId.Value);
+                await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId.Value);
         }
     }
 
