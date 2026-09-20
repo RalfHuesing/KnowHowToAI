@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Components.Shared.Dialogs
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Features.History
 
 <div class="transaction-page" data-testid="transaction-page">
     @if (_isLoading)
@@ -28,6 +29,37 @@
 
         <TransactionDiff Transaction="@_transaction" />
 
+        @if (_snapshotConflict is not null)
+        {
+            <section class="snapshot-conflict" aria-labelledby="snapshot-conflict-heading" data-testid="snapshot-conflict">
+                <h2 id="snapshot-conflict-heading">Commit-Konflikt auflösen</h2>
+                <div role="alert" data-testid="snapshot-conflict-explanation">
+                    <InlineAlert Kind="AlertKind.Fehler" Message="Der Commit wurde nicht ausgeführt. Ihre Änderungen wurden nicht übernommen." />
+                    <p>
+                        Diese Transaction basiert auf Base-Snapshot @_snapshotConflict.BaseSnapshotId.
+                        Der Current Snapshot @_snapshotConflict.CurrentSnapshotId ist inzwischen maßgeblich.
+                    </p>
+                    <p>
+                        Vergleichen Sie die Snapshots und starten Sie anschließend eine neue Transaction.
+                        Änderungen werden nicht automatisch zusammengeführt oder kopiert.
+                    </p>
+                </div>
+
+                <SnapshotDiffPanel BaseSnapshotId="@_snapshotConflict.BaseSnapshotId"
+                                   TargetSnapshotId="@_snapshotConflict.CurrentSnapshotId" />
+
+                <div class="snapshot-conflict__actions">
+                    <button type="button" class="btn btn-primary" @onclick="StartManualReapplyAsync"
+                            disabled="@(!CanStartManualReapply)" data-testid="snapshot-conflict-start-reapply">
+                        @(_isStartingManualReapply ? "Neue Transaction wird gestartet..." : "Neue Transaction für manuelles Reapply beginnen")
+                    </button>
+                    <p class="snapshot-conflict__hint">
+                        Die konfliktbehaftete Transaction bleibt erhalten, bis Sie sie ausdrücklich verwerfen.
+                    </p>
+                </div>
+            </section>
+        }
+
         <div class="transaction-page__actions" data-testid="transaction-page-actions">
             @if (!string.IsNullOrWhiteSpace(_completionError))
             {
@@ -42,11 +74,11 @@
                 </p>
             }
             <button type="button" class="btn btn-primary" @onclick="OpenCommitDialogAsync"
-                    disabled="@(!CanComplete)" data-testid="commit-transaction-button">
+                    disabled="@(!CanCommit)" data-testid="commit-transaction-button">
                 Commit
             </button>
             <button type="button" class="btn btn-secondary" @onclick="OpenDiscardDialogAsync"
-                    disabled="@(!CanComplete)" data-testid="discard-transaction-button">
+                    disabled="@(!CanDiscard)" data-testid="discard-transaction-button">
                 Verwerfen
             </button>
             <a href="@KnowledgeUrl" class="btn btn-primary" data-testid="tx-open-knowledge-link">

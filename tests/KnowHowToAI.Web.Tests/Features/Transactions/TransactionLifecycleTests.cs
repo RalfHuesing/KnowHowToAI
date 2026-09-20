@@ -36,12 +36,22 @@ public sealed class TransactionLifecycleTests : BunitContext
             SnapshotState.Working,
             Now,
             null));
+        _historyHarness.Store.Snapshots.Add(new Snapshot(
+            new SnapshotId(3),
+            _repository.Transaction.BaseSnapshotId,
+            SnapshotState.Committed,
+            Now,
+            Now));
         Services.AddWebPageStates(workspaceState: _workspaceState, toastState: _toastState);
         Services.AddSingleton<IClock>(new FixedClock(Now));
+        Services.AddSingleton<ICurrentUserService>(new TestCurrentUserService("ReapplyUser"));
         Services.AddSingleton(new TransactionService(
             _repository,
             new InMemoryWorkingSnapshotValidationDataRepository(),
-            new FixedIdentifierGenerator(),
+            new FixedIdentifierGenerator
+            {
+                FixedTransactionId = new TransactionId(Guid.Parse("00000000-0000-0000-0000-000000000402"))
+            },
             TestPolicies.DefaultValidation));
         Services.AddSingleton(_historyHarness.CreateHistoryService());
         JSInterop.SetupAppDialog();
@@ -89,10 +99,23 @@ public sealed class TransactionLifecycleTests : BunitContext
     }
 
     [Fact]
-    public void Commit_WithSnapshotConflict_StaysInWorkingContextAndExplainsFailure()
+    public void Commit_WithSnapshotConflict_ShowsBaseCurrentComparisonAndStartsManualReapply()
     {
-        var conflict = new DomainError("SnapshotConflict", "Der aktuelle Snapshot wurde zwischenzeitlich geändert.");
+        var conflict = new DomainError(
+            "SnapshotConflict",
+            "Der aktuelle Snapshot wurde zwischenzeitlich geändert.",
+            new Dictionary<string, string>
+            {
+                ["baseSnapshotId"] = "1",
+                ["currentSnapshotId"] = "3"
+            });
         _repository.CommitResult = new CommitTransactionResult(null, null, conflict);
+        _repository.BeginResult = OpenTransaction() with
+        {
+            TransactionId = new TransactionId(Guid.Parse("00000000-0000-0000-0000-000000000402")),
+            BaseSnapshotId = new SnapshotId(3),
+            WorkingSnapshotId = new SnapshotId(4)
+        };
 
         var cut = RenderPage();
 
@@ -100,7 +123,17 @@ public sealed class TransactionLifecycleTests : BunitContext
 
         Assert.Equal(1, _repository.CommitCount);
         Assert.True(_workspaceState.HasActiveTransaction);
-        Assert.Contains("Snapshot wurde zwischenzeitlich", cut.Find("[data-testid='transaction-completion-error']").TextContent);
+        Assert.Contains("Base-Snapshot 1", cut.Find("[data-testid='snapshot-conflict-explanation']").TextContent);
+        Assert.Contains("Current Snapshot 3", cut.Find("[data-testid='snapshot-conflict-explanation']").TextContent);
+        Assert.Single(cut.FindAll("[data-testid='snapshot-diff']"));
+
+        cut.Find("[data-testid='snapshot-conflict-start-reapply']").Click();
+
+        Assert.Equal(1, _repository.BeginCount);
+        Assert.Equal("Lebenszyklus", _repository.BeginRequest?.Purpose);
+        Assert.Equal("ReapplyUser", _repository.BeginRequest?.Actor);
+        Assert.Equal("Web UI", _repository.BeginRequest?.Client);
+        Assert.EndsWith("/transactions/00000000-0000-0000-0000-000000000402", BrowserNavigation.Uri, StringComparison.Ordinal);
         Assert.Empty(_toastState.Entries);
     }
 
@@ -221,8 +254,18 @@ public sealed class TransactionLifecycleTests : BunitContext
 
         public int DiscardCount { get; private set; }
 
-        public Task<KnowledgeTransaction> BeginAsync(BeginTransactionRequest request, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
+        public KnowledgeTransaction? BeginResult { get; set; }
+
+        public BeginTransactionRequest? BeginRequest { get; private set; }
+
+        public int BeginCount { get; private set; }
+
+        public Task<KnowledgeTransaction> BeginAsync(BeginTransactionRequest request, CancellationToken cancellationToken = default)
+        {
+            BeginCount++;
+            BeginRequest = request;
+            return Task.FromResult(BeginResult ?? throw new InvalidOperationException("Keine Reapply-Transaction konfiguriert."));
+        }
 
         public Task<KnowledgeTransaction?> FindAsync(TransactionId transactionId, CancellationToken cancellationToken = default) =>
             Task.FromResult<KnowledgeTransaction?>(transactionId == Transaction.TransactionId ? Transaction : null);
@@ -242,5 +285,10 @@ public sealed class TransactionLifecycleTests : BunitContext
             DiscardCount++;
             return Task.FromResult(DiscardResult);
         }
+    }
+
+    private sealed class TestCurrentUserService(string userName) : ICurrentUserService
+    {
+        public CurrentUser GetCurrentUser() => new("reapply-user", userName);
     }
 }

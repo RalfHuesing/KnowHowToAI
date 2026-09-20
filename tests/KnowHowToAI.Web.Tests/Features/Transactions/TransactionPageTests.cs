@@ -47,6 +47,7 @@ public sealed class TransactionPageTests : BunitContext
         };
         Services.AddWebPageStates(_pageRegionState, _workspaceState);
         Services.AddSingleton<IClock>(new FixedClock(Now));
+        Services.AddSingleton<ICurrentUserService>(new TestCurrentUserService());
         Services.AddSingleton(_harness.CreateService());
         Services.AddSingleton(_harness.CreateHistoryService());
         JSInterop.SetupAppDialog();
@@ -370,5 +371,10 @@ public sealed class TransactionPageTests : BunitContext
                 new NodeContent(snapshotId, new NodeId(derivedId), roleId, new ContentRevisionId(DerivedRevisionGuid), ContentMode.Derived, "# Fehler", false)
             ],
             [new ContentDependency(snapshotId, new NodeId(derivedId), roleId, new NodeId(sourceId), roleId, sourceRevisionId)]);
+    }
+
+    private sealed class TestCurrentUserService : ICurrentUserService
+    {
+        public CurrentUser GetCurrentUser() => new("transaction-page-test", "TestUser");
     }
 }

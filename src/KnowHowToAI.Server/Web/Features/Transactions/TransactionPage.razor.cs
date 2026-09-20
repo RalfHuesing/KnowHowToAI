@@ -17,6 +17,9 @@ public sealed partial class TransactionPage : ComponentBase
     private TransactionService TransactionService { get; set; } = default!;
 
     [Inject]
+    private ICurrentUserService CurrentUserService { get; set; } = default!;
+
+    [Inject]
     private PageRegionState PageRegions { get; set; } = default!;
 
     [Inject]
@@ -39,10 +42,16 @@ public sealed partial class TransactionPage : ComponentBase
     private string? _completionError;
     private bool _isLoading = true;
     private bool _isSubmitting;
+    private bool _isStartingManualReapply;
+    private SnapshotConflict? _snapshotConflict;
     private ConfirmationDialog? _commitDialog;
     private ConfirmationDialog? _discardDialog;
 
-    private bool CanComplete => _transaction?.State == TransactionState.Open && !_isSubmitting;
+    private bool CanCommit => CanDiscard && _snapshotConflict is null;
+
+    private bool CanDiscard => _transaction?.State == TransactionState.Open && !_isSubmitting && !_isStartingManualReapply;
+
+    private bool CanStartManualReapply => _snapshotConflict is not null && !_isStartingManualReapply && !_isSubmitting;
 
     private string KnowledgeUrl => string.IsNullOrWhiteSpace(WorkspaceState.CurrentRoleId)
         ? $"/knowledge?transactionId={TransactionId}"
@@ -53,6 +62,7 @@ public sealed partial class TransactionPage : ComponentBase
         _isLoading = true;
         _errorMessage = null;
         _completionError = null;
+        _snapshotConflict = null;
 
         var result = await TransactionService.GetAsync(
             new TransactionId(TransactionId),
@@ -90,7 +100,7 @@ public sealed partial class TransactionPage : ComponentBase
 
     private async Task OpenCommitDialogAsync()
     {
-        if (!EnsureCompletionCanStart())
+        if (!EnsureCompletionCanStart(isCommit: true))
             return;
 
         if (_commitDialog is not null)
@@ -101,7 +111,7 @@ public sealed partial class TransactionPage : ComponentBase
 
     private async Task OpenDiscardDialogAsync()
     {
-        if (!EnsureCompletionCanStart())
+        if (!EnsureCompletionCanStart(isCommit: false))
             return;
 
         if (_discardDialog is not null)
@@ -112,7 +122,7 @@ public sealed partial class TransactionPage : ComponentBase
 
     private async Task CommitAsync(string? commitMessage)
     {
-        if (!EnsureCompletionCanStart())
+        if (!EnsureCompletionCanStart(isCommit: true))
             return;
 
         _isSubmitting = true;
@@ -130,12 +140,19 @@ public sealed partial class TransactionPage : ComponentBase
             return;
         }
 
+        _snapshotConflict = CreateSnapshotConflict(result);
+        if (_snapshotConflict is not null)
+        {
+            await _commitDialog!.CloseAsync();
+            return;
+        }
+
         _completionError = CreateCommitErrorMessage(result);
     }
 
     private async Task DiscardAsync()
     {
-        if (!EnsureCompletionCanStart())
+        if (!EnsureCompletionCanStart(isCommit: false))
             return;
 
         _isSubmitting = true;
@@ -153,9 +170,33 @@ public sealed partial class TransactionPage : ComponentBase
         _completionError = result.Error!.Message;
     }
 
-    private bool EnsureCompletionCanStart()
+    private async Task StartManualReapplyAsync()
     {
-        if (!CanComplete)
+        if (!CanStartManualReapply)
+            return;
+
+        _isStartingManualReapply = true;
+        _completionError = null;
+        var result = await TransactionService.BeginAsync(
+            new BeginTransactionOptions(
+                _transaction!.Purpose,
+                CurrentUserService.GetCurrentUserName(),
+                _transaction.Client),
+            CancellationToken.None);
+        _isStartingManualReapply = false;
+
+        NavigationManager.NavigateTo($"/transactions/{result.Value!.TransactionId.Value}");
+    }
+
+    private bool EnsureCompletionCanStart(bool isCommit)
+    {
+        if (isCommit && _snapshotConflict is not null)
+        {
+            _completionError = "Dieser Commit kann wegen des Snapshot-Konflikts nicht wiederholt werden. Starten Sie eine neue Transaction für das manuelle Reapply.";
+            return false;
+        }
+
+        if (!CanDiscard)
         {
             _completionError = "Diese Transaction ist nicht mehr offen. Laden Sie die Seite neu.";
             return false;
@@ -203,5 +244,24 @@ public sealed partial class TransactionPage : ComponentBase
         return result.Error?.Message ?? "Commit konnte nicht ausgeführt werden.";
     }
 
+    private static SnapshotConflict? CreateSnapshotConflict(CommitTransactionResult result)
+    {
+        var error = result.Error;
+        if (error is null
+            || !string.Equals(error.Code, TransactionValidationErrorCodes.SnapshotConflict, StringComparison.Ordinal)
+            || error.Details is null
+            || !error.Details.TryGetValue("baseSnapshotId", out var baseSnapshot)
+            || !error.Details.TryGetValue("currentSnapshotId", out var currentSnapshot)
+            || !long.TryParse(baseSnapshot, out var baseSnapshotId)
+            || !long.TryParse(currentSnapshot, out var currentSnapshotId))
+        {
+            return null;
+        }
+
+        return new SnapshotConflict(baseSnapshotId, currentSnapshotId);
+    }
+
     private static Task DismissDialogAsync() => Task.CompletedTask;
+
+    private sealed record SnapshotConflict(long BaseSnapshotId, long CurrentSnapshotId);
 }

@@ -94,10 +94,18 @@ BaseSnapshot = 100
 CurrentSnapshot = 101
 ```
 
-B muss anschließend verwerfen, den aktuellen Stand neu laden, eine neue Transaction
-starten und die Änderungen erneut anwenden. Es gibt kein automatisches Merge,
-Rebase oder Drei-Wege-Merge
+B muss anschließend den aktuellen Stand neu laden, eine neue Transaction starten
+und die Änderungen erneut anwenden; die konfliktbehaftete Transaction wird nach
+der Prüfung ausdrücklich verworfen. Es gibt kein automatisches Merge, Rebase oder
+Drei-Wege-Merge
 ([Entscheidungen](Entscheidungen.md)).
+
+Die Weboberfläche zeigt bei diesem Fehler Base- und Current-Snapshot sowie ihren
+strukturierten, schreibgeschützten Diff. Sie kann eine neue, leere Transaction auf
+dem Current Snapshot für ein **manuelles** Reapply starten. Dabei werden keine
+Änderungen kopiert oder zusammengeführt; auch die konfliktbehaftete Transaction
+wird nicht automatisch verworfen und bleibt bis zur ausdrücklichen Discard-Aktion
+nachvollziehbar.
 
 ## Lesen innerhalb einer Transaction
 

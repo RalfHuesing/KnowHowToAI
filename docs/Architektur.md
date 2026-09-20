@@ -191,6 +191,13 @@ ausgelöst; der Commitdialog übergibt eine optionale Commit-Nachricht. Während
 einer Abschlussanfrage sind beide Aktionen gesperrt. Ein abweichender lokaler
 `ChangeVersion`-Stand, ein geschlossener Status oder ein fachlich abgelehnter
 Commit bleibt als verständlicher Seitenfehler im Working Context sichtbar.
+
+Bei `SnapshotConflict` zeigt dieselbe Detailseite die vom Fehlervertrag gelieferten
+Base- und Current-Snapshot-IDs und bindet den schreibgeschützten Snapshot-Diff ein.
+Sie kann anschließend eine leere Transaction auf dem Current Snapshot starten,
+damit der Benutzer die geprüften Änderungen manuell erneut anwendet. Die
+Web-Grenze kopiert, merged oder rebased dabei keine Änderungen und verwirft die
+konfliktbehaftete Transaction nicht implizit.
 Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
 den Kontextbereich auf den Current-Read-Context, navigiert zum Wissensbaum
 unter Erhalt der Rolle und bestätigt den Abschluss über die globale
