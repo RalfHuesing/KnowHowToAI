@@ -3,31 +3,90 @@
 .shell-panel--navigation {
     grid-column: 1;
     grid-row: 2;
-    width: 16rem;
-    padding: var(--ktai-space-4);
-    background-color: var(--ktai-color-surface);
+    width: 17.5rem;
+    padding: var(--ktai-space-6) var(--ktai-space-4);
+    background-color: var(--ktai-color-surface-subtle);
     border-right: 1px solid var(--ktai-color-border);
+}
+
+.shell-panel-heading {
+    min-width: 0;
+}
+
+.shell-panel-description {
+    margin: var(--ktai-space-1) 0 0;
+    color: var(--ktai-color-text-muted);
+    font-size: var(--ktai-font-size-sm);
+}
+
+.shell-panel--navigation ::deep .shell-panel-header {
+    align-items: flex-start;
+    margin-bottom: var(--ktai-space-6);
+}
+
+.shell-panel--navigation ::deep .shell-panel-close {
+    flex-shrink: 0;
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border-light);
+    border-radius: var(--ktai-radius-full);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-xs);
+    white-space: nowrap;
+}
+
+.shell-panel--navigation ::deep .shell-panel-close:hover {
+    border-color: var(--ktai-color-border-hover);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
 }
 
 .shell-nav-list {
     margin: 0;
     padding: 0;
     list-style: none;
+    display: grid;
+    gap: var(--ktai-space-2);
 }
 
-.shell-nav-link {
-    display: block;
+.shell-panel--navigation ::deep .shell-nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
     padding: var(--ktai-space-2) var(--ktai-space-3);
-    color: var(--ktai-color-text);
+    border: 1px solid transparent;
+    border-radius: var(--ktai-radius-md);
+    color: var(--ktai-color-text-secondary);
+    font-weight: 500;
     text-decoration: none;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
 }
 
-.shell-nav-link:hover {
-    color: var(--ktai-color-primary);
+.shell-panel--navigation ::deep .shell-nav-link::before {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: var(--ktai-space-3);
+    flex: 0 0 auto;
+    border-radius: var(--ktai-radius-full);
+    background-color: var(--ktai-color-border);
+    content: "";
 }
 
-.shell-nav-link.active {
+.shell-panel--navigation ::deep .shell-nav-link:hover {
+    border-color: var(--ktai-color-border-light);
+    background-color: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+}
+
+.shell-panel--navigation ::deep .shell-nav-link.active {
+    border-color: var(--ktai-color-info-emphasis-background);
+    background-color: var(--ktai-color-info-background);
     color: var(--ktai-color-primary);
     font-weight: 600;
-    background-color: var(--ktai-color-info-background);
+    box-shadow: var(--ktai-shadow-surface);
+}
+
+.shell-panel--navigation ::deep .shell-nav-link.active::before {
+    background-color: var(--ktai-color-primary);
 }

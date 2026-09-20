@@ -26,7 +26,7 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
   - [x] [M1.4-T1 – Transaktion öffnen und fortsetzen](tasks/M1.4-T1.md) – Zustand 11; bestehende Fortsetzen-Aktion im ersten Viewport geführt, technische Details progressiv.
   - [x] [M1.4-T2 – Transaktionsdetail und Abschlussreihenfolge](tasks/M1.4-T2.md) – Zustand 12; Validierung und Abschluss sind im ersten Viewport klar sequenziert, technische Details progressiv.
   - [x] [M1.4-T3 – Gemeinsame Transaktionsdialogdarstellung](tasks/M1.4-T3.md) – Zustände 13/14.
-  - [ ] [M1.4-T7 – Moderne Shell-Navigation](tasks/M1.4-T7.md) – neuer Nutzerbefund; nach den Transaktions-Slices, vor den Detail-Slices.
+  - [x] [M1.4-T7 – Moderne Shell-Navigation](tasks/M1.4-T7.md) – vier bestehende Ziele als moderne Linkflächen mit sichtbarem aktivem Zustand; Routen und Responsive-Vertrag unverändert.
   - [ ] [M1.4-T4 – Trefferfokus in der Suche](tasks/M1.4-T4.md) – Zustand 07.
   - [ ] [M1.4-T5 – Wissenszugang auf dem Dashboard führen](tasks/M1.4-T5.md) – Zustand 01.
   - [ ] [M1.4-T6 – Sichere Kontext-Microcopy für Rolle und Fallback](tasks/M1.4-T6.md) – Zustände 02/05.

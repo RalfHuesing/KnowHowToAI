@@ -3,7 +3,10 @@
 <nav id="shell-navigation" aria-label="Hauptnavigation" class="shell-panel shell-panel--navigation"
      @onkeydown="HandleKeydown">
     <div class="shell-panel-header">
-        <h2 class="shell-panel-title" tabindex="-1" @ref="_titleElement">Navigation</h2>
+        <div class="shell-panel-heading">
+            <h2 class="shell-panel-title" tabindex="-1" @ref="_titleElement">Navigation</h2>
+            <p class="shell-panel-description">Arbeitsbereiche</p>
+        </div>
         <button type="button" class="shell-panel-close" @onclick="OnClose">Navigation schließen</button>
     </div>
     <ul class="shell-nav-list">

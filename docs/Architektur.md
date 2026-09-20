@@ -444,9 +444,13 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   erstes Element – seine Aktivierung legt den Fokus auf das `main`-Landmark,
   weil die erweiterte Blazor-Navigation den Hash-Link sonst abfängt, ohne
   den Fokus zu verschieben –, `header`, `nav` mit zugänglichem Namen
-  `Hauptnavigation` (genau der vorhandene Start-Link auf `/`; noch nicht
-  implementierte Routen erscheinen bewusst nicht), `nav` `Breadcrumbs`,
-  der Seitenaktionsbereich und optional `aside` `Kontext`.
+  `Hauptnavigation` mit den vier bestehenden Zielen Start (`/`), Suche
+  (`/search`), Transactions (`/transactions`) und Rollen (`/roles`), `nav`
+  `Breadcrumbs`, der Seitenaktionsbereich und optional `aside` `Kontext`.
+  Die vier Ziele erscheinen als ruhig gruppierte Linkflächen; der aktive
+  Route-Kontext wird ausschließlich visuell über den bestehenden `NavLink`-
+  Status markiert. Die Navigation führt keine zusätzliche Berechtigungs- oder
+  Fachauswahl ein.
 - Fachseiten hängen Breadcrumbs, Aktionen und Kontext ohne eigenes
   Seitenraster über den scoped Slot `PageRegionState` ein; leere Bereiche
   belegen keinen Platz und erhalten keine Dummytexte.
