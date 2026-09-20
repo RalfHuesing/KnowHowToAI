@@ -61,14 +61,12 @@ public sealed class SearchReadParityTests : BunitContext
         var applicationResult = await searchService.SearchAsync(query, new ReadContext());
         var mcp = McpRetrievalMapper.ToEnvelope(applicationResult).Data!;
 
-        Services.AddSingleton(navigationService);
-        Services.AddSingleton(searchService);
-        Services.AddSingleton(new WorkspaceState());
-        Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions));
-        Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleDeveloper.Value));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        Services.AddWebPageStates()
+            .AddSearchPageServices(
+                navigationService,
+                searchService,
+                transactionRepository: harness.CreateRepositories().Transactions,
+                defaultRole: RoleDeveloper.Value);
         Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?roleId={RoleDeveloper.Value}");
 
         var cut = Render<SearchPage>();

@@ -220,14 +220,8 @@ public sealed class SearchPageTests : BunitContext
 
     private void RegisterPageServices(NavigationService navigationService, SearchService searchService)
     {
-        Services.AddSingleton(navigationService);
-        Services.AddSingleton(searchService);
-        Services.AddSingleton(new WorkspaceState());
-        Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
-        Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleId.Value));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        Services.AddWebPageStates()
+            .AddSearchPageServices(navigationService, searchService, defaultRole: RoleId.Value);
     }
 
     [Fact]
