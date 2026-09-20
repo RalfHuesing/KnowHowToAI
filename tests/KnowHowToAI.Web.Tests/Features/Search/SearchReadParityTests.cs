@@ -31,12 +31,6 @@ public sealed class SearchReadParityTests : BunitContext
     private static readonly RoleId RoleDeveloper = new("Developer");
     private static readonly RoleId RoleDefault = new("Default");
 
-    private sealed class FakeReleaseRepository : IReleaseRepository
-    {
-        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<Release?>(null);
-    }
-
     [Fact]
     public async Task Search_CommonUseCaseResult_ReachesSearchPageAndMcpContract()
     {
@@ -71,7 +65,7 @@ public sealed class SearchReadParityTests : BunitContext
         Services.AddSingleton(searchService);
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new FakeReleaseRepository(), harness.CreateRepositories().Transactions));
+        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions));
         Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleDeveloper.Value));
         Services.AddSingleton(new ContextSelectorState());
         Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));

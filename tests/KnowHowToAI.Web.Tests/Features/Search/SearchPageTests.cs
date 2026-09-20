@@ -23,12 +23,6 @@ public sealed class SearchPageTests : BunitContext
     private static readonly SnapshotId SnapshotId = new(1);
     private static readonly RoleId RoleId = new("Developer");
 
-    private sealed class FakeReleaseRepository : IReleaseRepository
-    {
-        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<Release?>(null);
-    }
-
     private sealed class CancellableRetrievalRepository : IRetrievalRepository
     {
         private readonly SearchHit _completedHit;
@@ -230,7 +224,7 @@ public sealed class SearchPageTests : BunitContext
         Services.AddSingleton(searchService);
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new FakeReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
+        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
         Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleId.Value));
         Services.AddSingleton(new ContextSelectorState());
         Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));

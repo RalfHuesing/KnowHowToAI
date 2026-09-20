@@ -28,7 +28,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     private readonly KnowledgeTreeState _treeState;
     private readonly WorkspaceState _workspaceState;
     private readonly PageRegionState _pageRegions;
-    private readonly FakeReleaseRepository _releaseRepo;
+    private readonly InMemoryReleaseRepository _releaseRepo;
     private readonly WebReadContextResolver _contextResolver;
     private readonly InMemoryRoleStorageService _roleStorage;
     private readonly ContextSelectorState _contextSelector;
@@ -40,19 +40,6 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         builder.AddAttribute(1, nameof(RouteView.RouteData), routeData);
         builder.CloseComponent();
     };
-
-    private sealed class FakeReleaseRepository : IReleaseRepository
-    {
-        private readonly Dictionary<ReleaseId, Release> _releases = new();
-
-        public void Add(Release release) => _releases[release.ReleaseId] = release;
-
-        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default)
-        {
-            _releases.TryGetValue(releaseId, out var release);
-            return Task.FromResult(release);
-        }
-    }
 
     private sealed class EmptyContextSelectionCatalog : IContextSelectionCatalog
     {
@@ -80,7 +67,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         _treeState = new KnowledgeTreeState(_navigationService);
         _workspaceState = new WorkspaceState();
         _pageRegions = new PageRegionState();
-        _releaseRepo = new FakeReleaseRepository();
+        _releaseRepo = new InMemoryReleaseRepository();
         _contextResolver = new WebReadContextResolver(_releaseRepo, _harness.CreateRepositories().Transactions);
         _roleStorage = new InMemoryRoleStorageService("Developer");
         _contextSelector = new ContextSelectorState();

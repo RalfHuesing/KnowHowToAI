@@ -27,12 +27,6 @@ public sealed class KnowledgePageTests : BunitContext
     private static readonly SnapshotId DefaultSnapshotId = new(1);
     private static readonly RoleId DefaultRoleId = new("Developer");
 
-    private sealed class FakeReleaseRepository : IReleaseRepository
-    {
-        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<Release?>(null);
-    }
-
     [Fact]
     public async Task KnowledgePage_RendersHeaderWithBreadcrumbsAndTree()
     {
@@ -44,7 +38,7 @@ public sealed class KnowledgePageTests : BunitContext
         var treeState = new KnowledgeTreeState(service);
         var workspaceState = new WorkspaceState();
         var pageRegions = new PageRegionState();
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
 
         Services.AddSingleton(service);
@@ -79,7 +73,7 @@ public sealed class KnowledgePageTests : BunitContext
         var treeState = new KnowledgeTreeState(service);
         var workspaceState = new WorkspaceState();
         var pageRegions = new PageRegionState();
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
 
         Services.AddSingleton(service);
@@ -115,7 +109,7 @@ public sealed class KnowledgePageTests : BunitContext
         var treeState = new KnowledgeTreeState(service);
         var workspaceState = new WorkspaceState();
         var pageRegions = new PageRegionState();
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var contextResolver = new WebReadContextResolver(releaseRepo, harness.CreateRepositories().Transactions);
 
         Services.AddSingleton(service);
@@ -181,7 +175,7 @@ public sealed class KnowledgePageTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
         var workspaceState = new WorkspaceState();
-        var contextResolver = new WebReadContextResolver(new FakeReleaseRepository(), harness.CreateRepositories().Transactions);
+        var contextResolver = new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions);
         Services.AddSingleton(service);
         Services.AddSingleton(treeState);
         Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);

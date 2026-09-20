@@ -6,24 +6,13 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.TestSupport;
 
 namespace KnowHowToAI.Web.Tests.State;
 
 [Trait("Category", "Unit")]
 public sealed class WebReadContextResolverTests
 {
-    private sealed class FakeReleaseRepository : IReleaseRepository
-    {
-        private readonly Dictionary<ReleaseId, Release> _releases = new();
-
-        public void Add(Release release) => _releases[release.ReleaseId] = release;
-
-        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default)
-        {
-            _releases.TryGetValue(releaseId, out var release);
-            return Task.FromResult(release);
-        }
-    }
 
     private sealed class FakeTransactionRepository : ITransactionRepository
     {
@@ -53,7 +42,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithNoSelectors_ReturnsCurrentSnapshot()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 
@@ -69,7 +58,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithMultipleSelectors_FailsWithInvalidReadContext()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 
@@ -85,7 +74,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithValidTransactionId_ReturnsTransactionContext()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var txGuid = Guid.NewGuid();
         var txId = new TransactionId(txGuid);
@@ -120,7 +109,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithNonExistentTransactionId_FailsWithTransactionNotFound()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 
@@ -133,7 +122,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithClosedTransaction_FailsWithTransactionClosed()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var txGuid = Guid.NewGuid();
         var txId = new TransactionId(txGuid);
@@ -162,7 +151,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithInvalidTransactionId_FailsWithInvalidReadContext()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 
@@ -175,7 +164,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithValidSnapshotId_ReturnsSnapshotContext()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 
@@ -192,7 +181,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithInvalidSnapshotId_FailsWithInvalidReadContext()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 
@@ -205,7 +194,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithExistingReleaseId_ResolvesToReleaseSnapshot()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var releaseId = new ReleaseId(1);
         var snapshotId = new SnapshotId(100);
@@ -226,7 +215,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithNonExistentReleaseId_FailsWithReleaseNotFound()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 
@@ -239,7 +228,7 @@ public sealed class WebReadContextResolverTests
     [Fact]
     public async Task ResolveAsync_WithInvalidReleaseId_FailsWithInvalidReadContext()
     {
-        var releaseRepo = new FakeReleaseRepository();
+        var releaseRepo = new InMemoryReleaseRepository();
         var txRepo = new FakeTransactionRepository();
         var resolver = new WebReadContextResolver(releaseRepo, txRepo);
 

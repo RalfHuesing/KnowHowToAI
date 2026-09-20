@@ -73,7 +73,7 @@ public sealed class KnowledgePageRootNodeTests : BunitContext
         Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton(new WebReadContextResolver(new NoReleaseRepository(), harness.CreateRepositories().Transactions));
+        Services.AddSingleton(new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions));
         Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService("Developer"));
         Services.AddSingleton(new ContextSelectorState());
         Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
@@ -94,10 +94,4 @@ public sealed class KnowledgePageRootNodeTests : BunitContext
         HierarchyDepthWarning = 8,
         PossibleEmbeddedHeadingWarning = true
     };
-
-    private sealed class NoReleaseRepository : IReleaseRepository
-    {
-        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<Release?>(null);
-    }
 }

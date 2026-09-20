@@ -36,19 +36,6 @@ public sealed class KnowledgeReadParityTests : BunitContext
     private static readonly NodeId RootId = new(Guid.Parse("10000000-0000-0000-0000-000000000001"));
     private static readonly NodeId ChildId = new(Guid.Parse("10000000-0000-0000-0000-000000000002"));
 
-    private sealed class FakeReleaseRepository : IReleaseRepository
-    {
-        private readonly Dictionary<ReleaseId, Release> _releases = new();
-
-        public void Add(Release release) => _releases[release.ReleaseId] = release;
-
-        public Task<Release?> FindAsync(ReleaseId releaseId, CancellationToken cancellationToken = default)
-        {
-            _releases.TryGetValue(releaseId, out var release);
-            return Task.FromResult(release);
-        }
-    }
-
     // ── Navigation & Node Details ─────────────────────────────────────────────
 
     [Fact]
@@ -94,7 +81,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton(new WebReadContextResolver(new FakeReleaseRepository(), harness.CreateRepositories().Transactions));
+        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions));
         Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleDeveloper.Value));
         Services.AddSingleton(new ContextSelectorState());
         Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
@@ -441,7 +428,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Assert.False(mcpContextResult.IsSuccess);
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, mcpContextResult.Error!.Code);
 
-        var webResolver = new WebReadContextResolver(new FakeReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore()));
+        var webResolver = new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore()));
         var webContextResult = await webResolver.ResolveAsync(txRaw, snapRaw, releaseIdRaw: null);
         Assert.False(webContextResult.IsSuccess);
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, webContextResult.Error!.Code);
