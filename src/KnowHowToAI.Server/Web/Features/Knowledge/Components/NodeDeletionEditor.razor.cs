@@ -70,7 +70,7 @@ public sealed partial class NodeDeletionEditor
             TransactionId,
             _preview.NodeId,
             _deleteSubtree,
-            _preview.ChangeVersion).ConfigureAwait(false);
+            _preview.ChangeVersion);
         if (!result.IsSuccess)
         {
             _errorMessage = ToErrorMessage(result.Code, result.Error!.Message);

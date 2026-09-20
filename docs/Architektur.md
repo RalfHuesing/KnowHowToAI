@@ -250,6 +250,13 @@ initialisiert nach einer bestätigten Mutation Tree, Auswahl und Details aus dem
 Working Snapshot neu. Bei `ChangeVersionConflict` bleibt der Formzustand sichtbar
 und der serverseitige Fehler wird am Formular angezeigt; Korrekturen erfolgen
 bewusst oder durch Discard, ohne globalen Undo-Stack.
+Ist der vollständig geladene Working Tree leer, zeigt `KnowledgePage` stattdessen
+den `RootNodeEditor`; ohne offene Transaction oder bei Lade- beziehungsweise
+Fehlerzustand bleibt diese Aktion unsichtbar. Der Editor erfasst Titel und
+optionale Beschreibung, ruft `NodeMutationApplicationService.CreateAsync` mit
+`ParentNodeId = null` und der gelesenen `ChangeVersion` auf und lädt nach einer
+bestätigten Anlage den Tree neu; der neue Root wird unmittelbar ausgewählt und
+seine Details angezeigt.
 `NodeDeletionEditor` lädt vor jeder globalen Löschung den Working-Stand erneut
 über `NodeDeletionPreviewService` und zeigt Ziel, Root-Auswirkung, direkten und
 vollständigen Teilbaum, explizite Inhalte sowie entfernte oder als Provenienz

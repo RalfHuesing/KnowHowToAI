@@ -1,0 +1,43 @@
+.root-node-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-3);
+    max-width: 42rem;
+}
+
+.root-node-editor-hint {
+    margin: 0;
+    color: var(--ktai-color-text-secondary);
+}
+
+.root-node-editor-fields {
+    display: grid;
+    gap: var(--ktai-space-3);
+}
+
+.root-node-editor-fields label {
+    display: block;
+    margin-bottom: var(--ktai-space-1);
+    font-weight: 600;
+}
+
+.root-node-editor-fields input,
+.root-node-editor-fields textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-sm);
+    color: var(--ktai-color-text);
+    font: inherit;
+}
+
+.root-node-editor-fields textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.root-node-editor-actions {
+    display: flex;
+    margin-top: var(--ktai-space-3);
+}

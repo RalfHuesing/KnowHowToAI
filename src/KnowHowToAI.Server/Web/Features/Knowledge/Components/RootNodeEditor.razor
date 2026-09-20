@@ -1,0 +1,34 @@
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+@namespace KnowHowToAI.Server.Web.Features.Knowledge.Components
+
+@if (TransactionId.HasValue)
+{
+    <section class="root-node-editor" aria-label="Root-Knoten anlegen" data-testid="root-node-editor">
+        <h2 class="node-section-heading">Root-Knoten anlegen</h2>
+        <p class="root-node-editor-hint">Legen Sie den ersten Knoten der Wissensbasis an.</p>
+
+        @if (_errorMessage is not null)
+        {
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+        }
+
+        <form @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
+            <div class="root-node-editor-fields">
+                <div>
+                    <label for="root-node-title">Titel</label>
+                    <input id="root-node-title" data-testid="root-node-title" @bind="_title" maxlength="200" disabled="@_isSubmitting" />
+                </div>
+                <div>
+                    <label for="root-node-description">Beschreibung</label>
+                    <textarea id="root-node-description" data-testid="root-node-description" @bind="_description" maxlength="1000" disabled="@_isSubmitting"></textarea>
+                </div>
+            </div>
+            <div class="root-node-editor-actions">
+                <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="create-root-node">
+                    @(_isSubmitting ? "Wird angelegt…" : "Root-Knoten anlegen")
+                </button>
+            </div>
+        </form>
+    </section>
+}

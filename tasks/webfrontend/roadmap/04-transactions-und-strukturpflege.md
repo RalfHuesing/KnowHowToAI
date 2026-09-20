@@ -95,7 +95,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: bUnit-Komponentenfälle für alle drei Zielpositionen und Serverablehnung; Application-Tests für fachliche Varianten; je ein headless Playwright-Ablauf per Drag-and-drop und Aktionsbuttons. Beide Wege müssen identische Mutationseingaben und dieselbe bestätigte Serveraktualisierung erzeugen.
     - Abnahme: alle drei Zielpositionen sind per Maus und Tastatur präzise ausführbar; bei Ablehnung wird die betroffene Seite aus dem Serverzustand neu geladen und kein optimistischer Phantomzustand bleibt sichtbar.
 
-  - [ ] **M4.3-T4 – Initialen Root-Node im leeren Baum erstellen**
+  - [x] **M4.3-T4 – Initialen Root-Node im leeren Baum erstellen**
     - Umfang: Wenn im aktiven Transaction-Kontext noch keine Wissensknoten existieren (`VisualRootNode is null`), im leeren Wissensbaum bzw. der Inhaltsansicht eine dedizierte Aktion „Root-Knoten anlegen“ bereitstellen; Titel und optionale Description erfassen und `NodeMutationService.CreateAsync` ohne `parentNodeId` (`ParentNodeId = null`) aufrufen.
     - Regeln: Nur in aktiver Transaction; nur sichtbar/aktiv, wenn der Baum tatsächlich leer ist; nach Anlage Root-Knoten automatisch auswählen und Tree aktualisieren.
     - Tests: bUnit-Komponententest für leeren Baum mit und ohne aktive Transaction; Playwright-Browsernachweis für Initialanlage des Root-Knotens in einer leeren Datenbank.

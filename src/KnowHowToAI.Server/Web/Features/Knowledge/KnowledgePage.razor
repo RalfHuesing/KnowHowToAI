@@ -49,6 +49,15 @@
                                      QueryReleaseId="@QueryReleaseId"
                                      OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
                 }
+                else if (TreeWorkspace.VisualRootNode is null
+                         && !TreeWorkspace.IsLoading
+                         && string.IsNullOrEmpty(TreeWorkspace.RootError)
+                         && WorkspaceState.HasActiveTransaction)
+                {
+                    <RootNodeEditor TransactionId="@WorkspaceState.ActiveTransactionId"
+                                    ExpectedChangeVersion="@WorkspaceState.CurrentChangeVersion"
+                                    OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
+                }
                 else
                 {
                     <div class="empty-selection" data-testid="empty-selection">
