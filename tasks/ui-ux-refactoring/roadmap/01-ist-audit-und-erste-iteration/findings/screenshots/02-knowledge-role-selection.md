@@ -1,0 +1,42 @@
+# 02 – Rollenauswahl
+
+## Quelle und Zustand
+
+`temp/ui-audit/2026-09-20_18-36-16/02_knowledge_role-selection_desktop_1280x800.png` · Route `/knowledge` · Rollenauswahl-Modal geöffnet · Desktop 1280×800.
+
+## Neutrale Beobachtung
+
+- Der Shell-Kontext bleibt hinter einem fokussierten Modal sichtbar.
+- Das Modal verlangt eine Auswahl aus vorhandenen Wissensrollen.
+- Die Rolle wird als notwendiger Kontext für den Wissenszugriff präsentiert.
+- Auswahl und Bestätigung liegen im Dialog und konkurrieren nicht mit den Shell-Links.
+- Der Zweck einer Rolle für die konkrete Wissensarbeit ist nicht prominent erklärt.
+- Die Aufnahme zeigt keine Node oder Contentfläche hinter der Auswahl.
+
+## Probleme und Schwere
+
+- **P1 – Zweck:** Für Support/Consultants ist nicht unmittelbar sichtbar, welche Inhalte oder Perspektive die Wahl bestimmt.
+- **P1 – Folge:** Die Konsequenz nach Bestätigung bleibt sprachlich schwach.
+- **P2 – Begriff:** Rollenbezeichnung und technische Rollenbedeutung werden nicht sauber getrennt.
+- **P2 – Dialogführung:** Die primäre Bestätigung ist nicht durch eine kurze aufgabenorientierte Zusammenfassung vorbereitet.
+
+## Gelungene Aspekte
+
+- Der Dialog fokussiert die Auswahl und verhindert konkurrierende Seitenaktionen.
+- Der erforderliche Kontext ist sichtbar statt implizit im Hintergrund zu wechseln.
+- Der bestehende Rollenvertrag kann mit derselben Auswahl erhalten bleiben.
+
+## Folgerungen ohne Featureausweitung
+
+- Zweck und Folge der vorhandenen Rollenauswahl direkt im Dialog priorisieren.
+- Genau eine primäre Aktion je gleichzeitig sichtbarem Dialog-Arbeitsabschnitt führen.
+- Technische Rollen-IDs nur ergänzend und progressiv zeigen.
+- Keine neue Rollenlogik oder automatische Auswahl einführen.
+
+## Abhängigkeiten
+
+Rollen-/Kontextvertrag, Dialog- und Keyboard-Fokus, Knowledge-Route; M1.3-Re-Audit.
+
+## Audit-Lücken
+
+Keine.

@@ -64,6 +64,8 @@ Damit Mensch und Agent über dieselben visuellen Fakten sprechen, wird ein isoli
 
 Sobald die Screenshots erzeugt sind, können diese einem multimodalen LLM (oder einem spezialisierten Subagenten) übergeben werden, um ein systematisches UX-Review durchzuführen.
 
+Die versionierte Auswertung und die daraus abgeleiteten kleinen UI/UX-Slices liegen im eigenständigen Vorhaben [UI/UX-Refactoring – M1 Ist-Audit und erste visuelle Iteration](../ui-ux-refactoring/roadmap/01-ist-audit-und-erste-iteration/roadmap.md). Screenshot-Artefakte bleiben temporär; versioniert werden dort Befunde und Folgeplanung.
+
 ### Typische Prüffragen des Audits:
 1. **Visuelle Hierarchie & Fokus:**
    - Dominiert der Inhalt (`ContentMd`) die Seite oder wird er von Seitenleisten, Headern und Metadaten erschlagen?
