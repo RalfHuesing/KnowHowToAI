@@ -24,6 +24,9 @@ public sealed partial class NodeDetails
     [Parameter]
     public bool NodeNotFound { get; set; }
 
+    [Parameter]
+    public bool ShowContent { get; set; } = true;
+
     private bool _isLoading;
     private string? _errorMessage;
     private bool _nodeNotFound;

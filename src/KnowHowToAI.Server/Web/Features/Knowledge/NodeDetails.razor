@@ -123,19 +123,22 @@ else if (ViewModel is not null)
             </section>
         }
 
-        <section class="node-details-content" aria-label="Inhalt" data-testid="node-details-content">
-            @if (string.IsNullOrWhiteSpace(ViewModel.ContentMd))
-            {
-                <div class="node-content-empty" data-testid="node-content-empty">
-                    <em>Kein Inhalt für diese Rolle vorhanden.</em>
-                </div>
-            }
-            else
-            {
-                <div class="node-content-markdown" data-testid="node-content-markdown">
-                    @SafeMarkdownRenderer.Render(ViewModel.ContentMd)
-                </div>
-            }
-        </section>
+        @if (ShowContent)
+        {
+            <section class="node-details-content" aria-label="Inhalt" data-testid="node-details-content">
+                @if (string.IsNullOrWhiteSpace(ViewModel.ContentMd))
+                {
+                    <div class="node-content-empty" data-testid="node-content-empty">
+                        <em>Kein Inhalt für diese Rolle vorhanden.</em>
+                    </div>
+                }
+                else
+                {
+                    <div class="node-content-markdown" data-testid="node-content-markdown">
+                        @SafeMarkdownRenderer.Render(ViewModel.ContentMd)
+                    </div>
+                }
+            </section>
+        }
     </article>
 }

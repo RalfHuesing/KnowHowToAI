@@ -218,12 +218,19 @@ Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
 verwendete `package-lock.json` verwalten `@milkdown/crepe` sowie den
 Build-only-Compiler `esbuild`; `Web/Features/Content/content-editor.js` stellt
-den Milkdown-Konstruktor für den späteren Lifecycle-Adapter bereit. `build.mjs`
+den Crepe-Konstruktor und die begrenzte Toolbar-Konfiguration bereit. `build.mjs`
 löscht den vorherigen Stand und erzeugt deterministisch
-`wwwroot/generated/content-editor/content-editor.js`. Der Server bindet diesen
-Schritt vor jedem MSBuild `Build` und damit auch vor `dotnet publish` ein. Der
-Output wird als Static Web Asset veröffentlicht, während `Frontend/node_modules`
-und `wwwroot/generated` nicht versioniert werden. Node/npm werden ausschließlich
+`wwwroot/generated/content-editor/content-editor.js`.
+Der Server bindet diesen Schritt vor jedem MSBuild `Build` und damit auch vor
+`dotnet publish` ein. Der `ContentEditor` lädt sein featurelokales,
+dynamisch isoliertes `ContentEditor.razor.js`; dessen einzige Blazor-Aufrufe
+sind `mount`, `readMarkdown`, `focus` und `dispose`. `mount` registriert nur
+Änderungs-/Fokus-Callbacks, aktiviert die erlaubten Crepe-Formate und deaktiviert
+Top-Bar, Headings, Latex, Upload/ImageBlock und AI. Der Editor wird vor
+Nodewechsel oder erneutem Mount disposed; persistiert wird ausschließlich der
+beim expliziten Speichern gelesene kanonische Markdown. Der Output wird als
+Static Web Asset veröffentlicht, während `Frontend/node_modules` und
+`wwwroot/generated` nicht versioniert werden. Node/npm werden ausschließlich
 beim Build/Publish benötigt; der Server lädt weder zur Laufzeit noch über CDN
 weitere Assets.
 Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
@@ -477,10 +484,14 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   Änderungen: `beforeunload` liest das Attribut `data-ktai-dirty` der
   Kontextleiste zum Ereigniszeitpunkt; fehlt das Element, gilt die Seite als
   nicht dirty; es existiert kein `window`-Flag mehr. `NodeMetadataEditor` (für
-  Edit und Child-Create) sowie `RootNodeEditor` (für Root-Create) setzen den
-  wertbasierten Zustand nur bei tatsächlich abweichenden Eingaben, räumen ihn
-  bei Save, Cancel und Dispose und erhalten ihn bei fehlgeschlagenem Save;
-  eine persistierte Transaction gilt nie als ungespeichert.
+  Edit und Child-Create), `RootNodeEditor` (für Root-Create) und der
+  `ContentEditor` setzen den wertbasierten Zustand nur bei tatsächlich
+  abweichenden Eingaben, räumen ihn bei erfolgreichem Save, Cancel und Dispose
+  und erhalten ihn bei fehlgeschlagenem Save; beim Content-Save wird der
+  kanonische Markdown erst über `readMarkdown` gelesen und die Mutation mit
+  `expectedChangeVersion` ausgeführt. Eine serverseitige Ablehnung überschreibt
+  den Editorwert nicht, und eine persistierte Transaction gilt nie als
+  ungespeichert.
 `wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
 Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
 Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie

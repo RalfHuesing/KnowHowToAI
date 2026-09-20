@@ -47,7 +47,8 @@
                                      QueryTransactionId="@QueryTransactionId"
                                      QuerySnapshotId="@QuerySnapshotId"
                                      QueryReleaseId="@QueryReleaseId"
-                                     OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
+                                     OnMutationSucceeded="HandleNodeMutationSucceededAsync"
+                                     OnContentMutationSucceeded="HandleContentMutationSucceededAsync" />
                 }
                 else if (TreeWorkspace.VisualRootNode is null
                          && !TreeWorkspace.IsLoading

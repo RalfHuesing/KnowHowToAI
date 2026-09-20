@@ -28,6 +28,9 @@ public sealed class KnowledgePageTests : BunitContext
     private static readonly SnapshotId DefaultSnapshotId = new(1);
     private static readonly RoleId DefaultRoleId = new("Developer");
 
+    public KnowledgePageTests() =>
+        JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js").Mode = JSRuntimeMode.Loose;
+
     [Fact]
     public async Task KnowledgePage_RendersHeaderWithBreadcrumbsAndTree()
     {

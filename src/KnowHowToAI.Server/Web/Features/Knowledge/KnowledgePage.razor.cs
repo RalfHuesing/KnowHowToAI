@@ -4,6 +4,7 @@ using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
+using KnowHowToAI.Core.Application.Mutations.Content;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -217,6 +218,20 @@ public sealed partial class KnowledgePage : IDisposable
         var selectedNodeId = mutation.Node.IsDeleted ? mutation.Node.ParentNodeId?.Value : mutation.Node.NodeId.Value;
         await TreeWorkspace.SelectNodeAsync(selectedNodeId, CancellationToken.None);
         WorkspaceState.SetNode(selectedNodeId);
+    }
+
+    private async Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult mutation)
+    {
+        WorkspaceState.SetChangeVersion(mutation.ChangeVersion);
+        var updatedContext = WorkspaceState.CurrentContext with { ChangeVersion = mutation.ChangeVersion };
+        WorkspaceState.SetContext(updatedContext, WorkspaceState.CurrentReadContext);
+        PageRegions.SetKnowledgeContext(updatedContext);
+
+        if (WorkspaceState.CurrentRoleId is { } roleId)
+        {
+            await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, roleId, CancellationToken.None);
+            await TreeWorkspace.SelectNodeAsync(NodeId, CancellationToken.None);
+        }
     }
 
     private void UpdateUrlWithRole(Uri currentUri, string roleId)

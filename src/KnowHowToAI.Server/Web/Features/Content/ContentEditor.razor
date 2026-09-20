@@ -1,0 +1,35 @@
+@using KnowHowToAI.Core.Domain.Common
+@using Microsoft.AspNetCore.Components.Web
+@namespace KnowHowToAI.Server.Web.Features.Content
+
+<section class="content-editor @(IsReadOnly ? "content-editor--readonly" : string.Empty)"
+         aria-label="Markdown-Inhalt"
+         data-testid="content-editor"
+         data-readonly="@IsReadOnly">
+    <div class="content-editor__surface"
+         @ref="_editorElement"
+         data-testid="content-editor-surface"></div>
+
+    @if (_errorMessage is not null)
+    {
+        <div class="content-editor__error" role="alert" data-testid="content-editor-error">
+            @_errorMessage
+        </div>
+    }
+
+    @if (!IsReadOnly)
+    {
+        <div class="content-editor__actions">
+            <span class="content-editor__status" role="status" aria-live="polite">
+                @(_isSaving ? "Wird gespeichert…" : WorkspaceState.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
+            </span>
+            <button type="button"
+                    class="btn btn-primary"
+                    data-testid="content-editor-save"
+                    disabled="@(_isSaving || !TransactionId.HasValue)"
+                    @onclick="SaveAsync">
+                Speichern
+            </button>
+        </div>
+    }
+</section>

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
+using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 
@@ -39,12 +40,18 @@ public sealed partial class NodeDetailsPane
     [Parameter]
     public EventCallback<NodeMutationResult> OnMutationSucceeded { get; set; }
 
+    [Parameter]
+    public EventCallback<ContentMutationUseCaseResult> OnContentMutationSucceeded { get; set; }
+
     private NodeDetailsViewModel? _viewModel;
     private string? _markdownDownloadUrl;
     private string? _errorMessage;
     private bool _nodeNotFound;
     private bool _isLoading;
     private (Guid? NodeId, ReadContext? ReadContext, string? RoleId, long? ChangeVersion)? _loadedRequest;
+
+    private bool ShowReadOnlyContent =>
+        _viewModel is null || !TransactionId.HasValue || _viewModel.Availability != "Explicit";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -83,6 +90,9 @@ public sealed partial class NodeDetailsPane
         await OnMutationSucceeded.InvokeAsync(mutation);
         _loadedRequest = null;
     }
+
+    private Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult mutation) =>
+        OnContentMutationSucceeded.InvokeAsync(mutation);
 
     private string CreateMarkdownDownloadUrl(Guid nodeId, string roleId)
     {
