@@ -24,7 +24,6 @@ public abstract class ShellTestContext : BunitContext
         module.Mode = JSRuntimeMode.Strict;
         module.SetupVoid("observeBreakpoint", _ => true);
 
-        var dialogModule = JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js");
-        dialogModule.Mode = JSRuntimeMode.Loose;
+        var dialogModule = JSInterop.SetupAppDialog();
     }
 }

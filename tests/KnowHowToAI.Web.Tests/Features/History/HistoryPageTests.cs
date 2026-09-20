@@ -10,6 +10,7 @@ using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.History;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -264,18 +265,16 @@ public sealed class HistoryPageTests : BunitContext
             releaseRepository,
             new SystemClock(),
             policy,
-            new ValidationPolicy
+            TestPolicies.DefaultValidation with
             {
                 ContentSizeWarningBytes = contentSizeWarningBytes,
-                ChildCountWarning = 25,
-                HierarchyDepthWarning = 8,
-                PossibleEmbeddedHeadingWarning = true
+                ChildCountWarning = 25
             });
 
         Services.AddSingleton(historyService);
         Services.AddSingleton(releaseService);
         Services.AddSingleton<PageRegionState>();
-        JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js").Mode = JSRuntimeMode.Loose;
+        JSInterop.SetupAppDialog();
         return releaseRepository;
     }
 }

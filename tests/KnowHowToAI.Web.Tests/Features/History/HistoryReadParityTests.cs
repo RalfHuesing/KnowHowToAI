@@ -12,6 +12,7 @@ using KnowHowToAI.Server.Mcp.Mapping;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.History;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -148,13 +149,7 @@ public sealed class HistoryReadParityTests : BunitContext
             new InMemoryReleaseMutationRepository(),
             new SystemClock(),
             policy,
-            new ValidationPolicy
-            {
-                ContentSizeWarningBytes = 4096,
-                ChildCountWarning = 25,
-                HierarchyDepthWarning = 8,
-                PossibleEmbeddedHeadingWarning = true
-            });
+            TestPolicies.DefaultValidation with { ChildCountWarning = 25 });
         var query = new SnapshotComparisonQuery(BaseSnapshotId, TargetSnapshotId);
         var applicationResult = await historyService.CompareSnapshotsAsync(query);
         var mcp = McpHistoryMapper.ToSnapshotDiffEnvelope(applicationResult).Data!;
@@ -162,7 +157,7 @@ public sealed class HistoryReadParityTests : BunitContext
         Services.AddSingleton(historyService);
         Services.AddSingleton(releaseService);
         Services.AddSingleton(new PageRegionState());
-        JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js").Mode = JSRuntimeMode.Loose;
+        JSInterop.SetupAppDialog();
         Services.GetRequiredService<NavigationManager>().NavigateTo(
             $"/history?baseSnapshotId={BaseSnapshotId.Value}&targetSnapshotId={TargetSnapshotId.Value}");
 
