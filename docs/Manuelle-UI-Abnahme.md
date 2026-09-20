@@ -32,8 +32,9 @@ Bei jeder Stufe prüfen:
 3. Der Zoom-/Reflow-Nachweis ist keine Smartphonefreigabe; die Shell
    unterstützt unterhalb von 1024 CSS-Pixeln bewusst nur Zoom und Reflow.
 
-Der Menübutton „Navigation einblenden“ beziehungsweise „Navigation
-ausblenden“ bleibt als Drei-Linien-Button oben links in der App-Leiste sichtbar.
+Der Menübutton bleibt als kompakter quadratischer Drei-Linien-Button oben links
+in der App-Leiste sichtbar. Sein zugänglicher Name beziehungsweise Tooltip
+lautet zustandsabhängig „Navigation einblenden“ oder „Navigation ausblenden“.
 Auf dem Desktop startet die Navigation offen; nach dem Schließen muss derselbe
 Button die Navigation wieder öffnen. In kompakter Breite erscheint die
 Navigation als Drawer/Overlay.

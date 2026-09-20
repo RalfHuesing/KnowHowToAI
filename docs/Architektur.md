@@ -494,7 +494,7 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   Breiten über den zugänglichen Zustandsnamen sowie `aria-expanded` und
   `aria-controls`; beim Desktop-Schließen gibt die Navigation ihre Spalte an
   die Arbeitsfläche frei.
-- In kompakten Breiten steuert derselbe klar beschriftete Kopfbutton die
+- In kompakten Breiten steuert derselbe zugänglich benannte Kopfbutton die
   Navigation als überlagerndes Panel unterhalb des Kopfs; der Kontextbereich
   besitzt bei Bedarf einen eigenen Kopfbutton. Öffnen setzt den Fokus auf den
   jeweiligen Bereich, Schließen (Kopfbutton, Escape) gibt ihn an den Auslöser

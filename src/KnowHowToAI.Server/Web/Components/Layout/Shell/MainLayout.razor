@@ -12,12 +12,12 @@
                     @onclick="@(() => TogglePanelAsync(ShellPanel.Navigation))"
                     @ref="_navigationToggleButton"
                     aria-label="@(IsOpen(ShellPanel.Navigation) ? "Navigation ausblenden" : "Navigation einblenden")"
+                    title="@(IsOpen(ShellPanel.Navigation) ? "Navigation ausblenden" : "Navigation einblenden")"
                     aria-expanded="@(IsOpen(ShellPanel.Navigation) ? "true" : "false")"
                     aria-controls="shell-navigation">
                 <svg class="shell-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-                <span>@(IsOpen(ShellPanel.Navigation) ? "Navigation ausblenden" : "Navigation einblenden")</span>
             </button>
             <span class="shell-brand">KnowHowToAI</span>
             @if (PageRegions.KnowledgeContext is { } knowledgeContext)

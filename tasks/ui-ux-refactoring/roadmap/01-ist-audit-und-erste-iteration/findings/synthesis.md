@@ -133,8 +133,10 @@ konsistent geschlossen.
 
 ## M1.5-T0-Ergebnis
 
-Die Shell führt den dauerhaft sichtbaren Drei-Linien-Menübutton oben links in
-der App-Leiste jetzt in Desktop und kompakter Breite. Desktop startet mit
+Die Shell führt den dauerhaft sichtbaren, quadratischen Drei-Linien-Iconbutton
+oben links in der App-Leiste jetzt in Desktop und kompakter Breite; der aktuelle
+Zustand ist nicht als sichtbarer Text, sondern zugänglich über den dynamischen
+Namen und Tooltip benannt. Desktop startet mit
 geöffneter Navigation; derselbe Button schließt sie, gibt die Sidebar-Spalte
 an die Arbeitsfläche frei und öffnet sie wieder. Der Button führt den
 zugänglichen Zustandsnamen sowie aria-expanded/aria-controls. In kompakter
