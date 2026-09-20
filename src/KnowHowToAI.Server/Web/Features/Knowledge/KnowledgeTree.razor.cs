@@ -47,10 +47,12 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
     private readonly Dictionary<Guid, ElementReference> _nodeElements = new();
     private ElementReference _treeElement;
     private Task<IJSObjectReference>? _moduleTask;
+    private DotNetObjectReference<KnowledgeTree>? _dragAndDropReference;
     private Guid? _focusedNodeId;
     private Guid? _lastSelectedNodeId;
-    private Guid? _moveSourceNodeId;
     private string? _moveErrorMessage;
+    private bool _keyboardInitialized;
+    private bool _dragAndDropInitialized;
     private bool _isDisposed;
 
     private Guid? EffectiveFocusedNodeId
@@ -78,16 +80,34 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && _treeElement.Id is not null)
+        if (_treeElement.Id is not null)
         {
             try
             {
                 var module = await EnsureModuleAsync();
-                await module.InvokeVoidAsync("initTreeKeyboard", _treeElement);
+                if (!_keyboardInitialized)
+                {
+                    await module.InvokeVoidAsync("initTreeKeyboard", _treeElement);
+                    _keyboardInitialized = true;
+                }
+
+                if (CanMove && !_dragAndDropInitialized)
+                {
+                    _dragAndDropReference ??= DotNetObjectReference.Create(this);
+                    await module.InvokeVoidAsync("initTreeDragAndDrop", _treeElement, _dragAndDropReference);
+                    _dragAndDropInitialized = true;
+                }
+                else if (!CanMove && _dragAndDropInitialized)
+                {
+                    await module.InvokeVoidAsync("disposeTreeDragAndDrop", _treeElement);
+                    _dragAndDropReference?.Dispose();
+                    _dragAndDropReference = null;
+                    _dragAndDropInitialized = false;
+                }
             }
             catch (Exception ex)
             {
-                Logger?.LogDebug(ex, "Wissensbaum-Tastaturmodul konnte nicht initialisiert werden.");
+                Logger?.LogDebug(ex, "Wissensbaum-Interop konnte nicht initialisiert werden.");
             }
         }
 
@@ -113,26 +133,19 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
         await OnNodeSelected.InvokeAsync(nodeId);
     }
 
-    private string MoveSourceTitle => _moveSourceNodeId is { } nodeId
-        ? GetVisibleNodes().FirstOrDefault(node => node.NodeId == nodeId)?.Title ?? "der ausgewählte Knoten"
-        : string.Empty;
+    [JSInvokable]
+    public Task HandleTreeDropAsync(string sourceNodeId, string targetNodeId, string position) =>
+        InvokeAsync(() => ProcessTreeDropAsync(sourceNodeId, targetNodeId, position));
 
-    private Task BeginMoveAsync(Guid nodeId)
+    private async Task ProcessTreeDropAsync(string sourceNodeId, string targetNodeId, string position)
     {
-        _moveSourceNodeId = _moveSourceNodeId == nodeId ? null : nodeId;
-        _moveErrorMessage = null;
-        return InvokeAsync(StateHasChanged);
-    }
+        if (!Guid.TryParse(sourceNodeId, out var sourceId)
+            || !Guid.TryParse(targetNodeId, out var targetId)
+            || !Enum.TryParse<TreeMovePosition>(position, ignoreCase: false, out var movePosition))
+            return;
 
-    private void EndDrag()
-    {
-        // Ein Drop ruft den Vertrag sofort auf; nach einem abgebrochenen Drag bleibt
-        // die explizite Auswahl als zugängliche Tastaturalternative erhalten.
-    }
-
-    private async Task RequestMoveAsync(KnowledgeTreeNodeViewModel target, TreeMovePosition position)
-    {
-        if (_moveSourceNodeId is not { } sourceNodeId || !CanMove)
+        var target = GetVisibleNodes().FirstOrDefault(node => node.NodeId == targetId);
+        if (target is null)
             return;
 
         _moveErrorMessage = null;
@@ -144,19 +157,20 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
         }
 
         var outcome = await treeMoveCoordinator.MoveAsync(new TreeMoveRequest(
-            sourceNodeId,
+            sourceId,
             target.NodeId,
             target.ParentNodeId,
             target.Summary.SortOrder,
-            position),
+            movePosition),
             MoveTransactionId,
             MoveSnapshotId,
             MoveReleaseId);
-        _moveSourceNodeId = null;
         if (outcome.IsSuccess)
             await OnNodeMutationSucceeded.InvokeAsync(outcome.Mutation!);
         else
             _moveErrorMessage = outcome.ErrorMessage;
+
+        StateHasChanged();
     }
 
     private void HandleFocus(Guid nodeId)
@@ -310,6 +324,25 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_dragAndDropInitialized && _moduleTask is not null)
+        {
+            try
+            {
+                var module = await _moduleTask;
+                await module.InvokeVoidAsync("disposeTreeDragAndDrop", _treeElement);
+            }
+            catch (JSDisconnectedException ex)
+            {
+                Logger?.LogDebug(ex, "JS-Verbindung beim Entsorgen der Wissensbaum-Drag-and-drop-Interop bereits getrennt.");
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogDebug(ex, "Wissensbaum-Drag-and-drop-Interop konnte nicht regulär freigegeben werden.");
+            }
+        }
+
+        _dragAndDropReference?.Dispose();
+
         if (_moduleTask is not null)
         {
             try

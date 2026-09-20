@@ -33,11 +33,11 @@ Zeitwerte bleiben serverseitig UTC und werden in der UI in Browserlokalzeit mit 
 
 WCAG 2.2 AA ist der Entwicklungsmaßstab für die menschlichen Kernworkflows, jedoch keine formale Konformitäts- oder Zertifizierungsbehauptung. Es gibt im ersten Stand keine Browser- oder Screenreader-Matrix.
 
-- Alle Kernfunktionen sind per Tastatur erreichbar. Es gibt keine Tastaturfalle; Fokusreihenfolge, sichtbarer und nicht vollständig verdeckter Fokus sowie Fokusübergabe bei Dialogen und Fehlern sind definiert.
+- Alle Kernfunktionen sind per Tastatur erreichbar; ausgenommen ist die bewusst mausbasierte Strukturverschiebung im Wissensbaum. Es gibt keine Tastaturfalle; Fokusreihenfolge, sichtbarer und nicht vollständig verdeckter Fokus sowie Fokusübergabe bei Dialogen und Fehlern sind definiert.
 - Semantisches HTML, zugängliche Namen, Labels, Statusmeldungen und Fehlerzuordnungen werden bevorzugt; ARIA ergänzt nur fehlende native Semantik.
 - Textkontrast beträgt mindestens 4,5:1, großer Text mindestens 3:1. Relevante nichttextuelle UI-Zustände und Fokusdarstellungen erreichen mindestens 3:1 und werden nie nur durch Farbe vermittelt.
 - Bei 200 % Desktop-Zoom gehen keine Informationen oder Funktionen verloren. Bei 400 % Zoom fließen normale Inhalte einspaltig um; fachlich wirklich zweidimensionale Bereiche dürfen innerhalb ihres eigenen Bereichs scrollen. Das ist Desktop-Zoom und begründet keine Smartphone-Unterstützung.
-- Drag-and-drop erhält immer eine funktional gleichwertige Tastaturalternative. Der native Tree bietet dieselben Zielpositionen `Parent`, `Before` und `After` über Drag-and-drop und fokussierbare Aktionsbuttons. Milkdown wird auf die freigegebenen Befehle begrenzt und darf keine Heading- oder externe Bildfunktion anbieten.
+- Die Strukturverschiebung im nativen Tree ist bewusst mausbasierte Drag-and-drop-Interaktion ohne Tastatur-Buttons. Milkdown wird auf die freigegebenen Befehle begrenzt und darf keine Heading- oder externe Bildfunktion anbieten.
 - Agenten prüfen repräsentative Zustände mit bUnit und xUnit v3 sowie wenigen echten Tastatursequenzen über Microsoft.Playwright .NET. Browserläufe verwenden ausschließlich die installierte aktuelle Google-Chrome-Stable-Version, `Channel = "chrome"` und `Headless = true`. Eine kurze, feste manuelle Tastaturcheckliste wird für die Abnahme durch einen Menschen gepflegt; Agenten starten dafür keinen interaktiven Browser.
 
 ## Komponentenstrategie
@@ -88,7 +88,7 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 - Badges für eigenen Content, Fallback, fehlenden Content, stale und Warnung.
 - Drag-and-drop für Verschieben und Sortierung mit Zielvorschau.
 - Der Tree verwendet `role="tree"`/`role="treeitem"`, roving `tabindex`, `aria-level`, `aria-selected` und bei Parents `aria-expanded`. Pflichtbedienung: `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`, `End`, `Enter` und Leertaste.
-- `Parent`, `Before` und `After` sind sowohl Drag-and-drop-Ziele als auch fokussierbare Aktionsbuttons mit demselben Move-Vertrag.
+- Beim Drag über einen Zielknoten zeigen dessen oberes Viertel (`Before`), mittlere Hälfte (`Parent`) und unteres Viertel (`After`) sofort eine Linie beziehungsweise Flächenmarkierung; beim Drop ruft nur dieser sichtbare Vertrag die bestehende Move-Mutation auf. Der DOM enthält keine Verschiebe- oder Zielpositionsbuttons.
 - Strukturänderungen nur in einer offenen Working Transaction.
 - Tiefe Strukturen werden nicht vollständig vorab geladen.
 - Breadcrumbs und direkte Navigation per stabiler `NodeId`.

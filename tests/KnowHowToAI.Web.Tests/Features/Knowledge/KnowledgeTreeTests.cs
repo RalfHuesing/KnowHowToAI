@@ -290,11 +290,8 @@ public sealed class KnowledgeTreeTests : BunitContext
         Assert.True(treeState.RootNode.HasNextPage);
     }
 
-    [Theory]
-    [InlineData(TreeMovePosition.Parent)]
-    [InlineData(TreeMovePosition.Before)]
-    [InlineData(TreeMovePosition.After)]
-    public async Task KnowledgeTree_MoveActionButtons_EmitTheSamePositionedMoveContract(TreeMovePosition position)
+    [Fact]
+    public async Task KnowledgeTree_DragAndDrop_RendersDraggableNodesWithoutMoveButtons()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -312,14 +309,17 @@ public sealed class KnowledgeTreeTests : BunitContext
         var cut = Render<KnowledgeTree>(parameters => parameters
             .Add(component => component.CanMove, true));
 
-        await cut.InvokeAsync(() => cut.Find($"[data-testid='tree-move-source-{sourceId.Value}']").Click());
-
-        Assert.NotNull(cut.Find($"[data-testid='tree-move-{position.ToString().ToLowerInvariant()}-{targetId.Value}']"));
-        Assert.NotNull(cut.Find("[data-testid='tree-move-instructions']"));
+        Assert.True(cut.Find($"[data-testid='treeitem-{sourceId.Value}']").HasAttribute("draggable"));
+        Assert.True(cut.Find($"[data-testid='treeitem-{targetId.Value}']").HasAttribute("draggable"));
+        Assert.Empty(cut.FindAll(".tree-move-source-btn, .tree-move-target, .tree-move-targets"));
+        Assert.DoesNotContain("Verschieben", cut.Markup, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task KnowledgeTree_ServerRejectedMoveLeavesTheRenderedTreeUntouched()
+    [Theory]
+    [InlineData(TreeMovePosition.Parent)]
+    [InlineData(TreeMovePosition.Before)]
+    [InlineData(TreeMovePosition.After)]
+    public async Task KnowledgeTree_ServerRejectedDropLeavesTheRenderedTreeUntouched(TreeMovePosition position)
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -336,8 +336,11 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var cut = Render<KnowledgeTree>(parameters => parameters.Add(component => component.CanMove, true));
 
-        await cut.InvokeAsync(() => cut.Find($"[data-testid='tree-move-source-{sourceId.Value}']").Click());
-        await cut.InvokeAsync(() => cut.Find($"[data-testid='tree-move-parent-{targetId.Value}']").Click());
+        await cut.InvokeAsync(() => cut.Instance.HandleTreeDropAsync(
+            sourceId.Value.ToString(),
+            targetId.Value.ToString(),
+            position.ToString()));
+        cut.Render();
 
         Assert.NotNull(cut.Find($"[data-testid='treeitem-{sourceId.Value}']"));
         Assert.NotNull(cut.Find($"[data-testid='treeitem-{targetId.Value}']"));

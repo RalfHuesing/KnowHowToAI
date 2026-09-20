@@ -14,31 +14,14 @@ public sealed class KnowledgeTreeMoveSmokeTests
         _host = fixture.Host;
     }
 
-    [Fact]
-    public async Task KnowledgeTree_MoveActionButtons_PersistsTheConfirmedWorkingTree()
-    {
-        await RunMoveAsync(async (page, source, target) =>
-        {
-            await page.GetByTestId($"tree-move-source-{source}").ClickAsync();
-            await page.GetByTestId($"tree-move-after-{target}").ClickAsync();
-        });
-    }
+    [Theory]
+    [InlineData("Before", 0.125)]
+    [InlineData("Parent", 0.5)]
+    [InlineData("After", 0.875)]
+    public Task KnowledgeTree_DragAndDrop_PersistsTheConfirmedWorkingTree(string position, double relativeY) =>
+        RunMoveAsync(position, relativeY);
 
-    [Fact]
-    public async Task KnowledgeTree_DragAndDrop_PersistsTheConfirmedWorkingTree()
-    {
-        await RunMoveAsync(async (page, source, target) =>
-        {
-            var sourceNode = page.GetByTestId($"treeitem-{source}");
-            var parentTarget = page.GetByTestId($"tree-move-parent-{target}");
-            await sourceNode.EvaluateAsync("node => node.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
-            await Assertions.Expect(parentTarget).ToBeVisibleAsync();
-            await parentTarget.EvaluateAsync("node => node.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
-            await parentTarget.EvaluateAsync("node => node.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
-        });
-    }
-
-    private async Task RunMoveAsync(Func<IPage, string, string, Task> move)
+    private async Task RunMoveAsync(string position, double relativeY)
     {
         using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         await using var browser = await ChromeBrowser.LaunchAsync();
@@ -74,12 +57,15 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await Assertions.Expect(root).ToBeVisibleAsync();
             await root.Locator("button.tree-toggle-btn").ClickAsync();
             var children = page.Locator("div[role='treeitem'][aria-level='2']");
-            await Assertions.Expect(children.Nth(1)).ToBeVisibleAsync(new() { Timeout = 15_000 });
-            var source = await children.Nth(0).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Quellknoten fehlt.");
-            var target = await children.Nth(1).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Zielknoten fehlt.");
+            await Assertions.Expect(children.Nth(2)).ToBeVisibleAsync(new() { Timeout = 15_000 });
+            var sourceIndex = position == "Before" ? 2 : 0;
+            var targetIndex = position == "Before" ? 0 : 2;
+            var source = await children.Nth(sourceIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Quellknoten fehlt.");
+            var target = await children.Nth(targetIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Zielknoten fehlt.");
 
-            await move(page, source, target);
+            await DispatchDropAsync(page, source, target, position, relativeY);
 
+            await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToContainTextAsync("Änderungsversion: 1");
             await Assertions.Expect(page.GetByTestId("tree-move-error")).ToHaveCountAsync(0);
             await Assertions.Expect(page.GetByTestId($"treeitem-{source}")).ToBeVisibleAsync();
         }
@@ -88,6 +74,27 @@ public sealed class KnowledgeTreeMoveSmokeTests
             if (transactionId is not null)
                 await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId.Value);
         }
+    }
+
+    private static async Task DispatchDropAsync(IPage page, string source, string target, string position, double relativeY)
+    {
+        var sourceNode = page.GetByTestId($"treeitem-{source}");
+        var targetNode = page.GetByTestId($"treeitem-{target}");
+
+        await sourceNode.EvaluateAsync("node => node.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
+        var dragOverScript = """
+            node => {
+            const clientY = node.getBoundingClientRect().top + node.getBoundingClientRect().height * RELATIVE_Y;
+            const dataTransfer = new DataTransfer();
+            node.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer, clientY }));
+            }
+            """.Replace("RELATIVE_Y", relativeY.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
+        await targetNode.EvaluateAsync(dragOverScript);
+        var expectedIndicator = $"is-drop-{position.ToLowerInvariant()}";
+        Assert.True(await targetNode.EvaluateAsync<bool>($"node => node.classList.contains('{expectedIndicator}')"));
+
+        var dropScript = dragOverScript.Replace("dragover", "drop", StringComparison.Ordinal);
+        await targetNode.EvaluateAsync(dropScript);
     }
 
 }

@@ -162,6 +162,13 @@ State- oder Host-Benachrichtigungen reihen Änderungen und Rendering über
 `InvokeAsync` beim Circuit-Dispatcher ein. Der Build erzwingt diese Grenze mit
 `KHTAI001`; Circuit-State- und Feature-Services bleiben dabei rendererfrei.
 
+Der native `KnowledgeTree` hält hochfrequentes Drag-Feedback in seinem
+komponentenlokalen JavaScript-Modul: Es berechnet die drei sichtbaren
+Drop-Zonen clientseitig und übergibt beim tatsächlichen Drop nur Source,
+Target und Position über einen `DotNetObjectReference` an die Razor-Komponente.
+Diese delegiert die einzelne Mutation unverändert an den featurelokalen
+`TreeMoveCoordinator`; sie enthält keine Geschäftslogik.
+
 `Web.Features.History` stellt unter `/history` getrennte paginierte Listen für
 committed Snapshots und Releases bereit. Snapshot-Zeilen zeigen neben Zeit und
 Basis die metadata-first gelesene erzeugende Transaction einschließlich Actor,
