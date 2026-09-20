@@ -89,7 +89,7 @@ public sealed class KnowledgeContextBarTests : BunitContext
         Assert.Contains("Wissensbasis:", snapshotSegment.TextContent, StringComparison.Ordinal);
         Assert.Contains("Release", snapshotSegment.TextContent, StringComparison.Ordinal);
         Assert.DoesNotContain("Freigabe Herbst", snapshotSegment.TextContent, StringComparison.Ordinal);
-        Assert.Contains("Bereich/Detail:", detailSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Bereich:", detailSegment.TextContent, StringComparison.Ordinal);
         Assert.Contains("Freigabe Herbst", detailSegment.TextContent, StringComparison.Ordinal);
     }
 
@@ -105,14 +105,40 @@ public sealed class KnowledgeContextBarTests : BunitContext
 
         var workingSegment = cut.Find("[data-testid='context-working-transaction']");
         var snapshotSegment = cut.Find("[data-testid='context-snapshot-segment']");
-        var detailSegment = cut.Find("[data-testid='context-detail-segment']");
 
         Assert.Contains("Working-Transaction:", workingSegment.TextContent, StringComparison.Ordinal);
         Assert.Contains("Base-Snapshot:", workingSegment.TextContent, StringComparison.Ordinal);
         Assert.Contains("Änderungsversion:", workingSegment.TextContent, StringComparison.Ordinal);
         Assert.DoesNotContain("Glossar überarbeiten", snapshotSegment.TextContent, StringComparison.Ordinal);
-        Assert.Contains("Glossar überarbeiten", detailSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Glossar überarbeiten", workingSegment.TextContent, StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll("[data-testid='context-detail-segment']"));
         Assert.Equal("Technische Transaktionsdaten", workingSegment.QuerySelector(".knowledge-context__technical")?.GetAttribute("aria-label"));
+    }
+
+    [Fact]
+    public void NamesTheTransactionPurposeAsWorkingTransactionWithoutAnAreaSegment()
+    {
+        var cut = RenderBar(new KnowledgeContextViewModel(
+            KnowledgeReadContextKind.Transaction,
+            DisplayName: "Glossar überarbeiten"));
+
+        var workingSegment = cut.Find("[data-testid='context-working-transaction']");
+
+        Assert.Contains("Working-Transaction:", workingSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Glossar überarbeiten", workingSegment.TextContent, StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll("[data-testid='context-detail-segment']"));
+        Assert.Empty(cut.FindAll(".knowledge-context__technical"));
+        Assert.DoesNotContain("Bereich/Detail", cut.Markup, StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll("[data-testid='context-base-snapshot'], [data-testid='context-change-version']"));
+    }
+
+    [Fact]
+    public void OmitsTheWorkingTransactionSegmentWhenTransactionHasNoDisplayOrTechnicalValues()
+    {
+        var cut = RenderBar(new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction));
+
+        Assert.Empty(cut.FindAll("[data-testid='context-working-transaction']"));
+        Assert.Empty(cut.FindAll("[data-testid='context-detail-segment']"));
     }
 
     [Fact]

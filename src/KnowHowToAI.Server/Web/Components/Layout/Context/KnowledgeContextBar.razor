@@ -10,33 +10,40 @@
         <span class="knowledge-context__label">Wissensbasis:</span>
         <span class="knowledge-context__value">@ReadContextText</span>
     </span>
-    @if (ReadContextDetail is { } detail)
+    @if (!IsTransactionContext && ReadContextDetail is { } detail)
     {
         <span class="knowledge-context__segment knowledge-context__segment--detail" data-testid="context-detail-segment">
-            <span class="knowledge-context__label">Bereich/Detail:</span>
+            <span class="knowledge-context__label">Bereich:</span>
             <span class="knowledge-context__value knowledge-context__detail">@detail</span>
         </span>
     }
-    @if (IsWorkingTransaction)
+    @if (HasWorkingTransactionData)
     {
         <span class="knowledge-context__segment knowledge-context__segment--working" data-testid="context-working-transaction">
             <span class="knowledge-context__label">Working-Transaction:</span>
-            <span class="knowledge-context__technical" aria-label="Technische Transaktionsdaten">
-                @if (Context.BaseSnapshotId is not null)
-                {
-                    <span class="knowledge-context__technical-item" data-testid="context-base-snapshot">
-                        <span class="knowledge-context__technical-label">Base-Snapshot:</span>
-                        <span class="knowledge-context__value">@Context.BaseSnapshotId</span>
-                    </span>
-                }
-                @if (Context.ChangeVersion is not null)
-                {
-                    <span class="knowledge-context__technical-item" data-testid="context-change-version">
-                        <span class="knowledge-context__technical-label">Änderungsversion:</span>
-                        <span class="knowledge-context__value">@Context.ChangeVersion</span>
-                    </span>
-                }
-            </span>
+            @if (IsTransactionContext && ReadContextDetail is { } workingDetail)
+            {
+                <span class="knowledge-context__value knowledge-context__detail knowledge-context__working-value">@workingDetail</span>
+            }
+            @if (HasTechnicalTransactionValues)
+            {
+                <span class="knowledge-context__technical" aria-label="Technische Transaktionsdaten">
+                    @if (Context.BaseSnapshotId is not null)
+                    {
+                        <span class="knowledge-context__technical-item" data-testid="context-base-snapshot">
+                            <span class="knowledge-context__technical-label">Base-Snapshot:</span>
+                            <span class="knowledge-context__value">@Context.BaseSnapshotId</span>
+                        </span>
+                    }
+                    @if (Context.ChangeVersion is not null)
+                    {
+                        <span class="knowledge-context__technical-item" data-testid="context-change-version">
+                            <span class="knowledge-context__technical-label">Änderungsversion:</span>
+                            <span class="knowledge-context__value">@Context.ChangeVersion</span>
+                        </span>
+                    }
+                </span>
+            }
         </span>
     }
     <span class="knowledge-context__segment knowledge-context__segment--role">

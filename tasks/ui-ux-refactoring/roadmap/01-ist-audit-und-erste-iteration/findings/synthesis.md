@@ -190,18 +190,21 @@ Zuständen grün; 04/05 sowie 15–17 wurden bei 1280×800 visuell geprüft.
 ## M1.5-T4-Ergebnis
 
 Die globale `KnowledgeContextBar` trennt Wissensbasis/Read-Context,
-fachlichen Bereich beziehungsweise Detailnamen und Working-Transaction jetzt
-als eigene, kompakte Segmente. Base-Snapshot und Änderungsversion bleiben im
-Working-Transaction-Segment als sekundäre technische Werte verfügbar; Rolle,
-Dirty-Status und der vorhandene Kontext-/Rollen-Selektor bleiben eigenständig
-und unverändert erreichbar. Read-Context-Auflösung, ViewModel, Query-
-Parameter, Routen, Aktionen und Rollenverwaltung wurden nicht geändert.
+fachlichen Bereich und Working-Transaction jetzt als eigene, kompakte
+Segmente. Ein `DisplayName` wird bei Current-/Nicht-Transaction-Kontexten als
+`Bereich` geführt; bei einer Transaction steht der vorhandene Zweck bzw. Name
+als gefüllter `Working-Transaction`-Wert. Ein Working-Segment ohne Zweck und
+ohne technische Werte wird nicht gerendert. Base-Snapshot und Änderungsversion
+bleiben dort als sekundäre technische Werte verfügbar; Rolle, Dirty-Status und
+der vorhandene Kontext-/Rollen-Selektor bleiben eigenständig und unverändert
+erreichbar. Read-Context-Auflösung, ViewModel, Query-Parameter, Routen,
+Aktionen und Rollenverwaltung wurden nicht geändert.
 
-Der UiAudit-Lauf `temp/ui-audit/2026-09-20_22-54-11/` ist mit 20/20 Zuständen
-bei 1280×800 grün. Die Zustände 01, 08, 10, 11, 12 und 15 wurden visuell
-geprüft. `ResponsiveShellSmokeTests` (2/2), `LayoutShellSmokeTests` (2/2)
-und `VisualShellSmokeTests` (2/2) sind grün; die Shell-Baselines für 1280×720
-und 1024×720 wurden nach manueller Diff-Prüfung aktualisiert.
+Der korrigierte UiAudit-Lauf `temp/ui-audit/2026-09-20_23-05-15/` ist mit
+20/20 Zuständen bei 1280×800 grün. Die Zustände 10, 12 und 15 wurden visuell
+geprüft; 10 zeigt `Bereich: Transactions`, 12/15 den gefüllten Working-
+Transaction-Zweck. Die ergänzten Transaktions-Regressionstests decken Zweck
+mit und ohne technische Werte ab. `ResponsiveShellSmokeTests` (2/2) ist grün.
 
 ## M1.5-Folgepriorität aus dem Re-Audit
 

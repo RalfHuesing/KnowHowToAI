@@ -25,10 +25,15 @@ public sealed partial class KnowledgeContextBar : ComponentBase
     private string? ReadContextDetail =>
         FirstNonEmpty(Context.DisplayName, Context.ContextId);
 
-    private bool IsWorkingTransaction =>
-        Context.ReadContext == KnowledgeReadContextKind.Transaction
-        || Context.BaseSnapshotId is not null
-        || Context.ChangeVersion is not null;
+    private bool IsTransactionContext =>
+        Context.ReadContext == KnowledgeReadContextKind.Transaction;
+
+    private bool HasTechnicalTransactionValues =>
+        Context.BaseSnapshotId is not null || Context.ChangeVersion is not null;
+
+    private bool HasWorkingTransactionData =>
+        (IsTransactionContext && (ReadContextDetail is not null || HasTechnicalTransactionValues))
+        || (!IsTransactionContext && HasTechnicalTransactionValues);
 
     private string RoleText =>
         string.IsNullOrWhiteSpace(Context.RoleName)

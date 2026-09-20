@@ -60,6 +60,10 @@
     color: var(--ktai-color-text-secondary);
 }
 
+.knowledge-context__working-value {
+    font-weight: 600;
+}
+
 .knowledge-context__technical {
     display: inline-flex;
     flex-wrap: wrap;
