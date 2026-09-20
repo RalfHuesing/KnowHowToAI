@@ -254,7 +254,11 @@ M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:
    Vergleichskontext. Technische IDs bleiben progressiv und sekundär; die
    Auswahl- und Diff-Logik wird nicht geändert.
 7. Die sichtbaren Suchbegriffe `Freshness` und `Findings` werden in einem
-   eigenen kleinen Leaf deutsch benannt.
+   eigenen kleinen Leaf deutsch benannt. M1.5-T6 führt dafür die Gruppenlabels
+   „Aktualität“ und „Befunde“ ein; Filterwerte, Suchsemantik, Ranking,
+   Trefferreihenfolge, Route und technische Codes bleiben unverändert. Der
+   UiAudit-Lauf `temp/ui-audit/m1-5-t6/2026-09-20_23-25-32` bestätigt die
+   Darstellung in den Zuständen 06/07 bei 1280×800.
 8. Das offene-Transaction-Grid wird in einem eigenen kleinen Leaf als
    Ein-Karten-Grid ohne leere Spalte harmonisiert; Karten, Routen und Aktionen
    bleiben unverändert.

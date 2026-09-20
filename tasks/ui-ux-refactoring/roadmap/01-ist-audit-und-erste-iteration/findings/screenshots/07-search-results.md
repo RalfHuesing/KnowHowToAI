@@ -55,3 +55,10 @@ blieben unverändert. Der UiAudit-Lauf `temp/ui-audit/2026-09-20_21-18-44`
 bestätigt bei 1280×800 die sichtbare Trefferzahl und die vollständig sichtbare
 erste Karte. Die Browser-Smoke- und Web-Komponententests bestätigen weiterhin
 Filterzugriff und Navigation.
+
+## M1.5-T6-Re-Audit
+
+Der UiAudit-Lauf `temp/ui-audit/m1-5-t6/2026-09-20_23-25-32/07_search_results_desktop_1280x800.png`
+bestätigt bei 1280×800 die sichtbaren deutschen Gruppenbezeichnungen
+„Aktualität“ und „Befunde“ auch im Trefferzustand. Trefferzahl, Ranking,
+Reihenfolge, Suchsemantik, Route und Trefferaktion bleiben unverändert.

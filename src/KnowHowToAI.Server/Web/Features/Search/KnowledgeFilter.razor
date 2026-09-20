@@ -19,13 +19,13 @@
         <label><input type="checkbox" checked="@Filter.Availabilities.Contains(None)" @onclick="() => ToggleAvailabilityAsync(None)" data-testid="filter-availability-none" /> Kein Inhalt</label>
     </div>
     <div class="knowledge-filter__group">
-        <span class="knowledge-filter__label">Freshness</span>
+        <span class="knowledge-filter__label">Aktualität</span>
         <label><input type="checkbox" checked="@Filter.Freshnesses.Contains(Current)" @onclick="() => ToggleFreshnessAsync(Current)" data-testid="filter-freshness-current" /> Aktuell</label>
         <label><input type="checkbox" checked="@Filter.Freshnesses.Contains(Stale)" @onclick="() => ToggleFreshnessAsync(Stale)" data-testid="filter-freshness-stale" /> Veraltet</label>
         <label><input type="checkbox" checked="@Filter.Freshnesses.Contains(Unknown)" @onclick="() => ToggleFreshnessAsync(Unknown)" data-testid="filter-freshness-unknown" /> Unbekannt</label>
     </div>
     <div class="knowledge-filter__group">
-        <span class="knowledge-filter__label">Findings</span>
+        <span class="knowledge-filter__label">Befunde</span>
         <label><input type="checkbox" checked="@Filter.FindingCodes.Contains(StaleDerivedContent)" @onclick="() => ToggleFindingAsync(StaleDerivedContent)" data-testid="filter-finding-stale" /> Abgeleiteter Inhalt ist veraltet</label>
     </div>
 </fieldset>

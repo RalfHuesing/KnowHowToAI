@@ -46,7 +46,7 @@ Leaves geteilt.
 - [x] [M1.5-T3 – Read-only Knowledge Detail vor History/Download führen](tasks/M1.5-T3.md) – Zustände 04/05; Inhalt/Fallback vor bestehenden sekundären Links, Funktionen unverändert.
 - [x] [M1.5-T4 – KnowledgeContextBar klar segmentieren](tasks/M1.5-T4.md) – Snapshot, Bereich und Working-Transaction getrennt lesbar; Verträge und Routen unverändert.
 - [x] [M1.5-T5 – History-Auswahl und Vergleichskontext führen](tasks/M1.5-T5.md) – Zustände 08/09; bestehende Ausgang/Ziel-Auswahl sichtbar, IDs progressiv/sekundär.
-- [ ] [M1.5-T6 – Suchbegriffe Freshness/Findings eindeutschen](tasks/M1.5-T6.md) – sichtbare UI-Begriffe, technische Codes und Suchverträge unverändert.
+- [x] [M1.5-T6 – Suchbegriffe Freshness/Findings eindeutschen](tasks/M1.5-T6.md) – sichtbare UI-Begriffe, technische Codes und Suchverträge unverändert; Zustände 06/07 bei 1280×800 visuell bestätigt.
 - [ ] [M1.5-T7 – Offene Transactions als Ein-Karten-Grid harmonisieren](tasks/M1.5-T7.md) – keine leere Spalte, bestehende Karten und Aktionen unverändert.
 
 ## Nicht freigegebene Kandidaten

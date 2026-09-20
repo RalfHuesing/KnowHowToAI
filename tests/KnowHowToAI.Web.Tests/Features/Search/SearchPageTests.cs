@@ -128,6 +128,21 @@ public sealed class SearchPageTests : BunitContext
     }
 
     [Fact]
+    public void KnowledgeFilter_UsesGermanGroupLabels_AndKeepsFilterContracts()
+    {
+        var cut = Render<KnowledgeFilter>();
+
+        var labels = cut.FindAll(".knowledge-filter__label").Select(label => label.TextContent.Trim()).ToArray();
+
+        Assert.Contains("Aktualität", labels);
+        Assert.Contains("Befunde", labels);
+        Assert.DoesNotContain("Freshness", labels);
+        Assert.DoesNotContain("Findings", labels);
+        Assert.NotEmpty(cut.FindAll("[data-testid='filter-freshness-current']"));
+        Assert.NotEmpty(cut.FindAll("[data-testid='filter-finding-stale']"));
+    }
+
+    [Fact]
     public async Task SearchPage_FilterChange_ClearsOldCursorAndRequestsServerSideFilter()
     {
         var setup = ConfigureSearch(searchPageSize: 10);

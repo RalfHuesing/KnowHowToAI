@@ -52,3 +52,11 @@ Der Suchgrundzustand wurde im UiAudit-Lauf
 1280×800 erneut visuell geprüft. Die Filter bleiben vollständig zugänglich;
 für den Leerzustand wurden keine fachliche Semantik und keine neue Produkt-
 handlung eingeführt.
+
+## M1.5-T6-Re-Audit
+
+Der UiAudit-Lauf `temp/ui-audit/m1-5-t6/2026-09-20_23-25-32/06_search_empty_desktop_1280x800.png`
+bestätigt bei 1280×800 die sichtbaren deutschen Gruppenbezeichnungen
+„Aktualität“ und „Befunde“. Filterwerte, Suchfeld, Leerzustand und Route
+bleiben unverändert; technische Freshness-/Finding-Codes werden nicht als
+UI-Gruppenbezeichnungen verwendet.
