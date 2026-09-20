@@ -63,7 +63,7 @@ public sealed class KnowledgeTreeMoveSmokeTests
             var source = await children.Nth(sourceIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Quellknoten fehlt.");
             var target = await children.Nth(targetIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Zielknoten fehlt.");
 
-            await DispatchDropAsync(page, source, target, position, relativeY);
+            await DragAndDropAsync(page, source, target, position, relativeY);
 
             await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToContainTextAsync("Änderungsversion: 1");
             await Assertions.Expect(page.GetByTestId("tree-move-error")).ToHaveCountAsync(0);
@@ -76,25 +76,24 @@ public sealed class KnowledgeTreeMoveSmokeTests
         }
     }
 
-    private static async Task DispatchDropAsync(IPage page, string source, string target, string position, double relativeY)
+    private static async Task DragAndDropAsync(IPage page, string source, string target, string position, double relativeY)
     {
         var sourceNode = page.GetByTestId($"treeitem-{source}");
         var targetNode = page.GetByTestId($"treeitem-{target}");
+        var sourceBox = await sourceNode.BoundingBoxAsync() ?? throw new InvalidOperationException("Quellknoten ist nicht sichtbar.");
+        var targetBox = await targetNode.BoundingBoxAsync() ?? throw new InvalidOperationException("Zielknoten ist nicht sichtbar.");
+        var sourceX = sourceBox.X + sourceBox.Width / 2;
+        var sourceY = sourceBox.Y + sourceBox.Height / 2;
+        var targetX = targetBox.X + targetBox.Width / 2;
+        var targetY = targetBox.Y + targetBox.Height * (float)relativeY;
 
-        await sourceNode.EvaluateAsync("node => node.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }))");
-        var dragOverScript = """
-            node => {
-            const clientY = node.getBoundingClientRect().top + node.getBoundingClientRect().height * RELATIVE_Y;
-            const dataTransfer = new DataTransfer();
-            node.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer, clientY }));
-            }
-            """.Replace("RELATIVE_Y", relativeY.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
-        await targetNode.EvaluateAsync(dragOverScript);
+        await page.Mouse.MoveAsync(sourceX, sourceY);
+        await page.Mouse.DownAsync();
+        await page.Mouse.MoveAsync(sourceX + 8, sourceY, new() { Steps = 2 });
+        await page.Mouse.MoveAsync(targetX, targetY, new() { Steps = 8 });
         var expectedIndicator = $"is-drop-{position.ToLowerInvariant()}";
         Assert.True(await targetNode.EvaluateAsync<bool>($"node => node.classList.contains('{expectedIndicator}')"));
-
-        var dropScript = dragOverScript.Replace("dragover", "drop", StringComparison.Ordinal);
-        await targetNode.EvaluateAsync(dropScript);
+        await page.Mouse.UpAsync();
     }
 
 }

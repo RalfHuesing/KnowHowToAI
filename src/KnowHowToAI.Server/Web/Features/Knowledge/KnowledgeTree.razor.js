@@ -38,12 +38,26 @@ export function initTreeDragAndDrop(treeElement, dotNetReference) {
 
     let sourceNode = null;
     let dropTarget = null;
+    let pointerStart = null;
+    let pointerDragActive = false;
 
     const clearDragState = () => {
         sourceNode?.classList.remove("is-dragging");
         clearDropIndicator(dropTarget);
         sourceNode = null;
         dropTarget = null;
+        pointerStart = null;
+        pointerDragActive = false;
+    };
+
+    const completeDrop = async (target, clientY) => {
+        if (!sourceNode || !target) return;
+
+        const sourceNodeId = sourceNode.dataset.nodeid;
+        const targetNodeId = target.dataset.nodeid;
+        const position = resolveDropPosition(target, clientY);
+        clearDragState();
+        await dotNetReference.invokeMethodAsync("HandleTreeDropAsync", sourceNodeId, targetNodeId, position);
     };
 
     const handleDragStart = event => {
@@ -80,11 +94,45 @@ export function initTreeDragAndDrop(treeElement, dotNetReference) {
         if (!sourceNode || !target) return;
 
         event.preventDefault();
-        const sourceNodeId = sourceNode.dataset.nodeid;
-        const targetNodeId = target.dataset.nodeid;
-        const position = resolveDropPosition(target, event.clientY);
-        clearDragState();
-        await dotNetReference.invokeMethodAsync("HandleTreeDropAsync", sourceNodeId, targetNodeId, position);
+        await completeDrop(target, event.clientY);
+    };
+
+    const handlePointerDown = event => {
+        if (event.button !== 0 || event.target.closest("button")) return;
+
+        const node = resolveTreeNode(treeElement, event.target);
+        if (!node) return;
+
+        sourceNode = node;
+        pointerStart = { x: event.clientX, y: event.clientY };
+    };
+
+    const handlePointerMove = event => {
+        if (!sourceNode || !pointerStart) return;
+
+        const deltaX = event.clientX - pointerStart.x;
+        const deltaY = event.clientY - pointerStart.y;
+        if (!pointerDragActive && Math.hypot(deltaX, deltaY) < 5) return;
+
+        pointerDragActive = true;
+        sourceNode.classList.add("is-dragging");
+        const target = resolveTreeNode(treeElement, document.elementFromPoint(event.clientX, event.clientY));
+        if (!target) return;
+
+        if (dropTarget !== target) clearDropIndicator(dropTarget);
+        dropTarget = target;
+        setDropIndicator(target, resolveDropPosition(target, event.clientY));
+        event.preventDefault();
+    };
+
+    const handlePointerUp = async event => {
+        if (!pointerDragActive || !dropTarget) {
+            clearDragState();
+            return;
+        }
+
+        event.preventDefault();
+        await completeDrop(dropTarget, event.clientY);
     };
 
     treeElement.addEventListener("dragstart", handleDragStart);
@@ -92,6 +140,10 @@ export function initTreeDragAndDrop(treeElement, dotNetReference) {
     treeElement.addEventListener("dragleave", handleDragLeave);
     treeElement.addEventListener("drop", handleDrop);
     treeElement.addEventListener("dragend", clearDragState);
+    treeElement.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", clearDragState);
     treeElement.__treeDragAndDrop = () => {
         clearDragState();
         treeElement.removeEventListener("dragstart", handleDragStart);
@@ -99,6 +151,10 @@ export function initTreeDragAndDrop(treeElement, dotNetReference) {
         treeElement.removeEventListener("dragleave", handleDragLeave);
         treeElement.removeEventListener("drop", handleDrop);
         treeElement.removeEventListener("dragend", clearDragState);
+        treeElement.removeEventListener("pointerdown", handlePointerDown);
+        window.removeEventListener("pointermove", handlePointerMove);
+        window.removeEventListener("pointerup", handlePointerUp);
+        window.removeEventListener("pointercancel", clearDragState);
         delete treeElement.__treeDragAndDrop;
     };
 }
