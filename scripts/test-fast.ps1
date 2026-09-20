@@ -35,6 +35,7 @@ if (-not (Test-Path $resultsDir)) {
 }
 
 $testProjects = @(
+    'tests/KnowHowToAI.Analyzers.Tests/KnowHowToAI.Analyzers.Tests.csproj',
     'tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj',
     'tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj',
     'tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj'

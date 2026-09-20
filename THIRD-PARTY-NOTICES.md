@@ -1,6 +1,6 @@
 # Fremdkomponenten und Lizenzinventar
 
-Stand: 2026-09-18. Dieses Inventar gehört zur MIT-`LICENSE` im Repository-Root
+Stand: 2026-09-20. Dieses Inventar gehört zur MIT-`LICENSE` im Repository-Root
 (`Copyright (c) 2026 Ralf Hüsing`). Die Lizenzdatei wurde bei dieser Prüfung
 nicht verändert.
 
@@ -67,6 +67,7 @@ Versionen wurden in den Assets exakt aufgelöst; es gibt keine Abweichung.
 | Microsoft.Extensions.Logging, Microsoft.Extensions.Logging.Abstractions | 10.0.10 / 10.0.10 |
 | Dapper | 2.1.66 / 2.1.66 |
 | Microsoft.Data.SqlClient | 6.0.2 / 6.0.2 |
+| Microsoft.CodeAnalysis.CSharp | 4.14.0 / 4.14.0 |
 | Microsoft.Extensions.Configuration, `.Json`, Hosting, Options | 10.0.10 / 10.0.10 |
 | ModelContextProtocol.AspNetCore, ModelContextProtocol, ModelContextProtocol.Core | 2.2.0 / 2.2.0 |
 | Serilog, Serilog.Extensions.Hosting | 4.4.0 / 4.4.0; 9.0.0 / 9.0.0 |
@@ -96,6 +97,9 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | Microsoft.Bcl.AsyncInterfaces 1.1.1 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` unverändert mitführen. |
 | Microsoft.Bcl.AsyncInterfaces 6.0.0 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen; nicht mit dem Server ausliefern. |
 | Microsoft.Bcl.Cryptography 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` unverändert mitführen. |
+| Microsoft.CodeAnalysis.Analyzers 3.11.0 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| Microsoft.CodeAnalysis.Common 4.14.0 | transitiv in Analyzers und Analyzers.Tests; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| Microsoft.CodeAnalysis.CSharp 4.14.0 | direkt in Analyzers und Analyzers.Tests; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | Microsoft.CodeCoverage 18.8.1 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT`; `ThirdPartyNotices.txt` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright und `ThirdPartyNotices.txt` mitführen; nicht mit dem Server ausliefern. |
 | Microsoft.Data.SqlClient 6.0.2 | direkt in Storage; transitiv in Server/Integrationstests; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.Data.SqlClient.SNI.runtime 6.0.2 | transitiv; P | NuGet.org; `.nuspec`: `file: LICENSE.txt`; beigefügte `LICENSE.txt` | Microsoft Software License Terms (kein SPDX-Ausdruck, nicht permissiv) | Nur Objektcode als Teil einer Anwendung verteilen, Endnutzer-/Distributorbedingungen mindestens gleich schützend verlangen, Microsoft freistellen, Marken nicht verwenden, Exportregeln einhalten und Drittanbieterhinweise beachten. Die ausdrückliche Annahme dieser Restriktionen ist unten festgehalten. |
@@ -139,6 +143,7 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | Microsoft.IdentityModel.Protocols.OpenIdConnect 7.5.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.IdentityModel.Tokens 7.5.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.NET.Test.Sdk 18.8.1 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| Microsoft.NETCore.Platforms 1.1.0 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `licenseUrl` auf Microsoft-Lizenz | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | Microsoft.Playwright 1.62.0 | direkt in BrowserTests; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | Microsoft.SqlServer.Server 1.0.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | Microsoft.Testing.Extensions.Telemetry 1.9.1 | transitiv; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
@@ -151,20 +156,29 @@ transitive Restore-Ergebnisse; sie werden nicht als zentrale Vorgabe ausgegeben.
 | ModelContextProtocol.AspNetCore 2.2.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | ModelContextProtocol 2.2.0 | direkt in Integrationstests; transitiv im Server; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | ModelContextProtocol.Core 2.2.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
+| NETStandard.Library 2.0.3 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `licenseUrl` auf .NET-Standard-Lizenz | MIT | Lizenz und .NET-Copyright beilegen; nicht mit dem Server ausliefern. |
 | Serilog 4.4.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | Serilog.Extensions.Hosting 9.0.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | Serilog.Extensions.Logging 9.0.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | Serilog.Sinks.Console 6.1.1 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | Serilog.Sinks.File 7.0.0 | direkt im Server; transitiv in Integrationstests; P | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden. |
 | System.ClientModel 1.0.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
+| System.Buffers 4.5.1 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `licenseUrl` auf CoreFX-Lizenz | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| System.Collections.Immutable 9.0.0 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | System.ComponentModel.Annotations 5.0.0 | transitiv in BrowserTests; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | System.Configuration.ConfigurationManager 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | System.Diagnostics.EventLog 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | System.Diagnostics.EventLog 10.0.10 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | System.IdentityModel.Tokens.Jwt 7.5.0 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
 | System.Memory.Data 1.0.2 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen. |
+| System.Memory 4.5.5 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `licenseUrl` auf CoreFX-Lizenz | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| System.Numerics.Vectors 4.5.0 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `licenseUrl` auf CoreFX-Lizenz | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| System.Reflection.Metadata 9.0.0 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| System.Runtime.CompilerServices.Unsafe 6.0.0 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | System.Security.Cryptography.Pkcs 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
 | System.Security.Cryptography.ProtectedData 9.0.4 | transitiv; P | NuGet.org; `.nuspec`: `expression: MIT`; `LICENSE.TXT`, `THIRD-PARTY-NOTICES.TXT` | MIT plus beigefügte Drittanbieterhinweise | MIT-Lizenz/Copyright sowie `THIRD-PARTY-NOTICES.TXT` mitführen. |
+| System.Text.Encoding.CodePages 7.0.0 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `expression: MIT` | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
+| System.Threading.Tasks.Extensions 4.5.4 | transitiv in Analyzers; D | NuGet.org; `.nuspec`: `licenseUrl` auf CoreFX-Lizenz | MIT | Lizenz und Microsoft-Copyright beilegen; nicht mit dem Server ausliefern. |
 | xunit.runner.visualstudio 3.1.5 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 | xunit.v3.assert 3.2.2 | direkt in allen Testprojekten; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |
 | xunit.v3.common 3.2.2 | transitiv; D | NuGet.org; `.nuspec`: `expression: Apache-2.0` | Apache-2.0 | Lizenz und Copyright beilegen; keine Paket-NOTICE vorhanden; nicht mit dem Server ausliefern. |

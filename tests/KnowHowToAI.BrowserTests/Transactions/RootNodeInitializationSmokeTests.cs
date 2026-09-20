@@ -15,7 +15,7 @@ public sealed class RootNodeInitializationSmokeTests
     }
 
     [Fact]
-    public async Task KnowledgePage_EmptyWorkingTree_CreatesAndSelectsItsInitialRootNode()
+    public async Task KnowledgePage_EmptyWorkingTree_CreatesEditsAndSelectsItsInitialRootNode()
     {
         using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         await using var browser = await ChromeBrowser.LaunchAsync();
@@ -64,6 +64,16 @@ public sealed class RootNodeInitializationSmokeTests
             await Assertions.Expect(root).ToHaveAttributeAsync("aria-selected", "true");
             await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync("Erstes Browser-Wissen");
             await Assertions.Expect(page.GetByTestId("node-details-description")).ToHaveTextAsync("Initial über die Weboberfläche angelegt.");
+
+            await page.GetByTestId("edit-node-metadata").ClickAsync();
+            await page.GetByTestId("node-metadata-title").FillAsync("Aktualisiertes Browser-Wissen");
+            await page.GetByTestId("node-metadata-description").FillAsync("Über die Weboberfläche aktualisiert.");
+            await page.GetByTestId("save-node-metadata").ClickAsync();
+
+            await Assertions.Expect(root).ToContainTextAsync("Aktualisiertes Browser-Wissen");
+            await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync("Aktualisiertes Browser-Wissen");
+            await Assertions.Expect(page.GetByTestId("node-details-description")).ToHaveTextAsync("Über die Weboberfläche aktualisiert.");
+            await Assertions.Expect(page.GetByTestId("edit-node-metadata")).ToBeVisibleAsync();
         }
         finally
         {

@@ -65,11 +65,11 @@ public sealed partial class NodeMetadataEditor
         var result = _mode == EditorMode.Edit
             ? await NodeMutationService.UpdateAsync(
                 TransactionId.Value,
-                new UpdateNodeRequest(new NodeId(Node.NodeId), _title, _description, ExpectedChangeVersion)).ConfigureAwait(false)
+                new UpdateNodeRequest(new NodeId(Node.NodeId), _title, _description, ExpectedChangeVersion))
             : await NodeMutationService.CreateAsync(
                 TransactionId.Value,
                 new CreateNodeRequest(new NodeId(Node.NodeId), _title, _description, int.MaxValue),
-                ExpectedChangeVersion).ConfigureAwait(false);
+                ExpectedChangeVersion);
         _isSubmitting = false;
 
         if (!result.IsSuccess)

@@ -1,12 +1,14 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/KnowHowToAI.Core/KnowHowToAI.Core.csproj" />
+    <Project Path="src/KnowHowToAI.Analyzers/KnowHowToAI.Analyzers.csproj" />
     <Project Path="src/KnowHowToAI.Storage.SqlServer/KnowHowToAI.Storage.SqlServer.csproj" />
     <Project Path="src/KnowHowToAI.Server/KnowHowToAI.Server.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/KnowHowToAI.TestSupport/KnowHowToAI.TestSupport.csproj" />
     <Project Path="tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj" />
+    <Project Path="tests/KnowHowToAI.Analyzers.Tests/KnowHowToAI.Analyzers.Tests.csproj" />
     <Project Path="tests/KnowHowToAI.IntegrationTests/KnowHowToAI.IntegrationTests.csproj" />
     <Project Path="tests/KnowHowToAI.Web.Tests/KnowHowToAI.Web.Tests.csproj" />
     <Project Path="tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj" />

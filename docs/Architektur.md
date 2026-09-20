@@ -65,8 +65,10 @@ Webhost ergänzt.
 
 ## Projekte und Namespaces
 
-Abhängigkeiten laufen ausschließlich `Server -> Core`, `Server ->
-Storage.SqlServer` und `Storage.SqlServer -> Core`.
+Laufzeitabhängigkeiten laufen ausschließlich `Server -> Core`, `Server ->
+Storage.SqlServer` und `Storage.SqlServer -> Core`. Zusätzlich wird
+`KnowHowToAI.Analyzers` ausschließlich beim Build als Analyzer an `Server`
+angebunden; die Assembly ist keine Laufzeitabhängigkeit.
 
 **`KnowHowToAI.Core`**
 
@@ -103,6 +105,13 @@ Storage.SqlServer` und `Storage.SqlServer -> Core`.
 `Repositories.Releases` (unveränderliche Releases),
 `Repositories.Retrieval` (Navigation, Search, Paging, Diff-Abfragen, Dashboard-Reads via `SqlDashboardRepository`),
 `Mapping` (interne Dapper-Zeilenmodelle und explizites Domain-Mapping).
+
+**`KnowHowToAI.Analyzers`**: kleine, frameworkunabhängige Roslyn-Buildregeln.
+`KHTAI001` verhindert in direkt oder indirekt von `ComponentBase` abgeleiteten
+Typen `ConfigureAwait(false)`, `Task.Run`, `TaskFactory.StartNew` und
+`ContinueWith`. Die Regel läuft beim Build von `KnowHowToAI.Server` als
+`Analyzer`-Ausgabe ohne Assemblyreferenz und wird durch echte Roslyn-
+Kompilationen in `KnowHowToAI.Analyzers.Tests` geprüft.
 
 **`KnowHowToAI.Server`**: `Configuration` (bindbare Options, zentrale
 Validatoren, Redaction), `Hosting` (Composition Root, DI, Kestrel-Start,
@@ -145,6 +154,13 @@ Mapper (`KnowledgeNavigationMapper`, `RoleMapper`, `SearchMapper`,
 `HistoryMapper`) in unveränderliche UI-ViewModels überführt. Fehlercodes,
 Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
 erhalten; Domain-Typen erscheinen nicht im Rendering.
+
+Zustandsbehaftete Razor-Komponenten besitzen zugleich die Circuit- und
+Renderergrenze: Lifecycle-, UI- und Interop-Methoden behalten nach eigenen
+asynchronen Aufrufen den Dispatcher durch normales `await`. Fremdausgelöste
+State- oder Host-Benachrichtigungen reihen Änderungen und Rendering über
+`InvokeAsync` beim Circuit-Dispatcher ein. Der Build erzwingt diese Grenze mit
+`KHTAI001`; Circuit-State- und Feature-Services bleiben dabei rendererfrei.
 
 `Web.Features.History` stellt unter `/history` getrennte paginierte Listen für
 committed Snapshots und Releases bereit. Snapshot-Zeilen zeigen neben Zeit und

@@ -7,6 +7,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\KnowHowToAI.Analyzers\KnowHowToAI.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\KnowHowToAI.Core\KnowHowToAI.Core.csproj" />
     <ProjectReference Include="..\KnowHowToAI.Storage.SqlServer\KnowHowToAI.Storage.SqlServer.csproj" />
   </ItemGroup>

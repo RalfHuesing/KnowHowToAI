@@ -39,7 +39,7 @@ public sealed partial class NodeDeletionEditor
     {
         _isLoading = true;
         _errorMessage = null;
-        var result = await PreviewService.PreviewAsync(TransactionId, new NodeId(Node.NodeId)).ConfigureAwait(false);
+        var result = await PreviewService.PreviewAsync(TransactionId, new NodeId(Node.NodeId));
         _isLoading = false;
 
         if (!result.IsSuccess)

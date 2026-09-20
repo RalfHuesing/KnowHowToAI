@@ -11,12 +11,18 @@ Dieses Dokument definiert die Zielstruktur für alle Webfrontend-Roadmap-Tasks. 
 
 ## Projektgraph
 
-Es entstehen keine zusätzlichen Produktionsprojekte für Web, MCP, PDF oder Assets.
+Es entstehen keine zusätzlichen Laufzeitprojekte für Web, MCP, PDF oder Assets.
+Für build-only Roslyn-Regeln ist ausschließlich `KnowHowToAI.Analyzers`
+zulässig; es wird als Analyzer an den Server angebunden und nicht als
+Laufzeitabhängigkeit referenziert.
 
 ```text
 KnowHowToAI.Server
   ├─> KnowHowToAI.Core
   └─> KnowHowToAI.Storage.SqlServer
+
+KnowHowToAI.Analyzers
+  └─> (Build-Analyzer für KnowHowToAI.Server)
 
 KnowHowToAI.Storage.SqlServer
   └─> KnowHowToAI.Core
@@ -37,11 +43,13 @@ THIRD-PARTY-NOTICES.md
 
 src/
 ├─ KnowHowToAI.Core/
+├─ KnowHowToAI.Analyzers/
 ├─ KnowHowToAI.Storage.SqlServer/
 └─ KnowHowToAI.Server/
 
 tests/
 ├─ KnowHowToAI.Core.Tests/
+├─ KnowHowToAI.Analyzers.Tests/
 ├─ KnowHowToAI.IntegrationTests/
 ├─ KnowHowToAI.Web.Tests/
 └─ KnowHowToAI.BrowserTests/
@@ -54,14 +62,16 @@ tests/
 | Projekt | Verantwortung |
 |---|---|
 | `KnowHowToAI.Core` | Domain, transportneutrale Use Cases, Ports und fachliche Ergebnisse |
+| `KnowHowToAI.Analyzers` | build-only Roslyn-Regeln ohne Produktlaufzeitabhängigkeit |
 | `KnowHowToAI.Storage.SqlServer` | SQL-Verbindungen, Migrationen, Repositories und SQL-Mapping |
 | `KnowHowToAI.Server` | Composition Root, Konfiguration, gemeinsamer Kestrel-Host, MCP-Streamable-HTTP-, Blazor-, PDF- und Browser-Endpunkt-Adapter |
 | `KnowHowToAI.Core.Tests` | schnelle Domain- und Application-Tests |
+| `KnowHowToAI.Analyzers.Tests` | schnelle Roslyn-Kompilationstests für Buildregeln |
 | `KnowHowToAI.IntegrationTests` | SQL-, Host-, MCP-, PDF-Prozess- und HTTP-Grenztests |
 | `KnowHowToAI.Web.Tests` | schnelle Razor-Komponenten- und Circuit-State-Tests mit bUnit und xUnit v3 |
 | `KnowHowToAI.BrowserTests` | vollständige Browserabläufe mit Microsoft.Playwright .NET gegen einen real gestarteten Server und Google Chrome Stable |
 
-`KnowHowToAI.Web.Tests` und `KnowHowToAI.BrowserTests` sind Zielprojekte ab M1.2 und existieren vorher noch nicht. Beim Anlegen werden sie in `KnowHowToAI.slnx` und das jeweils zuständige zentrale Testskript aufgenommen; ihre Paketversionen werden in `Directory.Packages.props` verwaltet. `KnowHowToAI.Web.Tests` läuft im FastTest-Gate; `KnowHowToAI.BrowserTests` läuft im Integrationstest-Gate.
+`KnowHowToAI.Web.Tests` und `KnowHowToAI.BrowserTests` sind Zielprojekte ab M1.2 und existieren vorher noch nicht. Beim Anlegen werden sie in `KnowHowToAI.slnx` und das jeweils zuständige zentrale Testskript aufgenommen; ihre Paketversionen werden in `Directory.Packages.props` verwaltet. `KnowHowToAI.Analyzers.Tests` und `KnowHowToAI.Web.Tests` laufen im FastTest-Gate; `KnowHowToAI.BrowserTests` läuft im Integrationstest-Gate.
 
 - `KnowHowToAI.Web.Tests` referenziert `KnowHowToAI.Server` und `KnowHowToAI.Core`.
 - `KnowHowToAI.BrowserTests` behandelt den gebauten Server als Black Box und referenziert kein Produktionsprojekt. Der Testhost startet die veröffentlichte Server-EXE mit der dedizierten, manuell bereitgestellten `BrowserTestDatabaseConnection` aus der einzigen versionierten `appsettings.json`: Er übergibt sie prozesslokal als Environment-Overrides auf die normale `DatabaseConnection`, setzt `Migrations:ApplyOnStartup=true` per Kommandozeile und schreibt keine Zugangsdaten in Prozessargumente oder Diagnosen. Es gibt keine zweite produktive Appsettings-Datei und der Harness erstellt oder entfernt nie Datenbanken.
