@@ -9,7 +9,9 @@ using KnowHowToAI.Server.Web.Features.Content;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 
 namespace KnowHowToAI.Web.Tests.Features.Content;
 
@@ -23,16 +25,10 @@ public sealed class ContentEditorTests : BunitContext
     private static readonly ContentRevisionId ExistingRevisionId = new(Guid.Parse("96d88df5-44d5-4db6-98ba-59a0bb5a76f5"));
     private static readonly ContentRevisionId NewRevisionId = new(Guid.Parse("e2ad713e-dcb6-41b5-aea6-69ddcbde3d1b"));
 
-    public ContentEditorTests()
-    {
-        var module = JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js");
-        module.Mode = JSRuntimeMode.Loose;
-        module.Setup<string>("readMarkdown", _ => true).SetResult("Neuer Inhalt");
-    }
-
     [Fact]
     public async Task SaveReadsMarkdownThroughInteropAndClearsDirtyAfterAcceptedMutation()
     {
+        ConfigureLooseModule();
         var repository = AddServices();
         var workspace = Services.GetRequiredService<WorkspaceState>();
         ContentMutationUseCaseResult? mutation = null;
@@ -57,6 +53,7 @@ public sealed class ContentEditorTests : BunitContext
     [Fact]
     public async Task SaveKeepsDirtyStateAndEditorValueWhenServerRejectsMutation()
     {
+        ConfigureLooseModule();
         var repository = AddServices();
         repository.Rejection = new DomainError("ChangeVersionConflict", "Die Version ist veraltet.");
         var workspace = Services.GetRequiredService<WorkspaceState>();
@@ -73,6 +70,61 @@ public sealed class ContentEditorTests : BunitContext
         Assert.True(workspace.IsDirty);
         Assert.Contains("ChangeVersionConflict", cut.Markup, StringComparison.Ordinal);
         Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
+    }
+
+    [Fact]
+    public async Task ParameterChange_DisposesBeforeRemountingEditor()
+    {
+        var module = JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js");
+        module.Mode = JSRuntimeMode.Strict;
+        var callOrder = new List<string>();
+        module.SetupVoid("mount", _ =>
+        {
+            callOrder.Add("mount");
+            return true;
+        }).SetVoidResult();
+        module.SetupVoid("dispose", _ =>
+        {
+            callOrder.Add("dispose");
+            return true;
+        }).SetVoidResult();
+        Services.AddSingleton(new WorkspaceState());
+
+        var cut = Render<ContentEditorHost>(parameters => parameters
+            .Add(host => host.NodeId, NodeId.Value)
+            .Add(host => host.RoleId, RoleId.Value)
+            .Add(host => host.Markdown, "Erster Stand"));
+
+        cut.WaitForAssertion(() => Assert.Single(module.Invocations["mount"]));
+        await cut.InvokeAsync(() => Task.CompletedTask);
+        await cut.InvokeAsync(() => cut.Instance.SetMarkdown("Zweiter Stand"));
+
+        cut.WaitForAssertion(() => Assert.Equal(2, module.Invocations["mount"].Count));
+        Assert.Equal(
+            ["mount", "dispose", "mount"],
+            callOrder);
+    }
+
+    [Fact]
+    public async Task DisconnectedMountLeavesDirtyStateUntilExplicitDispose()
+    {
+        var module = JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js");
+        module.Mode = JSRuntimeMode.Strict;
+        module.SetupVoid("mount", _ => true).SetException(new JSDisconnectedException("Circuit geschlossen"));
+        module.SetupVoid("dispose", _ => true).SetVoidResult();
+        Services.AddSingleton(new WorkspaceState());
+        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var cut = Render<ContentEditor>(parameters => parameters
+            .Add(editor => editor.NodeId, NodeId.Value)
+            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.Markdown, "Ungespeichert"));
+
+        workspace.SetDirty(true);
+        cut.Render(parameters => parameters.Add(editor => editor.Markdown, "Reconnect"));
+
+        Assert.True(workspace.IsDirty);
+        await cut.Instance.DisposeAsync();
+        Assert.False(workspace.IsDirty);
     }
 
     private InMemoryContentMutationRepository AddServices()
@@ -98,5 +150,35 @@ public sealed class ContentEditorTests : BunitContext
                 PossibleEmbeddedHeadingWarning = true
             }));
         return repository;
+    }
+
+    private void ConfigureLooseModule()
+    {
+        var module = JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js");
+        module.Mode = JSRuntimeMode.Loose;
+        module.Setup<string>("readMarkdown", _ => true).SetResult("Neuer Inhalt");
+    }
+
+    private sealed class ContentEditorHost : ComponentBase
+    {
+        [Parameter] public Guid NodeId { get; set; }
+        [Parameter] public string RoleId { get; set; } = string.Empty;
+        [Parameter] public string Markdown { get; set; } = string.Empty;
+
+        public void SetMarkdown(string markdown)
+        {
+            Markdown = markdown;
+            StateHasChanged();
+        }
+
+        protected override void BuildRenderTree(RenderTreeBuilder builder)
+        {
+            builder.OpenComponent<ContentEditor>(0);
+            builder.AddAttribute(1, nameof(ContentEditor.NodeId), NodeId);
+            builder.AddAttribute(2, nameof(ContentEditor.RoleId), RoleId);
+            builder.AddAttribute(3, nameof(ContentEditor.Markdown), Markdown);
+            builder.AddAttribute(4, nameof(ContentEditor.IsReadOnly), false);
+            builder.CloseComponent();
+        }
     }
 }

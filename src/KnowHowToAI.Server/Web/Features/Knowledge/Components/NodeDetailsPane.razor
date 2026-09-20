@@ -8,12 +8,12 @@
                  ErrorMessage="@_errorMessage"
                  NodeNotFound="@_nodeNotFound"
                  ShowContent="@ShowReadOnlyContent" />
-    @if (_viewModel is not null && TransactionId.HasValue && _viewModel.Availability is "Explicit")
+    @if (CanEditContent)
     {
-        <ContentEditor NodeId="@_viewModel.NodeId"
+        <ContentEditor NodeId="@_viewModel!.NodeId"
                        RoleId="@_viewModel.RequestedRoleId"
                        Markdown="@_viewModel.ContentMd"
-                       IsReadOnly="@(!TransactionId.HasValue || _viewModel.Availability is not "Explicit")"
+                       IsReadOnly="false"
                        TransactionId="@TransactionId"
                        ExpectedChangeVersion="@ChangeVersion"
                        OnMutationSucceeded="HandleContentMutationSucceededAsync" />

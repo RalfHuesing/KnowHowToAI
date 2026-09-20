@@ -144,6 +144,12 @@ pwsh -NoProfile -File scripts/test-integration.ps1                # Category=Int
 pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'Category=ManualDatabaseIntegration'
 ```
 
+Das FastTest-Skript stellt zusätzlich die lokale Frontend-Toolchain per
+`npm ci --ignore-scripts` wieder her und führt `npm test` (Vitest) vor den
+.NET-Testprojekten aus. Damit werden die zustandsbehaftete Crepe-Instanzablage,
+Callback-Weitergabe und der idempotente Dispose-Adapter bei jedem FastTest-Gate
+geprüft.
+
 - Integrationstests mit echtem SQL Server (Kategorie `ManualDatabaseIntegration`)
   laufen gegen die manuell bereitgestellte, konfigurierte Datenbank; der Harness
   erzeugt oder entfernt keine Datenbanken. Fehlende SQL-Voraussetzungen sind ein

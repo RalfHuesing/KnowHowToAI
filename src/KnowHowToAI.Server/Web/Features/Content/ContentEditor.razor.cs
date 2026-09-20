@@ -52,6 +52,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private string? _errorMessage;
     private bool _isSaving;
     private bool _mountRequested = true;
+    private bool _mountInProgress;
     private bool _isDisposed;
 
     protected override void OnParametersSet()
@@ -65,27 +66,40 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_isDisposed || !_mountRequested)
+        if (_isDisposed || !_mountRequested || _mountInProgress)
             return;
 
-        _mountRequested = false;
-        await DisposeEditorAsync();
-
+        _mountInProgress = true;
         try
         {
-            _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
-            _selfReference ??= DotNetObjectReference.Create(this);
-            await _module.InvokeVoidAsync(
-                "mount",
-                _editorElement,
-                Markdown ?? string.Empty,
-                _selfReference,
-                IsReadOnly);
-            _mountedRequest = (NodeId, RoleId, Markdown ?? string.Empty, IsReadOnly);
+            do
+            {
+                _mountRequested = false;
+                await DisposeEditorAsync();
+
+                try
+                {
+                    _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+                    _selfReference ??= DotNetObjectReference.Create(this);
+                    await _module.InvokeVoidAsync(
+                        "mount",
+                        _editorElement,
+                        Markdown ?? string.Empty,
+                        _selfReference,
+                        IsReadOnly);
+                    _mountedRequest = (NodeId, RoleId, Markdown ?? string.Empty, IsReadOnly);
+                }
+                catch (JSDisconnectedException)
+                {
+                    _mountRequested = true;
+                    break;
+                }
+            }
+            while (_mountRequested && !_isDisposed);
         }
-        catch (JSDisconnectedException)
+        finally
         {
-            _mountRequested = true;
+            _mountInProgress = false;
         }
     }
 

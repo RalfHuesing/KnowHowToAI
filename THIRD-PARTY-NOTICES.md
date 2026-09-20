@@ -211,16 +211,17 @@ Es wurden keinerlei Paketversionen geändert.
 
 Der Restore wurde am 2026-09-20 mit `npm ci --ignore-scripts` aus
 `src/KnowHowToAI.Server/Frontend/package-lock.json` gegen die öffentliche
-npm-Registry ausgeführt. Das Lockfile enthält 236 `node_modules/*`-Einträge:
-211 davon werden auf Windows installiert (direkt: `@milkdown/crepe 7.22.1`,
-`esbuild 0.28.2`; alle übrigen Pakete transitiv), 25 sind optionale
-esbuild-Plattformpakete für andere Betriebssysteme/Architekturen und werden
-auf Windows nicht installiert. Die folgende Inventarliste wurde aus den jeweils
+npm-Registry ausgeführt. Das Lockfile enthält 294 `node_modules/*`-Einträge:
+244 davon werden auf Windows installiert (direkt: `@milkdown/crepe 7.22.1`,
+`esbuild 0.28.2` und der ausschließlich für Tests verwendete `vitest 5.0.1`;
+alle übrigen Pakete transitiv), 50 sind optionale Plattformpakete für andere
+Betriebssysteme/Architekturen und werden auf Windows nicht installiert. Die
+folgende Inventarliste wurde aus den jeweils
 installierten `package.json` und den Paketdateien unter `node_modules`
 ermittelt; sie ist absichtlich nach SPDX-Lizenz gruppiert und enthält jede
 aufgelöste Name-/Versions-Kombination:
 
-### MIT (232 Lockfile-Einträge; 207 installiert + 25 optional)
+### MIT (275 Lockfile-Einträge)
 
 | Paket und Version | Paket-Lizenzdatei/NOTICE |
 |---|---|
@@ -232,33 +233,38 @@ aufgelöste Name-/Versions-Kombination:
 | `micromark 4.0.2`; `micromark-core-commonmark 2.0.3`; `micromark-extension-gfm 3.0.0`; `micromark-extension-gfm-autolink-literal 2.1.0`; `micromark-extension-gfm-footnote 2.1.0`; `micromark-extension-gfm-strikethrough 2.1.0`; `micromark-extension-gfm-table 2.1.2`; `micromark-extension-gfm-tagfilter 2.0.0`; `micromark-extension-gfm-task-list-item 2.1.0`; `micromark-extension-math 3.1.0`; `micromark-factory-destination 2.0.1`; `micromark-factory-label 2.0.1`; `micromark-factory-space 2.0.1`; `micromark-factory-title 2.0.1`; `micromark-factory-whitespace 2.0.1`; `micromark-util-character 2.1.1`; `micromark-util-chunked 2.0.1`; `micromark-util-classify-character 2.0.1`; `micromark-util-combine-extensions 2.0.1`; `micromark-util-decode-numeric-character-reference 2.0.2`; `micromark-util-decode-string 2.0.1`; `micromark-util-encode 2.0.1`; `micromark-util-html-tag-name 2.0.1`; `micromark-util-normalize-identifier 2.0.1`; `micromark-util-resolve-all 2.0.1`; `micromark-util-sanitize-uri 2.0.1`; `micromark-util-subtokenize 2.1.0`; `micromark-util-symbol 2.0.1`; `micromark-util-types 2.0.2`; `ms 2.1.3`; `nanoid 3.3.19`; `nanoid 6.0.1`; `orderedmap 2.1.1`; `postcss 8.5.28` | Jeweilige `license`/`LICENSE`-Datei; `ms` liefert `license.md`; keine zusätzliche NOTICE-Datei. |
 | `prosemirror-changeset 2.4.3`; `prosemirror-commands 1.7.2`; `prosemirror-drop-indicator 0.1.4`; `prosemirror-dropcursor 1.8.3`; `prosemirror-gapcursor 1.4.1`; `prosemirror-history 1.5.0`; `prosemirror-inputrules 1.5.1`; `prosemirror-keymap 1.2.3`; `prosemirror-model 1.25.11`; `prosemirror-safari-ime-span 1.0.2`; `prosemirror-schema-list 1.5.1`; `prosemirror-state 1.4.4`; `prosemirror-tables 1.8.5`; `prosemirror-transform 1.12.1`; `prosemirror-view 1.42.4`; `prosemirror-virtual-cursor 0.4.2`; `remark 15.0.1`; `remark-gfm 4.0.1`; `remark-inline-links 7.0.0`; `remark-math 6.0.0`; `remark-parse 11.0.0`; `remark-stringify 11.0.0`; `rope-sequence 1.3.4`; `style-mod 4.1.4`; `trough 2.2.0`; `unified 11.0.5`; `unist-util-is 6.0.1`; `unist-util-remove-position 5.0.0`; `unist-util-stringify-position 4.0.0`; `unist-util-visit 5.1.0`; `unist-util-visit-parents 6.0.2`; `vfile 6.0.3`; `vfile-message 4.0.3`; `vue 3.5.43`; `w3c-keyname 2.2.8`; `zwitch 2.0.4` | Jeweilige `LICENSE`/`license`-Datei; `remark-math` enthält keinen separaten Dateinamen; keine zusätzliche NOTICE-Datei. |
 
-### Optionale esbuild-Plattformpakete im Lockfile (25, nicht auf Windows installiert)
+| `@jridgewell/resolve-uri 3.1.2`; `@jridgewell/trace-mapping 0.3.31`; `@oxc-project/types 0.150.0`; `@rolldown/binding-win32-x64-msvc 1.2.9`; `@rolldown/pluginutils 1.0.1`; `@types/chai 5.2.3`; `@types/deep-eql 4.0.2`; `@types/estree 1.0.9`; `@vitest/mocker 5.0.1`; `@vitest/mocker`-transitives `estree-walker 3.0.3` und `magic-string 1.4.1`; `@vitest/spy 5.0.1`; `assertion-error 2.0.1`; `chai 6.2.2`; `es-module-lexer 2.3.2`; `fdir 6.5.0`; `obug 2.2.1`; `picomatch 4.0.7`; `rolldown 1.2.9`; `stackback 0.0.2`; `std-env 4.2.0`; `tinybench 6.1.4`; `tinyexec 1.3.0`; `tinyglobby 0.2.17`; `vite 8.3.0`; `vitest 5.0.1`; `vitest`-transitives `magic-string 1.4.1`; `why-is-node-running 2.3.0` | Jeweilige `LICENSE`/`license`-Datei; keine zusätzliche NOTICE-Datei. Ausschließlich Dev-/Testumfang, wird weder gebündelt noch ausgeliefert. |
+
+### Optionale esbuild- und Vitest-Plattformpakete im Lockfile (50, nicht auf Windows installiert)
 
 | Paket und Version | Lizenz-/NOTICE-Einordnung |
 |---|---|
-| `@esbuild/aix-ppc64 0.28.2`; `@esbuild/android-arm 0.28.2`; `@esbuild/android-arm64 0.28.2`; `@esbuild/android-x64 0.28.2`; `@esbuild/darwin-arm64 0.28.2`; `@esbuild/darwin-x64 0.28.2`; `@esbuild/freebsd-arm64 0.28.2`; `@esbuild/freebsd-x64 0.28.2`; `@esbuild/linux-arm 0.28.2`; `@esbuild/linux-arm64 0.28.2`; `@esbuild/linux-ia32 0.28.2`; `@esbuild/linux-loong64 0.28.2`; `@esbuild/linux-mips64el 0.28.2`; `@esbuild/linux-ppc64 0.28.2`; `@esbuild/linux-riscv64 0.28.2`; `@esbuild/linux-s390x 0.28.2`; `@esbuild/linux-x64 0.28.2`; `@esbuild/netbsd-arm64 0.28.2`; `@esbuild/netbsd-x64 0.28.2`; `@esbuild/openbsd-arm64 0.28.2`; `@esbuild/openbsd-x64 0.28.2`; `@esbuild/openharmony-arm64 0.28.2`; `@esbuild/sunos-x64 0.28.2`; `@esbuild/win32-arm64 0.28.2`; `@esbuild/win32-ia32 0.28.2` | Alle `MIT` laut Lockfile; optionale Plattformpakete enthalten keinen separaten NOTICE-Text. Sie sind für die vollständige Lockfile-Inventur erfasst, werden aber nicht als Windows-Produktdateien verteilt. |
+| `@esbuild/aix-ppc64 0.28.2`; `@esbuild/android-arm 0.28.2`; `@esbuild/android-arm64 0.28.2`; `@esbuild/android-x64 0.28.2`; `@esbuild/darwin-arm64 0.28.2`; `@esbuild/darwin-x64 0.28.2`; `@esbuild/freebsd-arm64 0.28.2`; `@esbuild/freebsd-x64 0.28.2`; `@esbuild/linux-arm 0.28.2`; `@esbuild/linux-arm64 0.28.2`; `@esbuild/linux-ia32 0.28.2`; `@esbuild/linux-loong64 0.28.2`; `@esbuild/linux-mips64el 0.28.2`; `@esbuild/linux-ppc64 0.28.2`; `@esbuild/linux-riscv64 0.28.2`; `@esbuild/linux-s390x 0.28.2`; `@esbuild/linux-x64 0.28.2`; `@esbuild/netbsd-arm64 0.28.2`; `@esbuild/netbsd-x64 0.28.2`; `@esbuild/openbsd-arm64 0.28.2`; `@esbuild/openbsd-x64 0.28.2`; `@esbuild/openharmony-arm64 0.28.2`; `@esbuild/sunos-x64 0.28.2`; `@esbuild/win32-arm64 0.28.2`; `@esbuild/win32-ia32 0.28.2`; `@esbuild/win32-x64 0.28.2`; `@rolldown/binding-android-arm-eabi 1.2.9`; `@rolldown/binding-android-arm64 1.2.9`; `@rolldown/binding-darwin-arm64 1.2.9`; `@rolldown/binding-darwin-x64 1.2.9`; `@rolldown/binding-freebsd-x64 1.2.9`; `@rolldown/binding-linux-arm-gnueabihf 1.2.9`; `@rolldown/binding-linux-arm64-gnu 1.2.9`; `@rolldown/binding-linux-arm64-musl 1.2.9`; `@rolldown/binding-linux-ppc64-gnu 1.2.9`; `@rolldown/binding-linux-s390x-gnu 1.2.9`; `@rolldown/binding-linux-x64-gnu 1.2.9`; `@rolldown/binding-linux-x64-musl 1.2.9`; `@rolldown/binding-openharmony-arm64 1.2.9`; `@rolldown/binding-win32-arm64-msvc 1.2.9`; `@rolldown/binding-win32-x64-msvc 1.2.9`; `@types/trusted-types 2.0.7`; `fsevents 2.3.3`; `lightningcss-android-arm64 1.33.0`; `lightningcss-darwin-arm64 1.33.0`; `lightningcss-darwin-x64 1.33.0`; `lightningcss-freebsd-x64 1.33.0`; `lightningcss-linux-arm-gnueabihf 1.33.0`; `lightningcss-linux-arm64-gnu 1.33.0`; `lightningcss-linux-arm64-musl 1.33.0`; `lightningcss-linux-x64-gnu 1.33.0`; `lightningcss-linux-x64-musl 1.33.0`; `lightningcss-win32-arm64-msvc 1.33.0`; `lightningcss-win32-x64-msvc 1.33.0` | Lizenzen gemäß Lockfile (MIT bzw. MPL-2.0); keine zusätzliche NOTICE-Datei. Für die vollständige Lockfile-Inventur erfasst, aber nicht als Windows-Produktdateien installiert oder verteilt. |
 
 ### Weitere SPDX-Lizenzen
 
 | Lizenz | Paket und Version | Paket-Lizenzdatei/NOTICE und Einordnung |
 |---|---|---|
 | `(MPL-2.0 OR Apache-2.0)` | `dompurify 3.4.15` | `LICENSE` und `LICENSE-MPL`; für die Distribution wird die Apache-2.0-Option verwendet, keine zusätzliche NOTICE-Datei. |
+| `Apache-2.0` | `detect-libc 2.1.2`; `expect-type 1.4.0` | Jeweilige `LICENSE`; ausschließlich Vitest-Dev-/Testtransitive, keine zusätzliche NOTICE-Datei und keine Serverdistribution. |
+| `MPL-2.0` | `lightningcss 1.33.0` sowie die im Lockfile erfassten `lightningcss-*`-Plattformpakete | Jeweilige `LICENSE`; ausschließlich Vitest-Dev-/Testtransitive, keine zusätzliche NOTICE-Datei und keine Serverdistribution. |
 | `BSD-2-Clause` | `entities 7.0.1` | `LICENSE`; BSD-2-Clause ist mit MIT kompatibel, Lizenztext/Copyright bleibt beizulegen. |
-| `ISC` | `picocolors 1.1.1` | `LICENSE`; ISC ist mit MIT kompatibel, Lizenztext/Copyright bleibt beizulegen. |
+| `ISC` | `picocolors 1.1.1`; `siginfo 2.0.0` | `LICENSE`; ISC ist mit MIT kompatibel, Lizenztext/Copyright bleibt beizulegen. |
 | `BSD-3-Clause` | `source-map-js 1.2.1` | `LICENSE`; BSD-3-Clause ist mit MIT kompatibel, Lizenztext/Copyright bleibt beizulegen. |
 
-Alle 236 Lockfile-Einträge verwenden damit MIT, Apache-2.0 (als zulässige Option
-bei DOMPurify), BSD-2-Clause, BSD-3-Clause oder ISC. Keine Paketversion bringt
-eine zusätzliche `NOTICE`-Datei mit; die vorhandenen Paket-Lizenzdateien und
+Alle 294 Lockfile-Einträge verwenden damit MIT, Apache-2.0, MPL-2.0,
+BSD-2-Clause, BSD-3-Clause oder ISC. Die MPL-2.0-Pakete stammen ausschließlich
+aus der nicht ausgelieferten Vitest-Toolchain; keine Paketversion bringt eine
+zusätzliche `NOTICE`-Datei mit. Die vorhandenen Paket-Lizenzdateien und
 Copyright-Hinweise sind bei einer Distribution neben diesem Inventar
 beizulegen. Es wurde keine kostenpflichtige, GPL-/LGPL- oder sonstige nicht
-kompatible Lizenz aufgenommen. Der esbuild-Build läuft ausschließlich lokal;
+akzeptierte Lizenz aufgenommen. Der esbuild-Build läuft ausschließlich lokal;
 die resultierende Datei wird selbst gehostet und enthält keinen CDN- oder
 Runtime-Download.
 
 Die Zählung ist reproduzierbar, ohne ein zusätzliches Repository-Skript zu
-benötigen: `node -e "const fs=require('fs');const l=JSON.parse(fs.readFileSync('src/KnowHowToAI.Server/Frontend/package-lock.json'));const p=Object.keys(l.packages).filter(x=>x.startsWith('node_modules/'));console.log({lockfileEntries:p.length, optionalEsbuild:p.filter(x=>x.startsWith('node_modules/@esbuild/')&&!x.endsWith('win32-x64')).length});"` ergibt
-`{ lockfileEntries: 236, optionalEsbuild: 25 }`. Der anschließende
-`npm ci --ignore-scripts`-Restore auf Windows ergibt 211 installierte
+benötigen: `node -e "const fs=require('fs');const l=JSON.parse(fs.readFileSync('src/KnowHowToAI.Server/Frontend/package-lock.json'));const p=Object.keys(l.packages).filter(x=>x.startsWith('node_modules/'));console.log({lockfileEntries:p.length, optional:p.filter(x=>l.packages[x].optional).length});"` ergibt
+`{ lockfileEntries: 294, optional: 54 }`. Der anschließende
+`npm ci --ignore-scripts`-Restore auf Windows ergibt 244 installierte
 `node_modules`-Einträge; die Differenz besteht ausschließlich aus den oben
 aufgeführten optionalen Plattformpaketen.

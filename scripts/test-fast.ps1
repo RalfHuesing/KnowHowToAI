@@ -34,6 +34,24 @@ if (-not (Test-Path $resultsDir)) {
     New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 }
 
+$frontendDirectory = Join-Path $repoRoot 'src/KnowHowToAI.Server/Frontend'
+Write-Host '[INFO] FrontendTests -> npm test' -ForegroundColor Cyan
+Push-Location $frontendDirectory
+try {
+    & npm ci --ignore-scripts
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+
+    & npm test
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+}
+finally {
+    Pop-Location
+}
+
 $testProjects = @(
     'tests/KnowHowToAI.Analyzers.Tests/KnowHowToAI.Analyzers.Tests.csproj',
     'tests/KnowHowToAI.Core.Tests/KnowHowToAI.Core.Tests.csproj',

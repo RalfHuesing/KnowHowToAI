@@ -50,8 +50,13 @@ public sealed partial class NodeDetailsPane
     private bool _isLoading;
     private (Guid? NodeId, ReadContext? ReadContext, string? RoleId, long? ChangeVersion)? _loadedRequest;
 
-    private bool ShowReadOnlyContent =>
-        _viewModel is null || !TransactionId.HasValue || _viewModel.Availability != "Explicit";
+    private bool CanEditContent =>
+        _viewModel is not null
+        && TransactionId.HasValue
+        && _viewModel.Availability == "Explicit"
+        && _viewModel.ContentMode == "Independent";
+
+    private bool ShowReadOnlyContent => !CanEditContent;
 
     protected override async Task OnParametersSetAsync()
     {

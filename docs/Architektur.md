@@ -216,8 +216,9 @@ konfliktbehaftete Transaction nicht implizit.
 
 Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
-verwendete `package-lock.json` verwalten `@milkdown/crepe` sowie den
-Build-only-Compiler `esbuild`; `Web/Features/Content/content-editor.js` stellt
+verwendete `package-lock.json` verwalten `@milkdown/crepe`, den Build-only-
+Compiler `esbuild` sowie den Dev-Testläufer `vitest`;
+`Web/Features/Content/content-editor.js` stellt
 den Crepe-Konstruktor und die begrenzte Toolbar-Konfiguration bereit. `build.mjs`
 löscht den vorherigen Stand und erzeugt deterministisch
 `wwwroot/generated/content-editor/content-editor.js`.
@@ -228,11 +229,17 @@ sind `mount`, `readMarkdown`, `focus` und `dispose`. `mount` registriert nur
 Änderungs-/Fokus-Callbacks, aktiviert die erlaubten Crepe-Formate und deaktiviert
 Top-Bar, Headings, Latex, Upload/ImageBlock und AI. Der Editor wird vor
 Nodewechsel oder erneutem Mount disposed; persistiert wird ausschließlich der
-beim expliziten Speichern gelesene kanonische Markdown. Der Output wird als
+beim expliziten Speichern gelesene kanonische Markdown eines expliziten
+`Independent`-Contents in einer Working-Transaction; `Derived`-Content bleibt
+bis M5.4 sichtbar read-only. Der Output wird als
 Static Web Asset veröffentlicht, während `Frontend/node_modules` und
 `wwwroot/generated` nicht versioniert werden. Node/npm werden ausschließlich
 beim Build/Publish benötigt; der Server lädt weder zur Laufzeit noch über CDN
-weitere Assets.
+weitere Assets. `scripts/test-fast.ps1` führt die Vitest-Suite vor den
+.NET-FastTests aus; sie prüft die eigene WeakMap-Instanzverwaltung, die
+Callbackweitergabe und die Reihenfolge von Dispose/Remount. Vitest ist hier
+erforderlich, weil der Adapter über reine Aufrufe hinaus Lifecyclezustand und
+idempotente Fehlpfade besitzt.
 Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
 den Kontextbereich auf den Current-Read-Context, navigiert zum Wissensbaum
 unter Erhalt der Rolle und bestätigt den Abschluss über die globale
