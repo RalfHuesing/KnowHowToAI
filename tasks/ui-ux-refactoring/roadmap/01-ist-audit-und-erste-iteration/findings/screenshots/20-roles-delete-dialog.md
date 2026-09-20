@@ -44,3 +44,7 @@ M1.2-T1, bestehender Rollen-/Dialog-/Keyboard-Vertrag, Working-Transaction-Lifec
 ## M1.2-Nachweis
 
 Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/20_roles_delete-dialog_desktop_1280x800.png` prüft den vorhandenen Bestätigungstext und die primäre Löschaktion, scrollt den Bestätigungsbereich in den Viewport und setzt den Fokus auf die vorhandene Bestätigungsaktion. Das Bild zeigt den bestehenden Dialog vollständig; die ursprüngliche Audit-Lücke ist für den Runner geschlossen.
+
+## M1.3-Bestätigung
+
+Der grüne manuelle Re-Audit-Lauf `temp/ui-audit/2026-09-20_20-05-26/20_roles_delete-dialog_desktop_1280x800.png` bestätigt erneut den fokussierten bestehenden Löschdialog. Die Capture-Lücke ist abgeschlossen; `RolesPage.razor.cs` bleibt ausdrücklich außerhalb der M1.4-Produkt-Slices.

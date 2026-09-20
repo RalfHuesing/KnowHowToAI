@@ -40,3 +40,7 @@ Search-/Navigationsvertrag, Responsive-/Keyboard-Verhalten; M1.3-Kandidat.
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/07_search_results_desktop_1280x800.png`. Der Re-Audit bestätigt den P1-Ergebnisfokus-Befund. [M1.4-T4](../../tasks/M1.4-T4.md) soll die vorhandene Trefferzahl und die vollständige erste Trefferkarte im 1280×800-Viewport führen und Filter kompakter/sekundär machen. Suchsemantik, Ranking, Trefferreihenfolge, Route und bestehende Trefferaktion bleiben unverändert.

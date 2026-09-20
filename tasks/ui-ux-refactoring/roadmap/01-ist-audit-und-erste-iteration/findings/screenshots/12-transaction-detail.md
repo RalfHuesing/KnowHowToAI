@@ -40,3 +40,7 @@ Transaction-Detailkomponente, Persistenz-/Commit-/Discard-Vertrag; M1.3-Kandidat
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/12_transaction_detail_desktop_1280x800.png`. Der P1-Befund bleibt bestehen: Die bestehende Reihenfolge Validieren → Commit/Verwerfen soll visuell führen; technische IDs und Leerwerte werden sekundär beziehungsweise progressiv angeordnet. [M1.4-T2](../../tasks/M1.4-T2.md) lässt Abschluss-, Dirty-, Transaktions- und Fokusvertrag unverändert.

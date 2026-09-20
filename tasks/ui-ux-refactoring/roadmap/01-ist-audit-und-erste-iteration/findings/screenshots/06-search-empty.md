@@ -40,3 +40,7 @@ Suchparameter, Ergebnis-/Navigationsvertrag, Accessibility; nachgelagerter Kandi
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/06_search_empty_desktop_1280x800.png`. Der Zustand bleibt der belegte Suchgrundzustand. Der Lauf liefert keinen belastbaren Nulltreffer-Produktbeleg; daher wird kein eigener Nulltreffer- oder Suchlogik-Task geöffnet. Filter-/Leerzustand bleiben außerhalb der ersten M1.4-Reihe, solange kein neuer fachlich belastbarer Beleg vorliegt.

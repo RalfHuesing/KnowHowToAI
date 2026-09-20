@@ -40,3 +40,7 @@ Dirty-/Transaktions-/Commit-Vertrag, bestehende Transaction-Navigation; M1.3-Kan
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/10_transactions_overview_desktop_1280x800.png`. Die Übersicht bleibt Beobachtungsbasis; der erste Folgeslice setzt gezielt bei Zustand 11 an. Eine spätere Ausweitung der Übersicht ist nur mit einem eigenen Beleg und ohne neue Transaktionshandlung freizugeben.

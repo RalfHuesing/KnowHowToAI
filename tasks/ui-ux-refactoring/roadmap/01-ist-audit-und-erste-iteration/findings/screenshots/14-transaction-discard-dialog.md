@@ -40,3 +40,7 @@ Dialog-/Dirty-/Keyboard-Vertrag und Transaction-Lifecycle; M1.3-Kandidat.
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/14_transaction-discard-dialog_desktop_1280x800.png`. Der Dialog bleibt fachlich korrekt ausgelöst; der P1-Befund betrifft die gemeinsame visuelle Darstellung mit Zustand 13. [M1.4-T3](../../tasks/M1.4-T3.md) darf Rahmen, Abstände und Microcopy angleichen, aber Verwerfen-Semantik, sichere Abbruchaktion und Keyboard-Fokus nicht verändern.

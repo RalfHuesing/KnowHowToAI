@@ -40,3 +40,7 @@ Inhaltsmodus-/Fallback-Vertrag, Knowledge-Detail und M1.2-T2; späterer manuelle
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/05_knowledge_fallback-detail_desktop_1280x800.png`. Der Fallback bleibt ein fachlicher Inhalts-/Verfügbarkeitskontext, nicht der Anlass für eine neue Aktion oder Quelle. M1.4-T6 darf nur die vorhandene Bedeutung und den nächsten bekannten Kontextschritt sicherer formulieren; Fallback-Semantik, Datenquelle und technische Details bleiben unverändert.

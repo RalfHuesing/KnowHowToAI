@@ -40,3 +40,7 @@ Native Dialog-/Keyboard-/Focus-Vertrag, Commit-Lifecycle, M1.3-Re-Audit.
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/13_transaction_commit-dialog_desktop_1280x800.png`. Der Dialog bleibt fachlich korrekt ausgelöst; der P1-Befund betrifft die gemeinsame visuelle Darstellung mit Zustand 14. [M1.4-T3](../../tasks/M1.4-T3.md) darf Rahmen, Abstände und Microcopy angleichen, aber Commit-Semantik, Primäraktion, Abbruchweg und Keyboard-Fokus nicht verändern.

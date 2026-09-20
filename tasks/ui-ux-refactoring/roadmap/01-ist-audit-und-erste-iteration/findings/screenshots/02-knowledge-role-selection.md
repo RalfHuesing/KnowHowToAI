@@ -40,3 +40,7 @@ Rollen-/Kontextvertrag, Dialog- und Keyboard-Fokus, Knowledge-Route; M1.3-Re-Aud
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/02_knowledge_role-selection_desktop_1280x800.png`. Die bestehende Rollenauswahl bleibt fachlich erforderlich und wird nicht um eine neue Handlung erweitert. Eine Folgearbeit darf nur Zweck und Konsequenz mit fachlich sicherer Microcopy erklären; Rollenlogik, Auswahlvertrag und Fokus bleiben unverändert. Das ist Teil von [M1.4-T6](../../tasks/M1.4-T6.md).

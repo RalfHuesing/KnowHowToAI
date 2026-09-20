@@ -44,3 +44,7 @@ M1.2-T1, Visual-Shell-Seed, Rollen-/Knowledge-State und bestehende Bestätigungs
 ## M1.2-Nachweis
 
 Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/03_knowledge_root_desktop_1280x800.png` wartet nach der Rollenaktion auf das geschlossene Auswahlfenster, die URL mit `roleId=Default`, den gerenderten Wissensbaum und den sichtbaren Root-Titel `Browser-Testwissen`. Der Capture zeigt damit den bestätigten Root-Zustand; die ursprüngliche Audit-Lücke ist für den Runner geschlossen.
+
+## M1.3-Bestätigung
+
+Der grüne manuelle Re-Audit-Lauf `temp/ui-audit/2026-09-20_20-05-26/03_knowledge_root_desktop_1280x800.png` bestätigt den geschlossenen Auswahlpfad und den gerenderten Root erneut. Die Capture-Lücke ist abgeschlossen; daraus wird keine neue Produktänderung abgeleitet.

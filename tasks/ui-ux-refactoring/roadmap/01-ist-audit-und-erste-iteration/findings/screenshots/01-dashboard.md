@@ -40,3 +40,7 @@ Bestehende Shell-/Navigationsstruktur, Rollen-/Kontextauswahl, Dashboard- und Di
 ## Audit-Lücken
 
 Keine.
+
+## M1.3-Re-Audit und Folgeentscheidung
+
+Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/01_dashboard_desktop_1280x800.png`. Der Re-Audit bestätigt den P1-Befund: Der vorhandene Wissenszugang bleibt die fachlich naheliegende primäre Einstiegsaufgabe, während Diagnose und Snapshot technisch sekundär sind. M1.4-T5 schneidet ausschließlich diese bestehende Hierarchie und sichere Microcopy; es entsteht keine neue Dashboard-Handlung.

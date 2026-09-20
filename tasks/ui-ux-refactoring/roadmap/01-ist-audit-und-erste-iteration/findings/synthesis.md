@@ -2,7 +2,7 @@
 
 ## Evidenzbasis
 
-Die 20 Einzelbefunde unter [findings/screenshots](screenshots) beziehen sich auf den reproduzierbaren Lauf `temp/ui-audit/2026-09-20_18-36-16`, Desktop 1280×800, und auf die im Manifest benannten Routen/Zustände. Die Bilder sind temporär; diese Synthese und die Einzelbefunde sind der versionierte Nachweis. Ein Befund beschreibt den sichtbaren Zustand, nicht eine vermutete Produktabsicht.
+Die historischen 20 Einzelbefunde unter [findings/screenshots](screenshots) beziehen sich auf den reproduzierbaren Lauf `temp/ui-audit/2026-09-20_18-36-16`. Der aktuelle M1.3-Re-Audit verwendet `temp/ui-audit/2026-09-20_20-05-26`, Desktop 1280×800, mit `manifest.json` und erneut 20 Zuständen. Die Bilder und Manifeste sind temporär; diese Synthese und die Einzelbefunde sind der versionierte Nachweis. Ein Befund beschreibt den sichtbaren Zustand, nicht eine vermutete Produktabsicht.
 
 ## Priorisierte Cluster
 
@@ -30,17 +30,29 @@ Nachweis: `temp/ui-audit/2026-09-20_20-05-26/`.
 
 ### P2 – Navigation, Suche und History als Folgearbeit
 
-01 wirkt technisch-diagnostisch dominiert; 02/03 erklären Rollenauswahl und Bestätigung schwach. 06/07 lassen Filterfläche Ergebnisse verdrängen, 08 ist technisch formuliert, 09 ist pixelidentisch zu 08 und belegt keinen Diff-Zustand. Diese Bereiche bleiben bewusst Kandidaten und werden in M1 nicht als große Änderungsaufgaben freigegeben.
+01 wirkt technisch-diagnostisch dominiert; 02/03 erklären Rollenauswahl und Bestätigung schwach. 06/07 lassen Filterfläche Ergebnisse verdrängen, 08 ist technisch formuliert. Der neue Lauf bestätigt für 09 einen sichtbaren Diff-Zustand; 06 bleibt der Grundzustand ohne Nulltreffer-Produktbeleg. Diese Bereiche werden nur in den kleinen M1.4-Leaves weitergeführt.
 
 ## Audit-Lücken und Konsequenz
 
 03 ist nur der ausgewählte Zustand vor einer belastbaren Root-Bestätigung, 09 belegt keinen Snapshot-Diff, 20 zeigt keine sichtbare Löschbestätigung. Diese drei Lücken sind in den Einzeldateien markiert und bilden M1.2-T1. Bis dahin werden sie nicht als Produktbefund „behoben“ dargestellt.
 
-Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27` schließt diese drei Capture-Lücken ohne Produktänderung: 03 belegt den gerenderten Root nach geschlossener Rollenauswahl, 09 zeigt sichtbare Snapshot-Änderungen und 20 zeigt den fokussierten vorhandenen Löschdialog. Die ursprünglichen Befunde bleiben als historische M1.1-Beobachtung erhalten; sie sind nicht als Produktkorrektur zu lesen.
+Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27` war der technische Zwischenstand für M1.2-T1. Der grüne manuelle M1.3-Re-Audit `temp/ui-audit/2026-09-20_20-05-26` bestätigt denselben capture-seitigen Abschluss erneut: 03 belegt den gerenderten Root nach geschlossener Rollenauswahl, 09 zeigt sichtbare Snapshot-Änderungen und 20 zeigt den fokussierten vorhandenen Löschdialog. Die ursprünglichen Befunde bleiben als historische M1.1-Beobachtung erhalten; sie sind nicht als Produktkorrektur zu lesen.
+
+## M1.3-Re-Audit-Ergebnis
+
+M1.2 ist abgenommen. Die Zustände 15–17 bestätigen die beabsichtigte erste Viewport-Führung: Strukturaktionen beziehungsweise Dirty-Status und Speichern sind sichtbar, technische Details bleiben progressiv zugänglich. Die Zustände 03/09/20 sind semantisch und visuell auditierbar. Der Re-Audit ändert keine Fachverträge und eröffnet keine neue Produktfunktion.
+
+## M1.4-Folgepriorität
+
+1. Transaktionen: 11 führt die bestehende Öffnen-/Fortsetzen-Aktion und ordnet technische Leerwerte sekundär; 12 führt die bestehende Reihenfolge Validieren → Commit/Verwerfen und ordnet technische Metadaten sekundär; 13/14 erhalten eine gemeinsame moderne Dialogdarstellung bei unverändertem Vertrag und Fokus.
+2. Suche 07: Filter kompakter/sekundär, Trefferzahl und vollständige erste vorhandene Trefferkarte im 1280×800-Viewport; Suchsemantik bleibt unverändert. 06 ist nur Grundzustand und kein Nulltreffer-Nachweis.
+3. Dashboard 01: vorhandener Wissenszugang primär, Diagnose/Snapshot sekundär. 02 und 05 erhalten nur fachlich sichere Microcopy ohne neue Handlung.
+
+P2-Nacharbeiten 15–17 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) sind ausdrücklich nicht Teil der ersten M1.4-Reihe. `RolesPage.razor.cs` bleibt außerhalb des Scopes.
 
 ## Nächster kleiner Slice
 
 M1.2-T1 stabilisierte nur die capture-seitige Sichtbarkeit und Assertions.
-M1.2-T2 ist mit dem dokumentierten Re-Audit abgeschlossen. M1.3 bestätigt oder
-verwirft die Befunde anhand eines neuen manuellen Audits; Folgearbeit bleibt auf
-kleine, belegte Slices begrenzt.
+M1.2-T2 ist mit dem dokumentierten Re-Audit abgeschlossen. M1.3 ist anhand des
+Laufs `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen; Folgearbeit bleibt auf
+die sechs kleinen, belegten M1.4-Slices begrenzt.
