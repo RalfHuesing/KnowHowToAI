@@ -267,6 +267,23 @@ public sealed class RoleMutationServiceTests
     }
 
     [Fact]
+    public async Task CreateRoleAsync_VisibleNameAlreadyUsedByDifferentRoleId_IsRejectedWithoutChangingWorkingState()
+    {
+        var existing = new Role(SnapshotId, new RoleId("Developer"), "Foo", null, IsDeleted: false);
+        var repository = new InMemoryRoleMutationRepository(State([existing]));
+        var service = new RoleMutationService(repository);
+
+        var result = await service.CreateRoleAsync(TransactionId, " Foo ", null, 0);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(RoleMutationErrorCodes.RoleInUse, result.Code);
+        Assert.Equal("Developer", result.Details[RoleMutationErrorCodes.RoleIdDetail]);
+        Assert.Single(repository.State.Roles);
+        Assert.Equal("Foo", repository.State.Roles.Single().Name);
+        Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
     public async Task UpdateRoleAsync_StaleChangeVersion_IsRejectedWithoutChangingWorkingState()
     {
         var repository = new InMemoryRoleMutationRepository(State([Role(DefaultRoleId, "Alt")]));

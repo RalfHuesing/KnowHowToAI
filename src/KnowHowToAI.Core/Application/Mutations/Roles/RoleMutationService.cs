@@ -125,12 +125,19 @@ public sealed class RoleMutationService(IRoleMutationRepository repository)
 
     private static Result<WorkingRoleMutationDecision<Role>> CreateRoleDecision(WorkingRoleMutationState state, string name, string? description)
     {
-        var roleId = new RoleId(name.Trim());
+        var normalizedName = name.Trim();
+        var roleId = new RoleId(normalizedName);
         var existingRole = state.Roles.SingleOrDefault(role => role.RoleId == roleId);
         if (existingRole is { IsDeleted: false })
             return Result<WorkingRoleMutationDecision<Role>>.Failure(RoleInUseError(roleId));
 
-        var role = new Role(state.SnapshotId, roleId, name.Trim(), description?.Trim(), IsDeleted: false);
+        var duplicate = state.Roles.FirstOrDefault(candidate =>
+            !candidate.IsDeleted
+            && string.Equals(candidate.Name, normalizedName, StringComparison.Ordinal));
+        if (duplicate is not null)
+            return Result<WorkingRoleMutationDecision<Role>>.Failure(RoleInUseError(duplicate.RoleId));
+
+        var role = new Role(state.SnapshotId, roleId, normalizedName, description?.Trim(), IsDeleted: false);
         var roles = existingRole is null
             ? state.Roles.Append(role).ToArray()
             : state.Roles.Select(candidate => candidate.RoleId == roleId ? role : candidate).ToArray();
