@@ -185,7 +185,7 @@ public sealed class McpTransactionToolRegistrationTests
                 StringComparer.Ordinal);
 
         Assert.Equal(
-            new[] { "contentMd", "contentMode", "description", "parentNodeId", "roleId", "sortOrder", "sources", "title", "transactionId" },
+            new[] { "contentMd", "contentMode", "description", "expectedChangeVersion", "parentNodeId", "roleId", "sortOrder", "sources", "title", "transactionId" },
             SortedPropertyNames(schemas["create_node"]));
         Assert.Equal(new[] { "title", "transactionId" }, SortedRequiredNames(schemas["create_node"]));
 
@@ -195,12 +195,12 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.Equal(new[] { "nodeId", "title", "transactionId" }, SortedRequiredNames(schemas["update_node"]));
 
         Assert.Equal(
-            new[] { "nodeId", "parentNodeId", "sortOrder", "transactionId" },
+            new[] { "expectedChangeVersion", "nodeId", "parentNodeId", "sortOrder", "transactionId" },
             SortedPropertyNames(schemas["move_node"]));
         Assert.Equal(new[] { "nodeId", "sortOrder", "transactionId" }, SortedRequiredNames(schemas["move_node"]));
 
         Assert.Equal(
-            new[] { "nodeId", "sortOrder", "transactionId" },
+            new[] { "expectedChangeVersion", "nodeId", "sortOrder", "transactionId" },
             SortedPropertyNames(schemas["reorder_node"]));
 
         Assert.Equal(

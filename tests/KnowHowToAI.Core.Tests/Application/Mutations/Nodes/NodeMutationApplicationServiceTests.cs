@@ -253,6 +253,8 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.True(concurrentChange.IsSuccess);
         Assert.False(result.IsSuccess);
         Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, result.Code);
+        Assert.Equal("0", result.Details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", result.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
         Assert.Equal(1, repository.ChangeVersion);
         Assert.Equal(RootNodeId, Find(repository.State.Nodes, FirstChildNodeId).ParentNodeId);
     }
@@ -270,6 +272,30 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.True(result.IsSuccess);
         Assert.Equal(0, result.Value!.ChangeVersion);
         Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task ReorderAsync_RejectsStaleChangeVersionWithoutChangingState()
+    {
+        var root = Node(RootNodeId);
+        var firstChild = Node(FirstChildNodeId, RootNodeId, sortOrder: 0);
+        var secondChild = Node(SecondChildNodeId, RootNodeId, sortOrder: 1);
+        var repository = new InMemoryNodeMutationRepository(State(root, firstChild, secondChild));
+        var service = CreateService(repository, GrandchildNodeId);
+
+        var concurrentChange = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(FirstChildNodeId, "Aktualisiert", null, ExpectedChangeVersion: 0));
+        var stale = await service.ReorderAsync(
+            TransactionId, SecondChildNodeId, sortOrder: 0, expectedChangeVersion: 0);
+
+        Assert.True(concurrentChange.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal(1, repository.ChangeVersion);
+        Assert.Equal(1, Find(repository.State.Nodes, SecondChildNodeId).SortOrder);
     }
 
     [Fact]
@@ -351,6 +377,29 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.Equal(HierarchyErrorCodes.ParentNodeNotFound, result.Code);
         Assert.Single(repository.State.Nodes);
         Assert.Equal(0, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task CreateAsync_RejectsStaleChangeVersionWithoutChangingState()
+    {
+        var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId)));
+        var service = CreateService(repository, SecondChildNodeId);
+
+        var concurrentChange = await service.UpdateAsync(
+            TransactionId,
+            new UpdateNodeRequest(RootNodeId, "Aktualisiert", null, ExpectedChangeVersion: 0));
+        var stale = await service.CreateAsync(
+            TransactionId,
+            new CreateNodeRequest(RootNodeId, "Veraltete Node", null, 0),
+            expectedChangeVersion: 0);
+
+        Assert.True(concurrentChange.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details[TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal(1, repository.ChangeVersion);
+        Assert.DoesNotContain(repository.State.Nodes, node => node.NodeId == SecondChildNodeId);
     }
 
     [Fact]

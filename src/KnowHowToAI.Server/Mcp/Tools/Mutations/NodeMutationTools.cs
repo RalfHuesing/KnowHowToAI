@@ -53,6 +53,7 @@ internal sealed class NodeMutationTools
         [Description("Rolle des Contents (roleId aus list_roles); erforderlich, wenn contentMd gesetzt ist.")] string? roleId = null,
         [Description("Content-Modus bei contentMd: 'Independent' (Standard) oder 'Derived'.")] string? contentMode = null,
         [Description("Optionale Source-Revisions für Derived Content (je nodeId, roleId, contentRevisionId).")] McpContentSourceData[]? sources = null,
+        [Description("Optionaler erwarteter ChangeVersion-Stand der Transaction; bei einer zwischenzeitlichen Mutation wird der Write abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedArguments = ParseCreateArguments(transactionId, parentNodeId, roleId, contentMode, contentMd, sources);
@@ -64,6 +65,7 @@ internal sealed class NodeMutationTools
             .CreateAsync(
                 parsedTransactionId,
                 new CreateNodeRequest(parsedParentNodeId, title, description, sortOrder),
+                expectedChangeVersion,
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         if (!created.IsSuccess)
@@ -225,6 +227,7 @@ internal sealed class NodeMutationTools
         [Description("0-basierte Sortierposition; wird auf die lückenlose Reihenfolge 0..N-1 " +
             "der (neuen) Geschwistergruppe normalisiert.")] int sortOrder,
         [Description("Optionale Node-ID des neuen Parents (GUID-String); ohne Wert wird die Node zur Root-Node.")] string? parentNodeId = null,
+        [Description("Optionaler erwarteter ChangeVersion-Stand der Transaction; bei einer zwischenzeitlichen Mutation wird der Write abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -236,7 +239,7 @@ internal sealed class NodeMutationTools
         return McpMutationMapper.ToEnvelope(await _nodeMutationService
             .MoveAsync(
                 parsedTransactionId.Value,
-                new MoveNodeRequest(parsedNodeId.Value!.Value, parsedParentNodeId.Value, sortOrder),
+                new MoveNodeRequest(parsedNodeId.Value!.Value, parsedParentNodeId.Value, sortOrder, expectedChangeVersion),
                 cancellationToken: cancellationToken)
             .ConfigureAwait(false));
     }
@@ -249,6 +252,7 @@ internal sealed class NodeMutationTools
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
         [Description("Neue 0-basierte Sortierposition; wird auf die lückenlose Reihenfolge " +
             "0..N-1 der Geschwistergruppe normalisiert.")] int sortOrder,
+        [Description("Optionaler erwarteter ChangeVersion-Stand der Transaction; bei einer zwischenzeitlichen Mutation wird der Write abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -257,7 +261,12 @@ internal sealed class NodeMutationTools
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
         return McpMutationMapper.ToEnvelope(await _nodeMutationService
-            .ReorderAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, sortOrder, cancellationToken: cancellationToken)
+            .ReorderAsync(
+                parsedTransactionId.Value,
+                parsedNodeId.Value!.Value,
+                sortOrder,
+                expectedChangeVersion,
+                cancellationToken: cancellationToken)
             .ConfigureAwait(false));
     }
 

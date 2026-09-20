@@ -413,7 +413,7 @@
   "PathOverrides": {
     "**/Mcp/Tools/**": {
       "Metrics": {
-        "MaxMethodParameterCount": 9
+        "MaxMethodParameterCount": 10
       }
     }
   }

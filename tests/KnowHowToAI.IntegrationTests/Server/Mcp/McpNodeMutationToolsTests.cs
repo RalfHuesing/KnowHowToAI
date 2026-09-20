@@ -131,6 +131,26 @@ public sealed class McpNodeMutationToolsTests
     }
 
     [Fact]
+    public async Task CreateNode_StaleChangeVersion_IsRejectedWithExpectedAndActualDetails()
+    {
+        var repository = StateWithRootAndChildren();
+        var tools = CreateTools(repository);
+
+        var concurrentChange = await tools.UpdateNode(
+            TransactionId.ToString(), FirstChildNodeId.ToString(), "Aktualisiert", expectedChangeVersion: 0);
+        var stale = await tools.CreateNode(
+            TransactionId.ToString(), "Veraltete Node", expectedChangeVersion: 0);
+
+        Assert.True(concurrentChange.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details![TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal(1, repository.ChangeVersion);
+        Assert.DoesNotContain(repository.State.Nodes, node => node.NodeId == GeneratedNodeId);
+    }
+
+    [Fact]
     public async Task CreateNode_WithContent_CreatesNodeAndContentAndMergesData()
     {
         var nodeRepository = StateWithRootAndChildren();
@@ -257,6 +277,26 @@ public sealed class McpNodeMutationToolsTests
     }
 
     [Fact]
+    public async Task MoveNode_StaleChangeVersion_IsRejectedWithoutChangingTheWorkingTree()
+    {
+        var repository = StateWithRootAndChildren();
+        var tools = CreateTools(repository);
+
+        var concurrentChange = await tools.UpdateNode(
+            TransactionId.ToString(), FirstChildNodeId.ToString(), "Aktualisiert", expectedChangeVersion: 0);
+        var stale = await tools.MoveNode(
+            TransactionId.ToString(), FirstChildNodeId.ToString(), sortOrder: 0, expectedChangeVersion: 0);
+
+        Assert.True(concurrentChange.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details![TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal(RootNodeId, repository.State.Nodes.Single(node => node.NodeId == FirstChildNodeId).ParentNodeId);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
+    [Fact]
     public async Task ReorderNode_ChangesSortOrderWithinExistingParent()
     {
         var repository = StateWithRootAndChildren();
@@ -266,6 +306,26 @@ public sealed class McpNodeMutationToolsTests
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(1, envelope.Data!.ChangeVersion);
+        Assert.Equal(1, repository.ChangeVersion);
+    }
+
+    [Fact]
+    public async Task ReorderNode_StaleChangeVersion_IsRejectedWithoutChangingTheWorkingTree()
+    {
+        var repository = StateWithRootAndChildren();
+        var tools = CreateTools(repository);
+
+        var concurrentChange = await tools.UpdateNode(
+            TransactionId.ToString(), FirstChildNodeId.ToString(), "Aktualisiert", expectedChangeVersion: 0);
+        var stale = await tools.ReorderNode(
+            TransactionId.ToString(), SecondChildNodeId.ToString(), 8, expectedChangeVersion: 0);
+
+        Assert.True(concurrentChange.IsSuccess);
+        Assert.False(stale.IsSuccess);
+        Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
+        Assert.Equal("0", stale.Details![TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
+        Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
+        Assert.Equal(0, repository.State.Nodes.Single(node => node.NodeId == SecondChildNodeId).SortOrder);
         Assert.Equal(1, repository.ChangeVersion);
     }
 

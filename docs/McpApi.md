@@ -130,16 +130,18 @@ Transaction; `delete_node` wirkt global über alle Rollen
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `create_node` | `transactionId`, `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0), optional `contentMd` (setzt im selben Aufruf den Rollen-Content; dann `roleId` erforderlich, optional `contentMode`, Standard `Independent`, optional `sources`) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds`; bei `contentMd` zusätzlich `roleId`, `contentRevisionId`, `contentMode`, `freshness` |
+| `create_node` | `transactionId`, `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0), optional `expectedChangeVersion`, optional `contentMd` (setzt im selben Aufruf den Rollen-Content; dann `roleId` erforderlich, optional `contentMode`, Standard `Independent`, optional `sources`) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds`; bei `contentMd` zusätzlich `roleId`, `contentRevisionId`, `contentMode`, `freshness` |
 | `update_node` | `transactionId`, `nodeId`, `title` (erforderlich), optional `description`, optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
-| `move_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `parentNodeId` (ohne Wert wird die Node zur Root-Node) | dieselben Feldnamen wie `create_node` |
-| `reorder_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich) | dieselben Feldnamen wie `create_node` |
+| `move_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `parentNodeId` (ohne Wert wird die Node zur Root-Node), optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
+| `reorder_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
 | `delete_node` | `transactionId`, `nodeId` (erforderlich), optional `deleteSubtree` (Standard `false`), optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
 
-Bei `update_node` und `delete_node` macht `expectedChangeVersion` einen zuvor gelesenen
+Bei allen fünf Struktur-Tools macht `expectedChangeVersion` einen zuvor gelesenen
 Working-Stand zur Vorbedingung. Weicht er beim atomaren Write ab, wird die Mutation mit
-`ChangeVersionConflict` abgelehnt; der Client lädt den betroffenen Bereich neu und sendet
-eine bewusste Gegenänderung, falls sie weiter gewünscht ist.
+`ChangeVersionConflict` abgelehnt. Die Fehlerdetails enthalten den Sollwert unter
+`expectedChangeVersion` und den atomar gelesenen Istwert unter `actualChangeVersion`;
+der Working Snapshot bleibt unverändert. Der Client lädt den betroffenen Bereich neu
+und sendet eine bewusste Gegenänderung, falls sie weiter gewünscht ist.
 
 `affectedNodeIds` umfasst die geänderte Node und alle durch
 Sortiernormalisierung oder Verschieben betroffenen aktiven Nachfahren. Mit
