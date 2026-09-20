@@ -11,7 +11,7 @@ Zielgruppe sind Support-Mitarbeitende und Consultants. Die Oberfläche soll clea
 1. Sichtbare deutsche Begriffe beschreiben Aufgabe und Ergebnis; technische Begriffe, IDs und Versionen werden progressiv im nativen aufklappbaren Expertenbereich gezeigt.
 2. Je gleichzeitig sichtbarem Arbeitsabschnitt wird genau eine primäre Aktion visuell geführt.
 3. Inhalt und nächste Aufgabe stehen vor Diagnose- und Systemzustand.
-4. Accessibility, Tastatur, Responsive-Verhalten, Dirty-State und Transaktionsverträge dürfen nicht regressieren.
+4. Accessibility, Responsive-Verhalten, Dirty-State und Transaktionsverträge dürfen nicht regressieren. Bestehende native Tastatur-/Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, ist aber kein eigenes Produktziel, Abnahmekriterium oder Testbudget.
 5. Ein Befund ist neutral belegt, nach Schwere priorisiert und führt nur zu einer Folgerung innerhalb des bestehenden Funktionsumfangs.
 6. Ein nicht sichtbarer oder semantisch falscher Capture-Zustand wird als Audit-Lücke markiert; er darf nicht durch eine Produktannahme ersetzt werden.
 
@@ -21,14 +21,15 @@ Zielgruppe sind Support-Mitarbeitende und Consultants. Die Oberfläche soll clea
 - **M1.2-T1:** ausschließlich Runner-/Test-Vorbedingungen und Assertions für die Audit-Zustände 03, 09 und 20 präzisieren. Keine Produktlösung vortäuschen.
 - **M1.2-T2:** den bestehenden Wissensarbeitsplatz und Editor so ordnen, dass der erste Viewport die bestehende Aufgabe, den Modus und das Speichern verständlich führt.
 - **M1.3:** manueller Re-Audit mit Manifest und 20 Captures. Der Lauf ist abgeschlossen: 03 bestätigt den Root, 09 den Snapshot-Diff und 20 den bestehenden Löschdialog. M1.2 ist damit abgenommen.
-- **M1.4:** zuerst die Transaktionszustände 11, 12 und 13/14; danach Suche 07; anschließend Dashboard 01 und die fachlich sichere Microcopy für 02/05. Jeder Leaf bleibt auf vorhandene Aktionen und Verträge beschränkt.
+- **M1.4:** zuerst die Transaktionszustände 11, 12 und 13/14; danach der neue Navigation-Leaf M1.4-T7; anschließend Suche 07, Dashboard 01 und die fachlich sichere Microcopy für 02/05. Die bereits vergebenen IDs T4–T6 bleiben stabil, werden aber erst nach T7 ausgeführt. Jeder Leaf bleibt auf vorhandene Ziele, Aktionen und Verträge beschränkt.
 
 ## M1.4-Entscheidungsgrenzen
 
 - Verbindlich: Zustand 11 führt die bestehende Öffnen-/Fortsetzen-Aktion, Zustand 12 die bestehende Reihenfolge Validieren → Commit/Verwerfen; technische IDs und Leerwerte werden nur sekundär beziehungsweise progressiv angeordnet.
-- Verbindlich: Zustände 13/14 erhalten eine gemeinsame moderne Dialogdarstellung. Commit-/Discard-Semantik, Keyboard-Fokus, Abbruchweg und Transaktionsverträge bleiben unverändert.
+- Verbindlich: Zustände 13/14 erhalten eine gemeinsame moderne Dialogdarstellung. Commit-/Discard-Semantik, Abbruchweg und Transaktionsverträge bleiben unverändert; bestehende native Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, ist aber keine eigene Abnahme.
 - Verbindlich: Suche 07 zeigt Trefferzahl und die vollständige erste vorhandene Trefferkarte im 1280×800-Viewport; Filter werden kompakter/sekundär. Suchsemantik, Ranking und Trefferreihenfolge ändern sich nicht. Zustand 06 wird nicht als Nulltreffer-Beleg erweitert.
 - Verbindlich: Dashboard 01 führt den vorhandenen Wissenszugang als primären Einstieg, Diagnose/Snapshot bleiben sekundär. Zustände 02/05 erhalten ausschließlich fachlich sichere Microcopy; keine neue Handlung, Rollenlogik oder Fallback-Funktion.
+- Verbindlich: M1.4-T7 ordnet ausschließlich die bestehenden Shell-Ziele in einer modernen, cleanen visuellen Navigation mit erkennbarem aktivem Zustand. Hover-/Focus-Zustände sind normale CSS-Zustände; es gibt keine neue Route, kein neues Feature und keine Tastatur-Abnahme.
 - Nicht freigegeben: Änderungen an `RolesPage.razor.cs`, neue Aktionen, neue Dialogverträge, neue Such-/Fallback-/Rollenlogik oder P2-Nacharbeiten 15–17.
 - Neu zu bewerten: konkrete Abstände, Reihenfolge innerhalb des bestehenden Arbeitsabschnitts und Formulierung, sofern Fachbedeutung und Verträge unverändert bleiben. Bei einer nötigen Vertragsänderung stoppt der Ausführer und eskaliert.
 
@@ -38,4 +39,4 @@ Aktuell blockiert keine Nutzerentscheidung. Normale visuelle Detailentscheidunge
 
 ## Testbudget und Artefakte
 
-M1.1 und dieses Planungsupdate sind Doku-only-Slices: Struktur-/Linkprüfung und `git diff --check`, kein Produkt- oder Testcode. M1.2-T1 nutzt den bestehenden on-demand UiAudit-Runner und normale Skip-/Filterverträge; M1.2-T2 ergänzt nur risikogerechte bestehende Browser-/Komponententests. M1.4 nutzt je Leaf den kleinsten betroffenen Komponententest-/Browserfilter plus den passenden 1280×800-Capture; kein vollständiger visueller Umbau und kein ungezielter Volltest als Leaf-Voraussetzung. Auditbilder werden bei Bedarf neu erzeugt, aber nicht committed.
+M1.1 und dieses Planungsupdate sind Doku-only-Slices: Struktur-/Linkprüfung und `git diff --check`, kein Produkt- oder Testcode. M1.2-T1 nutzt den bestehenden on-demand UiAudit-Runner und normale Skip-/Filterverträge; M1.2-T2 ergänzt nur risikogerechte bestehende Browser-/Komponententests. M1.4 nutzt je Leaf den kleinsten betroffenen Komponententest-/Browserfilter plus den passenden 1280×800-Capture; kein vollständiger visueller Umbau, keine eigenen Keyboard-Tests und kein ungezielter Volltest als Leaf-Voraussetzung. Bestehende native Tastatur-/Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, blockiert aber keinen Slice. Auditbilder werden bei Bedarf neu erzeugt, aber nicht committed.

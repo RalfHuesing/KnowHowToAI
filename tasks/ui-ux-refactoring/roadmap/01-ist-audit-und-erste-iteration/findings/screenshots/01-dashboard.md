@@ -44,3 +44,5 @@ Keine.
 ## M1.3-Re-Audit und Folgeentscheidung
 
 Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/01_dashboard_desktop_1280x800.png`. Der Re-Audit bestätigt den P1-Befund: Der vorhandene Wissenszugang bleibt die fachlich naheliegende primäre Einstiegsaufgabe, während Diagnose und Snapshot technisch sekundär sind. M1.4-T5 schneidet ausschließlich diese bestehende Hierarchie und sichere Microcopy; es entsteht keine neue Dashboard-Handlung.
+
+Ein ergänzender Nutzerbefund beschreibt die linke Shell-Navigation als rohe href-Linkliste mit historischer Anmutung. Dieser Befund wird separat in [M1.4-T7](../../tasks/M1.4-T7.md) behandelt: bestehende Ziele, moderne visuelle Hierarchie und aktiver Zustand, aber keine neuen Routen oder Features.

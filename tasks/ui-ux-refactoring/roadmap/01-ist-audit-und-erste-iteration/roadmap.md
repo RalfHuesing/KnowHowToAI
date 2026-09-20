@@ -9,7 +9,7 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
 - Support/Consultants erkennen Aufgabe, Inhalt und nächste Aktion ohne technische Vorbildung.
 - Deutsche, aufgabenorientierte Begriffe sind sichtbar; technische Details erscheinen progressiv im nativen Expertenbereich.
 - Je gleichzeitig sichtbarem Arbeitsabschnitt gibt es eine primäre Aktion; Inhalt und Aufgabe stehen vor Systemzustand.
-- Accessibility, Keyboard, Responsive, Dirty-State und Transaktionsverhalten bleiben Verträge.
+- Accessibility, Responsive, Dirty-State und Transaktionsverhalten bleiben Verträge. Bestehende native Tastatur-/Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, ist aber kein eigenes Produktziel oder Abnahmekriterium.
 
 ## Meilensteine
 
@@ -26,14 +26,15 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
   - [x] [M1.4-T1 – Transaktion öffnen und fortsetzen](tasks/M1.4-T1.md) – Zustand 11; bestehende Fortsetzen-Aktion im ersten Viewport geführt, technische Details progressiv.
   - [ ] [M1.4-T2 – Transaktionsdetail und Abschlussreihenfolge](tasks/M1.4-T2.md) – Zustand 12.
   - [ ] [M1.4-T3 – Gemeinsame Transaktionsdialogdarstellung](tasks/M1.4-T3.md) – Zustände 13/14.
+  - [ ] [M1.4-T7 – Moderne Shell-Navigation](tasks/M1.4-T7.md) – neuer Nutzerbefund; nach den Transaktions-Slices, vor den Detail-Slices.
   - [ ] [M1.4-T4 – Trefferfokus in der Suche](tasks/M1.4-T4.md) – Zustand 07.
   - [ ] [M1.4-T5 – Wissenszugang auf dem Dashboard führen](tasks/M1.4-T5.md) – Zustand 01.
   - [ ] [M1.4-T6 – Sichere Kontext-Microcopy für Rolle und Fallback](tasks/M1.4-T6.md) – Zustände 02/05.
 
 ## Nicht freigegebene Kandidaten
 
-Zustand 06 bleibt der belegte Suchgrundzustand; ein Nulltreffer-Produktbefund ist nicht belegt und erhält keinen eigenen M1.4-Task. History/Diff und Shell/Navigation bleiben nachgelagerte Kandidaten. Die P2-Nacharbeiten 15–17 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) werden nicht in die erste M1.4-Reihe gezogen. `RolesPage.razor.cs` ist ausdrücklich nicht Teil eines M1.4-Leaves.
+Zustand 06 bleibt der belegte Suchgrundzustand; ein Nulltreffer-Produktbefund ist nicht belegt und erhält keinen eigenen M1.4-Task. History/Diff bleibt nachgelagerter Kandidat. Die P2-Nacharbeiten 15–17 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) werden nicht in die erste M1.4-Reihe gezogen. `RolesPage.razor.cs` ist ausdrücklich nicht Teil eines M1.4-Leaves.
 
 ## Abschlusskriterien
 
-M1.1 ist mit den 20 Befunddateien und der Synthese abgeschlossen. M1.2 gilt nach gezieltem Testlauf, visueller Prüfung und dokumentiertem Vergleich als abgeschlossen. M1.3 ist mit dem Lauf `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen. M1.4 wird erst nach den sechs Leaf-Abnahmen und einem begrenzten Re-Audit geschlossen.
+M1.1 ist mit den 20 Befunddateien und der Synthese abgeschlossen. M1.2 gilt nach gezieltem Testlauf, visueller Prüfung und dokumentiertem Vergleich als abgeschlossen. M1.3 ist mit dem Lauf `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen. M1.4 wird erst nach den sieben Leaf-Abnahmen und einem begrenzten Re-Audit geschlossen.

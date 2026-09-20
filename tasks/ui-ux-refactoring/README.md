@@ -7,7 +7,7 @@ Dieses eigenständige, rollierende Vorhaben verbessert die Verständlichkeit und
 - aufgabenorientierte, sichtbare deutsche Begriffe und genau eine primäre Aktion je gleichzeitig sichtbarem Arbeitsabschnitt;
 - Inhalt und nächste Aufgabe vor technischem Systemzustand;
 - technische Begriffe, IDs und Versionen progressiv in einem nativen Expertenbereich;
-- Accessibility, Tastaturbedienung, Responsive-Verhalten sowie Dirty- und Transaktionsverträge bleiben erhalten;
+- Accessibility, Responsive-Verhalten sowie Dirty- und Transaktionsverträge bleiben erhalten. Bestehende native Tastatur-/Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, ist aber kein eigenes Produktziel und kein eigenes Abnahmekriterium;
 - kleine vertikale Slices mit Belegen statt Big Bang;
 - Backend-Fachbegriffe und technische Verträge bleiben unverändert.
 
