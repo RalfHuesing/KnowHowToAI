@@ -176,7 +176,8 @@
       "docs",
       "scripts",
       "sql-scripts",
-      "Shared"
+      "Shared",
+      "node_modules"
     ],
     "MaxPartialClassFiles": 2,
     "MaxPartialClassFilesExemptTypes": [],
@@ -321,7 +322,8 @@
     ],
     "ExcludeDirectoryPatterns": [
       "obj/",
-      "bin/"
+      "bin/",
+      "node_modules/"
     ],
     "SkipGeneratedCodeAttribute": true
   },

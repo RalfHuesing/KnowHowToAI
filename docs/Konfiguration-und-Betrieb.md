@@ -120,11 +120,21 @@ unbehandelte Exception.
 ## Build, Tests und Linter
 
 ```text
-dotnet build KnowHowToAI.slnx -v q --nologo
+pwsh -NoProfile -File scripts/build.ps1
+pwsh -NoProfile -File scripts/publish.ps1
 ```
 
-Die Solution ist `.slnx`. Der Build muss fehler- und warnungsfrei sein
-(`TreatWarningsAsErrors`).
+`scripts/build.ps1` führt vor dem Solution-Build den Server-Targetschritt für
+die Frontend-Assets aus: `npm ci --ignore-scripts` stellt ausschließlich aus
+`src/KnowHowToAI.Server/Frontend/package-lock.json` wieder her und
+`npm run build` ruft ausschließlich `Frontend/build.mjs` auf. Der Build erzeugt
+`wwwroot/generated/content-editor/content-editor.js`; `scripts/publish.ps1`
+veröffentlicht dieselbe lokale Datei als Static Web Asset. Node/npm sind dafür
+Buildvoraussetzungen und keine Runtime-Abhängigkeiten. `Frontend/node_modules`
+und `wwwroot/generated` bleiben unversioniert. Die Solution ist `.slnx`; der
+Build muss fehler- und warnungsfrei sein (`TreatWarningsAsErrors`). Das
+zugehörige direkte und transitive npm-Lizenzinventar einschließlich
+NOTICE-Prüfung steht in `THIRD-PARTY-NOTICES.md`.
 
 Testebenen (Details: `.agents/rules/TestRichtlinien.mdc`):
 

@@ -31,10 +31,10 @@ Rollen, Resolution Orders und rollenabhängiger Markdown-Content können in eine
 
 ## M5.1 – Gemeinsame Schreib- und Sicherheitsbasis
 
-- [ ] **M5.1 abschließen**
+- [x] **M5.1 abschließen**
   - [x] [M5.1-T1 – Rollen- und Content-Writes gegen ChangeVersion absichern](tasks/M5.1-T1.md)
   - [x] [M5.1-T2 – Zentrale Contentpolicy und MCP-Fehlerverträge vervollständigen](tasks/M5.1-T2.md)
-  - [ ] [M5.1-T3 – npm-/esbuild-Toolchain und Lizenzinventar produktionsfähig anlegen](tasks/M5.1-T3.md)
+  - [x] [M5.1-T3 – npm-/esbuild-Toolchain und Lizenzinventar produktionsfähig anlegen](tasks/M5.1-T3.md)
 
 ## M5.2 – Editorbasis
 

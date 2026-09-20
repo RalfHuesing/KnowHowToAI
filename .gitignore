@@ -62,6 +62,10 @@ nunit-*.xml
 # KnowHowToAI: Ausgabe von scripts/publish.ps1
 /publish/
 
+# KnowHowToAI: lokale Frontend-Abhängigkeiten und esbuild-Ausgabe
+/src/KnowHowToAI.Server/Frontend/node_modules/
+/src/KnowHowToAI.Server/wwwroot/generated/
+
 # Temporäres Verzeichnis für autonome Agenten
 /temp/
 

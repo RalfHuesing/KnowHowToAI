@@ -213,6 +213,19 @@ Sie kann anschließend eine leere Transaction auf dem Current Snapshot starten,
 damit der Benutzer die geprüften Änderungen manuell erneut anwendet. Die
 Web-Grenze kopiert, merged oder rebased dabei keine Änderungen und verwirft die
 konfliktbehaftete Transaction nicht implizit.
+
+Für den Content-Editor liegt die lokale Buildgrenze unter
+`src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
+verwendete `package-lock.json` verwalten `@milkdown/crepe` sowie den
+Build-only-Compiler `esbuild`; `Web/Features/Content/content-editor.js` stellt
+den Milkdown-Konstruktor für den späteren Lifecycle-Adapter bereit. `build.mjs`
+löscht den vorherigen Stand und erzeugt deterministisch
+`wwwroot/generated/content-editor/content-editor.js`. Der Server bindet diesen
+Schritt vor jedem MSBuild `Build` und damit auch vor `dotnet publish` ein. Der
+Output wird als Static Web Asset veröffentlicht, während `Frontend/node_modules`
+und `wwwroot/generated` nicht versioniert werden. Node/npm werden ausschließlich
+beim Build/Publish benötigt; der Server lädt weder zur Laufzeit noch über CDN
+weitere Assets.
 Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
 den Kontextbereich auf den Current-Read-Context, navigiert zum Wissensbaum
 unter Erhalt der Rolle und bestätigt den Abschluss über die globale

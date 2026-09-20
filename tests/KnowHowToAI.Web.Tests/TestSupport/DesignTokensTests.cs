@@ -216,7 +216,8 @@ public sealed class DesignTokensTests
     {
         var pathSegments = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return pathSegments.Contains("bin", StringComparer.OrdinalIgnoreCase)
-            || pathSegments.Contains("obj", StringComparer.OrdinalIgnoreCase);
+            || pathSegments.Contains("obj", StringComparer.OrdinalIgnoreCase)
+            || pathSegments.Contains("node_modules", StringComparer.OrdinalIgnoreCase);
     }
 
     private static IReadOnlyDictionary<string, string> ParseTokens()

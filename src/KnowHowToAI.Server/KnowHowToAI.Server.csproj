@@ -28,4 +28,9 @@
     <InternalsVisibleTo Include="KnowHowToAI.Web.Tests" />
   </ItemGroup>
 
+  <Target Name="BuildFrontendAssets" BeforeTargets="Build" Condition="Exists('$(MSBuildProjectDirectory)/Frontend/package-lock.json')">
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)/Frontend" Command="npm ci --ignore-scripts" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)/Frontend" Command="npm run build" />
+  </Target>
+
 </Project>
