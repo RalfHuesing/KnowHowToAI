@@ -1,14 +1,18 @@
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
 
 /// <summary>Erfasst den ersten Root-Knoten einer leeren Wissensbasis im Working-Kontext.</summary>
-public sealed partial class RootNodeEditor
+public sealed partial class RootNodeEditor : IDisposable
 {
     [Inject]
     private NodeMutationApplicationService NodeMutationService { get; set; } = default!;
+
+    [Inject]
+    private WorkspaceState WorkspaceState { get; set; } = default!;
 
     [Parameter]
     public TransactionId? TransactionId { get; set; }
@@ -23,6 +27,9 @@ public sealed partial class RootNodeEditor
     private string? _description;
     private string? _errorMessage;
     private bool _isSubmitting;
+
+    private const string InitialTitle = "";
+    private const string? InitialDescription = null;
 
     private async Task SubmitAsync()
     {
@@ -43,6 +50,24 @@ public sealed partial class RootNodeEditor
             return;
         }
 
+        WorkspaceState.SetDirty(false);
         await OnMutationSucceeded.InvokeAsync(result.Value!);
     }
+
+    private void UpdateDirty()
+    {
+        var isDirty = !string.Equals(_title, InitialTitle, StringComparison.Ordinal)
+            || !string.Equals(_description, InitialDescription, StringComparison.Ordinal);
+        WorkspaceState.SetDirty(isDirty);
+    }
+
+    private void Cancel()
+    {
+        _title = InitialTitle;
+        _description = InitialDescription;
+        _errorMessage = null;
+        WorkspaceState.SetDirty(false);
+    }
+
+    public void Dispose() => WorkspaceState.SetDirty(false);
 }

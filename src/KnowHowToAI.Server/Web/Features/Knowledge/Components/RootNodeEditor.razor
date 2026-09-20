@@ -17,16 +17,19 @@
             <div class="root-node-editor-fields">
                 <div>
                     <label for="root-node-title">Titel</label>
-                    <input id="root-node-title" data-testid="root-node-title" @bind="_title" maxlength="200" disabled="@_isSubmitting" />
+                    <input id="root-node-title" data-testid="root-node-title" @bind="_title" @bind:after="UpdateDirty" maxlength="200" disabled="@_isSubmitting" />
                 </div>
                 <div>
                     <label for="root-node-description">Beschreibung</label>
-                    <textarea id="root-node-description" data-testid="root-node-description" @bind="_description" maxlength="1000" disabled="@_isSubmitting"></textarea>
+                    <textarea id="root-node-description" data-testid="root-node-description" @bind="_description" @bind:after="UpdateDirty" maxlength="1000" disabled="@_isSubmitting"></textarea>
                 </div>
             </div>
             <div class="root-node-editor-actions">
                 <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="create-root-node">
                     @(_isSubmitting ? "Wird angelegt…" : "Root-Knoten anlegen")
+                </button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@_isSubmitting" data-testid="cancel-root-node">
+                    Abbrechen
                 </button>
             </div>
         </form>

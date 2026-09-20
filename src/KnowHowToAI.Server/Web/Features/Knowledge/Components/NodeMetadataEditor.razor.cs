@@ -1,15 +1,19 @@
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
 
 /// <summary>Erfasst explizit speicherbare Node-Stammdaten und Child-Nodes im Working-Kontext.</summary>
-public sealed partial class NodeMetadataEditor
+public sealed partial class NodeMetadataEditor : IDisposable
 {
     [Inject]
     private NodeMutationApplicationService NodeMutationService { get; set; } = default!;
+
+    [Inject]
+    private WorkspaceState WorkspaceState { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public NodeDetailsViewModel Node { get; set; } = default!;
@@ -24,6 +28,8 @@ public sealed partial class NodeMetadataEditor
     public EventCallback<NodeMutationResult> OnMutationSucceeded { get; set; }
 
     private Guid _boundNodeId;
+    private string _initialTitle = string.Empty;
+    private string? _initialDescription;
     private string _title = string.Empty;
     private string? _description;
     private EditorMode _mode;
@@ -42,16 +48,14 @@ public sealed partial class NodeMetadataEditor
     private void OpenEdit()
     {
         _mode = EditorMode.Edit;
-        _title = Node.Title;
-        _description = Node.Description;
+        SetDraft(Node.Title, Node.Description);
         _errorMessage = null;
     }
 
     private void OpenCreate()
     {
         _mode = EditorMode.Create;
-        _title = string.Empty;
-        _description = null;
+        SetDraft(string.Empty, null);
         _errorMessage = null;
     }
 
@@ -87,10 +91,27 @@ public sealed partial class NodeMetadataEditor
     private void ResetForm()
     {
         _mode = EditorMode.None;
-        _title = Node.Title;
-        _description = Node.Description;
+        SetDraft(Node.Title, Node.Description);
         _errorMessage = null;
     }
+
+    private void SetDraft(string title, string? description)
+    {
+        _initialTitle = title;
+        _initialDescription = description;
+        _title = title;
+        _description = description;
+        WorkspaceState.SetDirty(false);
+    }
+
+    private void UpdateDirty()
+    {
+        var isDirty = !string.Equals(_title, _initialTitle, StringComparison.Ordinal)
+            || !string.Equals(_description, _initialDescription, StringComparison.Ordinal);
+        WorkspaceState.SetDirty(isDirty);
+    }
+
+    public void Dispose() => WorkspaceState.SetDirty(false);
 
     private enum EditorMode
     {

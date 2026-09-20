@@ -68,12 +68,22 @@ public sealed class RootNodeInitializationSmokeTests
             await page.GetByTestId("edit-node-metadata").ClickAsync();
             await page.GetByTestId("node-metadata-title").FillAsync("Aktualisiertes Browser-Wissen");
             await page.GetByTestId("node-metadata-description").FillAsync("Über die Weboberfläche aktualisiert.");
+            await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "true");
+
+            await page.GetByTestId("link-transactions").ClickAsync();
+            var navigationConfirmation = page.GetByRole(AriaRole.Dialog, new() { Name = "Ungespeicherte Änderungen" });
+            await Assertions.Expect(navigationConfirmation).ToBeVisibleAsync();
+            await navigationConfirmation.GetByRole(AriaRole.Button, new() { Name = "Abbrechen" }).ClickAsync();
+            await Assertions.Expect(page.GetByTestId("node-metadata-title")).ToHaveValueAsync("Aktualisiertes Browser-Wissen");
+            await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "true");
+
             await page.GetByTestId("save-node-metadata").ClickAsync();
 
             await Assertions.Expect(root).ToContainTextAsync("Aktualisiertes Browser-Wissen");
             await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync("Aktualisiertes Browser-Wissen");
             await Assertions.Expect(page.GetByTestId("node-details-description")).ToHaveTextAsync("Über die Weboberfläche aktualisiert.");
             await Assertions.Expect(page.GetByTestId("edit-node-metadata")).ToBeVisibleAsync();
+            await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "false");
         }
         finally
         {

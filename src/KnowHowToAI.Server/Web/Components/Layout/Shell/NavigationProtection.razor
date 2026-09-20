@@ -1,6 +1,6 @@
 @namespace KnowHowToAI.Server.Web.Components.Layout.Shell
 
-<NavigationLock ConfirmExternalNavigation="@(PageRegions.KnowledgeContext?.IsDirty == true)"
+<NavigationLock ConfirmExternalNavigation="@IsDirty"
                 OnBeforeInternalNavigation="HandleBeforeInternalNavigation" />
 
 <ConfirmationDialog @ref="_confirmationDialog"

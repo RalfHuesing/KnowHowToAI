@@ -24,9 +24,11 @@ public sealed partial class NavigationProtection : ComponentBase
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
+    private bool IsDirty => WorkspaceState?.IsDirty == true;
+
     private async Task HandleBeforeInternalNavigation(LocationChangingContext context)
     {
-        if (PageRegions.KnowledgeContext?.IsDirty == true && !_isConfirmingNavigation)
+        if (IsDirty && !_isConfirmingNavigation)
         {
             context.PreventNavigation();
             _targetNavigationLocation = context.TargetLocation;

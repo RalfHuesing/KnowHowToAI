@@ -395,7 +395,9 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   `KnowledgeContextViewModel` (immutable `record` unter
   `Web/Components/Layout/Context`) für die globale Wissenskontextleiste: Art des
   Lese-Kontexts (`Current`, `Snapshot`, `Transaction`, `Release`), optionale
-  ID/Bezeichnung, optionale Rolle, `IsDirty` und optionale `BaseSnapshotId`. Die Komponente
+  ID/Bezeichnung, optionale Rolle, `IsDirty` und optionale `BaseSnapshotId`. Bei
+  den M4-Strukturformularen ist `WorkspaceState.IsDirty` die zentrale flüchtige
+  Quelle; `KnowledgePage` projiziert ihn in diesen Slot-Vertrag. Die Komponente
   `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
   Kopfbereich nahe der Wortmarke – als Text und Status ohne Selektor, Links
   oder Mutation; sie spiegelt `IsDirty` als `data-ktai-dirty`-Attribut ihres
@@ -404,9 +406,10 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   Änderungen“ mit Icon plus Text und bei Transactions der Base-Snapshot als
   eigenes Meta-Item. Nicht gelieferte Angaben erscheinen nicht;
   die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
-  Rolle und ohne `IsDirty`. Domain-Typen und der `WorkspaceState` sind
-  bewusst nicht Teil dieses Vertrags.
-- `NavigationProtection` schützt ungespeicherten Formularzustand (`IsDirty`) über
+  Rolle und ohne `IsDirty`. Domain-Typen und der `WorkspaceState` bleiben
+  bewusst nicht Teil des Markup-Vertrags.
+- `NavigationProtection` schützt den zentralen ungespeicherten Formularzustand
+  (`WorkspaceState.IsDirty`, im Slot als `IsDirty` gespiegelt) über
   `NavigationLock` und einen `ConfirmationDialog` bei interner Blazor-Navigation
   sowie über das native `beforeunload`-Ereignis bei externer Navigation; `MainLayout`
   bindet die abgegrenzte Shell-Komponente ein;
@@ -456,8 +459,11 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   fachlichen Erfolgshinweis. Ein Reload warnt nur bei tatsächlich ungespeicherten
   Änderungen: `beforeunload` liest das Attribut `data-ktai-dirty` der
   Kontextleiste zum Ereigniszeitpunkt; fehlt das Element, gilt die Seite als
-  nicht dirty; es existiert kein `window`-Flag mehr; M2 besitzt dafür noch
-  keinen Produzenten, eine persistierte Transaction gilt nie als ungespeichert.
+  nicht dirty; es existiert kein `window`-Flag mehr. `NodeMetadataEditor` (für
+  Edit und Child-Create) sowie `RootNodeEditor` (für Root-Create) setzen den
+  wertbasierten Zustand nur bei tatsächlich abweichenden Eingaben, räumen ihn
+  bei Save, Cancel und Dispose und erhalten ihn bei fehlgeschlagenem Save;
+  eine persistierte Transaction gilt nie als ungespeichert.
 `wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
 Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
 Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie

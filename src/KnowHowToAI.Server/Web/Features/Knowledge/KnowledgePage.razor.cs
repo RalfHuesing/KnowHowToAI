@@ -119,6 +119,17 @@ public sealed partial class KnowledgePage : IDisposable
         await ApplySelectedRoleAndInitializeAsync(contextVm, readContext, availableRoles, roleId, contextResolution.Value!.ChangeVersion);
     }
 
+    protected override void OnInitialized() => WorkspaceState.Changed += HandleWorkspaceChanged;
+
+    private void HandleWorkspaceChanged()
+    {
+        if (PageRegions.KnowledgeContext is { } context
+            && context.IsDirty != WorkspaceState.IsDirty)
+        {
+            PageRegions.SetKnowledgeContext(context with { IsDirty = WorkspaceState.IsDirty });
+        }
+    }
+
     private void ApplyEmptyRolesState(KnowledgeContextViewModel contextVm, ReadContext readContext)
     {
         _hasNoRoles = true;
@@ -240,5 +251,6 @@ public sealed partial class KnowledgePage : IDisposable
             return;
 
         _isDisposed = true;
+        WorkspaceState.Changed -= HandleWorkspaceChanged;
     }
 }

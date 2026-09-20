@@ -4,6 +4,7 @@ using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Features.Knowledge.Components;
+using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
@@ -40,10 +41,12 @@ public sealed class RootNodeEditorTests : BunitContext
             .Add(component => component.OnMutationSucceeded, EventCallback.Factory.Create<NodeMutationResult>(this, result => persisted = result)));
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='root-node-title']").Change("Erstes Wissen"));
+        Assert.True(Services.GetRequiredService<WorkspaceState>().IsDirty);
         await cut.InvokeAsync(() => cut.Find("[data-testid='root-node-description']").Change("Startpunkt"));
         await cut.InvokeAsync(() => cut.Find("[data-testid='create-root-node']").Click());
 
         Assert.NotNull(persisted);
+        Assert.False(Services.GetRequiredService<WorkspaceState>().IsDirty);
         var root = Assert.Single(repository.State.Nodes);
         Assert.Equal(RootNodeId, root.NodeId);
         Assert.Null(root.ParentNodeId);
@@ -53,10 +56,28 @@ public sealed class RootNodeEditorTests : BunitContext
         Assert.Equal(1, persisted.ChangeVersion);
     }
 
+    [Fact]
+    public async Task RootNodeEditor_CancelClearsDirtyDraft()
+    {
+        AddService();
+        var workspaceState = Services.GetRequiredService<WorkspaceState>();
+        var cut = Render<RootNodeEditor>(parameters => parameters
+            .Add(component => component.TransactionId, TransactionId));
+
+        await cut.InvokeAsync(() => cut.Find("[data-testid='root-node-title']").Change("Entwurf"));
+        Assert.True(workspaceState.IsDirty);
+
+        await cut.InvokeAsync(() => cut.Find("[data-testid='cancel-root-node']").Click());
+
+        Assert.False(workspaceState.IsDirty);
+        Assert.Equal(string.Empty, cut.Find("[data-testid='root-node-title']").GetAttribute("value"));
+    }
+
     private InMemoryNodeMutationRepository AddService()
     {
         var repository = new InMemoryNodeMutationRepository(
             new WorkingNodeMutationState(SnapshotId, [], [], [], []));
+        Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(TestNodeMutations.CreateService(repository, RootNodeId));
         return repository;
     }
