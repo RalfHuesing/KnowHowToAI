@@ -214,6 +214,19 @@ damit der Benutzer die geprüften Änderungen manuell erneut anwendet. Die
 Web-Grenze kopiert, merged oder rebased dabei keine Änderungen und verwirft die
 konfliktbehaftete Transaction nicht implizit.
 
+`Web.Features.Roles` stellt unter `/roles` die Rollenpflege bereit. Die Seite löst
+den Read-Kontext über den gemeinsamen `WebReadContextResolver` auf und listet Rollen
+über `NavigationService`; die Formulare verwenden ausschließlich
+`RoleMutationService`. Erstellen, Umbenennen und Löschen sind nur bei einer offenen
+Working Transaction sichtbar und aktiv. Jede Mutation übergibt die gelesene
+`ChangeVersion`, setzt nach Erfolg den flüchtigen `WorkspaceState` auf die neue
+Version und markiert den Kontext dirty. `RoleInUse`, `RoleNameRequired`,
+`RoleNotFound` und `ChangeVersionConflict` werden mit ihrem stabilen Fehlercode und
+den strukturierten Details am Formular angezeigt; ein Fehler lässt die Eingaben und
+den Working-Zustand unverändert. Current-, Snapshot-, Release- und abgeschlossene
+Transaction-Kontexte bleiben schreibgeschützt. Die Seite bearbeitet keine
+Resolution Orders; das ist ein separater Rollen-Leaf.
+
 Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
 verwendete `package-lock.json` verwalten `@milkdown/crepe`, den Build-only-

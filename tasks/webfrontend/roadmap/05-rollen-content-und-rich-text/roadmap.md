@@ -46,7 +46,7 @@ Rollen, Resolution Orders und rollenabhängiger Markdown-Content können in eine
 ## M5.3 – Rollenverwaltung
 
 - [ ] **M5.3 abschließen**
-  - [ ] [M5.3-T1 – Rollen in der Working Transaction pflegen](tasks/M5.3-T1.md)
+  - [x] [M5.3-T1 – Rollen in der Working Transaction pflegen](tasks/M5.3-T1.md)
   - [ ] [M5.3-T2 – Resolution Orders und Fallback-Vorschau pflegen](tasks/M5.3-T2.md)
 
 ## M5.4 – Rollen-Content

@@ -8,8 +8,12 @@ in der Geschäftslogik kodierte Rollenstruktur gibt es nicht. Das Seed-Skript le
 die initiale Rolle `Default` samt Resolution Order an; danach werden Rollen und
 ihre Resolution Orders wie jeder andere versionierte Wissenszustand innerhalb
 einer Transaction über die Service-/MCP-Grenzen gepflegt (`create_role`,
-`update_role`, `delete_role`, `set_role_resolution`). Eine
-Administrationsoberfläche ist kein Bestandteil von V1.
+`update_role`, `delete_role`, `set_role_resolution`). Die Weboberfläche stellt
+die Rollenpflege unter `/roles` bereit; Resolution Orders bleiben dort bis zur
+separaten Umsetzung read-only. Die Seite lädt Rollen für den über Query
+gewählten Current-, Snapshot-, Release- oder Working-Kontext. Nur eine offene
+Working Transaction erlaubt Erstellen, Umbenennen und Löschen; historische und
+committed Kontexte zeigen dieselben Rollen schreibgeschützt.
 
 ## Atomarer Schreibschutz gegen stale Writes
 

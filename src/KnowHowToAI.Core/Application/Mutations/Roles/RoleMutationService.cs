@@ -144,7 +144,15 @@ public sealed class RoleMutationService(IRoleMutationRepository repository)
         if (role is null)
             return Result<WorkingRoleMutationDecision<Role>>.Failure(RoleNotFoundError(roleId));
 
-        var updatedRole = role with { Name = name.Trim(), Description = description?.Trim() };
+        var normalizedName = name.Trim();
+        var duplicate = state.Roles.FirstOrDefault(candidate =>
+            !candidate.IsDeleted
+            && candidate.RoleId != roleId
+            && string.Equals(candidate.Name, normalizedName, StringComparison.Ordinal));
+        if (duplicate is not null)
+            return Result<WorkingRoleMutationDecision<Role>>.Failure(RoleInUseError(duplicate.RoleId));
+
+        var updatedRole = role with { Name = normalizedName, Description = description?.Trim() };
         return Result<WorkingRoleMutationDecision<Role>>.Success(new WorkingRoleMutationDecision<Role>(
             updatedRole,
             state with { Roles = state.Roles.Select(candidate => candidate.RoleId == roleId ? updatedRole : candidate).ToArray() }));
