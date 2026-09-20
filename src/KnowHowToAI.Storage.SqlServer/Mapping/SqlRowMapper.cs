@@ -46,23 +46,23 @@ internal static class SqlRowMapper
         row.SortOrder,
         row.IsDeleted);
 
-    public static Audience ToRole(RoleRow row) => new(
+    public static Audience ToAudience(AudienceRow row) => new(
         new SnapshotId(row.SnapshotId),
-        new AudienceId(row.RoleId),
+        new AudienceId(row.AudienceId),
         row.Name,
         row.Description,
         row.IsDeleted);
 
-    public static AudienceResolution ToRoleResolution(RoleResolutionRow row) => new(
+    public static AudienceResolution ToAudienceResolution(AudienceResolutionRow row) => new(
         new SnapshotId(row.SnapshotId),
-        new AudienceId(row.RequestedRoleId),
-        new AudienceId(row.CandidateRoleId),
+        new AudienceId(row.RequestedAudienceId),
+        new AudienceId(row.CandidateAudienceId),
         row.Priority);
 
     public static NodeContent ToNodeContent(NodeContentRow row) => new(
         new SnapshotId(row.SnapshotId),
         new NodeId(row.NodeId),
-        new AudienceId(row.RoleId),
+        new AudienceId(row.AudienceId),
         new ContentRevisionId(row.ContentRevisionId),
         ToContentMode(row.ContentMode),
         row.ContentMd,
@@ -71,9 +71,9 @@ internal static class SqlRowMapper
     public static ContentDependency ToContentDependency(ContentDependencyRow row) => new(
         new SnapshotId(row.SnapshotId),
         new NodeId(row.TargetNodeId),
-        new AudienceId(row.TargetRoleId),
+        new AudienceId(row.TargetAudienceId),
         new NodeId(row.SourceNodeId),
-        new AudienceId(row.SourceRoleId),
+        new AudienceId(row.SourceAudienceId),
         new ContentRevisionId(row.SourceContentRevisionId));
 
     public static Release ToRelease(ReleaseRow row) => new(

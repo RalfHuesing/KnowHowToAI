@@ -12,7 +12,7 @@ using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.IntegrationTests.SqlServer.Repositories;
 
-/// <summary>Belegt die atomare Persistenz eines Rollen-Contents im Working Snapshot.</summary>
+/// <summary>Belegt die atomare Persistenz eines Zielgruppen-Contents im Working Snapshot.</summary>
 [Trait("Category", "ManualDatabaseIntegration")]
 [Collection("ManualDatabaseIntegration")]
 public sealed class SqlContentMutationRepositoryTests

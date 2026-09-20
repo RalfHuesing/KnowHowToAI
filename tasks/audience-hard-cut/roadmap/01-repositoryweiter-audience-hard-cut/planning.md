@@ -80,13 +80,13 @@ Vorhaben lokalisiert keine gespeicherten Nutzdaten.
 
 ## SQL- und Datenbankentscheidung
 
-Es gibt noch keinen produktiven oder anderweitig zu erhaltenden Datenbankstand.
-Der Benutzer hat ausdrücklich entschieden, dass alle vorhandenen
-KnowHowToAI-Entwicklungs- und Testdatenbanken einschließlich ihrer Tabellen und
-Daten vollständig zurückgesetzt werden dürfen. Deshalb wird die
+Die drei konfigurierten KnowHowToAI-Entwicklungs-/Testdatenbanken wurden vom
+Benutzer bereits manuell geleert. Dieser Zustand ist als gegeben zu behandeln;
+kein Agent darf Tabellen, Schemas, Datenbanken oder sonstige Datenbankobjekte
+löschen oder einen Reset-/Cleanup-Schritt ausführen. Deshalb wird die
 Greenfield-Baseline direkt korrigiert:
 
-- `0002_create_roles.sql` wird nach `0002_create_audiences.sql` umbenannt und
+- `0002_create_audiences.sql` definiert
   definiert ausschließlich Audience-Tabellen, -Spalten, -Constraints und
   -Indizes.
 - `0003_create_nodes_and_content.sql` verwendet ausschließlich Audience-Spalten
@@ -95,18 +95,19 @@ Greenfield-Baseline direkt korrigiert:
   Resolution Order.
 - Es entsteht kein `0005`, keine Datenmigration und keine Kompatibilitätsbrücke.
 
-Der zuständige Umsetzungsslice ermittelt vor jeder destruktiven Aktion die drei
+Der zuständige Umsetzungsslice ermittelt vor jedem Neuaufbau ausschließlich
+read-only die drei
 konfigurierten Zielverbindungen `DatabaseConnection`,
 `BrowserTestDatabaseConnection` und `BrowserVisualTestDatabaseConnection`,
 protokolliert ausschließlich Server und Datenbankname ohne Credentials und
 verifiziert, dass jede Zieldatenbank eine ausdrücklich konfigurierte
-KnowHowToAI-Entwicklungs-/Testdatenbank ist. Danach entfernt er nur Objekte mit
-dem Präfix `KnowHowToAI_` in diesen exakt aufgelösten Datenbanken, baut das Schema
-über den normalen Migration Runner neu auf und prüft den Seed. Die Datenbanken
-selbst werden nicht angelegt oder gelöscht. Unklare, nicht erreichbare oder
+KnowHowToAI-Entwicklungs-/Testdatenbank ist, dedupliziert identische Ziele,
+schließt Systemdatenbanken aus und bestätigt, dass keine `KnowHowToAI_`-Tabellen
+oder Journaleinträge vorhanden sind. Nur wenn alle Ziele leer sind, baut er das
+Schema über den normalen Migration Runner neu auf und prüft den Seed. Die
+Datenbanken und vorhandenen Objekte werden nicht angelegt oder gelöscht.
+Unklare, nicht erreichbare oder
 abweichend benannte Ziele führen zum Stopp statt zu einer geratenen Löschung.
-Mehrfach auf dieselbe Server-/Datenbankkombination zeigende Sektionen werden vor
-dem Reset dedupliziert; SQL-Server-Systemdatenbanken sind immer ausgeschlossen.
 
 ## Bedeutung des Terminologie-Gates
 
@@ -164,7 +165,7 @@ Planungsreferenzen in M1.4 auf die Zielterminologie umgestellt sind.
 ## Freigabekriterien
 
 - [x] Option A und alle öffentlichen Zielnamen sind festgelegt.
-- [x] Hard-Cut-, Greenfield-SQL-, Datenbankreset-, Browserzustands- und
+- [x] Hard-Cut-, Greenfield-SQL-, Datenbankleerstands-, Browserzustands- und
       Cursorverhalten sind entschieden.
 - [x] Das Nulltrefferziel ist ohne Accessibilitybruch präzisiert.
 - [x] Leaf-Tasks sind sequenziell, vollständig und ohne offene Produkt- oder

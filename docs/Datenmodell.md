@@ -11,10 +11,10 @@ Alle Tabellen tragen den Präfix `KnowHowToAI_` im Schema `dbo`:
 | `KnowHowToAI_SystemState` | Systemzustand, referenziert `CurrentSnapshotId` |
 | `KnowHowToAI_Transaction` | Transaktionsmetadaten |
 | `KnowHowToAI_Release` | benannte, unveränderliche Verweise auf committed Snapshots |
-| `KnowHowToAI_Role` | Zielgruppen (`RoleId` NVARCHAR, binäre Collation) |
-| `KnowHowToAI_RoleResolution` | Resolution Orders (Kandidatenrolle + Priorität pro Snapshot) |
+| `KnowHowToAI_Audience` | Zielgruppen (`AudienceId` NVARCHAR, binäre Collation) |
+| `KnowHowToAI_AudienceResolution` | Zielgruppen-Auflösungsreihenfolge (Kandidatenzielgruppe + Priorität pro Snapshot) |
 | `KnowHowToAI_Node` | Hierarchieknoten pro Snapshot |
-| `KnowHowToAI_NodeContent` | rollenabhängiger Content pro Snapshot |
+| `KnowHowToAI_NodeContent` | zielgruppenabhängiger Content pro Snapshot |
 | `KnowHowToAI_ContentDependency` | Provenienz-Abhängigkeiten pro Snapshot |
 
 ## Datentypkonventionen
@@ -24,13 +24,13 @@ Alle Tabellen tragen den Präfix `KnowHowToAI_` im Schema `dbo`:
 - Snapshot-Identitäten (`SnapshotId`, `ReleaseId`): `BIGINT`.
 - Zielgruppen-IDs: `NVARCHAR(50)` mit binärer, case-sensitiver Collation
   (`COLLATE Latin1_General_100_BIN2`) – `N'Default'` und `'default'` sind
-  verschiedene Rollen.
+  verschiedene Zielgruppen.
 - Markdown-Inhalte: `NVARCHAR(MAX)`.
 - Zeitstempel: `DATETIME2(7)` in UTC (`SYSUTCDATETIME()`).
 
 ## Snapshot-Schlüssel
 
-Versionierte Tabellen (`Node`, `NodeContent`, `Role`, `RoleResolution`,
+Versionierte Tabellen (`Node`, `NodeContent`, `Audience`, `AudienceResolution`,
 `ContentDependency`) besitzen `SnapshotId` als Bestandteil ihres
 Primärschlüssels. Beispiel `KnowHowToAI_Node`:
 
@@ -44,17 +44,17 @@ die gespeicherte Ausprägung gehört zu einem konkreten Snapshot.
 ## NodeContent
 
 ```text
-SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
 ```
 
 `ContentMode` ist `Independent` oder `Derived` ([Zielgruppen und
 Content](Zielgruppen-und-Content.md)). Fallback benötigt keinen duplizierten
-Content-Datensatz – Fallback ist ein Ergebnis der Role Resolution zur Lesezeit.
+Content-Datensatz – Fallback ist ein Ergebnis der Zielgruppen-Auflösung zur Lesezeit.
 
 ## ContentDependency
 
 ```text
-SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
+SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId
 ```
 
 Damit ist prüfbar, ob eine abgeleitete Darstellung noch auf den aktuellen
@@ -83,7 +83,7 @@ wäre eine spätere Erweiterung ([Entscheidungen](Entscheidungen.md)).
 ## Migrationen
 
 Die Migrations-Skripte liegen unter `sql-scripts/` (`0000` Bootstrap/Migrationsjournal,
-`0001` Snapshots/SystemState/Transaction/Release, `0002` Rollen, `0003` Nodes/Content,
+`0001` Snapshots/SystemState/Transaction/Release, `0002` Zielgruppen, `0003` Nodes/Content,
 `0004` Seed des initialen Zustands inklusive Zielgruppe `Default` und ihrer Resolution
 Order). Der Runner arbeitet mit:
 

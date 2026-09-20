@@ -20,7 +20,7 @@ namespace KnowHowToAI.IntegrationTests.TestSupport;
 
 /// <summary>
 /// Führt eine komplette Working-Transaction ausschließlich über die produktiven
-/// Mutation-Pfade (Node-, Content- und Role-Mutation) und schließt sie per Commit ab.
+/// Mutation-Pfade (Node-, Content- und Audience-Mutation) und schließt sie per Commit ab.
 /// Erwartete Fachfehler werden als Testfehler gemeldet, damit Abnahmetests nicht
 /// stillschweigend gegen falsch geseedete Zustände laufen.
 /// </summary>
@@ -30,12 +30,12 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
         KnowledgeTransaction transaction,
         NodeMutationApplicationService nodes,
         ContentMutationApplicationService contents,
-        AudienceMutationService roles)
+        AudienceMutationService audiences)
     {
         Transaction = transaction;
         Nodes = nodes;
         Contents = contents;
-        Roles = roles;
+        Audiences = audiences;
     }
 
     public KnowledgeTransaction Transaction { get; }
@@ -46,7 +46,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     private ContentMutationApplicationService Contents { get; }
 
-    private AudienceMutationService Roles { get; }
+    private AudienceMutationService Audiences { get; }
 
     private long ExpectedChangeVersion { get; set; }
 
@@ -78,7 +78,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
                 new SqlContentMutationRepository(database.ConnectionFactory, policy),
                 new ContentMutationService(new ContentRevisionService(identifierGenerator)),
                 validationPolicy),
-            new AudienceMutationService(new SqlRoleMutationRepository(database.ConnectionFactory, policy)));
+            new AudienceMutationService(new SqlAudienceMutationRepository(database.ConnectionFactory, policy)));
         session.ExpectedChangeVersion = transaction.ChangeVersion;
         return session;
     }
@@ -111,45 +111,45 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
         return value.Node;
     }
 
-    public async Task<NodeContent> ReplaceIndependentContentAsync(NodeId nodeId, AudienceId roleId, string contentMd) =>
-        await ReplaceContentAsync(nodeId, roleId, ContentMode.Independent, contentMd, []).ConfigureAwait(false);
+    public async Task<NodeContent> ReplaceIndependentContentAsync(NodeId nodeId, AudienceId audienceId, string contentMd) =>
+        await ReplaceContentAsync(nodeId, audienceId, ContentMode.Independent, contentMd, []).ConfigureAwait(false);
 
     public async Task<NodeContent> ReplaceDerivedContentAsync(
         NodeId nodeId,
-        AudienceId roleId,
+        AudienceId audienceId,
         string contentMd,
         IReadOnlyList<ContentDependencySource> sources) =>
-        await ReplaceContentAsync(nodeId, roleId, ContentMode.Derived, contentMd, sources).ConfigureAwait(false);
+        await ReplaceContentAsync(nodeId, audienceId, ContentMode.Derived, contentMd, sources).ConfigureAwait(false);
 
-    public async Task<Audience> CreateRoleAsync(string name, string? description)
+    public async Task<Audience> CreateAudienceAsync(string name, string? description)
     {
-        var result = await Roles.CreateAudienceMutationAsync(TransactionId, name, description, ExpectedChangeVersion).ConfigureAwait(false);
+        var result = await Audiences.CreateAudienceMutationAsync(TransactionId, name, description, ExpectedChangeVersion).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
         return value.Audience;
     }
 
-    public async Task<Audience> UpdateRoleDescriptionAsync(AudienceId roleId, string name, string? description)
+    public async Task<Audience> UpdateAudienceDescriptionAsync(AudienceId audienceId, string name, string? description)
     {
-        var result = await Roles.UpdateAudienceMutationAsync(
+        var result = await Audiences.UpdateAudienceMutationAsync(
             TransactionId,
-            new UpdateAudienceMutationRequest(roleId, name, description, ExpectedChangeVersion)).ConfigureAwait(false);
+            new UpdateAudienceMutationRequest(audienceId, name, description, ExpectedChangeVersion)).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
         return value.Audience;
     }
 
-    public async Task DeleteRoleAsync(AudienceId roleId)
+    public async Task DeleteAudienceAsync(AudienceId audienceId)
     {
-        var result = await Roles.DeleteAudienceMutationAsync(TransactionId, roleId, ExpectedChangeVersion).ConfigureAwait(false);
+        var result = await Audiences.DeleteAudienceMutationAsync(TransactionId, audienceId, ExpectedChangeVersion).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
     }
 
-    public async Task SetResolutionAsync(AudienceId requestedRoleId, params AudienceId[] candidateRoleIds)
+    public async Task SetResolutionAsync(AudienceId requestedAudienceId, params AudienceId[] candidateAudienceIds)
     {
-        var result = await Roles.SetAudienceResolutionMutationAsync(
-            TransactionId, requestedRoleId, candidateRoleIds, ExpectedChangeVersion).ConfigureAwait(false);
+        var result = await Audiences.SetAudienceResolutionMutationAsync(
+            TransactionId, requestedAudienceId, candidateAudienceIds, ExpectedChangeVersion).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
     }
@@ -175,14 +175,14 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     private async Task<NodeContent> ReplaceContentAsync(
         NodeId nodeId,
-        AudienceId roleId,
+        AudienceId audienceId,
         ContentMode contentMode,
         string contentMd,
         IReadOnlyList<ContentDependencySource> sources)
     {
         var result = await Contents.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(nodeId, roleId, contentMode, contentMd, sources, ExpectedChangeVersion)).ConfigureAwait(false);
+            new ReplaceContentRequest(nodeId, audienceId, contentMode, contentMd, sources, ExpectedChangeVersion)).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
         return value.Content;

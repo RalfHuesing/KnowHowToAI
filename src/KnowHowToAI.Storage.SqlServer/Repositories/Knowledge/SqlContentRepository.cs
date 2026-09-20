@@ -12,10 +12,10 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 internal sealed class SqlContentRepository : SqlRepository, IContentRepository
 {
     internal const string ListSql = """
-        SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+        SELECT SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
         FROM dbo.KnowHowToAI_NodeContent
         WHERE SnapshotId = @snapshotId
-        ORDER BY NodeId, RoleId;
+        ORDER BY NodeId, AudienceId;
         """;
 
     public SqlContentRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)

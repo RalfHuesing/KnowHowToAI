@@ -17,8 +17,9 @@ Architekturrefaktorierungen.
       symmetrisch umgesetzt.
 - [ ] Es gibt keine Alias-Typen, Compatibility Views, doppelte MCP-Tools,
       JSON-Doppelfelder, Route-Redirects oder Browserzustandsmigrationen.
-- [ ] Die direkt korrigierte SQL-Baseline erzeugt nach kontrolliertem Reset ein
-      reines Audience-Schema; kein Forward-Migrations- oder Aliasrest existiert.
+- [ ] Die direkt korrigierte SQL-Baseline erzeugt nach read-only bestätigtem
+      Leerstand ein reines Audience-Schema; kein Reset-/Cleanup-Aufruf,
+      Forward-Migrations- oder Aliasrest existiert.
 - [ ] Sichtbare deutsche Texte verwenden „Zielgruppe“; Accessibility-Semantik
       und rollenbasierte Playwright-Locators sind nicht beschädigt.
 - [ ] Ist-Dokumentation, Regeln und ausführbare Roadmaps stimmen mit dem

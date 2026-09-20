@@ -70,7 +70,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
     }
 
     /// <summary>
-    /// Basissnapshot in M5.12-Groesse: 1 Root plus 400 Themen-Nodes, 3 Rollen mit
+    /// Basissnapshot in M5.12-Groesse: 1 Root plus 400 Themen-Nodes, 3 Zielgruppen mit
     /// 2 Resolution Orders, 440 Contents (400 Entwickler, 20 Endanwender, 20 Berater
     /// Derived) und 20 Dependencies - ausschliesslich über Mutation-Pfade. Der
     /// IdentifierGenerator bleibt über beide Transaktionen geteilt, damit NodeIds
@@ -82,11 +82,11 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         await using var session = await WorkingTransactionSession.BeginAsync(
             database, PagingBasisTransactionId, identifierGenerator, "M5.16 Diff-Basissnapshot");
 
-        await session.CreateRoleAsync("Entwickler", null);
-        await session.CreateRoleAsync("Endanwender", null);
-        await session.CreateRoleAsync("Berater", null);
-        await session.SetResolutionAsync(RoleEntwickler, RoleEntwickler, new AudienceId("Endanwender"));
-        await session.SetResolutionAsync(new AudienceId("Berater"), new AudienceId("Berater"), RoleEntwickler);
+        await session.CreateAudienceAsync("Entwickler", null);
+        await session.CreateAudienceAsync("Endanwender", null);
+        await session.CreateAudienceAsync("Berater", null);
+        await session.SetResolutionAsync(AudienceEntwickler, AudienceEntwickler, new AudienceId("Endanwender"));
+        await session.SetResolutionAsync(new AudienceId("Berater"), new AudienceId("Berater"), AudienceEntwickler);
 
         var wurzel = await session.CreateNodeAsync(null, "Wurzel Diff-Paging", null, 0);
         var themaNodes = new List<NodeId>();
@@ -103,7 +103,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         var node = await session.CreateNodeAsync(
             parentNodeId, $"Zusatzthema {index:000}", null, PagingThemaNodeCount + index);
         await session.ReplaceIndependentContentAsync(
-            node.NodeId, RoleEntwickler, $"Entwickler-Inhalt zu Zusatzthema {index:000}.");
+            node.NodeId, AudienceEntwickler, $"Entwickler-Inhalt zu Zusatzthema {index:000}.");
         return node;
     }
 
@@ -113,7 +113,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         var node = await session.CreateNodeAsync(
             wurzelNodeId, $"Thema {index:000}", $"Beschreibung zu Thema {index:000}", index);
         var content = await session.ReplaceIndependentContentAsync(
-            node.NodeId, RoleEntwickler, $"Entwickler-Inhalt zu Thema {index:000}.");
+            node.NodeId, AudienceEntwickler, $"Entwickler-Inhalt zu Thema {index:000}.");
 
         if (index % PagingContentStride == 0)
             await session.ReplaceIndependentContentAsync(
@@ -122,7 +122,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         if (index % PagingContentStride == PagingContentStride / 2)
             await session.ReplaceDerivedContentAsync(
                 node.NodeId, new AudienceId("Berater"), $"Berater-Inhalt zu Thema {index:000}.",
-                [new ContentDependencySource(node.NodeId, RoleEntwickler, content.ContentRevisionId)]);
+                [new ContentDependencySource(node.NodeId, AudienceEntwickler, content.ContentRevisionId)]);
 
         return node;
     }
@@ -142,7 +142,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
             await session.UpdateNodeAsync(themaNodes[index], $"Thema {index + 1:000} aktualisiert", null);
         for (var index = 0; index < PagingModifiedContentCount; index++)
             await session.ReplaceIndependentContentAsync(
-                themaNodes[index], RoleEntwickler, $"Entwickler-Inhalt zu Thema {index + 1:000} (geaendert).");
+                themaNodes[index], AudienceEntwickler, $"Entwickler-Inhalt zu Thema {index + 1:000} (geaendert).");
         for (var index = 1; index <= PagingAddedNodeCount; index++)
             await SeedPagingZusatzNodeAsync(session, themaNodes[0], index);
         for (var index = 0; index < PagingDeletedNodeCount; index++)
@@ -179,14 +179,14 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
     {
         var policy = new SqlStoragePolicy { CommandTimeoutSeconds = 60 };
         var hierarchy = new SqlHierarchyRepository(database.ConnectionFactory, policy);
-        var roles = new SqlRoleRepository(database.ConnectionFactory, policy);
+        var audiences = new SqlAudienceRepository(database.ConnectionFactory, policy);
         var contents = new SqlContentRepository(database.ConnectionFactory, policy);
         var dependencies = new SqlDependencyRepository(database.ConnectionFactory, policy);
 
         var basis = await ZaehleSnapshotZeilenAsync(
-            hierarchy, roles, contents, dependencies, baseSnapshotId);
+            hierarchy, audiences, contents, dependencies, baseSnapshotId);
         var ziel = await ZaehleSnapshotZeilenAsync(
-            hierarchy, roles, contents, dependencies, targetSnapshotId);
+            hierarchy, audiences, contents, dependencies, targetSnapshotId);
 
         Assert.Equal(PagingThemaNodeCount + 1, basis.Nodes);
         Assert.Equal(PagingThemaNodeCount + 2 * (PagingThemaNodeCount / PagingContentStride), basis.Contents);
@@ -199,15 +199,15 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
 
     private static async Task<SnapshotZeilenStatistik> ZaehleSnapshotZeilenAsync(
         SqlHierarchyRepository hierarchy,
-        SqlRoleRepository roles,
+        SqlAudienceRepository audiences,
         SqlContentRepository contents,
         SqlDependencyRepository dependencies,
         SnapshotId snapshotId)
     {
         return new SnapshotZeilenStatistik(
             (await hierarchy.ListBySnapshotAsync(snapshotId)).Count,
-            (await roles.ListBySnapshotAsync(snapshotId)).Count,
-            (await roles.ListResolutionsBySnapshotAsync(snapshotId)).Count,
+            (await audiences.ListBySnapshotAsync(snapshotId)).Count,
+            (await audiences.ListResolutionsBySnapshotAsync(snapshotId)).Count,
             (await contents.ListBySnapshotAsync(snapshotId)).Count,
             (await dependencies.ListBySnapshotAsync(snapshotId)).Count);
     }
@@ -302,8 +302,8 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
             SET STATISTICS IO ON;
             SET STATISTICS TIME ON;
             {SqlHierarchyRepository.ListSql}
-            {SqlRoleRepository.ListRolesSql}
-            {SqlRoleRepository.ListResolutionsSql}
+            {SqlAudienceRepository.ListAudiencesSql}
+            {SqlAudienceRepository.ListResolutionsSql}
             {SqlContentRepository.ListSql}
             {SqlDependencyRepository.ListSql}
             """;
@@ -342,8 +342,8 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
             -- {PagingMeasurementMarker}: Ist-Plan der Snapshot-Ladung
             SET STATISTICS PROFILE ON;
             {SqlHierarchyRepository.ListSql}
-            {SqlRoleRepository.ListRolesSql}
-            {SqlRoleRepository.ListResolutionsSql}
+            {SqlAudienceRepository.ListAudiencesSql}
+            {SqlAudienceRepository.ListResolutionsSql}
             {SqlContentRepository.ListSql}
             {SqlDependencyRepository.ListSql}
             """;
@@ -396,12 +396,12 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
 
     private sealed record SnapshotZeilenStatistik(
         int Nodes,
-        int Roles,
+        int Audiences,
         int Resolutions,
         int Contents,
         int Dependencies)
     {
-        public int[] ZeilenProStatement => [Nodes, Roles, Resolutions, Contents, Dependencies];
+        public int[] ZeilenProStatement => [Nodes, Audiences, Resolutions, Contents, Dependencies];
     }
 
     private sealed record SnapshotZeilen(SnapshotZeilenStatistik Basis, SnapshotZeilenStatistik Ziel);

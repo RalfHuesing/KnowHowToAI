@@ -1,6 +1,6 @@
 -- 0004_seed_initial_state.sql
 -- Ziel: Microsoft SQL Server >= 2019
--- Initialisiert den leeren committed Snapshot, SystemState und die Rolle 'Default'.
+-- Initialisiert den leeren committed Snapshot, SystemState und die Zielgruppe 'Default'.
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
@@ -48,9 +48,9 @@ VALUES (
     @SeededAtUtc
 );
 
-INSERT INTO dbo.KnowHowToAI_Role (
+INSERT INTO dbo.KnowHowToAI_Audience (
     SnapshotId,
-    RoleId,
+    AudienceId,
     Name,
     Description,
     IsDeleted
@@ -59,14 +59,14 @@ VALUES (
     @InitialSnapshotId,
     N'Default',
     N'Default',
-    N'Allgemeine, rollenunabhängige Standardinhalte',
+    N'Allgemeine, zielgruppenunabhängige Standardinhalte',
     0
 );
 
-INSERT INTO dbo.KnowHowToAI_RoleResolution (
+INSERT INTO dbo.KnowHowToAI_AudienceResolution (
     SnapshotId,
-    RequestedRoleId,
-    CandidateRoleId,
+    RequestedAudienceId,
+    CandidateAudienceId,
     Priority
 )
 VALUES (

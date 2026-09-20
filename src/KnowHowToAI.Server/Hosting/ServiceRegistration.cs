@@ -58,8 +58,8 @@ internal static class ServiceRegistration
         services.AddSingleton<IContentMutationRepository, SqlContentMutationRepository>();
         services.AddSingleton<IDependencyRepository, SqlDependencyRepository>();
         services.AddSingleton<INodeMutationRepository, SqlNodeMutationRepository>();
-        services.AddSingleton<IAudienceRepository, SqlRoleRepository>();
-        services.AddSingleton<IAudienceMutationRepository, SqlRoleMutationRepository>();
+        services.AddSingleton<IAudienceRepository, SqlAudienceRepository>();
+        services.AddSingleton<IAudienceMutationRepository, SqlAudienceMutationRepository>();
         services.AddSingleton<SqlReleaseRepository>();
         services.AddSingleton<IReleaseRepository>(sp => sp.GetRequiredService<SqlReleaseRepository>());
         services.AddSingleton<IReleaseMutationRepository>(sp => sp.GetRequiredService<SqlReleaseRepository>());

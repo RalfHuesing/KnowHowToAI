@@ -133,9 +133,9 @@ public sealed class SqlWorkingSnapshotValidationTests
                 Assert.False(target.IsDeleted);
                 Assert.Equal(new NodeId(Guid.Parse("40000000-0000-0000-0000-000000000001")), target.ParentNodeId);
             });
-        var role = Assert.Single(view.Audiences);
-        Assert.Equal(new AudienceId("Default"), role.AudienceId);
-        Assert.False(role.IsDeleted);
+        var audience = Assert.Single(view.Audiences);
+        Assert.Equal(new AudienceId("Default"), audience.AudienceId);
+        Assert.False(audience.IsDeleted);
         var resolution = Assert.Single(view.AudienceResolutions);
         Assert.Equal(1, resolution.Priority);
         Assert.Collection(
@@ -180,7 +180,7 @@ public sealed class SqlWorkingSnapshotValidationTests
                 (@snapshotId, @sourceNodeId, N'Default', @sourceRevisionId, 'Independent', N'Quellinhalt', 0),
                 (@snapshotId, @targetNodeId, N'Default', @targetRevisionId, 'Derived', N'Abgeleiteter Inhalt', 0);
             INSERT INTO dbo.KnowHowToAI_ContentDependency (
-                SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
+                SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId)
             VALUES (@snapshotId, @targetNodeId, N'Default', @sourceNodeId, N'Default', @sourceRevisionId);
             """,
             new SqlParameter("@snapshotId", snapshotId.Value),
@@ -256,14 +256,14 @@ public sealed class SqlWorkingSnapshotValidationTests
 
     private sealed class CompleteValidationGraphMutationRepository : SqlRepository
     {
-        private const string TombstoneRoleSql = """
-            UPDATE dbo.KnowHowToAI_Role SET IsDeleted = 1
+        private const string TombstoneAudienceSql = """
+            UPDATE dbo.KnowHowToAI_Audience SET IsDeleted = 1
             WHERE SnapshotId = @snapshotId AND AudienceId = N'Default' AND IsDeleted = 0;
             """;
 
         private const string ReprioritizeResolutionSql = """
-            UPDATE dbo.KnowHowToAI_RoleResolution SET Priority = 2
-            WHERE SnapshotId = @snapshotId AND RequestedRoleId = N'Default' AND CandidateRoleId = N'Default';
+            UPDATE dbo.KnowHowToAI_AudienceResolution SET Priority = 2
+            WHERE SnapshotId = @snapshotId AND RequestedAudienceId = N'Default' AND CandidateAudienceId = N'Default';
             """;
 
         private const string OrphanNodeSql = """
@@ -278,7 +278,7 @@ public sealed class SqlWorkingSnapshotValidationTests
 
         private const string StaleDependencySql = """
             UPDATE dbo.KnowHowToAI_ContentDependency SET SourceContentRevisionId = @staleSourceRevisionId
-            WHERE SnapshotId = @snapshotId AND TargetNodeId = @targetNodeId AND TargetRoleId = N'Default';
+            WHERE SnapshotId = @snapshotId AND TargetNodeId = @targetNodeId AND TargetAudienceId = N'Default';
             """;
 
         private readonly TaskCompletionSource _started = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -305,7 +305,7 @@ public sealed class SqlWorkingSnapshotValidationTests
                         targetNodeId = Guid.Parse("40000000-0000-0000-0000-000000000002"),
                         staleSourceRevisionId = Guid.Parse("40000000-0000-0000-0000-000000000006")
                     };
-                    var affectedRows = await context.ExecuteAsync(TombstoneRoleSql, parameters, cancellationToken);
+                    var affectedRows = await context.ExecuteAsync(TombstoneAudienceSql, parameters, cancellationToken);
                     affectedRows += await context.ExecuteAsync(ReprioritizeResolutionSql, parameters, cancellationToken);
                     affectedRows += await context.ExecuteAsync(OrphanNodeSql, parameters, cancellationToken);
                     affectedRows += await context.ExecuteAsync(AddHeadingSql, parameters, cancellationToken);

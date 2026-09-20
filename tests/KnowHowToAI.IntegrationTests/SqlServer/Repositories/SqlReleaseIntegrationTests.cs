@@ -85,7 +85,7 @@ public sealed class SqlReleaseIntegrationTests
             new SqlTransactionRepository(database.ConnectionFactory, policy),
             new SqlHierarchyRepository(database.ConnectionFactory, policy),
             new SqlContentRepository(database.ConnectionFactory, policy),
-            new SqlRoleRepository(database.ConnectionFactory, policy),
+            new SqlAudienceRepository(database.ConnectionFactory, policy),
             new SqlDependencyRepository(database.ConnectionFactory, policy));
 
         var releaseService = new ReleaseService(
@@ -208,10 +208,10 @@ public sealed class SqlReleaseIntegrationTests
         var oldRev = Guid.NewGuid();
 
         await conn.ExecuteAsync("""
-            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, AudienceId, Name, Description, IsDeleted)
-            VALUES (@snap, 'enduser', 'EndUser', 'End user role', 0);
+            INSERT INTO dbo.KnowHowToAI_Audience (SnapshotId, AudienceId, Name, Description, IsDeleted)
+            VALUES (@snap, 'enduser', 'EndUser', 'End user audience', 0);
 
-            INSERT INTO dbo.KnowHowToAI_RoleResolution (SnapshotId, RequestedRoleId, Priority, CandidateRoleId)
+            INSERT INTO dbo.KnowHowToAI_AudienceResolution (SnapshotId, RequestedAudienceId, Priority, CandidateAudienceId)
             VALUES (@snap, 'enduser', 1, 'enduser');
 
             INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
@@ -225,7 +225,7 @@ public sealed class SqlReleaseIntegrationTests
             INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES (@snap, @nodeId, 'enduser', NEWID(), 'Derived', 'Derived content text', 0);
 
-            INSERT INTO dbo.KnowHowToAI_ContentDependency (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
+            INSERT INTO dbo.KnowHowToAI_ContentDependency (SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId)
             VALUES (@snap, @nodeId, 'enduser', @nodeId, N'Default', @oldRev);
             """, new { snap = snapshotId.Value, nodeId, sourceRev, oldRev });
     }

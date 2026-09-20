@@ -76,14 +76,14 @@ public sealed partial class SqlSearchAbnahmeTests
             SET STATISTICS IO ON;
             SET STATISTICS TIME ON;
             SET STATISTICS PROFILE ON;
-            {SqlRetrievalRepository.ListRolesSql}
-            {SqlRetrievalRepository.ListRoleResolutionsSql}
+            {SqlRetrievalRepository.ListAudiencesSql}
+            {SqlRetrievalRepository.ListAudienceResolutionsSql}
             {SqlRetrievalRepository.SearchSql}
             """;
         await using var command = connection.CreateCommand();
         command.CommandText = statisticsSql;
         command.Parameters.AddWithValue("@snapshotId", snapshotId.Value);
-        command.Parameters.AddWithValue("@roleId", "Berater");
+        command.Parameters.AddWithValue("@audienceId", "Berater");
         command.Parameters.AddWithValue("@likePattern", $"%{DerivedSuchtext}%");
         command.Parameters.AddWithValue("@limit", 25);
         command.Parameters.AddWithValue("@hasCursor", 0);
@@ -125,10 +125,10 @@ public sealed partial class SqlSearchAbnahmeTests
                 rows.PlanRows.AddRange(ReadPlanResultSet(reader));
             else if (columns.Contains("HitField"))
                 await ReadSearchRowsAsync(reader, rows).ConfigureAwait(false);
-            else if (columns.Contains("RequestedRoleId"))
+            else if (columns.Contains("RequestedAudienceId"))
                 rows.Resolutions = ReadCountedRows(reader);
             else if (columns.Contains("AudienceId"))
-                rows.Roles = ReadCountedRows(reader);
+                rows.Audiences = ReadCountedRows(reader);
         }
         while (await reader.NextResultAsync().ConfigureAwait(false));
         return rows;
@@ -139,9 +139,9 @@ public sealed partial class SqlSearchAbnahmeTests
         while (await reader.ReadAsync().ConfigureAwait(false))
             rows.SearchRows.Add(new DerivedSearchRow(
                 reader.GetGuid(reader.GetOrdinal("NodeId")),
-                reader.IsDBNull(reader.GetOrdinal("ResolvedRoleId"))
+                reader.IsDBNull(reader.GetOrdinal("ResolvedAudienceId"))
                     ? null
-                    : reader.GetString(reader.GetOrdinal("ResolvedRoleId")),
+                    : reader.GetString(reader.GetOrdinal("ResolvedAudienceId")),
                 reader.IsDBNull(reader.GetOrdinal("ContentRevisionId"))
                     ? null
                     : reader.GetGuid(reader.GetOrdinal("ContentRevisionId")),
@@ -173,7 +173,7 @@ public sealed partial class SqlSearchAbnahmeTests
             await database.GetSqlServerMajorVersionAsync().ConfigureAwait(false),
             ThemaNodeCount,
             measurement,
-            "SearchAsync-Pfad bei Derived-Treffern: Rollen- und Resolution-Laden sowie "
+            "SearchAsync-Pfad bei Derived-Treffern: Zielgruppen- und Resolution-Laden sowie "
             + "SearchSql mit rekursiver SQL-CTE fuer die Freshness-Bewertung.");
 
         return TestMeasurementReports.WriteJson("search-abnahme-freshness-messung.json", report);
@@ -181,7 +181,7 @@ public sealed partial class SqlSearchAbnahmeTests
 
     private sealed record DerivedSearchRow(
         Guid NodeId,
-        string? ResolvedRoleId,
+        string? ResolvedAudienceId,
         Guid? ContentRevisionId,
         string? ContentMode);
 
@@ -189,7 +189,7 @@ public sealed partial class SqlSearchAbnahmeTests
     {
         public List<DerivedSearchRow> SearchRows { get; } = [];
         public List<QueryPlanRow> PlanRows { get; } = [];
-        public int Roles { get; set; }
+        public int Audiences { get; set; }
         public int Resolutions { get; set; }
     }
 

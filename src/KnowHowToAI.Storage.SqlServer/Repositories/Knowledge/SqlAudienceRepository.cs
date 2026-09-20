@@ -9,23 +9,23 @@ using KnowHowToAI.Storage.SqlServer.Repositories;
 
 namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
-internal sealed class SqlRoleRepository : SqlRepository, IAudienceRepository
+internal sealed class SqlAudienceRepository : SqlRepository, IAudienceRepository
 {
-    internal const string ListRolesSql = """
-        SELECT SnapshotId, RoleId, Name, Description, IsDeleted
-        FROM dbo.KnowHowToAI_Role
+    internal const string ListAudiencesSql = """
+        SELECT SnapshotId, AudienceId, Name, Description, IsDeleted
+        FROM dbo.KnowHowToAI_Audience
         WHERE SnapshotId = @snapshotId
-        ORDER BY RoleId;
+        ORDER BY AudienceId;
         """;
 
     internal const string ListResolutionsSql = """
-        SELECT SnapshotId, RequestedRoleId, CandidateRoleId, Priority
-        FROM dbo.KnowHowToAI_RoleResolution
+        SELECT SnapshotId, RequestedAudienceId, CandidateAudienceId, Priority
+        FROM dbo.KnowHowToAI_AudienceResolution
         WHERE SnapshotId = @snapshotId
-        ORDER BY RequestedRoleId, Priority;
+        ORDER BY RequestedAudienceId, Priority;
         """;
 
-    public SqlRoleRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
+    public SqlAudienceRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
         : base(connectionFactory, storagePolicy)
     {
     }
@@ -35,9 +35,9 @@ internal sealed class SqlRoleRepository : SqlRepository, IAudienceRepository
         CancellationToken cancellationToken = default)
     {
         await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
-        var rows = await connection.QueryAsync<RoleRow>(
-            CreateCommand(ListRolesSql, new { snapshotId = snapshotId.Value }, cancellationToken)).ConfigureAwait(false);
-        return rows.Select(SqlRowMapper.ToRole).ToArray();
+        var rows = await connection.QueryAsync<AudienceRow>(
+            CreateCommand(ListAudiencesSql, new { snapshotId = snapshotId.Value }, cancellationToken)).ConfigureAwait(false);
+        return rows.Select(SqlRowMapper.ToAudience).ToArray();
     }
 
     public async Task<IReadOnlyList<AudienceResolution>> ListResolutionsBySnapshotAsync(
@@ -45,8 +45,8 @@ internal sealed class SqlRoleRepository : SqlRepository, IAudienceRepository
         CancellationToken cancellationToken = default)
     {
         await using var connection = await OpenAsync(cancellationToken).ConfigureAwait(false);
-        var rows = await connection.QueryAsync<RoleResolutionRow>(
+        var rows = await connection.QueryAsync<AudienceResolutionRow>(
             CreateCommand(ListResolutionsSql, new { snapshotId = snapshotId.Value }, cancellationToken)).ConfigureAwait(false);
-        return rows.Select(SqlRowMapper.ToRoleResolution).ToArray();
+        return rows.Select(SqlRowMapper.ToAudienceResolution).ToArray();
     }
 }

@@ -40,14 +40,14 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
             SELECT @workingSnapshotId = SnapshotId
             FROM @workingSnapshot;
 
-            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, RoleId, Name, Description, IsDeleted)
-            SELECT @workingSnapshotId, RoleId, Name, Description, IsDeleted
-            FROM dbo.KnowHowToAI_Role
+            INSERT INTO dbo.KnowHowToAI_Audience (SnapshotId, AudienceId, Name, Description, IsDeleted)
+            SELECT @workingSnapshotId, AudienceId, Name, Description, IsDeleted
+            FROM dbo.KnowHowToAI_Audience
             WHERE SnapshotId = @baseSnapshotId;
 
-            INSERT INTO dbo.KnowHowToAI_RoleResolution (SnapshotId, RequestedRoleId, CandidateRoleId, Priority)
-            SELECT @workingSnapshotId, RequestedRoleId, CandidateRoleId, Priority
-            FROM dbo.KnowHowToAI_RoleResolution
+            INSERT INTO dbo.KnowHowToAI_AudienceResolution (SnapshotId, RequestedAudienceId, CandidateAudienceId, Priority)
+            SELECT @workingSnapshotId, RequestedAudienceId, CandidateAudienceId, Priority
+            FROM dbo.KnowHowToAI_AudienceResolution
             WHERE SnapshotId = @baseSnapshotId;
 
             INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
@@ -56,19 +56,19 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
             WHERE SnapshotId = @baseSnapshotId;
 
             INSERT INTO dbo.KnowHowToAI_NodeContent (
-                SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
-            SELECT @workingSnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+                SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            SELECT @workingSnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
             FROM dbo.KnowHowToAI_NodeContent
             WHERE SnapshotId = @baseSnapshotId;
 
             INSERT INTO dbo.KnowHowToAI_ContentDependency (
-                SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
+                SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId)
             SELECT
                 @workingSnapshotId,
                 TargetNodeId,
-                TargetRoleId,
+                TargetAudienceId,
                 SourceNodeId,
-                SourceRoleId,
+                SourceAudienceId,
                 SourceContentRevisionId
             FROM dbo.KnowHowToAI_ContentDependency
             WHERE SnapshotId = @baseSnapshotId;
@@ -134,32 +134,32 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         ORDER BY SortOrder, NodeId;
         """;
 
-    private const string ListRolesSql = """
-        SELECT SnapshotId, RoleId, Name, Description, IsDeleted
-        FROM dbo.KnowHowToAI_Role
+    private const string ListAudiencesSql = """
+        SELECT SnapshotId, AudienceId, Name, Description, IsDeleted
+        FROM dbo.KnowHowToAI_Audience
         WHERE SnapshotId = @snapshotId
-        ORDER BY RoleId;
+        ORDER BY AudienceId;
         """;
 
-    private const string ListRoleResolutionsSql = """
-        SELECT SnapshotId, RequestedRoleId, CandidateRoleId, Priority
-        FROM dbo.KnowHowToAI_RoleResolution
+    private const string ListAudienceResolutionsSql = """
+        SELECT SnapshotId, RequestedAudienceId, CandidateAudienceId, Priority
+        FROM dbo.KnowHowToAI_AudienceResolution
         WHERE SnapshotId = @snapshotId
-        ORDER BY RequestedRoleId, Priority;
+        ORDER BY RequestedAudienceId, Priority;
         """;
 
     private const string ListContentsSql = """
-        SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+        SELECT SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
         FROM dbo.KnowHowToAI_NodeContent
         WHERE SnapshotId = @snapshotId
-        ORDER BY NodeId, RoleId;
+        ORDER BY NodeId, AudienceId;
         """;
 
     private const string ListDependenciesSql = """
-        SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
+        SELECT SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency
         WHERE SnapshotId = @snapshotId
-        ORDER BY TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId;
+        ORDER BY TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId;
         """;
 
     private const string CommitSnapshotSql = """
@@ -418,11 +418,11 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
         var nodes = (await connection.QueryAsync<NodeRow>(CreateCommand(ListNodesSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false))
             .Select(SqlRowMapper.ToNode)
             .ToArray();
-        var roles = (await connection.QueryAsync<RoleRow>(CreateCommand(ListRolesSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false))
-            .Select(SqlRowMapper.ToRole)
+        var audiences = (await connection.QueryAsync<AudienceRow>(CreateCommand(ListAudiencesSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false))
+            .Select(SqlRowMapper.ToAudience)
             .ToArray();
-        var resolutions = (await connection.QueryAsync<RoleResolutionRow>(CreateCommand(ListRoleResolutionsSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false))
-            .Select(SqlRowMapper.ToRoleResolution)
+        var resolutions = (await connection.QueryAsync<AudienceResolutionRow>(CreateCommand(ListAudienceResolutionsSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false))
+            .Select(SqlRowMapper.ToAudienceResolution)
             .ToArray();
         var contents = (await connection.QueryAsync<NodeContentRow>(CreateCommand(ListContentsSql, parameters, cancellationToken, databaseTransaction)).ConfigureAwait(false))
             .Select(SqlRowMapper.ToNodeContent)
@@ -433,7 +433,7 @@ internal sealed class SqlTransactionRepository : SqlRepository, ITransactionRepo
 
         return TransactionValidator.Validate(new TransactionValidationRequest(
             nodes,
-            roles,
+            audiences,
             resolutions,
             contents,
             dependencies,

@@ -158,7 +158,7 @@ public sealed class SqlCommitTransactionRepositoryTests
                 (@snapshotId, @sourceNodeId, N'Default', @sourceRevisionId, 'Independent', N'Quellinhalt', 0),
                 (@snapshotId, @targetNodeId, N'Default', @targetRevisionId, 'Derived', N'Abgeleiteter Inhalt', 0);
             INSERT INTO dbo.KnowHowToAI_ContentDependency (
-                SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
+                SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId)
             VALUES (@snapshotId, @targetNodeId, N'Default', @sourceNodeId, N'Default', @outdatedSourceRevisionId);
             """,
             new SqlParameter("@snapshotId", snapshotId.Value),

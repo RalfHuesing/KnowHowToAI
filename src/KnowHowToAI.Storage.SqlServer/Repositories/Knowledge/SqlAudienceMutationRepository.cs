@@ -10,19 +10,19 @@ using KnowHowToAI.Storage.SqlServer.Repositories;
 
 namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
-/// <summary>Persistiert Rollen und Resolution Orders atomar im gesperrten Working Snapshot.</summary>
-internal sealed class SqlRoleMutationRepository : SqlRepository, IAudienceMutationRepository
+/// <summary>Persistiert Zielgruppen und Auflösungsreihenfolgen atomar im gesperrten Working Snapshot.</summary>
+internal sealed class SqlAudienceMutationRepository : SqlRepository, IAudienceMutationRepository
 {
-    private const string RolesSql = "SELECT SnapshotId, RoleId, Name, Description, IsDeleted FROM dbo.KnowHowToAI_Role WHERE SnapshotId = @snapshotId;";
-    private const string ResolutionsSql = "SELECT SnapshotId, RequestedRoleId, CandidateRoleId, Priority FROM dbo.KnowHowToAI_RoleResolution WHERE SnapshotId = @snapshotId;";
-    private const string ContentsSql = "SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted FROM dbo.KnowHowToAI_NodeContent WHERE SnapshotId = @snapshotId;";
-    private const string DependenciesSql = "SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId FROM dbo.KnowHowToAI_ContentDependency WHERE SnapshotId = @snapshotId;";
-    private const string InsertRoleSql = "INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, RoleId, Name, Description, IsDeleted) VALUES (@snapshotId, @roleId, @name, @description, @isDeleted);";
-    private const string UpdateRoleSql = "UPDATE dbo.KnowHowToAI_Role SET Name=@name, Description=@description, IsDeleted=@isDeleted WHERE SnapshotId=@snapshotId AND RoleId=@roleId;";
-    private const string DeleteResolutionsSql = "DELETE FROM dbo.KnowHowToAI_RoleResolution WHERE SnapshotId=@snapshotId;";
-    private const string InsertResolutionSql = "INSERT INTO dbo.KnowHowToAI_RoleResolution (SnapshotId, RequestedRoleId, CandidateRoleId, Priority) VALUES (@snapshotId,@requestedRoleId,@candidateRoleId,@priority);";
+    private const string AudiencesSql = "SELECT SnapshotId, AudienceId, Name, Description, IsDeleted FROM dbo.KnowHowToAI_Audience WHERE SnapshotId = @snapshotId;";
+    private const string ResolutionsSql = "SELECT SnapshotId, RequestedAudienceId, CandidateAudienceId, Priority FROM dbo.KnowHowToAI_AudienceResolution WHERE SnapshotId = @snapshotId;";
+    private const string ContentsSql = "SELECT SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted FROM dbo.KnowHowToAI_NodeContent WHERE SnapshotId = @snapshotId;";
+    private const string DependenciesSql = "SELECT SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId FROM dbo.KnowHowToAI_ContentDependency WHERE SnapshotId = @snapshotId;";
+    private const string InsertAudienceSql = "INSERT INTO dbo.KnowHowToAI_Audience (SnapshotId, AudienceId, Name, Description, IsDeleted) VALUES (@snapshotId, @audienceId, @name, @description, @isDeleted);";
+    private const string UpdateAudienceSql = "UPDATE dbo.KnowHowToAI_Audience SET Name=@name, Description=@description, IsDeleted=@isDeleted WHERE SnapshotId=@snapshotId AND AudienceId=@audienceId;";
+    private const string DeleteResolutionsSql = "DELETE FROM dbo.KnowHowToAI_AudienceResolution WHERE SnapshotId=@snapshotId;";
+    private const string InsertResolutionSql = "INSERT INTO dbo.KnowHowToAI_AudienceResolution (SnapshotId, RequestedAudienceId, CandidateAudienceId, Priority) VALUES (@snapshotId,@requestedAudienceId,@candidateAudienceId,@priority);";
 
-    public SqlRoleMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy) : base(connectionFactory, storagePolicy) { }
+    public SqlAudienceMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy) : base(connectionFactory, storagePolicy) { }
 
     public async Task<Result<WorkingAudienceMutationExecution<T>>> ExecuteAsync<T>(TransactionId transactionId, Func<WorkingAudienceMutationState, Result<WorkingAudienceMutationDecision<T>>> mutate, long expectedChangeVersion, CancellationToken cancellationToken = default)
     {
@@ -58,20 +58,20 @@ internal sealed class SqlRoleMutationRepository : SqlRepository, IAudienceMutati
     private static async Task<WorkingAudienceMutationState> ReadAsync(SqlWorkingSnapshotMutationContext context, CancellationToken token)
     {
         var p = new { snapshotId = context.WorkingSnapshotId.Value };
-        var roles = await context.QueryAsync<RoleRow>(RolesSql, p, token).ConfigureAwait(false);
-        var resolutions = await context.QueryAsync<RoleResolutionRow>(ResolutionsSql, p, token).ConfigureAwait(false);
+        var audiences = await context.QueryAsync<AudienceRow>(AudiencesSql, p, token).ConfigureAwait(false);
+        var resolutions = await context.QueryAsync<AudienceResolutionRow>(ResolutionsSql, p, token).ConfigureAwait(false);
         var contents = await context.QueryAsync<NodeContentRow>(ContentsSql, p, token).ConfigureAwait(false);
         var dependencies = await context.QueryAsync<ContentDependencyRow>(DependenciesSql, p, token).ConfigureAwait(false);
-        return new WorkingAudienceMutationState(context.WorkingSnapshotId, roles.Select(SqlRowMapper.ToRole).ToArray(), resolutions.Select(SqlRowMapper.ToRoleResolution).ToArray(), contents.Select(SqlRowMapper.ToNodeContent).ToArray(), dependencies.Select(SqlRowMapper.ToContentDependency).ToArray());
+        return new WorkingAudienceMutationState(context.WorkingSnapshotId, audiences.Select(SqlRowMapper.ToAudience).ToArray(), resolutions.Select(SqlRowMapper.ToAudienceResolution).ToArray(), contents.Select(SqlRowMapper.ToNodeContent).ToArray(), dependencies.Select(SqlRowMapper.ToContentDependency).ToArray());
     }
 
     private static async Task SaveAsync(SqlWorkingSnapshotMutationContext context, WorkingAudienceMutationState previous, WorkingAudienceMutationState current, CancellationToken token)
     {
         var previousById = previous.Audiences.ToDictionary(audience => audience.AudienceId);
-        var inserts = current.Audiences.Where(audience => !previousById.ContainsKey(audience.AudienceId)).Select(ToRoleParameters).ToArray();
-        var updates = current.Audiences.Where(audience => previousById.TryGetValue(audience.AudienceId, out var old) && old != audience).Select(ToRoleParameters).ToArray();
-        if (inserts.Length > 0) await context.ExecuteAsync(InsertRoleSql, inserts, token).ConfigureAwait(false);
-        if (updates.Length > 0) await context.ExecuteAsync(UpdateRoleSql, updates, token).ConfigureAwait(false);
+        var inserts = current.Audiences.Where(audience => !previousById.ContainsKey(audience.AudienceId)).Select(ToAudienceParameters).ToArray();
+        var updates = current.Audiences.Where(audience => previousById.TryGetValue(audience.AudienceId, out var old) && old != audience).Select(ToAudienceParameters).ToArray();
+        if (inserts.Length > 0) await context.ExecuteAsync(InsertAudienceSql, inserts, token).ConfigureAwait(false);
+        if (updates.Length > 0) await context.ExecuteAsync(UpdateAudienceSql, updates, token).ConfigureAwait(false);
         if (!SetEquals(previous.Resolutions, current.Resolutions))
         {
             await context.ExecuteAsync(DeleteResolutionsSql, new { snapshotId = context.WorkingSnapshotId.Value }, token).ConfigureAwait(false);
@@ -80,6 +80,6 @@ internal sealed class SqlRoleMutationRepository : SqlRepository, IAudienceMutati
     }
 
     private static bool SetEquals<T>(IReadOnlyList<T> left, IReadOnlyList<T> right) where T : notnull => left.Count == right.Count && new HashSet<T>(left).SetEquals(right);
-    private static object ToRoleParameters(Audience audience) => new { snapshotId = audience.SnapshotId.Value, roleId = audience.AudienceId.Value, audience.Name, audience.Description, audience.IsDeleted };
-    private static object ToResolutionParameters(AudienceResolution resolution) => new { snapshotId = resolution.SnapshotId.Value, requestedRoleId = resolution.RequestedAudienceId.Value, candidateRoleId = resolution.CandidateAudienceId.Value, resolution.Priority };
+    private static object ToAudienceParameters(Audience audience) => new { snapshotId = audience.SnapshotId.Value, audienceId = audience.AudienceId.Value, audience.Name, audience.Description, audience.IsDeleted };
+    private static object ToResolutionParameters(AudienceResolution resolution) => new { snapshotId = resolution.SnapshotId.Value, requestedAudienceId = resolution.RequestedAudienceId.Value, candidateAudienceId = resolution.CandidateAudienceId.Value, resolution.Priority };
 }

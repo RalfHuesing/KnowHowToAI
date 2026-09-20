@@ -29,7 +29,7 @@ public sealed partial class SqlSearchAbnahmeTests
     private const int FallbackContentStride = 20;
     private const string MeasurementMarker = "M5.12-Abnahme";
 
-    private static readonly AudienceId RoleEntwickler = new("Entwickler");
+    private static readonly AudienceId AudienceEntwickler = new("Entwickler");
 
     [Fact]
     public async Task SearchQuery_RepraesentativeDatenmenge_NachweisInPlanUndLaufzeit()
@@ -42,14 +42,14 @@ public sealed partial class SqlSearchAbnahmeTests
             database.ConnectionFactory,
             new SqlStoragePolicy { CommandTimeoutSeconds = 60 });
 
-        var ohneRolle = await PageThroughAllHitsAsync(repository, snapshotId, "Installation", null, 25);
-        Assert.Equal(ThemaNodeCount / TitleHitStride, ohneRolle.Count);
-        Assert.All(ohneRolle, hit => Assert.Equal("Title", hit.HitField));
+        var ohneZielgruppe = await PageThroughAllHitsAsync(repository, snapshotId, "Installation", null, 25);
+        Assert.Equal(ThemaNodeCount / TitleHitStride, ohneZielgruppe.Count);
+        Assert.All(ohneZielgruppe, hit => Assert.Equal("Title", hit.HitField));
 
-        var mitRolle = await PageThroughAllHitsAsync(repository, snapshotId, "Ablauf", RoleEntwickler, 25);
+        var mitZielgruppe = await PageThroughAllHitsAsync(repository, snapshotId, "Ablauf", AudienceEntwickler, 25);
         var erwarteteTreffer = ThemaNodeCount / ContentHitStride;
-        Assert.Equal(erwarteteTreffer, mitRolle.Count);
-        Assert.All(mitRolle, hit => Assert.Equal(Availability.Explicit, hit.Availability));
+        Assert.Equal(erwarteteTreffer, mitZielgruppe.Count);
+        Assert.All(mitZielgruppe, hit => Assert.Equal(Availability.Explicit, hit.Availability));
 
         var measurements = await MeasureSearchVariantsAsync(database, snapshotId, repository);
         Assert.All(measurements, measurement =>
@@ -57,7 +57,7 @@ public sealed partial class SqlSearchAbnahmeTests
             Assert.True(measurement.LogicalReadsTotal > 0, $"Keine Reads erfasst: {measurement.Name}");
             Assert.True(measurement.LogicalReadsTotal < 100_000, $"Unerwartet hohe Reads: {measurement.Name}");
             Assert.True(measurement.WallClockMilliseconds < 2000, $"Unerwartet langsam: {measurement.Name}");
-            Assert.Contains("RoleCandidates", measurement.PlanSummary);
+            Assert.Contains("AudienceCandidates", measurement.PlanSummary);
         });
 
         var reportPath = await WriteMeasurementReportAsync(database, measurements);
@@ -66,9 +66,9 @@ public sealed partial class SqlSearchAbnahmeTests
 
     /// <summary>
     /// Legt die dokumentierte Testgroesse an: 1 Root-Node plus 400 Themen-Nodes,
-    /// 3 Rollen mit 2 Resolution Orders, 440 Contents (davon 20 Derived) und
+    /// 3 Zielgruppen mit 2 Resolution Orders, 440 Contents (davon 20 Derived) und
     /// 20 Dependencies - ausschliesslich über begin_transaction, Node-, Content-
-    /// und Role-Mutation sowie Commit; committed Snapshots bleiben SQL-unberührt.
+    /// und Audience-Mutation sowie Commit; committed Snapshots bleiben SQL-unberührt.
     /// </summary>
     private static async Task<SnapshotId> SeedRepresentativeDatasetAsync(SqlTestDatabase database)
     {
@@ -77,11 +77,11 @@ public sealed partial class SqlSearchAbnahmeTests
         await using var session = await WorkingTransactionSession.BeginAsync(
             database, transactionId, identifierGenerator, "M5.12 Search-Abnahme");
 
-        await session.CreateRoleAsync("Entwickler", "Technische Sicht");
-        await session.CreateRoleAsync("Endanwender", "Anwendersicht");
-        await session.CreateRoleAsync("Berater", "Beratersicht");
-        await session.SetResolutionAsync(RoleEntwickler, RoleEntwickler, new AudienceId("Endanwender"));
-        await session.SetResolutionAsync(new AudienceId("Berater"), new AudienceId("Berater"), RoleEntwickler);
+        await session.CreateAudienceAsync("Entwickler", "Technische Sicht");
+        await session.CreateAudienceAsync("Endanwender", "Anwendersicht");
+        await session.CreateAudienceAsync("Berater", "Beratersicht");
+        await session.SetResolutionAsync(AudienceEntwickler, AudienceEntwickler, new AudienceId("Endanwender"));
+        await session.SetResolutionAsync(new AudienceId("Berater"), new AudienceId("Berater"), AudienceEntwickler);
 
         var rootNode = await session.CreateNodeAsync(null, "Wurzelthema Abnahme", null, 0);
         for (var index = 1; index <= ThemaNodeCount; index++)
@@ -99,7 +99,7 @@ public sealed partial class SqlSearchAbnahmeTests
     {
         var contentMd = $"Inhalt fuer Thema {index:000} mit fachlichen Hinweisen."
             + (index % ContentHitStride == 0 ? " Ablauf im Inhalt." : string.Empty);
-        var content = await session.ReplaceIndependentContentAsync(nodeId, RoleEntwickler, contentMd);
+        var content = await session.ReplaceIndependentContentAsync(nodeId, AudienceEntwickler, contentMd);
 
         if (index % FallbackContentStride == 0)
             await session.ReplaceIndependentContentAsync(
@@ -111,7 +111,7 @@ public sealed partial class SqlSearchAbnahmeTests
                 nodeId,
                 new AudienceId("Berater"),
                 $"Berater-Sicht zu Thema {index:000}.",
-                [new ContentDependencySource(nodeId, RoleEntwickler, content.ContentRevisionId)]);
+                [new ContentDependencySource(nodeId, AudienceEntwickler, content.ContentRevisionId)]);
         }
     }
 
@@ -134,7 +134,7 @@ public sealed partial class SqlSearchAbnahmeTests
         SqlRetrievalRepository repository,
         SnapshotId snapshotId,
         string text,
-        AudienceId? roleId,
+        AudienceId? audienceId,
         int pageSize)
     {
         var allHits = new List<SearchHit>();
@@ -142,14 +142,14 @@ public sealed partial class SqlSearchAbnahmeTests
         do
         {
             var page = (await repository.SearchAsync(
-                new SearchRequest(snapshotId, text, roleId, pageSize, cursor, 100)).ConfigureAwait(false)).Value!;
+                new SearchRequest(snapshotId, text, audienceId, pageSize, cursor, 100)).ConfigureAwait(false)).Value!;
             if (page.Count == 0)
                 break;
 
             allHits.AddRange(page);
             var last = page[^1];
             cursor = new SearchCursor(
-                snapshotId, null, text, roleId, RankOf(last.HitField), last.SortOrder, last.NodeId).Encode();
+                snapshotId, null, text, audienceId, RankOf(last.HitField), last.SortOrder, last.NodeId).Encode();
         }
         while (cursor is not null);
 
@@ -162,19 +162,19 @@ public sealed partial class SqlSearchAbnahmeTests
         SqlRetrievalRepository repository)
     {
         var ersteSeite = (await repository.SearchAsync(
-            new SearchRequest(snapshotId, "Ablauf", RoleEntwickler, 25, null, 100)).ConfigureAwait(false)).Value!;
+            new SearchRequest(snapshotId, "Ablauf", AudienceEntwickler, 25, null, 100)).ConfigureAwait(false)).Value!;
         var letzterTreffer = ersteSeite[^1];
 
         return new List<SearchQueryMeasurement>
         {
             await MeasureSingleQueryAsync(database, snapshotId, new SearchVariant(
-                "OhneRolle", "Installation", null,
+                "OhneZielgruppe", "Installation", null,
                 HasCursor: 0, LastRank: 0, LastSortOrder: 0, LastNodeId: Guid.Empty)).ConfigureAwait(false),
             await MeasureSingleQueryAsync(database, snapshotId, new SearchVariant(
-                "MitRolleErsteSeite", "Ablauf", RoleEntwickler,
+                "MitZielgruppeErsteSeite", "Ablauf", AudienceEntwickler,
                 HasCursor: 0, LastRank: 0, LastSortOrder: 0, LastNodeId: Guid.Empty)).ConfigureAwait(false),
             await MeasureSingleQueryAsync(database, snapshotId, new SearchVariant(
-                "MitRolleFolgeseite", "Ablauf", RoleEntwickler,
+                "MitZielgruppeFolgeseite", "Ablauf", AudienceEntwickler,
                 HasCursor: 1, LastRank: RankOf(letzterTreffer.HitField), LastSortOrder: letzterTreffer.SortOrder,
                 LastNodeId: letzterTreffer.NodeId.Value)).ConfigureAwait(false)
         };
@@ -209,7 +209,7 @@ public sealed partial class SqlSearchAbnahmeTests
         await using var command = connection.CreateCommand();
         command.CommandText = statisticsSql;
         command.Parameters.AddWithValue("@snapshotId", snapshotId.Value);
-        command.Parameters.AddWithValue("@roleId", (object?)variant.AudienceId?.Value ?? DBNull.Value);
+        command.Parameters.AddWithValue("@audienceId", (object?)variant.AudienceId?.Value ?? DBNull.Value);
         command.Parameters.AddWithValue("@likePattern", $"%{variant.Text}%");
         command.Parameters.AddWithValue("@limit", 50);
         command.Parameters.AddWithValue("@hasCursor", variant.HasCursor);
@@ -241,8 +241,8 @@ public sealed partial class SqlSearchAbnahmeTests
 
     private static void AddEmptySearchFilterParameters(SqlCommand command)
     {
-        command.Parameters.AddWithValue("@hasResolvedRoleFilter", 0);
-        command.Parameters.AddWithValue("@resolvedRoleFilter", "[]");
+        command.Parameters.AddWithValue("@hasResolvedAudienceFilter", 0);
+        command.Parameters.AddWithValue("@resolvedAudienceFilter", "[]");
         command.Parameters.AddWithValue("@hasAvailabilityFilter", 0);
         command.Parameters.AddWithValue("@availabilityFilter", "[]");
         command.Parameters.AddWithValue("@hasFreshnessFilter", 0);

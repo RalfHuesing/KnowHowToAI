@@ -18,35 +18,35 @@ internal sealed class SqlContentMutationRepository : SqlRepository, IContentMuta
         SELECT SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted
         FROM dbo.KnowHowToAI_Node WHERE SnapshotId = @snapshotId;
         """;
-    private const string ListRolesSql = """
-        SELECT SnapshotId, RoleId, Name, Description, IsDeleted
-        FROM dbo.KnowHowToAI_Role WHERE SnapshotId = @snapshotId;
+    private const string ListAudiencesSql = """
+        SELECT SnapshotId, AudienceId, Name, Description, IsDeleted
+        FROM dbo.KnowHowToAI_Audience WHERE SnapshotId = @snapshotId;
         """;
     private const string ListContentsSql = """
-        SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+        SELECT SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
         FROM dbo.KnowHowToAI_NodeContent WHERE SnapshotId = @snapshotId;
         """;
     private const string ListDependenciesSql = """
-        SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
+        SELECT SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency WHERE SnapshotId = @snapshotId;
         """;
     private const string InsertContentSql = """
         INSERT INTO dbo.KnowHowToAI_NodeContent
-            (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
-        VALUES (@snapshotId, @nodeId, @roleId, @contentRevisionId, @contentMode, @contentMd, @isDeleted);
+            (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+        VALUES (@snapshotId, @nodeId, @audienceId, @contentRevisionId, @contentMode, @contentMd, @isDeleted);
         """;
     private const string UpdateContentSql = """
         UPDATE dbo.KnowHowToAI_NodeContent
         SET ContentRevisionId = @contentRevisionId, ContentMode = @contentMode,
             ContentMd = @contentMd, IsDeleted = @isDeleted
-        WHERE SnapshotId = @snapshotId AND NodeId = @nodeId AND RoleId = @roleId;
+        WHERE SnapshotId = @snapshotId AND NodeId = @nodeId AND AudienceId = @audienceId;
         """;
     private const string DeleteDependenciesSql =
         "DELETE FROM dbo.KnowHowToAI_ContentDependency WHERE SnapshotId = @snapshotId;";
     private const string InsertDependencySql = """
         INSERT INTO dbo.KnowHowToAI_ContentDependency
-            (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
-        VALUES (@snapshotId, @targetNodeId, @targetRoleId, @sourceNodeId, @sourceRoleId, @sourceContentRevisionId);
+            (SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId)
+        VALUES (@snapshotId, @targetNodeId, @targetAudienceId, @sourceNodeId, @sourceAudienceId, @sourceContentRevisionId);
         """;
 
     public SqlContentMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)
@@ -121,13 +121,13 @@ internal sealed class SqlContentMutationRepository : SqlRepository, IContentMuta
     {
         var parameters = new { snapshotId = context.WorkingSnapshotId.Value };
         var nodeRows = await context.QueryAsync<NodeRow>(ListNodesSql, parameters, cancellationToken).ConfigureAwait(false);
-        var roleRows = await context.QueryAsync<RoleRow>(ListRolesSql, parameters, cancellationToken).ConfigureAwait(false);
+        var audienceRows = await context.QueryAsync<AudienceRow>(ListAudiencesSql, parameters, cancellationToken).ConfigureAwait(false);
         var contentRows = await context.QueryAsync<NodeContentRow>(ListContentsSql, parameters, cancellationToken).ConfigureAwait(false);
         var dependencyRows = await context.QueryAsync<ContentDependencyRow>(ListDependenciesSql, parameters, cancellationToken).ConfigureAwait(false);
         return new WorkingContentMutationState(
             context.WorkingSnapshotId,
             nodeRows.Select(SqlRowMapper.ToNode).ToArray(),
-            roleRows.Select(SqlRowMapper.ToRole).ToArray(),
+            audienceRows.Select(SqlRowMapper.ToAudience).ToArray(),
             contentRows.Select(SqlRowMapper.ToNodeContent).ToArray(),
             dependencyRows.Select(SqlRowMapper.ToContentDependency).ToArray());
     }

@@ -36,8 +36,8 @@ begin_transaction()
 → Snapshot 101, State = Working, BaseSnapshotId = 100
 ```
 
-Der Inhalt wird per `INSERT … SELECT …` vollständig kopiert, mindestens: Rollen,
-Role Resolution Orders, Nodes, NodeContents, ContentDependencies. Die Transaction
+Der Inhalt wird per `INSERT … SELECT …` vollständig kopiert, mindestens: Zielgruppen,
+Zielgruppen-Auflösungsreihenfolgen, Nodes, NodeContents, ContentDependencies. Die Transaction
 referenziert Base- und WorkingSnapshotId; alle weiteren Änderungen erfolgen
 ausschließlich auf dem Working Snapshot.
 
@@ -125,9 +125,9 @@ markiert die Befunde als stale und löst keine automatische Neulesung aus.
 
 Historische Wissensstände werden nicht zerstört:
 
-- Fachobjekte mit stabiler Identität (Nodes, Rollen, Rollen-Content) werden per
+- Fachobjekte mit stabiler Identität (Nodes, Zielgruppen, Zielgruppen-Content) werden per
   Soft-Delete/Tombstone (`IsDeleted`) entfernt.
-- Reine Zuordnungszeilen ohne eigene Identität (Role Resolution, Content
+- Reine Zuordnungszeilen ohne eigene Identität (Zielgruppen-Auflösung, Content
   Dependency) dürfen im Working Snapshot atomar ersetzt werden; der Base Snapshot
   enthält die vorherige Fassung vollständig.
 - Committed oder historische Snapshots werden niemals physisch verändert.
@@ -135,11 +135,11 @@ Historische Wissensstände werden nicht zerstört:
 Zwei verschiedene Operationen:
 
 - `delete_node` entfernt den fachlichen Punkt **global** aus der aktuellen
-  Wissensstruktur (alle Rollen). Eine Node mit aktiven Children wird ohne
+  Wissensstruktur (alle Zielgruppen). Eine Node mit aktiven Children wird ohne
   `deleteSubtree: true` mit `NodeHasChildren` abgelehnt; die Subtree-Löschung
   tombstoned Nodes und deren Contents atomar.
-- `delete_content` entfernt nur den expliziten Content **einer Rolle**; danach
-  kann der konfigurierte Rollen-Fallback wieder greifen.
+- `delete_content` entfernt nur den expliziten Content **einer Zielgruppe**; danach
+  kann der konfigurierte Zielgruppen-Fallback wieder greifen.
 
 Diese Operationen dürfen nicht verwechselt werden.
 
@@ -176,8 +176,8 @@ nicht.
 ## Historische Reproduzierbarkeit
 
 Ein alter Snapshot liefert später denselben Wissensstand wie zum Zeitpunkt seines
-Commits. Versioniert werden mindestens: Nodes, Hierarchie, Sortierung, Rollen,
-Role Resolution Orders, rollenabhängige Contents und Content-Abhängigkeiten.
+Commits. Versioniert werden mindestens: Nodes, Hierarchie, Sortierung, Zielgruppen,
+Zielgruppen-Auflösungsreihenfolgen, zielgruppenabhängige Contents und Content-Abhängigkeiten.
 Ändert sich beispielsweise eine Resolution Order später, verändert das den alten
 Snapshot nicht nachträglich.
 
@@ -210,12 +210,12 @@ Target:
 Unveränderte Objekte tauchen nicht auf. Der Diff umfasst fünf strukturierte
 Kategorien in fester Reihenfolge:
 
-1. `Roles` (nach `RoleId`)
-2. `RoleResolutions` (nach `RequestedRoleId`, dann `CandidateRoleId`)
+1. `Audiences` (nach `AudienceId`)
+2. `AudienceResolutions` (nach `RequestedAudienceId`, dann `CandidateAudienceId`)
 3. `Nodes` (nach `SortOrder`, dann `NodeId`)
-4. `Contents` (nach `NodeId`, dann `RoleId`)
-5. `Dependencies` (nach `TargetNodeId`, `TargetRoleId`, `SourceNodeId`,
-   `SourceRoleId`)
+4. `Contents` (nach `NodeId`, dann `AudienceId`)
+5. `Dependencies` (nach `TargetNodeId`, `TargetAudienceId`, `SourceNodeId`,
+   `SourceAudienceId`)
 
 Große Diffs werden seitenweise über einen opaken `DiffCursor` paginiert, der an
 Base-, Target-Snapshot und – bei offenen Transactions – an `ChangeVersion` gebunden
@@ -227,8 +227,8 @@ Schlüsselfelder; zwei Dependencies desselben Targets bleiben unterscheidbar
 
 Für die Node-Historie darf ein Snapshot-Diff auf eine stabile `NodeId` eingeschränkt
 werden. Dann enthält er ausschließlich Änderungen dieses Nodes, seines expliziten
-Contents und aller Dependencies, an denen er Quelle oder Ziel ist; Rollen und
-Rollenauflösungen gehören nicht zu einer einzelnen Node-Historie. Der Filter ist
+Contents und aller Dependencies, an denen er Quelle oder Ziel ist; Zielgruppen und
+Zielgruppen-Auflösungen gehören nicht zu einer einzelnen Node-Historie. Der Filter ist
 Teil der Cursorbindung, damit eine Fortsetzungsseite niemals Ergebnisse eines
 anderen Node-Filters liefert. Auch diese Ansicht bleibt ein read-only Netto-Diff;
 sie bietet weder Merge noch Reapply.

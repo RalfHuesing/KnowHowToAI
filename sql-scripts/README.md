@@ -8,14 +8,14 @@ Dieses Verzeichnis enthält die relationalen Datenbankschema- und Initialisierun
 ## Konventionen & Architektur
 1. **Tabellen-Präfix**: Alle Tabellen tragen das Präfix `KnowHowToAI_`.
 2. **Snapshot-Isolation & Versionierung**:
-   - Versionierte Tabellen (`Node`, `NodeContent`, `Role`, `RoleResolution`, `ContentDependency`) besitzen `SnapshotId` als Bestandteil ihres Primärschlüssels.
+   - Versionierte Tabellen (`Node`, `NodeContent`, `Audience`, `AudienceResolution`, `ContentDependency`) besitzen `SnapshotId` als Bestandteil ihres Primärschlüssels.
    - Snapshots sind nach dem Commit vollständig unveränderlich.
    - Fachobjekte mit stabiler Identität werden über Soft-Delete (`IsDeleted = 1`) entfernt.
-   - Reine Zuordnungen (`RoleResolution`, `ContentDependency`) dürfen nur innerhalb eines Working Snapshots atomar ersetzt werden; der Base Snapshot erhält die vorherige Fassung.
+   - Reine Zuordnungen (`AudienceResolution`, `ContentDependency`) dürfen nur innerhalb eines Working Snapshots atomar ersetzt werden; der Base Snapshot erhält die vorherige Fassung.
 3. **Datentypen**:
    - Primäre Identitäten (`NodeId`, `TransactionId`, `ContentRevisionId`): `UNIQUEIDENTIFIER`.
    - Snapshot-Identitäten (`SnapshotId`, `ReleaseId`): `BIGINT`.
-   - Rollen-IDs: `NVARCHAR(50)` mit binärer, case-sensitiver Collation.
+   - Zielgruppen-IDs: `NVARCHAR(50)` mit binärer, case-sensitiver Collation.
    - Markdown-Inhalte: `NVARCHAR(MAX)` (UTF-16/Unicode).
    - Datums-/Zeitstempel: `DATETIME2(7)` in UTC (`SYSUTCDATETIME()`).
 4. **Migrationen und Idempotenz**:
@@ -31,6 +31,6 @@ Dieses Verzeichnis enthält die relationalen Datenbankschema- und Initialisierun
 ## Skript-Reihenfolge
 - `0000_bootstrap_schema_migrations.sql`: Reentrantes Bootstrap für `KnowHowToAI_SchemaMigration`; nicht Teil der versionierten Migrationen.
 - `0001_create_system_and_snapshots.sql`: Systemstatus, Snapshots, Transaktionen und Releases.
-- `0002_create_roles.sql`: Rollen und Role Resolution Orders (versioniert pro Snapshot).
+- `0002_create_audiences.sql`: Zielgruppen und Audience Resolution Orders (versioniert pro Snapshot).
 - `0003_create_nodes_and_content.sql`: Node-Hierarchie, Node-Content und Content-Abhängigkeiten.
-- `0004_seed_initial_state.sql`: Initialer leerer committed Snapshot, SystemState und Basiseintrag für Rolle `Default`; keine fest verdrahtete Snapshot-ID.
+- `0004_seed_initial_state.sql`: Initialer leerer committed Snapshot, SystemState und Basiseintrag für Zielgruppe `Default`; keine fest verdrahtete Snapshot-ID.

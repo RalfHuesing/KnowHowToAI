@@ -29,18 +29,20 @@ unverändert.
 - Kein Alias, keine Weiterleitung und keine Doppelunterstützung alter und neuer
   Namen. Compilerbedingte direkte Aufruferkorrekturen sind keine zweite API.
 - `Audience` bleibt Contentadressat und wird nicht mit Berechtigungen verbunden.
-- Es gibt keinen zu erhaltenden Datenbestand. Die SQL-Baseline wird direkt auf
-  Audience korrigiert; ausschließlich die bekannten konfigurierten
-  Entwicklungs-/Testschemas dürfen kontrolliert zurückgesetzt werden.
+- Der Benutzer hat die bekannten konfigurierten Entwicklungs-/Testdatenbanken
+  bereits manuell geleert. Die SQL-Baseline wird direkt auf Audience korrigiert;
+  kein Agent löscht Tabellen, Schemas, Datenbanken oder sonstige DB-Objekte.
+  Vor dem Neuaufbau erfolgt ausschließlich eine read-only Leerstandsprüfung;
+  danach läuft der normale Migration Runner.
 - Jeder Code-Slice aktualisiert seine Ist-Dokumentation im selben Commit.
 - Accessibility-`role` und Playwrights rollenbasierte Locators bleiben erhalten;
   sie sind keine Fachterminologie.
 
 ## M1.1 – Fachkern und Persistenz
 
-- [ ] **M1.1 abschließen**
+- [x] **M1.1 abschließen**
   - [x] [M1.1-T1 – Domain und Application auf Audience umstellen](tasks/M1.1-T1.md)
-  - [ ] [M1.1-T2 – SQL-Schema und Persistence auf Audience umstellen](tasks/M1.1-T2.md)
+  - [x] [M1.1-T2 – SQL-Schema und Persistence auf Audience umstellen](tasks/M1.1-T2.md)
 
 ## M1.2 – MCP-Hard-Cut
 

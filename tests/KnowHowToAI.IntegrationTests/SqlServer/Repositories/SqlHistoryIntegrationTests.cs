@@ -27,7 +27,7 @@ public sealed class SqlHistoryIntegrationTests
         var transactionRepo = new SqlTransactionRepository(database.ConnectionFactory, policy);
         var hierarchyRepo = new SqlHierarchyRepository(database.ConnectionFactory, policy);
         var contentRepo = new SqlContentRepository(database.ConnectionFactory, policy);
-        var roleRepo = new SqlRoleRepository(database.ConnectionFactory, policy);
+        var audienceRepo = new SqlAudienceRepository(database.ConnectionFactory, policy);
         var depRepo = new SqlDependencyRepository(database.ConnectionFactory, policy);
 
         var historyRepos = new SnapshotReadRepositories(
@@ -35,7 +35,7 @@ public sealed class SqlHistoryIntegrationTests
             transactionRepo,
             hierarchyRepo,
             contentRepo,
-            roleRepo,
+            audienceRepo,
             depRepo);
 
         var historyService = new HistoryService(historyRepos, new RetrievalPolicy

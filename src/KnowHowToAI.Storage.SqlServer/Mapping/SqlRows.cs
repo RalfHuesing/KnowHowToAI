@@ -35,23 +35,23 @@ internal sealed record NodeRow(
     int SortOrder,
     bool IsDeleted);
 
-internal sealed record RoleRow(
+internal sealed record AudienceRow(
     long SnapshotId,
-    string RoleId,
+    string AudienceId,
     string Name,
     string? Description,
     bool IsDeleted);
 
-internal sealed record RoleResolutionRow(
+internal sealed record AudienceResolutionRow(
     long SnapshotId,
-    string RequestedRoleId,
-    string CandidateRoleId,
+    string RequestedAudienceId,
+    string CandidateAudienceId,
     int Priority);
 
 internal sealed record NodeContentRow(
     long SnapshotId,
     Guid NodeId,
-    string RoleId,
+    string AudienceId,
     Guid ContentRevisionId,
     string ContentMode,
     string ContentMd,
@@ -60,9 +60,9 @@ internal sealed record NodeContentRow(
 internal sealed record ContentDependencyRow(
     long SnapshotId,
     Guid TargetNodeId,
-    string TargetRoleId,
+    string TargetAudienceId,
     Guid SourceNodeId,
-    string SourceRoleId,
+    string SourceAudienceId,
     Guid SourceContentRevisionId);
 
 internal sealed record ReleaseRow(

@@ -20,7 +20,7 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Abnahme;
 
 /// <summary>
 /// M5.12-Abnahme: weist anhand fester IDs und Zeitwerte alle fünf Diff-Kategorien
-/// (Nodes, Roles, RoleResolutions, Contents, Dependencies) mit Added, Modified und
+/// (Nodes, Audiences, AudienceResolutions, Contents, Dependencies) mit Added, Modified und
 /// Deleted über die echte SQL-Datenbank nach, reproduziert die Diffs historisch nach
 /// spaeteren Commits und prueft das Release-Listing über mehrere Cursor-Seiten.
 /// </summary>
@@ -32,11 +32,11 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
     private static readonly TransactionId AenderungsTransactionId = new(Guid.Parse("51210000-0000-0000-0000-000000000002"));
     private static readonly TransactionId FolgetransactionId = new(Guid.Parse("51210000-0000-0000-0000-000000000003"));
 
-    private static readonly AudienceId RoleEntwickler = new("Entwickler");
-    private static readonly AudienceId RoleEndanwender = new("Endanwender");
-    private static readonly AudienceId RoleBerater = new("Berater");
-    private static readonly AudienceId RoleProjekt = new("Projekt");
-    private static readonly AudienceId RoleAdmin = new("Admin");
+    private static readonly AudienceId AudienceEntwickler = new("Entwickler");
+    private static readonly AudienceId AudienceEndanwender = new("Endanwender");
+    private static readonly AudienceId AudienceBerater = new("Berater");
+    private static readonly AudienceId AudienceProjekt = new("Projekt");
+    private static readonly AudienceId AudienceAdmin = new("Admin");
 
     [Fact]
     public async Task DiffKategorien_WerdenDeterministischUndHistorischReproduzierbarNachgewiesen()
@@ -52,7 +52,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
 
         var aenderungsDiff = await RequireDiffAsync(
             historyService.CompareSnapshotsAsync(baseSnapshot.SnapshotId, geaenderterSnapshotId));
-        AssertDiffCategoryCounts(aenderungsDiff, nodes: 3, roles: 3, resolutions: 5, contents: 6, dependencies: 3);
+        AssertDiffCategoryCounts(aenderungsDiff, nodes: 3, audiences: 3, resolutions: 5, contents: 6, dependencies: 3);
         AssertChangeDiffContent(aenderungsDiff, changes);
 
         var reproduziert = await RequireDiffAsync(
@@ -65,7 +65,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
 
         var folgeDiff = await RequireDiffAsync(
             historyService.CompareSnapshotsAsync(geaenderterSnapshotId, folgeSnapshotId));
-        AssertDiffCategoryCounts(folgeDiff, nodes: 1, roles: 0, resolutions: 0, contents: 0, dependencies: 0);
+        AssertDiffCategoryCounts(folgeDiff, nodes: 1, audiences: 0, resolutions: 0, contents: 0, dependencies: 0);
         Assert.Equal(DiffChangeKind.Added, Assert.Single(folgeDiff.Nodes).Kind);
     }
 
@@ -83,7 +83,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
             new SqlTransactionRepository(database.ConnectionFactory, policy),
             new SqlHierarchyRepository(database.ConnectionFactory, policy),
             new SqlContentRepository(database.ConnectionFactory, policy),
-            new SqlRoleRepository(database.ConnectionFactory, policy),
+            new SqlAudienceRepository(database.ConnectionFactory, policy),
             new SqlDependencyRepository(database.ConnectionFactory, policy));
         var releaseService = new ReleaseService(
             historyRepositories,
@@ -140,13 +140,13 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         await using var session = await WorkingTransactionSession.BeginAsync(
             database, ErsteTransactionId, identifierGenerator, "M5.12 Diff-Basissnapshot");
 
-        await session.CreateRoleAsync("Entwickler", null);
-        await session.CreateRoleAsync("Endanwender", null);
-        await session.CreateRoleAsync("Berater", null);
-        await session.CreateRoleAsync("Projekt", null);
-        await session.SetResolutionAsync(RoleEntwickler, RoleEntwickler, RoleEndanwender);
-        await session.SetResolutionAsync(RoleEndanwender, RoleEndanwender, RoleEntwickler);
-        await session.SetResolutionAsync(RoleBerater, RoleBerater, RoleEndanwender);
+        await session.CreateAudienceAsync("Entwickler", null);
+        await session.CreateAudienceAsync("Endanwender", null);
+        await session.CreateAudienceAsync("Berater", null);
+        await session.CreateAudienceAsync("Projekt", null);
+        await session.SetResolutionAsync(AudienceEntwickler, AudienceEntwickler, AudienceEndanwender);
+        await session.SetResolutionAsync(AudienceEndanwender, AudienceEndanwender, AudienceEntwickler);
+        await session.SetResolutionAsync(AudienceBerater, AudienceBerater, AudienceEndanwender);
 
         var wurzel = await session.CreateNodeAsync(null, "Wurzel Diff", null, 0);
         var knotenA = await session.CreateNodeAsync(wurzel.NodeId, "A Titel eins", null, 1);
@@ -154,16 +154,16 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         var knotenC = await session.CreateNodeAsync(wurzel.NodeId, "C Titel eins", null, 3);
 
         var contentA = await session.ReplaceIndependentContentAsync(
-            knotenA.NodeId, RoleEntwickler, "A Entwickler Stand eins.");
+            knotenA.NodeId, AudienceEntwickler, "A Entwickler Stand eins.");
         var contentAEndanwender = await session.ReplaceIndependentContentAsync(
-            knotenA.NodeId, RoleEndanwender, "A Endanwender Stand eins.");
+            knotenA.NodeId, AudienceEndanwender, "A Endanwender Stand eins.");
         await session.ReplaceDerivedContentAsync(
-            knotenB.NodeId, RoleEntwickler, "B abgeleitet von A eins.",
-            [new ContentDependencySource(knotenA.NodeId, RoleEntwickler, contentA.ContentRevisionId)]);
-        await session.ReplaceIndependentContentAsync(knotenC.NodeId, RoleEntwickler, "C Entwickler Stand eins.");
+            knotenB.NodeId, AudienceEntwickler, "B abgeleitet von A eins.",
+            [new ContentDependencySource(knotenA.NodeId, AudienceEntwickler, contentA.ContentRevisionId)]);
+        await session.ReplaceIndependentContentAsync(knotenC.NodeId, AudienceEntwickler, "C Entwickler Stand eins.");
         await session.ReplaceDerivedContentAsync(
-            knotenC.NodeId, RoleBerater, "C Berater abgeleitet.",
-            [new ContentDependencySource(knotenA.NodeId, RoleEndanwender, contentAEndanwender.ContentRevisionId)]);
+            knotenC.NodeId, AudienceBerater, "C Berater abgeleitet.",
+            [new ContentDependencySource(knotenA.NodeId, AudienceEndanwender, contentAEndanwender.ContentRevisionId)]);
 
         var committed = await session.CommitAsync(database, "Commit Diff-Basissnapshot");
         return new BaseSnapshotSeed(
@@ -186,23 +186,23 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         var geloeschterKnoten = await session.DeleteNodeSubtreeAsync(basis.KnotenC);
         var neuerKnoten = await session.CreateNodeAsync(basis.WurzelNodeId, "D Titel", null, 10);
 
-        await session.CreateRoleAsync("Admin", null);
-        await session.UpdateRoleDescriptionAsync(RoleEndanwender, "Endanwender", "Anwendersicht aktualisiert");
-        await session.DeleteRoleAsync(RoleProjekt);
+        await session.CreateAudienceAsync("Admin", null);
+        await session.UpdateAudienceDescriptionAsync(AudienceEndanwender, "Endanwender", "Anwendersicht aktualisiert");
+        await session.DeleteAudienceAsync(AudienceProjekt);
 
-        await session.SetResolutionAsync(RoleEntwickler, RoleEndanwender, RoleEntwickler);
-        await session.SetResolutionAsync(RoleAdmin, RoleAdmin);
-        await session.SetResolutionAsync(RoleBerater);
+        await session.SetResolutionAsync(AudienceEntwickler, AudienceEndanwender, AudienceEntwickler);
+        await session.SetResolutionAsync(AudienceAdmin, AudienceAdmin);
+        await session.SetResolutionAsync(AudienceBerater);
 
         var contentAGeuendert = await session.ReplaceIndependentContentAsync(
-            basis.KnotenA, RoleEntwickler, "A Entwickler Stand zwei.");
+            basis.KnotenA, AudienceEntwickler, "A Entwickler Stand zwei.");
         await session.ReplaceDerivedContentAsync(
-            basis.KnotenB, RoleEntwickler, "B abgeleitet von A zwei.",
-            [new ContentDependencySource(basis.KnotenA, RoleEntwickler, contentAGeuendert.ContentRevisionId)]);
+            basis.KnotenB, AudienceEntwickler, "B abgeleitet von A zwei.",
+            [new ContentDependencySource(basis.KnotenA, AudienceEntwickler, contentAGeuendert.ContentRevisionId)]);
         await session.ReplaceDerivedContentAsync(
-            neuerKnoten.NodeId, RoleEntwickler, "D abgeleitet von A zwei.",
-            [new ContentDependencySource(basis.KnotenA, RoleEntwickler, contentAGeuendert.ContentRevisionId)]);
-        await session.ReplaceIndependentContentAsync(basis.KnotenA, RoleAdmin, "A Admin neu.");
+            neuerKnoten.NodeId, AudienceEntwickler, "D abgeleitet von A zwei.",
+            [new ContentDependencySource(basis.KnotenA, AudienceEntwickler, contentAGeuendert.ContentRevisionId)]);
+        await session.ReplaceIndependentContentAsync(basis.KnotenA, AudienceAdmin, "A Admin neu.");
 
         var committed = await session.CommitAsync(database, "Commit Diff-Aenderungen");
         var changes = new ChangeTransactionIds(
@@ -234,7 +234,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
             new SqlTransactionRepository(database.ConnectionFactory, policy),
             new SqlHierarchyRepository(database.ConnectionFactory, policy),
             new SqlContentRepository(database.ConnectionFactory, policy),
-            new SqlRoleRepository(database.ConnectionFactory, policy),
+            new SqlAudienceRepository(database.ConnectionFactory, policy),
             new SqlDependencyRepository(database.ConnectionFactory, policy));
         return new HistoryService(historyRepositories, new RetrievalPolicy
         {
@@ -256,17 +256,17 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
     private static void AssertDiffCategoryCounts(
         SnapshotDiff diff,
         int nodes,
-        int roles,
+        int audiences,
         int resolutions,
         int contents,
         int dependencies)
     {
         Assert.Equal(nodes, diff.Nodes.Count);
-        Assert.Equal(roles, diff.Audiences.Count);
+        Assert.Equal(audiences, diff.Audiences.Count);
         Assert.Equal(resolutions, diff.AudienceResolutions.Count);
         Assert.Equal(contents, diff.Contents.Count);
         Assert.Equal(dependencies, diff.Dependencies.Count);
-        Assert.Equal(nodes + roles + resolutions + contents + dependencies, diff.TotalCount);
+        Assert.Equal(nodes + audiences + resolutions + contents + dependencies, diff.TotalCount);
     }
 
     private static void AssertChangeDiffContent(SnapshotDiff diff, ChangeTransactionIds changes)
@@ -275,13 +275,13 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         Assert.Equal(changes.GeloeschterKnoten, Assert.Single(diff.Nodes, entry => entry.Kind == DiffChangeKind.Deleted).Before!.NodeId);
         Assert.Equal(changes.NeuerKnoten, Assert.Single(diff.Nodes, entry => entry.Kind == DiffChangeKind.Added).After!.NodeId);
 
-        Assert.Equal(RoleAdmin, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Added).After!.AudienceId);
-        Assert.Equal(RoleEndanwender, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Modified).After!.AudienceId);
-        Assert.Equal(RoleProjekt, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Deleted).Before!.AudienceId);
+        Assert.Equal(AudienceAdmin, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Added).After!.AudienceId);
+        Assert.Equal(AudienceEndanwender, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Modified).After!.AudienceId);
+        Assert.Equal(AudienceProjekt, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Deleted).Before!.AudienceId);
 
         Assert.Equal(2, diff.AudienceResolutions.Count(entry => entry.Kind == DiffChangeKind.Modified));
         Assert.Equal(2, diff.AudienceResolutions.Count(entry => entry.Kind == DiffChangeKind.Deleted));
-        Assert.Equal(RoleAdmin, Assert.Single(diff.AudienceResolutions, entry => entry.Kind == DiffChangeKind.Added).After!.RequestedAudienceId);
+        Assert.Equal(AudienceAdmin, Assert.Single(diff.AudienceResolutions, entry => entry.Kind == DiffChangeKind.Added).After!.RequestedAudienceId);
 
         Assert.Equal(2, diff.Contents.Count(entry => entry.Kind == DiffChangeKind.Added));
         Assert.Equal(2, diff.Contents.Count(entry => entry.Kind == DiffChangeKind.Modified));
@@ -299,7 +299,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         diff.TotalCount,
         Nodes = diff.Nodes.Select(entry =>
             (entry.Kind, entry.Before?.NodeId, entry.After?.NodeId, entry.After?.Title)).ToArray(),
-        Roles = diff.Audiences.Select(entry =>
+        Audiences = diff.Audiences.Select(entry =>
             (entry.Kind, entry.Before?.AudienceId, entry.After?.AudienceId)).ToArray(),
         Resolutions = diff.AudienceResolutions.Select(entry =>
             (entry.Kind, entry.Before?.RequestedAudienceId, entry.Before?.CandidateAudienceId, entry.Before?.Priority,

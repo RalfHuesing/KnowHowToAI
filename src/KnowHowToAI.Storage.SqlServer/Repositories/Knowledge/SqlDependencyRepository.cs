@@ -12,11 +12,11 @@ namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 internal sealed class SqlDependencyRepository : SqlRepository, IDependencyRepository
 {
     internal const string ListSql = """
-        SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId,
+        SELECT SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId,
                SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency
         WHERE SnapshotId = @snapshotId
-        ORDER BY TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId;
+        ORDER BY TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId;
         """;
 
     public SqlDependencyRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)

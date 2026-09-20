@@ -21,8 +21,8 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Repositories;
 [Collection("ManualDatabaseIntegration")]
 public sealed class SqlRetrievalRepositoryTests
 {
-    private static readonly AudienceId RoleDev = new("Developer");
-    private static readonly AudienceId RoleConsultant = new("Consultant");
+    private static readonly AudienceId AudienceDev = new("Developer");
+    private static readonly AudienceId AudienceConsultant = new("Consultant");
 
     [Fact]
     public async Task SearchAsync_TitleHit_ReturnsRank1WithNullSnippet()
@@ -89,24 +89,24 @@ public sealed class SqlRetrievalRepositoryTests
     }
 
     [Fact]
-    public async Task SearchAsync_ContentHitWithRoleFallback_ReturnsRank3WithSnippetAndFallbackAvailability()
+    public async Task SearchAsync_ContentHitWithAudienceFallback_ReturnsRank3WithSnippetAndFallbackAvailability()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
 
         var (snapshotId, node) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            await session.CreateRoleAsync("Developer", null);
-            await session.CreateRoleAsync("Consultant", null);
-            await session.SetResolutionAsync(RoleConsultant, RoleDev);
+            await session.CreateAudienceAsync("Developer", null);
+            await session.CreateAudienceAsync("Consultant", null);
+            await session.SetResolutionAsync(AudienceConsultant, AudienceDev);
             var created = await session.CreateNodeAsync(null, "Node Title", "Node Description", 0);
             await session.ReplaceIndependentContentAsync(
-                created.NodeId, RoleDev, "Deep architectural secrets of the engine");
+                created.NodeId, AudienceDev, "Deep architectural secrets of the engine");
             return created;
         });
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
-        var request = new SearchRequest(snapshotId, "architectural", RoleConsultant, 10, null, 50);
+        var request = new SearchRequest(snapshotId, "architectural", AudienceConsultant, 10, null, 50);
 
         var hits = (await repository.SearchAsync(request)).Value!;
 
@@ -114,7 +114,7 @@ public sealed class SqlRetrievalRepositoryTests
         Assert.Equal(node.NodeId, hit.NodeId);
         Assert.Equal("Content", hit.HitField);
         Assert.Equal(Availability.Fallback, hit.Availability);
-        Assert.Equal(RoleDev, hit.ResolvedAudienceId);
+        Assert.Equal(AudienceDev, hit.ResolvedAudienceId);
         Assert.NotNull(hit.Snippet);
         Assert.Contains("architectural", hit.Snippet);
     }
@@ -127,33 +127,33 @@ public sealed class SqlRetrievalRepositoryTests
 
         await using var session = await WorkingTransactionSession.BeginAsync(
             database, new TransactionId(Guid.NewGuid()), new SequentialIdentifierGenerator(), "Filtertest");
-        await session.CreateRoleAsync(RoleDev.Value, null);
-        await session.SetResolutionAsync(RoleDev, RoleDev);
+        await session.CreateAudienceAsync(AudienceDev.Value, null);
+        await session.SetResolutionAsync(AudienceDev, AudienceDev);
         var source = await session.CreateNodeAsync(null, "Quelle", null, 1);
         var target = await session.CreateNodeAsync(source.NodeId, "Gefilterter Treffer", null, 2);
         var secondTarget = await session.CreateNodeAsync(source.NodeId, "Gefilterter zweiter Treffer", null, 3);
-        var sourceContent = await session.ReplaceIndependentContentAsync(source.NodeId, RoleDev, "Aktueller Quellinhalt");
+        var sourceContent = await session.ReplaceIndependentContentAsync(source.NodeId, AudienceDev, "Aktueller Quellinhalt");
         await session.ReplaceDerivedContentAsync(
             target.NodeId,
-            RoleDev,
+            AudienceDev,
             "Gefilterter Inhalt",
-            [new ContentDependencySource(source.NodeId, RoleDev, sourceContent.ContentRevisionId)]);
+            [new ContentDependencySource(source.NodeId, AudienceDev, sourceContent.ContentRevisionId)]);
         await session.ReplaceDerivedContentAsync(
             secondTarget.NodeId,
-            RoleDev,
+            AudienceDev,
             "Gefilterter zweiter Inhalt",
-            [new ContentDependencySource(source.NodeId, RoleDev, sourceContent.ContentRevisionId)]);
-        await session.ReplaceIndependentContentAsync(source.NodeId, RoleDev, "Neuere Quellrevision");
+            [new ContentDependencySource(source.NodeId, AudienceDev, sourceContent.ContentRevisionId)]);
+        await session.ReplaceIndependentContentAsync(source.NodeId, AudienceDev, "Neuere Quellrevision");
         var committed = await session.CommitAsync(database, "Filtertest committen");
 
         var filter = new SearchFilter(
-            [RoleDev, new AudienceId("AndereRolle")],
+            [AudienceDev, new AudienceId("AndereZielgruppe")],
             [Availability.Explicit, Availability.Fallback],
             [Freshness.Stale],
             ["StaleDerivedContent"]);
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var result = await repository.SearchAsync(new SearchRequest(
-            committed.WorkingSnapshotId, "Gefilterter", RoleDev, 1, null, 100, Filter: filter));
+            committed.WorkingSnapshotId, "Gefilterter", AudienceDev, 1, null, 100, Filter: filter));
 
         Assert.True(result.IsSuccess);
         var hit = Assert.Single(result.Value!);
@@ -165,13 +165,13 @@ public sealed class SqlRetrievalRepositoryTests
             committed.WorkingSnapshotId,
             null,
             "Gefilterter",
-            RoleDev,
+            AudienceDev,
             1,
             hit.SortOrder,
             hit.NodeId,
             filter.Fingerprint).Encode();
         var nextPage = await repository.SearchAsync(new SearchRequest(
-            committed.WorkingSnapshotId, "Gefilterter", RoleDev, 1, cursor, 100, Filter: filter));
+            committed.WorkingSnapshotId, "Gefilterter", AudienceDev, 1, cursor, 100, Filter: filter));
         Assert.Equal(secondTarget.NodeId, Assert.Single(nextPage.Value!).NodeId);
     }
 
@@ -183,19 +183,19 @@ public sealed class SqlRetrievalRepositoryTests
 
         var (snapshotId, nodes) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            await session.CreateRoleAsync("Developer", null);
-            await session.SetResolutionAsync(RoleDev, RoleDev);
+            await session.CreateAudienceAsync("Developer", null);
+            await session.SetResolutionAsync(AudienceDev, AudienceDev);
             var titleNode = await session.CreateNodeAsync(null, "Alpha match in title", "Other text", 10);
             var descNode = await session.CreateNodeAsync(titleNode.NodeId, "Beta title", "Alpha match in description", 20);
             var contentNode = await session.CreateNodeAsync(titleNode.NodeId, "Gamma title", "Gamma desc", 30);
-            await session.ReplaceIndependentContentAsync(contentNode.NodeId, RoleDev, "Alpha match in content body");
+            await session.ReplaceIndependentContentAsync(contentNode.NodeId, AudienceDev, "Alpha match in content body");
             return (TitleNode: titleNode, DescNode: descNode, ContentNode: contentNode);
         });
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
 
         // Page 1: limit 2
-        var page1 = (await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", RoleDev, 2, null, 100))).Value!;
+        var page1 = (await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", AudienceDev, 2, null, 100))).Value!;
         Assert.Equal(2, page1.Count);
         Assert.Equal(nodes.TitleNode.NodeId, page1[0].NodeId);
         Assert.Equal("Title", page1[0].HitField);
@@ -203,41 +203,41 @@ public sealed class SqlRetrievalRepositoryTests
         Assert.Equal("Description", page1[1].HitField);
 
         // Page 2 using cursor
-        var cursor = new SearchCursor(snapshotId, null, "Alpha", RoleDev, 2, page1[1].SortOrder, page1[1].NodeId).Encode();
-        var page2 = (await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", RoleDev, 2, cursor, 100))).Value!;
+        var cursor = new SearchCursor(snapshotId, null, "Alpha", AudienceDev, 2, page1[1].SortOrder, page1[1].NodeId).Encode();
+        var page2 = (await repository.SearchAsync(new SearchRequest(snapshotId, "Alpha", AudienceDev, 2, cursor, 100))).Value!;
         var hit = Assert.Single(page2);
         Assert.Equal(nodes.ContentNode.NodeId, hit.NodeId);
         Assert.Equal("Content", hit.HitField);
     }
 
     [Fact]
-    public async Task SearchAsync_WithRoleExplicitContentHit_ReturnsExplicitAvailabilityAndRoleData()
+    public async Task SearchAsync_WithAudienceExplicitContentHit_ReturnsExplicitAvailabilityAndAudienceData()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
 
         var (snapshotId, _) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            await session.CreateRoleAsync("Developer", null);
-            await session.SetResolutionAsync(RoleDev, RoleDev);
+            await session.CreateAudienceAsync("Developer", null);
+            await session.SetResolutionAsync(AudienceDev, AudienceDev);
             var created = await session.CreateNodeAsync(null, "Node Title", "Node Description", 0);
-            await session.ReplaceIndependentContentAsync(created.NodeId, RoleDev, "Explicit developer content");
+            await session.ReplaceIndependentContentAsync(created.NodeId, AudienceDev, "Explicit developer content");
             return created;
         });
 
         var repository = new SqlRetrievalRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
-        var result = (await repository.SearchAsync(new SearchRequest(snapshotId, "developer", RoleDev, 10, null, 50))).Value!;
+        var result = (await repository.SearchAsync(new SearchRequest(snapshotId, "developer", AudienceDev, 10, null, 50))).Value!;
 
         var hit = Assert.Single(result);
         Assert.Equal("Content", hit.HitField);
         Assert.Equal(Availability.Explicit, hit.Availability);
-        Assert.Equal(RoleDev, hit.ResolvedAudienceId);
-        Assert.Contains(result.Audiences!, role => role.AudienceId == RoleDev && !role.IsDeleted);
-        Assert.Contains(result.Resolutions!, resolution => resolution.RequestedAudienceId == RoleDev);
+        Assert.Equal(AudienceDev, hit.ResolvedAudienceId);
+        Assert.Contains(result.Audiences!, audience => audience.AudienceId == AudienceDev && !audience.IsDeleted);
+        Assert.Contains(result.Resolutions!, resolution => resolution.RequestedAudienceId == AudienceDev);
     }
 
     [Fact]
-    public async Task SearchAsync_WithoutRole_DoesNotSearchContent()
+    public async Task SearchAsync_WithoutAudience_DoesNotSearchContent()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
@@ -289,7 +289,7 @@ public sealed class SqlRetrievalRepositoryTests
     }
 
     [Fact]
-    public async Task Search_WithUnknownRequestedRole_ReturnsRequestedRoleNotFound()
+    public async Task Search_WithUnknownRequestedAudience_ReturnsRequestedAudienceNotFound()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
@@ -305,15 +305,15 @@ public sealed class SqlRetrievalRepositoryTests
     }
 
     [Fact]
-    public async Task Search_WithDeletedRequestedRole_ReturnsRequestedRoleDeleted()
+    public async Task Search_WithDeletedRequestedAudience_ReturnsRequestedAudienceDeleted()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
 
         var (snapshotId, _) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            await session.CreateRoleAsync("Ghost", null);
-            await session.DeleteRoleAsync(new AudienceId("Ghost"));
+            await session.CreateAudienceAsync("Ghost", null);
+            await session.DeleteAudienceAsync(new AudienceId("Ghost"));
             return true;
         });
 
@@ -325,21 +325,21 @@ public sealed class SqlRetrievalRepositoryTests
     }
 
     [Fact]
-    public async Task Search_WithDeletedCandidateRole_ReturnsCandidateRoleDeleted()
+    public async Task Search_WithDeletedCandidateAudience_ReturnsCandidateAudienceDeleted()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
 
         // Die Kombination "Resolution auf gelöschten Kandidaten" ist fachlich unzulässig und
-        // damit über Mutationen unerreichbar (DeleteRole-Referenzschutz und Commit-Validierung).
+        // damit über Mutationen unerreichbar (DeleteAudience-Referenzschutz und Commit-Validierung).
         // Für die Fehlerpfad-Abnahme wird der Tombstone deshalb im offenen Working Snapshot
         // erzeugt und die Transaction bewusst nicht committet.
         var transactionId = new TransactionId(Guid.NewGuid());
         await using var session = await WorkingTransactionSession.BeginAsync(
             database, transactionId, new SequentialIdentifierGenerator(), "Repo-Test");
-        await session.CreateRoleAsync("Ghost", null);
+        await session.CreateAudienceAsync("Ghost", null);
         await session.SetResolutionAsync(new AudienceId("Default"), new AudienceId("Ghost"));
-        await TombstoneRoleAsync(database, transactionId, new AudienceId("Ghost"));
+        await TombstoneAudienceAsync(database, transactionId, new AudienceId("Ghost"));
 
         var service = CreateSearchService(database);
         var result = await service.SearchAsync(
@@ -357,11 +357,11 @@ public sealed class SqlRetrievalRepositoryTests
 
         var (snapshotId, _) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            var roleWithoutOrder = new AudienceId("NoOrder");
-            await session.CreateRoleAsync("NoOrder", null);
+            var audienceWithoutOrder = new AudienceId("NoOrder");
+            await session.CreateAudienceAsync("NoOrder", null);
             var created = await session.CreateNodeAsync(null, "Neuland Overview", null, 0);
             await session.ReplaceIndependentContentAsync(
-                created.NodeId, roleWithoutOrder, "Content about clustering internals");
+                created.NodeId, audienceWithoutOrder, "Content about clustering internals");
             return created;
         });
 
@@ -383,18 +383,18 @@ public sealed class SqlRetrievalRepositoryTests
 
         var (snapshotId, nodes) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            var defaultRole = new AudienceId("Default");
-            await session.CreateRoleAsync("Developer", null);
-            await session.SetResolutionAsync(RoleDev, defaultRole, RoleDev);
+            var defaultAudience = new AudienceId("Default");
+            await session.CreateAudienceAsync("Developer", null);
+            await session.SetResolutionAsync(AudienceDev, defaultAudience, AudienceDev);
             var fallbackNode = await session.CreateNodeAsync(null, "Fallback Node", null, 10);
             var explicitNode = await session.CreateNodeAsync(fallbackNode.NodeId, "Explicit Node", null, 20);
-            await session.ReplaceIndependentContentAsync(fallbackNode.NodeId, defaultRole, "Shared content marker");
-            await session.ReplaceIndependentContentAsync(explicitNode.NodeId, RoleDev, "Shared content marker");
+            await session.ReplaceIndependentContentAsync(fallbackNode.NodeId, defaultAudience, "Shared content marker");
+            await session.ReplaceIndependentContentAsync(explicitNode.NodeId, AudienceDev, "Shared content marker");
             return (FallbackNode: fallbackNode, ExplicitNode: explicitNode);
         });
 
         var service = CreateSearchService(database);
-        var result = await service.SearchAsync(new SearchQuery("marker", AudienceId: RoleDev), new ReadContext());
+        var result = await service.SearchAsync(new SearchQuery("marker", AudienceId: AudienceDev), new ReadContext());
 
         Assert.True(result.IsSuccess);
         Assert.Equal(2, result.Value!.Items.Count);
@@ -404,7 +404,7 @@ public sealed class SqlRetrievalRepositoryTests
         Assert.Equal(new AudienceId("Default"), fallbackHit.ResolvedAudienceId);
         var explicitHit = Assert.Single(result.Value.Items, hit => hit.NodeId == nodes.ExplicitNode.NodeId);
         Assert.Equal(Availability.Explicit, explicitHit.Availability);
-        Assert.Equal(RoleDev, explicitHit.ResolvedAudienceId);
+        Assert.Equal(AudienceDev, explicitHit.ResolvedAudienceId);
     }
 
     private static SearchService CreateSearchService(SqlTestDatabase database) => new(
@@ -437,16 +437,16 @@ public sealed class SqlRetrievalRepositoryTests
         return (committed.WorkingSnapshotId, value);
     }
 
-    private static async Task TombstoneRoleAsync(SqlTestDatabase database, TransactionId transactionId, AudienceId roleId)
+    private static async Task TombstoneAudienceAsync(SqlTestDatabase database, TransactionId transactionId, AudienceId audienceId)
     {
-        var repository = new SqlRoleMutationRepository(
+        var repository = new SqlAudienceMutationRepository(
             database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var result = await repository.ExecuteAsync(transactionId, state =>
         {
-            var deleted = state.Audiences.Single(candidate => candidate.AudienceId == roleId) with { IsDeleted = true };
-            var roles = state.Audiences.Select(candidate => candidate.AudienceId == roleId ? deleted : candidate).ToArray();
+            var deleted = state.Audiences.Single(candidate => candidate.AudienceId == audienceId) with { IsDeleted = true };
+            var audiences = state.Audiences.Select(candidate => candidate.AudienceId == audienceId ? deleted : candidate).ToArray();
             return Result<WorkingAudienceMutationDecision<Audience>>.Success(
-                new WorkingAudienceMutationDecision<Audience>(deleted, state with { Audiences = roles }));
+                new WorkingAudienceMutationDecision<Audience>(deleted, state with { Audiences = audiences }));
         }, 0);
         Assert.True(result.IsSuccess);
     }

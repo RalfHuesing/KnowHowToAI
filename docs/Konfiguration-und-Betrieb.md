@@ -4,7 +4,7 @@
 
 Die KnowHowTo-AI-Datenbank enthält ausschließlich Wissen und die zu seiner
 Versionierung, Bearbeitung und Freigabe benötigten Daten (Snapshots,
-Transactions, Rollen, Role Resolution Orders, Releases). Nicht versionierte
+Transactions, Zielgruppen, Zielgruppen-Auflösungsreihenfolgen, Releases). Nicht versionierte
 Betriebs-, Retrieval- oder Quality-Konfiguration wird nicht in der
 Wissensdatenbank gespeichert.
 
@@ -187,9 +187,8 @@ geprüft.
   `BrowserVisualTestDatabaseConnection` mit einem eigenen Host und dem stabilen,
   minimalen Read-only-Bestand. Workflow-Smokes beschreiben diese Datenbank nie.
   Kein Browser-Seed betrifft `DatabaseConnection`, erzeugt oder entfernt eine
-  Datenbank. Die destruktive `ManualDatabaseIntegration`-Suite verwendet
-  weiterhin ausschließlich `DatabaseConnection`, sodass weder Reihenfolge noch
-  Restzustand der drei Datenbanken relevant sind.
+  Datenbank. Die `ManualDatabaseIntegration`-Suite validiert den vom Benutzer
+  bereitgestellten Zustand ausschließlich read-only und löscht keine Objekte.
 - Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
   die Shell bei 1280 × 720 und 1024 × 720 gegen die versionierten PNG-Baselines
   unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`. Im regulären

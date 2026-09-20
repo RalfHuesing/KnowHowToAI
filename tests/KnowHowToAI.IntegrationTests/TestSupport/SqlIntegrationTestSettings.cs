@@ -23,6 +23,7 @@ internal sealed record SqlIntegrationTestSettings
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false)
+            .AddEnvironmentVariables()
             .Build();
         var section = configuration.GetRequiredSection(SectionName);
 

@@ -17,24 +17,24 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Transactions;
 public sealed class SqlWorkingSnapshotMutationTests
 {
     [Fact]
-    public async Task ExecuteAsync_TombstonesOnlyWorkingRoleAndIncrementsChangeVersion()
+    public async Task ExecuteAsync_TombstonesOnlyWorkingAudienceAndIncrementsChangeVersion()
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
         var transaction = await BeginAsync(database);
         var repository = CreateMutationRepository(database);
-        var roleRepository = new SqlRoleRepository(
+        var audienceRepository = new SqlAudienceRepository(
             database.ConnectionFactory,
             new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
 
-        var execution = await repository.TombstoneRoleAsync(transaction.TransactionId, new AudienceId("Default"));
-        var workingRole = Assert.Single(await roleRepository.ListBySnapshotAsync(transaction.WorkingSnapshotId));
-        var currentRole = Assert.Single(await roleRepository.ListBySnapshotAsync(transaction.BaseSnapshotId));
+        var execution = await repository.TombstoneAudienceAsync(transaction.TransactionId, new AudienceId("Default"));
+        var workingAudience = Assert.Single(await audienceRepository.ListBySnapshotAsync(transaction.WorkingSnapshotId));
+        var currentAudience = Assert.Single(await audienceRepository.ListBySnapshotAsync(transaction.BaseSnapshotId));
 
         Assert.Equal(1, execution.Value);
         Assert.Equal(1, execution.ChangeVersion);
-        Assert.True(workingRole.IsDeleted);
-        Assert.False(currentRole.IsDeleted);
+        Assert.True(workingAudience.IsDeleted);
+        Assert.False(currentAudience.IsDeleted);
         Assert.Equal(1, await ReadChangeVersionAsync(database, transaction.TransactionId));
     }
 
@@ -46,8 +46,8 @@ public sealed class SqlWorkingSnapshotMutationTests
         var transaction = await BeginAsync(database);
         var repository = CreateMutationRepository(database);
 
-        var changed = await repository.TombstoneRoleAsync(transaction.TransactionId, new AudienceId("Default"));
-        var unchanged = await repository.TombstoneRoleAsync(transaction.TransactionId, new AudienceId("Default"));
+        var changed = await repository.TombstoneAudienceAsync(transaction.TransactionId, new AudienceId("Default"));
+        var unchanged = await repository.TombstoneAudienceAsync(transaction.TransactionId, new AudienceId("Default"));
 
         Assert.Equal(1, changed.Value);
         Assert.Equal(1, changed.ChangeVersion);
@@ -64,7 +64,7 @@ public sealed class SqlWorkingSnapshotMutationTests
         var repository = CreateMutationRepository(database);
 
         var exception = await Assert.ThrowsAsync<WorkingSnapshotMutationRejectedException>(
-            () => repository.TombstoneRoleAsync(
+            () => repository.TombstoneAudienceAsync(
                 new TransactionId(Guid.Parse("01234567-89ab-cdef-0123-456789abcdef")),
                 new AudienceId("Default")));
 
@@ -81,10 +81,10 @@ public sealed class SqlWorkingSnapshotMutationTests
         var repository = CreateMutationRepository(database);
 
         var exception = await Assert.ThrowsAsync<WorkingSnapshotMutationRejectedException>(
-            () => repository.TombstoneRoleAsync(transaction.TransactionId, new AudienceId("Default")));
+            () => repository.TombstoneAudienceAsync(transaction.TransactionId, new AudienceId("Default")));
 
         Assert.Equal("TransactionClosed", exception.Code);
-        Assert.False((await ReadRoleAsync(database, transaction.WorkingSnapshotId, new AudienceId("Default"))).IsDeleted);
+        Assert.False((await ReadAudienceAsync(database, transaction.WorkingSnapshotId, new AudienceId("Default"))).IsDeleted);
         Assert.Equal(0, await ReadChangeVersionAsync(database, transaction.TransactionId));
     }
 
@@ -98,10 +98,10 @@ public sealed class SqlWorkingSnapshotMutationTests
         var repository = CreateMutationRepository(database);
 
         var exception = await Assert.ThrowsAsync<WorkingSnapshotMutationRejectedException>(
-            () => repository.TombstoneRoleAsync(transaction.TransactionId, new AudienceId("Default")));
+            () => repository.TombstoneAudienceAsync(transaction.TransactionId, new AudienceId("Default")));
 
         Assert.Equal("WorkingSnapshotNotOpen", exception.Code);
-        Assert.False((await ReadRoleAsync(database, transaction.WorkingSnapshotId, new AudienceId("Default"))).IsDeleted);
+        Assert.False((await ReadAudienceAsync(database, transaction.WorkingSnapshotId, new AudienceId("Default"))).IsDeleted);
         Assert.Equal(0, await ReadChangeVersionAsync(database, transaction.TransactionId));
     }
 
@@ -116,7 +116,7 @@ public sealed class SqlWorkingSnapshotMutationTests
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => repository.TombstoneThenFailAsync(transaction.TransactionId, new AudienceId("Default")));
 
-        Assert.False((await ReadRoleAsync(database, transaction.WorkingSnapshotId, new AudienceId("Default"))).IsDeleted);
+        Assert.False((await ReadAudienceAsync(database, transaction.WorkingSnapshotId, new AudienceId("Default"))).IsDeleted);
         Assert.Equal(0, await ReadChangeVersionAsync(database, transaction.TransactionId));
     }
 
@@ -125,13 +125,13 @@ public sealed class SqlWorkingSnapshotMutationTests
     {
         await using var database = await SqlTestDatabase.ConnectFreshAsync();
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
-        await AddRoleToCurrentSnapshotAsync(database, new AudienceId("Developer"));
+        await AddAudienceToCurrentSnapshotAsync(database, new AudienceId("Developer"));
         var transaction = await BeginAsync(database);
         var repository = CreateMutationRepository(database);
 
         var executions = await Task.WhenAll(
-            repository.UpdateRoleDescriptionAsync(transaction.TransactionId, new AudienceId("Default"), "Erste Änderung"),
-            repository.UpdateRoleDescriptionAsync(transaction.TransactionId, new AudienceId("Developer"), "Zweite Änderung"));
+            repository.UpdateAudienceDescriptionAsync(transaction.TransactionId, new AudienceId("Default"), "Erste Änderung"),
+            repository.UpdateAudienceDescriptionAsync(transaction.TransactionId, new AudienceId("Developer"), "Zweite Änderung"));
 
         Assert.Equal([1L, 2L], executions.Select(execution => execution.ChangeVersion).Order());
         Assert.Equal(2, await ReadChangeVersionAsync(database, transaction.TransactionId));
@@ -149,36 +149,36 @@ public sealed class SqlWorkingSnapshotMutationTests
         return await repository.BeginAsync(new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
     }
 
-    private static async Task AddRoleToCurrentSnapshotAsync(SqlTestDatabase database, AudienceId roleId)
+    private static async Task AddAudienceToCurrentSnapshotAsync(SqlTestDatabase database, AudienceId audienceId)
     {
         await ExecuteAsync(
             database,
             """
-            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, AudienceId, Name, Description, IsDeleted)
-            SELECT CurrentSnapshotId, @roleId, N'Entwicklung', N'Technische Rolle', 0
+            INSERT INTO dbo.KnowHowToAI_Audience (SnapshotId, AudienceId, Name, Description, IsDeleted)
+            SELECT CurrentSnapshotId, @audienceId, N'Entwicklung', N'Technische Zielgruppe', 0
             FROM dbo.KnowHowToAI_SystemState
             WHERE Id = 1;
             """,
-            new SqlParameter("@roleId", roleId.Value));
+            new SqlParameter("@audienceId", audienceId.Value));
     }
 
-    private static async Task<RoleProbe> ReadRoleAsync(
+    private static async Task<AudienceProbe> ReadAudienceAsync(
         SqlTestDatabase database,
         SnapshotId snapshotId,
-        AudienceId roleId)
+        AudienceId audienceId)
     {
         await using var connection = await database.ConnectionFactory.OpenAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT IsDeleted, Description
-            FROM dbo.KnowHowToAI_Role
-            WHERE SnapshotId = @snapshotId AND AudienceId = @roleId;
+            FROM dbo.KnowHowToAI_Audience
+            WHERE SnapshotId = @snapshotId AND AudienceId = @audienceId;
             """;
         command.Parameters.Add(new SqlParameter("@snapshotId", snapshotId.Value));
-        command.Parameters.Add(new SqlParameter("@roleId", roleId.Value));
+        command.Parameters.Add(new SqlParameter("@audienceId", audienceId.Value));
         await using var reader = await command.ExecuteReaderAsync();
         Assert.True(await reader.ReadAsync());
-        return new RoleProbe(reader.GetBoolean(0), reader.GetString(1));
+        return new AudienceProbe(reader.GetBoolean(0), reader.GetString(1));
     }
 
     private static async Task<long> ReadChangeVersionAsync(SqlTestDatabase database, TransactionId transactionId)
@@ -222,19 +222,19 @@ public sealed class SqlWorkingSnapshotMutationTests
 
     private sealed class SqlWorkingSnapshotMutationTestRepository : SqlRepository
     {
-        private const string TombstoneRoleSql = """
-            UPDATE dbo.KnowHowToAI_Role
+        private const string TombstoneAudienceSql = """
+            UPDATE dbo.KnowHowToAI_Audience
             SET IsDeleted = 1
             WHERE SnapshotId = @snapshotId
-              AND AudienceId = @roleId
+              AND AudienceId = @audienceId
               AND IsDeleted = 0;
             """;
 
-        private const string UpdateRoleDescriptionSql = """
-            UPDATE dbo.KnowHowToAI_Role
+        private const string UpdateAudienceDescriptionSql = """
+            UPDATE dbo.KnowHowToAI_Audience
             SET Description = @description
             WHERE SnapshotId = @snapshotId
-              AND AudienceId = @roleId
+              AND AudienceId = @audienceId
               AND Description <> @description;
             """;
 
@@ -245,48 +245,48 @@ public sealed class SqlWorkingSnapshotMutationTests
         {
         }
 
-        public Task<SqlWorkingSnapshotMutationExecution<int>> TombstoneRoleAsync(
+        public Task<SqlWorkingSnapshotMutationExecution<int>> TombstoneAudienceAsync(
             TransactionId transactionId,
-            AudienceId roleId) =>
+            AudienceId audienceId) =>
             ExecuteWorkingSnapshotMutationAsync<int>(
                 transactionId,
                 async (context, cancellationToken) =>
                 {
                     var affectedRows = await context.ExecuteAsync(
-                        TombstoneRoleSql,
-                        new { snapshotId = context.WorkingSnapshotId.Value, roleId = roleId.Value },
+                        TombstoneAudienceSql,
+                        new { snapshotId = context.WorkingSnapshotId.Value, audienceId = audienceId.Value },
                         cancellationToken);
                     return new SqlWorkingSnapshotMutationResult<int>(affectedRows, affectedRows > 0);
                 });
 
         public Task<SqlWorkingSnapshotMutationExecution<int>> TombstoneThenFailAsync(
             TransactionId transactionId,
-            AudienceId roleId) =>
+            AudienceId audienceId) =>
             ExecuteWorkingSnapshotMutationAsync<int>(
                 transactionId,
                 async (context, cancellationToken) =>
                 {
                     await context.ExecuteAsync(
-                        TombstoneRoleSql,
-                        new { snapshotId = context.WorkingSnapshotId.Value, roleId = roleId.Value },
+                        TombstoneAudienceSql,
+                        new { snapshotId = context.WorkingSnapshotId.Value, audienceId = audienceId.Value },
                         cancellationToken);
                     throw new InvalidOperationException("Erzwungener Fehler nach der Mutation.");
                 });
 
-        public Task<SqlWorkingSnapshotMutationExecution<int>> UpdateRoleDescriptionAsync(
+        public Task<SqlWorkingSnapshotMutationExecution<int>> UpdateAudienceDescriptionAsync(
             TransactionId transactionId,
-            AudienceId roleId,
+            AudienceId audienceId,
             string description) =>
             ExecuteWorkingSnapshotMutationAsync<int>(
                 transactionId,
                 async (context, cancellationToken) =>
                 {
                     var affectedRows = await context.ExecuteAsync(
-                        UpdateRoleDescriptionSql,
+                        UpdateAudienceDescriptionSql,
                         new
                         {
                             snapshotId = context.WorkingSnapshotId.Value,
-                            roleId = roleId.Value,
+                            audienceId = audienceId.Value,
                             description
                         },
                         cancellationToken);
@@ -294,5 +294,5 @@ public sealed class SqlWorkingSnapshotMutationTests
                 });
     }
 
-    private sealed record RoleProbe(bool IsDeleted, string Description);
+    private sealed record AudienceProbe(bool IsDeleted, string Description);
 }

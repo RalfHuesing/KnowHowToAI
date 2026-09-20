@@ -21,11 +21,11 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         FROM dbo.KnowHowToAI_Node WHERE SnapshotId = @snapshotId;
         """;
     private const string ListContentsSql = """
-        SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+        SELECT SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
         FROM dbo.KnowHowToAI_NodeContent WHERE SnapshotId = @snapshotId;
         """;
     private const string ListDependenciesSql = """
-        SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
+        SELECT SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency WHERE SnapshotId = @snapshotId;
         """;
     private const string ListKnownNodeIdsSql = "SELECT DISTINCT NodeId FROM dbo.KnowHowToAI_Node;";
@@ -41,21 +41,21 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         """;
     private const string InsertContentSql = """
         INSERT INTO dbo.KnowHowToAI_NodeContent
-            (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
-        VALUES (@snapshotId, @nodeId, @roleId, @contentRevisionId, @contentMode, @contentMd, @isDeleted);
+            (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+        VALUES (@snapshotId, @nodeId, @audienceId, @contentRevisionId, @contentMode, @contentMd, @isDeleted);
         """;
     private const string UpdateContentSql = """
         UPDATE dbo.KnowHowToAI_NodeContent
         SET ContentRevisionId = @contentRevisionId, ContentMode = @contentMode,
             ContentMd = @contentMd, IsDeleted = @isDeleted
-        WHERE SnapshotId = @snapshotId AND NodeId = @nodeId AND RoleId = @roleId;
+        WHERE SnapshotId = @snapshotId AND NodeId = @nodeId AND AudienceId = @audienceId;
         """;
     private const string DeleteDependenciesSql =
         "DELETE FROM dbo.KnowHowToAI_ContentDependency WHERE SnapshotId = @snapshotId;";
     private const string InsertDependencySql = """
         INSERT INTO dbo.KnowHowToAI_ContentDependency
-            (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)
-        VALUES (@snapshotId, @targetNodeId, @targetRoleId, @sourceNodeId, @sourceRoleId, @sourceContentRevisionId);
+            (SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId)
+        VALUES (@snapshotId, @targetNodeId, @targetAudienceId, @sourceNodeId, @sourceAudienceId, @sourceContentRevisionId);
         """;
 
     public SqlNodeMutationRepository(SqlConnectionFactory connectionFactory, SqlStoragePolicy storagePolicy)

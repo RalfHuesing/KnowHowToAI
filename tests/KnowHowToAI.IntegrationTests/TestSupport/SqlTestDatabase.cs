@@ -14,8 +14,6 @@ namespace KnowHowToAI.IntegrationTests.TestSupport;
 /// </summary>
 public sealed class SqlTestDatabase : IAsyncDisposable
 {
-    private bool _resetOnDispose;
-
     public string DatabaseName { get; }
     public string ConnectionString { get; }
     internal SqlConnectionFactory ConnectionFactory { get; }
@@ -54,23 +52,14 @@ public sealed class SqlTestDatabase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Stellt für einen expliziten manuellen Migrationstest einen leeren
-    /// KnowHowToAI-Schemazustand bereit. Die Datenbank selbst bleibt unverändert.
+    /// Prüft für einen expliziten manuellen Migrationstest den vom Benutzer bereits
+    /// hergestellten leeren KnowHowToAI-Schemazustand. Es werden keine Objekte entfernt.
     /// </summary>
     public static async Task<SqlTestDatabase> ConnectFreshAsync(CancellationToken cancellationToken = default)
     {
         var database = await ConnectAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            await database.ResetKnowHowToAISchemaAsync(cancellationToken).ConfigureAwait(false);
-            database._resetOnDispose = true;
-            return database;
-        }
-        catch
-        {
-            await database.DisposeAsync().ConfigureAwait(false);
-            throw;
-        }
+        await database.AssertKnowHowToAISchemaIsEmptyAsync(cancellationToken).ConfigureAwait(false);
+        return database;
     }
 
     internal static SqlSchemaMigrator CreateMigrator(SqlTestDatabase database) => new(
@@ -82,8 +71,7 @@ public sealed class SqlTestDatabase : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (_resetOnDispose)
-            await ResetKnowHowToAISchemaAsync(CancellationToken.None).ConfigureAwait(false);
+        await ValueTask.CompletedTask;
     }
 
     public async Task<int> GetSqlServerMajorVersionAsync(CancellationToken cancellationToken = default)
@@ -108,35 +96,18 @@ public sealed class SqlTestDatabase : IAsyncDisposable
         await command.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 
-    private async Task ResetKnowHowToAISchemaAsync(CancellationToken cancellationToken)
+    private async Task AssertKnowHowToAISchemaIsEmptyAsync(CancellationToken cancellationToken)
     {
         await using var connection = await ConnectionFactory.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         using var command = connection.CreateCommand();
-        command.Transaction = (SqlTransaction)transaction;
         command.CommandText = """
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_RollbackProbe;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_ContentDependency;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_NodeContent;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_RoleResolution;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_Node;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_Role;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_Release;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_Transaction;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_SystemState;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_Snapshot;
-            DROP TABLE IF EXISTS dbo.KnowHowToAI_SchemaMigration;
+            SELECT COUNT(*)
+            FROM sys.tables AS tables
+            INNER JOIN sys.schemas AS schemas ON schemas.schema_id = tables.schema_id
+            WHERE schemas.name = N'dbo' AND tables.name LIKE N'KnowHowToAI[_]%';
             """;
-
-        try
-        {
-            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
-            throw;
-        }
+        var count = (int)(await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false))!;
+        if (count != 0)
+            throw new InvalidOperationException($"Preflight-Fehler: Es existieren bereits {count} KnowHowToAI_-Tabellen; es wird nichts gelöscht.");
     }
 }

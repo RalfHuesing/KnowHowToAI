@@ -49,6 +49,17 @@ public sealed class SqlSchemaMigratorTests
         await AssertInitialStateIsSeededAsync(db);
     }
 
+    [Fact]
+    public async Task ExistingAudienceDatabase_IsMigratedAndSeeded()
+    {
+        await using var db = await SqlTestDatabase.ConnectAsync();
+
+        await AssertJournalHasEntriesAsync(db, expectedCount: 4);
+        await AssertExpectedSchemaAsync(db);
+        await SqlSchemaContractAssertions.AssertAsync(db);
+        await AssertInitialStateIsSeededAsync(db);
+    }
+
     // ─── M1.5 Nachweis 2: Zweiter Lauf ist ohne Schemaänderung erfolgreich ────
 
     [Fact]
@@ -215,12 +226,12 @@ public sealed class SqlSchemaMigratorTests
         var tables = await ReadStringsAsync(cmd);
         Assert.Equal(
             [
+                "KnowHowToAI_Audience",
+                "KnowHowToAI_AudienceResolution",
                 "KnowHowToAI_ContentDependency",
                 "KnowHowToAI_Node",
                 "KnowHowToAI_NodeContent",
                 "KnowHowToAI_Release",
-                "KnowHowToAI_Role",
-                "KnowHowToAI_RoleResolution",
                 "KnowHowToAI_SchemaMigration",
                 "KnowHowToAI_Snapshot",
                 "KnowHowToAI_SystemState",
@@ -244,13 +255,13 @@ public sealed class SqlSchemaMigratorTests
         var indexes = await ReadStringsAsync(cmd);
         Assert.Equal(
             [
+                "IX_KnowHowToAI_Audience_AudienceId",
+                "IX_KnowHowToAI_AudienceResolution_Candidate",
                 "IX_KnowHowToAI_ContentDependency_Source",
                 "IX_KnowHowToAI_Node_NodeId",
+                "IX_KnowHowToAI_NodeContent_Audience",
                 "IX_KnowHowToAI_NodeContent_Revision",
-                "IX_KnowHowToAI_NodeContent_Role",
                 "IX_KnowHowToAI_Release_Snapshot",
-                "IX_KnowHowToAI_Role_RoleId",
-                "IX_KnowHowToAI_RoleResolution_Candidate",
                 "IX_KnowHowToAI_Snapshot_BaseSnapshot",
                 "IX_KnowHowToAI_Snapshot_State",
                 "IX_KnowHowToAI_Transaction_State",
@@ -269,18 +280,18 @@ public sealed class SqlSchemaMigratorTests
             FROM dbo.KnowHowToAI_SystemState AS systemState
             INNER JOIN dbo.KnowHowToAI_Snapshot AS snapshot
                 ON snapshot.SnapshotId = systemState.CurrentSnapshotId
-            INNER JOIN dbo.KnowHowToAI_Role AS roleInfo
-                ON roleInfo.SnapshotId = snapshot.SnapshotId
-            INNER JOIN dbo.KnowHowToAI_RoleResolution AS resolution
+            INNER JOIN dbo.KnowHowToAI_Audience AS audienceInfo
+                ON audienceInfo.SnapshotId = snapshot.SnapshotId
+            INNER JOIN dbo.KnowHowToAI_AudienceResolution AS resolution
                 ON resolution.SnapshotId = snapshot.SnapshotId
-                AND resolution.RequestedAudienceId = roleInfo.AudienceId
+                AND resolution.RequestedAudienceId = audienceInfo.AudienceId
             WHERE systemState.Id = 1
               AND snapshot.State = 'Committed'
               AND snapshot.BaseSnapshotId IS NULL
               AND snapshot.CommittedAtUtc IS NOT NULL
-              AND roleInfo.AudienceId = N'Default'
-              AND roleInfo.Name = N'Default'
-              AND roleInfo.IsDeleted = 0
+              AND audienceInfo.AudienceId = N'Default'
+              AND audienceInfo.Name = N'Default'
+              AND audienceInfo.IsDeleted = 0
               AND resolution.CandidateAudienceId = N'Default'
               AND resolution.Priority = 1;
             """;

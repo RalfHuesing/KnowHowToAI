@@ -48,32 +48,32 @@ internal sealed class SqlWorkingSnapshotReadRepository : SqlRepository, IWorking
         ORDER BY SortOrder, NodeId;
         """;
 
-    private const string ListRolesSql = """
-        SELECT SnapshotId, RoleId, Name, Description, IsDeleted
-        FROM dbo.KnowHowToAI_Role
+    private const string ListAudiencesSql = """
+        SELECT SnapshotId, AudienceId, Name, Description, IsDeleted
+        FROM dbo.KnowHowToAI_Audience
         WHERE SnapshotId = @snapshotId
-        ORDER BY RoleId;
+        ORDER BY AudienceId;
         """;
 
-    private const string ListRoleResolutionsSql = """
-        SELECT SnapshotId, RequestedRoleId, CandidateRoleId, Priority
-        FROM dbo.KnowHowToAI_RoleResolution
+    private const string ListAudienceResolutionsSql = """
+        SELECT SnapshotId, RequestedAudienceId, CandidateAudienceId, Priority
+        FROM dbo.KnowHowToAI_AudienceResolution
         WHERE SnapshotId = @snapshotId
-        ORDER BY RequestedRoleId, Priority;
+        ORDER BY RequestedAudienceId, Priority;
         """;
 
     private const string ListContentsSql = """
-        SELECT SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+        SELECT SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
         FROM dbo.KnowHowToAI_NodeContent
         WHERE SnapshotId = @snapshotId
-        ORDER BY NodeId, RoleId;
+        ORDER BY NodeId, AudienceId;
         """;
 
     private const string ListDependenciesSql = """
-        SELECT SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
+        SELECT SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceContentRevisionId
         FROM dbo.KnowHowToAI_ContentDependency
         WHERE SnapshotId = @snapshotId
-        ORDER BY TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId;
+        ORDER BY TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId;
         """;
 
     public SqlWorkingSnapshotReadRepository(
@@ -156,10 +156,10 @@ internal sealed class SqlWorkingSnapshotReadRepository : SqlRepository, IWorking
     {
         var nodeRows = await connection.QueryAsync<NodeRow>(
             CreateCommand(ListNodesSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
-        var roleRows = await connection.QueryAsync<RoleRow>(
-            CreateCommand(ListRolesSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
-        var resRows = await connection.QueryAsync<RoleResolutionRow>(
-            CreateCommand(ListRoleResolutionsSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
+        var audienceRows = await connection.QueryAsync<AudienceRow>(
+            CreateCommand(ListAudiencesSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
+        var resRows = await connection.QueryAsync<AudienceResolutionRow>(
+            CreateCommand(ListAudienceResolutionsSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
         var contentRows = await connection.QueryAsync<NodeContentRow>(
             CreateCommand(ListContentsSql, new { snapshotId }, cancellationToken, databaseTransaction)).ConfigureAwait(false);
         var depRows = await connection.QueryAsync<ContentDependencyRow>(
@@ -167,8 +167,8 @@ internal sealed class SqlWorkingSnapshotReadRepository : SqlRepository, IWorking
 
         return (
             nodeRows.Select(SqlRowMapper.ToNode).ToArray(),
-            roleRows.Select(SqlRowMapper.ToRole).ToArray(),
-            resRows.Select(SqlRowMapper.ToRoleResolution).ToArray(),
+            audienceRows.Select(SqlRowMapper.ToAudience).ToArray(),
+            resRows.Select(SqlRowMapper.ToAudienceResolution).ToArray(),
             contentRows.Select(SqlRowMapper.ToNodeContent).ToArray(),
             depRows.Select(SqlRowMapper.ToContentDependency).ToArray());
     }

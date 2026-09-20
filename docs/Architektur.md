@@ -76,7 +76,7 @@ angebunden; die Assembly ist keine Laufzeitabhängigkeit.
 |---|---|
 | `Domain.Common` | Result-, Fehler- und Warnverträge, gemeinsame primitive Regeln |
 | `Domain.Hierarchy` | Node-Modell, Baumregeln, Sortierung, Zyklenprüfung |
-| `Domain.Audiences` | Rollen, Resolution Orders, deterministische Auflösung |
+| `Domain.Audiences` | Zielgruppen, Zielgruppen-Auflösungsreihenfolgen, deterministische Auflösung |
 | `Domain.Content` | NodeContent, Normalisierung, Revisionen, Markdown-/Textoperationen |
 | `Domain.Dependencies` | Provenienz, Dependency-Graph, transitive Freshness |
 | `Domain.Versioning` | Snapshot, Transaction, Release |
@@ -89,7 +89,7 @@ angebunden; die Assembly ist keine Laufzeitabhängigkeit.
 | `Application.Navigation` | Read-Kontext, Root, Node, Children, Zielgruppen-Metadaten |
 | `Application.Mutations.Nodes` | Create, Update, Move, Reorder, Delete Node |
 | `Application.Mutations.Content` | Replace Content/Text, Delete Content |
-| `Application.Mutations.Audiences` | Rollenpflege, vollständige Resolution Orders |
+| `Application.Mutations.Audiences` | Zielgruppenpflege, vollständige Zielgruppen-Auflösungsreihenfolgen |
 | `Application.Retrieval.Export` | deterministischer Markdown-Export |
 | `Application.Retrieval.Search` | begrenzte Suche, Snippets, Paging |
 | `Application.History` | Snapshots, Diffs, Transaction Changes, Releases |
@@ -99,7 +99,7 @@ angebunden; die Assembly ist keine Laufzeitabhängigkeit.
 `Configuration` (validierte SQL-/Migrations-Policies),
 `Migrations` (Katalog, Checksums, Journal, Locking, Runner),
 `Repositories.Transactions` (Snapshot-Kopie, Transaction-Zustandswechsel),
-`Repositories.Knowledge` (versionierte Nodes, Rollen, Content, Dependencies),
+`Repositories.Knowledge` (versionierte Nodes, Zielgruppen, Content, Dependencies),
 `Repositories.Snapshots` (Current-/Working-/historische Snapshot-Reads),
 `Repositories.History` (historische Snapshot-/Diff-Reads),
 `Repositories.Releases` (unveränderliche Releases),
