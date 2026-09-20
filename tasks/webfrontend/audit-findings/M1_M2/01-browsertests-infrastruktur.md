@@ -8,7 +8,7 @@ Abhängigkeit: keine. Referenz-Audit: `temp/webfrontend-audit-M1-M2.md` (Befunde
 
 Ziel: Die Browser-Testinfrastruktur hält den M2.4-T3-Vertrag „Server einmal pro Testkollektion" ein, Chrome-Start und Interaktivitätsnachweis existieren je genau einmal, und die Testdauern werden nach jedem Lauf automatisch sichtbar ausgewertet.
 
-Verbindliche Basis: [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md) (Abschnitte Teststruktur und Feste Testabhängigkeiten), [TestRichtlinien](../../../.agents/rules/TestRichtlinien.mdc).
+Verbindliche Basis: [Projektstruktur und Codekonventionen](../../konzept/08-projektstruktur-und-codekonventionen.md) (Abschnitte Teststruktur und Feste Testabhängigkeiten), [TestRichtlinien](../../../../.agents/rules/TestRichtlinien.mdc).
 
 Gemessener Ausgangszustand (2026-09-19, siehe [Roadmap-Index](Roadmap.md)): 10 `PublishedServerHost.StartAsync()`-Aufrufe in 6 Smoke-Klassen (je Testmethode ein vollständiges Publish und ein Serverstart), Chrome-Launch-Block identisch in 7 Dateien, Interaktivitäts-Klick-Retry-Loop wortgleich in 5 Dateien; voller Browserlauf 50 s Wallclock, alle grün.
 

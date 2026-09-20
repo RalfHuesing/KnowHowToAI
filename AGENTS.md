@@ -14,3 +14,4 @@ Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und M
 - **Teststrategie & Testebenen**: [.agents/rules/TestRichtlinien.mdc](.agents/rules/TestRichtlinien.mdc)
 - **C#-Codeanalyse & Linter-Workflow**: [.agents/rules/AiNetLinter-McpWorkflow.mdc](.agents/rules/AiNetLinter-McpWorkflow.mdc)
 - **Doku-Pflege**: [.agents/rules/DokuRichtlinien.mdc](.agents/rules/DokuRichtlinien.mdc)
+- **Planungs- und Ausführungspattern für Roadmaps**: [tasks/README.md](tasks/README.md)

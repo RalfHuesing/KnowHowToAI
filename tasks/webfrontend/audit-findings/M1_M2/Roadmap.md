@@ -10,11 +10,11 @@ Ursprung: Audit `temp/webfrontend-audit-M1-M2.md` (2026-09-19, Wegwerf-Ablage). 
 
 Diese Roadmap beseitigt Befunde aus dem M1/M2-Audit: Vertragsabweichungen in der Browser-Testinfrastruktur, eine undokumentierte Playwright-Nutzung in `KnowHowToAI.Web.Tests`, eine nicht spiegelnde Testordnerstruktur und eine fehlende Dirty-State-Brücke. Sie enthält **keine** Fachfeatures aus M3 bis M8 und zieht nichts davon vor.
 
-Ausführung wie die Haupt-Roadmap über [`../../.agents/prompts/roadmap-orchestrator.md`](../../.agents/prompts/roadmap-orchestrator.md): pro offenem `T`-Punkt genau ein schreibender Subagent, seriell, danach unabhängige Verifikation, erst dann Abhakung per Byte-Ersatz und atomarer Commit.
+Ausführung wie die Haupt-Roadmap über [`../../../../.agents/prompts/roadmap-orchestrator.md`](../../../../.agents/prompts/roadmap-orchestrator.md): pro offenem `T`-Punkt genau ein schreibender Subagent, seriell, danach unabhängige Verifikation, erst dann Abhakung per Byte-Ersatz und atomarer Commit.
 
 ## Ausführungsmodell
 
-Identisch zum [Ausführungsmodell der Haupt-Roadmap](../Roadmap.md):
+Identisch zum [Ausführungsmodell der Haupt-Roadmap](../../Roadmap.md):
 
 - Nur Checkboxen mit `-T` in der ID sind eigenständig ausführbare Leaf-Tasks; alle anderen Checkboxen sind Fortschrittsaggregate.
 - Ein Leaf-Task umfasst Analyse, Implementierung, Tests, Ist-Dokumentation und einen atomaren Commit.
@@ -96,6 +96,6 @@ Leaf-Task verbindlich:
 
 ## Verbindliche Arbeitsregeln
 
-- Es gelten `AGENTS.md`, `.agents/rules/*.mdc`, die Lese-Matrix in [`docs/README.md`](../../docs/README.md) und [Projektstruktur und Codekonventionen](../konzept/08-projektstruktur-und-codekonventionen.md) als Pflichtlektüre für jeden Task mit Strukturänderung.
+- Es gelten `AGENTS.md`, `.agents/rules/*.mdc`, die Lese-Matrix in [`docs/README.md`](../../../../docs/README.md) und [Projektstruktur und Codekonventionen](../../konzept/08-projektstruktur-und-codekonventionen.md) als Pflichtlektüre für jeden Task mit Strukturänderung.
 - Keine Fachfeatures aus M3+ vorziehen; keine neuen produktiven Test-Hooks; keine Test-Löschungen zur Laufzeitoptimierung.
 - Die [bekannten Fallstricke](#bekannte-fallstricke-für-ausführende-agenten) dieser Roadmap sind für jeden Leaf-Task verbindlich; sie stehen vollständig hier und benötigen keinen Zugriff auf externe Skills.

@@ -34,7 +34,7 @@ Nächster Arbeitsschritt:
 
 Die übrigen offenen Fragen werden in den manuellen `Mx.0`-Gates ab M3 bearbeitet und nicht jetzt vorsorglich entschieden.
 
-Verbindliche M0-Ergebnisse: keine allgemeine UI-Bibliothek; nativer Knowledge Tree mit opakem serverseitigem 100er-Paging und höchstens zehn gleichzeitig gehaltenen Seiten; Milkdown `@milkdown/crepe`; bUnit mit xUnit v3; Microsoft.Playwright .NET ausschließlich headless mit `Channel = "chrome"` gegen die installierte aktuelle Chrome-Stable-Version; kein Vitest ohne tatsächlich eigene zustandsbehaftete JS-/TS-Logik. Konkrete Fremdversionsnummern folgen der Abhängigkeitsregel im [Strukturkonzept](konzept/08-projektstruktur-und-codekonventionen.md). Details stehen in den fachlich zuständigen Konzepten und in [M0](roadmap/00-komponenten-und-architektur.md).
+Verbindliche M0-Ergebnisse: keine allgemeine UI-Bibliothek; nativer Knowledge Tree mit opakem serverseitigem 100er-Paging und höchstens zehn gleichzeitig gehaltenen Seiten; Milkdown `@milkdown/crepe`; bUnit mit xUnit v3; Microsoft.Playwright .NET ausschließlich headless mit `Channel = "chrome"` gegen die installierte aktuelle Chrome-Stable-Version; kein Vitest ohne tatsächlich eigene zustandsbehaftete JS-/TS-Logik. Konkrete Fremdversionsnummern folgen der Abhängigkeitsregel im [Strukturkonzept](konzept/08-projektstruktur-und-codekonventionen.md). Details stehen in den fachlich zuständigen Konzepten und in [M0](roadmap/00-komponenten-und-architektur/roadmap.md).
 
 ## Historische technische Vorbewertung vom 2026-09-17
 

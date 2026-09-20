@@ -72,15 +72,15 @@ Der Status wird ausschließlich in der jeweiligen Milestone-Datei gepflegt.
 
 | Milestone | Ziel | Abhängigkeit |
 |---|---|---|
-| [M0 – Komponenten- und Architekturentscheidungen](roadmap/00-komponenten-und-architektur.md) | Risiken vor Produktivcode entscheiden | – |
-| [M1 – Gemeinsamer Webhost und MCP HTTP](roadmap/01-webhost-und-mcp-http.md) | Eine EXE, ein Port, Blazor und HTTP-MCP | M0 |
-| [M2 – Designsystem und Anwendungsshell](roadmap/02-designsystem-und-shell.md) | belastbare moderne UI-Grundlage | M1 |
-| [M3 – Read-only Wissenscockpit](roadmap/03-read-only-wissenscockpit.md) | vollständige menschliche Lesesicht; beginnt mit manuellem M3.0-Gate | M2 |
-| [M4 – Transactions und Strukturpflege](roadmap/04-transactions-und-strukturpflege.md) | sichere visuelle Strukturänderungen; beginnt mit manuellem M4.0-Gate | M3 |
-| [M5 – Rollen-Content und Rich Text](roadmap/05-rollen-content-und-rich-text.md) | vollständige Contentpflege ohne Agent; beginnt mit manuellem M5.0-Gate | M4 |
-| [M6 – Betriebs- und Qualitätshärtung](roadmap/06-betrieb-und-qualitaet.md) | belastbarer Kernbetrieb; beginnt mit manuellem M6.0-Gate | M1–M5 |
-| [M7 – Einfacher PDF-Teilbaumexport](roadmap/07-pdf-export.md) | niedrig priorisierter PDF-Download; beginnt mit manuellem M7.0-Gate | M6 |
-| [M8 – Bilder und Assetverwaltung](roadmap/08-bilder-und-assets.md) | niedrig priorisierte Bilder; beginnt mit manuellem M8.0-Gate | M5, M7 |
+| [M0 – Komponenten- und Architekturentscheidungen](roadmap/00-komponenten-und-architektur/roadmap.md) | Risiken vor Produktivcode entscheiden | – |
+| [M1 – Gemeinsamer Webhost und MCP HTTP](roadmap/01-webhost-und-mcp-http/roadmap.md) | Eine EXE, ein Port, Blazor und HTTP-MCP | M0 |
+| [M2 – Designsystem und Anwendungsshell](roadmap/02-designsystem-und-shell/roadmap.md) | belastbare moderne UI-Grundlage | M1 |
+| [M3 – Read-only Wissenscockpit](roadmap/03-read-only-wissenscockpit/roadmap.md) | vollständige menschliche Lesesicht; beginnt mit manuellem M3.0-Gate | M2 |
+| [M4 – Transactions und Strukturpflege](roadmap/04-transactions-und-strukturpflege/roadmap.md) | sichere visuelle Strukturänderungen; beginnt mit manuellem M4.0-Gate | M3 |
+| [M5 – Rollen-Content und Rich Text](roadmap/05-rollen-content-und-rich-text/roadmap.md) | vollständige Contentpflege ohne Agent; beginnt mit manuellem M5.0-Gate | M4 |
+| [M6 – Betriebs- und Qualitätshärtung](roadmap/06-betrieb-und-qualitaet/roadmap.md) | belastbarer Kernbetrieb; beginnt mit manuellem M6.0-Gate | M1–M5 |
+| [M7 – Einfacher PDF-Teilbaumexport](roadmap/07-pdf-export/roadmap.md) | niedrig priorisierter PDF-Download; beginnt mit manuellem M7.0-Gate | M6 |
+| [M8 – Bilder und Assetverwaltung](roadmap/08-bilder-und-assets/roadmap.md) | niedrig priorisierte Bilder; beginnt mit manuellem M8.0-Gate | M5, M7 |
 
 ## Separate spätere Vorhaben
 
