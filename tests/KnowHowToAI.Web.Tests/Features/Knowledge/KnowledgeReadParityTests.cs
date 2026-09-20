@@ -75,16 +75,11 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var applicationResult = await navigationService.GetNodeAsync(RootId, new ReadContext(), RoleDeveloper);
         var mcp = McpNavigationMapper.ToEnvelope(applicationResult).Data!;
 
-        var treeState = new KnowledgeTreeState(navigationService);
-        Services.AddSingleton(navigationService);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
-        Services.AddSingleton(new WorkspaceState());
-        Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(new InMemoryReleaseRepository(), harness.CreateRepositories().Transactions));
-        Services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(RoleDeveloper.Value));
-        Services.AddSingleton(new ContextSelectorState());
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        Services.AddWebPageStates()
+            .AddKnowledgePageServices(
+                navigationService,
+                transactionRepository: harness.CreateRepositories().Transactions,
+                defaultRole: RoleDeveloper.Value);
         Services.GetRequiredService<NavigationManager>().NavigateTo($"/knowledge/{RootId.Value:D}?roleId={RoleDeveloper.Value}");
 
         var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, RootId.Value));

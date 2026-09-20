@@ -55,11 +55,13 @@ public static class WebTestServiceExtensions
         string defaultRole = "Developer")
     {
         var treeState = new KnowledgeTreeState(navigationService);
+        var contextResolver = new WebReadContextResolver(
+            releaseRepository ?? new InMemoryReleaseRepository(),
+            transactionRepository ?? new InMemoryTransactionRepository(new InMemoryKnowledgeStore()));
         services.AddSingleton(navigationService);
         services.AddKnowledgeTreeWorkspace(treeState);
-        services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(
-            releaseRepository ?? new InMemoryReleaseRepository(),
-            transactionRepository ?? new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
+        services.AddSingleton(contextResolver);
+        services.AddSingleton<IWebReadContextResolver>(contextResolver);
         services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(defaultRole));
         services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
         return services;
@@ -77,11 +79,13 @@ public static class WebTestServiceExtensions
         ITransactionRepository? transactionRepository = null,
         string defaultRole = "Developer")
     {
+        var contextResolver = new WebReadContextResolver(
+            releaseRepository ?? new InMemoryReleaseRepository(),
+            transactionRepository ?? new InMemoryTransactionRepository(new InMemoryKnowledgeStore()));
         services.AddSingleton(navigationService);
         services.AddSingleton(searchService);
-        services.AddSingleton<IWebReadContextResolver>(new WebReadContextResolver(
-            releaseRepository ?? new InMemoryReleaseRepository(),
-            transactionRepository ?? new InMemoryTransactionRepository(new InMemoryKnowledgeStore())));
+        services.AddSingleton(contextResolver);
+        services.AddSingleton<IWebReadContextResolver>(contextResolver);
         services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(defaultRole));
         services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
         return services;
