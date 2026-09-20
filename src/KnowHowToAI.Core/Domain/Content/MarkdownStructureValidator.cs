@@ -145,8 +145,24 @@ public static partial class MarkdownStructureValidator
         ICollection<DomainError> errors,
         string htmlKind)
     {
-        if (string.IsNullOrWhiteSpace(html) || IsClosingHtmlTag(html))
+        if (string.IsNullOrWhiteSpace(html))
             return;
+
+        if (IsClosingHtmlHeadingTag(html))
+        {
+            if (!HtmlHeadingTagRegex().IsMatch(content))
+            {
+                var (line, column) = GetPosition(content, htmlStartPosition);
+                errors.Add(CreateError(
+                    ContentStructureCodes.HeadingNotAllowed,
+                    "HTML-Überschriften sind im gespeicherten Content nicht erlaubt.",
+                    line,
+                    column,
+                    "HtmlHeading"));
+            }
+
+            return;
+        }
 
         var imageMatch = HtmlImageTagRegex().Match(html);
         if (imageMatch.Success)
@@ -191,7 +207,7 @@ public static partial class MarkdownStructureValidator
             && absoluteUri.OriginalString.Length > Uri.UriSchemeMailto.Length + 1;
     }
 
-    private static bool IsClosingHtmlTag(string html) => html.TrimStart().StartsWith("</", StringComparison.Ordinal);
+    private static bool IsClosingHtmlHeadingTag(string html) => HtmlHeadingClosingTagRegex().IsMatch(html);
 
     private static string ExtractHtmlAttribute(string html, string attributeName)
     {
@@ -349,4 +365,7 @@ public static partial class MarkdownStructureValidator
 
     [GeneratedRegex(@"<\s*img\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex HtmlImageTagRegex();
+
+    [GeneratedRegex(@"^\s*</\s*h[1-6]\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex HtmlHeadingClosingTagRegex();
 }

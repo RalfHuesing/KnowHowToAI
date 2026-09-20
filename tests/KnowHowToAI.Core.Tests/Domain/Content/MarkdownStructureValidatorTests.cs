@@ -114,6 +114,9 @@ public sealed class MarkdownStructureValidatorTests
 
     [Theory]
     [InlineData("<span>unsicher</span>", ContentStructureCodes.RawHtmlNotAllowed)]
+    [InlineData("</span>", ContentStructureCodes.RawHtmlNotAllowed)]
+    [InlineData("  </SPAN>", ContentStructureCodes.RawHtmlNotAllowed)]
+    [InlineData("</h2>", ContentStructureCodes.HeadingNotAllowed)]
     [InlineData("<script>alert('x')</script>", ContentStructureCodes.RawHtmlNotAllowed)]
     [InlineData("![Bild](https://example.test/image.png)", ContentStructureCodes.ExternalImageNotAllowed)]
     [InlineData("<img src=\"https://example.test/image.png\">", ContentStructureCodes.ExternalImageNotAllowed)]
@@ -125,8 +128,9 @@ public sealed class MarkdownStructureValidatorTests
     {
         var report = MarkdownStructureValidator.Validate(content, "Installation", warnOnPossibleEmbeddedHeading: true);
 
-        var error = Assert.Single(report.Errors);
-        Assert.Equal(expectedCode, error.Code);
+        Assert.NotEmpty(report.Errors);
+        Assert.All(report.Errors, error => Assert.Equal(expectedCode, error.Code));
+        var error = report.Errors[0];
         Assert.Equal("1", error.Details[ContentStructureCodes.LineDetail]);
         Assert.True(int.Parse(error.Details[ContentStructureCodes.ColumnDetail]) > 0);
     }
