@@ -150,15 +150,18 @@ erhalten; Domain-Typen erscheinen nicht im Rendering.
 committed Snapshots und Releases bereit. Snapshot-Zeilen zeigen neben Zeit und
 Basis die metadata-first gelesene erzeugende Transaction einschließlich Actor,
 Client, Purpose und Commit-Nachricht, soweit der Stand nicht der initiale
-Snapshot ist. Die Seite ruft `HistoryService` und
-`ReleaseService` direkt in-process auf, verwendet ausschließlich History-
-ViewModels und übergibt bei einer Auswahl den jeweiligen `snapshotId`- oder
+Snapshot ist. `HistoryPage` hält ausschließlich Query-Parameter und die Auswahl
+der Vergleichssnapshots. Die featurelokalen Komponenten `SnapshotList`,
+`SnapshotDiffPanel` und `ReleasePanel` besitzen jeweils ihren passenden
+in-process-Servicezugriff und kommunizieren Auswahl sowie Snapshotseite über
+immutable Parameter und `EventCallback`s. Sie verwenden ausschließlich History-
+ViewModels und übergeben bei Navigation den jeweiligen `snapshotId`- oder
 `releaseId`-Queryparameter an den bestehenden Web-Read-Context-Resolver. Working
 Transactions erscheinen dort bewusst nicht. Zwei ausgewählte committed Snapshots
-werden über denselben `HistoryService` als strukturierter, cursor-paginierter
-Netto-Diff dargestellt; die UI zeigt die Kategorien Rollen, Rollenauflösungen,
-Nodes, Contents und Dependencies mit fachlichen Schlüsseln sowie Vorher-/Nachher-
-Werten. Ein Link aus der Node-Detailansicht setzt den optionalen `nodeId`-Filter;
+werden im `SnapshotDiffPanel` als strukturierter, cursor-paginierter Netto-Diff
+dargestellt; die UI zeigt die Kategorien Rollen, Rollenauflösungen, Nodes,
+Contents und Dependencies mit fachlichen Schlüsseln sowie Vorher-/Nachher-Werten.
+Ein Link aus der Node-Detailansicht setzt den optionalen `nodeId`-Filter;
 dieser begrenzt den Vergleich auf die fachlich zugehörigen Node-, Content- und
 Dependency-Änderungen. Die Web-Grenze bietet dabei keine Merge- oder Reapply-
 Operation.
@@ -234,9 +237,11 @@ sowie bei wirksam aufgelöstem abgeleitetem Inhalt (`Derived`) dessen direkt
 gespeicherte Quellrevisionen (`SourceRevisions`). `NavigationService.GetNodeAsync`
 liefert dafür je direkter Dependency Source-Node, Source-Rolle, gespeicherte
 Source-Revision und deren aktuell ausgewertete Freshness; die Liste ist keine
-transitive Provenienzauflistung. `KnowledgePage` und MCP mappen dasselbe
-transportneutrale Ergebnis, auch wenn der wirksame Derived Content aus einer
-Fallback-Rolle stammt.
+transitive Provenienzauflistung. Die featurelokale `NodeDetailsPane` kapselt
+Laden, Fehler- und NotFound-Zustand, Markdown-Download-URL sowie Darstellung;
+`KnowledgePage` bleibt für Route, Query, Rollenwahl und sichtbaren Page-Zustand
+zuständig. Die Pane und MCP mappen dasselbe transportneutrale Ergebnis, auch wenn
+der wirksame Derived Content aus einer Fallback-Rolle stammt.
 Im aktiven Transaction-Kontext ergänzt `NodeMetadataEditor` diese Ansicht um
 explizite Formulare für Titel, Beschreibung und eine Child-Node unter dem
 ausgewählten Parent. Die Komponente ruft ausschließlich

@@ -1,0 +1,19 @@
+@namespace KnowHowToAI.Server.Web.Features.Knowledge.Components
+
+<div class="node-details-pane" data-testid="node-details-section">
+    <NodeDetails ViewModel="@_viewModel"
+                 MarkdownDownloadUrl="@_markdownDownloadUrl"
+                 IsLoading="@_isLoading"
+                 ErrorMessage="@_errorMessage"
+                 NodeNotFound="@_nodeNotFound" />
+    @if (_viewModel is not null && TransactionId.HasValue)
+    {
+        <NodeMetadataEditor Node="@_viewModel"
+                            TransactionId="@TransactionId"
+                            ExpectedChangeVersion="@ChangeVersion"
+                            OnMutationSucceeded="HandleMutationSucceededAsync" />
+        <NodeDeletionEditor Node="@_viewModel"
+                            TransactionId="@TransactionId.Value"
+                            OnMutationSucceeded="HandleMutationSucceededAsync" />
+    }
+</div>

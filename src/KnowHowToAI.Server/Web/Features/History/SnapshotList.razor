@@ -1,0 +1,67 @@
+@namespace KnowHowToAI.Server.Web.Features.History
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+<section class="snapshot-list history-page__section" aria-labelledby="snapshots-heading">
+    <h2 id="snapshots-heading">Committed Snapshots</h2>
+    @if (_isLoading)
+    {
+        <p role="status" data-testid="history-loading">Historie wird geladen …</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div role="alert" data-testid="snapshot-list-error"><InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" /></div>
+    }
+    else if (_page is null || _page.Items.Count == 0)
+    {
+        <p role="status" data-testid="snapshot-list-empty">Es sind noch keine historischen Snapshots vorhanden.</p>
+    }
+    else
+    {
+        <ol class="history-page__list" data-testid="snapshot-list">
+            @foreach (var snapshot in _page.Items)
+            {
+                <li>
+                    <button type="button" class="history-page__item" @onclick="() => NavigateToSnapshot(snapshot.SnapshotId)" data-testid="snapshot-select-@snapshot.SnapshotId">
+                        <span class="history-page__item-title">Snapshot @snapshot.SnapshotId</span>
+                        <span class="history-page__metadata" title="@FormatUtc(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)">Committed @FormatTimestamp(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)</span>
+                        @if (snapshot.BaseSnapshotId is { } baseSnapshotId)
+                        {
+                            <span class="history-page__metadata">Basis: Snapshot @baseSnapshotId</span>
+                        }
+                        @if (snapshot.TransactionId is { } transactionId)
+                        {
+                            <span class="history-page__metadata" data-testid="snapshot-transaction-@snapshot.SnapshotId">
+                                Transaction @transactionId
+                                @if (!string.IsNullOrWhiteSpace(snapshot.Actor))
+                                {
+                                    @: · Actor: @snapshot.Actor
+                                }
+                                @if (!string.IsNullOrWhiteSpace(snapshot.Client))
+                                {
+                                    @: · Client: @snapshot.Client
+                                }
+                                @if (!string.IsNullOrWhiteSpace(snapshot.Purpose))
+                                {
+                                    @: · Zweck: @snapshot.Purpose
+                                }
+                                @if (!string.IsNullOrWhiteSpace(snapshot.CommitMessage))
+                                {
+                                    @: · Commit: @snapshot.CommitMessage
+                                }
+                            </span>
+                        }
+                    </button>
+                    <div class="history-page__selection-actions">
+                        <button type="button" @onclick="() => OnBaseSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-base-@snapshot.SnapshotId">Als Ausgang wählen</button>
+                        <button type="button" @onclick="() => OnTargetSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-target-@snapshot.SnapshotId">Als Ziel wählen</button>
+                    </div>
+                </li>
+            }
+        </ol>
+        @if (!string.IsNullOrEmpty(_page.NextCursor))
+        {
+            <button type="button" class="history-page__next" @onclick="LoadNextPageAsync" data-testid="snapshot-list-next">Weitere Snapshots</button>
+        }
+    }
+</section>

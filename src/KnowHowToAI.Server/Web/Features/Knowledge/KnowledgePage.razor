@@ -39,26 +39,15 @@
             <main class="knowledge-content-pane" aria-label="Knotendetails" data-testid="knowledge-content-pane">
                 @if (TreeWorkspace.SelectedNodeId is not null)
                 {
-                    <div data-testid="node-details-section">
-                        <NodeDetails
-                            ViewModel="@_nodeDetailsViewModel"
-                            MarkdownDownloadUrl="@_markdownDownloadUrl"
-                            IsLoading="@_isLoadingNodeDetails"
-                            ErrorMessage="@_nodeDetailsErrorMessage"
-                            NodeNotFound="@_nodeDetailsNotFound" />
-                        @if (_nodeDetailsViewModel is not null && WorkspaceState.ActiveTransactionId.HasValue)
-                        {
-                            <NodeMetadataEditor
-                                Node="@_nodeDetailsViewModel"
-                                TransactionId="@WorkspaceState.ActiveTransactionId"
-                                ExpectedChangeVersion="@WorkspaceState.CurrentChangeVersion"
-                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
-                            <NodeDeletionEditor
-                                Node="@_nodeDetailsViewModel"
-                                TransactionId="@WorkspaceState.ActiveTransactionId.Value"
-                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
-                        }
-                    </div>
+                    <NodeDetailsPane NodeId="@TreeWorkspace.SelectedNodeId"
+                                     ReadContext="@WorkspaceState.CurrentReadContext"
+                                     RoleId="@WorkspaceState.CurrentRoleId"
+                                     ChangeVersion="@WorkspaceState.CurrentChangeVersion"
+                                     TransactionId="@WorkspaceState.ActiveTransactionId"
+                                     QueryTransactionId="@QueryTransactionId"
+                                     QuerySnapshotId="@QuerySnapshotId"
+                                     QueryReleaseId="@QueryReleaseId"
+                                     OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
                 }
                 else
                 {

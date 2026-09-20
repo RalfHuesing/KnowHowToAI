@@ -34,9 +34,6 @@ public sealed partial class KnowledgePage : IDisposable
     private PageRegionState PageRegions { get; set; } = default!;
 
     [Inject]
-    private NavigationService NavigationService { get; set; } = default!;
-
-    [Inject]
     private IContextSelectionRoleCatalog RoleCatalog { get; set; } = default!;
 
     [Inject]
@@ -64,13 +61,6 @@ public sealed partial class KnowledgePage : IDisposable
     private bool _hasNoRoles;
     private bool _isAwaitingRoleSelection;
     private bool _isDisposed;
-
-    // Node-Detailansicht
-    private NodeDetailsViewModel? _nodeDetailsViewModel;
-    private bool _isLoadingNodeDetails;
-    private string? _nodeDetailsErrorMessage;
-    private bool _nodeDetailsNotFound;
-    private string? _markdownDownloadUrl;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -194,59 +184,12 @@ public sealed partial class KnowledgePage : IDisposable
         {
             await TreeWorkspace.SelectNodeAsync(NodeId.Value, CancellationToken.None);
             WorkspaceState.SetNode(NodeId.Value);
-            await LoadNodeDetailsAsync(NodeId.Value, readContext, roleId);
         }
         else if (TreeWorkspace.SelectedNodeId.HasValue)
         {
             await TreeWorkspace.SelectNodeAsync(null, CancellationToken.None);
             WorkspaceState.SetNode(null);
-            ClearNodeDetails();
         }
-        else
-        {
-            ClearNodeDetails();
-        }
-    }
-
-    private async Task LoadNodeDetailsAsync(Guid nodeId, ReadContext readContext, string roleId)
-    {
-        _isLoadingNodeDetails = true;
-        _nodeDetailsErrorMessage = null;
-        _nodeDetailsNotFound = false;
-        _nodeDetailsViewModel = null;
-        _markdownDownloadUrl = null;
-
-        var result = await NavigationService.GetNodeAsync(
-            new NodeId(nodeId),
-            readContext,
-            new RoleId(roleId),
-            CancellationToken.None);
-
-        _isLoadingNodeDetails = false;
-
-        if (!result.IsSuccess)
-        {
-            var errorCode = result.Error!.Code;
-            if (string.Equals(errorCode, "NodeNotFound", StringComparison.Ordinal))
-                _nodeDetailsNotFound = true;
-            else
-                _nodeDetailsErrorMessage = result.Error.Message;
-            return;
-        }
-
-        _nodeDetailsViewModel = KnowledgeNavigationMapper.ToNodeDetailsViewModel(
-            result.Value,
-            changeVersion: WorkspaceState.CurrentChangeVersion);
-        _markdownDownloadUrl = CreateMarkdownDownloadUrl(nodeId, roleId);
-    }
-
-    private void ClearNodeDetails()
-    {
-        _nodeDetailsViewModel = null;
-        _isLoadingNodeDetails = false;
-        _nodeDetailsErrorMessage = null;
-        _nodeDetailsNotFound = false;
-        _markdownDownloadUrl = null;
     }
 
     private async Task HandleNodeMutationSucceededAsync(NodeMutationResult mutation)
@@ -263,24 +206,6 @@ public sealed partial class KnowledgePage : IDisposable
         var selectedNodeId = mutation.Node.IsDeleted ? mutation.Node.ParentNodeId?.Value : mutation.Node.NodeId.Value;
         await TreeWorkspace.SelectNodeAsync(selectedNodeId, CancellationToken.None);
         WorkspaceState.SetNode(selectedNodeId);
-        if (selectedNodeId.HasValue)
-            await LoadNodeDetailsAsync(selectedNodeId.Value, WorkspaceState.CurrentReadContext, roleId);
-        else
-            ClearNodeDetails();
-    }
-
-    private string CreateMarkdownDownloadUrl(Guid nodeId, string roleId)
-    {
-        var query = new Dictionary<string, string?>
-        {
-            ["nodeId"] = nodeId.ToString("D"),
-            ["roleId"] = roleId,
-            ["transactionId"] = QueryTransactionId,
-            ["snapshotId"] = QuerySnapshotId,
-            ["releaseId"] = QueryReleaseId
-        };
-
-        return QueryHelpers.AddQueryString("/downloads/markdown", query);
     }
 
     private void UpdateUrlWithRole(Uri currentUri, string roleId)
