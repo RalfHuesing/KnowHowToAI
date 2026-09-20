@@ -10,8 +10,8 @@ public sealed class DependencyContractsTests
     private static readonly SnapshotId SnapshotId = new(17);
     private static readonly NodeId TargetNodeId = new(Guid.Parse("c197d2d2-a084-48e9-a9a1-bbfc7e6be126"));
     private static readonly NodeId SourceNodeId = new(Guid.Parse("515a7159-3db5-48ee-8e3c-04c13dc60cc3"));
-    private static readonly RoleId TargetRoleId = new("EndUser");
-    private static readonly RoleId SourceRoleId = new("Developer");
+    private static readonly AudienceId TargetAudienceId = new("EndUser");
+    private static readonly AudienceId SourceAudienceId = new("Developer");
     private static readonly ContentRevisionId TargetRevisionId = new(Guid.Parse("200ffb07-ae8f-4f7a-bb10-f67cc74e993e"));
     private static readonly ContentRevisionId SourceRevisionId = new(Guid.Parse("4eea4d84-edca-45e2-b261-536cc5590f52"));
 
@@ -19,8 +19,8 @@ public sealed class DependencyContractsTests
     public void Validate_IndependentContentWithDependency_ReturnsInvalidDependency()
     {
         var report = DependencyValidator.ValidateSnapshot(
-            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Independent),
-                Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Independent)],
+            [Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Independent),
+                Content(SourceNodeId, SourceAudienceId, SourceRevisionId, ContentMode.Independent)],
             [Dependency()]);
 
         Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.InvalidDependency);
@@ -30,7 +30,7 @@ public sealed class DependencyContractsTests
     public void Validate_DerivedContentWithoutDependency_ReturnsInvalidDependency()
     {
         var report = DependencyValidator.ValidateSnapshot(
-            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived)],
+            [Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived)],
             []);
 
         Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.InvalidDependency);
@@ -40,7 +40,7 @@ public sealed class DependencyContractsTests
     public void Validate_UnknownContentMode_ReturnsInvalidDependency()
     {
         var report = DependencyValidator.ValidateSnapshot(
-            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Unknown)],
+            [Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Unknown)],
             []);
 
         Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.InvalidDependency);
@@ -49,11 +49,11 @@ public sealed class DependencyContractsTests
     [Fact]
     public void ValidateSnapshot_DeletedSource_RemainsValidAndMakesDerivedContentStale()
     {
-        var target = Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived);
+        var target = Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived);
         var contents = new[]
         {
             target,
-            Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Independent, isDeleted: true)
+            Content(SourceNodeId, SourceAudienceId, SourceRevisionId, ContentMode.Independent, isDeleted: true)
         };
         var dependencies = new[] { Dependency() };
 
@@ -67,7 +67,7 @@ public sealed class DependencyContractsTests
     public void ValidateNewOrChangedDependencies_MissingExplicitSource_ReturnsInvalidDependency()
     {
         var report = DependencyValidator.ValidateNewOrChangedDependencies(
-            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived)],
+            [Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived)],
             [Dependency()],
             [Dependency()]);
 
@@ -78,13 +78,13 @@ public sealed class DependencyContractsTests
     public void Validate_SelfDependency_ReturnsDependencyCycle()
     {
         var report = DependencyValidator.ValidateSnapshot(
-            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived)],
+            [Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived)],
             [new ContentDependency(
                 SnapshotId,
                 TargetNodeId,
-                TargetRoleId,
+                TargetAudienceId,
                 TargetNodeId,
-                TargetRoleId,
+                TargetAudienceId,
                 TargetRevisionId)]);
 
         Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.DependencyCycle);
@@ -94,14 +94,14 @@ public sealed class DependencyContractsTests
     public void Validate_TransitiveCycle_ReturnsDependencyCycle()
     {
         var report = DependencyValidator.ValidateSnapshot(
-            [Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived),
-                Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Derived)],
+            [Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived),
+                Content(SourceNodeId, SourceAudienceId, SourceRevisionId, ContentMode.Derived)],
             [Dependency(), new ContentDependency(
                 SnapshotId,
                 SourceNodeId,
-                SourceRoleId,
+                SourceAudienceId,
                 TargetNodeId,
-                TargetRoleId,
+                TargetAudienceId,
                 TargetRevisionId)]);
 
         Assert.Contains(report.Errors, error => error.Code == DependencyErrorCodes.DependencyCycle);
@@ -110,11 +110,11 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Evaluate_DerivedContentWhoseSourceRevisionChanged_IsStale()
     {
-        var target = Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived);
+        var target = Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived);
 
         var freshness = FreshnessEvaluator.Evaluate(
             target,
-            [target, Content(SourceNodeId, SourceRoleId, NewRevision(), ContentMode.Independent)],
+            [target, Content(SourceNodeId, SourceAudienceId, NewRevision(), ContentMode.Independent)],
             [Dependency()]);
 
         Assert.Equal(Freshness.Stale, freshness);
@@ -123,11 +123,11 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Evaluate_DerivedContentWhoseSourceWasDeleted_IsStale()
     {
-        var target = Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived);
+        var target = Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived);
 
         var freshness = FreshnessEvaluator.Evaluate(
             target,
-            [target, Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Independent, isDeleted: true)],
+            [target, Content(SourceNodeId, SourceAudienceId, SourceRevisionId, ContentMode.Independent, isDeleted: true)],
             [Dependency()]);
 
         Assert.Equal(Freshness.Stale, freshness);
@@ -136,7 +136,7 @@ public sealed class DependencyContractsTests
     [Fact]
     public void Evaluate_IndependentContent_IsCurrentWithoutDependencies()
     {
-        var content = Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Independent);
+        var content = Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Independent);
 
         var freshness = FreshnessEvaluator.Evaluate(content, [content], []);
 
@@ -147,27 +147,27 @@ public sealed class DependencyContractsTests
     public void Evaluate_DerivedContentWhoseDerivedSourceIsStale_IsTransitivelyStale()
     {
         var intermediateNodeId = new NodeId(Guid.Parse("71b75070-03cf-4ba1-9edc-cc32ee2f2b5c"));
-        var intermediateRoleId = new RoleId("Consultant");
+        var intermediateAudienceId = new AudienceId("Consultant");
         var intermediateRevisionId = new ContentRevisionId(Guid.Parse("528efba9-96f0-4d4f-8df0-b2f8fa9a9f81"));
-        var target = Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived);
-        var intermediate = Content(intermediateNodeId, intermediateRoleId, intermediateRevisionId, ContentMode.Derived);
+        var target = Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived);
+        var intermediate = Content(intermediateNodeId, intermediateAudienceId, intermediateRevisionId, ContentMode.Derived);
 
         var freshness = FreshnessEvaluator.Evaluate(
             target,
-            [target, intermediate, Content(SourceNodeId, SourceRoleId, NewRevision(), ContentMode.Independent)],
+            [target, intermediate, Content(SourceNodeId, SourceAudienceId, NewRevision(), ContentMode.Independent)],
             [new ContentDependency(
                     SnapshotId,
                     TargetNodeId,
-                    TargetRoleId,
+                    TargetAudienceId,
                     intermediateNodeId,
-                    intermediateRoleId,
+                    intermediateAudienceId,
                     intermediateRevisionId),
                 new ContentDependency(
                     SnapshotId,
                     intermediateNodeId,
-                    intermediateRoleId,
+                    intermediateAudienceId,
                     SourceNodeId,
-                    SourceRoleId,
+                    SourceAudienceId,
                     SourceRevisionId)]);
 
         Assert.Equal(Freshness.Stale, freshness);
@@ -180,11 +180,11 @@ public sealed class DependencyContractsTests
     public void Evaluate_UsesTheSameRulesForEverySnapshotState(long snapshotValue)
     {
         var snapshotId = new SnapshotId(snapshotValue);
-        var target = Content(TargetNodeId, TargetRoleId, TargetRevisionId, ContentMode.Derived, snapshotId: snapshotId);
+        var target = Content(TargetNodeId, TargetAudienceId, TargetRevisionId, ContentMode.Derived, snapshotId: snapshotId);
 
         var freshness = FreshnessEvaluator.Evaluate(
             target,
-            [target, Content(SourceNodeId, SourceRoleId, SourceRevisionId, ContentMode.Independent, snapshotId: snapshotId)],
+            [target, Content(SourceNodeId, SourceAudienceId, SourceRevisionId, ContentMode.Independent, snapshotId: snapshotId)],
             [Dependency(snapshotId)]);
 
         Assert.Equal(Freshness.Current, freshness);
@@ -192,15 +192,15 @@ public sealed class DependencyContractsTests
 
     private static NodeContent Content(
         NodeId nodeId,
-        RoleId roleId,
+        AudienceId audienceId,
         ContentRevisionId revisionId,
         ContentMode mode,
         bool isDeleted = false,
         SnapshotId? snapshotId = null) =>
-        new(snapshotId ?? SnapshotId, nodeId, roleId, revisionId, mode, "Content", isDeleted);
+        new(snapshotId ?? SnapshotId, nodeId, audienceId, revisionId, mode, "Content", isDeleted);
 
     private static ContentDependency Dependency(SnapshotId? snapshotId = null) =>
-        new(snapshotId ?? SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceRevisionId);
+        new(snapshotId ?? SnapshotId, TargetNodeId, TargetAudienceId, SourceNodeId, SourceAudienceId, SourceRevisionId);
 
     private static ContentRevisionId NewRevision() =>
         new(Guid.Parse("d2f5c5c6-6504-4c0d-982d-032d1cc6c238"));

@@ -1,7 +1,7 @@
 using System.ComponentModel;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Roles;
 using KnowHowToAI.Server.Mcp.Contracts.Navigation;
@@ -12,14 +12,14 @@ namespace KnowHowToAI.Server.Mcp.Tools.Mutations;
 
 /// <summary>
 /// Dünne MCP-Handler der Rollen- und Resolution-Order-Mutationen: ausschließlich
-/// Mapping und Delegation an den transportneutralen <see cref="RoleMutationService"/>.
+/// Mapping und Delegation an den transportneutralen <see cref="AudienceMutationService"/>.
 /// </summary>
 [McpServerToolType]
 internal sealed class RoleMutationTools
 {
-    private readonly RoleMutationService _roleMutationService;
+    private readonly AudienceMutationService _roleMutationService;
 
-    public RoleMutationTools(RoleMutationService roleMutationService) =>
+    public RoleMutationTools(AudienceMutationService roleMutationService) =>
         _roleMutationService = roleMutationService ?? throw new ArgumentNullException(nameof(roleMutationService));
 
     [McpServerTool(Name = "create_role", Destructive = false, Idempotent = false, OpenWorld = false)]
@@ -37,7 +37,7 @@ internal sealed class RoleMutationTools
             return McpToolEnvelope<McpRoleData>.Failure(parsedTransactionId.Error!);
 
         return McpMutationMapper.ToRoleMutationEnvelope(await _roleMutationService
-            .CreateRoleMutationAsync(parsedTransactionId.Value, name, description, expectedChangeVersion, cancellationToken)
+            .CreateAudienceMutationAsync(parsedTransactionId.Value, name, description, expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 
@@ -57,7 +57,7 @@ internal sealed class RoleMutationTools
             return McpToolEnvelope<McpRoleData>.Failure(parsedTransactionId.Error!);
 
         return McpMutationMapper.ToRoleMutationEnvelope(await _roleMutationService
-            .UpdateRoleMutationAsync(parsedTransactionId.Value, new UpdateRoleMutationRequest(new RoleId(roleId), name, description, expectedChangeVersion), cancellationToken)
+            .UpdateAudienceMutationAsync(parsedTransactionId.Value, new UpdateAudienceMutationRequest(new AudienceId(roleId), name, description, expectedChangeVersion), cancellationToken)
             .ConfigureAwait(false));
     }
 
@@ -75,7 +75,7 @@ internal sealed class RoleMutationTools
             return McpToolEnvelope<McpRoleData>.Failure(parsedTransactionId.Error!);
 
         return McpMutationMapper.ToRoleMutationEnvelope(await _roleMutationService
-            .DeleteRoleMutationAsync(parsedTransactionId.Value, new RoleId(roleId), expectedChangeVersion, cancellationToken)
+            .DeleteAudienceMutationAsync(parsedTransactionId.Value, new AudienceId(roleId), expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 
@@ -94,10 +94,10 @@ internal sealed class RoleMutationTools
             return McpToolEnvelope<McpRoleResolutionData>.Failure(parsedTransactionId.Error!);
 
         var result = await _roleMutationService
-            .SetRoleResolutionMutationAsync(
+            .SetAudienceResolutionMutationAsync(
                 parsedTransactionId.Value,
-                new RoleId(roleId),
-                candidateRoleIds.Select(candidateRoleId => new RoleId(candidateRoleId)),
+                new AudienceId(roleId),
+                candidateRoleIds.Select(candidateRoleId => new AudienceId(candidateRoleId)),
                 expectedChangeVersion,
                 cancellationToken)
             .ConfigureAwait(false);

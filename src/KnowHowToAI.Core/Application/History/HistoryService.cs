@@ -203,8 +203,8 @@ public sealed class HistoryService
         var baseData = await LoadSnapshotDataAsync(workingData.Transaction.BaseSnapshotId, cancellationToken).ConfigureAwait(false);
         var targetData = new SnapshotData(
             workingData.Nodes,
-            workingData.Roles,
-            workingData.RoleResolutions,
+            workingData.Audiences,
+            workingData.AudienceResolutions,
             workingData.Contents,
             workingData.Dependencies);
 
@@ -299,11 +299,11 @@ public sealed class HistoryService
     private async Task<SnapshotData> LoadSnapshotDataAsync(SnapshotId snapshotId, CancellationToken cancellationToken)
     {
         var nodes = await _repos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var roles = await _repos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var resolutions = await _repos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var audiences = await _repos.Audiences.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var resolutions = await _repos.Audiences.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var contents = await _repos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var dependencies = await _repos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
-        return new SnapshotData(nodes, roles, resolutions, contents, dependencies);
+        return new SnapshotData(nodes, audiences, resolutions, contents, dependencies);
     }
 }

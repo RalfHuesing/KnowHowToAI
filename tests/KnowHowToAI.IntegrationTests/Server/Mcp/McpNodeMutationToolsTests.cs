@@ -1,6 +1,6 @@
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Transactions;
@@ -9,7 +9,7 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Tools.Mutations;
@@ -181,7 +181,7 @@ public sealed class McpNodeMutationToolsTests
         var envelope = await tools.CreateNode(TransactionId.ToString(), "Kapitel", contentMd: "Inhalt.");
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleMutationErrorCodes.RoleIdRequired, envelope.Code);
+        Assert.Equal("RoleIdRequired", envelope.Code);
         Assert.Equal(0, nodeRepository.ChangeVersion);
     }
 
@@ -400,7 +400,7 @@ public sealed class McpNodeMutationToolsTests
         new(new WorkingContentMutationState(
             SnapshotId,
             [Node(GeneratedNodeId)],
-            [Role(new RoleId("Developer"))],
+            [Role(new AudienceId("Developer"))],
             [],
             []));
 
@@ -416,14 +416,14 @@ public sealed class McpNodeMutationToolsTests
     private static Node Node(NodeId nodeId, NodeId? parentNodeId = null) =>
         new(SnapshotId, nodeId, parentNodeId, "Titel", null, 0, IsDeleted: false);
 
-    private static Role Role(RoleId roleId) =>
+    private static Audience Role(AudienceId roleId) =>
         new(SnapshotId, roleId, roleId.Value, null, IsDeleted: false);
 
     private static NodeContent Content(NodeId nodeId) =>
         new(
             SnapshotId,
             nodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("b4e0e04a-2dce-4b5e-8b34-4bd2b9f0e020")),
             ContentMode.Independent,
             "Inhalt",

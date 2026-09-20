@@ -65,6 +65,43 @@ public sealed record McpToolEnvelope<TData> where TData : class
     public static McpToolEnvelope<TData> Failure(DomainError error, IReadOnlyList<McpWarning>? warnings = null)
     {
         ArgumentNullException.ThrowIfNull(error);
-        return new(error.Code, error.Message, error.Details, warnings);
+        var code = ToExternalRoleCode(error.Code);
+        var details = error.Details.ToDictionary(
+            pair => ToExternalRoleDetail(pair.Key),
+            pair => pair.Value,
+            StringComparer.Ordinal);
+        var message = ToExternalRoleText(error.Message);
+        return new(code, message, details, warnings);
     }
+
+    private static string ToExternalRoleCode(string code) => code switch
+    {
+        "AudienceNotFound" => "RoleNotFound",
+        "AudienceInUse" => "RoleInUse",
+        "AudienceNameRequired" => "RoleNameRequired",
+        "AudienceIdRequired" => "RoleIdRequired",
+        "CandidateAudienceDeleted" => "CandidateRoleDeleted",
+        "CandidateAudienceNotFound" => "CandidateRoleNotFound",
+        "DuplicateCandidateAudience" => "DuplicateCandidateRole",
+        "RequestedAudienceDeleted" => "RequestedRoleDeleted",
+        "RequestedAudienceNotFound" => "RequestedRoleNotFound",
+        _ => code
+    };
+
+    private static string ToExternalRoleDetail(string detail) => detail switch
+    {
+        "audienceId" => "roleId",
+        "audienceName" => "roleName",
+        "candidateAudienceId" => "candidateRoleId",
+        "requestedAudienceId" => "requestedRoleId",
+        "targetAudienceId" => "targetRoleId",
+        "sourceAudienceId" => "sourceRoleId",
+        _ => detail
+    };
+
+    private static string ToExternalRoleText(string text) => text
+        .Replace("Audience", "Role", StringComparison.Ordinal)
+        .Replace("audience", "role", StringComparison.Ordinal)
+        .Replace("Zielgruppe", "Rolle", StringComparison.Ordinal)
+        .Replace("zielgruppe", "rolle", StringComparison.Ordinal);
 }

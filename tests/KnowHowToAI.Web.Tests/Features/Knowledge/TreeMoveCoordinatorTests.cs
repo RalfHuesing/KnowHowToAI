@@ -6,7 +6,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;

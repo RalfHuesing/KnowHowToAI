@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.Core.Application.History;
 
@@ -15,8 +15,8 @@ public static class SnapshotDiffCalculator
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var rolesDiff = ComputeRolesDiff(request.BaseData.Roles, request.TargetData.Roles);
-        var resolutionsDiff = ComputeRoleResolutionsDiff(request.BaseData.Resolutions, request.TargetData.Resolutions);
+        var audiencesDiff = ComputeAudiencesDiff(request.BaseData.Audiences, request.TargetData.Audiences);
+        var resolutionsDiff = ComputeAudienceResolutionsDiff(request.BaseData.Resolutions, request.TargetData.Resolutions);
         var nodesDiff = ComputeNodesDiff(request.BaseData.Nodes, request.TargetData.Nodes);
         var contentsDiff = ComputeContentsDiff(request.BaseData.Contents, request.TargetData.Contents);
         var dependenciesDiff = ComputeDependenciesDiff(request.BaseData.Dependencies, request.TargetData.Dependencies);
@@ -30,13 +30,13 @@ public static class SnapshotDiffCalculator
                 var dependency = entry.After ?? entry.Before;
                 return dependency!.TargetNodeId == filterNodeId || dependency.SourceNodeId == filterNodeId;
             }).ToArray();
-            rolesDiff = Array.Empty<RoleDiffEntry>();
-            resolutionsDiff = Array.Empty<RoleResolutionDiffEntry>();
+            audiencesDiff = Array.Empty<AudienceDiffEntry>();
+            resolutionsDiff = Array.Empty<AudienceResolutionDiffEntry>();
         }
 
-        var totalCount = rolesDiff.Count + resolutionsDiff.Count + nodesDiff.Count + contentsDiff.Count + dependenciesDiff.Count;
+        var totalCount = audiencesDiff.Count + resolutionsDiff.Count + nodesDiff.Count + contentsDiff.Count + dependenciesDiff.Count;
 
-        var (pagedRoles, off1, lim1) = SliceCategory(rolesDiff, request.Offset, request.Limit);
+        var (pagedAudiences, off1, lim1) = SliceCategory(audiencesDiff, request.Offset, request.Limit);
         var (pagedResolutions, off2, lim2) = SliceCategory(resolutionsDiff, off1, lim1);
         var (pagedNodes, off3, lim3) = SliceCategory(nodesDiff, off2, lim2);
         var (pagedContents, off4, lim4) = SliceCategory(contentsDiff, off3, lim3);
@@ -56,7 +56,7 @@ public static class SnapshotDiffCalculator
             request.BaseSnapshotId,
             request.TargetSnapshotId,
             pagedNodes,
-            pagedRoles,
+            pagedAudiences,
             pagedResolutions,
             pagedContents,
             pagedDependencies,
@@ -122,49 +122,49 @@ public static class SnapshotDiffCalculator
             .ToArray();
     }
 
-    private static IReadOnlyList<RoleDiffEntry> ComputeRolesDiff(
-        IReadOnlyList<Role> baseRoles,
-        IReadOnlyList<Role> targetRoles)
+    private static IReadOnlyList<AudienceDiffEntry> ComputeAudiencesDiff(
+        IReadOnlyList<Audience> baseAudiences,
+        IReadOnlyList<Audience> targetAudiences)
     {
-        var baseDict = baseRoles.Where(r => !r.IsDeleted).ToDictionary(r => r.RoleId);
-        var targetDict = targetRoles.Where(r => !r.IsDeleted).ToDictionary(r => r.RoleId);
-        var result = new List<RoleDiffEntry>();
+        var baseDict = baseAudiences.Where(r => !r.IsDeleted).ToDictionary(r => r.AudienceId);
+        var targetDict = targetAudiences.Where(r => !r.IsDeleted).ToDictionary(r => r.AudienceId);
+        var result = new List<AudienceDiffEntry>();
 
-        foreach (var (roleId, targetRole) in targetDict)
+        foreach (var (audienceId, targetAudience) in targetDict)
         {
-            if (baseDict.TryGetValue(roleId, out var baseRole))
+            if (baseDict.TryGetValue(audienceId, out var baseAudience))
             {
-                if (targetRole.Name != baseRole.Name || targetRole.Description != baseRole.Description)
+                if (targetAudience.Name != baseAudience.Name || targetAudience.Description != baseAudience.Description)
                 {
-                    result.Add(new RoleDiffEntry(DiffChangeKind.Modified, baseRole, targetRole));
+                    result.Add(new AudienceDiffEntry(DiffChangeKind.Modified, baseAudience, targetAudience));
                 }
             }
             else
             {
-                result.Add(new RoleDiffEntry(DiffChangeKind.Added, null, targetRole));
+                result.Add(new AudienceDiffEntry(DiffChangeKind.Added, null, targetAudience));
             }
         }
 
-        foreach (var (roleId, baseRole) in baseDict)
+        foreach (var (audienceId, baseAudience) in baseDict)
         {
-            if (!targetDict.ContainsKey(roleId))
+            if (!targetDict.ContainsKey(audienceId))
             {
-                result.Add(new RoleDiffEntry(DiffChangeKind.Deleted, baseRole, null));
+                result.Add(new AudienceDiffEntry(DiffChangeKind.Deleted, baseAudience, null));
             }
         }
 
         return result
-            .OrderBy(e => (e.After ?? e.Before)!.RoleId.Value, StringComparer.Ordinal)
+            .OrderBy(e => (e.After ?? e.Before)!.AudienceId.Value, StringComparer.Ordinal)
             .ToArray();
     }
 
-    private static IReadOnlyList<RoleResolutionDiffEntry> ComputeRoleResolutionsDiff(
-        IReadOnlyList<RoleResolution> baseResolutions,
-        IReadOnlyList<RoleResolution> targetResolutions)
+    private static IReadOnlyList<AudienceResolutionDiffEntry> ComputeAudienceResolutionsDiff(
+        IReadOnlyList<AudienceResolution> baseResolutions,
+        IReadOnlyList<AudienceResolution> targetResolutions)
     {
-        var baseDict = baseResolutions.ToDictionary(r => (r.RequestedRoleId, r.CandidateRoleId));
-        var targetDict = targetResolutions.ToDictionary(r => (r.RequestedRoleId, r.CandidateRoleId));
-        var result = new List<RoleResolutionDiffEntry>();
+        var baseDict = baseResolutions.ToDictionary(r => (r.RequestedAudienceId, r.CandidateAudienceId));
+        var targetDict = targetResolutions.ToDictionary(r => (r.RequestedAudienceId, r.CandidateAudienceId));
+        var result = new List<AudienceResolutionDiffEntry>();
 
         foreach (var (key, targetRes) in targetDict)
         {
@@ -172,12 +172,12 @@ public static class SnapshotDiffCalculator
             {
                 if (targetRes.Priority != baseRes.Priority)
                 {
-                    result.Add(new RoleResolutionDiffEntry(DiffChangeKind.Modified, baseRes, targetRes));
+                    result.Add(new AudienceResolutionDiffEntry(DiffChangeKind.Modified, baseRes, targetRes));
                 }
             }
             else
             {
-                result.Add(new RoleResolutionDiffEntry(DiffChangeKind.Added, null, targetRes));
+                result.Add(new AudienceResolutionDiffEntry(DiffChangeKind.Added, null, targetRes));
             }
         }
 
@@ -185,13 +185,13 @@ public static class SnapshotDiffCalculator
         {
             if (!targetDict.ContainsKey(key))
             {
-                result.Add(new RoleResolutionDiffEntry(DiffChangeKind.Deleted, baseRes, null));
+                result.Add(new AudienceResolutionDiffEntry(DiffChangeKind.Deleted, baseRes, null));
             }
         }
 
         return result
-            .OrderBy(e => (e.After ?? e.Before)!.RequestedRoleId.Value, StringComparer.Ordinal)
-            .ThenBy(e => (e.After ?? e.Before)!.CandidateRoleId.Value, StringComparer.Ordinal)
+            .OrderBy(e => (e.After ?? e.Before)!.RequestedAudienceId.Value, StringComparer.Ordinal)
+            .ThenBy(e => (e.After ?? e.Before)!.CandidateAudienceId.Value, StringComparer.Ordinal)
             .ToArray();
     }
 
@@ -199,8 +199,8 @@ public static class SnapshotDiffCalculator
         IReadOnlyList<NodeContent> baseContents,
         IReadOnlyList<NodeContent> targetContents)
     {
-        var baseDict = baseContents.Where(c => !c.IsDeleted).ToDictionary(c => (c.NodeId, c.RoleId));
-        var targetDict = targetContents.Where(c => !c.IsDeleted).ToDictionary(c => (c.NodeId, c.RoleId));
+        var baseDict = baseContents.Where(c => !c.IsDeleted).ToDictionary(c => (c.NodeId, c.AudienceId));
+        var targetDict = targetContents.Where(c => !c.IsDeleted).ToDictionary(c => (c.NodeId, c.AudienceId));
         var result = new List<ContentDiffEntry>();
 
         foreach (var (key, targetContent) in targetDict)
@@ -230,7 +230,7 @@ public static class SnapshotDiffCalculator
 
         return result
             .OrderBy(e => (e.After ?? e.Before)!.NodeId.Value)
-            .ThenBy(e => (e.After ?? e.Before)!.RoleId.Value, StringComparer.Ordinal)
+            .ThenBy(e => (e.After ?? e.Before)!.AudienceId.Value, StringComparer.Ordinal)
             .ToArray();
     }
 
@@ -238,8 +238,8 @@ public static class SnapshotDiffCalculator
         IReadOnlyList<ContentDependency> baseDependencies,
         IReadOnlyList<ContentDependency> targetDependencies)
     {
-        var baseDict = baseDependencies.ToDictionary(d => (d.TargetNodeId, d.TargetRoleId, d.SourceNodeId, d.SourceRoleId));
-        var targetDict = targetDependencies.ToDictionary(d => (d.TargetNodeId, d.TargetRoleId, d.SourceNodeId, d.SourceRoleId));
+        var baseDict = baseDependencies.ToDictionary(d => (d.TargetNodeId, d.TargetAudienceId, d.SourceNodeId, d.SourceAudienceId));
+        var targetDict = targetDependencies.ToDictionary(d => (d.TargetNodeId, d.TargetAudienceId, d.SourceNodeId, d.SourceAudienceId));
         var result = new List<DependencyDiffEntry>();
 
         foreach (var (key, targetDep) in targetDict)
@@ -267,9 +267,9 @@ public static class SnapshotDiffCalculator
 
         return result
             .OrderBy(e => (e.After ?? e.Before)!.TargetNodeId.Value)
-            .ThenBy(e => (e.After ?? e.Before)!.TargetRoleId.Value, StringComparer.Ordinal)
+            .ThenBy(e => (e.After ?? e.Before)!.TargetAudienceId.Value, StringComparer.Ordinal)
             .ThenBy(e => (e.After ?? e.Before)!.SourceNodeId.Value)
-            .ThenBy(e => (e.After ?? e.Before)!.SourceRoleId.Value, StringComparer.Ordinal)
+            .ThenBy(e => (e.After ?? e.Before)!.SourceAudienceId.Value, StringComparer.Ordinal)
             .ToArray();
     }
 }
@@ -277,8 +277,8 @@ public static class SnapshotDiffCalculator
 /// <summary>Kapselt alle Daten eines Snapshots für die Diff-Berechnung.</summary>
 public sealed record SnapshotData(
     IReadOnlyList<Node> Nodes,
-    IReadOnlyList<Role> Roles,
-    IReadOnlyList<RoleResolution> Resolutions,
+    IReadOnlyList<Audience> Audiences,
+    IReadOnlyList<AudienceResolution> Resolutions,
     IReadOnlyList<NodeContent> Contents,
     IReadOnlyList<ContentDependency> Dependencies);
 

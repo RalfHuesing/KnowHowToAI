@@ -59,7 +59,7 @@ public sealed record KnowledgeTreeNodeViewModel
             childCount,
             contentSizeBytes,
             nodeWithContent.Availability.ToString(),
-            nodeWithContent.ResolvedRoleId?.Value,
+            nodeWithContent.ResolvedAudienceId?.Value,
             nodeWithContent.Freshness.ToString(),
             nodeWithContent.Freshness == Freshness.Stale
                 ? [QualityWarningCodes.StaleDerivedContent]

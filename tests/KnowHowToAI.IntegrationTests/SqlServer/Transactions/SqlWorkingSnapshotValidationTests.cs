@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
@@ -66,7 +66,7 @@ public sealed class SqlWorkingSnapshotValidationTests
 
         Assert.True(afterMutation.IsSuccess);
         Assert.False(afterMutation.Value!.IsValid);
-        Assert.Contains(afterMutation.Value.Errors, error => error.Code == RoleResolutionErrorCodes.RequestedRoleDeleted);
+        Assert.Contains(afterMutation.Value.Errors, error => error.Code == AudienceResolutionErrorCodes.RequestedAudienceDeleted);
         Assert.Contains(afterMutation.Value.Errors, error => error.Code == ContentStructureCodes.HeadingNotAllowed);
         Assert.Contains(afterMutation.Value.Warnings, warning => warning.Code == QualityWarningCodes.StaleDerivedContent);
         Assert.Equal(new TransactionStateProbe("Open", "Working", 1), afterRepeatedValidation);
@@ -133,10 +133,10 @@ public sealed class SqlWorkingSnapshotValidationTests
                 Assert.False(target.IsDeleted);
                 Assert.Equal(new NodeId(Guid.Parse("40000000-0000-0000-0000-000000000001")), target.ParentNodeId);
             });
-        var role = Assert.Single(view.Roles);
-        Assert.Equal(new RoleId("Default"), role.RoleId);
+        var role = Assert.Single(view.Audiences);
+        Assert.Equal(new AudienceId("Default"), role.AudienceId);
         Assert.False(role.IsDeleted);
-        var resolution = Assert.Single(view.RoleResolutions);
+        var resolution = Assert.Single(view.AudienceResolutions);
         Assert.Equal(1, resolution.Priority);
         Assert.Collection(
             view.Contents,
@@ -153,8 +153,8 @@ public sealed class SqlWorkingSnapshotValidationTests
             view.Nodes,
             source => Assert.Equal("Quelle", source.Title),
             target => Assert.Equal("Abgeleitet nach Mutation", target.Title));
-        Assert.True(Assert.Single(view.Roles).IsDeleted);
-        Assert.Equal(2, Assert.Single(view.RoleResolutions).Priority);
+        Assert.True(Assert.Single(view.Audiences).IsDeleted);
+        Assert.Equal(2, Assert.Single(view.AudienceResolutions).Priority);
         Assert.Collection(
             view.Contents,
             source => Assert.Equal("Quellinhalt", source.ContentMd),
@@ -175,7 +175,7 @@ public sealed class SqlWorkingSnapshotValidationTests
             VALUES
                 (@snapshotId, @sourceNodeId, NULL, N'Quelle', NULL, 0, 0),
                 (@snapshotId, @targetNodeId, @sourceNodeId, N'Abgeleitet', NULL, 0, 0);
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES
                 (@snapshotId, @sourceNodeId, N'Default', @sourceRevisionId, 'Independent', N'Quellinhalt', 0),
                 (@snapshotId, @targetNodeId, N'Default', @targetRevisionId, 'Derived', N'Abgeleiteter Inhalt', 0);
@@ -258,7 +258,7 @@ public sealed class SqlWorkingSnapshotValidationTests
     {
         private const string TombstoneRoleSql = """
             UPDATE dbo.KnowHowToAI_Role SET IsDeleted = 1
-            WHERE SnapshotId = @snapshotId AND RoleId = N'Default' AND IsDeleted = 0;
+            WHERE SnapshotId = @snapshotId AND AudienceId = N'Default' AND IsDeleted = 0;
             """;
 
         private const string ReprioritizeResolutionSql = """
@@ -273,7 +273,7 @@ public sealed class SqlWorkingSnapshotValidationTests
 
         private const string AddHeadingSql = """
             UPDATE dbo.KnowHowToAI_NodeContent SET ContentMd = N'# Nicht erlaubte Überschrift'
-            WHERE SnapshotId = @snapshotId AND NodeId = @targetNodeId AND RoleId = N'Default';
+            WHERE SnapshotId = @snapshotId AND NodeId = @targetNodeId AND AudienceId = N'Default';
             """;
 
         private const string StaleDependencySql = """

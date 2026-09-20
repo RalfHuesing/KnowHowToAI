@@ -11,7 +11,7 @@ public sealed class SearchMapperTests
     public void ToSearchHitViewModel_MapsAllProperties()
     {
         var nodeId = new NodeId(Guid.NewGuid());
-        var resolvedRoleId = new RoleId("architect");
+        var resolvedRoleId = new AudienceId("architect");
 
         var hit = new SearchHit(
             nodeId,

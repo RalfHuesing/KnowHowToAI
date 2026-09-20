@@ -20,6 +20,6 @@ public sealed record ChildNodeSummary(
     int ChildCount,
     int ContentSizeBytes,
     Availability Availability,
-    RoleId? ResolvedRoleId,
+    AudienceId? ResolvedAudienceId,
     Freshness Freshness,
     IReadOnlyList<string>? Findings = null);

@@ -1,7 +1,7 @@
 using Dapper;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -9,7 +9,7 @@ using KnowHowToAI.Storage.SqlServer.Repositories;
 
 namespace KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
 
-internal sealed class SqlRoleRepository : SqlRepository, IRoleRepository
+internal sealed class SqlRoleRepository : SqlRepository, IAudienceRepository
 {
     internal const string ListRolesSql = """
         SELECT SnapshotId, RoleId, Name, Description, IsDeleted
@@ -30,7 +30,7 @@ internal sealed class SqlRoleRepository : SqlRepository, IRoleRepository
     {
     }
 
-    public async Task<IReadOnlyList<Role>> ListBySnapshotAsync(
+    public async Task<IReadOnlyList<Audience>> ListBySnapshotAsync(
         SnapshotId snapshotId,
         CancellationToken cancellationToken = default)
     {
@@ -40,7 +40,7 @@ internal sealed class SqlRoleRepository : SqlRepository, IRoleRepository
         return rows.Select(SqlRowMapper.ToRole).ToArray();
     }
 
-    public async Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(
+    public async Task<IReadOnlyList<AudienceResolution>> ListResolutionsBySnapshotAsync(
         SnapshotId snapshotId,
         CancellationToken cancellationToken = default)
     {

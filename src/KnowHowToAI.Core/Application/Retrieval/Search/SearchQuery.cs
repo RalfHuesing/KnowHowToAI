@@ -10,7 +10,7 @@ public sealed record SearchQuery(
     string Text,
     int? Limit = null,
     string? Cursor = null,
-    RoleId? RoleId = null,
+    AudienceId? AudienceId = null,
     SearchFilter? Filter = null);
 
 /// <summary>Paginiertes Suchergebnis mit Snippets.</summary>
@@ -27,7 +27,7 @@ public sealed record SearchHit(
     string? Snippet,
     string HitField,
     Availability Availability,
-    RoleId? ResolvedRoleId,
+    AudienceId? ResolvedAudienceId,
     Freshness Freshness,
     int SortOrder = 0,
     IReadOnlyList<string>? Findings = null);

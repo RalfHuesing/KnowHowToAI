@@ -12,7 +12,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreeStateTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly RoleId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultRoleId = new("Developer");
 
     [Fact]
     public async Task InitializeAsync_EmptySnapshot_SetsRootNodeNull()

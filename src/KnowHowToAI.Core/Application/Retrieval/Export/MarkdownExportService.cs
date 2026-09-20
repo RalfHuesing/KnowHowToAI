@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 
 namespace KnowHowToAI.Core.Application.Retrieval.Export;
@@ -33,12 +33,12 @@ public sealed class MarkdownExportService
     public async Task<Result<string>> ExportTreeAsync(
         NodeId rootNodeId,
         ReadContext context,
-        RoleId roleId,
+        AudienceId audienceId,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var dataResult = await LoadExportDataAsync(context, roleId, cancellationToken).ConfigureAwait(false);
+        var dataResult = await LoadExportDataAsync(context, audienceId, cancellationToken).ConfigureAwait(false);
         if (!dataResult.IsSuccess)
             return Result<string>.Failure(dataResult.Error!);
 
@@ -72,10 +72,10 @@ public sealed class MarkdownExportService
 
     private sealed record ExportSnapshotData(
         SnapshotId SnapshotId,
-        RoleId RoleId,
+        AudienceId AudienceId,
         IReadOnlyList<Node> Nodes,
-        IReadOnlyList<Role> Roles,
-        IReadOnlyList<RoleResolution> Resolutions,
+        IReadOnlyList<Audience> Audiences,
+        IReadOnlyList<AudienceResolution> Resolutions,
         IReadOnlyList<NodeContent> Contents,
         IReadOnlyList<ContentDependency> Dependencies,
         ILookup<NodeId, Node> ChildrenByParent);
@@ -91,7 +91,7 @@ public sealed class MarkdownExportService
 
     private async Task<Result<ExportSnapshotData>> LoadExportDataAsync(
         ReadContext context,
-        RoleId roleId,
+        AudienceId audienceId,
         CancellationToken cancellationToken)
     {
         var loadResult = await SnapshotReadDataLoader.LoadAsync(context, _repos, cancellationToken).ConfigureAwait(false);
@@ -105,9 +105,9 @@ public sealed class MarkdownExportService
 
         return Result<ExportSnapshotData>.Success(new ExportSnapshotData(
             data.SnapshotId,
-            roleId,
+            audienceId,
             data.Nodes,
-            data.Roles,
+            data.Audiences,
             data.Resolutions,
             data.Contents,
             data.Dependencies,
@@ -121,9 +121,9 @@ public sealed class MarkdownExportService
     {
         var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
             node.NodeId,
-            data.RoleId,
+            data.AudienceId,
             data.SnapshotId,
-            data.Roles,
+            data.Audiences,
             data.Resolutions,
             data.Contents,
             data.Dependencies));

@@ -6,7 +6,7 @@ using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
@@ -32,11 +32,11 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
     private static readonly TransactionId AenderungsTransactionId = new(Guid.Parse("51210000-0000-0000-0000-000000000002"));
     private static readonly TransactionId FolgetransactionId = new(Guid.Parse("51210000-0000-0000-0000-000000000003"));
 
-    private static readonly RoleId RoleEntwickler = new("Entwickler");
-    private static readonly RoleId RoleEndanwender = new("Endanwender");
-    private static readonly RoleId RoleBerater = new("Berater");
-    private static readonly RoleId RoleProjekt = new("Projekt");
-    private static readonly RoleId RoleAdmin = new("Admin");
+    private static readonly AudienceId RoleEntwickler = new("Entwickler");
+    private static readonly AudienceId RoleEndanwender = new("Endanwender");
+    private static readonly AudienceId RoleBerater = new("Berater");
+    private static readonly AudienceId RoleProjekt = new("Projekt");
+    private static readonly AudienceId RoleAdmin = new("Admin");
 
     [Fact]
     public async Task DiffKategorien_WerdenDeterministischUndHistorischReproduzierbarNachgewiesen()
@@ -262,8 +262,8 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         int dependencies)
     {
         Assert.Equal(nodes, diff.Nodes.Count);
-        Assert.Equal(roles, diff.Roles.Count);
-        Assert.Equal(resolutions, diff.RoleResolutions.Count);
+        Assert.Equal(roles, diff.Audiences.Count);
+        Assert.Equal(resolutions, diff.AudienceResolutions.Count);
         Assert.Equal(contents, diff.Contents.Count);
         Assert.Equal(dependencies, diff.Dependencies.Count);
         Assert.Equal(nodes + roles + resolutions + contents + dependencies, diff.TotalCount);
@@ -275,13 +275,13 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         Assert.Equal(changes.GeloeschterKnoten, Assert.Single(diff.Nodes, entry => entry.Kind == DiffChangeKind.Deleted).Before!.NodeId);
         Assert.Equal(changes.NeuerKnoten, Assert.Single(diff.Nodes, entry => entry.Kind == DiffChangeKind.Added).After!.NodeId);
 
-        Assert.Equal(RoleAdmin, Assert.Single(diff.Roles, entry => entry.Kind == DiffChangeKind.Added).After!.RoleId);
-        Assert.Equal(RoleEndanwender, Assert.Single(diff.Roles, entry => entry.Kind == DiffChangeKind.Modified).After!.RoleId);
-        Assert.Equal(RoleProjekt, Assert.Single(diff.Roles, entry => entry.Kind == DiffChangeKind.Deleted).Before!.RoleId);
+        Assert.Equal(RoleAdmin, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Added).After!.AudienceId);
+        Assert.Equal(RoleEndanwender, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Modified).After!.AudienceId);
+        Assert.Equal(RoleProjekt, Assert.Single(diff.Audiences, entry => entry.Kind == DiffChangeKind.Deleted).Before!.AudienceId);
 
-        Assert.Equal(2, diff.RoleResolutions.Count(entry => entry.Kind == DiffChangeKind.Modified));
-        Assert.Equal(2, diff.RoleResolutions.Count(entry => entry.Kind == DiffChangeKind.Deleted));
-        Assert.Equal(RoleAdmin, Assert.Single(diff.RoleResolutions, entry => entry.Kind == DiffChangeKind.Added).After!.RequestedRoleId);
+        Assert.Equal(2, diff.AudienceResolutions.Count(entry => entry.Kind == DiffChangeKind.Modified));
+        Assert.Equal(2, diff.AudienceResolutions.Count(entry => entry.Kind == DiffChangeKind.Deleted));
+        Assert.Equal(RoleAdmin, Assert.Single(diff.AudienceResolutions, entry => entry.Kind == DiffChangeKind.Added).After!.RequestedAudienceId);
 
         Assert.Equal(2, diff.Contents.Count(entry => entry.Kind == DiffChangeKind.Added));
         Assert.Equal(2, diff.Contents.Count(entry => entry.Kind == DiffChangeKind.Modified));
@@ -299,14 +299,14 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         diff.TotalCount,
         Nodes = diff.Nodes.Select(entry =>
             (entry.Kind, entry.Before?.NodeId, entry.After?.NodeId, entry.After?.Title)).ToArray(),
-        Roles = diff.Roles.Select(entry =>
-            (entry.Kind, entry.Before?.RoleId, entry.After?.RoleId)).ToArray(),
-        Resolutions = diff.RoleResolutions.Select(entry =>
-            (entry.Kind, entry.Before?.RequestedRoleId, entry.Before?.CandidateRoleId, entry.Before?.Priority,
-                entry.After?.RequestedRoleId, entry.After?.CandidateRoleId, entry.After?.Priority)).ToArray(),
+        Roles = diff.Audiences.Select(entry =>
+            (entry.Kind, entry.Before?.AudienceId, entry.After?.AudienceId)).ToArray(),
+        Resolutions = diff.AudienceResolutions.Select(entry =>
+            (entry.Kind, entry.Before?.RequestedAudienceId, entry.Before?.CandidateAudienceId, entry.Before?.Priority,
+                entry.After?.RequestedAudienceId, entry.After?.CandidateAudienceId, entry.After?.Priority)).ToArray(),
         Contents = diff.Contents.Select(entry =>
-            (entry.Kind, entry.Before?.NodeId, entry.Before?.RoleId, entry.Before?.ContentRevisionId,
-                entry.After?.NodeId, entry.After?.RoleId, entry.After?.ContentRevisionId)).ToArray(),
+            (entry.Kind, entry.Before?.NodeId, entry.Before?.AudienceId, entry.Before?.ContentRevisionId,
+                entry.After?.NodeId, entry.After?.AudienceId, entry.After?.ContentRevisionId)).ToArray(),
         Dependencies = diff.Dependencies.Select(entry =>
             (entry.Kind, entry.Before?.SourceContentRevisionId, entry.After?.SourceContentRevisionId)).ToArray()
     };

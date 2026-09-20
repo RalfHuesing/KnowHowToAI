@@ -91,7 +91,7 @@ internal sealed class KnowledgeTreePathLoader
             var nodeResult = await _navigationService.GetNodeAsync(
                 new NodeId(currentId),
                 readContext,
-                new RoleId(roleId ?? string.Empty),
+                new AudienceId(roleId ?? string.Empty),
                 cancellationToken).ConfigureAwait(false);
 
             if (!nodeResult.IsSuccess || nodeResult.Value?.Node is null)

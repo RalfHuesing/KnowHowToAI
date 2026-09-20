@@ -1,13 +1,13 @@
 using KnowHowToAI.Core.Domain.Common;
 
-namespace KnowHowToAI.Core.Domain.Roles;
+namespace KnowHowToAI.Core.Domain.Audiences;
 
 /// <summary>
 /// Metadata eines expliziten Inhalts, ohne dessen möglicherweise große Payload zu duplizieren.
 /// </summary>
 public sealed record ResolvedContentMetadata(
     NodeId NodeId,
-    RoleId RoleId,
+    AudienceId AudienceId,
     ContentRevisionId ContentRevisionId,
     ContentMode ContentMode,
     int ContentLength);
@@ -15,9 +15,9 @@ public sealed record ResolvedContentMetadata(
 /// <summary>
 /// Transparenter Ausgang einer Rollenauflösung; fehlende Konfiguration ist kein impliziter Fallback.
 /// </summary>
-public sealed record RoleResolutionResult(
-    RoleId RequestedRole,
-    RoleId? ResolvedRole,
+public sealed record AudienceResolutionResult(
+    AudienceId RequestedAudience,
+    AudienceId? ResolvedAudience,
     Availability Availability,
     bool FallbackUsed,
     bool ResolutionConfigured,

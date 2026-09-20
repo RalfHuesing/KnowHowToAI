@@ -4,47 +4,47 @@ using KnowHowToAI.Core.Domain.Common;
 namespace KnowHowToAI.Core.Tests.Application.Navigation;
 
 [Trait("Category", "Unit")]
-public sealed class RoleCursorTests
+public sealed class AudienceCursorTests
 {
     private static readonly SnapshotId SnapshotId = new(42);
-    private static readonly RoleId RoleId = new("Developer");
+    private static readonly AudienceId AudienceId = new("Developer");
 
     [Fact]
     public void Encode_And_TryDecode_Roundtrip_PreservesAllFields()
     {
-        var cursor = new RoleCursor(
+        var cursor = new AudienceCursor(
             SnapshotId,
             ChangeVersion: 5,
             IncludeDeleted: true,
-            RoleId);
+            AudienceId);
 
         var encoded = cursor.Encode();
         Assert.False(string.IsNullOrWhiteSpace(encoded));
 
-        var decoded = RoleCursor.TryDecode(encoded);
+        var decoded = AudienceCursor.TryDecode(encoded);
         Assert.NotNull(decoded);
         Assert.Equal(cursor.SnapshotId, decoded.SnapshotId);
         Assert.Equal(cursor.ChangeVersion, decoded.ChangeVersion);
         Assert.Equal(cursor.IncludeDeleted, decoded.IncludeDeleted);
-        Assert.Equal(cursor.LastRoleId, decoded.LastRoleId);
+        Assert.Equal(cursor.LastAudienceId, decoded.LastAudienceId);
     }
 
     [Fact]
     public void Encode_And_TryDecode_WithNullChangeVersion_Succeeds()
     {
-        var cursor = new RoleCursor(
+        var cursor = new AudienceCursor(
             SnapshotId,
             ChangeVersion: null,
             IncludeDeleted: false,
-            RoleId);
+            AudienceId);
 
         var encoded = cursor.Encode();
-        var decoded = RoleCursor.TryDecode(encoded);
+        var decoded = AudienceCursor.TryDecode(encoded);
 
         Assert.NotNull(decoded);
         Assert.Null(decoded.ChangeVersion);
         Assert.Equal(cursor.SnapshotId, decoded.SnapshotId);
-        Assert.Equal(cursor.LastRoleId, decoded.LastRoleId);
+        Assert.Equal(cursor.LastAudienceId, decoded.LastAudienceId);
         Assert.False(decoded.IncludeDeleted);
     }
 
@@ -57,7 +57,7 @@ public sealed class RoleCursorTests
     [InlineData("e30=")] // "{}" in Base64, missing required fields
     public void TryDecode_InvalidOrCorruptString_ReturnsNull(string? invalidCursor)
     {
-        var decoded = RoleCursor.TryDecode(invalidCursor);
+        var decoded = AudienceCursor.TryDecode(invalidCursor);
         Assert.Null(decoded);
     }
 }

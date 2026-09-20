@@ -43,7 +43,7 @@ public static class TransactionValidationMapper
             report.Warnings.Select(ToIssue).ToArray(),
             report.StaleContents.Select(static content => new TransactionValidationStaleContentViewModel(
                 content.NodeId.Value,
-                content.RoleId.Value,
+                content.AudienceId.Value,
                 content.ContentRevisionId.Value)).ToArray(),
             report.RefactoringCandidates.Select(static candidate => new TransactionValidationRefactoringViewModel(
                 candidate.NodeId.Value,
@@ -56,7 +56,7 @@ public static class TransactionValidationMapper
             issue.Code,
             issue.Message,
             TryGetNodeId(issue.Details),
-            issue.Details.GetValueOrDefault(TransactionValidationCodes.RoleIdDetail));
+            issue.Details.GetValueOrDefault(TransactionValidationCodes.AudienceIdDetail));
 
     private static Guid? TryGetNodeId(IReadOnlyDictionary<string, string> details) =>
         details.TryGetValue(TransactionValidationCodes.NodeIdDetail, out var value)

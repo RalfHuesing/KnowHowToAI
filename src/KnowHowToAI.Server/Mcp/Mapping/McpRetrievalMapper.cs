@@ -33,7 +33,7 @@ internal static class McpRetrievalMapper
             hit.Snippet,
             hit.HitField,
             hit.Availability.ToString(),
-            hit.ResolvedRoleId?.ToString(),
+            hit.ResolvedAudienceId?.ToString(),
             hit.Freshness.ToString())).ToArray(),
         page.NextCursor);
 

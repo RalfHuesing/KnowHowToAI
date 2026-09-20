@@ -8,7 +8,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.TestSupport;
@@ -16,13 +16,13 @@ namespace KnowHowToAI.TestSupport;
 /// <summary>
 /// Feature-spezifischer Harness für Navigation-, Export- und Search-Szenarien auf einem
 /// gemeinsamen <see cref="InMemoryKnowledgeStore"/>: kapselt den Szenario-Aufbau
-/// (Snapshots, Transactions, Nodes, Rollen, Contents) und erzeugt die Services über die
+/// (Snapshots, Transactions, Nodes, Zielgruppen, Contents) und erzeugt die Services über die
 /// gemeinsamen In-Memory-Port-Fakes. Wird von Unit- und Integrationstests geteilt.
 /// </summary>
 public sealed class NavigationTestHarness
 {
     private static readonly DateTimeOffset FixedTimestamp = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
-    private static readonly RoleId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultAudienceId = new("Developer");
 
     private readonly InMemoryKnowledgeStore _store = new();
 
@@ -31,60 +31,60 @@ public sealed class NavigationTestHarness
     {
         _store.CurrentSnapshotId = currentSnapshotId;
         _store.Snapshots.Add(new Snapshot(currentSnapshotId, null, SnapshotState.Committed, FixedTimestamp, FixedTimestamp));
-        EnsureDefaultRole(currentSnapshotId);
+        EnsureDefaultAudience(currentSnapshotId);
     }
 
-    /// <summary>Setzt den Current Snapshot neu und legt ihn mit Standard-Rolle an.</summary>
+    /// <summary>Setzt den Current Snapshot neu und legt ihn mit Standard-Zielgruppe an.</summary>
     public void SetCurrentSnapshot(SnapshotId snapshotId)
     {
         _store.CurrentSnapshotId = snapshotId;
         _store.Snapshots.Add(new Snapshot(snapshotId, null, SnapshotState.Committed, FixedTimestamp, FixedTimestamp));
-        EnsureDefaultRole(snapshotId);
+        EnsureDefaultAudience(snapshotId);
     }
 
     /// <summary>Nimmt einen historischen Snapshot in den Store auf.</summary>
     public void AddHistoricalSnapshot(Snapshot snapshot)
     {
         _store.Snapshots.Add(snapshot);
-        EnsureDefaultRole(snapshot.SnapshotId);
+        EnsureDefaultAudience(snapshot.SnapshotId);
     }
 
-    /// <summary>Registriert eine Transaction und legt ihren Working Snapshot mit Standard-Rolle an.</summary>
+    /// <summary>Registriert eine Transaction und legt ihren Working Snapshot mit Standard-Zielgruppe an.</summary>
     public void SetTransaction(KnowledgeTransaction transaction)
     {
         _store.Transactions[transaction.TransactionId] = transaction;
         _store.Snapshots.RemoveAll(s => s.SnapshotId == transaction.WorkingSnapshotId);
         _store.Snapshots.Add(new Snapshot(transaction.WorkingSnapshotId, transaction.BaseSnapshotId, SnapshotState.Working, transaction.CreatedAtUtc, null));
-        EnsureDefaultRole(transaction.WorkingSnapshotId);
+        EnsureDefaultAudience(transaction.WorkingSnapshotId);
     }
 
     /// <summary>Fügt einen Node hinzu.</summary>
     public void AddNode(Node node) => _store.Nodes.Add(node);
 
-    /// <summary>Fügt eine Rolle hinzu und ersetzt eine bestehende Rolle derselben Kennung.</summary>
-    public void AddRole(Role role)
+    /// <summary>Fügt eine Zielgruppe hinzu und ersetzt eine bestehende Zielgruppe derselben Kennung.</summary>
+    public void AddAudience(Audience audience)
     {
-        _store.Roles.RemoveAll(r => r.SnapshotId == role.SnapshotId && r.RoleId == role.RoleId);
-        _store.Roles.Add(role);
+        _store.Audiences.RemoveAll(r => r.SnapshotId == audience.SnapshotId && r.AudienceId == audience.AudienceId);
+        _store.Audiences.Add(audience);
     }
 
     /// <summary>Fügt eine Auflösungsreihenfolge hinzu und ersetzt eine bestehende gleicher Konfiguration.</summary>
-    public void AddRoleResolution(RoleResolution resolution)
+    public void AddAudienceResolution(AudienceResolution resolution)
     {
         _store.Resolutions.RemoveAll(r => r.SnapshotId == resolution.SnapshotId
-            && r.RequestedRoleId == resolution.RequestedRoleId
-            && r.CandidateRoleId == resolution.CandidateRoleId);
+            && r.RequestedAudienceId == resolution.RequestedAudienceId
+            && r.CandidateAudienceId == resolution.CandidateAudienceId);
         _store.Resolutions.Add(resolution);
     }
 
-    /// <summary>Entfernt alle Rollen und Auflösungsreihenfolgen eines Snapshots.</summary>
-    public void ClearRoles(SnapshotId snapshotId)
+    /// <summary>Entfernt alle Zielgruppen und Auflösungsreihenfolgen eines Snapshots.</summary>
+    public void ClearAudiences(SnapshotId snapshotId)
     {
-        _store.Roles.RemoveAll(r => r.SnapshotId == snapshotId);
+        _store.Audiences.RemoveAll(r => r.SnapshotId == snapshotId);
         _store.Resolutions.RemoveAll(r => r.SnapshotId == snapshotId);
     }
 
-    /// <summary>Fügt einen Rollen-Content hinzu.</summary>
+    /// <summary>Fügt einen Zielgruppen-Content hinzu.</summary>
     public void AddContent(NodeContent content) => _store.Contents.Add(content);
 
     /// <summary>Fügt eine Content-Dependency hinzu.</summary>
@@ -96,7 +96,7 @@ public sealed class NavigationTestHarness
         new InMemoryTransactionRepository(_store),
         new InMemoryHierarchyRepository(_store),
         new InMemoryContentRepository(_store),
-        new InMemoryRoleRepository(_store),
+        new InMemoryAudienceRepository(_store),
         new InMemoryDependencyRepository(_store),
         new InMemoryWorkingSnapshotReadRepository(_store));
 
@@ -129,18 +129,18 @@ public sealed class NavigationTestHarness
     /// <summary>Erzeugt den MarkdownExportService über den Store.</summary>
     public MarkdownExportService CreateExportService() => new(CreateRepositories());
 
-    /// <summary>Stellt sicher, dass jeder Snapshot die Default-Rolle mit Selbst-Auflösung trägt.</summary>
-    private void EnsureDefaultRole(SnapshotId snapshotId)
+    /// <summary>Stellt sicher, dass jeder Snapshot die Default-Zielgruppe mit Selbst-Auflösung trägt.</summary>
+    private void EnsureDefaultAudience(SnapshotId snapshotId)
     {
-        if (!_store.Roles.Any(r => r.SnapshotId == snapshotId && r.RoleId == DefaultRoleId))
+        if (!_store.Audiences.Any(r => r.SnapshotId == snapshotId && r.AudienceId == DefaultAudienceId))
         {
-            _store.Roles.Add(new Role(snapshotId, DefaultRoleId, "Developer", null, false));
+            _store.Audiences.Add(new Audience(snapshotId, DefaultAudienceId, "Developer", null, false));
         }
 
         if (!_store.Resolutions.Any(r => r.SnapshotId == snapshotId
-            && r.RequestedRoleId == DefaultRoleId && r.CandidateRoleId == DefaultRoleId))
+            && r.RequestedAudienceId == DefaultAudienceId && r.CandidateAudienceId == DefaultAudienceId))
         {
-            _store.Resolutions.Add(new RoleResolution(snapshotId, DefaultRoleId, DefaultRoleId, 1));
+            _store.Resolutions.Add(new AudienceResolution(snapshotId, DefaultAudienceId, DefaultAudienceId, 1));
         }
     }
 

@@ -15,7 +15,7 @@ public sealed class KnowledgeIdentifiersTests
         Assert.Equal(guid, new TransactionId(guid).Value);
         Assert.Equal("9f4a2c43-0a77-44be-8f98-f403444d3e9f", new TransactionId(guid).ToString());
         Assert.Equal(guid, new NodeId(guid).Value);
-        Assert.Equal("Developer", new RoleId("Developer").ToString());
+        Assert.Equal("Developer", new AudienceId("Developer").ToString());
         Assert.Equal(guid, new ContentRevisionId(guid).Value);
         Assert.Equal("7", new ReleaseId(7).ToString());
     }

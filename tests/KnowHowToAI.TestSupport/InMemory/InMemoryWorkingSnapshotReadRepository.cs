@@ -11,7 +11,7 @@ namespace KnowHowToAI.TestSupport;
 /// <see cref="InMemoryKnowledgeStore"/>: prüft Existenz und Offenheit der Transaction
 /// sowie den Working-Zustand des Snapshots mit denselben stabilen Fehlercodes wie die
 /// Produktions-Storage-Implementierung und liefert die auf den Working Snapshot
-/// gefilterten Nodes, Rollen, Auflösungen, Contents und Dependencies atomar zurück.
+/// gefilterten Nodes, Zielgruppen, Auflösungen, Contents und Dependencies atomar zurück.
 /// </summary>
 public sealed class InMemoryWorkingSnapshotReadRepository(InMemoryKnowledgeStore store)
     : IWorkingSnapshotReadRepository
@@ -50,7 +50,7 @@ public sealed class InMemoryWorkingSnapshotReadRepository(InMemoryKnowledgeStore
             transaction,
             transaction.ChangeVersion,
             store.Nodes.Where(n => n.SnapshotId == snapshotId).ToList(),
-            store.Roles.Where(r => r.SnapshotId == snapshotId).ToList(),
+            store.Audiences.Where(r => r.SnapshotId == snapshotId).ToList(),
             store.Resolutions.Where(r => r.SnapshotId == snapshotId).ToList(),
             store.Contents.Where(c => c.SnapshotId == snapshotId).ToList(),
             store.Dependencies.Where(d => d.SnapshotId == snapshotId).ToList())));

@@ -8,7 +8,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
@@ -26,7 +26,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgePageTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly RoleId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultRoleId = new("Developer");
 
     public KnowledgePageTests() =>
         JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js").Mode = JSRuntimeMode.Loose;
@@ -116,25 +116,25 @@ public sealed class KnowledgePageTests : BunitContext
         var workingSnapshotId = new SnapshotId(3);
         var fallbackSnapshotId = new SnapshotId(4);
         var transactionId = new TransactionId(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
-        var defaultRoleId = new RoleId("Default");
+        var defaultRoleId = new AudienceId("Default");
         var harness = new NavigationTestHarness(DefaultSnapshotId);
 
         harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Independent", null, 0, false));
-        harness.AddContent(new NodeContent(DefaultSnapshotId, rootId, new RoleId("Developer"), new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Independent content", false));
-        harness.AddRole(new Role(DefaultSnapshotId, defaultRoleId, "Default", null, false));
-        harness.AddRoleResolution(new RoleResolution(DefaultSnapshotId, DefaultRoleId, DefaultRoleId, 1));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, rootId, new AudienceId("Developer"), new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Independent content", false));
+        harness.AddAudience(new Audience(DefaultSnapshotId, defaultRoleId, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, DefaultRoleId, DefaultRoleId, 1));
 
         harness.AddHistoricalSnapshot(new Snapshot(historicalSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-        AddDerivedScenario(harness, historicalSnapshotId, rootId, sourceId, new RoleId("Developer"), sourceIsCurrent: true);
+        AddDerivedScenario(harness, historicalSnapshotId, rootId, sourceId, new AudienceId("Developer"), sourceIsCurrent: true);
 
         var transaction = new KnowledgeTransaction(transactionId, DefaultSnapshotId, workingSnapshotId, TransactionState.Open, 7, DateTimeOffset.UtcNow, null, null, null, null, null);
         harness.SetTransaction(transaction);
-        AddDerivedScenario(harness, workingSnapshotId, rootId, sourceId, new RoleId("Developer"), sourceIsCurrent: false);
+        AddDerivedScenario(harness, workingSnapshotId, rootId, sourceId, new AudienceId("Developer"), sourceIsCurrent: false);
 
         harness.AddHistoricalSnapshot(new Snapshot(fallbackSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-        harness.AddRole(new Role(fallbackSnapshotId, defaultRoleId, "Default", null, false));
-        harness.AddRoleResolution(new RoleResolution(fallbackSnapshotId, defaultRoleId, defaultRoleId, 1));
-        harness.AddRoleResolution(new RoleResolution(fallbackSnapshotId, new RoleId("Developer"), defaultRoleId, 2));
+        harness.AddAudience(new Audience(fallbackSnapshotId, defaultRoleId, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, defaultRoleId, defaultRoleId, 1));
+        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, new AudienceId("Developer"), defaultRoleId, 2));
         AddDerivedScenario(harness, fallbackSnapshotId, rootId, sourceId, defaultRoleId, sourceIsCurrent: true);
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
@@ -170,7 +170,7 @@ public sealed class KnowledgePageTests : BunitContext
         SnapshotId snapshotId,
         NodeId rootId,
         NodeId sourceId,
-        RoleId contentRoleId,
+        AudienceId contentRoleId,
         bool sourceIsCurrent)
     {
         var storedRevision = new ContentRevisionId(Guid.NewGuid());

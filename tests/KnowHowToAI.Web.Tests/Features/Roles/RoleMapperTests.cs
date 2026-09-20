@@ -1,6 +1,6 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Web.Features.Roles;
 
 namespace KnowHowToAI.Web.Tests.Features.Roles;
@@ -11,8 +11,8 @@ public sealed class RoleMapperTests
     [Fact]
     public void ToRoleItemViewModel_MapsAllProperties()
     {
-        var roleId = new RoleId("architect");
-        var role = new Role(
+        var roleId = new AudienceId("architect");
+        var role = new Audience(
             new SnapshotId(1),
             roleId,
             "Architekt",
@@ -29,9 +29,9 @@ public sealed class RoleMapperTests
     [Fact]
     public void ToRolePageViewModel_MapsRolesAndPreservesCursor()
     {
-        var roleId = new RoleId("developer");
-        var role = new Role(new SnapshotId(1), roleId, "Entwickler", null, IsDeleted: false);
-        var page = new RolePage(new[] { role }, NextCursor: "role-cursor-99");
+        var roleId = new AudienceId("developer");
+        var role = new Audience(new SnapshotId(1), roleId, "Entwickler", null, IsDeleted: false);
+        var page = new AudiencePage(new[] { role }, NextCursor: "role-cursor-99");
 
         var vm = RoleMapper.ToRolePageViewModel(page);
 
@@ -48,7 +48,7 @@ public sealed class RoleMapperTests
         var error = new DomainError("RoleNotFound", "Rolle nicht gefunden.");
         var warning = new DomainWarning("WarningCode", "Warnhinweis.");
 
-        var failed = Result<RolePage>.Failure(error, new[] { warning });
+        var failed = Result<AudiencePage>.Failure(error, new[] { warning });
         var result = RoleMapper.ToRolePageResult(failed);
 
         Assert.False(result.IsSuccess);

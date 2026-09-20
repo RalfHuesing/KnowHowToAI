@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
@@ -24,8 +24,8 @@ public sealed class NavigationServiceTests
     private static readonly NodeId Child2NodeId = new(Guid.Parse("20000000-0000-0000-0000-000000000002"));
     private static readonly NodeId Child3NodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000003"));
     private static readonly NodeId SubChildNodeId = new(Guid.Parse("40000000-0000-0000-0000-000000000004"));
-    private static readonly RoleId RoleDeveloper = new("Developer");
-    private static readonly RoleId RoleConsultant = new("Consultant");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
+    private static readonly AudienceId AudienceConsultant = new("Consultant");
 
     // ── GetRootAsync Tests ──────────────────────────────────────────────────
 
@@ -36,33 +36,33 @@ public sealed class NavigationServiceTests
         // Kein Root-Node im Harness
         var service = testHarness.CreateService();
 
-        var result = await service.GetRootAsync(new ReadContext(), RoleDeveloper);
+        var result = await service.GetRootAsync(new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         Assert.Null(result.Value!.Node);
         Assert.Equal(Availability.None, result.Value.Availability);
-        Assert.Equal(RoleDeveloper, result.Value.RequestedRoleId);
+        Assert.Equal(AudienceDeveloper, result.Value.RequestedAudienceId);
         Assert.Null(result.Value.Content);
     }
 
     [Fact]
-    public async Task GetRootAsync_WithRootAndContent_ReturnsPopulatedNodeWithResolvedRole()
+    public async Task GetRootAsync_WithRootAndContent_ReturnsPopulatedNodeWithResolvedAudience()
     {
         var testHarness = new NavigationTestHarness(CurrentSnapshotId);
         testHarness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Root Title", "Root Description", 0, false));
-        testHarness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        testHarness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        testHarness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        testHarness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
         testHarness.AddContent(new NodeContent(
             CurrentSnapshotId,
             RootNodeId,
-            RoleDeveloper,
+            AudienceDeveloper,
             new ContentRevisionId(Guid.NewGuid()),
             ContentMode.Independent,
             "Root Content in Markdown without Headings",
             false));
 
         var service = testHarness.CreateService();
-        var result = await service.GetRootAsync(new ReadContext(), RoleDeveloper);
+        var result = await service.GetRootAsync(new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value!.Node);
@@ -70,7 +70,7 @@ public sealed class NavigationServiceTests
         Assert.Equal("Root Title", result.Value.Node.Title);
         Assert.Equal("Root Description", result.Value.Node.Description);
         Assert.Equal(Availability.Explicit, result.Value.Availability);
-        Assert.Equal(RoleDeveloper, result.Value.ResolvedRoleId);
+        Assert.Equal(AudienceDeveloper, result.Value.ResolvedAudienceId);
         Assert.False(result.Value.FallbackUsed);
         Assert.NotNull(result.Value.Content);
         Assert.Equal(Freshness.Current, result.Value.Freshness);
@@ -83,19 +83,19 @@ public sealed class NavigationServiceTests
     {
         var testHarness = new NavigationTestHarness(CurrentSnapshotId);
         testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Child 1", "Purpose 1", 10, false));
-        testHarness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        testHarness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        testHarness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        testHarness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
         testHarness.AddContent(new NodeContent(
             CurrentSnapshotId,
             Child1NodeId,
-            RoleDeveloper,
+            AudienceDeveloper,
             new ContentRevisionId(Guid.NewGuid()),
             ContentMode.Independent,
             "Child content",
             false));
 
         var service = testHarness.CreateService();
-        var result = await service.GetNodeAsync(Child1NodeId, new ReadContext(), RoleDeveloper);
+        var result = await service.GetNodeAsync(Child1NodeId, new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value!.Node);
@@ -111,16 +111,16 @@ public sealed class NavigationServiceTests
         var sourceRevision = new ContentRevisionId(Guid.NewGuid());
         testHarness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Derived", null, 0, false));
         testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Source", null, 1, false));
-        testHarness.AddContent(new NodeContent(CurrentSnapshotId, RootNodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
-        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child1NodeId, RoleDeveloper, sourceRevision, ContentMode.Independent, "Source content", false));
-        testHarness.AddDependency(new ContentDependency(CurrentSnapshotId, RootNodeId, RoleDeveloper, Child1NodeId, RoleDeveloper, sourceRevision));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, RootNodeId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child1NodeId, AudienceDeveloper, sourceRevision, ContentMode.Independent, "Source content", false));
+        testHarness.AddDependency(new ContentDependency(CurrentSnapshotId, RootNodeId, AudienceDeveloper, Child1NodeId, AudienceDeveloper, sourceRevision));
 
-        var result = await testHarness.CreateService().GetNodeAsync(RootNodeId, new ReadContext(), RoleDeveloper);
+        var result = await testHarness.CreateService().GetNodeAsync(RootNodeId, new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         var source = Assert.Single(result.Value!.SourceRevisions!);
         Assert.Equal(Child1NodeId, source.SourceNodeId);
-        Assert.Equal(RoleDeveloper, source.SourceRoleId);
+        Assert.Equal(AudienceDeveloper, source.SourceAudienceId);
         Assert.Equal(sourceRevision, source.StoredContentRevisionId);
         Assert.Equal(Freshness.Current, source.Freshness);
     }
@@ -133,11 +133,11 @@ public sealed class NavigationServiceTests
         testHarness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Root", null, 0, false));
         testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Derived", null, 1, false));
         testHarness.AddNode(new Node(CurrentSnapshotId, Child2NodeId, RootNodeId, "Source", null, 2, false));
-        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child1NodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
-        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child2NodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Changed source", false));
-        testHarness.AddDependency(new ContentDependency(CurrentSnapshotId, Child1NodeId, RoleDeveloper, Child2NodeId, RoleDeveloper, storedRevision));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child1NodeId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
+        testHarness.AddContent(new NodeContent(CurrentSnapshotId, Child2NodeId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Changed source", false));
+        testHarness.AddDependency(new ContentDependency(CurrentSnapshotId, Child1NodeId, AudienceDeveloper, Child2NodeId, AudienceDeveloper, storedRevision));
 
-        var result = await testHarness.CreateService().ListChildrenAsync(new ListChildrenQuery(RootNodeId, new ReadContext(), RoleDeveloper));
+        var result = await testHarness.CreateService().ListChildrenAsync(new ListChildrenQuery(RootNodeId, new ReadContext(), AudienceDeveloper));
 
         Assert.True(result.IsSuccess);
         var derived = Assert.Single(result.Value!.Items.Where(item => item.NodeId == Child1NodeId));
@@ -152,7 +152,7 @@ public sealed class NavigationServiceTests
         var missingNodeId = new NodeId(Guid.NewGuid());
         var service = testHarness.CreateService();
 
-        var result = await service.GetNodeAsync(missingNodeId, new ReadContext(), RoleDeveloper);
+        var result = await service.GetNodeAsync(missingNodeId, new ReadContext(), AudienceDeveloper);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(NavigationErrorCodes.NodeNotFound, result.Code);
@@ -166,7 +166,7 @@ public sealed class NavigationServiceTests
         testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Child 1", "Purpose 1", 10, IsDeleted: true));
         var service = testHarness.CreateService();
 
-        var result = await service.GetNodeAsync(Child1NodeId, new ReadContext(IncludeDeleted: false), RoleDeveloper);
+        var result = await service.GetNodeAsync(Child1NodeId, new ReadContext(IncludeDeleted: false), AudienceDeveloper);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(NavigationErrorCodes.NodeNotFound, result.Code);
@@ -181,20 +181,20 @@ public sealed class NavigationServiceTests
         testHarness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Root", null, 0, false));
         testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Child 1", "Desc 1", 1, false));
         testHarness.AddNode(new Node(CurrentSnapshotId, SubChildNodeId, Child1NodeId, "Subchild", "Desc Sub", 1, false));
-        testHarness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        testHarness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        testHarness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        testHarness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
         var content = "This is child 1 content in markdown.";
         testHarness.AddContent(new NodeContent(
             CurrentSnapshotId,
             Child1NodeId,
-            RoleDeveloper,
+            AudienceDeveloper,
             new ContentRevisionId(Guid.NewGuid()),
             ContentMode.Independent,
             content,
             false));
 
         var service = testHarness.CreateService();
-        var result = await service.ListChildrenAsync(new ListChildrenQuery(RootNodeId, new ReadContext(), RoleDeveloper));
+        var result = await service.ListChildrenAsync(new ListChildrenQuery(RootNodeId, new ReadContext(), AudienceDeveloper));
 
         Assert.True(result.IsSuccess);
         var page = result.Value!;
@@ -208,7 +208,7 @@ public sealed class NavigationServiceTests
         Assert.Equal(1, summary.ChildCount); // Hat Subchild
         Assert.Equal(System.Text.Encoding.UTF8.GetByteCount(content), summary.ContentSizeBytes);
         Assert.Equal(Availability.Explicit, summary.Availability);
-        Assert.Equal(RoleDeveloper, summary.ResolvedRoleId);
+        Assert.Equal(AudienceDeveloper, summary.ResolvedAudienceId);
         Assert.Equal(Freshness.Current, summary.Freshness);
     }
 
@@ -225,7 +225,7 @@ public sealed class NavigationServiceTests
         testHarness.AddNode(nodeC);
 
         var service = testHarness.CreateService();
-        var result = await service.ListChildrenAsync(new ListChildrenQuery(RootNodeId, new ReadContext(), RoleDeveloper));
+        var result = await service.ListChildrenAsync(new ListChildrenQuery(RootNodeId, new ReadContext(), AudienceDeveloper));
 
         Assert.True(result.IsSuccess);
         var items = result.Value!.Items;
@@ -249,7 +249,7 @@ public sealed class NavigationServiceTests
         var page1Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 2));
 
         Assert.True(page1Result.IsSuccess);
@@ -263,7 +263,7 @@ public sealed class NavigationServiceTests
         var page2Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 2,
             Cursor: page1.NextCursor));
 
@@ -286,7 +286,7 @@ public sealed class NavigationServiceTests
         var result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(),
-            RoleDeveloper,
+            AudienceDeveloper,
             Cursor: invalidCursor));
 
         Assert.False(result.IsSuccess);
@@ -299,13 +299,13 @@ public sealed class NavigationServiceTests
     {
         var testHarness = new NavigationTestHarness(CurrentSnapshotId);
         var otherParentId = new NodeId(Guid.NewGuid());
-        var cursor = new NavigationCursor(CurrentSnapshotId, null, otherParentId, RoleDeveloper, false, Child1NodeId, 1).Encode();
+        var cursor = new NavigationCursor(CurrentSnapshotId, null, otherParentId, AudienceDeveloper, false, Child1NodeId, 1).Encode();
 
         var service = testHarness.CreateService();
         var result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId, // Query ist für RootNodeId, Cursor war für otherParentId
             new ReadContext(),
-            RoleDeveloper,
+            AudienceDeveloper,
             Cursor: cursor));
 
         Assert.False(result.IsSuccess);
@@ -313,16 +313,16 @@ public sealed class NavigationServiceTests
     }
 
     [Fact]
-    public async Task ListChildrenAsync_InvalidCursor_MismatchedRole_ReturnsInvalidCursor()
+    public async Task ListChildrenAsync_InvalidCursor_MismatchedAudience_ReturnsInvalidCursor()
     {
         var testHarness = new NavigationTestHarness(CurrentSnapshotId);
-        var cursor = new NavigationCursor(CurrentSnapshotId, null, RootNodeId, RoleConsultant, false, Child1NodeId, 1).Encode();
+        var cursor = new NavigationCursor(CurrentSnapshotId, null, RootNodeId, AudienceConsultant, false, Child1NodeId, 1).Encode();
 
         var service = testHarness.CreateService();
         var result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(),
-            RoleDeveloper, // Query ist Developer, Cursor war Consultant
+            AudienceDeveloper, // Query ist Developer, Cursor war Consultant
             Cursor: cursor));
 
         Assert.False(result.IsSuccess);
@@ -336,13 +336,13 @@ public sealed class NavigationServiceTests
         testHarness.AddNode(new Node(CurrentSnapshotId, Child1NodeId, RootNodeId, "Child 1", null, 1, false));
 
         var deletedOrGhostNodeId = new NodeId(Guid.NewGuid());
-        var cursor = new NavigationCursor(CurrentSnapshotId, null, RootNodeId, RoleDeveloper, false, deletedOrGhostNodeId, 1).Encode();
+        var cursor = new NavigationCursor(CurrentSnapshotId, null, RootNodeId, AudienceDeveloper, false, deletedOrGhostNodeId, 1).Encode();
 
         var service = testHarness.CreateService();
         var result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(),
-            RoleDeveloper,
+            AudienceDeveloper,
             Cursor: cursor));
 
         Assert.False(result.IsSuccess);
@@ -379,7 +379,7 @@ public sealed class NavigationServiceTests
         var page1Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(TransactionId: OpenTransactionId),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 1));
 
         Assert.True(page1Result.IsSuccess);
@@ -394,7 +394,7 @@ public sealed class NavigationServiceTests
         var page2Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(TransactionId: OpenTransactionId),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 1,
             Cursor: cursorV1));
 
@@ -416,7 +416,7 @@ public sealed class NavigationServiceTests
         var page1Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 1));
 
         Assert.True(page1Result.IsSuccess);
@@ -433,7 +433,7 @@ public sealed class NavigationServiceTests
         var page2Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 1,
             Cursor: cursorSnapshot10));
 
@@ -462,7 +462,7 @@ public sealed class NavigationServiceTests
         var page1Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(SnapshotId: HistoricalSnapshotId),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 1));
 
         Assert.True(page1Result.IsSuccess);
@@ -476,7 +476,7 @@ public sealed class NavigationServiceTests
         var page2Result = await service.ListChildrenAsync(new ListChildrenQuery(
             RootNodeId,
             new ReadContext(SnapshotId: HistoricalSnapshotId),
-            RoleDeveloper,
+            AudienceDeveloper,
             Limit: 1,
             Cursor: cursorSnapshot5));
 

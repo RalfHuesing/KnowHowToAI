@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Application.Mutations;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Retrieval.Export;
@@ -58,8 +58,8 @@ internal static class ServiceRegistration
         services.AddSingleton<IContentMutationRepository, SqlContentMutationRepository>();
         services.AddSingleton<IDependencyRepository, SqlDependencyRepository>();
         services.AddSingleton<INodeMutationRepository, SqlNodeMutationRepository>();
-        services.AddSingleton<IRoleRepository, SqlRoleRepository>();
-        services.AddSingleton<IRoleMutationRepository, SqlRoleMutationRepository>();
+        services.AddSingleton<IAudienceRepository, SqlRoleRepository>();
+        services.AddSingleton<IAudienceMutationRepository, SqlRoleMutationRepository>();
         services.AddSingleton<SqlReleaseRepository>();
         services.AddSingleton<IReleaseRepository>(sp => sp.GetRequiredService<SqlReleaseRepository>());
         services.AddSingleton<IReleaseMutationRepository>(sp => sp.GetRequiredService<SqlReleaseRepository>());
@@ -98,7 +98,7 @@ internal static class ServiceRegistration
         services.AddSingleton<NodeMutationApplicationService>();
         services.AddSingleton<NodeDeletionPreviewService>();
         services.AddSingleton<ContentMutationApplicationService>();
-        services.AddSingleton<RoleMutationService>();
+        services.AddSingleton<AudienceMutationService>();
         services.AddSingleton(serviceProvider =>
         {
             var retrieval = serviceProvider
@@ -117,7 +117,7 @@ internal static class ServiceRegistration
             serviceProvider.GetRequiredService<ITransactionRepository>(),
             serviceProvider.GetRequiredService<IHierarchyRepository>(),
             serviceProvider.GetRequiredService<IContentRepository>(),
-            serviceProvider.GetRequiredService<IRoleRepository>(),
+            serviceProvider.GetRequiredService<IAudienceRepository>(),
             serviceProvider.GetRequiredService<IDependencyRepository>(),
             serviceProvider.GetRequiredService<IWorkingSnapshotReadRepository>()));
         services.AddSingleton(serviceProvider => new SearchRepositories(

@@ -13,7 +13,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreeCircuitTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly RoleId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultRoleId = new("Developer");
 
     [Fact]
     public async Task Paging_101Children_PageNextAndPreviousReplacePageAndPreserveHistory()
@@ -368,7 +368,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
             repos.Transactions,
             delayedRepo,
             repos.Contents,
-            repos.Roles,
+            repos.Audiences,
             repos.Dependencies,
             repos.WorkingSnapshots);
 
@@ -452,7 +452,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
             repos.Transactions,
             delayedRepo,
             repos.Contents,
-            repos.Roles,
+            repos.Audiences,
             repos.Dependencies,
             repos.WorkingSnapshots);
 

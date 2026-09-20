@@ -1,5 +1,5 @@
 using Bunit;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
@@ -85,8 +85,8 @@ public sealed class RolesPageTests : BunitContext
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(navigation);
         Services.AddSingleton<IWebReadContextResolver>(resolver);
-        Services.AddSingleton(new RoleMutationService(new InMemoryRoleMutationRepository(
-            new WorkingRoleMutationState(new SnapshotId(2), [], [], [], []))));
+        Services.AddSingleton(new AudienceMutationService(new InMemoryAudienceMutationRepository(
+            new WorkingAudienceMutationState(new SnapshotId(2), [], [], [], []))));
     }
 
     private sealed class StubContextResolver(WebReadContextResolution resolution) : IWebReadContextResolver

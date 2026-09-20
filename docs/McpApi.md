@@ -186,7 +186,7 @@ in den Details; nicht parsebare ID-Strings sind Parameterfehler und führen zu
 | `set_role_resolution` | `transactionId`, `roleId`, `candidateRoleIds` (erforderlich; die Reihenfolge bestimmt die Priorität, 1 = höchste) | `requestedRoleId`, `items` (je `candidateRoleId`, `priority`) |
 
 Regeln: `set_role_resolution` ersetzt die Order vollständig und bleibt nicht
-rekursiv ([Rollen und Content](Rollen-und-Content.md)). Eine referenzierte Rolle
+rekursiv ([Rollen und Content](Zielgruppen-und-Content.md)). Eine referenzierte Rolle
 (Content, Dependencies, Resolution Orders) kann nicht gelöscht werden
 (`RoleInUse`). Doppelte Kandidaten führen zu `DuplicateCandidateRole`, unbekannte
 zu `CandidateRoleNotFound`.

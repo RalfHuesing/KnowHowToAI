@@ -85,8 +85,8 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
         await session.CreateRoleAsync("Entwickler", null);
         await session.CreateRoleAsync("Endanwender", null);
         await session.CreateRoleAsync("Berater", null);
-        await session.SetResolutionAsync(RoleEntwickler, RoleEntwickler, new RoleId("Endanwender"));
-        await session.SetResolutionAsync(new RoleId("Berater"), new RoleId("Berater"), RoleEntwickler);
+        await session.SetResolutionAsync(RoleEntwickler, RoleEntwickler, new AudienceId("Endanwender"));
+        await session.SetResolutionAsync(new AudienceId("Berater"), new AudienceId("Berater"), RoleEntwickler);
 
         var wurzel = await session.CreateNodeAsync(null, "Wurzel Diff-Paging", null, 0);
         var themaNodes = new List<NodeId>();
@@ -117,11 +117,11 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
 
         if (index % PagingContentStride == 0)
             await session.ReplaceIndependentContentAsync(
-                node.NodeId, new RoleId("Endanwender"), $"Endanwender-Inhalt zu Thema {index:000}.");
+                node.NodeId, new AudienceId("Endanwender"), $"Endanwender-Inhalt zu Thema {index:000}.");
 
         if (index % PagingContentStride == PagingContentStride / 2)
             await session.ReplaceDerivedContentAsync(
-                node.NodeId, new RoleId("Berater"), $"Berater-Inhalt zu Thema {index:000}.",
+                node.NodeId, new AudienceId("Berater"), $"Berater-Inhalt zu Thema {index:000}.",
                 [new ContentDependencySource(node.NodeId, RoleEntwickler, content.ContentRevisionId)]);
 
         return node;
@@ -230,7 +230,7 @@ public sealed partial class SqlDiffReleaseAbnahmeTests
             var sqlMessung = await MesseSnapshotLadungenAsync(database, baseSnapshotId, targetSnapshotId);
             messungen.Add(new DiffSeitenMessung(
                 messungen.Count + 1,
-                diff.Nodes.Count + diff.Roles.Count + diff.RoleResolutions.Count
+                diff.Nodes.Count + diff.Audiences.Count + diff.AudienceResolutions.Count
                     + diff.Contents.Count + diff.Dependencies.Count,
                 diff.TotalCount,
                 diff.NextCursor,

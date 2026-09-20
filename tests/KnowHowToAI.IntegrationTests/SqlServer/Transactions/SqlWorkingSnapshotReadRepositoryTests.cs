@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
@@ -103,9 +103,9 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
         var searchService = CreateSearchService(database);
 
         var context = new ReadContext(TransactionId: transaction.TransactionId);
-        var defaultRole = new RoleId("Default");
+        var defaultRole = new AudienceId("Default");
         var childrenPage1 = await navService.ListChildrenAsync(new ListChildrenQuery(RootNodeId, context, defaultRole, Limit: 1));
-        var rolesPage1 = await navService.ListRolesAsync(new ListRolesQuery(context, Limit: 1));
+        var rolesPage1 = await navService.ListAudiencesAsync(new ListAudiencesQuery(context, Limit: 1));
         var searchPage1 = await searchService.SearchAsync(new SearchQuery("Quelle", Limit: 1), context);
 
         Assert.True(childrenPage1.IsSuccess);
@@ -120,8 +120,8 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
 
         var expChildren = await navService.ListChildrenAsync(
             new ListChildrenQuery(RootNodeId, context, defaultRole, Cursor: childrenPage1.Value.NextCursor));
-        var expRoles = await navService.ListRolesAsync(
-            new ListRolesQuery(context, Cursor: rolesPage1.Value.NextCursor));
+        var expRoles = await navService.ListAudiencesAsync(
+            new ListAudiencesQuery(context, Cursor: rolesPage1.Value.NextCursor));
         var expSearch = await searchService.SearchAsync(
             new SearchQuery("Quelle", Cursor: searchPage1.Value.NextCursor), context);
 
@@ -146,7 +146,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
         });
 
         var request = new SearchRequest(
-            transaction.WorkingSnapshotId, "Quellinhalt 1", new RoleId("Default"), 10, null, 100, transaction.TransactionId);
+            transaction.WorkingSnapshotId, "Quellinhalt 1", new AudienceId("Default"), 10, null, 100, transaction.TransactionId);
         var searchTask = retrievalRepo.SearchAsync(request);
         await guardRead.Task;
 
@@ -165,7 +165,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
         Assert.Equal(1, mutationResult.ChangeVersion);
 
         var postMutationRequest = new SearchRequest(
-            transaction.WorkingSnapshotId, "Quellinhalt nach Mutation", new RoleId("Default"), 10, null, 100, transaction.TransactionId);
+            transaction.WorkingSnapshotId, "Quellinhalt nach Mutation", new AudienceId("Default"), 10, null, 100, transaction.TransactionId);
         var repeatedResult = (await new SqlRetrievalRepository(database.ConnectionFactory, Policy).SearchAsync(postMutationRequest)).Value!;
         Assert.Single(repeatedResult);
         Assert.Equal(1, repeatedResult.ChangeVersion);
@@ -212,7 +212,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
     private static Task InsertCompleteGraphAsync(SqlTestDatabase database, SnapshotId snapshotId) =>
         database.ExecuteAsync(
             """
-            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, RoleId, Name, Description, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, AudienceId, Name, Description, IsDeleted)
             VALUES (@snapshotId, N'Secondary', N'Secondary Role', NULL, 0);
             INSERT INTO dbo.KnowHowToAI_RoleResolution (SnapshotId, RequestedRoleId, CandidateRoleId, Priority)
             VALUES (@snapshotId, N'Secondary', N'Secondary', 1);
@@ -221,7 +221,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
                 (@snapshotId, @rootNodeId, NULL, N'Wurzel', NULL, 0, 0),
                 (@snapshotId, @child1NodeId, @rootNodeId, N'Quelle 1', NULL, 0, 0),
                 (@snapshotId, @child2NodeId, @rootNodeId, N'Quelle 2', NULL, 1, 0);
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES
                 (@snapshotId, @child1NodeId, N'Default', @rev1, 'Independent', N'Quellinhalt 1', 0),
                 (@snapshotId, @child2NodeId, N'Default', @rev2, 'Derived', N'Quellinhalt 2', 0);
@@ -242,7 +242,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
         Assert.Equal("Wurzel", data.Nodes[0].Title);
         Assert.Equal("Quelle 1", data.Nodes[1].Title);
         Assert.Equal("Quelle 2", data.Nodes[2].Title);
-        Assert.Equal(2, data.Roles.Count);
+        Assert.Equal(2, data.Audiences.Count);
         Assert.Equal(2, data.Contents.Count);
         Assert.Equal("Quellinhalt 1", data.Contents[0].ContentMd);
         Assert.Single(data.Dependencies);
@@ -277,7 +277,7 @@ public sealed class SqlWorkingSnapshotReadRepositoryTests
 
         private const string UpdateContentSql = """
             UPDATE dbo.KnowHowToAI_NodeContent SET ContentMd = N'Quellinhalt nach Mutation'
-            WHERE SnapshotId = @snapshotId AND NodeId = @nodeId AND RoleId = N'Default';
+            WHERE SnapshotId = @snapshotId AND NodeId = @nodeId AND AudienceId = N'Default';
             """;
 
         private readonly TaskCompletionSource _started = new(TaskCreationOptions.RunContinuationsAsynchronously);

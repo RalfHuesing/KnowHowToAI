@@ -7,20 +7,20 @@ namespace KnowHowToAI.Core.Application.Retrieval.Search;
 /// untereinander als Und ausgewertet.
 /// </summary>
 public sealed record SearchFilter(
-    IReadOnlyList<RoleId>? ResolvedRoleIds = null,
+    IReadOnlyList<AudienceId>? ResolvedAudienceIds = null,
     IReadOnlyList<Availability>? Availabilities = null,
     IReadOnlyList<Freshness>? Freshnesses = null,
     IReadOnlyList<string>? FindingCodes = null)
 {
     public bool IsEmpty =>
-        (ResolvedRoleIds?.Count ?? 0) == 0
+        (ResolvedAudienceIds?.Count ?? 0) == 0
         && (Availabilities?.Count ?? 0) == 0
         && (Freshnesses?.Count ?? 0) == 0
         && (FindingCodes?.Count ?? 0) == 0;
 
     public string Fingerprint => string.Join(
         "|",
-        $"role:{Join(ResolvedRoleIds?.Select(role => role.Value))}",
+        $"audience:{Join(ResolvedAudienceIds?.Select(audience => audience.Value))}",
         $"availability:{Join(Availabilities?.Select(value => value.ToString()))}",
         $"freshness:{Join(Freshnesses?.Select(value => value.ToString()))}",
         $"finding:{Join(FindingCodes)}");
@@ -29,8 +29,8 @@ public sealed record SearchFilter(
     {
         ArgumentNullException.ThrowIfNull(hit);
 
-        return (ResolvedRoleIds is not { Count: > 0 }
-                || (hit.ResolvedRoleId is { } role && ResolvedRoleIds.Contains(role)))
+        return (ResolvedAudienceIds is not { Count: > 0 }
+                || (hit.ResolvedAudienceId is { } audience && ResolvedAudienceIds.Contains(audience)))
             && (Availabilities is not { Count: > 0 } || Availabilities.Contains(hit.Availability))
             && (Freshnesses is not { Count: > 0 } || Freshnesses.Contains(hit.Freshness))
             && (FindingCodes is not { Count: > 0 } || (hit.Findings ?? []).Any(FindingCodes.Contains));

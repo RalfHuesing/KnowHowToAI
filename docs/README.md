@@ -25,7 +25,7 @@ Entscheidungsgeschichte liegt in der Git-Historie.
 |---|---|
 | [Intention](Intention.md) | Zweck, Ziele, Arbeitsabläufe, Rollenverteilung Agent/Server, Drift-Prinzip |
 | [Wissenshierarchie](Wissenshierarchie.md) | Nodes, globale Hierarchie, Titel-/Content-Trennung, Heading-Verbot, Markdown, Refactoring |
-| [Rollen und Content](Rollen-und-Content.md) | Rollenmodell, Resolution Orders, Content-Revisions, Dependencies, Freshness, Drift |
+| [Zielgruppen und Content](Zielgruppen-und-Content.md) | Zielgruppenmodell, Resolution Orders, Content-Revisions, Dependencies, Freshness, Drift |
 | [Transaktionen und Historie](Transaktionen-und-Historie.md) | Transactions, Working Snapshots, Commit/Discard, Konkurrenz, Releases, Diffs |
 | [Retrieval](Retrieval.md) | Navigation, Export, Search, Content-Schreiboperationen, Validatoren, Warnungen |
 | [MCP-API](McpApi.md) | MCP-Tools, Anfrage-/Antwortverträge, Envelope, Fehler-/Warncode-Katalog |
@@ -44,7 +44,7 @@ sowie [Invarianten](Invarianten.md) zu lesen, dazu das fachlich betroffene Dokum
 | Aufgabe | Zusätzlich lesen |
 |---|---|
 | Nodes, Hierarchie, Markdown, Wissens-Refactoring | [Wissenshierarchie](Wissenshierarchie.md), [Retrieval](Retrieval.md) |
-| Rollen, Fallback, Revisions, Dependencies, Freshness | [Rollen und Content](Rollen-und-Content.md) |
+| Zielgruppen, Fallback, Revisions, Dependencies, Freshness | [Zielgruppen und Content](Zielgruppen-und-Content.md) |
 | Transactions, Snapshots, Concurrency, Historie, Releases | [Transaktionen und Historie](Transaktionen-und-Historie.md), [Datenmodell](Datenmodell.md) |
 | Export, Navigation, Search, Schreiben, Validatoren | [Retrieval](Retrieval.md) |
 | MCP-Tools, Schemas, Fehlercodes | [MCP-API](McpApi.md) sowie die vom Tool berührten Fachdokumente |

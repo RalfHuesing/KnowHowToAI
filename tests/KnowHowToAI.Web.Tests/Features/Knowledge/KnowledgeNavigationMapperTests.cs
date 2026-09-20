@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
@@ -18,8 +18,8 @@ public sealed class KnowledgeNavigationMapperTests
 
         var emptyResult = KnowledgeNavigationMapper.ToNodeDetailsViewModel(new NodeWithContent(
             Node: null,
-            RequestedRoleId: new RoleId("developer"),
-            ResolvedRoleId: null,
+            RequestedAudienceId: new AudienceId("developer"),
+            ResolvedAudienceId: null,
             Availability: Availability.None,
             FallbackUsed: false,
             Content: null,
@@ -32,8 +32,8 @@ public sealed class KnowledgeNavigationMapperTests
     {
         var nodeId = new NodeId(Guid.NewGuid());
         var parentNodeId = new NodeId(Guid.NewGuid());
-        var requestedRoleId = new RoleId("developer");
-        var resolvedRoleId = new RoleId("architect");
+        var requestedRoleId = new AudienceId("developer");
+        var resolvedRoleId = new AudienceId("architect");
         var contentRevisionId = new ContentRevisionId(Guid.NewGuid());
         var snapshotId = new SnapshotId(10);
 
@@ -88,7 +88,7 @@ public sealed class KnowledgeNavigationMapperTests
     {
         var parentId = new NodeId(Guid.NewGuid());
         var childId = new NodeId(Guid.NewGuid());
-        var resolvedRoleId = new RoleId("architect");
+        var resolvedRoleId = new AudienceId("architect");
 
         var summary = new ChildNodeSummary(
             childId,

@@ -36,8 +36,8 @@ public sealed class ContextSelectionRoleCatalog : IContextSelectionRoleCatalog
             string? cursor = null;
             do
             {
-                var result = await _navigationService.ListRolesAsync(
-                    new ListRolesQuery(readContext, Limit: 100, Cursor: cursor),
+                var result = await _navigationService.ListAudiencesAsync(
+                    new ListAudiencesQuery(readContext, Limit: 100, Cursor: cursor),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.IsSuccess)
@@ -49,7 +49,7 @@ public sealed class ContextSelectionRoleCatalog : IContextSelectionRoleCatalog
 
                 var page = result.Value!;
                 roles.AddRange(page.Items.Select(role => new ContextSelectionRoleOptionViewModel(
-                    role.RoleId.Value,
+                    role.AudienceId.Value,
                     role.Name,
                     role.Description)));
                 cursor = page.NextCursor;

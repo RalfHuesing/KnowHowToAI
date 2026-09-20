@@ -1,10 +1,10 @@
 using System.Text;
 using KnowHowToAI.Core.Application.History;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Retrieval.Export;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Http;
 
@@ -47,7 +47,7 @@ internal static class MarkdownDownloadEndpoint
 
             var rootNodeId = new NodeId(parsedNodeId);
             var readContext = contextResult.Value!.ReadContext;
-            var requestedRole = new RoleId(roleId);
+            var requestedRole = new AudienceId(roleId);
             var nodeResult = await navigationService
                 .GetNodeAsync(rootNodeId, readContext, requestedRole, httpContext.RequestAborted)
                 .ConfigureAwait(false);
@@ -104,7 +104,7 @@ internal static class MarkdownDownloadEndpoint
             ? Problem(
                 httpContext,
                 Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
-                RoleMutationErrorCodes.RoleIdRequired,
+                AudienceMutationErrorCodes.AudienceIdRequired,
                 "Für den Markdown-Export muss eine Rolle ausgewählt sein.")
             : null;
     }
@@ -136,17 +136,17 @@ internal static class MarkdownDownloadEndpoint
         ReadContextErrorCodes.SnapshotNotFound or
         ReadContextErrorCodes.TransactionNotFound or
         ReleaseErrorCodes.ReleaseNotFound or
-        RoleResolutionErrorCodes.CandidateRoleDeleted or
-        RoleResolutionErrorCodes.CandidateRoleNotFound or
-        RoleResolutionErrorCodes.RequestedRoleDeleted or
-        RoleResolutionErrorCodes.RequestedRoleNotFound => Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound,
+        AudienceResolutionErrorCodes.CandidateAudienceDeleted or
+        AudienceResolutionErrorCodes.CandidateAudienceNotFound or
+        AudienceResolutionErrorCodes.RequestedAudienceDeleted or
+        AudienceResolutionErrorCodes.RequestedAudienceNotFound => Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound,
         NavigationErrorCodes.SnapshotNotCommitted or
         NavigationErrorCodes.TransactionClosed or
         ReadContextErrorCodes.SnapshotNotCommitted or
         ReadContextErrorCodes.TransactionClosed => Microsoft.AspNetCore.Http.StatusCodes.Status409Conflict,
         NavigationErrorCodes.InvalidNodeId or
         ReadContextErrorCodes.InvalidReadContext or
-        RoleMutationErrorCodes.RoleIdRequired => Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
+        AudienceMutationErrorCodes.AudienceIdRequired => Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
         _ => Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError
     };
 

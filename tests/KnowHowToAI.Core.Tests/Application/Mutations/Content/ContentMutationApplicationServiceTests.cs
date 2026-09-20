@@ -6,7 +6,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.TestSupport;
 
@@ -18,8 +18,8 @@ public sealed class ContentMutationApplicationServiceTests
     private static readonly SnapshotId SnapshotId = new(42);
     private static readonly TransactionId TransactionId = new(Guid.Parse("ad7ab10a-3781-4c5a-99f2-79e886a69ceb"));
     private static readonly NodeId NodeId = new(Guid.Parse("feabf4b0-54ee-4c6b-a51e-188d1bd2c517"));
-    private static readonly RoleId DeveloperRoleId = new("Developer");
-    private static readonly RoleId EndUserRoleId = new("EndUser");
+    private static readonly AudienceId DeveloperAudienceId = new("Developer");
+    private static readonly AudienceId EndUserAudienceId = new("EndUser");
     private static readonly ContentRevisionId SourceRevisionId = new(Guid.Parse("99d37e38-d746-41dc-a653-5680c1b2146b"));
     private static readonly ContentRevisionId ExistingDerivedRevisionId = new(Guid.Parse("da43f88f-9e7d-4e81-a59c-5505144a1567"));
     private static readonly ContentRevisionId GeneratedRevisionId = new(Guid.Parse("c5a915d2-c89e-413c-b36a-6d47bbc51610"));
@@ -27,7 +27,7 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task ReplaceContentAsync_DerivedContent_NormalizesAssignsRevisionAndReturnsFreshnessAndWarnings()
     {
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Quelle");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Quelle");
         var repository = new InMemoryContentMutationRepository(State([source]));
         var service = CreateService(repository);
 
@@ -35,10 +35,10 @@ public sealed class ContentMutationApplicationServiceTests
             TransactionId,
             new ReplaceContentRequest(
                 NodeId,
-                EndUserRoleId,
+                EndUserAudienceId,
                 ContentMode.Derived,
                 "Langer\r\nText",
-                [new ContentDependencySource(NodeId, DeveloperRoleId, SourceRevisionId)],
+                [new ContentDependencySource(NodeId, DeveloperAudienceId, SourceRevisionId)],
                 ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
@@ -53,7 +53,7 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task ReplaceContentAsync_StaleSourceRevision_IsRejectedWithoutChangingWorkingState()
     {
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Quelle");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Quelle");
         var repository = new InMemoryContentMutationRepository(State([source]));
         var service = CreateService(repository);
 
@@ -61,10 +61,10 @@ public sealed class ContentMutationApplicationServiceTests
             TransactionId,
             new ReplaceContentRequest(
                 NodeId,
-                EndUserRoleId,
+                EndUserAudienceId,
                 ContentMode.Derived,
                 "Abgeleitet",
-                [new ContentDependencySource(NodeId, DeveloperRoleId, GeneratedRevisionId)],
+                [new ContentDependencySource(NodeId, DeveloperAudienceId, GeneratedRevisionId)],
                 ExpectedChangeVersion: 0));
 
         Assert.False(result.IsSuccess);
@@ -76,15 +76,15 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task ReplaceTextAsync_ChangesExplicitContentAndKeepsExistingProvenance()
     {
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Quelle");
-        var derived = Content(EndUserRoleId, ExistingDerivedRevisionId, "Alt") with { ContentMode = ContentMode.Derived };
-        var dependency = new ContentDependency(SnapshotId, NodeId, EndUserRoleId, NodeId, DeveloperRoleId, SourceRevisionId);
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Quelle");
+        var derived = Content(EndUserAudienceId, ExistingDerivedRevisionId, "Alt") with { ContentMode = ContentMode.Derived };
+        var dependency = new ContentDependency(SnapshotId, NodeId, EndUserAudienceId, NodeId, DeveloperAudienceId, SourceRevisionId);
         var repository = new InMemoryContentMutationRepository(State([source, derived], [dependency]));
         var service = CreateService(repository);
 
         var result = await service.ReplaceTextAsync(
             TransactionId,
-                new ReplaceTextRequest(NodeId, EndUserRoleId, "Alt", "Neu", ExpectedChangeVersion: 0));
+                new ReplaceTextRequest(NodeId, EndUserAudienceId, "Alt", "Neu", ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(GeneratedRevisionId, result.Value!.Content.ContentRevisionId);
@@ -96,11 +96,11 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task DeleteContentAsync_TombstonesExplicitContentAndReturnsUnknownFreshness()
     {
-        var explicitContent = Content(EndUserRoleId, GeneratedRevisionId, "Text");
+        var explicitContent = Content(EndUserAudienceId, GeneratedRevisionId, "Text");
         var repository = new InMemoryContentMutationRepository(State([explicitContent]));
         var service = CreateService(repository);
 
-        var result = await service.DeleteContentAsync(TransactionId, NodeId, EndUserRoleId, 0);
+        var result = await service.DeleteContentAsync(TransactionId, NodeId, EndUserAudienceId, 0);
 
         Assert.True(result.IsSuccess);
         Assert.True(result.Value!.Content.IsDeleted);
@@ -116,13 +116,13 @@ public sealed class ContentMutationApplicationServiceTests
         var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
             ? TransactionTestErrors.NotFound(TransactionId)
             : TransactionTestErrors.Closed(TransactionId);
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Quelle");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Quelle");
         var repository = new InMemoryContentMutationRepository(State([source])) { Rejection = rejection };
         var service = CreateService(repository);
 
         var result = await service.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(NodeId, EndUserRoleId, ContentMode.Independent, "Neu", [], ExpectedChangeVersion: 0));
+            new ReplaceContentRequest(NodeId, EndUserAudienceId, ContentMode.Independent, "Neu", [], ExpectedChangeVersion: 0));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -139,13 +139,13 @@ public sealed class ContentMutationApplicationServiceTests
         var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
             ? TransactionTestErrors.NotFound(TransactionId)
             : TransactionTestErrors.Closed(TransactionId);
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Quelle");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Quelle");
         var repository = new InMemoryContentMutationRepository(State([source])) { Rejection = rejection };
         var service = CreateService(repository);
 
         var result = await service.ReplaceTextAsync(
             TransactionId,
-            new ReplaceTextRequest(NodeId, DeveloperRoleId, "Quelle", "Neu", ExpectedChangeVersion: 0));
+            new ReplaceTextRequest(NodeId, DeveloperAudienceId, "Quelle", "Neu", ExpectedChangeVersion: 0));
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -162,11 +162,11 @@ public sealed class ContentMutationApplicationServiceTests
         var rejection = errorCode == TransactionValidationErrorCodes.TransactionNotFound
             ? TransactionTestErrors.NotFound(TransactionId)
             : TransactionTestErrors.Closed(TransactionId);
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Quelle");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Quelle");
         var repository = new InMemoryContentMutationRepository(State([source])) { Rejection = rejection };
         var service = CreateService(repository);
 
-        var result = await service.DeleteContentAsync(TransactionId, NodeId, DeveloperRoleId, 0);
+        var result = await service.DeleteContentAsync(TransactionId, NodeId, DeveloperAudienceId, 0);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(errorCode, result.Code);
@@ -178,13 +178,13 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task ReplaceContentAsync_IdenticalContent_ReusesRevisionAndKeepsChangeVersion()
     {
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Inhalt");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Inhalt");
         var repository = new InMemoryContentMutationRepository(State([source]));
         var service = CreateService(repository);
 
         var result = await service.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(NodeId, DeveloperRoleId, ContentMode.Independent, "Inhalt", [], ExpectedChangeVersion: 0));
+            new ReplaceContentRequest(NodeId, DeveloperAudienceId, ContentMode.Independent, "Inhalt", [], ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(SourceRevisionId, result.Value!.Content.ContentRevisionId);
@@ -195,13 +195,13 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task ReplaceTextAsync_IdenticalReplacement_ReusesRevisionAndKeepsChangeVersion()
     {
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Inhalt");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Inhalt");
         var repository = new InMemoryContentMutationRepository(State([source]));
         var service = CreateService(repository);
 
         var result = await service.ReplaceTextAsync(
             TransactionId,
-            new ReplaceTextRequest(NodeId, DeveloperRoleId, "Inhalt", "Inhalt", ExpectedChangeVersion: 0));
+            new ReplaceTextRequest(NodeId, DeveloperAudienceId, "Inhalt", "Inhalt", ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(SourceRevisionId, result.Value!.Content.ContentRevisionId);
@@ -212,13 +212,13 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task ReplaceContentAsync_DifferentContent_CreatesNewRevisionAndIncrementsChangeVersion()
     {
-        var source = Content(DeveloperRoleId, SourceRevisionId, "Inhalt");
+        var source = Content(DeveloperAudienceId, SourceRevisionId, "Inhalt");
         var repository = new InMemoryContentMutationRepository(State([source]));
         var service = CreateService(repository);
 
         var result = await service.ReplaceContentAsync(
             TransactionId,
-            new ReplaceContentRequest(NodeId, DeveloperRoleId, ContentMode.Independent, "Neuer Inhalt", [], ExpectedChangeVersion: 0));
+            new ReplaceContentRequest(NodeId, DeveloperAudienceId, ContentMode.Independent, "Neuer Inhalt", [], ExpectedChangeVersion: 0));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(GeneratedRevisionId, result.Value!.Content.ContentRevisionId);
@@ -229,14 +229,14 @@ public sealed class ContentMutationApplicationServiceTests
     [Fact]
     public async Task ReplaceContentAsync_StaleChangeVersion_IsRejectedWithoutChangingWorkingState()
     {
-        var repository = new InMemoryContentMutationRepository(State([Content(DeveloperRoleId, SourceRevisionId, "Alt")]));
+        var repository = new InMemoryContentMutationRepository(State([Content(DeveloperAudienceId, SourceRevisionId, "Alt")]));
         var service = CreateService(repository);
 
         var current = await service.ReplaceContentAsync(
             TransactionId,
             new ReplaceContentRequest(
                 NodeId,
-                DeveloperRoleId,
+                DeveloperAudienceId,
                 ContentMode.Independent,
                 "Aktuell",
                 [],
@@ -245,7 +245,7 @@ public sealed class ContentMutationApplicationServiceTests
             TransactionId,
             new ReplaceContentRequest(
                 NodeId,
-                DeveloperRoleId,
+                DeveloperAudienceId,
                 ContentMode.Independent,
                 "Veraltet",
                 [],
@@ -279,12 +279,12 @@ public sealed class ContentMutationApplicationServiceTests
             SnapshotId,
             [new Node(SnapshotId, NodeId, null, "Titel", null, 0, IsDeleted: false)],
             [
-                new Role(SnapshotId, DeveloperRoleId, "Developer", null, IsDeleted: false),
-                new Role(SnapshotId, EndUserRoleId, "EndUser", null, IsDeleted: false)
+                new Audience(SnapshotId, DeveloperAudienceId, "Developer", null, IsDeleted: false),
+                new Audience(SnapshotId, EndUserAudienceId, "EndUser", null, IsDeleted: false)
             ],
             contents,
             dependencies ?? []);
 
-    private static NodeContent Content(RoleId roleId, ContentRevisionId revisionId, string text) =>
-        new(SnapshotId, NodeId, roleId, revisionId, ContentMode.Independent, text, IsDeleted: false);
+    private static NodeContent Content(AudienceId audienceId, ContentRevisionId revisionId, string text) =>
+        new(SnapshotId, NodeId, audienceId, revisionId, ContentMode.Independent, text, IsDeleted: false);
 }

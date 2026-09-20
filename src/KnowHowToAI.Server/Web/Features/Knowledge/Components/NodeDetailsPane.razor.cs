@@ -73,7 +73,7 @@ public sealed partial class NodeDetailsPane
         var result = await NavigationService.GetNodeAsync(
             new NodeId(nodeId),
             ReadContext,
-            new RoleId(RoleId),
+            new AudienceId(RoleId),
             CancellationToken.None);
         _isLoading = false;
 

@@ -28,7 +28,7 @@ public sealed class SqlStorageMappingTests
         Assert.Equal(TimeSpan.Zero, snapshot.CreatedAtUtc.Offset);
         Assert.Null(snapshot.CommitMetadata);
         Assert.Equal(ContentMode.Derived, content.ContentMode);
-        Assert.Equal(new RoleId("Developer"), content.RoleId);
+        Assert.Equal(new AudienceId("Developer"), content.AudienceId);
     }
 
     [Fact]

@@ -13,7 +13,7 @@ public sealed class SearchCursorTests
             new SnapshotId(42),
             123L,
             "search phrase",
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             1,
             10,
             new NodeId(Guid.Parse("11111111-2222-3333-4444-555555555555")));
@@ -26,7 +26,7 @@ public sealed class SearchCursorTests
         Assert.Equal(cursor.SnapshotId, decoded.SnapshotId);
         Assert.Equal(cursor.ChangeVersion, decoded.ChangeVersion);
         Assert.Equal(cursor.QueryText, decoded.QueryText);
-        Assert.Equal(cursor.RoleId, decoded.RoleId);
+        Assert.Equal(cursor.AudienceId, decoded.AudienceId);
         Assert.Equal(cursor.LastRank, decoded.LastRank);
         Assert.Equal(cursor.LastSortOrder, decoded.LastSortOrder);
         Assert.Equal(cursor.LastNodeId, decoded.LastNodeId);
@@ -49,7 +49,7 @@ public sealed class SearchCursorTests
 
         Assert.NotNull(decoded);
         Assert.Null(decoded.ChangeVersion);
-        Assert.Null(decoded.RoleId);
+        Assert.Null(decoded.AudienceId);
         Assert.Equal(cursor.SnapshotId, decoded.SnapshotId);
         Assert.Equal(cursor.QueryText, decoded.QueryText);
         Assert.Equal(cursor.LastRank, decoded.LastRank);

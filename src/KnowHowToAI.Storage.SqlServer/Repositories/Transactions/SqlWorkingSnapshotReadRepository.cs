@@ -2,7 +2,7 @@ using Dapper;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Transactions;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
@@ -131,7 +131,7 @@ internal sealed class SqlWorkingSnapshotReadRepository : SqlRepository, IWorking
                 transaction,
                 guardRow.ChangeVersion,
                 entities.Nodes,
-                entities.Roles,
+                entities.Audiences,
                 entities.Resolutions,
                 entities.Contents,
                 entities.Dependencies));
@@ -145,8 +145,8 @@ internal sealed class SqlWorkingSnapshotReadRepository : SqlRepository, IWorking
 
     private async Task<(
         IReadOnlyList<Node> Nodes,
-        IReadOnlyList<Role> Roles,
-        IReadOnlyList<RoleResolution> Resolutions,
+        IReadOnlyList<Audience> Audiences,
+        IReadOnlyList<AudienceResolution> Resolutions,
         IReadOnlyList<NodeContent> Contents,
         IReadOnlyList<ContentDependency> Dependencies)> LoadWorkingSnapshotEntitiesAsync(
         SqlConnection connection,

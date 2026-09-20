@@ -9,7 +9,7 @@ public sealed class NavigationCursorTests
     private static readonly SnapshotId SnapshotId = new(42);
     private static readonly NodeId ParentNodeId = new(Guid.Parse("a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"));
     private static readonly NodeId LastNodeId = new(Guid.Parse("b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e"));
-    private static readonly RoleId RoleId = new("Developer");
+    private static readonly AudienceId AudienceId = new("Developer");
 
     [Fact]
     public void Encode_And_TryDecode_Roundtrip_PreservesAllFields()
@@ -18,7 +18,7 @@ public sealed class NavigationCursorTests
             SnapshotId,
             ChangeVersion: 7,
             ParentNodeId,
-            RoleId,
+            AudienceId,
             IncludeDeleted: true,
             LastNodeId,
             LastSortOrder: 15);
@@ -31,7 +31,7 @@ public sealed class NavigationCursorTests
         Assert.Equal(cursor.SnapshotId, decoded.SnapshotId);
         Assert.Equal(cursor.ChangeVersion, decoded.ChangeVersion);
         Assert.Equal(cursor.ParentNodeId, decoded.ParentNodeId);
-        Assert.Equal(cursor.RoleId, decoded.RoleId);
+        Assert.Equal(cursor.AudienceId, decoded.AudienceId);
         Assert.Equal(cursor.IncludeDeleted, decoded.IncludeDeleted);
         Assert.Equal(cursor.LastNodeId, decoded.LastNodeId);
         Assert.Equal(cursor.LastSortOrder, decoded.LastSortOrder);
@@ -44,7 +44,7 @@ public sealed class NavigationCursorTests
             SnapshotId,
             ChangeVersion: null,
             ParentNodeId: null,
-            RoleId,
+            AudienceId,
             IncludeDeleted: false,
             LastNodeId,
             LastSortOrder: 0);
@@ -56,7 +56,7 @@ public sealed class NavigationCursorTests
         Assert.Null(decoded.ChangeVersion);
         Assert.Null(decoded.ParentNodeId);
         Assert.Equal(cursor.SnapshotId, decoded.SnapshotId);
-        Assert.Equal(cursor.RoleId, decoded.RoleId);
+        Assert.Equal(cursor.AudienceId, decoded.AudienceId);
         Assert.False(decoded.IncludeDeleted);
     }
 
@@ -80,7 +80,7 @@ public sealed class NavigationCursorTests
             SnapshotId,
             ChangeVersion: null,
             ParentNodeId: null,
-            RoleId,
+            AudienceId,
             IncludeDeleted: false,
             new NodeId(Guid.Empty),
             LastSortOrder: 0).Encode();

@@ -6,14 +6,14 @@ namespace KnowHowToAI.Core.Application.Retrieval.Search;
 
 /// <summary>
 /// Opaker, URL-sicherer Keyset-Cursor für <see cref="SearchService.SearchAsync"/>.
-/// Bindet die Fortsetzungsposition an SnapshotId, Suchtext, RoleId und bei
+/// Bindet die Fortsetzungsposition an SnapshotId, Suchtext, AudienceId und bei
 /// Working-Snapshot-Reads an die ChangeVersion zur Erkennung veralteter Resultsets.
 /// </summary>
 public sealed record SearchCursor(
     SnapshotId SnapshotId,
     long? ChangeVersion,
     string QueryText,
-    RoleId? RoleId,
+    AudienceId? AudienceId,
     int LastRank,
     int LastSortOrder,
     NodeId LastNodeId,
@@ -26,7 +26,7 @@ public sealed record SearchCursor(
             SnapshotId.Value,
             ChangeVersion,
             QueryText,
-            RoleId?.Value,
+            AudienceId?.Value,
             LastRank,
             LastSortOrder,
             LastNodeId.Value,
@@ -57,7 +57,7 @@ public sealed record SearchCursor(
                 new SnapshotId(validDto.SnapshotId),
                 validDto.ChangeVersion,
                 validDto.QueryText,
-                validDto.RoleId is not null ? new RoleId(validDto.RoleId) : null,
+                validDto.AudienceId is not null ? new AudienceId(validDto.AudienceId) : null,
                 validDto.LastRank,
                 validDto.LastSortOrder,
                 new NodeId(validDto.LastNodeId),
@@ -74,7 +74,7 @@ public sealed record SearchCursor(
         && dto.SnapshotId > 0
         && dto.ChangeVersion is null or >= 0
         && !string.IsNullOrWhiteSpace(dto.QueryText)
-        && (dto.RoleId is null || !string.IsNullOrWhiteSpace(dto.RoleId))
+        && (dto.AudienceId is null || !string.IsNullOrWhiteSpace(dto.AudienceId))
         && dto.LastRank is >= 1 and <= 3
         && dto.LastSortOrder >= 0
         && dto.LastNodeId != Guid.Empty;
@@ -83,7 +83,7 @@ public sealed record SearchCursor(
         long SnapshotId,
         long? ChangeVersion,
         string QueryText,
-        string? RoleId,
+        string? AudienceId,
         int LastRank,
         int LastSortOrder,
         Guid LastNodeId,

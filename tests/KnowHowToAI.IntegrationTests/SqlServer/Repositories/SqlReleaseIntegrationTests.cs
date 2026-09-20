@@ -208,7 +208,7 @@ public sealed class SqlReleaseIntegrationTests
         var oldRev = Guid.NewGuid();
 
         await conn.ExecuteAsync("""
-            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, RoleId, Name, Description, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, AudienceId, Name, Description, IsDeleted)
             VALUES (@snap, 'enduser', 'EndUser', 'End user role', 0);
 
             INSERT INTO dbo.KnowHowToAI_RoleResolution (SnapshotId, RequestedRoleId, Priority, CandidateRoleId)
@@ -218,11 +218,11 @@ public sealed class SqlReleaseIntegrationTests
             VALUES (@snap, @nodeId, NULL, 'Node For Stale Test', NULL, 100, 0);
 
             -- Default content with current source revision
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES (@snap, @nodeId, N'Default', @sourceRev, 'Independent', 'Source content text', 0);
 
             -- EndUser derived content with dependency on OLD revision
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES (@snap, @nodeId, 'enduser', NEWID(), 'Derived', 'Derived content text', 0);
 
             INSERT INTO dbo.KnowHowToAI_ContentDependency (SnapshotId, TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId)

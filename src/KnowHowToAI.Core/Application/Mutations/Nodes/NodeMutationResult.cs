@@ -9,4 +9,4 @@ public sealed record NodeMutationResult(
     SnapshotId SnapshotId,
     long ChangeVersion,
     IReadOnlyList<NodeId> AffectedNodeIds,
-    bool AppliesToAllRoles);
+    bool AppliesToAllAudiences);

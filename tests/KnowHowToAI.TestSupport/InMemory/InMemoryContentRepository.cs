@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Content;
 namespace KnowHowToAI.TestSupport;
 
 /// <summary>
-/// In-Memory-<see cref="IContentRepository"/>: filtert die Rollen-Contents des
+/// In-Memory-<see cref="IContentRepository"/>: filtert die Zielgruppen-Contents des
 /// gemeinsamen <see cref="InMemoryKnowledgeStore"/> nach SnapshotId.
 /// </summary>
 public sealed class InMemoryContentRepository(InMemoryKnowledgeStore store) : IContentRepository

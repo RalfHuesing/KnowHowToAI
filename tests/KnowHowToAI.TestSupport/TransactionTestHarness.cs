@@ -20,7 +20,7 @@ public sealed class TransactionTestHarness
     private readonly InMemorySnapshotRepository _snapshotRepo;
     private readonly InMemoryHierarchyRepository _hierarchyRepo;
     private readonly InMemoryContentRepository _contentRepo;
-    private readonly InMemoryRoleRepository _roleRepo;
+    private readonly InMemoryAudienceRepository _audienceRepo;
     private readonly InMemoryDependencyRepository _dependencyRepo;
     private readonly InMemoryWorkingSnapshotReadRepository _workingSnapshotRepo;
     private readonly InMemoryWorkingSnapshotValidationDataRepository _validationDataRepo = new();
@@ -39,7 +39,7 @@ public sealed class TransactionTestHarness
         _snapshotRepo = new InMemorySnapshotRepository(Store);
         _hierarchyRepo = new InMemoryHierarchyRepository(Store);
         _contentRepo = new InMemoryContentRepository(Store);
-        _roleRepo = new InMemoryRoleRepository(Store);
+        _audienceRepo = new InMemoryAudienceRepository(Store);
         _dependencyRepo = new InMemoryDependencyRepository(Store);
         _workingSnapshotRepo = new InMemoryWorkingSnapshotReadRepository(Store);
     }
@@ -66,7 +66,7 @@ public sealed class TransactionTestHarness
                 _transactionRepo,
                 _hierarchyRepo,
                 _contentRepo,
-                _roleRepo,
+                _audienceRepo,
                 _dependencyRepo,
                 _workingSnapshotRepo),
             retrievalPolicy ?? new RetrievalPolicy

@@ -13,6 +13,6 @@ public sealed record SnapshotReadRepositories(
     ITransactionRepository Transactions,
     IHierarchyRepository Hierarchy,
     IContentRepository Contents,
-    IRoleRepository Roles,
+    IAudienceRepository Audiences,
     IDependencyRepository Dependencies,
     IWorkingSnapshotReadRepository? WorkingSnapshots = null);

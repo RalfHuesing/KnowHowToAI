@@ -1,10 +1,10 @@
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Content;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Nodes;
@@ -52,13 +52,13 @@ internal static class McpMutationMapper
             : McpToolEnvelope<McpNodeMutationData>.Failure(content.Error!, warnings);
     }
 
-    public static McpToolEnvelope<McpRoleData> ToRoleMutationEnvelope(Result<RoleMutationResult> result) =>
+    public static McpToolEnvelope<McpRoleData> ToRoleMutationEnvelope(Result<AudienceMutationResult> result) =>
         result.IsSuccess
             ? McpToolEnvelope<McpRoleData>.Success(ToRoleData(result.Value!))
             : McpToolEnvelope<McpRoleData>.Failure(result.Error!, MapWarnings(result));
 
     public static McpToolEnvelope<McpRoleResolutionData> ToRoleResolutionMutationEnvelope(
-        Result<RoleResolutionMutationResult> result)
+        Result<AudienceResolutionMutationResult> result)
     {
         var warnings = MapWarnings(result);
         return result.IsSuccess
@@ -113,7 +113,7 @@ internal static class McpMutationMapper
         if (string.IsNullOrWhiteSpace(source.RoleId))
         {
             return Result<ContentDependencySource>.Failure(CreateInvalidSourceError(
-                DependencyErrorCodes.SourceRoleIdDetail, source.RoleId ?? string.Empty));
+                DependencyErrorCodes.SourceAudienceIdDetail, source.RoleId ?? string.Empty));
         }
 
         if (!Guid.TryParseExact(source.NodeId, "D", out var sourceNodeId))
@@ -130,7 +130,7 @@ internal static class McpMutationMapper
 
         return Result<ContentDependencySource>.Success(new ContentDependencySource(
             new NodeId(sourceNodeId),
-            new RoleId(source.RoleId),
+            new AudienceId(source.RoleId),
             new ContentRevisionId(revisionId)));
     }
 
@@ -154,31 +154,31 @@ internal static class McpMutationMapper
         content.SnapshotId.ToString(),
         content.ChangeVersion,
         node.AffectedNodeIds.Select(static nodeId => nodeId.ToString()).ToArray(),
-        content.Content.RoleId.ToString(),
+        content.Content.AudienceId.ToString(),
         content.Content.ContentRevisionId.ToString(),
         content.Content.ContentMode.ToString(),
         content.Freshness.ToString());
 
     private static McpContentMutationData ToData(ContentMutationUseCaseResult result) => new(
         result.Content.NodeId.ToString(),
-        result.Content.RoleId.ToString(),
+        result.Content.AudienceId.ToString(),
         result.Content.ContentRevisionId.ToString(),
         result.Content.ContentMode.ToString(),
         result.Freshness.ToString(),
         result.SnapshotId.ToString(),
         result.ChangeVersion);
 
-    private static McpRoleData ToRoleData(RoleMutationResult result) => new(
-        result.Role.RoleId.ToString(),
-        result.Role.Name,
-        result.Role.Description,
+    private static McpRoleData ToRoleData(AudienceMutationResult result) => new(
+        result.Audience.AudienceId.ToString(),
+        result.Audience.Name,
+        result.Audience.Description,
         result.SnapshotId.ToString(),
         result.ChangeVersion);
 
-    private static McpRoleResolutionData ToResolutionData(RoleResolutionMutationResult result) => new(
-        result.RequestedRoleId.ToString(),
+    private static McpRoleResolutionData ToResolutionData(AudienceResolutionMutationResult result) => new(
+        result.RequestedAudienceId.ToString(),
         result.Resolutions.Select(static resolution => new McpRoleResolutionItemData(
-            resolution.CandidateRoleId.ToString(),
+            resolution.CandidateAudienceId.ToString(),
             resolution.Priority)).ToArray(),
         result.SnapshotId.ToString(),
         result.ChangeVersion);

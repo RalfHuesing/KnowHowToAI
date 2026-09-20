@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Navigation;
@@ -31,8 +31,8 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeReadParityTests : BunitContext
 {
     private static readonly SnapshotId TestSnapshotId = new(100);
-    private static readonly RoleId RoleDeveloper = new("Developer");
-    private static readonly RoleId RoleDefault = new("Default");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleDefault = new("Default");
     private static readonly NodeId RootId = new(Guid.Parse("10000000-0000-0000-0000-000000000001"));
     private static readonly NodeId ChildId = new(Guid.Parse("10000000-0000-0000-0000-000000000002"));
 
@@ -157,8 +157,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
     {
         var emptyRoot = new NodeWithContent(
             Node: null,
-            RequestedRoleId: RoleDeveloper,
-            ResolvedRoleId: null,
+            RequestedAudienceId: RoleDeveloper,
+            ResolvedAudienceId: null,
             Availability: Availability.None,
             FallbackUsed: false,
             Content: null,
@@ -193,8 +193,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         var nodeWithContent = new NodeWithContent(
             node,
-            RequestedRoleId: RoleDeveloper,
-            ResolvedRoleId: RoleDefault,
+            RequestedAudienceId: RoleDeveloper,
+            ResolvedAudienceId: RoleDefault,
             Availability: Availability.Fallback,
             FallbackUsed: true,
             Content: fallbackContent,
@@ -296,8 +296,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var node = new Node(TestSnapshotId, RootId, null, "Root", "Desc", 0, false);
         var nodeWithContent = new NodeWithContent(
             node,
-            RequestedRoleId: RoleDeveloper,
-            ResolvedRoleId: null,
+            RequestedAudienceId: RoleDeveloper,
+            ResolvedAudienceId: null,
             Availability: Availability.None,
             FallbackUsed: false,
             Content: null,

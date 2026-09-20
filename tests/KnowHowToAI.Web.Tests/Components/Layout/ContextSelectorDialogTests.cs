@@ -2,7 +2,7 @@ using Bunit;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.State;
@@ -195,8 +195,8 @@ public sealed class ContextSelectorDialogTests : BunitContext
     {
         for (var index = 0; index < 101; index++)
         {
-            var id = new RoleId($"Role-{index:D3}");
-            _harness.AddRole(new Role(DefaultSnapshotId, id, id.Value, null, false));
+            var id = new AudienceId($"Role-{index:D3}");
+            _harness.AddAudience(new Audience(DefaultSnapshotId, id, id.Value, null, false));
         }
 
         var catalog = new ContextSelectionRoleCatalog(_navigationService);

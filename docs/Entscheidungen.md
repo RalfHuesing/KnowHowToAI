@@ -73,7 +73,7 @@ Diff-Paging) stehen mit ihren Begründungen in [Retrieval](Retrieval.md).
 Folgendes ist aktuell nicht implementiert:
 
 - REST-API
-- grafische Administration / Rollen-Administrationsoberfläche
+- grafische Administration / Zielgruppen-Administrationsoberfläche
 - Benutzerverwaltung, Berechtigungs-/ACL-System, Mandantenmodell innerhalb einer
   Instanz
 - rollenspezifische Hierarchien oder Präsentations-Views
@@ -108,4 +108,4 @@ nicht unnötig verhindert werden:
 - **Release Policies**: automatisierte Regeln wie „EndUser-Release darf keinen
   stale Derived Content enthalten".
 - **Security**: separates Modell für Authentifizierung, Autorisierung,
-  Mandantenfähigkeit und Benutzerrechte; Content-Rollen bleiben davon getrennt.
+  Mandantenfähigkeit und Benutzerrechte; Content-Zielgruppen bleiben davon getrennt.

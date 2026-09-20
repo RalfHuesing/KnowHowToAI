@@ -66,7 +66,7 @@ public static class DashboardMapper
         ArgumentNullException.ThrowIfNull(quality);
 
         var staleContents = quality.StaleContents
-            .Select(s => new StaleContentItemViewModel(s.NodeId.Value, s.RoleId.Value, s.ContentRevisionId.Value))
+            .Select(s => new StaleContentItemViewModel(s.NodeId.Value, s.AudienceId.Value, s.ContentRevisionId.Value))
             .ToArray();
 
         var warnings = quality.Warnings

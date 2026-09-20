@@ -5,7 +5,7 @@ namespace KnowHowToAI.Core.Domain.Content;
 public sealed record NodeContent(
     SnapshotId SnapshotId,
     NodeId NodeId,
-    RoleId RoleId,
+    AudienceId AudienceId,
     ContentRevisionId ContentRevisionId,
     ContentMode ContentMode,
     string ContentMd,

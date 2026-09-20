@@ -3,14 +3,14 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.TestSupport;
 
 /// <summary>
 /// Geteiltes In-Memory-Modell des versionierten Wissensstands: hält Snapshots,
-/// Knowledge-Transactions, Hierarchie, Rollen, Contents und Dependencies als
+/// Knowledge-Transactions, Hierarchie, Zielgruppen, Contents und Dependencies als
 /// veränderliche Listen, auf die alle In-Memory-Port-Fakes desselben Stores lesend
 /// zugreifen. Die Filterung nach SnapshotId erfolgt in den Fakes, nicht im Store.
 /// </summary>
@@ -25,13 +25,13 @@ public sealed class InMemoryKnowledgeStore
     /// <summary>Node-Hierarchie über alle Snapshots.</summary>
     public List<Node> Nodes { get; } = [];
 
-    /// <summary>Rollen über alle Snapshots.</summary>
-    public List<Role> Roles { get; } = [];
+    /// <summary>Zielgruppen über alle Snapshots.</summary>
+    public List<Audience> Audiences { get; } = [];
 
-    /// <summary>Rollen-Auflösungsreihenfolgen über alle Snapshots.</summary>
-    public List<RoleResolution> Resolutions { get; } = [];
+    /// <summary>Zielgruppen-Auflösungsreihenfolgen über alle Snapshots.</summary>
+    public List<AudienceResolution> Resolutions { get; } = [];
 
-    /// <summary>Rollen-Contents über alle Snapshots.</summary>
+    /// <summary>Zielgruppen-Contents über alle Snapshots.</summary>
     public List<NodeContent> Contents { get; } = [];
 
     /// <summary>Gespeicherte Content-Provenienz über alle Snapshots.</summary>

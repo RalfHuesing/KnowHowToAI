@@ -1,13 +1,13 @@
 namespace KnowHowToAI.Core.Application.Navigation;
 
 /// <summary>
-/// Abfrage-Parameter für <see cref="NavigationService.ListRolesAsync"/>.
+/// Abfrage-Parameter für <see cref="NavigationService.ListAudiencesAsync"/>.
 /// Kapselt Read-Kontext und optionale Paging-Parameter.
 /// </summary>
-public sealed record ListRolesQuery(
+public sealed record ListAudiencesQuery(
     ReadContext Context,
     int? Limit = null,
     string? Cursor = null)
 {
-    public ListRolesQuery() : this(new ReadContext()) { }
+    public ListAudiencesQuery() : this(new ReadContext()) { }
 }

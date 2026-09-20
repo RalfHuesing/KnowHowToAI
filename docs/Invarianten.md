@@ -18,7 +18,7 @@ Verletzungen gemeldet werden, stehen im [Katalog der MCP-API](McpApi.md).
    Änderungen hinweg identisch bleibt.
 7. Pro Snapshot existiert höchstens ein aktiver persistierter Root-Node; der
    initiale leere Snapshot besitzt keinen.
-8. Die Hierarchie ist global für alle Rollen.
+8. Die Hierarchie ist global für alle Zielgruppen.
 9. Node-Titel werden nicht als Überschrift oder alleinstehender Ersatztitel in
    `ContentMd` gespeichert; normale Erwähnungen im Fließtext sind erlaubt.
 10. Persistierter Content darf keine Markdown- oder HTML-Überschriften enthalten.
@@ -26,15 +26,15 @@ Verletzungen gemeldet werden, stehen im [Katalog der MCP-API](McpApi.md).
     (Export, Darstellung).
 12. Heading-Validierung erfolgt mit einem echten Markdown-Parser, nie per
     String-Matching auf `#`.
-13. Rollen sind frei definierbar und werden nach dem initialen Seed transaktional
+13. Zielgruppen sind frei definierbar und werden nach dem initialen Seed transaktional
     über die Service-/MCP-Grenzen gepflegt; direkte SQL-Änderungen an committed
     Snapshots sind unzulässig.
-14. Role Resolution Orders sind frei konfigurierbar, deterministisch und nicht
-    rekursiv; eine Rolle kommt innerhalb einer Order nicht mehrfach vor.
-15. Fehlender Rollen-Content darf per Fallback aufgelöst werden.
+14. Audience Resolution Orders sind frei konfigurierbar, deterministisch und nicht
+    rekursiv; eine Zielgruppe kommt innerhalb einer Order nicht mehrfach vor.
+15. Fehlender Zielgruppen-Content darf per Fallback aufgelöst werden.
 16. `requestedRole` und `resolvedRole` werden immer transparent zurückgegeben.
-17. Identischer Content wird nicht unnötig pro Rolle dupliziert.
-18. Eigener Rollen-Content ist `Independent` oder `Derived`.
+17. Identischer Content wird nicht unnötig pro Zielgruppe dupliziert.
+18. Eigener Zielgruppen-Content ist `Independent` oder `Derived`.
 19. Derived Content speichert explizite Source-Revisions.
 20. Änderungen an Source-Revisions oder stale Derived Sources markieren abhängigen
     Content transitiv als stale.
@@ -54,8 +54,8 @@ Verletzungen gemeldet werden, stehen im [Katalog der MCP-API](McpApi.md).
 29. Konkurrierende Commits dürfen keine Änderungen überschreiben
     (`SnapshotConflict`).
 30. Es gibt kein automatisches Merge oder Rebase.
-31. Node-Löschung (global, alle Rollen) und Rollen-Content-Löschung (nur der
-    explizite Content einer Rolle) sind unterschiedliche Operationen.
+31. Node-Löschung (global, alle Zielgruppen) und Zielgruppen-Content-Löschung (nur der
+    explizite Content einer Zielgruppe) sind unterschiedliche Operationen.
 32. Streamable HTTP unter `/mcp` ist der einzige MCP-Transport; die
     Geschäftslogik ist nicht an einen Transport gebunden.
 

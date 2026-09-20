@@ -70,7 +70,7 @@ public sealed class McpTransactionMapperTests
             [new DomainError(HeadingNotAllowed, "Überschrift ist unzulässig.", new Dictionary<string, string>
             {
                 [TransactionValidationCodes.NodeIdDetail] = SampleTransactionId.ToString(),
-                [TransactionValidationCodes.RoleIdDetail] = "Developer"
+                ["roleId"] = "Developer"
             })],
             [new DomainWarning("NodeTooLarge", "Content übersteigt die Warnschwelle.", new Dictionary<string, string>
             {
@@ -79,7 +79,7 @@ public sealed class McpTransactionMapperTests
                 ["thresholdBytes"] = "4096"
             })],
             [new StaleContent(new NodeId(Guid.Parse("1f7c6a1e-4c1e-4c1e-9f31-5d3e2a8d7b90")),
-                new RoleId("Developer"),
+                new AudienceId("Developer"),
                 new ContentRevisionId(Guid.Parse("2f7c6a1e-4c1e-4c1e-9f31-5d3e2a8d7b90")))],
             [new RefactoringCandidate(new NodeId(Guid.Parse("3f7c6a1e-4c1e-4c1e-9f31-5d3e2a8d7b90")), ["NodeTooLarge"])]);
 
@@ -88,7 +88,7 @@ public sealed class McpTransactionMapperTests
         Assert.False(data.IsValid);
         var error = Assert.Single(data.Errors);
         Assert.Equal(HeadingNotAllowed, error.Code);
-        Assert.Equal("Developer", error.Details![TransactionValidationCodes.RoleIdDetail]);
+        Assert.Equal("Developer", error.Details!["roleId"]);
         var warning = Assert.Single(data.Warnings);
         Assert.Equal("NodeTooLarge", warning.Code);
         var stale = Assert.Single(data.StaleContents);

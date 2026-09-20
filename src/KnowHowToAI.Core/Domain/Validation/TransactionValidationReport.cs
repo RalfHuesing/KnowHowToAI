@@ -14,7 +14,7 @@ public sealed record TransactionValidationReport(
 }
 
 /// <summary>Ein expliziter abgeleiteter Content, dessen Provenienz nicht mehr aktuell ist.</summary>
-public sealed record StaleContent(NodeId NodeId, RoleId RoleId, ContentRevisionId ContentRevisionId);
+public sealed record StaleContent(NodeId NodeId, AudienceId AudienceId, ContentRevisionId ContentRevisionId);
 
 /// <summary>Ein Node, dessen Qualitätsbefunde eine bewusste, transaktionale Umstrukturierung nahelegen.</summary>
 public sealed record RefactoringCandidate(NodeId NodeId, IReadOnlyList<string> ReasonCodes);

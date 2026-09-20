@@ -273,15 +273,15 @@ public sealed class SqlSchemaMigratorTests
                 ON roleInfo.SnapshotId = snapshot.SnapshotId
             INNER JOIN dbo.KnowHowToAI_RoleResolution AS resolution
                 ON resolution.SnapshotId = snapshot.SnapshotId
-                AND resolution.RequestedRoleId = roleInfo.RoleId
+                AND resolution.RequestedAudienceId = roleInfo.AudienceId
             WHERE systemState.Id = 1
               AND snapshot.State = 'Committed'
               AND snapshot.BaseSnapshotId IS NULL
               AND snapshot.CommittedAtUtc IS NOT NULL
-              AND roleInfo.RoleId = N'Default'
+              AND roleInfo.AudienceId = N'Default'
               AND roleInfo.Name = N'Default'
               AND roleInfo.IsDeleted = 0
-              AND resolution.CandidateRoleId = N'Default'
+              AND resolution.CandidateAudienceId = N'Default'
               AND resolution.Priority = 1;
             """;
         var matchingSeedStates = (int)(await cmd.ExecuteScalarAsync())!;

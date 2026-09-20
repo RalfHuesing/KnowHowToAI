@@ -1,10 +1,10 @@
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Tools.Mutations;
@@ -13,7 +13,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Handler-Vertragstests der Rollen-Tools (create_role, update_role, delete_role,
-/// set_role_resolution): dünne Delegation an den RoleMutationService mit
+/// set_role_resolution): dünne Delegation an den AudienceMutationService mit
 /// protokollkonformer Error-Struktur und vollständiger Resolution-Order-Antwort.
 /// Keine SQL- oder Server-Infrastruktur.
 /// </summary>
@@ -22,8 +22,8 @@ public sealed class McpRoleMutationToolsTests
 {
     private static readonly TransactionId TransactionId = new(Guid.Parse("0e3af35a-0e85-4f24-8ae9-7dd2b3d124b3"));
     private static readonly SnapshotId SnapshotId = new(42);
-    private static readonly RoleId RoleDeveloper = new("Developer");
-    private static readonly RoleId RoleConsultant = new("Consultant");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleConsultant = new("Consultant");
     private static readonly NodeId NodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000001"));
     private static readonly ContentRevisionId RevisionId =
         new(Guid.Parse("b4e0e04a-2dce-4b5e-8b34-4bd2b9f0e020"));
@@ -60,7 +60,7 @@ public sealed class McpRoleMutationToolsTests
         Assert.Equal(TransactionValidationErrorCodes.ChangeVersionConflict, stale.Code);
         Assert.Equal("0", stale.Details![TransactionValidationErrorCodes.ExpectedChangeVersionDetail]);
         Assert.Equal("1", stale.Details[TransactionValidationErrorCodes.ActualChangeVersionDetail]);
-        Assert.Equal("Aktuell", repository.State.Roles.Single().Name);
+        Assert.Equal("Aktuell", repository.State.Audiences.Single().Name);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.CreateRole(TransactionId.ToString(), "   ", 0);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleMutationErrorCodes.RoleNameRequired, envelope.Code);
+        Assert.Equal("RoleNameRequired", envelope.Code);
         Assert.Null(envelope.Data);
     }
 
@@ -83,8 +83,8 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.CreateRole(TransactionId.ToString(), "Developer", 0);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleMutationErrorCodes.RoleInUse, envelope.Code);
-        Assert.Equal("Developer", envelope.Details![RoleMutationErrorCodes.RoleIdDetail]);
+        Assert.Equal("RoleInUse", envelope.Code);
+        Assert.Equal("Developer", envelope.Details!["roleId"]);
     }
 
     [Fact]
@@ -109,8 +109,8 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.UpdateRole(TransactionId.ToString(), "Fehlend", "Name", 0);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleMutationErrorCodes.RoleNotFound, envelope.Code);
-        Assert.Equal("Fehlend", envelope.Details![RoleMutationErrorCodes.RoleIdDetail]);
+        Assert.Equal("RoleNotFound", envelope.Code);
+        Assert.Equal("Fehlend", envelope.Details!["roleId"]);
     }
 
     [Fact]
@@ -121,8 +121,8 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.DeleteRole(TransactionId.ToString(), RoleDeveloper.Value, 0);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleMutationErrorCodes.RoleInUse, envelope.Code);
-        Assert.Equal("1", envelope.Details![RoleMutationErrorCodes.BlockingContentCountDetail]);
+        Assert.Equal("RoleInUse", envelope.Code);
+        Assert.Equal("1", envelope.Details![AudienceMutationErrorCodes.BlockingContentCountDetail]);
     }
 
     [Fact]
@@ -134,8 +134,8 @@ public sealed class McpRoleMutationToolsTests
         var envelope = await tools.DeleteRole(TransactionId.ToString(), RoleDeveloper.Value, 0);
 
         Assert.True(envelope.IsSuccess);
-        Assert.True(repository.State.Roles.Single(role => role.RoleId == RoleDeveloper).IsDeleted);
-        Assert.False(repository.State.Roles.Single(role => role.RoleId == RoleConsultant).IsDeleted);
+        Assert.True(repository.State.Audiences.Single(role => role.AudienceId == RoleDeveloper).IsDeleted);
+        Assert.False(repository.State.Audiences.Single(role => role.AudienceId == RoleConsultant).IsDeleted);
     }
 
     [Fact]
@@ -172,8 +172,8 @@ public sealed class McpRoleMutationToolsTests
             0);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.DuplicateCandidateRole, envelope.Code);
-        Assert.Equal(RoleConsultant.Value, envelope.Details![RoleResolutionErrorCodes.CandidateRoleIdDetail]);
+        Assert.Equal("DuplicateCandidateRole", envelope.Code);
+        Assert.Equal(RoleConsultant.Value, envelope.Details!["candidateRoleId"]);
     }
 
     [Fact]
@@ -188,8 +188,8 @@ public sealed class McpRoleMutationToolsTests
             0);
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.CandidateRoleNotFound, envelope.Code);
-        Assert.Equal("Fehlend", envelope.Details![RoleResolutionErrorCodes.CandidateRoleIdDetail]);
+        Assert.Equal("CandidateRoleNotFound", envelope.Code);
+        Assert.Equal("Fehlend", envelope.Details!["candidateRoleId"]);
     }
 
     [Theory]
@@ -205,23 +205,23 @@ public sealed class McpRoleMutationToolsTests
         Assert.Equal("TransactionNotFound", envelope.Code);
     }
 
-    private static RoleMutationTools CreateTools(InMemoryRoleMutationRepository repository) =>
-        new(new RoleMutationService(repository));
+    private static RoleMutationTools CreateTools(InMemoryAudienceMutationRepository repository) =>
+        new(new AudienceMutationService(repository));
 
-    private static InMemoryRoleMutationRepository EmptyState() => new(new WorkingRoleMutationState(SnapshotId, [], [], [], []));
+    private static InMemoryAudienceMutationRepository EmptyState() => new(new WorkingAudienceMutationState(SnapshotId, [], [], [], []));
 
-    private static InMemoryRoleMutationRepository StateWithRoles(params RoleId[] roleIds) =>
-        new(new WorkingRoleMutationState(
+    private static InMemoryAudienceMutationRepository StateWithRoles(params AudienceId[] roleIds) =>
+        new(new WorkingAudienceMutationState(
         SnapshotId,
-        roleIds.Select(roleId => new Role(SnapshotId, roleId, roleId.Value, null, IsDeleted: false)).ToArray(),
+        roleIds.Select(roleId => new Audience(SnapshotId, roleId, roleId.Value, null, IsDeleted: false)).ToArray(),
         [],
         [],
         []));
 
-    private static InMemoryRoleMutationRepository StateWithRolesAndDeveloperContent() =>
-        new(new WorkingRoleMutationState(
+    private static InMemoryAudienceMutationRepository StateWithRolesAndDeveloperContent() =>
+        new(new WorkingAudienceMutationState(
         SnapshotId,
-        [new Role(SnapshotId, RoleDeveloper, RoleDeveloper.Value, null, IsDeleted: false)],
+        [new Audience(SnapshotId, RoleDeveloper, RoleDeveloper.Value, null, IsDeleted: false)],
         [],
         [new NodeContent(
             SnapshotId, NodeId, RoleDeveloper, RevisionId, ContentMode.Independent, "Inhalt", IsDeleted: false)],

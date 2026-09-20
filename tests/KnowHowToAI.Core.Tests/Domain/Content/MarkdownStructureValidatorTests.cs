@@ -90,7 +90,7 @@ public sealed class MarkdownStructureValidatorTests
         const string content = """
             ---
             nodeId: 42
-            role: Developer
+            audience: Developer
             ---
             Inhalt
             """;

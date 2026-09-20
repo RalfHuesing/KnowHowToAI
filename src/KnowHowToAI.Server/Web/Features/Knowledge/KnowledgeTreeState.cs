@@ -283,7 +283,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         {
             var result = await _navigationService.GetRootAsync(
                 context,
-                new RoleId(roleId),
+                new AudienceId(roleId),
                 cancellationToken).ConfigureAwait(false);
 
             if (generation != _contextGeneration)
@@ -356,7 +356,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
             var query = new ListChildrenQuery(
                 new NodeId(nodeId),
                 CurrentReadContext,
-                new RoleId(CurrentRoleId ?? string.Empty),
+                new AudienceId(CurrentRoleId ?? string.Empty),
                 Limit: PageLimit,
                 Cursor: cursor);
 

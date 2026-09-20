@@ -1,12 +1,12 @@
 using KnowHowToAI.Core.Domain.Common;
 
-namespace KnowHowToAI.Core.Domain.Roles;
+namespace KnowHowToAI.Core.Domain.Audiences;
 
 /// <summary>
 /// Ein expliziter Kandidat einer nicht rekursiven Rollenauflösungsreihenfolge.
 /// </summary>
-public sealed record RoleResolution(
+public sealed record AudienceResolution(
     SnapshotId SnapshotId,
-    RoleId RequestedRoleId,
-    RoleId CandidateRoleId,
+    AudienceId RequestedAudienceId,
+    AudienceId CandidateAudienceId,
     int Priority);

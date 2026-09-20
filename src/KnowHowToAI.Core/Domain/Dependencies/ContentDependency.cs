@@ -5,7 +5,7 @@ namespace KnowHowToAI.Core.Domain.Dependencies;
 public sealed record ContentDependency(
     SnapshotId SnapshotId,
     NodeId TargetNodeId,
-    RoleId TargetRoleId,
+    AudienceId TargetAudienceId,
     NodeId SourceNodeId,
-    RoleId SourceRoleId,
+    AudienceId SourceAudienceId,
     ContentRevisionId SourceContentRevisionId);

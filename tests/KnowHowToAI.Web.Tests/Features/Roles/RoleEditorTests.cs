@@ -1,8 +1,8 @@
 using Bunit;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Roles;
 using KnowHowToAI.TestSupport;
@@ -20,7 +20,7 @@ public sealed class RoleEditorTests : BunitContext
     public void CurrentContext_RendersRolesReadOnly()
     {
         var navigation = CreateNavigationService(out _);
-        AddEditorServices(navigation, new WorkingRoleMutationState(new SnapshotId(2), [], [], [], []));
+        AddEditorServices(navigation, new WorkingAudienceMutationState(new SnapshotId(2), [], [], [], []));
 
         var cut = Render<RoleEditor>(parameters => parameters
             .Add(component => component.ReadContext, new ReadContext())
@@ -34,17 +34,17 @@ public sealed class RoleEditorTests : BunitContext
     }
 
     [Fact]
-    public void WorkingTransaction_LoadsAllRolePages()
+    public void WorkingTransaction_LoadsAllAudiencePages()
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
         var transaction = CreateTransaction();
         harness.SetTransaction(transaction);
-        harness.ClearRoles(transaction.WorkingSnapshotId);
-        harness.AddRole(new Role(transaction.WorkingSnapshotId, new RoleId("R1"), "Role 1", null, false));
-        harness.AddRole(new Role(transaction.WorkingSnapshotId, new RoleId("R2"), "Role 2", null, false));
-        harness.AddRole(new Role(transaction.WorkingSnapshotId, new RoleId("R3"), "Role 3", null, false));
+        harness.ClearAudiences(transaction.WorkingSnapshotId);
+        harness.AddAudience(new Audience(transaction.WorkingSnapshotId, new AudienceId("R1"), "Role 1", null, false));
+        harness.AddAudience(new Audience(transaction.WorkingSnapshotId, new AudienceId("R2"), "Role 2", null, false));
+        harness.AddAudience(new Audience(transaction.WorkingSnapshotId, new AudienceId("R3"), "Role 3", null, false));
         var navigation = harness.CreateService(defaultPageSize: 1, maximumPageSize: 1);
-        AddEditorServices(navigation, new WorkingRoleMutationState(transaction.WorkingSnapshotId, [], [], [], []));
+        AddEditorServices(navigation, new WorkingAudienceMutationState(transaction.WorkingSnapshotId, [], [], [], []));
 
         var cut = Render<RoleEditor>(parameters => parameters
             .Add(component => component.ReadContext, new ReadContext(TransactionId: TransactionId))
@@ -62,9 +62,9 @@ public sealed class RoleEditorTests : BunitContext
     public void WorkingTransaction_CreateRole_ProjectsMutationAndNotifiesPage()
     {
         var navigation = CreateNavigationService(out var transaction);
-        var repository = CreateRoleRepository(transaction, new Role(transaction.WorkingSnapshotId, new RoleId("Developer"), "Developer", null, false));
+        var repository = CreateRoleRepository(transaction, new Audience(transaction.WorkingSnapshotId, new AudienceId("Developer"), "Developer", null, false));
         AddEditorServices(navigation, repository.State);
-        Services.AddSingleton(new RoleMutationService(repository));
+        Services.AddSingleton(new AudienceMutationService(repository));
         long? changedVersion = null;
 
         var cut = Render<RoleEditor>(parameters => parameters
@@ -79,17 +79,17 @@ public sealed class RoleEditorTests : BunitContext
         cut.WaitForAssertion(() => Assert.Contains("Consultant", cut.Markup));
         Assert.Equal(1, repository.ChangeVersion);
         Assert.Equal(1, changedVersion);
-        Assert.Contains(repository.State.Roles, role => role.RoleId == new RoleId("Consultant"));
+        Assert.Contains(repository.State.Audiences, role => role.AudienceId == new AudienceId("Consultant"));
     }
 
     [Fact]
     public void WorkingTransaction_RenameRole_ProjectsMutation()
     {
         var navigation = CreateNavigationService(out var transaction);
-        var developer = new Role(transaction.WorkingSnapshotId, new RoleId("Developer"), "Developer", null, false);
+        var developer = new Audience(transaction.WorkingSnapshotId, new AudienceId("Developer"), "Developer", null, false);
         var repository = CreateRoleRepository(transaction, developer);
         AddEditorServices(navigation, repository.State);
-        Services.AddSingleton(new RoleMutationService(repository));
+        Services.AddSingleton(new AudienceMutationService(repository));
 
         var cut = RenderEditor();
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='role-edit-Developer']")));
@@ -98,17 +98,17 @@ public sealed class RoleEditorTests : BunitContext
         cut.Find("[data-testid='role-save-Developer']").Click();
 
         cut.WaitForAssertion(() => Assert.Contains("Renamed", cut.Markup));
-        Assert.Equal("Renamed", repository.State.Roles.Single(role => role.RoleId == new RoleId("Developer")).Name);
+        Assert.Equal("Renamed", repository.State.Audiences.Single(role => role.AudienceId == new AudienceId("Developer")).Name);
     }
 
     [Fact]
     public void WorkingTransaction_DeleteRole_ProjectsMutation()
     {
         var navigation = CreateNavigationService(out var transaction);
-        var developer = new Role(transaction.WorkingSnapshotId, new RoleId("Developer"), "Developer", null, false);
+        var developer = new Audience(transaction.WorkingSnapshotId, new AudienceId("Developer"), "Developer", null, false);
         var repository = CreateRoleRepository(transaction, developer);
         AddEditorServices(navigation, repository.State);
-        Services.AddSingleton(new RoleMutationService(repository));
+        Services.AddSingleton(new AudienceMutationService(repository));
 
         var cut = RenderEditor();
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='role-delete-Developer']")));
@@ -116,16 +116,16 @@ public sealed class RoleEditorTests : BunitContext
         cut.Find("[data-testid='role-delete-confirm']").Click();
 
         cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-testid='role-item-Developer']")));
-        Assert.True(repository.State.Roles.Single(role => role.RoleId == new RoleId("Developer")).IsDeleted);
+        Assert.True(repository.State.Audiences.Single(role => role.AudienceId == new AudienceId("Developer")).IsDeleted);
     }
 
     [Fact]
     public async Task WorkingTransaction_StaleWrite_RendersStableServerErrorAndKeepsInput()
     {
         var navigation = CreateNavigationService(out var transaction);
-        var repository = CreateRoleRepository(transaction, new Role(transaction.WorkingSnapshotId, new RoleId("Developer"), "Developer", null, false));
-        var service = new RoleMutationService(repository);
-        _ = await service.CreateRoleAsync(TransactionId, "AlreadyChanged", null, 0);
+        var repository = CreateRoleRepository(transaction, new Audience(transaction.WorkingSnapshotId, new AudienceId("Developer"), "Developer", null, false));
+        var service = new AudienceMutationService(repository);
+        _ = await service.CreateAudienceAsync(TransactionId, "AlreadyChanged", null, 0);
         AddEditorServices(navigation, repository.State);
         Services.AddSingleton(service);
 
@@ -135,7 +135,7 @@ public sealed class RoleEditorTests : BunitContext
         cut.Find("[data-testid='role-create-submit']").Click();
 
         cut.WaitForAssertion(() => Assert.Contains("[ChangeVersionConflict]", cut.Markup, StringComparison.Ordinal));
-        Assert.DoesNotContain(repository.State.Roles, role => role.RoleId == new RoleId("StaleRole"));
+        Assert.DoesNotContain(repository.State.Audiences, role => role.AudienceId == new AudienceId("StaleRole"));
         Assert.Contains("StaleRole", cut.Markup, StringComparison.Ordinal);
     }
 
@@ -165,14 +165,14 @@ public sealed class RoleEditorTests : BunitContext
         "Web",
         null);
 
-    private static InMemoryRoleMutationRepository CreateRoleRepository(
+    private static InMemoryAudienceMutationRepository CreateRoleRepository(
         KnowledgeTransaction transaction,
-        Role role) =>
-        new(new WorkingRoleMutationState(transaction.WorkingSnapshotId, [role], [], [], []));
+        Audience role) =>
+        new(new WorkingAudienceMutationState(transaction.WorkingSnapshotId, [role], [], [], []));
 
-    private void AddEditorServices(NavigationService navigation, WorkingRoleMutationState state)
+    private void AddEditorServices(NavigationService navigation, WorkingAudienceMutationState state)
     {
         Services.AddSingleton(navigation);
-        Services.AddSingleton(new RoleMutationService(new InMemoryRoleMutationRepository(state)));
+        Services.AddSingleton(new AudienceMutationService(new InMemoryAudienceMutationRepository(state)));
     }
 }

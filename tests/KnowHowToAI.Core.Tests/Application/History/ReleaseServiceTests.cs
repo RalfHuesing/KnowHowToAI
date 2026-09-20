@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
@@ -179,8 +179,8 @@ public sealed class ReleaseServiceTests
 
         public InMemoryReleaseMutationRepository ReleaseRepo { get; } = new();
         public List<Node> Nodes => _store.Nodes;
-        public List<Role> Roles => _store.Roles;
-        public List<RoleResolution> Resolutions => _store.Resolutions;
+        public List<Audience> Audiences => _store.Audiences;
+        public List<AudienceResolution> Resolutions => _store.Resolutions;
         public List<NodeContent> Contents => _store.Contents;
         public List<ContentDependency> Dependencies => _store.Dependencies;
 
@@ -192,33 +192,33 @@ public sealed class ReleaseServiceTests
 
         public void SetupCleanSnapshot(SnapshotId snapshotId)
         {
-            var roleId = new RoleId("default");
-            Roles.Add(new Role(snapshotId, roleId, "Default", "Default role", false));
-            Resolutions.Add(new RoleResolution(snapshotId, roleId, roleId, 1));
+            var audienceId = new AudienceId("default");
+            Audiences.Add(new Audience(snapshotId, audienceId, "Default", "Default audience", false));
+            Resolutions.Add(new AudienceResolution(snapshotId, audienceId, audienceId, 1));
 
             var nodeId = new NodeId(Guid.Parse("11111111-1111-1111-1111-111111111111"));
             Nodes.Add(new Node(snapshotId, nodeId, null, "Root", "Root desc", 1, false));
-            Contents.Add(new NodeContent(snapshotId, nodeId, roleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Hello clean content", false));
+            Contents.Add(new NodeContent(snapshotId, nodeId, audienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Hello clean content", false));
         }
 
         public void SetupSnapshotWithStaleContent(SnapshotId snapshotId)
         {
             SetupCleanSnapshot(snapshotId);
 
-            var derivedRoleId = new RoleId("derived");
-            Roles.Add(new Role(snapshotId, derivedRoleId, "Derived", "Derived role", false));
-            Resolutions.Add(new RoleResolution(snapshotId, derivedRoleId, derivedRoleId, 1));
+            var derivedAudienceId = new AudienceId("derived");
+            Audiences.Add(new Audience(snapshotId, derivedAudienceId, "Derived", "Derived audience", false));
+            Resolutions.Add(new AudienceResolution(snapshotId, derivedAudienceId, derivedAudienceId, 1));
 
             var sourceRev = new ContentRevisionId(Guid.NewGuid());
             var olderRev = new ContentRevisionId(Guid.NewGuid());
             var nodeId = new NodeId(Guid.Parse("11111111-1111-1111-1111-111111111111"));
 
             Contents.Clear();
-            Contents.Add(new NodeContent(snapshotId, nodeId, new RoleId("default"), sourceRev, ContentMode.Independent, "Source content", false));
-            Contents.Add(new NodeContent(snapshotId, nodeId, derivedRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
+            Contents.Add(new NodeContent(snapshotId, nodeId, new AudienceId("default"), sourceRev, ContentMode.Independent, "Source content", false));
+            Contents.Add(new NodeContent(snapshotId, nodeId, derivedAudienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
 
             // Dependency points to olderRev which does not match current sourceRev -> StaleDerivedContent
-            Dependencies.Add(new ContentDependency(snapshotId, nodeId, derivedRoleId, nodeId, new RoleId("default"), olderRev));
+            Dependencies.Add(new ContentDependency(snapshotId, nodeId, derivedAudienceId, nodeId, new AudienceId("default"), olderRev));
         }
 
         public void SeedReleases(int count)
@@ -240,7 +240,7 @@ public sealed class ReleaseServiceTests
                 new InMemoryTransactionRepository(_store),
                 new InMemoryHierarchyRepository(_store),
                 new InMemoryContentRepository(_store),
-                new InMemoryRoleRepository(_store),
+                new InMemoryAudienceRepository(_store),
                 new InMemoryDependencyRepository(_store)),
             ReleaseRepo,
             new FixedClock(Now),

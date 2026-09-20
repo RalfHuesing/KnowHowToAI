@@ -4,6 +4,6 @@ namespace KnowHowToAI.Core.Domain.Validation;
 public static class TransactionValidationCodes
 {
     public const string NodeIdDetail = "nodeId";
-    public const string RoleIdDetail = "roleId";
+    public const string AudienceIdDetail = "audienceId";
     public const string ContentRevisionIdDetail = "contentRevisionId";
 }

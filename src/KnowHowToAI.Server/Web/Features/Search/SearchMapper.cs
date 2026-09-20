@@ -20,7 +20,7 @@ public static class SearchMapper
             hit.Snippet,
             hit.HitField,
             hit.Availability.ToString(),
-            hit.ResolvedRoleId?.Value,
+            hit.ResolvedAudienceId?.Value,
             hit.Freshness.ToString(),
             hit.SortOrder,
             [hit.Title],

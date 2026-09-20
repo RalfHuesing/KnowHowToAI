@@ -1,11 +1,11 @@
 using System.ComponentModel;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Content;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Nodes;
@@ -137,7 +137,7 @@ internal sealed class NodeMutationTools
     }
 
     private readonly record struct CombinedContentSpec(
-        RoleId Role, ContentMode ContentMode, string ContentMd, IReadOnlyList<ContentDependencySource> Sources);
+        AudienceId Role, ContentMode ContentMode, string ContentMd, IReadOnlyList<ContentDependencySource> Sources);
 
     /// <summary>
     /// Liefert die Content-Spezifikation des kombinierten create_node-Aufrufs oder null,
@@ -171,11 +171,11 @@ internal sealed class NodeMutationTools
         if (string.IsNullOrWhiteSpace(roleId))
         {
             return Result<CombinedContentSpec>.Failure(new DomainError(
-                RoleMutationErrorCodes.RoleIdRequired,
+                AudienceMutationErrorCodes.AudienceIdRequired,
                 "Bei gesetztem contentMd ist roleId erforderlich.",
                 new Dictionary<string, string>
                 {
-                    [RoleMutationErrorCodes.RoleIdDetail] = roleId ?? string.Empty
+                    [AudienceMutationErrorCodes.AudienceIdDetail] = roleId ?? string.Empty
                 }));
         }
 
@@ -190,7 +190,7 @@ internal sealed class NodeMutationTools
             return Result<CombinedContentSpec>.Failure(parsedSources.Error!);
 
         return Result<CombinedContentSpec>.Success(new CombinedContentSpec(
-            new RoleId(roleId),
+            new AudienceId(roleId),
             parsedContentMode.Value,
             contentMd,
             parsedSources.Value!));

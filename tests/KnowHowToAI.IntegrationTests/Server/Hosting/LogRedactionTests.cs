@@ -53,7 +53,7 @@ public sealed class LogRedactionTests
         var collected = CollectRenderedEvents();
         var logger = CreateEnrichingLogger(collected);
 
-        logger.Information("Transaktion {TransactionId} für Rolle {RoleId}", "tx-1", "role-7");
+        logger.Information("Transaktion {TransactionId} für Rolle {AudienceId}", "tx-1", "role-7");
 
         var rendered = collected.Events[0].Rendered;
         Assert.Contains("tx-1", rendered);

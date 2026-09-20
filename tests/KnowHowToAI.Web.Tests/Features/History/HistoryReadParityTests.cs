@@ -6,7 +6,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Mcp.Mapping;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
@@ -180,18 +180,18 @@ public sealed class HistoryReadParityTests : BunitContext
     public void CompareSnapshots_DiffContainsAllEntityKinds_UiAndMcpReflectSameChanges()
     {
         var nodeId = new NodeId(Guid.Parse("30000000-0000-0000-0000-000000000001"));
-        var roleDeveloper = new RoleId("Developer");
-        var roleAdmin = new RoleId("Admin");
+        var roleDeveloper = new AudienceId("Developer");
+        var roleAdmin = new AudienceId("Admin");
         var revBefore = new ContentRevisionId(Guid.Parse("40000000-0000-0000-0000-000000000001"));
         var revAfter = new ContentRevisionId(Guid.Parse("40000000-0000-0000-0000-000000000002"));
 
         var nodeBefore = new Node(BaseSnapshotId, nodeId, null, "Titel Alt", "Desc Alt", 1, false);
         var nodeAfter = new Node(TargetSnapshotId, nodeId, null, "Titel Neu", "Desc Neu", 1, false);
 
-        var roleAdded = new Role(TargetSnapshotId, roleAdmin, "Administrator", "Admin-Rolle", false);
+        var roleAdded = new Audience(TargetSnapshotId, roleAdmin, "Administrator", "Admin-Rolle", false);
 
-        var resBefore = new RoleResolution(BaseSnapshotId, roleDeveloper, roleDeveloper, 1);
-        var resAfter = new RoleResolution(TargetSnapshotId, roleDeveloper, roleAdmin, 1);
+        var resBefore = new AudienceResolution(BaseSnapshotId, roleDeveloper, roleDeveloper, 1);
+        var resAfter = new AudienceResolution(TargetSnapshotId, roleDeveloper, roleAdmin, 1);
 
         var contentBefore = new NodeContent(BaseSnapshotId, nodeId, roleDeveloper, revBefore, ContentMode.Independent, "Inhalt Alt", false);
         var contentAfter = new NodeContent(TargetSnapshotId, nodeId, roleDeveloper, revAfter, ContentMode.Independent, "Inhalt Neu", false);
@@ -202,8 +202,8 @@ public sealed class HistoryReadParityTests : BunitContext
             BaseSnapshotId,
             TargetSnapshotId,
             Nodes: [new NodeDiffEntry(DiffChangeKind.Modified, nodeBefore, nodeAfter)],
-            Roles: [new RoleDiffEntry(DiffChangeKind.Added, Before: null, After: roleAdded)],
-            RoleResolutions: [new RoleResolutionDiffEntry(DiffChangeKind.Modified, resBefore, resAfter)],
+            Audiences: [new AudienceDiffEntry(DiffChangeKind.Added, Before: null, After: roleAdded)],
+            AudienceResolutions: [new AudienceResolutionDiffEntry(DiffChangeKind.Modified, resBefore, resAfter)],
             Contents: [new ContentDiffEntry(DiffChangeKind.Modified, contentBefore, contentAfter)],
             Dependencies: [new DependencyDiffEntry(DiffChangeKind.Deleted, Before: depDeleted, After: null)],
             NextCursor: "diff-cursor-xyz",

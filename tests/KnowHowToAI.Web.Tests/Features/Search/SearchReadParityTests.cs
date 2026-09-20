@@ -28,8 +28,8 @@ namespace KnowHowToAI.Web.Tests.Features.Search;
 public sealed class SearchReadParityTests : BunitContext
 {
     private static readonly SnapshotId SnapshotId = new(1);
-    private static readonly RoleId RoleDeveloper = new("Developer");
-    private static readonly RoleId RoleDefault = new("Default");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleDefault = new("Default");
 
     [Fact]
     public async Task Search_CommonUseCaseResult_ReachesSearchPageAndMcpContract()
@@ -40,7 +40,7 @@ public sealed class SearchReadParityTests : BunitContext
         harness.AddNode(new Node(SnapshotId, rootNodeId, null, "Wissensbasis", null, 0, false));
         harness.AddNode(new Node(SnapshotId, hitNodeId, rootNodeId, "Produktpfad", "Parität", 1, false));
         var retrieval = new InMemoryRetrievalRepository(SnapshotId);
-        retrieval.ConfigureActiveRole(RoleDeveloper);
+        retrieval.ConfigureActiveAudience(RoleDeveloper);
         retrieval.ResultsToReturn =
         [
             new SearchHit(
@@ -57,7 +57,7 @@ public sealed class SearchReadParityTests : BunitContext
         ];
         var navigationService = harness.CreateService();
         var searchService = harness.CreateSearchService(retrieval);
-        var query = new SearchQuery("Gemeinsam", RoleId: RoleDeveloper);
+        var query = new SearchQuery("Gemeinsam", AudienceId: RoleDeveloper);
         var applicationResult = await searchService.SearchAsync(query, new ReadContext());
         var mcp = McpRetrievalMapper.ToEnvelope(applicationResult).Data!;
 
@@ -120,7 +120,7 @@ public sealed class SearchReadParityTests : BunitContext
                 "...gefundener **Betrieb**-Auszug...",
                 HitField: "Description",
                 Availability.None,
-                ResolvedRoleId: null,
+                ResolvedAudienceId: null,
                 Freshness.Current,
                 SortOrder: 3)
         };

@@ -120,14 +120,14 @@ public sealed class ReleaseService
         CancellationToken cancellationToken)
     {
         var nodes = await _historyRepos.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var roles = await _historyRepos.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var resolutions = await _historyRepos.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var audiences = await _historyRepos.Audiences.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var resolutions = await _historyRepos.Audiences.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var contents = await _historyRepos.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var dependencies = await _historyRepos.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
         var report = TransactionValidator.Validate(new TransactionValidationRequest(
             nodes,
-            roles,
+            audiences,
             resolutions,
             contents,
             dependencies,

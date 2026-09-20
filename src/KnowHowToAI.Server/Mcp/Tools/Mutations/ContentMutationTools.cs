@@ -53,7 +53,7 @@ internal sealed class ContentMutationTools
 
         var request = new ReplaceContentRequest(
             parsedNodeId.Value!.Value,
-            new RoleId(roleId),
+            new AudienceId(roleId),
             parsedContentMode.Value,
             contentMd,
             parsedSources.Value!,
@@ -82,7 +82,7 @@ internal sealed class ContentMutationTools
 
         var request = new ReplaceTextRequest(
             parsedNodeId.Value!.Value,
-            new RoleId(roleId),
+            new AudienceId(roleId),
             oldText,
             newText,
             expectedChangeVersion);
@@ -107,7 +107,7 @@ internal sealed class ContentMutationTools
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
         return McpMutationMapper.ToEnvelope(await _contentMutationService
-            .DeleteContentAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, new RoleId(roleId), expectedChangeVersion, cancellationToken)
+            .DeleteContentAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, new AudienceId(roleId), expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 

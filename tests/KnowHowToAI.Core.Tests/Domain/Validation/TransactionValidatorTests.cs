@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 
 namespace KnowHowToAI.Core.Tests.Domain.Validation;
@@ -11,7 +11,7 @@ namespace KnowHowToAI.Core.Tests.Domain.Validation;
 public sealed class TransactionValidatorTests
 {
     private static readonly SnapshotId SnapshotId = new(42);
-    private static readonly RoleId RoleId = new("Default");
+    private static readonly AudienceId AudienceId = new("Default");
     private static readonly NodeId RootId = new(Guid.Parse("00000000-0000-0000-0000-000000000001"));
     private static readonly NodeId SourceId = new(Guid.Parse("00000000-0000-0000-0000-000000000002"));
     private static readonly NodeId DerivedId = new(Guid.Parse("00000000-0000-0000-0000-000000000003"));
@@ -42,13 +42,13 @@ public sealed class TransactionValidatorTests
                 new Node(SnapshotId, SourceId, RootId, "Source", null, 0, false),
                 new Node(SnapshotId, DerivedId, RootId, "Derived", null, 1, false)
             ],
-            [new Role(SnapshotId, RoleId, "Default", null, false)],
-            [new RoleResolution(SnapshotId, RoleId, RoleId, 1)],
+            [new Audience(SnapshotId, AudienceId, "Default", null, false)],
+            [new AudienceResolution(SnapshotId, AudienceId, AudienceId, 1)],
             [
-                new NodeContent(SnapshotId, SourceId, RoleId, SourceRevisionId, ContentMode.Independent, "source", true),
-                new NodeContent(SnapshotId, DerivedId, RoleId, DerivedRevisionId, ContentMode.Derived, "# heading\nlarge", false)
+                new NodeContent(SnapshotId, SourceId, AudienceId, SourceRevisionId, ContentMode.Independent, "source", true),
+                new NodeContent(SnapshotId, DerivedId, AudienceId, DerivedRevisionId, ContentMode.Derived, "# heading\nlarge", false)
             ],
-            [new ContentDependency(SnapshotId, DerivedId, RoleId, SourceId, RoleId, SourceRevisionId)],
+            [new ContentDependency(SnapshotId, DerivedId, AudienceId, SourceId, AudienceId, SourceRevisionId)],
             new QualityWarningThresholds(4, 2, 2),
             WarnOnPossibleEmbeddedHeading: false);
 

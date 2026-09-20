@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
 
@@ -17,7 +17,7 @@ public sealed class NodeDeletionPreviewServiceTests
     private static readonly NodeId RootNodeId = new(Guid.Parse("10000000-0000-0000-0000-000000000001"));
     private static readonly NodeId ChildNodeId = new(Guid.Parse("10000000-0000-0000-0000-000000000002"));
     private static readonly NodeId GrandchildNodeId = new(Guid.Parse("10000000-0000-0000-0000-000000000003"));
-    private static readonly RoleId RoleId = new("Developer");
+    private static readonly AudienceId AudienceId = new("Developer");
 
     [Fact]
     public async Task PreviewAsync_DescribesSubtreeContentAndDependencyEffects()
@@ -99,8 +99,8 @@ public sealed class NodeDeletionPreviewServiceTests
         new(SnapshotId, nodeId, parentNodeId, "Node", null, 0, IsDeleted: false);
 
     private static NodeContent Content(NodeId nodeId) =>
-        new(SnapshotId, nodeId, RoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt", IsDeleted: false);
+        new(SnapshotId, nodeId, AudienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt", IsDeleted: false);
 
     private static ContentDependency Dependency(NodeId targetNodeId, NodeId sourceNodeId) =>
-        new(SnapshotId, targetNodeId, RoleId, sourceNodeId, RoleId, new ContentRevisionId(Guid.NewGuid()));
+        new(SnapshotId, targetNodeId, AudienceId, sourceNodeId, AudienceId, new ContentRevisionId(Guid.NewGuid()));
 }

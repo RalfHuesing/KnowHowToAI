@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 
 namespace KnowHowToAI.Core.Application.Mutations.Content;
@@ -52,13 +52,13 @@ public sealed class ContentMutationApplicationService(
     public async Task<Result<ContentMutationUseCaseResult>> DeleteContentAsync(
         TransactionId transactionId,
         NodeId nodeId,
-        RoleId roleId,
+        AudienceId audienceId,
         long expectedChangeVersion,
         CancellationToken cancellationToken = default)
     {
         var executionResult = await _repository.ExecuteAsync(
             transactionId,
-            state => CreateDeletionDecision(state, nodeId, roleId),
+            state => CreateDeletionDecision(state, nodeId, audienceId),
             expectedChangeVersion,
             cancellationToken).ConfigureAwait(false);
         return ToUseCaseResult(executionResult);
@@ -68,7 +68,7 @@ public sealed class ContentMutationApplicationService(
         WorkingContentMutationState state,
         ReplaceContentRequest request)
     {
-        var contextResult = ValidateTarget(state, request.NodeId, request.RoleId);
+        var contextResult = ValidateTarget(state, request.NodeId, request.AudienceId);
         if (!contextResult.IsSuccess)
             return Result<WorkingContentMutationDecision<ContentMutationOutcome>>.Failure(contextResult.Error!);
 
@@ -76,9 +76,9 @@ public sealed class ContentMutationApplicationService(
         var dependencies = request.Sources.Select(source => new ContentDependency(
             state.SnapshotId,
             request.NodeId,
-            request.RoleId,
+            request.AudienceId,
             source.NodeId,
-            source.RoleId,
+            source.AudienceId,
             source.ContentRevisionId)).ToArray();
         var mutationResult = _mutationService.ReplaceContent(
             state.Contents,
@@ -86,7 +86,7 @@ public sealed class ContentMutationApplicationService(
             new ReplaceContentCommand(
                 state.SnapshotId,
                 request.NodeId,
-                request.RoleId,
+                request.AudienceId,
                 request.ContentMode,
                 request.ContentMd,
                 dependencies,
@@ -99,7 +99,7 @@ public sealed class ContentMutationApplicationService(
         var updatedDependencies = state.Dependencies.Where(dependency =>
             dependency.SnapshotId != state.SnapshotId
             || dependency.TargetNodeId != request.NodeId
-            || dependency.TargetRoleId != request.RoleId).Concat(dependencies).ToArray();
+            || dependency.TargetAudienceId != request.AudienceId).Concat(dependencies).ToArray();
         return Result<WorkingContentMutationDecision<ContentMutationOutcome>>.Success(
             new WorkingContentMutationDecision<ContentMutationOutcome>(
                 new ContentMutationOutcome(mutation.ChangedContent, mutationResult.Warnings),
@@ -110,7 +110,7 @@ public sealed class ContentMutationApplicationService(
         WorkingContentMutationState state,
         ReplaceTextRequest request)
     {
-        var contextResult = ValidateTarget(state, request.NodeId, request.RoleId);
+        var contextResult = ValidateTarget(state, request.NodeId, request.AudienceId);
         if (!contextResult.IsSuccess)
             return Result<WorkingContentMutationDecision<ContentMutationOutcome>>.Failure(contextResult.Error!);
 
@@ -118,7 +118,7 @@ public sealed class ContentMutationApplicationService(
             state.Contents,
             new ReplaceTextCommand(
                 request.NodeId,
-                request.RoleId,
+                request.AudienceId,
                 request.OldText,
                 request.NewText,
                 contextResult.Value!.Title,
@@ -136,16 +136,16 @@ public sealed class ContentMutationApplicationService(
     private Result<WorkingContentMutationDecision<ContentMutationOutcome>> CreateDeletionDecision(
         WorkingContentMutationState state,
         NodeId nodeId,
-        RoleId roleId)
+        AudienceId audienceId)
     {
-        var contextResult = ValidateTarget(state, nodeId, roleId);
+        var contextResult = ValidateTarget(state, nodeId, audienceId);
         if (!contextResult.IsSuccess)
             return Result<WorkingContentMutationDecision<ContentMutationOutcome>>.Failure(contextResult.Error!);
 
         var mutationResult = _mutationService.DeleteContent(
             state.Contents,
             state.Dependencies,
-            new DeleteContentCommand(nodeId, roleId));
+            new DeleteContentCommand(nodeId, audienceId));
         if (!mutationResult.IsSuccess)
             return Result<WorkingContentMutationDecision<ContentMutationOutcome>>.Failure(mutationResult.Error!);
 
@@ -156,7 +156,7 @@ public sealed class ContentMutationApplicationService(
                 state with { Contents = mutation.Contents, Dependencies = mutation.Dependencies }));
     }
 
-    private Result<Node> ValidateTarget(WorkingContentMutationState state, NodeId nodeId, RoleId roleId)
+    private Result<Node> ValidateTarget(WorkingContentMutationState state, NodeId nodeId, AudienceId audienceId)
     {
         var node = state.Nodes.SingleOrDefault(candidate => !candidate.IsDeleted && candidate.NodeId == nodeId);
         if (node is null)
@@ -167,12 +167,12 @@ public sealed class ContentMutationApplicationService(
                 new Dictionary<string, string> { [HierarchyErrorCodes.NodeIdDetail] = nodeId.ToString() }));
         }
 
-        if (!state.Roles.Any(role => !role.IsDeleted && role.RoleId == roleId))
+        if (!state.Audiences.Any(audience => !audience.IsDeleted && audience.AudienceId == audienceId))
         {
             return Result<Node>.Failure(new DomainError(
-                RoleResolutionErrorCodes.RequestedRoleNotFound,
-                "Die angefragte aktive Rolle existiert nicht.",
-                new Dictionary<string, string> { [RoleResolutionErrorCodes.RequestedRoleIdDetail] = roleId.ToString() }));
+                AudienceResolutionErrorCodes.RequestedAudienceNotFound,
+                "Die angefragte aktive Zielgruppe existiert nicht.",
+                new Dictionary<string, string> { [AudienceResolutionErrorCodes.RequestedAudienceIdDetail] = audienceId.ToString() }));
         }
 
         return Result<Node>.Success(node);

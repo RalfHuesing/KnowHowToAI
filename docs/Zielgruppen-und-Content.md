@@ -1,23 +1,23 @@
-# Rollen und Content
+# Zielgruppen und Content
 
-## Rollenmodell
+## Zielgruppenmodell
 
-Rollen sind vollständig frei definierbar (z. B. `Default`, `Developer`,
+Zielgruppen sind vollständig frei definierbar (z. B. `Default`, `Developer`,
 `Consultant`, `EndUser`, `Administrator`, `Support`, `AI`). Eine feste,
 in der Geschäftslogik kodierte Rollenstruktur gibt es nicht. Das Seed-Skript legt
-die initiale Rolle `Default` samt Resolution Order an; danach werden Rollen und
+die initiale Zielgruppe `Default` samt Resolution Order an; danach werden Zielgruppen und
 ihre Resolution Orders wie jeder andere versionierte Wissenszustand innerhalb
 einer Transaction über die Service-/MCP-Grenzen gepflegt (`create_role`,
 `update_role`, `delete_role`, `set_role_resolution`). Die Weboberfläche stellt
 die Rollenpflege unter `/roles` bereit; Resolution Orders bleiben dort bis zur
-separaten Umsetzung read-only. Die Seite lädt Rollen für den über Query
+separaten Umsetzung read-only. Die Seite lädt Zielgruppen für den über Query
 gewählten Current-, Snapshot-, Release- oder Working-Kontext. Nur eine offene
 Working Transaction erlaubt Erstellen, Umbenennen und Löschen; historische und
-committed Kontexte zeigen dieselben Rollen schreibgeschützt.
+committed Kontexte zeigen dieselben Zielgruppen schreibgeschützt.
 
 ## Atomarer Schreibschutz gegen stale Writes
 
-Alle Rollen- und Content-Mutationen benötigen eine offene `TransactionId` und
+Alle Zielgruppen- und Content-Mutationen benötigen eine offene `TransactionId` und
 ein verpflichtendes `expectedChangeVersion`-Feld mit dem zuvor gelesenen Stand.
 Fehlt der Versionsstand, wird der Aufruf bereits am jeweiligen Vertrag abgelehnt. Die Prüfung
 erfolgt unter derselben kurzen Working-Snapshot-Sperre wie die fachliche
@@ -26,16 +26,16 @@ mit `expectedChangeVersion` und `actualChangeVersion` geliefert; Working
 Snapshot und ChangeVersion bleiben unverändert. Erfolgreiche Mutationen liefern
 die neue ChangeVersion bis zu MCP und Web zurück.
 
-## Wissensrolle ist keine Berechtigungsrolle
+## Wissenszielgruppe ist keine Berechtigungsrolle
 
-Eine Rolle beschreibt: *Für welche Zielgruppe ist dieser Inhalt geschrieben?*
+Eine Zielgruppe beschreibt: *Für welche Zielgruppe ist dieser Inhalt geschrieben?*
 Sie beschreibt **nicht**: *Wer darf diesen Inhalt lesen oder ändern?* Authentifizierung,
 Autorisierung und ACLs sind ein separates, späteres Thema. Diese Trennung bleibt
 erhalten.
 
-## Rollenabhängiger Content
+## Zielgruppenabhängiger Content
 
-Ein Node kann für jede Rolle eigenen Content besitzen:
+Ein Node kann für jede Zielgruppe eigenen Content besitzen:
 
 ```text
 Node: Auftragserfassung
@@ -45,15 +45,15 @@ Developer:   technische Implementierungsdetails
 EndUser:     Bedienungsanleitung
 ```
 
-Es ist ausdrücklich erlaubt, dass für eine Rolle kein eigener Content existiert.
+Es ist ausdrücklich erlaubt, dass für eine Zielgruppe kein eigener Content existiert.
 Fehlender expliziter Content ist kein automatisch Qualitätsfehler; er kann
-bedeuten, dass Fallback genügt, der Node für die Rolle irrelevant ist oder die
+bedeuten, dass Fallback genügt, der Node für die Zielgruppe irrelevant ist oder die
 Dokumentation noch nicht erstellt wurde. Die MCP-Antwort macht transparent, ob
 `Explicit`, `Fallback` oder `None` verwendet wird.
 
-## Role Resolution Orders
+## Audience Resolution Orders
 
-Für jede angefragte Rolle existiert eine frei konfigurierbare, geordnete
+Für jede angefragte Zielgruppe existiert eine frei konfigurierbare, geordnete
 Kandidatenliste:
 
 ```text
@@ -68,11 +68,11 @@ Es handelt sich bewusst nicht um objektorientierte Vererbung. Die Reihenfolge is
 explizit gespeichert, deterministisch und wird **nicht rekursiv** aufgelöst;
 zyklische Fallback-Ketten können dadurch nicht entstehen. Regeln:
 
-- die angefragte Rolle steht normalerweise an erster Position,
-- eine Rolle kommt innerhalb einer Order nicht mehrfach vor,
+- die angefragte Zielgruppe steht normalerweise an erster Position,
+- eine Zielgruppe kommt innerhalb einer Order nicht mehrfach vor,
 - es kann vorkommen, dass für keinen Kandidaten Content existiert.
 
-`set_role_resolution` ersetzt die Order der angefragten Rolle vollständig.
+`set_role_resolution` ersetzt die Order der angefragten Zielgruppe vollständig.
 
 ## Transparenz der Auflösung
 
@@ -88,28 +88,28 @@ resolvedRole = Consultant
 fallbackUsed = true
 ```
 
-Die tatsächlich verwendete Rolle wird nie implizit verborgen. Rollen werden in
+Die tatsächlich verwendete Zielgruppe wird nie implizit verborgen. Zielgruppen werden in
 allen contentbezogenen MCP-Aufrufen explizit als `roleId` übergeben; es gibt keinen
 unsichtbaren globalen Rollenstatus pro Session.
 
 ## Keine unnötigen Duplikate
 
-Rollen-Fallback verhindert, dass identischer Content mehrfach gespeichert wird.
+Zielgruppen-Fallback verhindert, dass identischer Content mehrfach gespeichert wird.
 Ist derselbe Text für alle Zielgruppen geeignet, genügt der Default-Content;
-es wird keine Kopie pro Rolle erzeugt. Eigener Rollen-Content wird nur gespeichert,
+es wird keine Kopie pro Zielgruppe erzeugt. Eigener Zielgruppen-Content wird nur gespeichert,
 wenn die Darstellung tatsächlich abweicht.
 
 ## Fallback löst keinen inhaltlichen Drift
 
 Fallback beantwortet nur: *Welchen Content verwenden, wenn kein eigener
-vorhanden ist?* Er beantwortet nicht: *Ist ein vorhandener Rollen-Content noch
-fachlich aktuell?* Besitzt eine Rolle eigenen (möglicherweise veralteten) Content,
+vorhanden ist?* Er beantwortet nicht: *Ist ein vorhandener Zielgruppen-Content noch
+fachlich aktuell?* Besitzt eine Zielgruppe eigenen (möglicherweise veralteten) Content,
 greift kein Fallback. Dafür existiert der unten beschriebene
 Provenienz-Mechanismus.
 
 ## Content-Revisions
 
-Jeder explizite Rollen-Content besitzt eine logische `ContentRevisionId`
+Jeder explizite Zielgruppen-Content besitzt eine logische `ContentRevisionId`
 (GUID). Wird ein Snapshot kopiert, bleibt die Revision identisch, solange sich der
 Inhalt nicht ändert; bei einer Inhaltsänderung entsteht eine neue Revision. Damit
 ist feststellbar, ob sich eine fachliche Quelle geändert hat – unabhängig davon,
@@ -117,7 +117,7 @@ wie viele Snapshots inzwischen entstanden sind.
 
 ## Content-Abhängigkeiten und Provenienz
 
-Expliziter Rollen-Content kann aus anderen Wissensinhalten abgeleitet sein:
+Expliziter Zielgruppen-Content kann aus anderen Wissensinhalten abgeleitet sein:
 
 ```text
 Target: NodeId + RoleId
@@ -125,13 +125,13 @@ Source:  NodeId + RoleId + ContentRevisionId
 ```
 
 Eine Abhängigkeit kann auch auf einen anderen Node zeigen; das System ist nicht
-auf Rollen desselben Nodes beschränkt.
+auf Zielgruppen desselben Nodes beschränkt.
 
 ## Independent und Derived
 
-Expliziter Rollen-Content hat einen von zwei Modi:
+Expliziter Zielgruppen-Content hat einen von zwei Modi:
 
-- **Independent**: der Inhalt ist für diese Rolle eigenständig maßgeblich.
+- **Independent**: der Inhalt ist für diese Zielgruppe eigenständig maßgeblich.
 - **Derived**: der Inhalt wurde aus anderen Wissensinhalten abgeleitet; die
   verwendeten Source-Revisions werden strukturiert gespeichert.
 
@@ -175,7 +175,7 @@ voneinander aussagekräftig.
 
 ## Keine automatische Synchronisation
 
-Das System versucht nicht, bei jeder Änderung alle Rollen sofort zu synchronisieren.
+Das System versucht nicht, bei jeder Änderung alle Zielgruppen sofort zu synchronisieren.
 Automatische Neugenerierung bei jeder Iteration würde unnötige LLM-Aufrufe,
 Rauschen und schlechte Nachvollziehbarkeit erzeugen. Drift wird sichtbar gemacht
 und später bewusst bearbeitet: ein Synchronisations-Agent erhält die stale

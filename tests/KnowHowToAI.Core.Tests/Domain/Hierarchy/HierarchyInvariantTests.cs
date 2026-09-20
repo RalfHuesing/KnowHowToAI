@@ -375,15 +375,15 @@ public sealed class NodeMutationServiceTests
         var sourceContent = Content(SnapshotId, FirstNodeId, "Quelle");
         var derivedContent = Content(SnapshotId, SecondNodeId, "Abgeleitet") with
         {
-            RoleId = new RoleId("EndUser"),
+            AudienceId = new AudienceId("EndUser"),
             ContentMode = ContentMode.Derived
         };
         var dependency = new ContentDependency(
             SnapshotId,
             derivedContent.NodeId,
-            derivedContent.RoleId,
+            derivedContent.AudienceId,
             sourceContent.NodeId,
-            sourceContent.RoleId,
+            sourceContent.AudienceId,
             sourceContent.ContentRevisionId);
         var nodes = new[]
         {
@@ -428,7 +428,7 @@ public sealed class NodeMutationServiceTests
         new(
             snapshotId,
             nodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("4a2c9f4a-0a77-44be-8f98-f403444d3e9f")),
             ContentMode.Independent,
             content,

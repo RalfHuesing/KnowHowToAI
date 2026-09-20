@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
@@ -16,8 +16,8 @@ namespace KnowHowToAI.Core.Tests.Application.Retrieval.Export;
 public sealed class MarkdownExportServiceTests
 {
     private static readonly SnapshotId CurrentSnapshotId = new(10);
-    private static readonly RoleId RoleDeveloper = new("Developer");
-    private static readonly RoleId RoleEndUser = new("EndUser");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
+    private static readonly AudienceId AudienceEndUser = new("EndUser");
 
     private static readonly NodeId RootId = new(Guid.Parse("10000000-0000-0000-0000-000000000000"));
     private static readonly NodeId Child1Id = new(Guid.Parse("10000000-0000-0000-0000-000000000001"));
@@ -30,19 +30,19 @@ public sealed class MarkdownExportServiceTests
     {
         var harness = new ExportTestHarness(CurrentSnapshotId);
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root Title", null, 0, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
         harness.AddContent(new NodeContent(
             CurrentSnapshotId,
             RootId,
-            RoleDeveloper,
+            AudienceDeveloper,
             new ContentRevisionId(Guid.NewGuid()),
             ContentMode.Independent,
             "Dies ist der Root-Inhalt.",
             false));
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         var expected = "# Root Title\n\nDies ist der Root-Inhalt.\n";
@@ -59,17 +59,17 @@ public sealed class MarkdownExportServiceTests
         harness.AddNode(new Node(CurrentSnapshotId, Child1Id, RootId, "Unterabschnitt", null, 1, false));
         harness.AddNode(new Node(CurrentSnapshotId, Grandchild1Id, Child1Id, "Detailpunkt", null, 1, false));
 
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
 
-        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt Hauptkapitel.", false));
-        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt Unterabschnitt.", false));
-        harness.AddContent(new NodeContent(CurrentSnapshotId, Grandchild1Id, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt Detailpunkt.", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt Hauptkapitel.", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt Unterabschnitt.", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, Grandchild1Id, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt Detailpunkt.", false));
 
         var service = harness.CreateService();
 
         // 1. Export ab Hauptkapitel (Root) -> Hauptkapitel ist H1, Unterabschnitt H2, Detailpunkt H3
-        var fullResult = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var fullResult = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
         Assert.True(fullResult.IsSuccess);
         var expectedFull =
             "# Hauptkapitel\n\nInhalt Hauptkapitel.\n\n" +
@@ -78,7 +78,7 @@ public sealed class MarkdownExportServiceTests
         Assert.Equal(expectedFull, fullResult.Value);
 
         // 2. Export ab Unterabschnitt (Teilbaum) -> Unterabschnitt wird H1, Detailpunkt H2 (relative Heading-Level!)
-        var subResult = await service.ExportTreeAsync(Child1Id, new ReadContext(), RoleDeveloper);
+        var subResult = await service.ExportTreeAsync(Child1Id, new ReadContext(), AudienceDeveloper);
         Assert.True(subResult.IsSuccess);
         var expectedSub =
             "# Unterabschnitt\n\nInhalt Unterabschnitt.\n\n" +
@@ -95,14 +95,14 @@ public sealed class MarkdownExportServiceTests
         harness.AddNode(new Node(CurrentSnapshotId, Child2Id, RootId, "Zweites Kind", null, 20, false));
         harness.AddNode(new Node(CurrentSnapshotId, Child1Id, RootId, "Erstes Kind", null, 10, false));
 
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
-        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Root Text", false));
-        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Kind 1 Text", false));
-        harness.AddContent(new NodeContent(CurrentSnapshotId, Child2Id, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Kind 2 Text", false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Root Text", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Kind 1 Text", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, Child2Id, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Kind 2 Text", false));
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         var expected =
@@ -120,14 +120,14 @@ public sealed class MarkdownExportServiceTests
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Administration", null, 1, false));
         harness.AddNode(new Node(CurrentSnapshotId, Child1Id, RootId, "Auftragserfassung", null, 1, false));
 
-        harness.AddRole(new Role(CurrentSnapshotId, RoleEndUser, "EndUser", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleEndUser, RoleEndUser, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceEndUser, "EndUser", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceEndUser, AudienceEndUser, 1));
 
         // Nur Child1 hat Content für EndUser
-        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, RoleEndUser, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Auftragserfassung Inhalt.", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, AudienceEndUser, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Auftragserfassung Inhalt.", false));
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleEndUser);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceEndUser);
 
         Assert.True(result.IsSuccess);
         // Administration wird als Strukturknoten (H1) ausgegeben, gefolgt von Auftragserfassung (H2)
@@ -143,18 +143,18 @@ public sealed class MarkdownExportServiceTests
         harness.AddNode(new Node(CurrentSnapshotId, Child1Id, RootId, "Auftragserfassung", null, 1, false));
         harness.AddNode(new Node(CurrentSnapshotId, IrrelevantChildId, RootId, "Interne API", null, 2, false));
 
-        harness.AddRole(new Role(CurrentSnapshotId, RoleEndUser, "EndUser", null, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleEndUser, RoleEndUser, 1));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceEndUser, "EndUser", null, false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceEndUser, AudienceEndUser, 1));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
 
         // Auftragserfassung hat Content für EndUser
-        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, RoleEndUser, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Auftragserfassung für EndUser.", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, AudienceEndUser, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Auftragserfassung für EndUser.", false));
         // Interne API hat nur Content für Developer, KEINEN für EndUser
-        harness.AddContent(new NodeContent(CurrentSnapshotId, IrrelevantChildId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Geheime API Dokumentation.", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, IrrelevantChildId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Geheime API Dokumentation.", false));
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleEndUser);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceEndUser);
 
         Assert.True(result.IsSuccess);
         // Interne API darf im EndUser-Export NICHT vorkommen
@@ -164,22 +164,22 @@ public sealed class MarkdownExportServiceTests
     }
 
     [Fact]
-    public async Task ExportTreeAsync_RoleResolutionFallback_UsesFallbackContentWhenConfigured()
+    public async Task ExportTreeAsync_AudienceResolutionFallback_UsesFallbackContentWhenConfigured()
     {
         var harness = new ExportTestHarness(CurrentSnapshotId);
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleEndUser, "EndUser", null, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceEndUser, "EndUser", null, false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
 
         // EndUser -> Fallback auf Developer
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleEndUser, RoleEndUser, 1));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleEndUser, RoleDeveloper, 2));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceEndUser, AudienceEndUser, 1));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceEndUser, AudienceDeveloper, 2));
 
         // Content existiert nur für Developer
-        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Developer Content als Fallback.", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Developer Content als Fallback.", false));
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleEndUser);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceEndUser);
 
         Assert.True(result.IsSuccess);
         var expected = "# Root\n\nDeveloper Content als Fallback.\n";
@@ -191,22 +191,22 @@ public sealed class MarkdownExportServiceTests
     {
         var harness = new ExportTestHarness(CurrentSnapshotId);
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
 
         var oldSourceRev = new ContentRevisionId(Guid.NewGuid());
         var currentSourceRev = new ContentRevisionId(Guid.NewGuid());
         var sourceNodeId = new NodeId(Guid.Parse("99999999-9999-9999-9999-999999999999"));
 
         // Source Content hat jetzt currentSourceRev
-        harness.AddContent(new NodeContent(CurrentSnapshotId, sourceNodeId, RoleDeveloper, currentSourceRev, ContentMode.Independent, "Source Text", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, sourceNodeId, AudienceDeveloper, currentSourceRev, ContentMode.Independent, "Source Text", false));
 
         // Target Content (Root) ist Derived und verweist noch auf oldSourceRev -> transitiv stale!
-        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Abgeleiteter Text.", false));
-        harness.AddDependency(new ContentDependency(CurrentSnapshotId, RootId, RoleDeveloper, sourceNodeId, RoleDeveloper, oldSourceRev));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Abgeleiteter Text.", false));
+        harness.AddDependency(new ContentDependency(CurrentSnapshotId, RootId, AudienceDeveloper, sourceNodeId, AudienceDeveloper, oldSourceRev));
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         var expected = "# Root\n\nAbgeleiteter Text.\n";
@@ -220,12 +220,12 @@ public sealed class MarkdownExportServiceTests
         var harness = new ExportTestHarness(CurrentSnapshotId);
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
         harness.AddNode(new Node(CurrentSnapshotId, Child1Id, RootId, "Child", null, 1, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
         // Keine Contents hinzugefügt
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(string.Empty, result.Value);
@@ -235,8 +235,8 @@ public sealed class MarkdownExportServiceTests
     public async Task ExportTreeAsync_DepthExceeding6Levels_ClampsToH6AndEmitsHierarchyTooDeepWarning()
     {
         var harness = new ExportTestHarness(CurrentSnapshotId);
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
 
         // Kette von 8 Ebenen erzeugen
         var previousId = (NodeId?)null;
@@ -246,12 +246,12 @@ public sealed class MarkdownExportServiceTests
             var id = new NodeId(Guid.Parse($"00000000-0000-0000-0000-00000000000{i}"));
             nodeIds.Add(id);
             harness.AddNode(new Node(CurrentSnapshotId, id, previousId, $"Ebene {i}", null, 1, false));
-            harness.AddContent(new NodeContent(CurrentSnapshotId, id, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, $"Inhalt Ebene {i}.", false));
+            harness.AddContent(new NodeContent(CurrentSnapshotId, id, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, $"Inhalt Ebene {i}.", false));
             previousId = id;
         }
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(nodeIds[0], new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(nodeIds[0], new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         var output = result.Value!;
@@ -281,7 +281,7 @@ public sealed class MarkdownExportServiceTests
         var missingNodeId = new NodeId(Guid.NewGuid());
         var service = harness.CreateService();
 
-        var result = await service.ExportTreeAsync(missingNodeId, new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(missingNodeId, new ReadContext(), AudienceDeveloper);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(NavigationErrorCodes.NodeNotFound, result.Code);
@@ -295,7 +295,7 @@ public sealed class MarkdownExportServiceTests
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Gelöschter Root", null, 1, IsDeleted: true));
         var service = harness.CreateService();
 
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(IncludeDeleted: false), RoleDeveloper);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(IncludeDeleted: false), AudienceDeveloper);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(NavigationErrorCodes.NodeNotFound, result.Code);
@@ -307,16 +307,16 @@ public sealed class MarkdownExportServiceTests
         var harness = new ExportTestHarness(CurrentSnapshotId);
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
         harness.AddNode(new Node(CurrentSnapshotId, Child1Id, RootId, "Child", null, 1, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, RoleDeveloper, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, AudienceDeveloper, 1));
 
         // Content enthält Windows-CRLF \r\n und trailing newline
         var crlfContent = "Zeile 1\r\nZeile 2\r\n\r\n";
-        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, crlfContent, false));
-        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Kind Zeile\r\n", false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, RootId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, crlfContent, false));
+        harness.AddContent(new NodeContent(CurrentSnapshotId, Child1Id, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Kind Zeile\r\n", false));
 
         var service = harness.CreateService();
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
 
         Assert.True(result.IsSuccess);
         var output = result.Value!;
@@ -331,36 +331,36 @@ public sealed class MarkdownExportServiceTests
     }
 
     [Fact]
-    public async Task ExportTreeAsync_RequestedRoleNotFound_ReturnsRequestedRoleNotFound()
+    public async Task ExportTreeAsync_RequestedAudienceNotFound_ReturnsRequestedAudienceNotFound()
     {
         var harness = new ExportTestHarness(CurrentSnapshotId);
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
-        var missingRole = new RoleId("MissingRole");
+        var missingAudience = new AudienceId("MissingAudience");
         var service = harness.CreateService();
 
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), missingRole);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), missingAudience);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleNotFound, result.Code);
-        Assert.Equal(missingRole.ToString(), result.Details[RoleResolutionErrorCodes.RequestedRoleIdDetail]);
+        Assert.Equal(AudienceResolutionErrorCodes.RequestedAudienceNotFound, result.Code);
+        Assert.Equal(missingAudience.ToString(), result.Details[AudienceResolutionErrorCodes.RequestedAudienceIdDetail]);
     }
 
     [Fact]
-    public async Task ExportTreeAsync_CandidateRoleDeleted_ReturnsCandidateRoleDeleted()
+    public async Task ExportTreeAsync_CandidateAudienceDeleted_ReturnsCandidateAudienceDeleted()
     {
         var harness = new ExportTestHarness(CurrentSnapshotId);
         harness.AddNode(new Node(CurrentSnapshotId, RootId, null, "Root", null, 1, false));
-        var archivedRole = new RoleId("Archived");
-        harness.AddRole(new Role(CurrentSnapshotId, RoleDeveloper, "Developer", null, false));
-        harness.AddRole(new Role(CurrentSnapshotId, archivedRole, "Archived", null, true));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, RoleDeveloper, archivedRole, 1));
+        var archivedAudience = new AudienceId("Archived");
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceDeveloper, "Developer", null, false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, archivedAudience, "Archived", null, true));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, AudienceDeveloper, archivedAudience, 1));
         var service = harness.CreateService();
 
-        var result = await service.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var result = await service.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.CandidateRoleDeleted, result.Code);
-        Assert.Equal(archivedRole.ToString(), result.Details[RoleResolutionErrorCodes.CandidateRoleIdDetail]);
+        Assert.Equal(AudienceResolutionErrorCodes.CandidateAudienceDeleted, result.Code);
+        Assert.Equal(archivedAudience.ToString(), result.Details[AudienceResolutionErrorCodes.CandidateAudienceIdDetail]);
     }
 
     // ── Test Harness (düner Wrapper über die gemeinsamen TestSupport-Fakes) ──
@@ -371,8 +371,8 @@ public sealed class MarkdownExportServiceTests
             InMemoryKnowledgeStore.WithCurrentCommittedSnapshot(currentSnapshotId, DateTimeOffset.UtcNow);
 
         public void AddNode(Node node) => _store.Nodes.Add(node);
-        public void AddRole(Role role) => _store.Roles.Add(role);
-        public void AddRoleResolution(RoleResolution resolution) => _store.Resolutions.Add(resolution);
+        public void AddAudience(Audience audience) => _store.Audiences.Add(audience);
+        public void AddAudienceResolution(AudienceResolution resolution) => _store.Resolutions.Add(resolution);
         public void AddContent(NodeContent content) => _store.Contents.Add(content);
         public void AddDependency(ContentDependency dependency) => _store.Dependencies.Add(dependency);
 
@@ -382,7 +382,7 @@ public sealed class MarkdownExportServiceTests
                 new InMemoryTransactionRepository(_store),
                 new InMemoryHierarchyRepository(_store),
                 new InMemoryContentRepository(_store),
-                new InMemoryRoleRepository(_store),
+                new InMemoryAudienceRepository(_store),
                 new InMemoryDependencyRepository(_store)));
     }
 }

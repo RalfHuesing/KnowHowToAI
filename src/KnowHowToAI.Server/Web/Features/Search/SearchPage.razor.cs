@@ -1,7 +1,7 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
@@ -225,7 +225,7 @@ public sealed partial class SearchPage : IDisposable
             var query = new SearchQuery(
                 _activeText,
                 Cursor: cursor,
-                RoleId: new RoleId(_roleId),
+                AudienceId: new AudienceId(_roleId),
                 Filter: ToSearchFilter());
             var result = await SearchService.SearchAsync(query, _readContext, requestCts.Token);
             if (generation != _searchGeneration || requestCts.IsCancellationRequested)
@@ -286,7 +286,7 @@ public sealed partial class SearchPage : IDisposable
             return null;
 
         return new KnowHowToAI.Core.Application.Retrieval.Search.SearchFilter(
-            _filter.ResolvedRoleIds.Select(value => new RoleId(value)).ToArray(),
+            _filter.ResolvedRoleIds.Select(value => new AudienceId(value)).ToArray(),
             _filter.Availabilities.Select(Enum.Parse<Availability>).ToArray(),
             _filter.Freshnesses.Select(Enum.Parse<Freshness>).ToArray(),
             _filter.FindingCodes);

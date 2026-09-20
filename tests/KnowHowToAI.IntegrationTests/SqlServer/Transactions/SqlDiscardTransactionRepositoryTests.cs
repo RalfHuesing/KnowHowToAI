@@ -132,7 +132,7 @@ public sealed class SqlDiscardTransactionRepositoryTests
         await database.ExecuteAsync("""
             INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
             VALUES (@snapshotId, @nodeId, NULL, N'Gelöschter Knoten', NULL, 0, 1);
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES (@snapshotId, @nodeId, N'Default', @revisionId, 'Independent', N'Historischer Tombstone', 1);
             """,
             new SqlParameter("@snapshotId", snapshotId.Value),

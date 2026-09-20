@@ -1,6 +1,6 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.Server.Web.Features.Roles;
 
@@ -11,23 +11,23 @@ namespace KnowHowToAI.Server.Web.Features.Roles;
 /// </summary>
 public static class RoleMapper
 {
-    public static RoleItemViewModel ToRoleItemViewModel(Role role)
+    public static RoleItemViewModel ToRoleItemViewModel(Audience role)
     {
         ArgumentNullException.ThrowIfNull(role);
         return new RoleItemViewModel(
-            role.RoleId.Value,
+            role.AudienceId.Value,
             role.Name,
             role.Description);
     }
 
-    public static RolePageViewModel ToRolePageViewModel(RolePage page)
+    public static RolePageViewModel ToRolePageViewModel(AudiencePage page)
     {
         ArgumentNullException.ThrowIfNull(page);
         var items = page.Items.Select(ToRoleItemViewModel).ToArray();
         return new RolePageViewModel(items, page.NextCursor, page.ChangeVersion);
     }
 
-    public static Result<RolePageViewModel> ToRolePageResult(Result<RolePage> result)
+    public static Result<RolePageViewModel> ToRolePageResult(Result<AudiencePage> result)
     {
         ArgumentNullException.ThrowIfNull(result);
         if (!result.IsSuccess)

@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Mcp.Mapping;
 
 namespace KnowHowToAI.IntegrationTests.Server.Mcp;
@@ -17,7 +17,7 @@ public sealed class McpHistoryMapperTests
     [Fact]
     public void SnapshotDiff_PreservesBindingCategoryOrder()
     {
-        var role = new Role(TargetSnapshotId, new RoleId("Developer"), "Developer", null, false);
+        var role = new Audience(TargetSnapshotId, new AudienceId("Developer"), "Developer", null, false);
         var node = new Node(
             TargetSnapshotId,
             new NodeId(Guid.Parse("30000000-0000-0000-0000-000000000001")),
@@ -30,7 +30,7 @@ public sealed class McpHistoryMapperTests
             BaseSnapshotId,
             TargetSnapshotId,
             [new NodeDiffEntry(DiffChangeKind.Added, null, node)],
-            [new RoleDiffEntry(DiffChangeKind.Added, null, role)],
+            [new AudienceDiffEntry(DiffChangeKind.Added, null, role)],
             [],
             [],
             []);
@@ -48,9 +48,9 @@ public sealed class McpHistoryMapperTests
         var dependency = new ContentDependency(
             TargetSnapshotId,
             targetNodeId,
-            new RoleId("EndUser"),
+            new AudienceId("EndUser"),
             sourceNodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("b4e0e04a-2dce-4b5e-8b34-4bd2b9f0e020")));
         var diff = new SnapshotDiff(
             BaseSnapshotId,

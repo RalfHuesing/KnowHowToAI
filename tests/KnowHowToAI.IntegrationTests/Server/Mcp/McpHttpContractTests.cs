@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.IntegrationTests.TestSupport;
@@ -53,7 +53,7 @@ public sealed class McpHttpContractTests
     private static readonly NodeId SecondChildNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000002"));
     private static readonly NodeId ThirdChildNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000003"));
     private static readonly NodeId UnknownNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000009999"));
-    private static readonly RoleId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
 
     // ── Toolmenge und Schemas ─────────────────────────────────────────────────
 
@@ -213,7 +213,7 @@ public sealed class McpHttpContractTests
     public async Task ListRoles_ReturnsRoleMetadataItems()
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
-        harness.AddRole(new Role(new SnapshotId(1), new RoleId("Admin"), "Admin", "Verwaltung", false));
+        harness.AddAudience(new Audience(new SnapshotId(1), new AudienceId("Admin"), "Admin", "Verwaltung", false));
         await using var host = await StartWithNavigationAsync(harness);
         await using var client = await McpClient.CreateAsync(McpHttpHost.CreateTransport(host.Address));
 

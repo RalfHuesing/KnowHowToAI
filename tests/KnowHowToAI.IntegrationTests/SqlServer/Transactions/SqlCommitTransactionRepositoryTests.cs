@@ -24,7 +24,7 @@ public sealed class SqlCommitTransactionRepositoryTests
         await database.ExecuteAsync("""
             INSERT INTO dbo.KnowHowToAI_Node (SnapshotId, NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted)
             VALUES (@snapshotId, @nodeId, NULL, N'Ungültig', NULL, 0, 0);
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES (@snapshotId, @nodeId, N'Default', @revisionId, 'Independent', N'# Verbotene Überschrift', 0);
             """,
             new SqlParameter("@snapshotId", transaction.WorkingSnapshotId.Value),
@@ -153,7 +153,7 @@ public sealed class SqlCommitTransactionRepositoryTests
             VALUES
                 (@snapshotId, @sourceNodeId, NULL, N'Quelle', NULL, 0, 0),
                 (@snapshotId, @targetNodeId, @sourceNodeId, N'Abgeleitet', NULL, 0, 0);
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES
                 (@snapshotId, @sourceNodeId, N'Default', @sourceRevisionId, 'Independent', N'Quellinhalt', 0),
                 (@snapshotId, @targetNodeId, N'Default', @targetRevisionId, 'Derived', N'Abgeleiteter Inhalt', 0);

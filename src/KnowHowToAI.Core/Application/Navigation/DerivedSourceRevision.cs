@@ -8,6 +8,6 @@ namespace KnowHowToAI.Core.Application.Navigation;
 /// </summary>
 public sealed record DerivedSourceRevision(
     NodeId SourceNodeId,
-    RoleId SourceRoleId,
+    AudienceId SourceAudienceId,
     ContentRevisionId StoredContentRevisionId,
     Freshness Freshness);

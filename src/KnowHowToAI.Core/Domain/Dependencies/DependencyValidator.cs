@@ -45,28 +45,28 @@ public static class DependencyValidator
         var errors = ValidateSnapshot(allContents, allDependencies).Errors.ToList();
         var activeContentsByKey = allContents
             .Where(content => !content.IsDeleted)
-            .GroupBy(content => (content.SnapshotId, content.NodeId, content.RoleId))
+            .GroupBy(content => (content.SnapshotId, content.NodeId, content.AudienceId))
             .ToDictionary(group => group.Key, group => group.First());
 
         ValidateDependencySources(newOrChangedDependencies, activeContentsByKey, errors);
         return new ValidationReport(errors, []);
     }
 
-    private static Dictionary<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId), NodeContent> IndexActiveContents(
+    private static Dictionary<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId), NodeContent> IndexActiveContents(
         IEnumerable<NodeContent> activeContents,
         ICollection<DomainError> errors)
     {
-        var contentsByKey = new Dictionary<(SnapshotId, NodeId, RoleId), NodeContent>();
+        var contentsByKey = new Dictionary<(SnapshotId, NodeId, AudienceId), NodeContent>();
         foreach (var content in activeContents)
         {
-            var key = (content.SnapshotId, content.NodeId, content.RoleId);
+            var key = (content.SnapshotId, content.NodeId, content.AudienceId);
             if (!contentsByKey.TryAdd(key, content))
                 errors.Add(CreateInvalidDependencyError(
-                    "Aktiver Content darf pro Snapshot, Node und Rolle nur einmal vorhanden sein.",
+                    "Aktiver Content darf pro Snapshot, Node und Zielgruppe nur einmal vorhanden sein.",
                     content.NodeId,
-                    content.RoleId,
+                    content.AudienceId,
                     content.NodeId,
-                    content.RoleId));
+                    content.AudienceId));
         }
 
         return contentsByKey;
@@ -82,16 +82,16 @@ public static class DependencyValidator
             var hasDependencies = dependencies.Any(dependency =>
                 dependency.SnapshotId == content.SnapshotId
                 && dependency.TargetNodeId == content.NodeId
-                && dependency.TargetRoleId == content.RoleId);
+                && dependency.TargetAudienceId == content.AudienceId);
 
             if (content.ContentMode is not (ContentMode.Independent or ContentMode.Derived))
             {
                 errors.Add(CreateInvalidDependencyError(
                     "Content benötigt einen gültigen Modus Independent oder Derived.",
                     content.NodeId,
-                    content.RoleId,
+                    content.AudienceId,
                     content.NodeId,
-                    content.RoleId));
+                    content.AudienceId));
                 continue;
             }
 
@@ -100,9 +100,9 @@ public static class DependencyValidator
                 errors.Add(CreateInvalidDependencyError(
                     "Unabhängiger Content darf keine Abhängigkeiten speichern.",
                     content.NodeId,
-                    content.RoleId,
+                    content.AudienceId,
                     content.NodeId,
-                    content.RoleId));
+                    content.AudienceId));
             }
 
             if (content.ContentMode == ContentMode.Derived && !hasDependencies)
@@ -110,87 +110,87 @@ public static class DependencyValidator
                 errors.Add(CreateInvalidDependencyError(
                     "Abgeleiteter Content benötigt mindestens eine Abhängigkeit.",
                     content.NodeId,
-                    content.RoleId,
+                    content.AudienceId,
                     content.NodeId,
-                    content.RoleId));
+                    content.AudienceId));
             }
         }
     }
 
     private static void ValidateDependencyTargets(
         IEnumerable<ContentDependency> dependencies,
-        IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId), NodeContent> contentsByKey,
+        IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId), NodeContent> contentsByKey,
         ICollection<DomainError> errors)
     {
         foreach (var dependency in dependencies)
         {
-            var targetKey = (dependency.SnapshotId, dependency.TargetNodeId, dependency.TargetRoleId);
+            var targetKey = (dependency.SnapshotId, dependency.TargetNodeId, dependency.TargetAudienceId);
             if (!contentsByKey.TryGetValue(targetKey, out var target)
                 || target.ContentMode != ContentMode.Derived)
             {
                 errors.Add(CreateInvalidDependencyError(
                     "Eine Abhängigkeit benötigt aktiven expliziten Derived-Content als Ziel.",
                     dependency.TargetNodeId,
-                    dependency.TargetRoleId,
+                    dependency.TargetAudienceId,
                     dependency.SourceNodeId,
-                    dependency.SourceRoleId));
+                    dependency.SourceAudienceId));
             }
         }
     }
 
     private static void ValidateDependencySources(
         IEnumerable<ContentDependency> dependencies,
-        IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId), NodeContent> contentsByKey,
+        IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId), NodeContent> contentsByKey,
         ICollection<DomainError> errors)
     {
         foreach (var dependency in dependencies)
         {
-            var sourceKey = (dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceRoleId);
+            var sourceKey = (dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceAudienceId);
             if (!contentsByKey.TryGetValue(sourceKey, out var source)
                 || source.ContentRevisionId != dependency.SourceContentRevisionId)
             {
                 errors.Add(CreateInvalidDependencyError(
                     "Eine neue oder geänderte Abhängigkeit benötigt aktiven expliziten Content mit aktueller Source-Revision.",
                     dependency.TargetNodeId,
-                    dependency.TargetRoleId,
+                    dependency.TargetAudienceId,
                     dependency.SourceNodeId,
-                    dependency.SourceRoleId));
+                    dependency.SourceAudienceId));
             }
         }
     }
 
     private static void ValidateCycles(
         IEnumerable<ContentDependency> dependencies,
-        IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId), NodeContent> contentsByKey,
+        IReadOnlyDictionary<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId), NodeContent> contentsByKey,
         ICollection<DomainError> errors)
     {
         var adjacency = dependencies
-            .Where(dependency => contentsByKey.ContainsKey((dependency.SnapshotId, dependency.TargetNodeId, dependency.TargetRoleId))
-                && contentsByKey.ContainsKey((dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceRoleId)))
-            .GroupBy(dependency => (dependency.SnapshotId, dependency.TargetNodeId, dependency.TargetRoleId))
+            .Where(dependency => contentsByKey.ContainsKey((dependency.SnapshotId, dependency.TargetNodeId, dependency.TargetAudienceId))
+                && contentsByKey.ContainsKey((dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceAudienceId)))
+            .GroupBy(dependency => (dependency.SnapshotId, dependency.TargetNodeId, dependency.TargetAudienceId))
             .ToDictionary(
                 group => group.Key,
-                group => group.Select(dependency => (dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceRoleId)).ToArray());
-        var inspected = new HashSet<(SnapshotId, NodeId, RoleId)>();
-        var path = new HashSet<(SnapshotId, NodeId, RoleId)>();
+                group => group.Select(dependency => (dependency.SnapshotId, dependency.SourceNodeId, dependency.SourceAudienceId)).ToArray());
+        var inspected = new HashSet<(SnapshotId, NodeId, AudienceId)>();
+        var path = new HashSet<(SnapshotId, NodeId, AudienceId)>();
 
         foreach (var target in adjacency.Keys)
         {
             if (ContainsCycle(target, adjacency, inspected, path))
             {
-                errors.Add(CreateCycleError(target.TargetNodeId, target.TargetRoleId));
+                errors.Add(CreateCycleError(target.TargetNodeId, target.TargetAudienceId));
                 return;
             }
         }
     }
 
     private static bool ContainsCycle(
-        (SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId) current,
+        (SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId) current,
         IReadOnlyDictionary<
-            (SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId),
-            (SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId)[]> adjacency,
-        ISet<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId)> inspected,
-        ISet<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId)> path)
+            (SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId),
+            (SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId)[]> adjacency,
+        ISet<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId)> inspected,
+        ISet<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId)> path)
     {
         if (!path.Add(current))
             return true;
@@ -212,27 +212,27 @@ public static class DependencyValidator
     private static DomainError CreateInvalidDependencyError(
         string message,
         NodeId targetNodeId,
-        RoleId targetRoleId,
+        AudienceId targetAudienceId,
         NodeId sourceNodeId,
-        RoleId sourceRoleId) =>
-        new(DependencyErrorCodes.InvalidDependency, message, CreateDetails(targetNodeId, targetRoleId, sourceNodeId, sourceRoleId));
+        AudienceId sourceAudienceId) =>
+        new(DependencyErrorCodes.InvalidDependency, message, CreateDetails(targetNodeId, targetAudienceId, sourceNodeId, sourceAudienceId));
 
-    private static DomainError CreateCycleError(NodeId nodeId, RoleId roleId) =>
+    private static DomainError CreateCycleError(NodeId nodeId, AudienceId audienceId) =>
         new(
             DependencyErrorCodes.DependencyCycle,
             "Content-Abhängigkeiten dürfen keine direkten oder transitiven Zyklen bilden.",
-            CreateDetails(nodeId, roleId, nodeId, roleId));
+            CreateDetails(nodeId, audienceId, nodeId, audienceId));
 
     private static IReadOnlyDictionary<string, string> CreateDetails(
         NodeId targetNodeId,
-        RoleId targetRoleId,
+        AudienceId targetAudienceId,
         NodeId sourceNodeId,
-        RoleId sourceRoleId) =>
+        AudienceId sourceAudienceId) =>
         new Dictionary<string, string>
         {
             [DependencyErrorCodes.TargetNodeIdDetail] = targetNodeId.ToString(),
-            [DependencyErrorCodes.TargetRoleIdDetail] = targetRoleId.ToString(),
+            [DependencyErrorCodes.TargetAudienceIdDetail] = targetAudienceId.ToString(),
             [DependencyErrorCodes.SourceNodeIdDetail] = sourceNodeId.ToString(),
-            [DependencyErrorCodes.SourceRoleIdDetail] = sourceRoleId.ToString()
+            [DependencyErrorCodes.SourceAudienceIdDetail] = sourceAudienceId.ToString()
         };
 }

@@ -14,7 +14,7 @@ public sealed class SearchBreadcrumbLoaderTests
     public async Task LoadAsync_MapsTheCompleteAncestorPathWithoutExposingDomainTypes()
     {
         var snapshotId = new SnapshotId(1);
-        var roleId = new RoleId("Developer");
+        var roleId = new AudienceId("Developer");
         var harness = new NavigationTestHarness(snapshotId);
         var rootId = new NodeId(Guid.Parse("60000000-0000-0000-0000-000000000006"));
         var childId = new NodeId(Guid.Parse("70000000-0000-0000-0000-000000000007"));

@@ -53,7 +53,7 @@ internal sealed class SearchBreadcrumbLoader
             var result = await _navigationService.GetNodeAsync(
                 new NodeId(currentNodeId),
                 readContext,
-                new RoleId(roleId),
+                new AudienceId(roleId),
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.IsSuccess)

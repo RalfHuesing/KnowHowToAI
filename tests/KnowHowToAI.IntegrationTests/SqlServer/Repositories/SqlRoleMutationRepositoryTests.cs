@@ -1,7 +1,7 @@
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
@@ -21,13 +21,13 @@ public sealed class SqlRoleMutationRepositoryTests
         var transaction = await new SqlTransactionRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 })
             .BeginAsync(new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
         var repository = new SqlRoleMutationRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
-        var roleId = new RoleId("Developer");
+        var roleId = new AudienceId("Developer");
 
         var result = await repository.ExecuteAsync(transaction.TransactionId, state =>
         {
-            var role = new Role(state.SnapshotId, roleId, "Developer", null, IsDeleted: false);
-            return Result<WorkingRoleMutationDecision<RoleId>>.Success(
-                new WorkingRoleMutationDecision<RoleId>(roleId, state with { Roles = [..state.Roles, role] }));
+            var role = new Audience(state.SnapshotId, roleId, "Developer", null, IsDeleted: false);
+            return Result<WorkingAudienceMutationDecision<AudienceId>>.Success(
+                new WorkingAudienceMutationDecision<AudienceId>(roleId, state with { Audiences = [..state.Audiences, role] }));
         }, 0);
 
         Assert.True(result.IsSuccess);
@@ -45,19 +45,19 @@ public sealed class SqlRoleMutationRepositoryTests
         var transaction = await new SqlTransactionRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 })
             .BeginAsync(new BeginTransactionRequest(new TransactionId(Guid.NewGuid()), null, null, "xUnit"));
         var repository = new SqlRoleMutationRepository(database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
-        var defaultRole = new RoleId("Default");
+        var defaultRole = new AudienceId("Default");
 
         var result = await repository.ExecuteAsync(transaction.TransactionId, state =>
         {
-            var existing = state.Roles.Single(r => r.RoleId == defaultRole);
+            var existing = state.Audiences.Single(r => r.AudienceId == defaultRole);
             var updatedRole = existing with { Description = "Aktualisiert" };
-            var newResolution = new RoleResolution(state.SnapshotId, defaultRole, defaultRole, 1);
-            return Result<WorkingRoleMutationDecision<RoleId>>.Success(
-                new WorkingRoleMutationDecision<RoleId>(
+            var newResolution = new AudienceResolution(state.SnapshotId, defaultRole, defaultRole, 1);
+            return Result<WorkingAudienceMutationDecision<AudienceId>>.Success(
+                new WorkingAudienceMutationDecision<AudienceId>(
                     defaultRole,
                     state with
                     {
-                        Roles = state.Roles.Select(r => r.RoleId == defaultRole ? updatedRole : r).ToArray(),
+                        Audiences = state.Audiences.Select(r => r.AudienceId == defaultRole ? updatedRole : r).ToArray(),
                         Resolutions = [newResolution]
                     }));
         }, 0);
@@ -74,6 +74,6 @@ public sealed class SqlRoleMutationRepositoryTests
 
         var workingResolutions = await roleRepository.ListResolutionsBySnapshotAsync(transaction.WorkingSnapshotId);
         Assert.Single(workingResolutions);
-        Assert.Equal(defaultRole, workingResolutions[0].CandidateRoleId);
+        Assert.Equal(defaultRole, workingResolutions[0].CandidateAudienceId);
     }
 }

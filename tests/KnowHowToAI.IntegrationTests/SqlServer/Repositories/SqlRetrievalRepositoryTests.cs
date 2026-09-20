@@ -1,4 +1,4 @@
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
@@ -21,8 +21,8 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Repositories;
 [Collection("ManualDatabaseIntegration")]
 public sealed class SqlRetrievalRepositoryTests
 {
-    private static readonly RoleId RoleDev = new("Developer");
-    private static readonly RoleId RoleConsultant = new("Consultant");
+    private static readonly AudienceId RoleDev = new("Developer");
+    private static readonly AudienceId RoleConsultant = new("Consultant");
 
     [Fact]
     public async Task SearchAsync_TitleHit_ReturnsRank1WithNullSnippet()
@@ -114,7 +114,7 @@ public sealed class SqlRetrievalRepositoryTests
         Assert.Equal(node.NodeId, hit.NodeId);
         Assert.Equal("Content", hit.HitField);
         Assert.Equal(Availability.Fallback, hit.Availability);
-        Assert.Equal(RoleDev, hit.ResolvedRoleId);
+        Assert.Equal(RoleDev, hit.ResolvedAudienceId);
         Assert.NotNull(hit.Snippet);
         Assert.Contains("architectural", hit.Snippet);
     }
@@ -147,7 +147,7 @@ public sealed class SqlRetrievalRepositoryTests
         var committed = await session.CommitAsync(database, "Filtertest committen");
 
         var filter = new SearchFilter(
-            [RoleDev, new RoleId("AndereRolle")],
+            [RoleDev, new AudienceId("AndereRolle")],
             [Availability.Explicit, Availability.Fallback],
             [Freshness.Stale],
             ["StaleDerivedContent"]);
@@ -231,9 +231,9 @@ public sealed class SqlRetrievalRepositoryTests
         var hit = Assert.Single(result);
         Assert.Equal("Content", hit.HitField);
         Assert.Equal(Availability.Explicit, hit.Availability);
-        Assert.Equal(RoleDev, hit.ResolvedRoleId);
-        Assert.Contains(result.Roles!, role => role.RoleId == RoleDev && !role.IsDeleted);
-        Assert.Contains(result.Resolutions!, resolution => resolution.RequestedRoleId == RoleDev);
+        Assert.Equal(RoleDev, hit.ResolvedAudienceId);
+        Assert.Contains(result.Audiences!, role => role.AudienceId == RoleDev && !role.IsDeleted);
+        Assert.Contains(result.Resolutions!, resolution => resolution.RequestedAudienceId == RoleDev);
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public sealed class SqlRetrievalRepositoryTests
         {
             var created = await session.CreateNodeAsync(null, "Overview", "Describes clustering options", 0);
             await session.ReplaceIndependentContentAsync(
-                created.NodeId, new RoleId("Default"), "Content about clustering internals");
+                created.NodeId, new AudienceId("Default"), "Content about clustering internals");
             return created;
         });
 
@@ -259,7 +259,7 @@ public sealed class SqlRetrievalRepositoryTests
         var hit = Assert.Single(titleResult);
         Assert.Equal("Title", hit.HitField);
         Assert.Equal(Availability.None, hit.Availability);
-        Assert.Null(hit.ResolvedRoleId);
+        Assert.Null(hit.ResolvedAudienceId);
         Assert.Null(hit.Snippet);
     }
 
@@ -295,13 +295,13 @@ public sealed class SqlRetrievalRepositoryTests
         await SqlTestDatabase.CreateMigrator(database).MigrateAsync();
 
         var service = CreateSearchService(database);
-        var result = await service.SearchAsync(new SearchQuery("text", RoleId: new RoleId("Missing")), new ReadContext());
+        var result = await service.SearchAsync(new SearchQuery("text", AudienceId: new AudienceId("Missing")), new ReadContext());
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleNotFound, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.RequestedAudienceNotFound, result.Error!.Code);
         Assert.Equal(
             "Missing",
-            result.Error.Details[RoleResolutionErrorCodes.RequestedRoleIdDetail]);
+            result.Error.Details[AudienceResolutionErrorCodes.RequestedAudienceIdDetail]);
     }
 
     [Fact]
@@ -313,15 +313,15 @@ public sealed class SqlRetrievalRepositoryTests
         var (snapshotId, _) = await SeedCommittedSnapshotAsync(database, async session =>
         {
             await session.CreateRoleAsync("Ghost", null);
-            await session.DeleteRoleAsync(new RoleId("Ghost"));
+            await session.DeleteRoleAsync(new AudienceId("Ghost"));
             return true;
         });
 
         var service = CreateSearchService(database);
-        var result = await service.SearchAsync(new SearchQuery("text", RoleId: new RoleId("Ghost")), new ReadContext());
+        var result = await service.SearchAsync(new SearchQuery("text", AudienceId: new AudienceId("Ghost")), new ReadContext());
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleDeleted, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.RequestedAudienceDeleted, result.Error!.Code);
     }
 
     [Fact]
@@ -338,15 +338,15 @@ public sealed class SqlRetrievalRepositoryTests
         await using var session = await WorkingTransactionSession.BeginAsync(
             database, transactionId, new SequentialIdentifierGenerator(), "Repo-Test");
         await session.CreateRoleAsync("Ghost", null);
-        await session.SetResolutionAsync(new RoleId("Default"), new RoleId("Ghost"));
-        await TombstoneRoleAsync(database, transactionId, new RoleId("Ghost"));
+        await session.SetResolutionAsync(new AudienceId("Default"), new AudienceId("Ghost"));
+        await TombstoneRoleAsync(database, transactionId, new AudienceId("Ghost"));
 
         var service = CreateSearchService(database);
         var result = await service.SearchAsync(
-            new SearchQuery("text", RoleId: new RoleId("Default")), new ReadContext(transactionId));
+            new SearchQuery("text", AudienceId: new AudienceId("Default")), new ReadContext(transactionId));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.CandidateRoleDeleted, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.CandidateAudienceDeleted, result.Error!.Code);
     }
 
     [Fact]
@@ -357,7 +357,7 @@ public sealed class SqlRetrievalRepositoryTests
 
         var (snapshotId, _) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            var roleWithoutOrder = new RoleId("NoOrder");
+            var roleWithoutOrder = new AudienceId("NoOrder");
             await session.CreateRoleAsync("NoOrder", null);
             var created = await session.CreateNodeAsync(null, "Neuland Overview", null, 0);
             await session.ReplaceIndependentContentAsync(
@@ -366,11 +366,11 @@ public sealed class SqlRetrievalRepositoryTests
         });
 
         var service = CreateSearchService(database);
-        var contentResult = await service.SearchAsync(new SearchQuery("internals", RoleId: new RoleId("NoOrder")), new ReadContext());
+        var contentResult = await service.SearchAsync(new SearchQuery("internals", AudienceId: new AudienceId("NoOrder")), new ReadContext());
         Assert.True(contentResult.IsSuccess);
         Assert.Empty(contentResult.Value!.Items);
 
-        var titleResult = await service.SearchAsync(new SearchQuery("Neuland", RoleId: new RoleId("NoOrder")), new ReadContext());
+        var titleResult = await service.SearchAsync(new SearchQuery("Neuland", AudienceId: new AudienceId("NoOrder")), new ReadContext());
         Assert.True(titleResult.IsSuccess);
         Assert.Single(titleResult.Value!.Items);
     }
@@ -383,7 +383,7 @@ public sealed class SqlRetrievalRepositoryTests
 
         var (snapshotId, nodes) = await SeedCommittedSnapshotAsync(database, async session =>
         {
-            var defaultRole = new RoleId("Default");
+            var defaultRole = new AudienceId("Default");
             await session.CreateRoleAsync("Developer", null);
             await session.SetResolutionAsync(RoleDev, defaultRole, RoleDev);
             var fallbackNode = await session.CreateNodeAsync(null, "Fallback Node", null, 10);
@@ -394,17 +394,17 @@ public sealed class SqlRetrievalRepositoryTests
         });
 
         var service = CreateSearchService(database);
-        var result = await service.SearchAsync(new SearchQuery("marker", RoleId: RoleDev), new ReadContext());
+        var result = await service.SearchAsync(new SearchQuery("marker", AudienceId: RoleDev), new ReadContext());
 
         Assert.True(result.IsSuccess);
         Assert.Equal(2, result.Value!.Items.Count);
         var fallbackHit = Assert.Single(result.Value.Items, hit => hit.NodeId == nodes.FallbackNode.NodeId);
         Assert.Equal("Content", fallbackHit.HitField);
         Assert.Equal(Availability.Fallback, fallbackHit.Availability);
-        Assert.Equal(new RoleId("Default"), fallbackHit.ResolvedRoleId);
+        Assert.Equal(new AudienceId("Default"), fallbackHit.ResolvedAudienceId);
         var explicitHit = Assert.Single(result.Value.Items, hit => hit.NodeId == nodes.ExplicitNode.NodeId);
         Assert.Equal(Availability.Explicit, explicitHit.Availability);
-        Assert.Equal(RoleDev, explicitHit.ResolvedRoleId);
+        Assert.Equal(RoleDev, explicitHit.ResolvedAudienceId);
     }
 
     private static SearchService CreateSearchService(SqlTestDatabase database) => new(
@@ -437,16 +437,16 @@ public sealed class SqlRetrievalRepositoryTests
         return (committed.WorkingSnapshotId, value);
     }
 
-    private static async Task TombstoneRoleAsync(SqlTestDatabase database, TransactionId transactionId, RoleId roleId)
+    private static async Task TombstoneRoleAsync(SqlTestDatabase database, TransactionId transactionId, AudienceId roleId)
     {
         var repository = new SqlRoleMutationRepository(
             database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
         var result = await repository.ExecuteAsync(transactionId, state =>
         {
-            var deleted = state.Roles.Single(candidate => candidate.RoleId == roleId) with { IsDeleted = true };
-            var roles = state.Roles.Select(candidate => candidate.RoleId == roleId ? deleted : candidate).ToArray();
-            return Result<WorkingRoleMutationDecision<Role>>.Success(
-                new WorkingRoleMutationDecision<Role>(deleted, state with { Roles = roles }));
+            var deleted = state.Audiences.Single(candidate => candidate.AudienceId == roleId) with { IsDeleted = true };
+            var roles = state.Audiences.Select(candidate => candidate.AudienceId == roleId ? deleted : candidate).ToArray();
+            return Result<WorkingAudienceMutationDecision<Audience>>.Success(
+                new WorkingAudienceMutationDecision<Audience>(deleted, state with { Audiences = roles }));
         }, 0);
         Assert.True(result.IsSuccess);
     }

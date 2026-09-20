@@ -24,7 +24,7 @@ Zentrale Ziele:
 - Wissen für Agenten gezielt und token-effizient verfügbar machen.
 - Wissen strukturiert statt als große monolithische Markdown-Dateien speichern.
 - unterschiedliche Darstellungen desselben fachlichen Sachverhalts für verschiedene
-  Rollen ermöglichen.
+  Zielgruppen ermöglichen.
 - unnötige Inhaltsduplikate vermeiden.
 - strukturellen und inhaltlichen Drift kontrollierbar machen.
 - sämtliche Änderungen versioniert und nachvollziehbar halten.
@@ -35,7 +35,7 @@ Zentrale Ziele:
 ## Kein Dateisystem für Markdown
 
 KnowHowToAI ist **kein Dateisystem für Markdown-Dateien**. Markdown ist das
-Inhaltsformat einzelner Wissenselemente. Struktur, Versionierung, Rollen und
+Inhaltsformat einzelner Wissenselemente. Struktur, Versionierung, Zielgruppen und
 Beziehungen liegen im relationalen Datenmodell
 ([Wissenshierarchie](Wissenshierarchie.md), [Datenmodell](Datenmodell.md)).
 Alle Lese- und Schreibvorgänge laufen direkt über die
@@ -78,7 +78,7 @@ vollständig. Stattdessen gilt:
 
 Das System erkennt jederzeit, dass abgeleiteter Content nicht mehr auf den
 aktuellen Quellen basiert
-([Rollen und Content](Rollen-und-Content.md)). Das ist wichtiger als permanente
+([Zielgruppen und Content](Zielgruppen-und-Content.md)). Das ist wichtiger als permanente
 automatische Synchronisation.
 
 ## Dokumentationssynchronisation ist ein eigener Workflow
@@ -102,7 +102,7 @@ Ein Synchronisations-Agent erhält zu einem selbstgewählten Zeitpunkt die
 Informationen über stale abgeleitete Inhalte, neue relevante Nodes, fehlende
 Inhalte und aktuelle Quellinhalte, und aktualisiert die abgeleitete Dokumentation
 gezielt in einer eigenen Transaction mit neuen Source-Revisions
-(Provenienz: [Rollen und Content](Rollen-und-Content.md)).
+(Provenienz: [Zielgruppen und Content](Zielgruppen-und-Content.md)).
 
 ## Typischer Arbeitsablauf
 
@@ -110,7 +110,7 @@ gezielt in einer eigenen Transaction mit neuen Source-Revisions
    committen.
 2. **Entwicklung**: Consultant-Wissen lesen, implementieren, Developer-Wissen
    ergänzen; Inhalte mehrfach verändern; mehrere Transactions und Snapshots sind
-   möglich. Abhängige Rollen-Inhalte werden dabei stale, aber nicht automatisch
+   möglich. Abhängige Zielgruppen-Inhalte werden dabei stale, aber nicht automatisch
    geändert.
 3. **Dokumentationssynchronisation**: zu einem späteren, bewussten Zeitpunkt
    werden stale Inhalte aktualisiert.

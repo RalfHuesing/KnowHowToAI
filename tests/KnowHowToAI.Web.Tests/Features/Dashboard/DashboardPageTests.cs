@@ -114,8 +114,8 @@ public sealed class DashboardPageTests : Bunit.BunitContext
         var invalidNode = new Node(new SnapshotId(10), new NodeId(Guid.NewGuid()), null, "", null, 1, false);
         harness.SetTransactionValidationData(txId, new WorkingSnapshotValidationData(
             Nodes: [invalidNode],
-            Roles: [],
-            RoleResolutions: [],
+            Audiences: [],
+            AudienceResolutions: [],
             Contents: [],
             Dependencies: []));
 

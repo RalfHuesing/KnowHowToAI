@@ -34,7 +34,7 @@ public sealed class DashboardMapperTests
 
         var openTxSummary = new OpenTransactionSummary(tx, [new DomainError("TestError", "Harter Fehler")]);
 
-        var staleContent = new StaleContent(new NodeId(Guid.NewGuid()), new RoleId("Dev"), new ContentRevisionId(Guid.NewGuid()));
+        var staleContent = new StaleContent(new NodeId(Guid.NewGuid()), new AudienceId("Dev"), new ContentRevisionId(Guid.NewGuid()));
         var warning = new DomainWarning("WarnungCode", "Qualitätswarnung");
         var qualitySummary = new CurrentQualitySummary([staleContent], [warning], []);
 

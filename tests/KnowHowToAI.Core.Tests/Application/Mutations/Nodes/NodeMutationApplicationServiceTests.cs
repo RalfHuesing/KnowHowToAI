@@ -34,7 +34,7 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.True(result.IsSuccess);
         Assert.Equal(SnapshotId, result.Value!.SnapshotId);
         Assert.Equal(1, result.Value.ChangeVersion);
-        Assert.True(result.Value.AppliesToAllRoles);
+        Assert.True(result.Value.AppliesToAllAudiences);
         Assert.Contains(SecondChildNodeId, result.Value.AffectedNodeIds);
         Assert.Contains(result.Warnings, warning => warning.Code == QualityWarningCodes.TooManyChildren);
         Assert.Equal(3, repository.State.Nodes.Count(node => !node.IsDeleted));
@@ -53,7 +53,7 @@ public sealed class NodeMutationApplicationServiceTests
         Assert.True(result.IsSuccess);
         Assert.Equal("Neuer Titel", result.Value!.Node.Title);
         Assert.Equal("Neue Beschreibung", result.Value.Node.Description);
-        Assert.True(result.Value.AppliesToAllRoles);
+        Assert.True(result.Value.AppliesToAllAudiences);
         Assert.Equal("Neuer Titel", Find(repository.State.Nodes, FirstChildNodeId).Title);
     }
 
@@ -470,7 +470,7 @@ public sealed class NodeMutationApplicationServiceTests
         new(
             SnapshotId,
             nodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("b4e0e04a-2dce-4b5e-8b34-4bd2b9f0e020")),
             ContentMode.Independent,
             "Content",

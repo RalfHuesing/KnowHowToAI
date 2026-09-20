@@ -112,22 +112,22 @@ internal static class McpHistoryMapper
     private static IReadOnlyList<McpDiffEntryData> ToFlatEntries(SnapshotDiff diff)
     {
         var entries = new List<McpDiffEntryData>(
-            diff.Nodes.Count + diff.Roles.Count + diff.RoleResolutions.Count +
+            diff.Nodes.Count + diff.Audiences.Count + diff.AudienceResolutions.Count +
             diff.Contents.Count + diff.Dependencies.Count);
 
-        foreach (var e in diff.Roles)
+        foreach (var e in diff.Audiences)
         {
             var side = e.After ?? e.Before;
-            entries.Add(new McpDiffEntryData(e.Kind.ToString(), "role", side!.RoleId.ToString()));
+            entries.Add(new McpDiffEntryData(e.Kind.ToString(), "role", side!.AudienceId.ToString()));
         }
 
-        foreach (var e in diff.RoleResolutions)
+        foreach (var e in diff.AudienceResolutions)
         {
             var side = e.After ?? e.Before;
             entries.Add(new McpDiffEntryData(
                 e.Kind.ToString(), "roleResolution",
-                side!.RequestedRoleId.ToString(),
-                side.CandidateRoleId.ToString()));
+                side!.RequestedAudienceId.ToString(),
+                side.CandidateAudienceId.ToString()));
         }
 
         foreach (var e in diff.Nodes)
@@ -142,7 +142,7 @@ internal static class McpHistoryMapper
             entries.Add(new McpDiffEntryData(
                 e.Kind.ToString(), "content",
                 side!.NodeId.ToString(),
-                side.RoleId.ToString()));
+                side.AudienceId.ToString()));
         }
 
         foreach (var e in diff.Dependencies)
@@ -151,9 +151,9 @@ internal static class McpHistoryMapper
             entries.Add(new McpDiffEntryData(
                 e.Kind.ToString(), "dependency",
                 side!.TargetNodeId.ToString(),
-                side.TargetRoleId.ToString(),
+                side.TargetAudienceId.ToString(),
                 side.SourceNodeId.ToString(),
-                side.SourceRoleId.ToString()));
+                side.SourceAudienceId.ToString()));
         }
 
         return entries;

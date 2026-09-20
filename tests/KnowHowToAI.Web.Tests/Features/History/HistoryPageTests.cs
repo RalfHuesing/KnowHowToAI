@@ -224,7 +224,7 @@ public sealed class HistoryPageTests : BunitContext
             harness.AddContent(new NodeContent(
                 new SnapshotId(2),
                 nodeId,
-                new RoleId("Developer"),
+                new AudienceId("Developer"),
                 new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000001")),
                 ContentMode.Independent,
                 "Vorher",
@@ -232,7 +232,7 @@ public sealed class HistoryPageTests : BunitContext
             harness.AddContent(new NodeContent(
                 new SnapshotId(3),
                 nodeId,
-                new RoleId("Developer"),
+                new AudienceId("Developer"),
                 new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000002")),
                 ContentMode.Independent,
                 "Nachher",

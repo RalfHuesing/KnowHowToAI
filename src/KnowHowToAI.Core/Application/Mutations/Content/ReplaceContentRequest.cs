@@ -6,7 +6,7 @@ namespace KnowHowToAI.Core.Application.Mutations.Content;
 /// <summary>Transportneutrale Eingabe für einen vollständigen Content-Replace.</summary>
 public sealed record ReplaceContentRequest(
     NodeId NodeId,
-    RoleId RoleId,
+    AudienceId AudienceId,
     ContentMode ContentMode,
     string ContentMd,
     IReadOnlyList<ContentDependencySource> Sources,
@@ -15,5 +15,5 @@ public sealed record ReplaceContentRequest(
 /// <summary>Bezeichnet eine beim Ableiten verwendete explizite Source-Revision.</summary>
 public sealed record ContentDependencySource(
     NodeId NodeId,
-    RoleId RoleId,
+    AudienceId AudienceId,
     ContentRevisionId ContentRevisionId);

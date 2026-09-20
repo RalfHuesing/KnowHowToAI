@@ -5,24 +5,24 @@ using KnowHowToAI.Core.Domain.Common;
 namespace KnowHowToAI.Core.Application.Navigation;
 
 /// <summary>
-/// Opaker, URL-sicherer Keyset-Cursor für <see cref="NavigationService.ListRolesAsync"/>.
+/// Opaker, URL-sicherer Keyset-Cursor für <see cref="NavigationService.ListAudiencesAsync"/>.
 /// Bindet die Cursor-Position an Snapshot, Filter (IncludeDeleted) und bei
 /// Working Reads an <see cref="ChangeVersion"/> zur Erkennung abgelaufener Resultsets.
 /// </summary>
-public sealed record RoleCursor(
+public sealed record AudienceCursor(
     SnapshotId SnapshotId,
     long? ChangeVersion,
     bool IncludeDeleted,
-    RoleId LastRoleId)
+    AudienceId LastAudienceId)
 {
     /// <summary>Serialisiert und kodiert den Cursor als opaken Base64Url-String.</summary>
     public string Encode()
     {
-        var dto = new RoleCursorDto(
+        var dto = new AudienceCursorDto(
             SnapshotId.Value,
             ChangeVersion,
             IncludeDeleted,
-            LastRoleId.Value);
+            LastAudienceId.Value);
 
         var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(dto);
         return Base64Url.EncodeToString(jsonBytes);
@@ -32,7 +32,7 @@ public sealed record RoleCursor(
     /// Versucht, einen opaken Base64Url-Cursor zu parsen.
     /// Liefert <c>null</c>, wenn der String ungültig, manipuliert oder nicht dekodierbar ist.
     /// </summary>
-    public static RoleCursor? TryDecode(string? cursor)
+    public static AudienceCursor? TryDecode(string? cursor)
     {
         if (string.IsNullOrWhiteSpace(cursor))
             return null;
@@ -40,18 +40,18 @@ public sealed record RoleCursor(
         try
         {
             var bytes = Base64Url.DecodeFromChars(cursor);
-            var dto = JsonSerializer.Deserialize<RoleCursorDto>(bytes);
+            var dto = JsonSerializer.Deserialize<AudienceCursorDto>(bytes);
             if (dto is null
                 || dto.SnapshotId <= 0
                 || dto.ChangeVersion is < 0
-                || string.IsNullOrWhiteSpace(dto.LastRoleId))
+                || string.IsNullOrWhiteSpace(dto.LastAudienceId))
                 return null;
 
-            return new RoleCursor(
+            return new AudienceCursor(
                 new SnapshotId(dto.SnapshotId),
                 dto.ChangeVersion,
                 dto.IncludeDeleted,
-                new RoleId(dto.LastRoleId));
+                new AudienceId(dto.LastAudienceId));
         }
         catch
         {
@@ -59,9 +59,9 @@ public sealed record RoleCursor(
         }
     }
 
-    private sealed record RoleCursorDto(
+    private sealed record AudienceCursorDto(
         long SnapshotId,
         long? ChangeVersion,
         bool IncludeDeleted,
-        string LastRoleId);
+        string LastAudienceId);
 }

@@ -8,7 +8,7 @@ Das Wissen liegt in einer Baumstruktur. Beispiel:
 Sage 100
 ├── Administration
 │   ├── Benutzerverwaltung
-│   ├── Rollen und Rechte
+│   ├── Zielgruppen und Rechte
 │   └── Datensicherung
 │
 └── Verkauf
@@ -45,9 +45,9 @@ und die betroffenen Gruppen wieder auf die lückenlose Reihenfolge `0..N-1`
 normalisiert. Die NodeId ist dabei nur ein Tie-Breaker für bereits ungültige
 Gleichstände, nicht die Semantik einer neuen Verschiebung.
 
-## Eine globale Hierarchie für alle Rollen
+## Eine globale Hierarchie für alle Zielgruppen
 
-Alle Rollen verwenden dieselben Nodes und dieselbe Hierarchie. Es gibt keine
+Alle Zielgruppen verwenden dieselben Nodes und dieselbe Hierarchie. Es gibt keine
 getrennte Entwickler-, Consultant- oder Endanwender-Hierarchie.
 
 ```text
@@ -58,7 +58,7 @@ Auftragserfassung
 ```
 
 Dadurch bleibt die fachliche Zuordnung zwischen den unterschiedlichen Darstellungen
-erhalten. Getrennte Strukturen pro Rolle würden den fachlichen Zusammenhang
+erhalten. Getrennte Strukturen pro Zielgruppe würden den fachlichen Zusammenhang
 zerstören; die gemeinsame Hierarchie ist ein wesentliches Mittel gegen
 strukturellen Drift.
 

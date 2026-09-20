@@ -40,7 +40,7 @@ internal sealed class NavigationTools
             return McpToolEnvelope<McpNodeData>.Failure(context.Error!);
 
         var result = await _navigationService
-            .GetRootAsync(context.Value!, new RoleId(roleId), cancellationToken)
+            .GetRootAsync(context.Value!, new AudienceId(roleId), cancellationToken)
             .ConfigureAwait(false);
         return McpNavigationMapper.ToEnvelope(result);
     }
@@ -64,7 +64,7 @@ internal sealed class NavigationTools
             return McpToolEnvelope<McpNodeData>.Failure(parsedNodeId.Error!);
 
         var result = await _navigationService
-            .GetNodeAsync(parsedNodeId.Value!.Value, context.Value!, new RoleId(roleId), cancellationToken)
+            .GetNodeAsync(parsedNodeId.Value!.Value, context.Value!, new AudienceId(roleId), cancellationToken)
             .ConfigureAwait(false);
         return McpNavigationMapper.ToEnvelope(result);
     }
@@ -95,7 +95,7 @@ internal sealed class NavigationTools
         var query = new ListChildrenQuery(
             parsedParentNodeId.Value,
             context.Value!,
-            new RoleId(roleId),
+            new AudienceId(roleId),
             McpPagingMapper.NormalizeLimit(limit, _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize),
             cursor);
         var result = await _navigationService.ListChildrenAsync(query, cancellationToken).ConfigureAwait(false);
@@ -117,11 +117,11 @@ internal sealed class NavigationTools
         if (!context.IsSuccess)
             return McpToolEnvelope<McpRolePageData>.Failure(context.Error!);
 
-        var query = new ListRolesQuery(
+        var query = new ListAudiencesQuery(
             context.Value!,
             McpPagingMapper.NormalizeLimit(limit, _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize),
             cursor);
-        var result = await _navigationService.ListRolesAsync(query, cancellationToken).ConfigureAwait(false);
+        var result = await _navigationService.ListAudiencesAsync(query, cancellationToken).ConfigureAwait(false);
         return McpNavigationMapper.ToEnvelope(result);
     }
 

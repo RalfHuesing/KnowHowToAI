@@ -9,7 +9,7 @@ public static class DependencyErrorCodes
     public const string DependencyCycle = "DependencyCycle";
 
     public const string TargetNodeIdDetail = "targetNodeId";
-    public const string TargetRoleIdDetail = "targetRoleId";
+    public const string TargetAudienceIdDetail = "targetAudienceId";
     public const string SourceNodeIdDetail = "sourceNodeId";
-    public const string SourceRoleIdDetail = "sourceRoleId";
+    public const string SourceAudienceIdDetail = "sourceAudienceId";
 }

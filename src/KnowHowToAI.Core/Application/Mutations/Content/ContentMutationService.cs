@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Dependencies;
 namespace KnowHowToAI.Core.Application.Mutations.Content;
 
 /// <summary>
-/// Wendet Content-Mutationen ausschließlich auf explizite Rollen-Contents an.
+/// Wendet Content-Mutationen ausschließlich auf explizite Zielgruppen-Contents an.
 /// </summary>
 public sealed class ContentMutationService(ContentRevisionService revisionService)
 {
@@ -23,7 +23,7 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
         var contents = existingContents.ToArray();
         var dependencies = existingDependencies.ToArray();
         var existingContent = contents.SingleOrDefault(content =>
-            !content.IsDeleted && content.NodeId == command.NodeId && content.RoleId == command.RoleId);
+            !content.IsDeleted && content.NodeId == command.NodeId && content.AudienceId == command.AudienceId);
         var assignment = _revisionService.Assign(existingContent, command.ContentMd);
         var structureReport = MarkdownStructureValidator.Validate(
             assignment.NormalizedContentMd,
@@ -35,7 +35,7 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
         var changedContent = new NodeContent(
             command.SnapshotId,
             command.NodeId,
-            command.RoleId,
+            command.AudienceId,
             assignment.ContentRevisionId,
             command.ContentMode,
             assignment.NormalizedContentMd,
@@ -46,7 +46,7 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
         var unchangedDependencies = dependencies.Where(dependency =>
             dependency.SnapshotId != command.SnapshotId
             || dependency.TargetNodeId != command.NodeId
-            || dependency.TargetRoleId != command.RoleId);
+            || dependency.TargetAudienceId != command.AudienceId);
         var updatedDependencies = Array.AsReadOnly(unchangedDependencies.Concat(command.Dependencies).ToArray());
         var dependencyReport = DependencyValidator.ValidateNewOrChangedDependencies(
             updatedContents,
@@ -68,7 +68,7 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
         ArgumentNullException.ThrowIfNull(command);
 
         var contents = existingContents.ToArray();
-        var explicitContentResult = FindSingleActiveExplicitContent(contents, command.NodeId, command.RoleId);
+        var explicitContentResult = FindSingleActiveExplicitContent(contents, command.NodeId, command.AudienceId);
         if (!explicitContentResult.IsSuccess)
             return Result<ContentMutationResult>.Failure(explicitContentResult.Error!);
 
@@ -105,7 +105,7 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
 
         var contents = existingContents.ToArray();
         var dependencies = existingDependencies.ToArray();
-        var explicitContentResult = FindSingleActiveExplicitContent(contents, command.NodeId, command.RoleId);
+        var explicitContentResult = FindSingleActiveExplicitContent(contents, command.NodeId, command.AudienceId);
         if (!explicitContentResult.IsSuccess)
             return Result<ContentDeletionResult>.Failure(explicitContentResult.Error!);
 
@@ -114,7 +114,7 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
         var updatedDependencies = Array.AsReadOnly(dependencies
             .Where(dependency => dependency.SnapshotId != deletedContent.SnapshotId
                 || dependency.TargetNodeId != deletedContent.NodeId
-                || dependency.TargetRoleId != deletedContent.RoleId)
+                || dependency.TargetAudienceId != deletedContent.AudienceId)
             .ToArray());
 
         return Result<ContentDeletionResult>.Success(
@@ -124,32 +124,32 @@ public sealed class ContentMutationService(ContentRevisionService revisionServic
     private static Result<NodeContent> FindSingleActiveExplicitContent(
         IEnumerable<NodeContent> contents,
         NodeId nodeId,
-        RoleId roleId)
+        AudienceId audienceId)
     {
         var matchingContents = contents
-            .Where(content => !content.IsDeleted && content.NodeId == nodeId && content.RoleId == roleId)
+            .Where(content => !content.IsDeleted && content.NodeId == nodeId && content.AudienceId == audienceId)
             .ToArray();
 
         return matchingContents.Length == 1
             ? Result<NodeContent>.Success(matchingContents[0])
-            : Result<NodeContent>.Failure(CreateContentNotFoundError(nodeId, roleId));
+            : Result<NodeContent>.Failure(CreateContentNotFoundError(nodeId, audienceId));
     }
 
     private static IReadOnlyList<NodeContent> Replace(IEnumerable<NodeContent> contents, NodeContent replacement) =>
         Array.AsReadOnly(contents.Select(content =>
             content.SnapshotId == replacement.SnapshotId
                 && content.NodeId == replacement.NodeId
-                && content.RoleId == replacement.RoleId
+                && content.AudienceId == replacement.AudienceId
                 ? replacement
                 : content).ToArray());
 
-    private static DomainError CreateContentNotFoundError(NodeId nodeId, RoleId roleId) =>
+    private static DomainError CreateContentNotFoundError(NodeId nodeId, AudienceId audienceId) =>
         new(
             TextOperationCodes.ExplicitContentNotFound,
-            "Für die angefragte Node und Rolle existiert kein aktiver expliziter Content.",
+            "Für die angefragte Node und Zielgruppe existiert kein aktiver expliziter Content.",
             new Dictionary<string, string>
             {
                 [TextOperationCodes.NodeIdDetail] = nodeId.ToString(),
-                [TextOperationCodes.RoleIdDetail] = roleId.ToString()
+                [TextOperationCodes.AudienceIdDetail] = audienceId.ToString()
             });
 }

@@ -102,7 +102,7 @@ public sealed class SqlBeginTransactionRepositoryTests
         await database.ExecuteAsync("""
             UPDATE dbo.KnowHowToAI_Role
             SET Description = N'Nur im späteren Snapshot geändert'
-            WHERE SnapshotId = @snapshotId AND RoleId = N'Developer';
+            WHERE SnapshotId = @snapshotId AND AudienceId = N'Developer';
             """,
             new SqlParameter("@snapshotId", second.WorkingSnapshotId.Value));
 
@@ -129,7 +129,7 @@ public sealed class SqlBeginTransactionRepositoryTests
                 WHERE Id = 1
             );
 
-            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, RoleId, Name, Description, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_Role (SnapshotId, AudienceId, Name, Description, IsDeleted)
             VALUES (@snapshotId, N'Developer', N'Entwicklung', N'Technische Rolle', 0);
 
             INSERT INTO dbo.KnowHowToAI_RoleResolution (
@@ -143,7 +143,7 @@ public sealed class SqlBeginTransactionRepositoryTests
                 (@snapshotId, @childNodeId, @rootNodeId, N'Kind', N'Beschreibung des Kindes', 0, 0);
 
             INSERT INTO dbo.KnowHowToAI_NodeContent (
-                SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+                SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             VALUES
                 (@snapshotId, @rootNodeId, N'Default', @sourceRevisionId, 'Independent', N'Quellinhalt', 0),
                 (@snapshotId, @childNodeId, N'Developer', @targetRevisionId, 'Derived', N'Abgeleiteter Inhalt', 0);
@@ -210,7 +210,7 @@ public sealed class SqlBeginTransactionRepositoryTests
         command.CommandText = """
             SELECT
                 (SELECT COUNT_BIG(*) FROM dbo.KnowHowToAI_Role
-                    WHERE SnapshotId = @snapshotId AND RoleId = N'Developer'
+                    WHERE SnapshotId = @snapshotId AND AudienceId = N'Developer'
                       AND Name = N'Entwicklung' AND Description = N'Technische Rolle' AND IsDeleted = 0),
                 (SELECT COUNT_BIG(*) FROM dbo.KnowHowToAI_RoleResolution
                     WHERE SnapshotId = @snapshotId AND RequestedRoleId = N'Developer'
@@ -219,7 +219,7 @@ public sealed class SqlBeginTransactionRepositoryTests
                     WHERE SnapshotId = @snapshotId AND NodeId = @childNodeId AND ParentNodeId = @rootNodeId
                       AND Title = N'Kind' AND Description = N'Beschreibung des Kindes' AND SortOrder = 0 AND IsDeleted = 0),
                 (SELECT COUNT_BIG(*) FROM dbo.KnowHowToAI_NodeContent
-                    WHERE SnapshotId = @snapshotId AND NodeId = @childNodeId AND RoleId = N'Developer'
+                    WHERE SnapshotId = @snapshotId AND NodeId = @childNodeId AND AudienceId = N'Developer'
                       AND ContentRevisionId = @targetRevisionId AND ContentMode = 'Derived'
                       AND ContentMd = N'Abgeleiteter Inhalt' AND IsDeleted = 0),
                 (SELECT COUNT_BIG(*) FROM dbo.KnowHowToAI_ContentDependency
@@ -278,18 +278,18 @@ public sealed class SqlBeginTransactionRepositoryTests
         command.CommandText = """
             SELECT (
                 SELECT
-                    (SELECT RoleId, Name, Description, IsDeleted
+                    (SELECT AudienceId, Name, Description, IsDeleted
                      FROM dbo.KnowHowToAI_Role
-                     WHERE SnapshotId = @snapshotId ORDER BY RoleId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Roles,
+                     WHERE SnapshotId = @snapshotId ORDER BY AudienceId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Roles,
                     (SELECT RequestedRoleId, CandidateRoleId, Priority
                      FROM dbo.KnowHowToAI_RoleResolution
                      WHERE SnapshotId = @snapshotId ORDER BY RequestedRoleId, Priority FOR JSON PATH, INCLUDE_NULL_VALUES) AS RoleResolutions,
                     (SELECT NodeId, ParentNodeId, Title, Description, SortOrder, IsDeleted
                      FROM dbo.KnowHowToAI_Node
                      WHERE SnapshotId = @snapshotId ORDER BY SortOrder, NodeId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Nodes,
-                    (SELECT NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
+                    (SELECT NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
                      FROM dbo.KnowHowToAI_NodeContent
-                     WHERE SnapshotId = @snapshotId ORDER BY NodeId, RoleId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Contents,
+                     WHERE SnapshotId = @snapshotId ORDER BY NodeId, AudienceId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Contents,
                     (SELECT TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId, SourceContentRevisionId
                      FROM dbo.KnowHowToAI_ContentDependency
                      WHERE SnapshotId = @snapshotId ORDER BY TargetNodeId, TargetRoleId, SourceNodeId, SourceRoleId FOR JSON PATH, INCLUDE_NULL_VALUES) AS Dependencies
@@ -321,7 +321,7 @@ public sealed class SqlBeginTransactionRepositoryTests
         command.CommandText = """
             SELECT Description
             FROM dbo.KnowHowToAI_Role
-            WHERE SnapshotId = @snapshotId AND RoleId = @roleId;
+            WHERE SnapshotId = @snapshotId AND AudienceId = @roleId;
             """;
         command.Parameters.Add(new SqlParameter("@snapshotId", snapshotId.Value));
         command.Parameters.Add(new SqlParameter("@roleId", roleId));

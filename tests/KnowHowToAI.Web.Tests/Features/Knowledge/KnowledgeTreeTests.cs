@@ -6,7 +6,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.TestSupport;
@@ -21,7 +21,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreeTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly RoleId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultRoleId = new("Developer");
 
     private sealed class CountingHierarchyRepository(IHierarchyRepository inner) : IHierarchyRepository
     {
@@ -229,14 +229,14 @@ public sealed class KnowledgeTreeTests : BunitContext
         var fallbackId = new NodeId(Guid.NewGuid());
         var staleId = new NodeId(Guid.NewGuid());
         var sourceId = new NodeId(Guid.NewGuid());
-        var defaultRoleId = new RoleId("Default");
+        var defaultRoleId = new AudienceId("Default");
         harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
         harness.AddNode(new Node(DefaultSnapshotId, explicitId, rootId, "Explicit", null, 1, false));
         harness.AddNode(new Node(DefaultSnapshotId, fallbackId, rootId, "Fallback", null, 2, false));
         harness.AddNode(new Node(DefaultSnapshotId, staleId, rootId, "Stale", null, 3, false));
         harness.AddNode(new Node(DefaultSnapshotId, sourceId, rootId, "Source", null, 4, false));
-        harness.AddRole(new Role(DefaultSnapshotId, defaultRoleId, "Default", null, false));
-        harness.AddRoleResolution(new RoleResolution(DefaultSnapshotId, DefaultRoleId, defaultRoleId, 2));
+        harness.AddAudience(new Audience(DefaultSnapshotId, defaultRoleId, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, DefaultRoleId, defaultRoleId, 2));
         harness.AddContent(new NodeContent(DefaultSnapshotId, explicitId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Explicit", false));
         harness.AddContent(new NodeContent(DefaultSnapshotId, fallbackId, defaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Fallback", false));
         harness.AddContent(new NodeContent(DefaultSnapshotId, staleId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Stale", false));

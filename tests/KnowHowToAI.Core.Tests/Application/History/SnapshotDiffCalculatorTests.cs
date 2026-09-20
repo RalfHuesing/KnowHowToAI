@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.Core.Tests.Application.History;
 
@@ -12,28 +12,28 @@ public sealed class SnapshotDiffCalculatorTests
 {
     private static readonly SnapshotId BaseSnap = new(10);
     private static readonly SnapshotId TargetSnap = new(11);
-    private static readonly RoleId RoleDev = new("Developer");
-    private static readonly RoleId RoleConsultant = new("Consultant");
+    private static readonly AudienceId AudienceDev = new("Developer");
+    private static readonly AudienceId AudienceConsultant = new("Consultant");
 
     [Fact]
     public void Compute_IdenticalSnapshots_ReturnsEmptyDiff()
     {
         var node = new Node(BaseSnap, new NodeId(Guid.NewGuid()), null, "Title", "Desc", 0, false);
-        var role = new Role(BaseSnap, RoleDev, "Developer", "Desc", false);
-        var res = new RoleResolution(BaseSnap, RoleDev, RoleDev, 1);
-        var content = new NodeContent(BaseSnap, node.NodeId, RoleDev, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Md", false);
-        var dep = new ContentDependency(BaseSnap, node.NodeId, RoleDev, node.NodeId, RoleDev, content.ContentRevisionId);
+        var audience = new Audience(BaseSnap, AudienceDev, "Developer", "Desc", false);
+        var res = new AudienceResolution(BaseSnap, AudienceDev, AudienceDev, 1);
+        var content = new NodeContent(BaseSnap, node.NodeId, AudienceDev, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Md", false);
+        var dep = new ContentDependency(BaseSnap, node.NodeId, AudienceDev, node.NodeId, AudienceDev, content.ContentRevisionId);
 
-        var baseData = new SnapshotData([node], [role], [res], [content], [dep]);
-        var targetData = new SnapshotData([node], [role], [res], [content], [dep]);
+        var baseData = new SnapshotData([node], [audience], [res], [content], [dep]);
+        var targetData = new SnapshotData([node], [audience], [res], [content], [dep]);
 
         var request = new SnapshotDiffCalculationRequest(BaseSnap, TargetSnap, baseData, targetData, 50, 0);
         var diff = SnapshotDiffCalculator.Compute(request);
 
         Assert.Equal(0, diff.TotalCount);
         Assert.Empty(diff.Nodes);
-        Assert.Empty(diff.Roles);
-        Assert.Empty(diff.RoleResolutions);
+        Assert.Empty(diff.Audiences);
+        Assert.Empty(diff.AudienceResolutions);
         Assert.Empty(diff.Contents);
         Assert.Empty(diff.Dependencies);
         Assert.Null(diff.NextCursor);
@@ -86,29 +86,29 @@ public sealed class SnapshotDiffCalculatorTests
     }
 
     [Fact]
-    public void Compute_RolesAndResolutionsChanges_ClassifiesCorrectly()
+    public void Compute_AudiencesAndResolutionsChanges_ClassifiesCorrectly()
     {
-        var role1 = new Role(BaseSnap, RoleDev, "Developer", "Old", false);
-        var role1Updated = new Role(TargetSnap, RoleDev, "Developer Pro", "New", false);
-        var role2 = new Role(TargetSnap, RoleConsultant, "Consultant", "Desc", false);
+        var audience1 = new Audience(BaseSnap, AudienceDev, "Developer", "Old", false);
+        var audience1Updated = new Audience(TargetSnap, AudienceDev, "Developer Pro", "New", false);
+        var audience2 = new Audience(TargetSnap, AudienceConsultant, "Consultant", "Desc", false);
 
-        var res1 = new RoleResolution(BaseSnap, RoleDev, RoleDev, 1);
-        var res1Updated = new RoleResolution(TargetSnap, RoleDev, RoleDev, 2);
-        var res2 = new RoleResolution(TargetSnap, RoleDev, RoleConsultant, 1);
+        var res1 = new AudienceResolution(BaseSnap, AudienceDev, AudienceDev, 1);
+        var res1Updated = new AudienceResolution(TargetSnap, AudienceDev, AudienceDev, 2);
+        var res2 = new AudienceResolution(TargetSnap, AudienceDev, AudienceConsultant, 1);
 
-        var baseData = new SnapshotData([], [role1], [res1], [], []);
-        var targetData = new SnapshotData([], [role1Updated, role2], [res1Updated, res2], [], []);
+        var baseData = new SnapshotData([], [audience1], [res1], [], []);
+        var targetData = new SnapshotData([], [audience1Updated, audience2], [res1Updated, res2], [], []);
 
         var request = new SnapshotDiffCalculationRequest(BaseSnap, TargetSnap, baseData, targetData, 50, 0);
         var diff = SnapshotDiffCalculator.Compute(request);
 
-        Assert.Equal(2, diff.Roles.Count);
-        Assert.Contains(diff.Roles, r => r.Kind == DiffChangeKind.Modified && r.After!.RoleId == RoleDev);
-        Assert.Contains(diff.Roles, r => r.Kind == DiffChangeKind.Added && r.After!.RoleId == RoleConsultant);
+        Assert.Equal(2, diff.Audiences.Count);
+        Assert.Contains(diff.Audiences, r => r.Kind == DiffChangeKind.Modified && r.After!.AudienceId == AudienceDev);
+        Assert.Contains(diff.Audiences, r => r.Kind == DiffChangeKind.Added && r.After!.AudienceId == AudienceConsultant);
 
-        Assert.Equal(2, diff.RoleResolutions.Count);
-        Assert.Contains(diff.RoleResolutions, r => r.Kind == DiffChangeKind.Modified && r.After!.CandidateRoleId == RoleDev);
-        Assert.Contains(diff.RoleResolutions, r => r.Kind == DiffChangeKind.Added && r.After!.CandidateRoleId == RoleConsultant);
+        Assert.Equal(2, diff.AudienceResolutions.Count);
+        Assert.Contains(diff.AudienceResolutions, r => r.Kind == DiffChangeKind.Modified && r.After!.CandidateAudienceId == AudienceDev);
+        Assert.Contains(diff.AudienceResolutions, r => r.Kind == DiffChangeKind.Added && r.After!.CandidateAudienceId == AudienceConsultant);
     }
 
     [Fact]
@@ -118,11 +118,11 @@ public sealed class SnapshotDiffCalculatorTests
         var rev1 = new ContentRevisionId(Guid.NewGuid());
         var rev2 = new ContentRevisionId(Guid.NewGuid());
 
-        var contentBase = new NodeContent(BaseSnap, nodeId, RoleDev, rev1, ContentMode.Independent, "Old Content", false);
-        var contentTarget = new NodeContent(TargetSnap, nodeId, RoleDev, rev2, ContentMode.Independent, "New Content", false);
+        var contentBase = new NodeContent(BaseSnap, nodeId, AudienceDev, rev1, ContentMode.Independent, "Old Content", false);
+        var contentTarget = new NodeContent(TargetSnap, nodeId, AudienceDev, rev2, ContentMode.Independent, "New Content", false);
 
-        var depBase = new ContentDependency(BaseSnap, nodeId, RoleDev, nodeId, RoleDev, rev1);
-        var depTarget = new ContentDependency(TargetSnap, nodeId, RoleDev, nodeId, RoleDev, rev2);
+        var depBase = new ContentDependency(BaseSnap, nodeId, AudienceDev, nodeId, AudienceDev, rev1);
+        var depTarget = new ContentDependency(TargetSnap, nodeId, AudienceDev, nodeId, AudienceDev, rev2);
 
         var baseData = new SnapshotData([], [], [], [contentBase], [depBase]);
         var targetData = new SnapshotData([], [], [], [contentTarget], [depTarget]);
@@ -154,15 +154,15 @@ public sealed class SnapshotDiffCalculatorTests
                 new Node(TargetSnap, selectedNodeId, null, "Ausgewählt", null, 1, false),
                 new Node(TargetSnap, otherNodeId, null, "Anderer", null, 2, false)
             ],
-            [new Role(TargetSnap, RoleDev, "Developer", null, false)],
+            [new Audience(TargetSnap, AudienceDev, "Developer", null, false)],
             [],
             [
-                new NodeContent(TargetSnap, selectedNodeId, RoleDev, selectedRevision, ContentMode.Independent, "Ausgewählt", false),
-                new NodeContent(TargetSnap, otherNodeId, RoleDev, otherRevision, ContentMode.Independent, "Anderer", false)
+                new NodeContent(TargetSnap, selectedNodeId, AudienceDev, selectedRevision, ContentMode.Independent, "Ausgewählt", false),
+                new NodeContent(TargetSnap, otherNodeId, AudienceDev, otherRevision, ContentMode.Independent, "Anderer", false)
             ],
             [
-                new ContentDependency(TargetSnap, selectedNodeId, RoleDev, otherNodeId, RoleDev, otherRevision),
-                new ContentDependency(TargetSnap, otherNodeId, RoleDev, otherNodeId, RoleDev, otherRevision)
+                new ContentDependency(TargetSnap, selectedNodeId, AudienceDev, otherNodeId, AudienceDev, otherRevision),
+                new ContentDependency(TargetSnap, otherNodeId, AudienceDev, otherNodeId, AudienceDev, otherRevision)
             ]);
 
         var diff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
@@ -177,8 +177,8 @@ public sealed class SnapshotDiffCalculatorTests
         Assert.Equal(3, diff.TotalCount);
         Assert.Single(diff.Nodes);
         Assert.Single(diff.Contents);
-        Assert.Empty(diff.Roles);
-        Assert.Empty(diff.RoleResolutions);
+        Assert.Empty(diff.Audiences);
+        Assert.Empty(diff.AudienceResolutions);
         Assert.Empty(diff.Dependencies);
 
         var cursor = Assert.IsType<DiffCursor>(DiffCursor.TryDecode(diff.NextCursor));
@@ -188,26 +188,26 @@ public sealed class SnapshotDiffCalculatorTests
     [Fact]
     public void Compute_CategorySlicingAcrossMultiplePages_PaginatesDeterministically()
     {
-        // 2 Roles, 3 Nodes, 2 Contents -> Total 7 items
-        var role1 = new Role(TargetSnap, new RoleId("RoleA"), "A", null, false);
-        var role2 = new Role(TargetSnap, new RoleId("RoleB"), "B", null, false);
+        // 2 Audiences, 3 Nodes, 2 Contents -> Total 7 items
+        var audience1 = new Audience(TargetSnap, new AudienceId("AudienceA"), "A", null, false);
+        var audience2 = new Audience(TargetSnap, new AudienceId("AudienceB"), "B", null, false);
 
         var node1 = new Node(TargetSnap, new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000001")), null, "N1", null, 1, false);
         var node2 = new Node(TargetSnap, new NodeId(Guid.Parse("20000000-0000-0000-0000-000000000002")), null, "N2", null, 2, false);
         var node3 = new Node(TargetSnap, new NodeId(Guid.Parse("30000000-0000-0000-0000-000000000003")), null, "N3", null, 3, false);
 
-        var content1 = new NodeContent(TargetSnap, node1.NodeId, RoleDev, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "C1", false);
-        var content2 = new NodeContent(TargetSnap, node2.NodeId, RoleDev, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "C2", false);
+        var content1 = new NodeContent(TargetSnap, node1.NodeId, AudienceDev, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "C1", false);
+        var content2 = new NodeContent(TargetSnap, node2.NodeId, AudienceDev, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "C2", false);
 
         var baseData = new SnapshotData([], [], [], [], []);
-        var targetData = new SnapshotData([node1, node2, node3], [role1, role2], [], [content1, content2], []);
+        var targetData = new SnapshotData([node1, node2, node3], [audience1, audience2], [], [content1, content2], []);
 
-        // Page 1: limit 3 -> 2 roles + 1 node
+        // Page 1: limit 3 -> 2 audiences + 1 node
         var p1Req = new SnapshotDiffCalculationRequest(BaseSnap, TargetSnap, baseData, targetData, 3, 0);
         var page1 = SnapshotDiffCalculator.Compute(p1Req);
 
         Assert.Equal(7, page1.TotalCount);
-        Assert.Equal(2, page1.Roles.Count);
+        Assert.Equal(2, page1.Audiences.Count);
         Assert.Single(page1.Nodes);
         Assert.Empty(page1.Contents);
         Assert.NotNull(page1.NextCursor);
@@ -221,7 +221,7 @@ public sealed class SnapshotDiffCalculatorTests
         var page2 = SnapshotDiffCalculator.Compute(p2Req);
 
         Assert.Equal(7, page2.TotalCount);
-        Assert.Empty(page2.Roles);
+        Assert.Empty(page2.Audiences);
         Assert.Equal(2, page2.Nodes.Count);
         Assert.Single(page2.Contents);
         Assert.NotNull(page2.NextCursor);
@@ -235,7 +235,7 @@ public sealed class SnapshotDiffCalculatorTests
         var page3 = SnapshotDiffCalculator.Compute(p3Req);
 
         Assert.Equal(7, page3.TotalCount);
-        Assert.Empty(page3.Roles);
+        Assert.Empty(page3.Audiences);
         Assert.Empty(page3.Nodes);
         Assert.Single(page3.Contents);
         Assert.Null(page3.NextCursor); // Done!

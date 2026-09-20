@@ -9,7 +9,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Mcp.Tools.History;
 
@@ -469,15 +469,15 @@ public sealed class McpHistoryToolsTests
             Task.FromResult<IReadOnlyList<NodeContent>>([]);
     }
 
-    private sealed class EmptyRoleRepository : IRoleRepository
+    private sealed class EmptyRoleRepository : IAudienceRepository
     {
-        public Task<IReadOnlyList<Role>> ListBySnapshotAsync(
+        public Task<IReadOnlyList<Audience>> ListBySnapshotAsync(
             SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Role>>([]);
+            Task.FromResult<IReadOnlyList<Audience>>([]);
 
-        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(
+        public Task<IReadOnlyList<AudienceResolution>> ListResolutionsBySnapshotAsync(
             SnapshotId snapshotId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<RoleResolution>>([]);
+            Task.FromResult<IReadOnlyList<AudienceResolution>>([]);
     }
 
     private sealed class EmptyDependencyRepository : IDependencyRepository

@@ -69,7 +69,7 @@ public sealed class ContentRevisionServiceTests
         new(
             new SnapshotId(1),
             new NodeId(Guid.Parse("342c9f4a-0a77-44be-8f98-f403444d3e9f")),
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             ExistingRevisionId,
             ContentMode.Derived,
             content,

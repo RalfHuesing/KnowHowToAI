@@ -194,7 +194,7 @@ public sealed class NodeMutationApplicationService
         var affectedNodeIds = DetermineAffectedNodeIds(previousNodes, currentNodes, changedNode.NodeId);
         var warnings = EvaluateWarnings(currentNodes, affectedNodeIds);
         return Result<NodeMutationResult>.Success(
-            new NodeMutationResult(changedNode, snapshotId, changeVersion, affectedNodeIds, AppliesToAllRoles: true),
+            new NodeMutationResult(changedNode, snapshotId, changeVersion, affectedNodeIds, AppliesToAllAudiences: true),
             warnings);
     }
 

@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
 
@@ -19,7 +19,7 @@ public sealed class DashboardServiceTests
     private static readonly SnapshotId InitialSnapshotId = new(1);
     private static readonly SnapshotId CommittedBaseSnapshotId = new(2);
     private static readonly SnapshotId CurrentSnapshotId = new(3);
-    private static readonly RoleId DeveloperRoleId = new("Developer");
+    private static readonly AudienceId DeveloperAudienceId = new("Developer");
 
     [Fact]
     public async Task GetDashboardAsync_ReturnsCurrentSnapshotAndNullRelease_WhenNoReleaseExists()
@@ -77,8 +77,8 @@ public sealed class DashboardServiceTests
         var invalidNode = new Node(new SnapshotId(100), new NodeId(Guid.NewGuid()), null, "", null, 1, false);
         harness.SetTransactionValidationData(txId, new WorkingSnapshotValidationData(
             Nodes: [invalidNode],
-            Roles: [],
-            RoleResolutions: [],
+            Audiences: [],
+            AudienceResolutions: [],
             Contents: [],
             Dependencies: []));
 
@@ -154,8 +154,8 @@ public sealed class DashboardServiceTests
 
         var sourceNodeId = new NodeId(Guid.NewGuid());
         var targetNodeId = new NodeId(Guid.NewGuid());
-        var sourceRoleId = new RoleId("Source");
-        var targetRoleId = new RoleId("Target");
+        var sourceAudienceId = new AudienceId("Source");
+        var targetAudienceId = new AudienceId("Target");
         harness.SetSnapshotNodes(CurrentSnapshotId, [
             new Node(CurrentSnapshotId, sourceNodeId, null, "Quelle", null, 1, false),
             new Node(CurrentSnapshotId, targetNodeId, null, "Ziel", null, 2, false)
@@ -167,9 +167,9 @@ public sealed class DashboardServiceTests
         harness.SetSnapshotDependencies(CurrentSnapshotId, [new ContentDependency(
             CurrentSnapshotId,
             targetNodeId,
-            targetRoleId,
+            targetAudienceId,
             sourceNodeId,
-            sourceRoleId,
+            sourceAudienceId,
             new ContentRevisionId(Guid.NewGuid()))]);
 
         var result = await harness.CreateService().GetDashboardAsync(new DashboardQuery());
@@ -187,21 +187,21 @@ public sealed class DashboardServiceTests
         harness.SetCurrentSnapshot(new Snapshot(CurrentSnapshotId, null, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
 
         var node = new Node(CurrentSnapshotId, new NodeId(Guid.NewGuid()), null, "Test Node", null, 1, false);
-        var role = new Role(CurrentSnapshotId, DeveloperRoleId, "Developer", null, false);
+        var audience = new Audience(CurrentSnapshotId, DeveloperAudienceId, "Developer", null, false);
 
         // Add a node with large content to trigger a warning
         var largeContent = new string('x', 100_000);
         var content = new NodeContent(
             CurrentSnapshotId,
             node.NodeId,
-            DeveloperRoleId,
+            DeveloperAudienceId,
             new ContentRevisionId(Guid.NewGuid()),
             ContentMode.Independent,
             largeContent,
             false);
 
         harness.SetSnapshotNodes(CurrentSnapshotId, [node]);
-        harness.SetSnapshotRoles(CurrentSnapshotId, [role]);
+        harness.SetSnapshotAudiences(CurrentSnapshotId, [audience]);
         harness.SetSnapshotContents(CurrentSnapshotId, [content]);
 
         var service = harness.CreateService(new ValidationPolicy

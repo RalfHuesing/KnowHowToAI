@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Domain.Content;
 
 namespace KnowHowToAI.Core.Application.Abstractions.Persistence;
 
-/// <summary>Read-Port für explizite Rollen-Contents eines vollständigen Snapshots.</summary>
+/// <summary>Read-Port für explizite Zielgruppen-Contents eines vollständigen Snapshots.</summary>
 public interface IContentRepository
 {
     Task<IReadOnlyList<NodeContent>> ListBySnapshotAsync(

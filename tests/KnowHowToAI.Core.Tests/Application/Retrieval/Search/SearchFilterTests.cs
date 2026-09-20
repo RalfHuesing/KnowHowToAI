@@ -9,8 +9,8 @@ public sealed class SearchFilterTests
     [Fact]
     public void Matches_UsesOrWithinFacetAndAndBetweenFacets()
     {
-        var developer = new RoleId("Developer");
-        var shared = new RoleId("Shared");
+        var developer = new AudienceId("Developer");
+        var shared = new AudienceId("Shared");
         var filter = new SearchFilter(
             [developer, shared],
             [Availability.Explicit, Availability.Fallback],
@@ -29,14 +29,14 @@ public sealed class SearchFilterTests
         var filter = new SearchFilter();
 
         Assert.True(filter.IsEmpty);
-        Assert.True(filter.Matches(CreateHit(new RoleId("Developer"), Availability.Explicit, Freshness.Current, [])));
+        Assert.True(filter.Matches(CreateHit(new AudienceId("Developer"), Availability.Explicit, Freshness.Current, [])));
         Assert.Equal(filter.Fingerprint, new SearchFilter().Fingerprint);
     }
 
     private static SearchHit CreateHit(
-        RoleId roleId,
+        AudienceId audienceId,
         Availability availability,
         Freshness freshness,
         IReadOnlyList<string> findings) => new(
-        new NodeId(Guid.NewGuid()), "Titel", null, null, "Title", availability, roleId, freshness, Findings: findings);
+        new NodeId(Guid.NewGuid()), "Titel", null, null, "Title", availability, audienceId, freshness, Findings: findings);
 }

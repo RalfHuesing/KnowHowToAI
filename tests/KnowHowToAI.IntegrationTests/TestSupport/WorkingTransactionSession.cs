@@ -2,14 +2,14 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Storage.SqlServer.Configuration;
@@ -30,7 +30,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
         KnowledgeTransaction transaction,
         NodeMutationApplicationService nodes,
         ContentMutationApplicationService contents,
-        RoleMutationService roles)
+        AudienceMutationService roles)
     {
         Transaction = transaction;
         Nodes = nodes;
@@ -46,7 +46,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     private ContentMutationApplicationService Contents { get; }
 
-    private RoleMutationService Roles { get; }
+    private AudienceMutationService Roles { get; }
 
     private long ExpectedChangeVersion { get; set; }
 
@@ -78,7 +78,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
                 new SqlContentMutationRepository(database.ConnectionFactory, policy),
                 new ContentMutationService(new ContentRevisionService(identifierGenerator)),
                 validationPolicy),
-            new RoleMutationService(new SqlRoleMutationRepository(database.ConnectionFactory, policy)));
+            new AudienceMutationService(new SqlRoleMutationRepository(database.ConnectionFactory, policy)));
         session.ExpectedChangeVersion = transaction.ChangeVersion;
         return session;
     }
@@ -111,44 +111,44 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
         return value.Node;
     }
 
-    public async Task<NodeContent> ReplaceIndependentContentAsync(NodeId nodeId, RoleId roleId, string contentMd) =>
+    public async Task<NodeContent> ReplaceIndependentContentAsync(NodeId nodeId, AudienceId roleId, string contentMd) =>
         await ReplaceContentAsync(nodeId, roleId, ContentMode.Independent, contentMd, []).ConfigureAwait(false);
 
     public async Task<NodeContent> ReplaceDerivedContentAsync(
         NodeId nodeId,
-        RoleId roleId,
+        AudienceId roleId,
         string contentMd,
         IReadOnlyList<ContentDependencySource> sources) =>
         await ReplaceContentAsync(nodeId, roleId, ContentMode.Derived, contentMd, sources).ConfigureAwait(false);
 
-    public async Task<Role> CreateRoleAsync(string name, string? description)
+    public async Task<Audience> CreateRoleAsync(string name, string? description)
     {
-        var result = await Roles.CreateRoleMutationAsync(TransactionId, name, description, ExpectedChangeVersion).ConfigureAwait(false);
+        var result = await Roles.CreateAudienceMutationAsync(TransactionId, name, description, ExpectedChangeVersion).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
-        return value.Role;
+        return value.Audience;
     }
 
-    public async Task<Role> UpdateRoleDescriptionAsync(RoleId roleId, string name, string? description)
+    public async Task<Audience> UpdateRoleDescriptionAsync(AudienceId roleId, string name, string? description)
     {
-        var result = await Roles.UpdateRoleMutationAsync(
+        var result = await Roles.UpdateAudienceMutationAsync(
             TransactionId,
-            new UpdateRoleMutationRequest(roleId, name, description, ExpectedChangeVersion)).ConfigureAwait(false);
+            new UpdateAudienceMutationRequest(roleId, name, description, ExpectedChangeVersion)).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
-        return value.Role;
+        return value.Audience;
     }
 
-    public async Task DeleteRoleAsync(RoleId roleId)
+    public async Task DeleteRoleAsync(AudienceId roleId)
     {
-        var result = await Roles.DeleteRoleMutationAsync(TransactionId, roleId, ExpectedChangeVersion).ConfigureAwait(false);
+        var result = await Roles.DeleteAudienceMutationAsync(TransactionId, roleId, ExpectedChangeVersion).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
     }
 
-    public async Task SetResolutionAsync(RoleId requestedRoleId, params RoleId[] candidateRoleIds)
+    public async Task SetResolutionAsync(AudienceId requestedRoleId, params AudienceId[] candidateRoleIds)
     {
-        var result = await Roles.SetRoleResolutionMutationAsync(
+        var result = await Roles.SetAudienceResolutionMutationAsync(
             TransactionId, requestedRoleId, candidateRoleIds, ExpectedChangeVersion).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
@@ -175,7 +175,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     private async Task<NodeContent> ReplaceContentAsync(
         NodeId nodeId,
-        RoleId roleId,
+        AudienceId roleId,
         ContentMode contentMode,
         string contentMd,
         IReadOnlyList<ContentDependencySource> sources)

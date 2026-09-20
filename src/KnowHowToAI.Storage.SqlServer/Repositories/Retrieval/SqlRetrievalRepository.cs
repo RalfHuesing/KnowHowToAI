@@ -3,7 +3,7 @@ using System.Text.Json;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -213,7 +213,7 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         var parameters = new
         {
             snapshotId = request.SnapshotId.Value,
-            roleId = request.RoleId?.Value,
+            roleId = request.AudienceId?.Value,
             likePattern = $"%{escapedText}%",
             limit = request.Limit,
             hasCursor = cursor is not null ? 1 : 0,
@@ -278,7 +278,7 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
                 await _afterGuardReadForTestAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        (IReadOnlyList<Role> Roles, IReadOnlyList<RoleResolution> Resolutions)? roleData = request.RoleId is not null
+        (IReadOnlyList<Audience> Audiences, IReadOnlyList<AudienceResolution> Resolutions)? audienceData = request.AudienceId is not null
             ? await LoadRoleResolutionDataAsync(connection, databaseTransaction, request.SnapshotId.Value, cancellationToken)
                 .ConfigureAwait(false)
             : null;
@@ -290,18 +290,18 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         {
             await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new SearchRepositoryResult(
-                Array.Empty<SearchHit>(), changeVersion, roleData?.Roles, roleData?.Resolutions);
+                Array.Empty<SearchHit>(), changeVersion, audienceData?.Audiences, audienceData?.Resolutions);
         }
 
         await databaseTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
         var hits = rows.Select(row => MapRowToSearchHit(row, request)).ToArray();
-        return new SearchRepositoryResult(hits, changeVersion, roleData?.Roles, roleData?.Resolutions);
+        return new SearchRepositoryResult(hits, changeVersion, audienceData?.Audiences, audienceData?.Resolutions);
     }
 
     private static SearchFilterParameters CreateFilterParameters(SearchFilter? filter) => new(
-        HasValues(filter?.ResolvedRoleIds),
-        Serialize(filter?.ResolvedRoleIds?.Select(role => role.Value)),
+        HasValues(filter?.ResolvedAudienceIds),
+        Serialize(filter?.ResolvedAudienceIds?.Select(audience => audience.Value)),
         HasValues(filter?.Availabilities),
         Serialize(filter?.Availabilities?.Select(value => (int)value)),
         HasValues(filter?.Freshnesses),
@@ -313,7 +313,7 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
 
     private static string Serialize<T>(IEnumerable<T>? values) => JsonSerializer.Serialize(values ?? []);
 
-    private async Task<(IReadOnlyList<Role> Roles, IReadOnlyList<RoleResolution> Resolutions)> LoadRoleResolutionDataAsync(
+    private async Task<(IReadOnlyList<Audience> Audiences, IReadOnlyList<AudienceResolution> Resolutions)> LoadRoleResolutionDataAsync(
         SqlConnection connection,
         Microsoft.Data.SqlClient.SqlTransaction databaseTransaction,
         long snapshotId,
@@ -343,7 +343,7 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
         };
 
         var freshness = (Freshness)row.FreshnessCode;
-        var resolvedRoleId = row.ResolvedRoleId is not null ? new RoleId(row.ResolvedRoleId) : (RoleId?)null;
+        var resolvedAudienceId = row.ResolvedRoleId is not null ? new AudienceId(row.ResolvedRoleId) : (AudienceId?)null;
 
         var findings = row.FindingCode is null ? Array.Empty<string>() : [row.FindingCode];
 
@@ -354,7 +354,7 @@ internal sealed class SqlRetrievalRepository : SqlRepository, IRetrievalReposito
             snippet,
             row.HitField,
             (Availability)row.AvailabilityCode,
-            resolvedRoleId,
+            resolvedAudienceId,
             freshness,
             row.SortOrder,
             findings);

@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Tools.Navigation;
 namespace KnowHowToAI.IntegrationTests.Server.Mcp;
@@ -18,10 +18,10 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 public sealed class McpNavigationToolsTests
 {
     private static readonly SnapshotId CurrentSnapshotId = new(100);
-    private static readonly RoleId RoleDeveloper = new("Developer");
-    private static readonly RoleId RoleAdmin = new("Admin");
-    private static readonly RoleId RoleConsultant = new("Consultant");
-    private static readonly RoleId RoleUnknown = new("Nonexistent");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleAdmin = new("Admin");
+    private static readonly AudienceId RoleConsultant = new("Consultant");
+    private static readonly AudienceId RoleUnknown = new("Nonexistent");
 
     private static readonly NodeId RootId = new(Guid.Parse("30000000-0000-0000-0000-000000000000"));
     private static readonly NodeId Child1Id = new(Guid.Parse("30000000-0000-0000-0000-000000000001"));
@@ -201,10 +201,10 @@ public sealed class McpNavigationToolsTests
         var envelope = await tools.ListChildren(RoleUnknown.Value, RootId.ToString());
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleNotFound, envelope.Code);
+        Assert.Equal("RequestedRoleNotFound", envelope.Code);
         Assert.Equal(
             RoleUnknown.ToString(),
-            envelope.Details![RoleResolutionErrorCodes.RequestedRoleIdDetail]);
+            envelope.Details!["requestedRoleId"]);
         Assert.Null(envelope.Data);
     }
 
@@ -212,8 +212,8 @@ public sealed class McpNavigationToolsTests
     public async Task ListRoles_MapsRolesInOrdinalOrderAndPaginates()
     {
         var harness = new NavigationTestHarness(CurrentSnapshotId);
-        harness.AddRole(new Role(CurrentSnapshotId, RoleConsultant, "Consultant", null, false));
-        harness.AddRole(new Role(CurrentSnapshotId, RoleAdmin, "Admin", "Verwaltung", false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, RoleConsultant, "Consultant", null, false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, RoleAdmin, "Admin", "Verwaltung", false));
         var tools = CreateTools(harness);
 
         var firstPage = await tools.ListRoles(limit: 2);

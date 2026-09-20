@@ -21,14 +21,14 @@ public static class FreshnessEvaluator
             content,
             contents.ToArray(),
             dependencies.ToArray(),
-            new HashSet<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId)>());
+            new HashSet<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId)>());
     }
 
     private static Freshness Evaluate(
         NodeContent content,
         IReadOnlyCollection<NodeContent> contents,
         IReadOnlyCollection<ContentDependency> dependencies,
-        ISet<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId)> path)
+        ISet<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId)> path)
     {
         if (content.IsDeleted || content.ContentMode is not (ContentMode.Independent or ContentMode.Derived))
             return Freshness.Stale;
@@ -36,7 +36,7 @@ public static class FreshnessEvaluator
         if (content.ContentMode == ContentMode.Independent)
             return Freshness.Current;
 
-        var contentKey = (content.SnapshotId, content.NodeId, content.RoleId);
+        var contentKey = (content.SnapshotId, content.NodeId, content.AudienceId);
         if (!path.Add(contentKey))
             return Freshness.Stale;
 
@@ -51,12 +51,12 @@ public static class FreshnessEvaluator
         NodeContent content,
         IReadOnlyCollection<NodeContent> contents,
         IReadOnlyCollection<ContentDependency> dependencies,
-        ISet<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId)> path)
+        ISet<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId)> path)
     {
         var sourceDependencies = dependencies
             .Where(dependency => dependency.SnapshotId == content.SnapshotId
                 && dependency.TargetNodeId == content.NodeId
-                && dependency.TargetRoleId == content.RoleId)
+                && dependency.TargetAudienceId == content.AudienceId)
             .ToArray();
         if (sourceDependencies.Length == 0)
             return false;
@@ -69,12 +69,12 @@ public static class FreshnessEvaluator
         ContentDependency dependency,
         IReadOnlyCollection<NodeContent> contents,
         IReadOnlyCollection<ContentDependency> dependencies,
-        ISet<(SnapshotId SnapshotId, NodeId NodeId, RoleId RoleId)> path)
+        ISet<(SnapshotId SnapshotId, NodeId NodeId, AudienceId AudienceId)> path)
     {
         var sources = contents
             .Where(source => source.SnapshotId == target.SnapshotId
                 && source.NodeId == dependency.SourceNodeId
-                && source.RoleId == dependency.SourceRoleId
+                && source.AudienceId == dependency.SourceAudienceId
                 && !source.IsDeleted)
             .ToArray();
 

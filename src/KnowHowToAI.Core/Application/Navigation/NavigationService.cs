@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 
@@ -12,7 +12,7 @@ namespace KnowHowToAI.Core.Application.Navigation;
 
 /// <summary>
 /// Transportneutrale Orchestrierung der Navigation-Use-Cases (get_root, get_node,
-/// list_children, list_roles). Liest ausschließlich, verändert keinen Snapshot-Zustand.
+/// list_children, list_audiences). Liest ausschließlich, verändert keinen Snapshot-Zustand.
 /// Working-Snapshot-Reads nutzen die konsistente atomare M5-Read-Sicht.
 /// </summary>
 public sealed class NavigationService
@@ -29,12 +29,12 @@ public sealed class NavigationService
     }
 
     /// <summary>
-    /// Liefert den aktiven Root-Node mit aufgelöstem Rollen-Content.
+    /// Liefert den aktiven Root-Node mit aufgelöstem Zielgruppen-Content.
     /// Gibt <c>availability = None</c> und <c>Node = null</c> zurück, wenn der Snapshot noch keinen Root besitzt.
     /// </summary>
     public async Task<Result<NodeWithContent>> GetRootAsync(
         ReadContext context,
-        RoleId roleId,
+        AudienceId audienceId,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -50,9 +50,9 @@ public sealed class NavigationService
         {
             var validationResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
                 null,
-                roleId,
+                audienceId,
                 snapshotData.SnapshotId,
-                snapshotData.Roles,
+                snapshotData.Audiences,
                 snapshotData.Resolutions,
                 Array.Empty<Domain.Content.NodeContent>(),
                 Array.Empty<ContentDependency>()));
@@ -63,22 +63,22 @@ public sealed class NavigationService
             return Result<NodeWithContent>.Success(
                 new NodeWithContent(
                     Node: null,
-                    RequestedRoleId: roleId,
-                    ResolvedRoleId: null,
+                    RequestedAudienceId: audienceId,
+                    ResolvedAudienceId: null,
                     Availability: Availability.None,
                     FallbackUsed: false,
                     Content: null,
                     Freshness: Freshness.Unknown));
         }
 
-        return BuildNodeWithContent(root, roleId, snapshotData);
+        return BuildNodeWithContent(root, audienceId, snapshotData);
     }
 
-    /// <summary>Liefert eine einzelne Node mit aufgelöstem Rollen-Content.</summary>
+    /// <summary>Liefert eine einzelne Node mit aufgelöstem Zielgruppen-Content.</summary>
     public async Task<Result<NodeWithContent>> GetNodeAsync(
         NodeId nodeId,
         ReadContext context,
-        RoleId roleId,
+        AudienceId audienceId,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -96,7 +96,7 @@ public sealed class NavigationService
                 "Die angefragte Node existiert nicht.",
                 new Dictionary<string, string> { [NavigationErrorCodes.NodeIdDetail] = nodeId.ToString() }));
 
-        return BuildNodeWithContent(node, roleId, snapshotData);
+        return BuildNodeWithContent(node, audienceId, snapshotData);
     }
 
     /// <summary>
@@ -119,9 +119,9 @@ public sealed class NavigationService
             ? Math.Min(limit, _retrievalPolicy.MaximumPageSize)
             : _retrievalPolicy.DefaultPageSize;
 
-        var roleValidation = ValidateRoleInSnapshot(query.RoleId, snapshotData);
-        if (!roleValidation.IsSuccess)
-            return Result<ChildrenPage>.Failure(roleValidation.Error!);
+        var audienceValidation = ValidateAudienceInSnapshot(query.AudienceId, snapshotData);
+        if (!audienceValidation.IsSuccess)
+            return Result<ChildrenPage>.Failure(audienceValidation.Error!);
 
         var children = snapshotData.Nodes
             .Where(node => node.ParentNodeId == query.ParentNodeId)
@@ -135,7 +135,7 @@ public sealed class NavigationService
         var page = children.Skip(startIndexResult.Value).Take(effectiveLimit + 1).ToArray();
         var hasNext = page.Length > effectiveLimit;
         var pageItems = page.Take(effectiveLimit).ToArray();
-        var summariesResult = BuildChildSummaries(pageItems, query.RoleId, snapshotData);
+        var summariesResult = BuildChildSummaries(pageItems, query.AudienceId, snapshotData);
         if (!summariesResult.IsSuccess)
             return Result<ChildrenPage>.Failure(summariesResult.Error!);
 
@@ -144,7 +144,7 @@ public sealed class NavigationService
                 resolvedContext.SnapshotId,
                 resolvedContext.ChangeVersion,
                 query.ParentNodeId,
-                query.RoleId,
+                query.AudienceId,
                 resolvedContext.IncludeDeleted,
                 pageItems[^1].NodeId,
                 pageItems[^1].SortOrder).Encode()
@@ -154,17 +154,17 @@ public sealed class NavigationService
     }
 
     /// <summary>
-    /// Paginierte, deterministisch sortierte Rollen (RoleId.Value ordinal aufsteigend).
+    /// Paginierte, deterministisch sortierte Zielgruppen (AudienceId.Value ordinal aufsteigend).
     /// </summary>
-    public async Task<Result<RolePage>> ListRolesAsync(
-        ListRolesQuery query,
+    public async Task<Result<AudiencePage>> ListAudiencesAsync(
+        ListAudiencesQuery query,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         var loadResult = await SnapshotReadDataLoader.LoadAsync(query.Context, _repos, cancellationToken).ConfigureAwait(false);
         if (!loadResult.IsSuccess)
-            return Result<RolePage>.Failure(loadResult.Error!);
+            return Result<AudiencePage>.Failure(loadResult.Error!);
 
         var snapshotData = loadResult.Value!;
         var resolvedContext = snapshotData.Context;
@@ -172,42 +172,42 @@ public sealed class NavigationService
             ? Math.Min(limit, _retrievalPolicy.MaximumPageSize)
             : _retrievalPolicy.DefaultPageSize;
 
-        var activeRoles = ActiveReadFilter.Apply(snapshotData.Roles, resolvedContext);
-        var orderedRoles = activeRoles
-            .OrderBy(r => r.RoleId.Value, StringComparer.Ordinal)
+        var activeAudiences = ActiveReadFilter.Apply(snapshotData.Audiences, resolvedContext);
+        var orderedAudiences = activeAudiences
+            .OrderBy(r => r.AudienceId.Value, StringComparer.Ordinal)
             .ToArray();
 
-        var startIndexResult = ResolveRoleStartIndex(query, resolvedContext, orderedRoles);
+        var startIndexResult = ResolveAudienceStartIndex(query, resolvedContext, orderedAudiences);
         if (!startIndexResult.IsSuccess)
-            return Result<RolePage>.Failure(startIndexResult.Error!);
+            return Result<AudiencePage>.Failure(startIndexResult.Error!);
 
-        var page = orderedRoles.Skip(startIndexResult.Value).Take(effectiveLimit + 1).ToArray();
+        var page = orderedAudiences.Skip(startIndexResult.Value).Take(effectiveLimit + 1).ToArray();
         var hasNext = page.Length > effectiveLimit;
         var pageItems = page.Take(effectiveLimit).ToArray();
 
         var nextCursor = hasNext && pageItems.Length > 0
-            ? new RoleCursor(
+            ? new AudienceCursor(
                 resolvedContext.SnapshotId,
                 resolvedContext.ChangeVersion,
                 resolvedContext.IncludeDeleted,
-                pageItems[^1].RoleId).Encode()
+                pageItems[^1].AudienceId).Encode()
             : null;
 
-        return Result<RolePage>.Success(new RolePage(pageItems, nextCursor, resolvedContext.ChangeVersion));
+        return Result<AudiencePage>.Success(new AudiencePage(pageItems, nextCursor, resolvedContext.ChangeVersion));
     }
 
     // ── Private Helpers ──────────────────────────────────────────────────────
 
     private static Result<NodeWithContent> BuildNodeWithContent(
         Node node,
-        RoleId roleId,
+        AudienceId audienceId,
         SnapshotReadData data)
     {
         var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
             node.NodeId,
-            roleId,
+            audienceId,
             data.SnapshotId,
-            data.Roles,
+            data.Audiences,
             data.Resolutions,
             data.Contents,
             data.Dependencies));
@@ -218,8 +218,8 @@ public sealed class NavigationService
         var resolution = resolutionResult.Value!;
         return Result<NodeWithContent>.Success(new NodeWithContent(
             node,
-            roleId,
-            resolution.ResolvedRole,
+            audienceId,
+            resolution.ResolvedAudience,
             resolution.Availability,
             resolution.FallbackUsed,
             resolution.Content,
@@ -232,17 +232,17 @@ public sealed class NavigationService
         ResolvedNodeContent resolution,
         SnapshotReadData data)
     {
-        if (resolution.Content?.ContentMode != ContentMode.Derived || resolution.ResolvedRole is null)
+        if (resolution.Content?.ContentMode != ContentMode.Derived || resolution.ResolvedAudience is null)
             return [];
 
         return data.Dependencies
             .Where(dependency => dependency.TargetNodeId == targetNodeId
-                && dependency.TargetRoleId == resolution.ResolvedRole)
+                && dependency.TargetAudienceId == resolution.ResolvedAudience)
             .OrderBy(dependency => dependency.SourceNodeId.Value)
-            .ThenBy(dependency => dependency.SourceRoleId.Value, StringComparer.Ordinal)
+            .ThenBy(dependency => dependency.SourceAudienceId.Value, StringComparer.Ordinal)
             .Select(dependency => new DerivedSourceRevision(
                 dependency.SourceNodeId,
-                dependency.SourceRoleId,
+                dependency.SourceAudienceId,
                 dependency.SourceContentRevisionId,
                 GetSourceFreshness(dependency, data)))
             .ToArray();
@@ -252,7 +252,7 @@ public sealed class NavigationService
     {
         var source = data.Contents.SingleOrDefault(content =>
             content.NodeId == dependency.SourceNodeId
-            && content.RoleId == dependency.SourceRoleId
+            && content.AudienceId == dependency.SourceAudienceId
             && !content.IsDeleted);
 
         return source is not null
@@ -310,7 +310,7 @@ public sealed class NavigationService
         }
 
         if (cursor.ParentNodeId != query.ParentNodeId
-            || cursor.RoleId != query.RoleId
+            || cursor.AudienceId != query.AudienceId
             || cursor.IncludeDeleted != context.IncludeDeleted)
         {
             return CreateCursorError(
@@ -327,26 +327,26 @@ public sealed class NavigationService
             : null;
     }
 
-    private static Result<int> ResolveRoleStartIndex(
-        ListRolesQuery query,
+    private static Result<int> ResolveAudienceStartIndex(
+        ListAudiencesQuery query,
         ResolvedReadContext context,
-        Role[] roles)
+        Audience[] audiences)
     {
         if (query.Cursor is null)
             return Result<int>.Success(0);
 
-        var cursor = RoleCursor.TryDecode(query.Cursor);
+        var cursor = AudienceCursor.TryDecode(query.Cursor);
         if (cursor is null)
             return Result<int>.Failure(CreateCursorError(
                 NavigationErrorCodes.InvalidCursor,
                 "Der Cursor ist ungültig oder abgelaufen.",
                 query.Cursor));
 
-        var bindingError = ValidateRoleCursorBinding(cursor, query, context);
+        var bindingError = ValidateAudienceCursorBinding(cursor, query, context);
         if (bindingError is not null)
             return Result<int>.Failure(bindingError);
 
-        var foundIndex = Array.FindIndex(roles, r => r.RoleId == cursor.LastRoleId);
+        var foundIndex = Array.FindIndex(audiences, r => r.AudienceId == cursor.LastAudienceId);
         return foundIndex >= 0
             ? Result<int>.Success(foundIndex + 1)
             : Result<int>.Failure(CreateCursorError(
@@ -355,9 +355,9 @@ public sealed class NavigationService
                 query.Cursor));
     }
 
-    private static DomainError? ValidateRoleCursorBinding(
-        RoleCursor cursor,
-        ListRolesQuery query,
+    private static DomainError? ValidateAudienceCursorBinding(
+        AudienceCursor cursor,
+        ListAudiencesQuery query,
         ResolvedReadContext context)
     {
         if (cursor.SnapshotId != context.SnapshotId)
@@ -395,25 +395,25 @@ public sealed class NavigationService
             [NavigationErrorCodes.CursorDetail] = cursor
         });
 
-    private static Result<ResolvedNodeContent> ValidateRoleInSnapshot(RoleId roleId, SnapshotReadData data) =>
+    private static Result<ResolvedNodeContent> ValidateAudienceInSnapshot(AudienceId audienceId, SnapshotReadData data) =>
         NodeContentResolver.Resolve(new NodeContentResolutionRequest(
             null,
-            roleId,
+            audienceId,
             data.SnapshotId,
-            data.Roles,
+            data.Audiences,
             data.Resolutions,
             Array.Empty<Domain.Content.NodeContent>(),
             Array.Empty<ContentDependency>()));
 
     private static Result<IReadOnlyList<ChildNodeSummary>> BuildChildSummaries(
         Node[] pageItems,
-        RoleId roleId,
+        AudienceId audienceId,
         SnapshotReadData data)
     {
         var summaries = new List<ChildNodeSummary>(pageItems.Length);
         foreach (var node in pageItems)
         {
-            var summaryResult = BuildChildSummary(node, roleId, data);
+            var summaryResult = BuildChildSummary(node, audienceId, data);
             if (!summaryResult.IsSuccess)
                 return Result<IReadOnlyList<ChildNodeSummary>>.Failure(summaryResult.Error!);
             summaries.Add(summaryResult.Value!);
@@ -424,15 +424,15 @@ public sealed class NavigationService
 
     private static Result<ChildNodeSummary> BuildChildSummary(
         Node node,
-        RoleId roleId,
+        AudienceId audienceId,
         SnapshotReadData data)
     {
         var childCount = data.Nodes.Count(n => n.ParentNodeId == node.NodeId);
         var resolutionResult = NodeContentResolver.Resolve(new NodeContentResolutionRequest(
             node.NodeId,
-            roleId,
+            audienceId,
             data.SnapshotId,
-            data.Roles,
+            data.Audiences,
             data.Resolutions,
             data.Contents,
             data.Dependencies));
@@ -453,7 +453,7 @@ public sealed class NavigationService
             childCount,
             contentSizeBytes,
             resolution.Availability,
-            resolution.ResolvedRole,
+            resolution.ResolvedAudience,
             resolution.Freshness,
             resolution.Freshness == Freshness.Stale
                 ? [QualityWarningCodes.StaleDerivedContent]

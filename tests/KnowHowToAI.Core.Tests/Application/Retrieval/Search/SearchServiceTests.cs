@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
 
@@ -15,7 +15,7 @@ public sealed class SearchServiceTests
     private static readonly SnapshotId WorkingSnapshotId = new(101);
     private static readonly SnapshotId OtherSnapshotId = new(999);
     private static readonly TransactionId OpenTransactionId = new(Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111"));
-    private static readonly RoleId RoleDev = new("Developer");
+    private static readonly AudienceId AudienceDev = new("Developer");
 
     [Theory]
     [InlineData(null)]
@@ -136,16 +136,16 @@ public sealed class SearchServiceTests
         var node2 = new NodeId(Guid.Parse("22222222-0000-0000-0000-000000000002"));
         var node3 = new NodeId(Guid.Parse("33333333-0000-0000-0000-000000000003"));
 
-        harness.RetrievalRepo.ConfigureActiveRole(RoleDev);
+        harness.RetrievalRepo.ConfigureActiveAudience(AudienceDev);
         harness.RetrievalRepo.ResultsToReturn = new List<SearchHit>
         {
-            new(node1, "Node 1", "Desc 1", null, "Title", Availability.Explicit, RoleDev, Freshness.Current, 10),
-            new(node2, "Node 2", "Desc 2", "Snippet 2", "Description", Availability.Explicit, RoleDev, Freshness.Current, 20),
-            new(node3, "Node 3", "Desc 3", "Snippet 3", "Content", Availability.Fallback, RoleDev, Freshness.Current, 30)
+            new(node1, "Node 1", "Desc 1", null, "Title", Availability.Explicit, AudienceDev, Freshness.Current, 10),
+            new(node2, "Node 2", "Desc 2", "Snippet 2", "Description", Availability.Explicit, AudienceDev, Freshness.Current, 20),
+            new(node3, "Node 3", "Desc 3", "Snippet 3", "Content", Availability.Fallback, AudienceDev, Freshness.Current, 30)
         };
 
         var service = harness.CreateService();
-        var query = new SearchQuery("Node", Limit: 2, RoleId: RoleDev);
+        var query = new SearchQuery("Node", Limit: 2, AudienceId: AudienceDev);
         var result = await service.SearchAsync(query, new ReadContext());
 
         Assert.True(result.IsSuccess);
@@ -159,7 +159,7 @@ public sealed class SearchServiceTests
         Assert.NotNull(decodedCursor);
         Assert.Equal(CurrentSnapshotId, decodedCursor.SnapshotId);
         Assert.Equal("Node", decodedCursor.QueryText);
-        Assert.Equal(RoleDev, decodedCursor.RoleId);
+        Assert.Equal(AudienceDev, decodedCursor.AudienceId);
         Assert.Equal(2, decodedCursor.LastRank); // HitField = Description -> Rank 2
         Assert.Equal(20, decodedCursor.LastSortOrder);
         Assert.Equal(node2, decodedCursor.LastNodeId);
@@ -169,22 +169,22 @@ public sealed class SearchServiceTests
     public async Task SearchAsync_FiltersFacetsWithOrInsideAndAcrossGroupsBeforePaging()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
-        var fallbackRole = new RoleId("Shared");
-        harness.RetrievalRepo.ConfigureActiveRole(RoleDev);
+        var fallbackAudience = new AudienceId("Shared");
+        harness.RetrievalRepo.ConfigureActiveAudience(AudienceDev);
         harness.RetrievalRepo.ResultsToReturn =
         [
-            new(new NodeId(Guid.Parse("11111111-1111-1111-1111-111111111111")), "Explicit", null, null, "Title", Availability.Explicit, RoleDev, Freshness.Current, 1),
-            new(new NodeId(Guid.Parse("22222222-2222-2222-2222-222222222222")), "Fallback", null, null, "Title", Availability.Fallback, fallbackRole, Freshness.Stale, 2, ["StaleDerivedContent"]),
-            new(new NodeId(Guid.Parse("33333333-3333-3333-3333-333333333333")), "Other", null, null, "Title", Availability.Fallback, new RoleId("Other"), Freshness.Stale, 3, ["StaleDerivedContent"])
+            new(new NodeId(Guid.Parse("11111111-1111-1111-1111-111111111111")), "Explicit", null, null, "Title", Availability.Explicit, AudienceDev, Freshness.Current, 1),
+            new(new NodeId(Guid.Parse("22222222-2222-2222-2222-222222222222")), "Fallback", null, null, "Title", Availability.Fallback, fallbackAudience, Freshness.Stale, 2, ["StaleDerivedContent"]),
+            new(new NodeId(Guid.Parse("33333333-3333-3333-3333-333333333333")), "Other", null, null, "Title", Availability.Fallback, new AudienceId("Other"), Freshness.Stale, 3, ["StaleDerivedContent"])
         ];
         var filter = new SearchFilter(
-            [RoleDev, fallbackRole],
+            [AudienceDev, fallbackAudience],
             [Availability.Explicit, Availability.Fallback],
             [Freshness.Stale],
             ["StaleDerivedContent"]);
 
         var result = await harness.CreateService().SearchAsync(
-            new SearchQuery("text", Limit: 1, RoleId: RoleDev, Filter: filter), new ReadContext());
+            new SearchQuery("text", Limit: 1, AudienceId: AudienceDev, Filter: filter), new ReadContext());
 
         Assert.True(result.IsSuccess);
         Assert.Equal("Fallback", Assert.Single(result.Value!.Items).Title);
@@ -208,7 +208,7 @@ public sealed class SearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WithoutRole_DoesNotRequireRoleResolutionData()
+    public async Task SearchAsync_WithoutAudience_DoesNotRequireAudienceResolutionData()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
         var service = harness.CreateService();
@@ -222,86 +222,86 @@ public sealed class SearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_WithUnknownRequestedRole_ReturnsRequestedRoleNotFound()
+    public async Task SearchAsync_WithUnknownRequestedAudience_ReturnsRequestedAudienceNotFound()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
         var service = harness.CreateService();
 
-        var query = new SearchQuery("text", RoleId: RoleDev);
+        var query = new SearchQuery("text", AudienceId: AudienceDev);
         var result = await service.SearchAsync(query, new ReadContext());
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleNotFound, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.RequestedAudienceNotFound, result.Error!.Code);
         Assert.Equal(
-            RoleDev.ToString(),
+            AudienceDev.ToString(),
             Assert.Single(result.Error.Details).Value);
     }
 
     [Fact]
-    public async Task SearchAsync_WithDeletedRequestedRole_ReturnsRequestedRoleDeleted()
+    public async Task SearchAsync_WithDeletedRequestedAudience_ReturnsRequestedAudienceDeleted()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
-        harness.RetrievalRepo.ConfigureActiveRole(RoleDev, isDeleted: true);
+        harness.RetrievalRepo.ConfigureActiveAudience(AudienceDev, isDeleted: true);
         var service = harness.CreateService();
 
-        var query = new SearchQuery("text", RoleId: RoleDev);
+        var query = new SearchQuery("text", AudienceId: AudienceDev);
         var result = await service.SearchAsync(query, new ReadContext());
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleDeleted, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.RequestedAudienceDeleted, result.Error!.Code);
     }
 
     [Fact]
-    public async Task SearchAsync_WithDeletedCandidateRole_ReturnsCandidateRoleDeleted()
+    public async Task SearchAsync_WithDeletedCandidateAudience_ReturnsCandidateAudienceDeleted()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
-        var candidateRole = new RoleId("Consultant");
-        harness.RetrievalRepo.ConfigureActiveRole(RoleDev);
-        harness.RetrievalRepo.Roles.Add(new Role(CurrentSnapshotId, candidateRole, "Consultant", null, IsDeleted: true));
-        harness.RetrievalRepo.Resolutions.Add(new RoleResolution(CurrentSnapshotId, RoleDev, candidateRole, 2));
+        var candidateAudience = new AudienceId("Consultant");
+        harness.RetrievalRepo.ConfigureActiveAudience(AudienceDev);
+        harness.RetrievalRepo.Audiences.Add(new Audience(CurrentSnapshotId, candidateAudience, "Consultant", null, IsDeleted: true));
+        harness.RetrievalRepo.Resolutions.Add(new AudienceResolution(CurrentSnapshotId, AudienceDev, candidateAudience, 2));
         var service = harness.CreateService();
 
-        var query = new SearchQuery("text", RoleId: RoleDev);
+        var query = new SearchQuery("text", AudienceId: AudienceDev);
         var result = await service.SearchAsync(query, new ReadContext());
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.CandidateRoleDeleted, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.CandidateAudienceDeleted, result.Error!.Code);
         Assert.Equal(
-            candidateRole.ToString(),
-            result.Error.Details[RoleResolutionErrorCodes.CandidateRoleIdDetail]);
+            candidateAudience.ToString(),
+            result.Error.Details[AudienceResolutionErrorCodes.CandidateAudienceIdDetail]);
     }
 
     [Fact]
-    public async Task SearchAsync_WithUnknownCandidateRole_ReturnsCandidateRoleNotFound()
+    public async Task SearchAsync_WithUnknownCandidateAudience_ReturnsCandidateAudienceNotFound()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
-        harness.RetrievalRepo.ConfigureActiveRole(RoleDev);
-        harness.RetrievalRepo.Resolutions.Add(new RoleResolution(CurrentSnapshotId, RoleDev, new RoleId("Consultant"), 2));
+        harness.RetrievalRepo.ConfigureActiveAudience(AudienceDev);
+        harness.RetrievalRepo.Resolutions.Add(new AudienceResolution(CurrentSnapshotId, AudienceDev, new AudienceId("Consultant"), 2));
         var service = harness.CreateService();
 
-        var query = new SearchQuery("text", RoleId: RoleDev);
+        var query = new SearchQuery("text", AudienceId: AudienceDev);
         var result = await service.SearchAsync(query, new ReadContext());
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.CandidateRoleNotFound, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.CandidateAudienceNotFound, result.Error!.Code);
     }
 
     [Fact]
-    public async Task SearchAsync_WithDuplicateCandidateRole_ReturnsDuplicateCandidateRole()
+    public async Task SearchAsync_WithDuplicateCandidateAudience_ReturnsDuplicateCandidateAudience()
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
-        var candidateRole = new RoleId("Consultant");
-        harness.RetrievalRepo.ConfigureActiveRole(RoleDev);
-        harness.RetrievalRepo.Roles.Add(new Role(CurrentSnapshotId, candidateRole, "Consultant", null, IsDeleted: false));
-        harness.RetrievalRepo.Resolutions.Add(new RoleResolution(CurrentSnapshotId, RoleDev, candidateRole, 2));
-        harness.RetrievalRepo.Resolutions.Add(new RoleResolution(CurrentSnapshotId, RoleDev, candidateRole, 3));
+        var candidateAudience = new AudienceId("Consultant");
+        harness.RetrievalRepo.ConfigureActiveAudience(AudienceDev);
+        harness.RetrievalRepo.Audiences.Add(new Audience(CurrentSnapshotId, candidateAudience, "Consultant", null, IsDeleted: false));
+        harness.RetrievalRepo.Resolutions.Add(new AudienceResolution(CurrentSnapshotId, AudienceDev, candidateAudience, 2));
+        harness.RetrievalRepo.Resolutions.Add(new AudienceResolution(CurrentSnapshotId, AudienceDev, candidateAudience, 3));
         var service = harness.CreateService();
 
-        var query = new SearchQuery("text", RoleId: RoleDev);
+        var query = new SearchQuery("text", AudienceId: AudienceDev);
         var result = await service.SearchAsync(query, new ReadContext());
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.DuplicateCandidateRole, result.Error!.Code);
+        Assert.Equal(AudienceResolutionErrorCodes.DuplicateCandidateAudience, result.Error!.Code);
     }
 
     [Fact]
@@ -309,14 +309,14 @@ public sealed class SearchServiceTests
     {
         var harness = new SearchTestHarness(CurrentSnapshotId);
         var node1 = new NodeId(Guid.Parse("11111111-0000-0000-0000-000000000001"));
-        harness.RetrievalRepo.ConfigureActiveRole(RoleDev);
+        harness.RetrievalRepo.ConfigureActiveAudience(AudienceDev);
         harness.RetrievalRepo.ResultsToReturn = new List<SearchHit>
         {
             new(node1, "Node 1", null, null, "Title", Availability.None, null, Freshness.Unknown, 10)
         };
         var service = harness.CreateService();
 
-        var query = new SearchQuery("Node", RoleId: RoleDev);
+        var query = new SearchQuery("Node", AudienceId: AudienceDev);
         var result = await service.SearchAsync(query, new ReadContext());
 
         Assert.True(result.IsSuccess);

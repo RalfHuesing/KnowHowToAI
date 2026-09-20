@@ -10,7 +10,7 @@ internal static class SqlMutationParameterMapper
     {
         snapshotId = content.SnapshotId.Value,
         nodeId = content.NodeId.Value,
-        roleId = content.RoleId.Value,
+        roleId = content.AudienceId.Value,
         contentRevisionId = content.ContentRevisionId.Value,
         contentMode = content.ContentMode.ToString(),
         content.ContentMd,
@@ -21,9 +21,9 @@ internal static class SqlMutationParameterMapper
     {
         snapshotId = dependency.SnapshotId.Value,
         targetNodeId = dependency.TargetNodeId.Value,
-        targetRoleId = dependency.TargetRoleId.Value,
+        targetRoleId = dependency.TargetAudienceId.Value,
         sourceNodeId = dependency.SourceNodeId.Value,
-        sourceRoleId = dependency.SourceRoleId.Value,
+        sourceRoleId = dependency.SourceAudienceId.Value,
         sourceContentRevisionId = dependency.SourceContentRevisionId.Value
     };
 }

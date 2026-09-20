@@ -76,7 +76,7 @@ angebunden; die Assembly ist keine Laufzeitabhängigkeit.
 |---|---|
 | `Domain.Common` | Result-, Fehler- und Warnverträge, gemeinsame primitive Regeln |
 | `Domain.Hierarchy` | Node-Modell, Baumregeln, Sortierung, Zyklenprüfung |
-| `Domain.Roles` | Rollen, Resolution Orders, deterministische Auflösung |
+| `Domain.Audiences` | Rollen, Resolution Orders, deterministische Auflösung |
 | `Domain.Content` | NodeContent, Normalisierung, Revisionen, Markdown-/Textoperationen |
 | `Domain.Dependencies` | Provenienz, Dependency-Graph, transitive Freshness |
 | `Domain.Versioning` | Snapshot, Transaction, Release |
@@ -86,10 +86,10 @@ angebunden; die Assembly ist keine Laufzeitabhängigkeit.
 | `Application.Runtime` | Laufzeit-Dienste (durchgetaktete Zeit, IDs) |
 | `Application.Policies` | von der App-Konfiguration unabhängige Quality-/Retrieval-Policies |
 | `Application.Transactions` | Begin, Get, Validate, Commit, Discard, ListOpen |
-| `Application.Navigation` | Read-Kontext, Root, Node, Children, Rollen-Metadaten |
+| `Application.Navigation` | Read-Kontext, Root, Node, Children, Zielgruppen-Metadaten |
 | `Application.Mutations.Nodes` | Create, Update, Move, Reorder, Delete Node |
 | `Application.Mutations.Content` | Replace Content/Text, Delete Content |
-| `Application.Mutations.Roles` | Rollenpflege, vollständige Resolution Orders |
+| `Application.Mutations.Audiences` | Rollenpflege, vollständige Resolution Orders |
 | `Application.Retrieval.Export` | deterministischer Markdown-Export |
 | `Application.Retrieval.Search` | begrenzte Suche, Snippets, Paging |
 | `Application.History` | Snapshots, Diffs, Transaction Changes, Releases |
@@ -220,7 +220,7 @@ spiegelt `PageRegionState` und `WorkspaceState` und reicht `ReadContext` sowie d
 aktuelle `ChangeVersion` an den zustandsbehafteten `RoleEditor` weiter. `RoleEditor`
 lädt die Rollenliste einschließlich opaker Paging-Fortsetzung über
 `NavigationService`, hält Formular- und Löschdialogzustand und ruft für Erstellen,
-Umbenennen und Löschen ausschließlich `RoleMutationService` auf. Die drei Aktionen
+Umbenennen und Löschen ausschließlich `AudienceMutationService` auf. Die drei Aktionen
 sind nur bei einer offenen Working Transaction sichtbar und aktiv; erfolgreiche
 Antworten werden lokal aus dem Mutationsergebnis projiziert. Über ein schmales
 `EventCallback<long>` meldet der Editor die neue `ChangeVersion` an die Page, die
@@ -229,7 +229,7 @@ damit `WorkspaceState` aktualisiert und den Kontext als dirty markiert.
 mit ihrem stabilen Fehlercode und den strukturierten Details am Editor-Formular
 angezeigt; ein Fehler lässt Eingaben und Working-Zustand unverändert. Current-,
 Snapshot-, Release- und abgeschlossene Transaction-Kontexte bleiben schreibgeschützt.
-Die Seite bearbeitet keine Resolution Orders; das ist ein separater Rollen-Leaf.
+Die Seite bearbeitet keine Resolution Orders; das ist ein separater Zielgruppen-Leaf.
 
 Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
@@ -274,7 +274,7 @@ Crepe über fünf aufeinanderfolgende Save-/Remount-Roundtrips geführt; jeder
 Server-Readback wird gegen die Markdig-Semantik der Fixture geprüft.
 Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
 den Kontextbereich auf den Current-Read-Context, navigiert zum Wissensbaum
-unter Erhalt der Rolle und bestätigt den Abschluss über die globale
+unter Erhalt der Zielgruppe und bestätigt den Abschluss über die globale
 Toastregion.
 
 Der native Wissensbaum (`Web.Features.Knowledge`) nutzt den flüchtigen Circuit-State
@@ -328,7 +328,7 @@ Off-Path-Teilbäume gehören ausdrücklich nicht zur Rekonstruktion und bleiben 
 Zehn-Seiten-Eviction unterworfen.
 
 Die Read-only Node-Detailansicht (`NodeDetails`) zeigt Titel, Beschreibung, Position,
-Rolle (inklusive Fallback-Kennzeichnung mit Pfeil und aufgelöster Rolle), Verfügbarkeit,
+Zielgruppe (inklusive Fallback-Kennzeichnung mit Pfeil und aufgelöster Rolle), Verfügbarkeit,
 Freshness-Status, Inhaltsmodus (`Independent` vs. `Derived`), optionale Revisions-ID
 sowie bei wirksam aufgelöstem abgeleitetem Inhalt (`Derived`) dessen direkt
 gespeicherte Quellrevisionen (`SourceRevisions`). `NavigationService.GetNodeAsync`
@@ -338,7 +338,7 @@ transitive Provenienzauflistung. Die featurelokale `NodeDetailsPane` kapselt
 Laden, Fehler- und NotFound-Zustand, Markdown-Download-URL sowie Darstellung;
 `KnowledgePage` bleibt für Route, Query, Rollenwahl und sichtbaren Page-Zustand
 zuständig. Die Pane und MCP mappen dasselbe transportneutrale Ergebnis, auch wenn
-der wirksame Derived Content aus einer Fallback-Rolle stammt.
+der wirksame Derived Content aus einer Fallback-Zielgruppe stammt.
 Im aktiven Transaction-Kontext ergänzt `NodeMetadataEditor` diese Ansicht um
 explizite Formulare für Titel, Beschreibung und eine Child-Node unter dem
 ausgewählten Parent. Die Komponente ruft ausschließlich
@@ -380,7 +380,7 @@ unbekannte Codes und unerwartete Ausnahmen liefern neutral `500` mit einem
 endpunktspezifischen technischen Fehlercode. Ein Request-Abbruch wird nicht als
 Serverfehler protokolliert.
 
-Die routable Seite `SearchPage` (`/search`) verwendet mit der globalen Rolle und dem
+Die routable Seite `SearchPage` (`/search`) verwendet mit der globalen Zielgruppe und dem
 aus Query-Parametern aufgelösten Lesekontext direkt den transportneutralen
 `SearchService`. `SearchForm` hält nur den unpersistierten Suchtext;
 `SearchResults` rendert genau eine Trefferseite mit Snippet, hierarchischem Breadcrumb
@@ -449,7 +449,7 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   weil die erweiterte Blazor-Navigation den Hash-Link sonst abfängt, ohne
   den Fokus zu verschieben –, `header`, `nav` mit zugänglichem Namen
   `Hauptnavigation` mit den vier bestehenden Zielen Start (`/`), Suche
-  (`/search`), Transactions (`/transactions`) und Rollen (`/roles`), `nav`
+  (`/search`), Transactions (`/transactions`) und Zielgruppen (`/roles`), `nav`
   `Breadcrumbs`, der Seitenaktionsbereich und optional `aside` `Kontext`.
   Die vier Ziele erscheinen als ruhig gruppierte Linkflächen; der aktive
   Route-Kontext wird ausschließlich visuell über den bestehenden `NavLink`-
@@ -468,12 +468,12 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
   Kopfbereich nahe der Wortmarke – als Text und Status ohne Selektor, Links
   oder Mutation; sie spiegelt `IsDirty` als `data-ktai-dirty`-Attribut ihres
-  Wurzelelements; eine fehlende Rolle erscheint neutral als „Keine Rolle
+  Wurzelelements; eine fehlende Zielgruppe erscheint neutral als „Keine Rolle
   ausgewählt“, der Dirty-Zustand nur bei Bedarf als „Ungespeicherte
   Änderungen“ mit Icon plus Text und bei Transactions der Base-Snapshot als
   eigenes Meta-Item. Nicht gelieferte Angaben erscheinen nicht;
   die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
-  Rolle und ohne `IsDirty`. Domain-Typen und der `WorkspaceState` bleiben
+  Zielgruppe und ohne `IsDirty`. Domain-Typen und der `WorkspaceState` bleiben
   bewusst nicht Teil des Markup-Vertrags.
 - `NavigationProtection` schützt den zentralen ungespeicherten Formularzustand
   (`WorkspaceState.IsDirty`, im Slot als `IsDirty` gespiegelt) über
@@ -565,7 +565,7 @@ Leitplanken:
   gekoppelt.
 - Repository-Namespace und -Klasse folgen dem fachlichen Zugriffsmuster; eine
   Klasse pro SQL-Tabelle ist ausdrücklich nicht das Ziel.
-- Die MCP-Handler-Signaturen sind flach (Selektor-, Rollen- und Paging-Parameter
+- Die MCP-Handler-Signaturen sind flach (Selektor-, Zielgruppen- und Paging-Parameter
   je Tool), weil der MCP-SDK-Schema-Generator Parameterlisten 1:1 in das
   Tool-Input-Schema übersetzt; gebündelte Parameter-Records würden zu
   verschachtelten JSON-Feldern führen. Für `Mcp/Tools` ist deshalb in

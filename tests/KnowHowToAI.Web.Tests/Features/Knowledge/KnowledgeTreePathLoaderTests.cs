@@ -11,7 +11,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreePathLoaderTests
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly RoleId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultRoleId = new("Developer");
 
     [Fact]
     public async Task EnsurePathLoadedAsync_WhenNodeAlreadyKnown_DoesNothing()
@@ -252,7 +252,7 @@ public sealed class KnowledgeTreePathLoaderTests
         {
             Assert.Equal(rootId, q.ParentNodeId);
             Assert.Equal(readContext, q.Context);
-            Assert.Equal(DefaultRoleId, q.RoleId);
+            Assert.Equal(DefaultRoleId, q.AudienceId);
             Assert.Equal(100, q.Limit);
             Assert.False(string.IsNullOrEmpty(q.Cursor));
         }

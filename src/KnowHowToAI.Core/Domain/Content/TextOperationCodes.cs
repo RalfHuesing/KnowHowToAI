@@ -11,5 +11,5 @@ public static class TextOperationCodes
 
     public const string MatchCountDetail = "matchCount";
     public const string NodeIdDetail = "nodeId";
-    public const string RoleIdDetail = "roleId";
+    public const string AudienceIdDetail = "audienceId";
 }

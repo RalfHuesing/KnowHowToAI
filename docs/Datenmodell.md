@@ -11,7 +11,7 @@ Alle Tabellen tragen den Präfix `KnowHowToAI_` im Schema `dbo`:
 | `KnowHowToAI_SystemState` | Systemzustand, referenziert `CurrentSnapshotId` |
 | `KnowHowToAI_Transaction` | Transaktionsmetadaten |
 | `KnowHowToAI_Release` | benannte, unveränderliche Verweise auf committed Snapshots |
-| `KnowHowToAI_Role` | Rollen (`RoleId` NVARCHAR, binäre Collation) |
+| `KnowHowToAI_Role` | Zielgruppen (`RoleId` NVARCHAR, binäre Collation) |
 | `KnowHowToAI_RoleResolution` | Resolution Orders (Kandidatenrolle + Priorität pro Snapshot) |
 | `KnowHowToAI_Node` | Hierarchieknoten pro Snapshot |
 | `KnowHowToAI_NodeContent` | rollenabhängiger Content pro Snapshot |
@@ -22,7 +22,7 @@ Alle Tabellen tragen den Präfix `KnowHowToAI_` im Schema `dbo`:
 - Primäre Identitäten (`NodeId`, `TransactionId`, `ContentRevisionId`):
   `UNIQUEIDENTIFIER` (GUIDs).
 - Snapshot-Identitäten (`SnapshotId`, `ReleaseId`): `BIGINT`.
-- Rollen-IDs: `NVARCHAR(50)` mit binärer, case-sensitiver Collation
+- Zielgruppen-IDs: `NVARCHAR(50)` mit binärer, case-sensitiver Collation
   (`COLLATE Latin1_General_100_BIN2`) – `N'Default'` und `'default'` sind
   verschiedene Rollen.
 - Markdown-Inhalte: `NVARCHAR(MAX)`.
@@ -47,8 +47,8 @@ die gespeicherte Ausprägung gehört zu einem konkreten Snapshot.
 SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted
 ```
 
-`ContentMode` ist `Independent` oder `Derived` ([Rollen und
-Content](Rollen-und-Content.md)). Fallback benötigt keinen duplizierten
+`ContentMode` ist `Independent` oder `Derived` ([Zielgruppen und
+Content](Zielgruppen-und-Content.md)). Fallback benötigt keinen duplizierten
 Content-Datensatz – Fallback ist ein Ergebnis der Role Resolution zur Lesezeit.
 
 ## ContentDependency
@@ -84,7 +84,7 @@ wäre eine spätere Erweiterung ([Entscheidungen](Entscheidungen.md)).
 
 Die Migrations-Skripte liegen unter `sql-scripts/` (`0000` Bootstrap/Migrationsjournal,
 `0001` Snapshots/SystemState/Transaction/Release, `0002` Rollen, `0003` Nodes/Content,
-`0004` Seed des initialen Zustands inklusive Rolle `Default` und ihrer Resolution
+`0004` Seed des initialen Zustands inklusive Zielgruppe `Default` und ihrer Resolution
 Order). Der Runner arbeitet mit:
 
 - Skriptkatalog mit Checksums (`MigrationChecksumMismatch` bei Abweichung),

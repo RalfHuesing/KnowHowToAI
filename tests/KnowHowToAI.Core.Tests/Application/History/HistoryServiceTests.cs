@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
 
@@ -316,7 +316,7 @@ public sealed class HistoryServiceTests
                 new InMemoryTransactionRepository(_store),
                 new InMemoryHierarchyRepository(_store),
                 new InMemoryContentRepository(_store),
-                new InMemoryRoleRepository(_store),
+                new InMemoryAudienceRepository(_store),
                 new InMemoryDependencyRepository(_store)),
             new RetrievalPolicy
             {

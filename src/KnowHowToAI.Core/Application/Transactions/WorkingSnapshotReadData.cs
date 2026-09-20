@@ -1,7 +1,7 @@
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Transactions;
@@ -14,7 +14,7 @@ public sealed record WorkingSnapshotReadData(
     KnowledgeTransaction Transaction,
     long ChangeVersion,
     IReadOnlyList<Node> Nodes,
-    IReadOnlyList<Role> Roles,
-    IReadOnlyList<RoleResolution> RoleResolutions,
+    IReadOnlyList<Audience> Audiences,
+    IReadOnlyList<AudienceResolution> AudienceResolutions,
     IReadOnlyList<NodeContent> Contents,
     IReadOnlyList<ContentDependency> Dependencies);

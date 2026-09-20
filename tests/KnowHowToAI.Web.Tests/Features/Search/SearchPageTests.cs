@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
@@ -21,7 +21,7 @@ namespace KnowHowToAI.Web.Tests.Features.Search;
 public sealed class SearchPageTests : BunitContext
 {
     private static readonly SnapshotId SnapshotId = new(1);
-    private static readonly RoleId RoleId = new("Developer");
+    private static readonly AudienceId AudienceId = new("Developer");
 
     private sealed class CancellableRetrievalRepository : IRetrievalRepository
     {
@@ -54,9 +54,9 @@ public sealed class SearchPageTests : BunitContext
                 }
             }
 
-            var roles = new[] { new Role(SnapshotId, RoleId, RoleId.Value, null, false) };
-            var resolutions = new[] { new RoleResolution(SnapshotId, RoleId, RoleId, 1) };
-            return Result<SearchRepositoryResult>.Success(new SearchRepositoryResult([_completedHit], Roles: roles, Resolutions: resolutions));
+            var roles = new[] { new Audience(SnapshotId, AudienceId, AudienceId.Value, null, false) };
+            var resolutions = new[] { new AudienceResolution(SnapshotId, AudienceId, AudienceId, 1) };
+            return Result<SearchRepositoryResult>.Success(new SearchRepositoryResult([_completedHit], Audiences: roles, Resolutions: resolutions));
         }
     }
 
@@ -71,7 +71,7 @@ public sealed class SearchPageTests : BunitContext
         setup.Repository.ResultsToReturn =
         [
             new SearchHit(nodeId, "Betrieb", null, "...offenes TODO im Inhalt...", "Content",
-                Availability.Explicit, RoleId, Freshness.Current)
+                Availability.Explicit, AudienceId, Freshness.Current)
         ];
 
         var cut = Render<SearchPage>();
@@ -89,7 +89,7 @@ public sealed class SearchPageTests : BunitContext
 
         Assert.Contains($"/knowledge/{nodeId.Value}", Services.GetRequiredService<NavigationManager>().Uri);
         Assert.Equal("TODO", setup.Repository.LastRequest!.Text);
-        Assert.Equal(RoleId, setup.Repository.LastRequest.RoleId);
+        Assert.Equal(AudienceId, setup.Repository.LastRequest.AudienceId);
     }
 
     [Fact]
@@ -100,8 +100,8 @@ public sealed class SearchPageTests : BunitContext
         setup.Harness.AddNode(new Node(SnapshotId, rootId, null, "Root", null, 0, false));
         setup.Repository.ResultsToReturn =
         [
-            new SearchHit(rootId, "TODO eins", null, "TODO", "Content", Availability.Explicit, RoleId, Freshness.Current, 1),
-            new SearchHit(new NodeId(Guid.Parse("40000000-0000-0000-0000-000000000004")), "TODO zwei", null, "TODO", "Content", Availability.Explicit, RoleId, Freshness.Current, 2)
+            new SearchHit(rootId, "TODO eins", null, "TODO", "Content", Availability.Explicit, AudienceId, Freshness.Current, 1),
+            new SearchHit(new NodeId(Guid.Parse("40000000-0000-0000-0000-000000000004")), "TODO zwei", null, "TODO", "Content", Availability.Explicit, AudienceId, Freshness.Current, 2)
         ];
 
         var cut = Render<SearchPage>();
@@ -152,8 +152,8 @@ public sealed class SearchPageTests : BunitContext
         setup.Harness.AddNode(new Node(SnapshotId, fallbackNodeId, rootId, "Fallback Treffer", null, 1, false));
         setup.Repository.ResultsToReturn =
         [
-            new SearchHit(rootId, "Eigener Treffer", null, "TODO", "Content", Availability.Explicit, RoleId, Freshness.Current, 1),
-            new SearchHit(fallbackNodeId, "Fallback Treffer", null, "TODO", "Content", Availability.Fallback, RoleId, Freshness.Current, 2)
+            new SearchHit(rootId, "Eigener Treffer", null, "TODO", "Content", Availability.Explicit, AudienceId, Freshness.Current, 1),
+            new SearchHit(fallbackNodeId, "Fallback Treffer", null, "TODO", "Content", Availability.Fallback, AudienceId, Freshness.Current, 2)
         ];
 
         var cut = Render<SearchPage>();
@@ -184,7 +184,7 @@ public sealed class SearchPageTests : BunitContext
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow));
 
-        Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?snapshotId={historicalSnapshotId.Value}&roleId={RoleId.Value}");
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?snapshotId={historicalSnapshotId.Value}&roleId={AudienceId.Value}");
         var cut = Render<SearchPage>();
 
         Assert.Equal(historicalSnapshotId, Services.GetRequiredService<WorkspaceState>().CurrentReadContext.SnapshotId);
@@ -199,7 +199,7 @@ public sealed class SearchPageTests : BunitContext
         var rootId = new NodeId(Guid.Parse("50000000-0000-0000-0000-000000000005"));
         harness.AddNode(new Node(SnapshotId, rootId, null, "Root", null, 0, false));
         var repository = new CancellableRetrievalRepository(
-            new SearchHit(rootId, "TODO aktuell", null, "TODO", "Content", Availability.Explicit, RoleId, Freshness.Current));
+            new SearchHit(rootId, "TODO aktuell", null, "TODO", "Content", Availability.Explicit, AudienceId, Freshness.Current));
         RegisterPageServices(harness.CreateService(), harness.CreateSearchService(repository));
 
         var cut = Render<SearchPage>();
@@ -225,7 +225,7 @@ public sealed class SearchPageTests : BunitContext
         var harness = new NavigationTestHarness(SnapshotId);
         var navigationService = harness.CreateService();
         var repository = new InMemoryRetrievalRepository(SnapshotId);
-        repository.ConfigureActiveRole(RoleId);
+        repository.ConfigureActiveAudience(AudienceId);
         var searchService = harness.CreateSearchService(repository, searchPageSize);
 
         RegisterPageServices(navigationService, searchService);
@@ -236,7 +236,7 @@ public sealed class SearchPageTests : BunitContext
     private void RegisterPageServices(NavigationService navigationService, SearchService searchService)
     {
         Services.AddWebPageStates()
-            .AddSearchPageServices(navigationService, searchService, defaultRole: RoleId.Value);
+            .AddSearchPageServices(navigationService, searchService, defaultRole: AudienceId.Value);
     }
 
     [Fact]

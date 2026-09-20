@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Application.History;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.History;
 using KnowHowToAI.Server.Web.Components.Shared.Diffs;
@@ -92,16 +92,16 @@ public sealed class HistoryMapperTests
         var node = new Node(new SnapshotId(2), nodeId, null, "Neuer Node", null, 0, false);
         var nodeDiff = new NodeDiffEntry(DiffChangeKind.Added, Before: null, After: node);
 
-        var roleId = new RoleId("admin");
-        var role = new Role(new SnapshotId(2), roleId, "Admin", null, false);
-        var roleDiff = new RoleDiffEntry(DiffChangeKind.Added, Before: null, After: role);
+        var roleId = new AudienceId("admin");
+        var role = new Audience(new SnapshotId(2), roleId, "Admin", null, false);
+        var roleDiff = new AudienceDiffEntry(DiffChangeKind.Added, Before: null, After: role);
 
         var diff = new SnapshotDiff(
             new SnapshotId(1),
             new SnapshotId(2),
             new[] { nodeDiff },
             new[] { roleDiff },
-            Array.Empty<RoleResolutionDiffEntry>(),
+            Array.Empty<AudienceResolutionDiffEntry>(),
             Array.Empty<ContentDiffEntry>(),
             Array.Empty<DependencyDiffEntry>(),
             NextCursor: "diff-cursor-xyz",
@@ -130,7 +130,7 @@ public sealed class HistoryMapperTests
     {
         var snapshotId = new SnapshotId(2);
         var nodeId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000001"));
-        var roleId = new RoleId("Developer");
+        var roleId = new AudienceId("Developer");
         var oldRevisionId = new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000001"));
         var newRevisionId = new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000002"));
 
@@ -141,10 +141,10 @@ public sealed class HistoryMapperTests
                 DiffChangeKind.Modified,
                 new Node(new SnapshotId(1), nodeId, null, "Titel", "Alte Beschreibung", 1, false),
                 new Node(snapshotId, nodeId, null, "Titel", "Neue Beschreibung", 1, false))],
-            [new RoleDiffEntry(
+            [new AudienceDiffEntry(
                 DiffChangeKind.Modified,
-                new Role(new SnapshotId(1), roleId, "Entwickler", "Alte Rollenbeschreibung", false),
-                new Role(snapshotId, roleId, "Entwickler", "Neue Rollenbeschreibung", false))],
+                new Audience(new SnapshotId(1), roleId, "Entwickler", "Alte Rollenbeschreibung", false),
+                new Audience(snapshotId, roleId, "Entwickler", "Neue Rollenbeschreibung", false))],
             [],
             [new ContentDiffEntry(
                 DiffChangeKind.Modified,

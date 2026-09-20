@@ -12,7 +12,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
@@ -51,7 +51,7 @@ public sealed class McpHttpWriteContractTests
     private static readonly NodeId RootNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000000"));
     private static readonly NodeId GeneratedNodeId = new(new Guid(10, 0, 0, new byte[8]));
     private static readonly ContentRevisionId GeneratedRevisionId = new(new Guid(20, 0, 0, new byte[8]));
-    private static readonly RoleId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
 
     // ── Begin/Commit/Discard ──────────────────────────────────────────────────
 
@@ -380,7 +380,7 @@ public sealed class McpHttpWriteContractTests
         new WorkingContentMutationState(
             WorkingSnapshotId,
             [new Node(WorkingSnapshotId, RootNodeId, null, "Titel", null, 0, false)],
-            [new Role(WorkingSnapshotId, RoleDeveloper, "Developer", null, false)],
+            [new Audience(WorkingSnapshotId, RoleDeveloper, "Developer", null, false)],
             [],
             []));
 

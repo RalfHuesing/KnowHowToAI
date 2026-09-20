@@ -1,14 +1,14 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.TestSupport;
 
 /// <summary>
 /// Konfigurierbarer In-Memory-<see cref="IRetrievalRepository"/>-Stub für
 /// Search-Szenarien: liefert die konfigurierten Treffer (<see cref="ResultsToReturn"/>)
-/// samt Rollen-Auflösungsdaten zurück und merkt sich Aufrufanzahl
+/// samt Zielgruppen-Auflösungsdaten zurück und merkt sich Aufrufanzahl
 /// (<see cref="CallCount"/>) und letzte Anfrage (<see cref="LastRequest"/>) für
 /// Assertionen.
 /// </summary>
@@ -26,17 +26,17 @@ public sealed class InMemoryRetrievalRepository(SnapshotId snapshotId) : IRetrie
     /// <summary>Optionale ChangeVersion im Suchergebnis.</summary>
     public long? ChangeVersionToReturn { get; set; }
 
-    /// <summary>Rollen, die der Stub als aktive Rollen zurückliefert.</summary>
-    public List<Role> Roles { get; } = [];
+    /// <summary>Zielgruppen, die der Stub als aktive Zielgruppen zurückliefert.</summary>
+    public List<Audience> Audiences { get; } = [];
 
     /// <summary>Auflösungsreihenfolgen, die der Stub zurückliefert.</summary>
-    public List<RoleResolution> Resolutions { get; } = [];
+    public List<AudienceResolution> Resolutions { get; } = [];
 
-    /// <summary>Konfiguriert eine aktive, nicht gelöschte Rolle mit Selbst-Auflösung.</summary>
-    public void ConfigureActiveRole(RoleId roleId, bool isDeleted = false)
+    /// <summary>Konfiguriert eine aktive, nicht gelöschte Zielgruppe mit Selbst-Auflösung.</summary>
+    public void ConfigureActiveAudience(AudienceId audienceId, bool isDeleted = false)
     {
-        Roles.Add(new Role(snapshotId, roleId, roleId.Value, null, isDeleted));
-        Resolutions.Add(new RoleResolution(snapshotId, roleId, roleId, 1));
+        Audiences.Add(new Audience(snapshotId, audienceId, audienceId.Value, null, isDeleted));
+        Resolutions.Add(new AudienceResolution(snapshotId, audienceId, audienceId, 1));
     }
 
     public Task<Result<SearchRepositoryResult>> SearchAsync(
@@ -55,6 +55,6 @@ public sealed class InMemoryRetrievalRepository(SnapshotId snapshotId) : IRetrie
             .Take(request.Limit)
             .ToArray();
         return Task.FromResult(Result<SearchRepositoryResult>.Success(new SearchRepositoryResult(
-            hits, ChangeVersionToReturn, Roles, Resolutions)));
+            hits, ChangeVersionToReturn, Audiences, Resolutions)));
     }
 }

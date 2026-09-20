@@ -17,7 +17,7 @@ public readonly record struct NodeId(Guid Value)
     public override string ToString() => Value.ToString("D");
 }
 
-public readonly record struct RoleId(string Value)
+public readonly record struct AudienceId(string Value)
 {
     public override string ToString() => Value;
 }

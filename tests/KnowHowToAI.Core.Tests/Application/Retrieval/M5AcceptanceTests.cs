@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.TestSupport;
 
@@ -18,8 +18,8 @@ public sealed class M5AcceptanceTests
 {
     private static readonly SnapshotId SnapshotV1 = new(100);
     private static readonly SnapshotId SnapshotV2 = new(200);
-    private static readonly RoleId RoleDefault = new("default");
-    private static readonly RoleId RoleConsultant = new("consultant");
+    private static readonly AudienceId AudienceDefault = new("default");
+    private static readonly AudienceId AudienceConsultant = new("consultant");
 
     private static readonly NodeId RootId = new(Guid.Parse("10000000-0000-0000-0000-000000000001"));
     private static readonly NodeId Child1Id = new(Guid.Parse("10000000-0000-0000-0000-000000000002"));
@@ -35,14 +35,14 @@ public sealed class M5AcceptanceTests
 
         // 1. Snapshot V1 aufbauen
         harness.AddSnapshot(new Snapshot(SnapshotV1, null, SnapshotState.Committed, FixedNow, FixedNow));
-        harness.AddRole(new Role(SnapshotV1, RoleDefault, "Default", null, false));
-        harness.AddRoleResolution(new RoleResolution(SnapshotV1, RoleDefault, RoleDefault, 1));
+        harness.AddAudience(new Audience(SnapshotV1, AudienceDefault, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(SnapshotV1, AudienceDefault, AudienceDefault, 1));
         harness.AddNode(new Node(SnapshotV1, RootId, null, "Kapitel 1", null, 1, false));
         harness.AddNode(new Node(SnapshotV1, Child1Id, RootId, "Abschnitt 1.1", null, 1, false));
         harness.AddNode(new Node(SnapshotV1, Child2Id, RootId, "Abschnitt 1.2", null, 2, false));
-        harness.AddContent(new NodeContent(SnapshotV1, RootId, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Root Text V1.", false));
-        harness.AddContent(new NodeContent(SnapshotV1, Child1Id, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 1 Text V1.", false));
-        harness.AddContent(new NodeContent(SnapshotV1, Child2Id, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 2 Text V1.", false));
+        harness.AddContent(new NodeContent(SnapshotV1, RootId, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Root Text V1.", false));
+        harness.AddContent(new NodeContent(SnapshotV1, Child1Id, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 1 Text V1.", false));
+        harness.AddContent(new NodeContent(SnapshotV1, Child2Id, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 2 Text V1.", false));
 
         // Release v1.0 auf Snapshot 1 anlegen
         var releaseService = harness.CreateReleaseService();
@@ -53,23 +53,23 @@ public sealed class M5AcceptanceTests
         // - NewChild3 hinzugefügt (create)
         // - Child2 unter Child1 verschoben (move)
         // - Child1 Content aktualisiert (update)
-        // - Rolle Consultant hinzugefügt
+        // - Zielgruppe Consultant hinzugefügt
         // - Resolution Order geändert
         harness.AddSnapshot(new Snapshot(SnapshotV2, SnapshotV1, SnapshotState.Committed, FixedNow.AddDays(1), FixedNow.AddDays(1)));
-        harness.AddRole(new Role(SnapshotV2, RoleDefault, "Default", null, false));
-        harness.AddRole(new Role(SnapshotV2, RoleConsultant, "Consultant", null, false));
-        harness.AddRoleResolution(new RoleResolution(SnapshotV2, RoleDefault, RoleConsultant, 1));
-        harness.AddRoleResolution(new RoleResolution(SnapshotV2, RoleDefault, RoleDefault, 2));
+        harness.AddAudience(new Audience(SnapshotV2, AudienceDefault, "Default", null, false));
+        harness.AddAudience(new Audience(SnapshotV2, AudienceConsultant, "Consultant", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(SnapshotV2, AudienceDefault, AudienceConsultant, 1));
+        harness.AddAudienceResolution(new AudienceResolution(SnapshotV2, AudienceDefault, AudienceDefault, 2));
 
         harness.AddNode(new Node(SnapshotV2, RootId, null, "Kapitel 1", null, 1, false));
         harness.AddNode(new Node(SnapshotV2, Child1Id, RootId, "Abschnitt 1.1", null, 1, false));
         harness.AddNode(new Node(SnapshotV2, Child2Id, Child1Id, "Abschnitt 1.2 (Moved)", null, 1, false)); // Move nach Child1!
         harness.AddNode(new Node(SnapshotV2, NewChild3Id, RootId, "Abschnitt 1.3 (New)", null, 2, false)); // Neu!
 
-        harness.AddContent(new NodeContent(SnapshotV2, RootId, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Root Text V1.", false));
-        harness.AddContent(new NodeContent(SnapshotV2, Child1Id, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 1 Text V2 Aktualisiert.", false));
-        harness.AddContent(new NodeContent(SnapshotV2, Child2Id, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 2 Text V1.", false));
-        harness.AddContent(new NodeContent(SnapshotV2, NewChild3Id, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 3 Text V2 Neu.", false));
+        harness.AddContent(new NodeContent(SnapshotV2, RootId, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Root Text V1.", false));
+        harness.AddContent(new NodeContent(SnapshotV2, Child1Id, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 1 Text V2 Aktualisiert.", false));
+        harness.AddContent(new NodeContent(SnapshotV2, Child2Id, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 2 Text V1.", false));
+        harness.AddContent(new NodeContent(SnapshotV2, NewChild3Id, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Child 3 Text V2 Neu.", false));
 
         // Release v2.0 auf Snapshot 2 anlegen
         var r2Result = await releaseService.CreateReleaseAsync("v2.0", SnapshotV2, "Zweiter Stand");
@@ -77,13 +77,13 @@ public sealed class M5AcceptanceTests
 
         // 3. Historische Reproduktion: Export auf Release v1.0 (Snapshot 1) liefert unberührt den exakten Stand von damals
         var exportService = harness.CreateExportService();
-        var exportV1 = await exportService.ExportTreeAsync(RootId, new ReadContext(SnapshotId: SnapshotV1), RoleDefault);
+        var exportV1 = await exportService.ExportTreeAsync(RootId, new ReadContext(SnapshotId: SnapshotV1), AudienceDefault);
         Assert.True(exportV1.IsSuccess);
         var expectedV1 = "# Kapitel 1\n\nRoot Text V1.\n\n## Abschnitt 1.1\n\nChild 1 Text V1.\n\n## Abschnitt 1.2\n\nChild 2 Text V1.\n";
         Assert.Equal(expectedV1, exportV1.Value);
 
         // 4. Export auf Release v2.0 (Snapshot 2) liefert die neue Struktur mit Verschiebung und neuem Node
-        var exportV2 = await exportService.ExportTreeAsync(RootId, new ReadContext(SnapshotId: SnapshotV2), RoleDefault);
+        var exportV2 = await exportService.ExportTreeAsync(RootId, new ReadContext(SnapshotId: SnapshotV2), AudienceDefault);
         Assert.True(exportV2.IsSuccess);
         var expectedV2 = "# Kapitel 1\n\nRoot Text V1.\n\n## Abschnitt 1.1\n\nChild 1 Text V2 Aktualisiert.\n\n### Abschnitt 1.2 (Moved)\n\nChild 2 Text V1.\n\n## Abschnitt 1.3 (New)\n\nChild 3 Text V2 Neu.\n";
         Assert.Equal(expectedV2, exportV2.Value);
@@ -106,7 +106,7 @@ public sealed class M5AcceptanceTests
         Assert.Equal("Child 1 Text V2 Aktualisiert.", updatedContent.After!.ContentMd);
 
         // Rollenänderung
-        Assert.Contains(diff.Roles, r => r.Kind == DiffChangeKind.Added && r.After!.RoleId == RoleConsultant);
+        Assert.Contains(diff.Audiences, r => r.Kind == DiffChangeKind.Added && r.After!.AudienceId == AudienceConsultant);
     }
 
     [Fact]
@@ -114,8 +114,8 @@ public sealed class M5AcceptanceTests
     {
         var harness = new MultiSnapshotTestHarness();
         harness.AddSnapshot(new Snapshot(SnapshotV1, null, SnapshotState.Committed, FixedNow, FixedNow));
-        harness.AddRole(new Role(SnapshotV1, RoleDefault, "Default", null, false));
-        harness.AddRoleResolution(new RoleResolution(SnapshotV1, RoleDefault, RoleDefault, 1));
+        harness.AddAudience(new Audience(SnapshotV1, AudienceDefault, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(SnapshotV1, AudienceDefault, AudienceDefault, 1));
         harness.AddNode(new Node(SnapshotV1, RootId, null, "Root", null, 0, false));
 
         // 25 Kindknoten anlegen
@@ -123,7 +123,7 @@ public sealed class M5AcceptanceTests
         {
             var cid = new NodeId(Guid.Parse($"20000000-0000-0000-0000-{i:D12}"));
             harness.AddNode(new Node(SnapshotV1, cid, RootId, $"Child {i}", null, i, false));
-            harness.AddContent(new NodeContent(SnapshotV1, cid, RoleDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, $"Inhalt {i}", false));
+            harness.AddContent(new NodeContent(SnapshotV1, cid, AudienceDefault, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, $"Inhalt {i}", false));
         }
 
         // Policy mit Default=5, Max=10
@@ -139,7 +139,7 @@ public sealed class M5AcceptanceTests
         // 1. Navigation ListChildrenAsync beachtet MaximumPageSize
         var navService = harness.CreateNavigationService(policy);
         var navResult = await navService.ListChildrenAsync(
-            new ListChildrenQuery(RootId, new ReadContext(SnapshotId: SnapshotV1), RoleDefault, Limit: 9999));
+            new ListChildrenQuery(RootId, new ReadContext(SnapshotId: SnapshotV1), AudienceDefault, Limit: 9999));
         Assert.True(navResult.IsSuccess);
         Assert.NotNull(navResult.Value);
         Assert.Equal(10, navResult.Value.Items.Count); // Begrenzt auf MaximumPageSize = 10!
@@ -152,8 +152,8 @@ public sealed class M5AcceptanceTests
         var diffResult = await historyService.CompareSnapshotsAsync(snapshotBase, SnapshotV1, limit: 9999);
         Assert.True(diffResult.IsSuccess);
         Assert.NotNull(diffResult.Value);
-        // Insgesamt 1 Role + 1 Resolution + 26 Nodes + 25 Contents = 53 Items
-        var totalDiffItemsOnPage = diffResult.Value.Roles.Count + diffResult.Value.RoleResolutions.Count + diffResult.Value.Nodes.Count + diffResult.Value.Contents.Count + diffResult.Value.Dependencies.Count;
+        // Insgesamt 1 Audience + 1 Resolution + 26 Nodes + 25 Contents = 53 Items
+        var totalDiffItemsOnPage = diffResult.Value.Audiences.Count + diffResult.Value.AudienceResolutions.Count + diffResult.Value.Nodes.Count + diffResult.Value.Contents.Count + diffResult.Value.Dependencies.Count;
         Assert.Equal(10, totalDiffItemsOnPage); // Begrenzt auf MaximumPageSize = 10!
         Assert.NotNull(diffResult.Value.NextCursor);
 
@@ -170,7 +170,7 @@ public sealed class M5AcceptanceTests
 
         // 4. ExportTreeAsync liefert den vollständigen Baum (die ausdrücklich angeforderte Ausnahme!)
         var exportService = harness.CreateExportService();
-        var exportResult = await exportService.ExportTreeAsync(RootId, new ReadContext(SnapshotId: SnapshotV1), RoleDefault);
+        var exportResult = await exportService.ExportTreeAsync(RootId, new ReadContext(SnapshotId: SnapshotV1), AudienceDefault);
         Assert.True(exportResult.IsSuccess);
         // Enthält alle 25 Child-Überschriften
         for (var i = 1; i <= 25; i++)
@@ -189,8 +189,8 @@ public sealed class M5AcceptanceTests
 
         public void AddSnapshot(Snapshot s) => _store.Snapshots.Add(s);
         public void AddNode(Node n) => _store.Nodes.Add(n);
-        public void AddRole(Role r) => _store.Roles.Add(r);
-        public void AddRoleResolution(RoleResolution res) => _store.Resolutions.Add(res);
+        public void AddAudience(Audience r) => _store.Audiences.Add(r);
+        public void AddAudienceResolution(AudienceResolution res) => _store.Resolutions.Add(res);
         public void AddContent(NodeContent c) => _store.Contents.Add(c);
 
         public SnapshotReadRepositories CreateSnapshotReadRepositories() => new(
@@ -198,7 +198,7 @@ public sealed class M5AcceptanceTests
             new InMemoryTransactionRepository(_store),
             new InMemoryHierarchyRepository(_store),
             new InMemoryContentRepository(_store),
-            new InMemoryRoleRepository(_store),
+            new InMemoryAudienceRepository(_store),
             new InMemoryDependencyRepository(_store));
 
         public MarkdownExportService CreateExportService() => new(CreateSnapshotReadRepositories());
@@ -227,7 +227,7 @@ public sealed class M5AcceptanceTests
                 repos.Transactions,
                 repos.Hierarchy,
                 repos.Contents,
-                repos.Roles,
+                repos.Audiences,
                 repos.Dependencies);
             return new NavigationService(navRepos, policy ?? StandardPolicy());
         }

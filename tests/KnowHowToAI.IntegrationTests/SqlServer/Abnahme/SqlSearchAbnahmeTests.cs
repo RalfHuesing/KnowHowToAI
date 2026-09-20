@@ -3,7 +3,7 @@ using System.Globalization;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Repositories.Retrieval;
@@ -29,7 +29,7 @@ public sealed partial class SqlSearchAbnahmeTests
     private const int FallbackContentStride = 20;
     private const string MeasurementMarker = "M5.12-Abnahme";
 
-    private static readonly RoleId RoleEntwickler = new("Entwickler");
+    private static readonly AudienceId RoleEntwickler = new("Entwickler");
 
     [Fact]
     public async Task SearchQuery_RepraesentativeDatenmenge_NachweisInPlanUndLaufzeit()
@@ -80,8 +80,8 @@ public sealed partial class SqlSearchAbnahmeTests
         await session.CreateRoleAsync("Entwickler", "Technische Sicht");
         await session.CreateRoleAsync("Endanwender", "Anwendersicht");
         await session.CreateRoleAsync("Berater", "Beratersicht");
-        await session.SetResolutionAsync(RoleEntwickler, RoleEntwickler, new RoleId("Endanwender"));
-        await session.SetResolutionAsync(new RoleId("Berater"), new RoleId("Berater"), RoleEntwickler);
+        await session.SetResolutionAsync(RoleEntwickler, RoleEntwickler, new AudienceId("Endanwender"));
+        await session.SetResolutionAsync(new AudienceId("Berater"), new AudienceId("Berater"), RoleEntwickler);
 
         var rootNode = await session.CreateNodeAsync(null, "Wurzelthema Abnahme", null, 0);
         for (var index = 1; index <= ThemaNodeCount; index++)
@@ -103,13 +103,13 @@ public sealed partial class SqlSearchAbnahmeTests
 
         if (index % FallbackContentStride == 0)
             await session.ReplaceIndependentContentAsync(
-                nodeId, new RoleId("Endanwender"), $"Endanwender-Sicht zu Thema {index:000}.");
+                nodeId, new AudienceId("Endanwender"), $"Endanwender-Sicht zu Thema {index:000}.");
 
         if (index % FallbackContentStride == FallbackContentStride / 2)
         {
             await session.ReplaceDerivedContentAsync(
                 nodeId,
-                new RoleId("Berater"),
+                new AudienceId("Berater"),
                 $"Berater-Sicht zu Thema {index:000}.",
                 [new ContentDependencySource(nodeId, RoleEntwickler, content.ContentRevisionId)]);
         }
@@ -134,7 +134,7 @@ public sealed partial class SqlSearchAbnahmeTests
         SqlRetrievalRepository repository,
         SnapshotId snapshotId,
         string text,
-        RoleId? roleId,
+        AudienceId? roleId,
         int pageSize)
     {
         var allHits = new List<SearchHit>();
@@ -183,7 +183,7 @@ public sealed partial class SqlSearchAbnahmeTests
     private sealed record SearchVariant(
         string Name,
         string Text,
-        RoleId? RoleId,
+        AudienceId? AudienceId,
         int HasCursor,
         int LastRank,
         int LastSortOrder,
@@ -209,7 +209,7 @@ public sealed partial class SqlSearchAbnahmeTests
         await using var command = connection.CreateCommand();
         command.CommandText = statisticsSql;
         command.Parameters.AddWithValue("@snapshotId", snapshotId.Value);
-        command.Parameters.AddWithValue("@roleId", (object?)variant.RoleId?.Value ?? DBNull.Value);
+        command.Parameters.AddWithValue("@roleId", (object?)variant.AudienceId?.Value ?? DBNull.Value);
         command.Parameters.AddWithValue("@likePattern", $"%{variant.Text}%");
         command.Parameters.AddWithValue("@limit", 50);
         command.Parameters.AddWithValue("@hasCursor", variant.HasCursor);

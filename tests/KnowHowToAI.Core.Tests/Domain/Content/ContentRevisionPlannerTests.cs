@@ -47,7 +47,7 @@ public sealed class ContentRevisionPlannerTests
         new(
             new SnapshotId(1),
             new NodeId(Guid.Parse("9f4a2c43-0a77-44be-8f98-f403444d3e9f")),
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("0a77f4a2-2c43-44be-8f98-f403444d3e9f")),
             ContentMode.Independent,
             content,

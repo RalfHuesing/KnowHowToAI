@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.Core.Domain.Validation;
 
@@ -16,15 +16,15 @@ public static class TransactionValidator
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Nodes);
-        ArgumentNullException.ThrowIfNull(request.Roles);
-        ArgumentNullException.ThrowIfNull(request.RoleResolutions);
+        ArgumentNullException.ThrowIfNull(request.Audiences);
+        ArgumentNullException.ThrowIfNull(request.AudienceResolutions);
         ArgumentNullException.ThrowIfNull(request.Contents);
         ArgumentNullException.ThrowIfNull(request.Dependencies);
         ArgumentNullException.ThrowIfNull(request.QualityWarningThresholds);
 
         var nodes = request.Nodes.ToArray();
-        var roles = request.Roles.ToArray();
-        var roleResolutions = request.RoleResolutions.ToArray();
+        var audiences = request.Audiences.ToArray();
+        var audienceResolutions = request.AudienceResolutions.ToArray();
         var contents = request.Contents.ToArray();
         var dependencies = request.Dependencies.ToArray();
         var errors = new List<DomainError>();
@@ -32,7 +32,7 @@ public static class TransactionValidator
 
         AddReport(HierarchyValidator.Validate(nodes), errors, warnings);
         AddReport(DependencyValidator.ValidateSnapshot(contents, dependencies), errors, warnings);
-        ValidateRoleResolutions(roles, roleResolutions, contents, errors);
+        ValidateAudienceResolutions(audiences, audienceResolutions, contents, errors);
 
         var activeNodesById = nodes
             .Where(node => !node.IsDeleted)
@@ -58,29 +58,29 @@ public static class TransactionValidator
             CreateRefactoringCandidates(distinctWarnings));
     }
 
-    private static void ValidateRoleResolutions(
-        IReadOnlyCollection<Role> roles,
-        IReadOnlyCollection<RoleResolution> resolutions,
+    private static void ValidateAudienceResolutions(
+        IReadOnlyCollection<Audience> audiences,
+        IReadOnlyCollection<AudienceResolution> resolutions,
         IReadOnlyCollection<NodeContent> contents,
         ICollection<DomainError> errors)
     {
-        var requestedRoleIds = roles.Where(role => !role.IsDeleted).Select(role => role.RoleId)
-            .Concat(resolutions.Select(resolution => resolution.RequestedRoleId))
+        var requestedAudienceIds = audiences.Where(audience => !audience.IsDeleted).Select(audience => audience.AudienceId)
+            .Concat(resolutions.Select(resolution => resolution.RequestedAudienceId))
             .Distinct()
-            .OrderBy(roleId => roleId.Value, StringComparer.Ordinal);
-        var snapshotId = roles.Select(role => role.SnapshotId)
+            .OrderBy(audienceId => audienceId.Value, StringComparer.Ordinal);
+        var snapshotId = audiences.Select(audience => audience.SnapshotId)
             .Concat(resolutions.Select(resolution => resolution.SnapshotId))
             .Concat(contents.Select(content => content.SnapshotId))
             .DefaultIfEmpty()
             .First();
 
-        foreach (var requestedRoleId in requestedRoleIds)
+        foreach (var requestedAudienceId in requestedAudienceIds)
         {
-            var resolution = RoleResolver.Resolve(new RoleResolutionRequest(
+            var resolution = AudienceResolver.Resolve(new AudienceResolutionRequest(
                 snapshotId,
                 default,
-                requestedRoleId,
-                roles,
+                requestedAudienceId,
+                audiences,
                 resolutions,
                 contents));
             if (!resolution.IsSuccess)
@@ -98,7 +98,7 @@ public static class TransactionValidator
     {
         foreach (var content in contents.Where(content => !content.IsDeleted)
                      .OrderBy(content => content.NodeId.Value)
-                     .ThenBy(content => content.RoleId.Value, StringComparer.Ordinal))
+                     .ThenBy(content => content.AudienceId.Value, StringComparer.Ordinal))
         {
             if (!activeNodesById.TryGetValue(content.NodeId, out var node))
                 continue;
@@ -107,10 +107,10 @@ public static class TransactionValidator
                 content.ContentMd,
                 node.Title,
                 warnOnPossibleEmbeddedHeading);
-            AddReport(structureReport, errors, warnings, content.NodeId, content.RoleId);
+            AddReport(structureReport, errors, warnings, content.NodeId, content.AudienceId);
             AddWarnings(
                 QualityWarningEvaluator.EvaluateContentSize(content.ContentMd, thresholds)
-                    .Select(warning => WithContext(warning, content.NodeId, content.RoleId)),
+                    .Select(warning => WithContext(warning, content.NodeId, content.AudienceId)),
                 warnings);
         }
     }
@@ -165,10 +165,10 @@ public static class TransactionValidator
         IEnumerable<ContentDependency> dependencies) =>
         contents.Where(content => !content.IsDeleted && content.ContentMode == ContentMode.Derived)
             .Where(content => FreshnessEvaluator.Evaluate(content, contents, dependencies) == Freshness.Stale)
-            .Select(content => new StaleContent(content.NodeId, content.RoleId, content.ContentRevisionId))
+            .Select(content => new StaleContent(content.NodeId, content.AudienceId, content.ContentRevisionId))
             .Distinct()
             .OrderBy(content => content.NodeId.Value)
-            .ThenBy(content => content.RoleId.Value, StringComparer.Ordinal)
+            .ThenBy(content => content.AudienceId.Value, StringComparer.Ordinal)
             .ThenBy(content => content.ContentRevisionId.Value)
             .ToArray();
 
@@ -195,7 +195,7 @@ public static class TransactionValidator
             new Dictionary<string, string>
             {
                 [TransactionValidationCodes.NodeIdDetail] = content.NodeId.ToString(),
-                [TransactionValidationCodes.RoleIdDetail] = content.RoleId.ToString(),
+                [TransactionValidationCodes.AudienceIdDetail] = content.AudienceId.ToString(),
                 [TransactionValidationCodes.ContentRevisionIdDetail] = content.ContentRevisionId.ToString()
             });
 
@@ -204,17 +204,17 @@ public static class TransactionValidator
         ICollection<DomainError> errors,
         ICollection<DomainWarning> warnings,
         NodeId? nodeId = null,
-        RoleId? roleId = null)
+        AudienceId? audienceId = null)
     {
-        AddErrors(report.Errors.Select(error => WithContext(error, nodeId, roleId)), errors);
-        AddWarnings(report.Warnings.Select(warning => WithContext(warning, nodeId, roleId)), warnings);
+        AddErrors(report.Errors.Select(error => WithContext(error, nodeId, audienceId)), errors);
+        AddWarnings(report.Warnings.Select(warning => WithContext(warning, nodeId, audienceId)), warnings);
     }
 
-    private static DomainError WithContext(DomainError error, NodeId? nodeId, RoleId? roleId) =>
-        new(error.Code, error.Message, AddContext(error.Details, nodeId, roleId));
+    private static DomainError WithContext(DomainError error, NodeId? nodeId, AudienceId? audienceId) =>
+        new(error.Code, error.Message, AddContext(error.Details, nodeId, audienceId));
 
-    private static DomainWarning WithContext(DomainWarning warning, NodeId? nodeId, RoleId? roleId = null) =>
-        new(warning.Code, warning.Message, AddContext(warning.Details, nodeId, roleId));
+    private static DomainWarning WithContext(DomainWarning warning, NodeId? nodeId, AudienceId? audienceId = null) =>
+        new(warning.Code, warning.Message, AddContext(warning.Details, nodeId, audienceId));
 
     private static void AddErrors(IEnumerable<DomainError> source, ICollection<DomainError> destination)
     {
@@ -231,13 +231,13 @@ public static class TransactionValidator
     private static IReadOnlyDictionary<string, string> AddContext(
         IReadOnlyDictionary<string, string> details,
         NodeId? nodeId,
-        RoleId? roleId)
+        AudienceId? audienceId)
     {
         var contextualDetails = new Dictionary<string, string>(details, StringComparer.Ordinal);
         if (nodeId is { } value)
             contextualDetails[TransactionValidationCodes.NodeIdDetail] = value.ToString();
-        if (roleId is { } role)
-            contextualDetails[TransactionValidationCodes.RoleIdDetail] = role.ToString();
+        if (audienceId is { } audience)
+            contextualDetails[TransactionValidationCodes.AudienceIdDetail] = audience.ToString();
         return contextualDetails;
     }
 

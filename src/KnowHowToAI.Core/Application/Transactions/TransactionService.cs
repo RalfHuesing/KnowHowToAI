@@ -80,8 +80,8 @@ public sealed class TransactionService
 
         var report = TransactionValidator.Validate(new TransactionValidationRequest(
             data.Nodes,
-            data.Roles,
-            data.RoleResolutions,
+            data.Audiences,
+            data.AudienceResolutions,
             data.Contents,
             data.Dependencies,
             _validationPolicy.ToQualityWarningThresholds(),

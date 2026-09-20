@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Mapping;
@@ -34,7 +34,7 @@ public sealed partial class SqlSearchAbnahmeTests
         var erwarteteDerivedTreffer = ThemaNodeCount / FallbackContentStride;
         var repositoryStopwatch = Stopwatch.StartNew();
         var ergebnis = (await repository.SearchAsync(
-            new SearchRequest(snapshotId, DerivedSuchtext, new RoleId("Berater"), 25, null, 100))
+            new SearchRequest(snapshotId, DerivedSuchtext, new AudienceId("Berater"), 25, null, 100))
             .ConfigureAwait(false)).Value!;
         repositoryStopwatch.Stop();
 
@@ -127,7 +127,7 @@ public sealed partial class SqlSearchAbnahmeTests
                 await ReadSearchRowsAsync(reader, rows).ConfigureAwait(false);
             else if (columns.Contains("RequestedRoleId"))
                 rows.Resolutions = ReadCountedRows(reader);
-            else if (columns.Contains("RoleId"))
+            else if (columns.Contains("AudienceId"))
                 rows.Roles = ReadCountedRows(reader);
         }
         while (await reader.NextResultAsync().ConfigureAwait(false));

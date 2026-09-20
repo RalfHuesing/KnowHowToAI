@@ -6,7 +6,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Content;
@@ -29,8 +29,8 @@ public sealed class McpContentMutationToolsTests
     private static readonly NodeId SourceNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000002"));
     private static readonly ContentRevisionId SourceRevisionId =
         new(Guid.Parse("b4e0e04a-2dce-4b5e-8b34-4bd2b9f0e020"));
-    private static readonly RoleId RoleDeveloper = new("Developer");
-    private static readonly RoleId RoleEndUser = new("EndUser");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleEndUser = new("EndUser");
 
     [Fact]
     public async Task ReplaceContent_Independent_CreatesExplicitContentWithFreshnessCurrent()
@@ -245,8 +245,8 @@ public sealed class McpContentMutationToolsTests
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(nameof(Freshness.Unknown), envelope.Data!.Freshness);
-        Assert.True(repository.State.Contents.Single(content => content.RoleId == RoleDeveloper).IsDeleted);
-        Assert.False(repository.State.Contents.Single(content => content.RoleId == RoleEndUser).IsDeleted);
+        Assert.True(repository.State.Contents.Single(content => content.AudienceId == RoleDeveloper).IsDeleted);
+        Assert.False(repository.State.Contents.Single(content => content.AudienceId == RoleEndUser).IsDeleted);
     }
 
     [Fact]
@@ -310,10 +310,10 @@ public sealed class McpContentMutationToolsTests
     private static Node Node(NodeId nodeId) =>
         new(SnapshotId, nodeId, null, "Titel", null, 0, IsDeleted: false);
 
-    private static Role Role(RoleId roleId) =>
+    private static Audience Role(AudienceId roleId) =>
         new(SnapshotId, roleId, roleId.Value, null, IsDeleted: false);
 
-    private static NodeContent Content(NodeId nodeId, RoleId roleId, string contentMd) =>
+    private static NodeContent Content(NodeId nodeId, AudienceId roleId, string contentMd) =>
         new(SnapshotId, nodeId, roleId, SourceRevisionId, ContentMode.Independent, contentMd, IsDeleted: false);
 
     private sealed class FixedIdentifierGenerator : IIdentifierGenerator

@@ -6,7 +6,7 @@ using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Server.Mcp.Tools.Retrieval;
@@ -22,7 +22,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 public sealed class McpRetrievalToolsTests
 {
     private static readonly SnapshotId CurrentSnapshotId = new(100);
-    private static readonly RoleId RoleDeveloper = new("Developer");
+    private static readonly AudienceId RoleDeveloper = new("Developer");
     private static readonly NodeId RootId = new(Guid.Parse("40000000-0000-0000-0000-000000000000"));
     private static readonly NodeId ChildId = new(Guid.Parse("40000000-0000-0000-0000-000000000001"));
     private static readonly NodeId UnknownNodeId = new(Guid.Parse("40000000-0000-0000-0000-000000009999"));
@@ -38,7 +38,7 @@ public sealed class McpRetrievalToolsTests
 
         var request = Assert.Single(repository.Requests);
         Assert.Equal("Auftrag", request.Text);
-        Assert.Null(request.RoleId);
+        Assert.Null(request.AudienceId);
         Assert.Equal(cursor, request.Cursor);
         Assert.Equal(CurrentSnapshotId, request.SnapshotId);
         Assert.True(envelope.IsSuccess);
@@ -122,10 +122,10 @@ public sealed class McpRetrievalToolsTests
         var envelope = await tools.Search("Auftrag", roleId: "Nonexistent");
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal(RoleResolutionErrorCodes.RequestedRoleNotFound, envelope.Code);
+        Assert.Equal("RequestedRoleNotFound", envelope.Code);
         Assert.Equal(
             "Nonexistent",
-            envelope.Details![RoleResolutionErrorCodes.RequestedRoleIdDetail]);
+            envelope.Details!["requestedRoleId"]);
         Assert.Null(envelope.Data);
     }
 

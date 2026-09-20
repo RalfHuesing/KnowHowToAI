@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 using KnowHowToAI.Server.Web.Features.Knowledge;
@@ -97,9 +97,9 @@ public sealed class NodeDeletionEditorTests : BunitContext
         store.Dependencies.Add(new ContentDependency(
             SnapshotId,
             RootNodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             ChildNodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000004"))));
         Services.AddSingleton<IWorkingSnapshotReadRepository>(new InMemoryWorkingSnapshotReadRepository(store));
         Services.AddSingleton<NodeDeletionPreviewService>();
@@ -116,7 +116,7 @@ public sealed class NodeDeletionEditorTests : BunitContext
         new(SnapshotId, nodeId, parentNodeId, nodeId == ChildNodeId ? "Child" : "Root", null, 0, false);
 
     private static NodeContent Content(NodeId nodeId) =>
-        new(SnapshotId, nodeId, new RoleId("Developer"), new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt", false);
+        new(SnapshotId, nodeId, new AudienceId("Developer"), new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Inhalt", false);
 
     private static Node Find(IEnumerable<Node> nodes, NodeId nodeId) =>
         Assert.Single(nodes.Where(node => node.NodeId == nodeId));

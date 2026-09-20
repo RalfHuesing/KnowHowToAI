@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Repositories.Knowledge;
@@ -46,7 +46,7 @@ public sealed class SqlContentMutationRepositoryTests
                             new NodeContent(
                                 state.SnapshotId,
                                 nodeId,
-                                new RoleId("Default"),
+                                new AudienceId("Default"),
                                 revisionId,
                                 ContentMode.Independent,
                                 "Text",
@@ -87,7 +87,7 @@ public sealed class SqlContentMutationRepositoryTests
             transaction.TransactionId,
             state =>
             {
-                var existing = state.Contents.Single(c => c.NodeId == nodeId && c.RoleId == new RoleId("Default"));
+                var existing = state.Contents.Single(c => c.NodeId == nodeId && c.AudienceId == new AudienceId("Default"));
                 var updated = existing with
                 {
                     ContentRevisionId = updatedRevisionId,
@@ -138,7 +138,7 @@ public sealed class SqlContentMutationRepositoryTests
         await using var connection = await database.ConnectionFactory.OpenAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, RoleId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
+            INSERT INTO dbo.KnowHowToAI_NodeContent (SnapshotId, NodeId, AudienceId, ContentRevisionId, ContentMode, ContentMd, IsDeleted)
             SELECT CurrentSnapshotId, @nodeId, N'Default', @revisionId, N'Independent', N'Original', 0
             FROM dbo.KnowHowToAI_SystemState WHERE Id = 1;
             """;

@@ -10,7 +10,7 @@ namespace KnowHowToAI.Core.Application.Dashboard;
 /// <summary>
 /// Transportneutraler Application Service für das Wissensdashboard.
 /// Aggregiert Current Snapshot, letzten Release, offene Transactions inklusive harter Validierungsfehler,
-/// Qualitätsstatus über alle Rollen und zuletzt geänderte Nodes.
+/// Qualitätsstatus über alle Zielgruppen und zuletzt geänderte Nodes.
 /// </summary>
 public sealed class DashboardService
 {
@@ -118,8 +118,8 @@ public sealed class DashboardService
         var data = validationDataResult.Value!;
         var report = TransactionValidator.Validate(new TransactionValidationRequest(
             data.Nodes,
-            data.Roles,
-            data.RoleResolutions,
+            data.Audiences,
+            data.AudienceResolutions,
             data.Contents,
             data.Dependencies,
             _validationPolicy.ToQualityWarningThresholds(),
@@ -133,14 +133,14 @@ public sealed class DashboardService
         CancellationToken cancellationToken)
     {
         var nodes = await _snapshotReadRepositories.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var roles = await _snapshotReadRepositories.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var resolutions = await _snapshotReadRepositories.Roles.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var audiences = await _snapshotReadRepositories.Audiences.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var resolutions = await _snapshotReadRepositories.Audiences.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var contents = await _snapshotReadRepositories.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var dependencies = await _snapshotReadRepositories.Dependencies.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
 
         var report = TransactionValidator.Validate(new TransactionValidationRequest(
             nodes,
-            roles,
+            audiences,
             resolutions,
             contents,
             dependencies,
@@ -162,19 +162,19 @@ public sealed class DashboardService
         var baseSnapshotId = currentSnapshot.BaseSnapshotId.Value;
 
         var baseNodes = await _snapshotReadRepositories.Hierarchy.ListBySnapshotAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
-        var baseRoles = await _snapshotReadRepositories.Roles.ListBySnapshotAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
-        var baseResolutions = await _snapshotReadRepositories.Roles.ListResolutionsBySnapshotAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
+        var baseAudiences = await _snapshotReadRepositories.Audiences.ListBySnapshotAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
+        var baseResolutions = await _snapshotReadRepositories.Audiences.ListResolutionsBySnapshotAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
         var baseContents = await _snapshotReadRepositories.Contents.ListBySnapshotAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
         var baseDependencies = await _snapshotReadRepositories.Dependencies.ListBySnapshotAsync(baseSnapshotId, cancellationToken).ConfigureAwait(false);
 
         var currentNodes = await _snapshotReadRepositories.Hierarchy.ListBySnapshotAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
-        var currentRoles = await _snapshotReadRepositories.Roles.ListBySnapshotAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
-        var currentResolutions = await _snapshotReadRepositories.Roles.ListResolutionsBySnapshotAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
+        var currentAudiences = await _snapshotReadRepositories.Audiences.ListBySnapshotAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
+        var currentResolutions = await _snapshotReadRepositories.Audiences.ListResolutionsBySnapshotAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
         var currentContents = await _snapshotReadRepositories.Contents.ListBySnapshotAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
         var currentDependencies = await _snapshotReadRepositories.Dependencies.ListBySnapshotAsync(currentSnapshot.SnapshotId, cancellationToken).ConfigureAwait(false);
 
-        var baseData = new SnapshotData(baseNodes, baseRoles, baseResolutions, baseContents, baseDependencies);
-        var currentData = new SnapshotData(currentNodes, currentRoles, currentResolutions, currentContents, currentDependencies);
+        var baseData = new SnapshotData(baseNodes, baseAudiences, baseResolutions, baseContents, baseDependencies);
+        var currentData = new SnapshotData(currentNodes, currentAudiences, currentResolutions, currentContents, currentDependencies);
 
         var diff = SnapshotDiffCalculator.Compute(new SnapshotDiffCalculationRequest(
             baseSnapshotId,

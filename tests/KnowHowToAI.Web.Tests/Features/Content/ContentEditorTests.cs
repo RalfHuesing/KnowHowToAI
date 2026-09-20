@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Web.Features.Content;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
@@ -21,7 +21,7 @@ public sealed class ContentEditorTests : BunitContext
     private static readonly SnapshotId SnapshotId = new(42);
     private static readonly TransactionId TransactionId = new(Guid.Parse("8dc6509e-1b47-4dd5-bc29-80e3f8cb7b7d"));
     private static readonly NodeId NodeId = new(Guid.Parse("bf70dbf1-0e6e-44dd-90dd-2dcab09f8cb0"));
-    private static readonly RoleId RoleId = new("Developer");
+    private static readonly AudienceId AudienceId = new("Developer");
     private static readonly ContentRevisionId ExistingRevisionId = new(Guid.Parse("96d88df5-44d5-4db6-98ba-59a0bb5a76f5"));
     private static readonly ContentRevisionId NewRevisionId = new(Guid.Parse("e2ad713e-dcb6-41b5-aea6-69ddcbde3d1b"));
 
@@ -34,7 +34,7 @@ public sealed class ContentEditorTests : BunitContext
         ContentMutationUseCaseResult? mutation = null;
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
-            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.RoleId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Alter Inhalt")
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L)
@@ -57,7 +57,7 @@ public sealed class ContentEditorTests : BunitContext
         AddServices();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
-            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.RoleId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Inhalt")
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
@@ -77,7 +77,7 @@ public sealed class ContentEditorTests : BunitContext
         var workspace = Services.GetRequiredService<WorkspaceState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
-            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.RoleId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ungespeicherter Inhalt")
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
@@ -100,7 +100,7 @@ public sealed class ContentEditorTests : BunitContext
         var workspace = Services.GetRequiredService<WorkspaceState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
-            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.RoleId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ausgangswert")
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
@@ -134,7 +134,7 @@ public sealed class ContentEditorTests : BunitContext
 
         var cut = Render<ContentEditorHost>(parameters => parameters
             .Add(host => host.NodeId, NodeId.Value)
-            .Add(host => host.RoleId, RoleId.Value)
+            .Add(host => host.AudienceId, AudienceId.Value)
             .Add(host => host.Markdown, "Erster Stand"));
 
         cut.WaitForAssertion(() => Assert.Single(module.Invocations["mount"]));
@@ -158,7 +158,7 @@ public sealed class ContentEditorTests : BunitContext
         var workspace = Services.GetRequiredService<WorkspaceState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
-            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.RoleId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ungespeichert"));
 
         workspace.SetDirty(true);
@@ -177,7 +177,7 @@ public sealed class ContentEditorTests : BunitContext
         var workspace = Services.GetRequiredService<WorkspaceState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
-            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.RoleId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ausgangswert")
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
@@ -205,7 +205,7 @@ public sealed class ContentEditorTests : BunitContext
         var workspace = Services.GetRequiredService<WorkspaceState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
-            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.RoleId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ausgangswert")
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
@@ -226,8 +226,8 @@ public sealed class ContentEditorTests : BunitContext
         var repository = new InMemoryContentMutationRepository(new WorkingContentMutationState(
             SnapshotId,
             [new Node(SnapshotId, NodeId, null, "Titel", null, 0, false)],
-            [new Role(SnapshotId, RoleId, "Developer", null, false)],
-            [new NodeContent(SnapshotId, NodeId, RoleId, ExistingRevisionId, ContentMode.Independent, "Alter Inhalt", false)],
+            [new Audience(SnapshotId, AudienceId, "Developer", null, false)],
+            [new NodeContent(SnapshotId, NodeId, AudienceId, ExistingRevisionId, ContentMode.Independent, "Alter Inhalt", false)],
             []));
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(new ContentMutationApplicationService(
@@ -257,7 +257,7 @@ public sealed class ContentEditorTests : BunitContext
     private sealed class ContentEditorHost : ComponentBase
     {
         [Parameter] public Guid NodeId { get; set; }
-        [Parameter] public string RoleId { get; set; } = string.Empty;
+        [Parameter] public string AudienceId { get; set; } = string.Empty;
         [Parameter] public string Markdown { get; set; } = string.Empty;
 
         public void SetMarkdown(string markdown)
@@ -270,7 +270,7 @@ public sealed class ContentEditorTests : BunitContext
         {
             builder.OpenComponent<ContentEditor>(0);
             builder.AddAttribute(1, nameof(ContentEditor.NodeId), NodeId);
-            builder.AddAttribute(2, nameof(ContentEditor.RoleId), RoleId);
+            builder.AddAttribute(2, nameof(ContentEditor.RoleId), AudienceId);
             builder.AddAttribute(3, nameof(ContentEditor.Markdown), Markdown);
             builder.AddAttribute(4, nameof(ContentEditor.IsReadOnly), false);
             builder.CloseComponent();

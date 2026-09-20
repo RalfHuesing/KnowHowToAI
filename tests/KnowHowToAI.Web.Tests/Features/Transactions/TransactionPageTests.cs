@@ -8,7 +8,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
@@ -346,7 +346,7 @@ public sealed class TransactionPageTests : BunitContext
                 new InMemoryTransactionRepository(_harness.Store),
                 new InMemoryHierarchyRepository(_harness.Store),
                 new InMemoryContentRepository(_harness.Store),
-                new InMemoryRoleRepository(_harness.Store),
+                new InMemoryAudienceRepository(_harness.Store),
                 new InMemoryDependencyRepository(_harness.Store),
                 new InMemoryWorkingSnapshotReadRepository(_harness.Store)),
             new RetrievalPolicy
@@ -393,11 +393,11 @@ public sealed class TransactionPageTests : BunitContext
     private static WorkingSnapshotValidationData ValidationData(Guid nodeId, string contentMd)
     {
         var snapshotId = new SnapshotId(2);
-        var roleId = new RoleId("Default");
+        var roleId = new AudienceId("Default");
         return new WorkingSnapshotValidationData(
             [new Node(snapshotId, new NodeId(nodeId), null, "Root", null, 0, false)],
-            [new Role(snapshotId, roleId, "Default", null, false)],
-            [new RoleResolution(snapshotId, roleId, roleId, 1)],
+            [new Audience(snapshotId, roleId, "Default", null, false)],
+            [new AudienceResolution(snapshotId, roleId, roleId, 1)],
             [new NodeContent(snapshotId, new NodeId(nodeId), roleId, new ContentRevisionId(ContentRevisionGuid), ContentMode.Independent, contentMd, false)],
             [],
             1);
@@ -406,15 +406,15 @@ public sealed class TransactionPageTests : BunitContext
     private static WorkingSnapshotValidationData MixedValidationData(Guid sourceId, Guid derivedId)
     {
         var snapshotId = new SnapshotId(2);
-        var roleId = new RoleId("Default");
+        var roleId = new AudienceId("Default");
         var sourceRevisionId = new ContentRevisionId(SourceRevisionGuid);
         return new WorkingSnapshotValidationData(
             [
                 new Node(snapshotId, new NodeId(sourceId), null, "Source", null, 0, false),
                 new Node(snapshotId, new NodeId(derivedId), new NodeId(sourceId), "Derived", null, 0, false)
             ],
-            [new Role(snapshotId, roleId, "Default", null, false)],
-            [new RoleResolution(snapshotId, roleId, roleId, 1)],
+            [new Audience(snapshotId, roleId, "Default", null, false)],
+            [new AudienceResolution(snapshotId, roleId, roleId, 1)],
             [
                 new NodeContent(snapshotId, new NodeId(sourceId), roleId, sourceRevisionId, ContentMode.Independent, "Quelle", true),
                 new NodeContent(snapshotId, new NodeId(derivedId), roleId, new ContentRevisionId(DerivedRevisionGuid), ContentMode.Derived, "# Fehler", false)

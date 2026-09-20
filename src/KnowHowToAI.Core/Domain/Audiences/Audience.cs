@@ -1,10 +1,10 @@
 using KnowHowToAI.Core.Domain.Common;
 
-namespace KnowHowToAI.Core.Domain.Roles;
+namespace KnowHowToAI.Core.Domain.Audiences;
 
-public sealed record Role(
+public sealed record Audience(
     SnapshotId SnapshotId,
-    RoleId RoleId,
+    AudienceId AudienceId,
     string Name,
     string? Description,
     bool IsDeleted) : ITombstoned;

@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Application.Retrieval.Export;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.Server.Mcp;
 using KnowHowToAI.Server.Web.State;
@@ -25,8 +25,8 @@ public sealed class MarkdownDownloadEndpointTests
     private static readonly SnapshotId HistoricalSnapshotId = new(2);
     private static readonly NodeId RootNodeId = new(Guid.Parse("40000000-0000-0000-0000-000000000000"));
     private static readonly NodeId ChildNodeId = new(Guid.Parse("40000000-0000-0000-0000-000000000001"));
-    private static readonly RoleId DeveloperRoleId = new("Developer");
-    private static readonly RoleId EndUserRoleId = new("EndUser");
+    private static readonly AudienceId DeveloperRoleId = new("Developer");
+    private static readonly AudienceId EndUserRoleId = new("EndUser");
     private const string TechnicalErrorCode = "MarkdownDownloadTechnicalError";
     private const string InternalFailureDetail = "Interne Details dürfen nicht in der Antwort erscheinen.";
 
@@ -34,8 +34,8 @@ public sealed class MarkdownDownloadEndpointTests
     public async Task DownloadMarkdown_ExportsRequestedSubtreeWithFallbackAndAttachmentHeaders()
     {
         var harness = new NavigationTestHarness(CurrentSnapshotId);
-        harness.AddRole(new Role(CurrentSnapshotId, EndUserRoleId, "Endanwender", null, false));
-        harness.AddRoleResolution(new RoleResolution(CurrentSnapshotId, EndUserRoleId, DeveloperRoleId, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, EndUserRoleId, "Endanwender", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, EndUserRoleId, DeveloperRoleId, 1));
         harness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Wissensbasis", null, 0, false));
         harness.AddNode(new Node(CurrentSnapshotId, ChildNodeId, RootNodeId, "Teilbaum:/--", null, 1, false));
         harness.AddContent(Content(CurrentSnapshotId, ChildNodeId, "Fallback-Inhalt"));
@@ -242,7 +242,7 @@ public sealed class MarkdownDownloadEndpointTests
             new InMemoryTransactionRepository(store),
             new InMemoryHierarchyRepository(store),
             new InMemoryContentRepository(store),
-            new InMemoryRoleRepository(store),
+            new InMemoryAudienceRepository(store),
             new InMemoryDependencyRepository(store),
             new InMemoryWorkingSnapshotReadRepository(store));
     }

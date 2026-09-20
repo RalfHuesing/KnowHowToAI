@@ -27,8 +27,8 @@ public static class KnowledgeNavigationMapper
             node.Title,
             node.Description,
             node.SortOrder,
-            nodeWithContent.RequestedRoleId.Value,
-            nodeWithContent.ResolvedRoleId?.Value,
+            nodeWithContent.RequestedAudienceId.Value,
+            nodeWithContent.ResolvedAudienceId?.Value,
             nodeWithContent.FallbackUsed,
             nodeWithContent.Availability.ToString(),
             nodeWithContent.Freshness.ToString(),
@@ -37,7 +37,7 @@ public static class KnowledgeNavigationMapper
             nodeWithContent.Content?.ContentMd,
             sourceRevisions.Select(source => new SourceRevisionViewModel(
                 source.SourceNodeId.Value,
-                source.SourceRoleId.Value,
+                source.SourceAudienceId.Value,
                 source.StoredContentRevisionId.Value,
                 source.Freshness.ToString())).ToArray(),
             changeVersion);
@@ -54,7 +54,7 @@ public static class KnowledgeNavigationMapper
             summary.ChildCount,
             summary.ContentSizeBytes,
             summary.Availability.ToString(),
-            summary.ResolvedRoleId?.Value,
+            summary.ResolvedAudienceId?.Value,
             summary.Freshness.ToString(),
             summary.Findings ?? []);
     }

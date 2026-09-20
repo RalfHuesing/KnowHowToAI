@@ -9,6 +9,6 @@ namespace KnowHowToAI.Core.Application.Navigation;
 public sealed record ListChildrenQuery(
     NodeId? ParentNodeId,
     ReadContext Context,
-    RoleId RoleId,
+    AudienceId AudienceId,
     int? Limit = null,
     string? Cursor = null);

@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Domain.Validation;
 namespace KnowHowToAI.Core.Application.Dashboard;
 
 /// <summary>
-/// Qualitätsübersicht des aktuellen Snapshots über alle Rollen.
+/// Qualitätsübersicht des aktuellen Snapshots über alle Zielgruppen.
 /// Committed Snapshots besitzen definitionsgemäß keine harten Validierungsfehler.
 /// </summary>
 public sealed record CurrentQualitySummary(

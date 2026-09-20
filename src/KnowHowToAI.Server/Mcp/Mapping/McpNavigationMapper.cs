@@ -32,7 +32,7 @@ internal static class McpNavigationMapper
             ? McpToolEnvelope<McpChildrenPageData>.Success(ToChildrenData(result.Value!))
             : McpToolEnvelope<McpChildrenPageData>.Failure(result.Error!, MapWarnings(result));
 
-    public static McpToolEnvelope<McpRolePageData> ToEnvelope(Result<RolePage> result) =>
+    public static McpToolEnvelope<McpRolePageData> ToEnvelope(Result<AudiencePage> result) =>
         result.IsSuccess
             ? McpToolEnvelope<McpRolePageData>.Success(ToRolePageData(result.Value!))
             : McpToolEnvelope<McpRolePageData>.Failure(result.Error!, MapWarnings(result));
@@ -60,8 +60,8 @@ internal static class McpNavigationMapper
         node.Node.Title,
         node.Node.Description,
         node.Node.SortOrder,
-        node.RequestedRoleId.ToString(),
-        node.ResolvedRoleId?.ToString(),
+        node.RequestedAudienceId.ToString(),
+        node.ResolvedAudienceId?.ToString(),
         node.FallbackUsed,
         node.Availability.ToString(),
         node.Freshness.ToString(),
@@ -69,7 +69,7 @@ internal static class McpNavigationMapper
         node.Content?.ContentMd,
         node.SourceRevisions?.Select(source => new McpSourceRevisionData(
             source.SourceNodeId.ToString(),
-            source.SourceRoleId.ToString(),
+            source.SourceAudienceId.ToString(),
             source.StoredContentRevisionId.ToString(),
             source.Freshness.ToString())).ToArray());
 
@@ -83,16 +83,16 @@ internal static class McpNavigationMapper
             item.ChildCount,
             item.ContentSizeBytes,
             item.Availability.ToString(),
-            item.ResolvedRoleId?.ToString(),
+            item.ResolvedAudienceId?.ToString(),
             item.Freshness.ToString(),
             item.Findings)).ToArray(),
         page.NextCursor);
 
-    private static McpRolePageData ToRolePageData(RolePage page) => new(
-        page.Items.Select(static role => new McpRoleData(
-            role.RoleId.ToString(),
-            role.Name,
-            role.Description)).ToArray(),
+    private static McpRolePageData ToRolePageData(AudiencePage page) => new(
+        page.Items.Select(static audience => new McpRoleData(
+            audience.AudienceId.ToString(),
+            audience.Name,
+            audience.Description)).ToArray(),
         page.NextCursor);
 
     private static DomainError CreateInvalidNodeId(string rawValue, string? parameterName)

@@ -1,5 +1,5 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Core.Application.Transactions;
@@ -7,17 +7,17 @@ using KnowHowToAI.Core.Application.Transactions;
 namespace KnowHowToAI.TestSupport;
 
 /// <summary>
-/// In-Memory-<see cref="IRoleMutationRepository"/>: führt die Mutation-Funktion auf
+/// In-Memory-<see cref="IAudienceMutationRepository"/>: führt die Mutation-Funktion auf
 /// einem veränderlich gehaltenen Working-Zustand aus, persistiert erfolgreiche
 /// Entscheidungen und erhöht die ChangeVersion nur bei echten Zustandsänderungen
-/// (Rollen oder Auflösungsreihenfolgen). Über <see cref="Rejection"/> lässt sich ein
+/// (Zielgruppen oder Auflösungsreihenfolgen). Über <see cref="Rejection"/> lässt sich ein
 /// Transaction-Fehler vorab einschleusen.
 /// </summary>
-public sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState state)
-    : IRoleMutationRepository
+public sealed class InMemoryAudienceMutationRepository(WorkingAudienceMutationState state)
+    : IAudienceMutationRepository
 {
     /// <summary>Aktueller Working-Zustand des Stores.</summary>
-    public WorkingRoleMutationState State { get; private set; } = state;
+    public WorkingAudienceMutationState State { get; private set; } = state;
 
     /// <summary>Anzahl der persistierten Zustandsänderungen.</summary>
     public long ChangeVersion { get; private set; }
@@ -25,18 +25,18 @@ public sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState stat
     /// <summary>Optionale Rejection-Injection: Fehler, der ExecuteAsync vorab zurückliefert.</summary>
     public DomainError? Rejection { get; set; }
 
-    public Task<Result<WorkingRoleMutationExecution<T>>> ExecuteAsync<T>(
+    public Task<Result<WorkingAudienceMutationExecution<T>>> ExecuteAsync<T>(
         TransactionId transactionId,
-        Func<WorkingRoleMutationState, Result<WorkingRoleMutationDecision<T>>> mutate,
+        Func<WorkingAudienceMutationState, Result<WorkingAudienceMutationDecision<T>>> mutate,
         long expectedChangeVersion,
         CancellationToken cancellationToken = default)
     {
         if (Rejection is not null)
-            return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(Rejection));
+            return Task.FromResult(Result<WorkingAudienceMutationExecution<T>>.Failure(Rejection));
 
         if (expectedChangeVersion != ChangeVersion)
         {
-            return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(new DomainError(
+            return Task.FromResult(Result<WorkingAudienceMutationExecution<T>>.Failure(new DomainError(
                 TransactionValidationErrorCodes.ChangeVersionConflict,
                 "Die Transaction wurde zwischen Laden und Speichern geändert.",
                 new Dictionary<string, string>
@@ -49,7 +49,7 @@ public sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState stat
         var previousState = State;
         var decisionResult = mutate(previousState);
         if (!decisionResult.IsSuccess)
-            return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Failure(
+            return Task.FromResult(Result<WorkingAudienceMutationExecution<T>>.Failure(
                 decisionResult.Error!, decisionResult.Warnings));
 
         var decision = decisionResult.Value!;
@@ -58,12 +58,12 @@ public sealed class InMemoryRoleMutationRepository(WorkingRoleMutationState stat
         if (stateChanged)
             ChangeVersion++;
 
-        return Task.FromResult(Result<WorkingRoleMutationExecution<T>>.Success(
-            new WorkingRoleMutationExecution<T>(
+        return Task.FromResult(Result<WorkingAudienceMutationExecution<T>>.Success(
+            new WorkingAudienceMutationExecution<T>(
                 decision.Value, State.SnapshotId, ChangeVersion, previousState, State)));
     }
 
-    private static bool HasStateChanged(WorkingRoleMutationState before, WorkingRoleMutationState after) =>
-        !before.Roles.SequenceEqual(after.Roles)
+    private static bool HasStateChanged(WorkingAudienceMutationState before, WorkingAudienceMutationState after) =>
+        !before.Audiences.SequenceEqual(after.Audiences)
         || !before.Resolutions.SequenceEqual(after.Resolutions);
 }

@@ -27,7 +27,7 @@ public sealed class NodeDetailsPaneTests : BunitContext
         harness.AddContent(new NodeContent(
             snapshotId,
             nodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("10000000-0000-0000-0000-000000000011")),
             ContentMode.Independent,
             "Pane-Inhalt",
@@ -71,7 +71,7 @@ public sealed class NodeDetailsPaneTests : BunitContext
         harness.AddContent(new NodeContent(
             workingSnapshotId,
             nodeId,
-            new RoleId("Developer"),
+            new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("10000000-0000-0000-0000-000000000014")),
             ContentMode.Derived,
             "Abgeleiteter Inhalt",

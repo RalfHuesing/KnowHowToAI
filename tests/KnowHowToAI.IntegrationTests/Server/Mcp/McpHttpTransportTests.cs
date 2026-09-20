@@ -5,11 +5,11 @@ using System.Text.Json;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Abstractions.Runtime;
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.IntegrationTests.TestSupport;
 using KnowHowToAI.TestSupport;
@@ -58,7 +58,7 @@ public sealed class McpHttpTransportTests
     public async Task StreamableHttpClient_CallsListRolesThroughTheRealHttpBoundary()
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
-        harness.AddRole(new Role(new SnapshotId(1), new RoleId("Developer"), "Entwicklung", null, false));
+        harness.AddAudience(new Audience(new SnapshotId(1), new AudienceId("Developer"), "Entwicklung", null, false));
         await using var host = await McpHttpHost.StartAsync(services =>
         {
             services.RemoveAll<NavigationService>();
@@ -128,7 +128,7 @@ public sealed class McpHttpTransportTests
         var observingHandler = new FirstByteObservingHandler();
         var streaming = new StreamingRoleRepository(observingHandler.FirstResponseByteObserved.Task);
         var navigation = new NavigationService(
-            harness.CreateRepositories() with { Roles = streaming },
+            harness.CreateRepositories() with { Audiences = streaming },
             CreateRetrievalPolicy());
         await using var host = await McpHttpHost.StartAsync(services =>
         {
@@ -158,10 +158,10 @@ public sealed class McpHttpTransportTests
     public async Task ClientAbort_CancelsTheBlockedCallWithoutEndingTheParallelSuccessCall()
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
-        harness.AddRole(new Role(new SnapshotId(1), new RoleId("Developer"), "Entwicklung", null, false));
-        var roles = new FirstCallBlockingRoleRepository(harness.CreateRepositories().Roles);
+        harness.AddAudience(new Audience(new SnapshotId(1), new AudienceId("Developer"), "Entwicklung", null, false));
+        var roles = new FirstCallBlockingRoleRepository(harness.CreateRepositories().Audiences);
         var navigation = new NavigationService(
-            harness.CreateRepositories() with { Roles = roles },
+            harness.CreateRepositories() with { Audiences = roles },
             CreateRetrievalPolicy());
         await using var host = await McpHttpHost.StartAsync(services =>
         {
@@ -201,9 +201,9 @@ public sealed class McpHttpTransportTests
                 new ValidatingWorkingSnapshotRepository(),
                 new WorkflowIdentifierGenerator(),
                 new ValidationPolicy { ContentSizeWarningBytes = 4096, ChildCountWarning = 25, HierarchyDepthWarning = 8, PossibleEmbeddedHeadingWarning = true }));
-            services.RemoveAll<RoleMutationService>();
-            services.AddSingleton(new RoleMutationService(new InMemoryRoleMutationRepository(
-                new WorkingRoleMutationState(new SnapshotId(2), [], [], [], []))));
+            services.RemoveAll<AudienceMutationService>();
+            services.AddSingleton(new AudienceMutationService(new InMemoryAudienceMutationRepository(
+                new WorkingAudienceMutationState(new SnapshotId(2), [], [], [], []))));
         });
         await using var client = await McpClient.CreateAsync(CreateTransport(host.Address));
 
@@ -298,13 +298,13 @@ public sealed class McpHttpTransportTests
         }
     }
 
-    private sealed class StreamingRoleRepository(Task firstResponseByteObserved) : IRoleRepository
+    private sealed class StreamingRoleRepository(Task firstResponseByteObserved) : IAudienceRepository
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public bool ObservedFirstResponseByteBeforeCompletion { get; private set; }
 
-        public async Task<IReadOnlyList<Role>> ListBySnapshotAsync(
+        public async Task<IReadOnlyList<Audience>> ListBySnapshotAsync(
             SnapshotId snapshotId,
             CancellationToken cancellationToken = default)
         {
@@ -316,13 +316,13 @@ public sealed class McpHttpTransportTests
             return [];
         }
 
-        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(
+        public Task<IReadOnlyList<AudienceResolution>> ListResolutionsBySnapshotAsync(
             SnapshotId snapshotId,
             CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<RoleResolution>>([]);
+            Task.FromResult<IReadOnlyList<AudienceResolution>>([]);
     }
 
-    private sealed class FirstCallBlockingRoleRepository(IRoleRepository inner) : IRoleRepository
+    private sealed class FirstCallBlockingRoleRepository(IAudienceRepository inner) : IAudienceRepository
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -330,7 +330,7 @@ public sealed class McpHttpTransportTests
 
         private int _blockingCallPending = 1;
 
-        public async Task<IReadOnlyList<Role>> ListBySnapshotAsync(
+        public async Task<IReadOnlyList<Audience>> ListBySnapshotAsync(
             SnapshotId snapshotId,
             CancellationToken cancellationToken = default)
         {
@@ -351,7 +351,7 @@ public sealed class McpHttpTransportTests
             return await inner.ListBySnapshotAsync(snapshotId, cancellationToken);
         }
 
-        public Task<IReadOnlyList<RoleResolution>> ListResolutionsBySnapshotAsync(
+        public Task<IReadOnlyList<AudienceResolution>> ListResolutionsBySnapshotAsync(
             SnapshotId snapshotId,
             CancellationToken cancellationToken = default) =>
             inner.ListResolutionsBySnapshotAsync(snapshotId, cancellationToken);

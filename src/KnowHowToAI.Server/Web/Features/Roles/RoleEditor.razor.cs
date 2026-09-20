@@ -1,4 +1,4 @@
-using KnowHowToAI.Core.Application.Mutations.Roles;
+using KnowHowToAI.Core.Application.Mutations.Audiences;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using Microsoft.AspNetCore.Components;
@@ -14,7 +14,7 @@ public sealed partial class RoleEditor : ComponentBase
     private NavigationService NavigationService { get; set; } = default!;
 
     [Inject]
-    private RoleMutationService RoleMutationService { get; set; } = default!;
+    private AudienceMutationService AudienceMutationService { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public ReadContext ReadContext { get; set; } = new();
@@ -77,8 +77,8 @@ public sealed partial class RoleEditor : ComponentBase
 
         do
         {
-            var result = await NavigationService.ListRolesAsync(
-                new ListRolesQuery(ReadContext, Limit: 100, Cursor: cursor),
+            var result = await NavigationService.ListAudiencesAsync(
+                new ListAudiencesQuery(ReadContext, Limit: 100, Cursor: cursor),
                 CancellationToken.None);
             if (!result.IsSuccess)
             {
@@ -106,7 +106,7 @@ public sealed partial class RoleEditor : ComponentBase
         _mutationErrorMessage = null;
         try
         {
-            var result = await RoleMutationService.CreateRoleMutationAsync(
+            var result = await AudienceMutationService.CreateAudienceMutationAsync(
                 ReadContext.TransactionId!.Value,
                 NewRoleName,
                 NullIfWhiteSpace(NewRoleDescription),
@@ -156,10 +156,10 @@ public sealed partial class RoleEditor : ComponentBase
         _mutationErrorMessage = null;
         try
         {
-            var result = await RoleMutationService.UpdateRoleMutationAsync(
+            var result = await AudienceMutationService.UpdateAudienceMutationAsync(
                 ReadContext.TransactionId!.Value,
-                new UpdateRoleMutationRequest(
-                    new RoleId(role.RoleId),
+                new UpdateAudienceMutationRequest(
+                    new AudienceId(role.RoleId),
                     EditRoleName,
                     NullIfWhiteSpace(EditRoleDescription),
                     ExpectedChangeVersion),
@@ -202,9 +202,9 @@ public sealed partial class RoleEditor : ComponentBase
         _mutationErrorMessage = null;
         try
         {
-            var result = await RoleMutationService.DeleteRoleMutationAsync(
+            var result = await AudienceMutationService.DeleteAudienceMutationAsync(
                 ReadContext.TransactionId!.Value,
-                new RoleId(_pendingDeleteRole.RoleId),
+                new AudienceId(_pendingDeleteRole.RoleId),
                 ExpectedChangeVersion,
                 CancellationToken.None);
             if (!result.IsSuccess)
@@ -231,22 +231,22 @@ public sealed partial class RoleEditor : ComponentBase
         await MutationSucceeded.InvokeAsync(changeVersion);
     }
 
-    private void ProjectCreated(RoleMutationResult mutation)
+    private void ProjectCreated(AudienceMutationResult mutation)
     {
-        var projected = RoleMapper.ToRoleItemViewModel(mutation.Role);
+        var projected = RoleMapper.ToRoleItemViewModel(mutation.Audience);
         _roles = _roles.Append(projected)
             .OrderBy(role => role.RoleId, StringComparer.Ordinal)
             .ToArray();
     }
 
-    private void ProjectUpdated(RoleMutationResult mutation)
+    private void ProjectUpdated(AudienceMutationResult mutation)
     {
-        var projected = RoleMapper.ToRoleItemViewModel(mutation.Role);
+        var projected = RoleMapper.ToRoleItemViewModel(mutation.Audience);
         _roles = _roles.Select(role => role.RoleId == projected.RoleId ? projected : role).ToArray();
     }
 
-    private void ProjectDeleted(RoleMutationResult mutation) =>
-        _roles = _roles.Where(role => role.RoleId != mutation.RoleId.Value).ToArray();
+    private void ProjectDeleted(AudienceMutationResult mutation) =>
+        _roles = _roles.Where(role => role.RoleId != mutation.AudienceId.Value).ToArray();
 
     private bool ContextChanged() =>
         !Equals(_loadedReadContext?.TransactionId, ReadContext.TransactionId)

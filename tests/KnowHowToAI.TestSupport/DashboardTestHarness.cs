@@ -7,7 +7,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.TestSupport;
@@ -23,7 +23,7 @@ public sealed class DashboardTestHarness
     private readonly InMemoryWorkingSnapshotValidationDataRepository _validationDataRepo = new();
     private readonly InMemoryHierarchyRepository _hierarchyRepo;
     private readonly InMemoryContentRepository _contentRepo;
-    private readonly InMemoryRoleRepository _roleRepo;
+    private readonly InMemoryAudienceRepository _audienceRepo;
     private readonly InMemoryDependencyRepository _dependencyRepo;
     private readonly InMemoryTransactionRepository _txRepo;
 
@@ -38,7 +38,7 @@ public sealed class DashboardTestHarness
         _snapshotRepo = new InMemorySnapshotRepository(Store);
         _hierarchyRepo = new InMemoryHierarchyRepository(Store);
         _contentRepo = new InMemoryContentRepository(Store);
-        _roleRepo = new InMemoryRoleRepository(Store);
+        _audienceRepo = new InMemoryAudienceRepository(Store);
         _dependencyRepo = new InMemoryDependencyRepository(Store);
         _txRepo = new InMemoryTransactionRepository(Store);
     }
@@ -65,10 +65,10 @@ public sealed class DashboardTestHarness
         Store.Nodes.AddRange(nodes);
     }
 
-    public void SetSnapshotRoles(SnapshotId snapshotId, IReadOnlyList<Role> roles)
+    public void SetSnapshotAudiences(SnapshotId snapshotId, IReadOnlyList<Audience> audiences)
     {
-        Store.Roles.RemoveAll(r => r.SnapshotId == snapshotId);
-        Store.Roles.AddRange(roles);
+        Store.Audiences.RemoveAll(r => r.SnapshotId == snapshotId);
+        Store.Audiences.AddRange(audiences);
     }
 
     public void SetSnapshotContents(SnapshotId snapshotId, IReadOnlyList<NodeContent> contents)
@@ -90,7 +90,7 @@ public sealed class DashboardTestHarness
             _txRepo,
             _hierarchyRepo,
             _contentRepo,
-            _roleRepo,
+            _audienceRepo,
             _dependencyRepo);
 
         return new DashboardService(

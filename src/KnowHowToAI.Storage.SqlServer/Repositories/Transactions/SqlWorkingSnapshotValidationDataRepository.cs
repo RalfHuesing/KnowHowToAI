@@ -27,8 +27,8 @@ internal sealed class SqlWorkingSnapshotValidationDataRepository : IWorkingSnaps
         return readResult.IsSuccess
             ? Result<WorkingSnapshotValidationData>.Success(new WorkingSnapshotValidationData(
                 readResult.Value!.Nodes,
-                readResult.Value.Roles,
-                readResult.Value.RoleResolutions,
+                readResult.Value.Audiences,
+                readResult.Value.AudienceResolutions,
                 readResult.Value.Contents,
                 readResult.Value.Dependencies,
                 readResult.Value.ChangeVersion))

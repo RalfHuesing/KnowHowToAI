@@ -5,14 +5,14 @@ namespace KnowHowToAI.Core.Application.Navigation;
 
 /// <summary>
 /// Opaker, URL-sicherer Cursor für <see cref="NavigationService.ListChildrenAsync"/>.
-/// Bindet die Cursor-Position an Snapshot, Query/Filter (ParentNodeId, RoleId, IncludeDeleted)
+/// Bindet die Cursor-Position an Snapshot, Query/Filter (ParentNodeId, AudienceId, IncludeDeleted)
 /// und bei Working Reads an <see cref="ChangeVersion"/> zur Erkennung abgelaufener Resultsets.
 /// </summary>
 public sealed record NavigationCursor(
     SnapshotId SnapshotId,
     long? ChangeVersion,
     NodeId? ParentNodeId,
-    RoleId RoleId,
+    AudienceId AudienceId,
     bool IncludeDeleted,
     NodeId LastNodeId,
     int LastSortOrder)
@@ -24,7 +24,7 @@ public sealed record NavigationCursor(
             SnapshotId.Value,
             ChangeVersion,
             ParentNodeId?.Value,
-            RoleId.Value,
+            AudienceId.Value,
             IncludeDeleted,
             LastNodeId.Value,
             LastSortOrder);
@@ -49,7 +49,7 @@ public sealed record NavigationCursor(
             if (dto is null
                 || dto.SnapshotId <= 0
                 || dto.ChangeVersion is < 0
-                || string.IsNullOrWhiteSpace(dto.RoleId)
+                || string.IsNullOrWhiteSpace(dto.AudienceId)
                 || dto.ParentNodeId == Guid.Empty
                 || dto.LastNodeId == Guid.Empty
                 || dto.LastSortOrder < 0)
@@ -59,7 +59,7 @@ public sealed record NavigationCursor(
                 new SnapshotId(dto.SnapshotId),
                 dto.ChangeVersion,
                 dto.ParentNodeId.HasValue ? new NodeId(dto.ParentNodeId.Value) : null,
-                new RoleId(dto.RoleId),
+                new AudienceId(dto.AudienceId),
                 dto.IncludeDeleted,
                 new NodeId(dto.LastNodeId),
                 dto.LastSortOrder);
@@ -74,7 +74,7 @@ public sealed record NavigationCursor(
         long SnapshotId,
         long? ChangeVersion,
         Guid? ParentNodeId,
-        string RoleId,
+        string AudienceId,
         bool IncludeDeleted,
         Guid LastNodeId,
         int LastSortOrder);

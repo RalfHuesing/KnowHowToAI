@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Storage.SqlServer.Mapping;
@@ -46,23 +46,23 @@ internal static class SqlRowMapper
         row.SortOrder,
         row.IsDeleted);
 
-    public static Role ToRole(RoleRow row) => new(
+    public static Audience ToRole(RoleRow row) => new(
         new SnapshotId(row.SnapshotId),
-        new RoleId(row.RoleId),
+        new AudienceId(row.RoleId),
         row.Name,
         row.Description,
         row.IsDeleted);
 
-    public static RoleResolution ToRoleResolution(RoleResolutionRow row) => new(
+    public static AudienceResolution ToRoleResolution(RoleResolutionRow row) => new(
         new SnapshotId(row.SnapshotId),
-        new RoleId(row.RequestedRoleId),
-        new RoleId(row.CandidateRoleId),
+        new AudienceId(row.RequestedRoleId),
+        new AudienceId(row.CandidateRoleId),
         row.Priority);
 
     public static NodeContent ToNodeContent(NodeContentRow row) => new(
         new SnapshotId(row.SnapshotId),
         new NodeId(row.NodeId),
-        new RoleId(row.RoleId),
+        new AudienceId(row.RoleId),
         new ContentRevisionId(row.ContentRevisionId),
         ToContentMode(row.ContentMode),
         row.ContentMd,
@@ -71,9 +71,9 @@ internal static class SqlRowMapper
     public static ContentDependency ToContentDependency(ContentDependencyRow row) => new(
         new SnapshotId(row.SnapshotId),
         new NodeId(row.TargetNodeId),
-        new RoleId(row.TargetRoleId),
+        new AudienceId(row.TargetRoleId),
         new NodeId(row.SourceNodeId),
-        new RoleId(row.SourceRoleId),
+        new AudienceId(row.SourceRoleId),
         new ContentRevisionId(row.SourceContentRevisionId));
 
     public static Release ToRelease(ReleaseRow row) => new(

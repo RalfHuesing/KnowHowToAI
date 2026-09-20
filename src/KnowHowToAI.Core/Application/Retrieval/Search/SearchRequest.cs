@@ -9,7 +9,7 @@ namespace KnowHowToAI.Core.Application.Retrieval.Search;
 public sealed record SearchRequest(
     SnapshotId SnapshotId,
     string Text,
-    RoleId? RoleId,
+    AudienceId? AudienceId,
     int Limit,
     string? Cursor,
     int SnippetMaxChars,

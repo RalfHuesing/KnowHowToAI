@@ -68,8 +68,8 @@ public static class SnapshotReadDataLoader
             resolvedContext,
             workingData.Transaction.WorkingSnapshotId,
             ActiveReadFilter.Apply(workingData.Nodes, resolvedContext),
-            workingData.Roles,
-            workingData.RoleResolutions,
+            workingData.Audiences,
+            workingData.AudienceResolutions,
             ActiveReadFilter.Apply(workingData.Contents, resolvedContext),
             workingData.Dependencies,
             workingData.ChangeVersion));
@@ -82,8 +82,8 @@ public static class SnapshotReadDataLoader
     {
         var snapshotId = resolvedContext.SnapshotId;
         var nodes = await repositories.Hierarchy.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var roles = await repositories.Roles.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
-        var resolutions = await repositories.Roles
+        var audiences = await repositories.Audiences.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
+        var resolutions = await repositories.Audiences
             .ListResolutionsBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var contents = await repositories.Contents.ListBySnapshotAsync(snapshotId, cancellationToken).ConfigureAwait(false);
         var dependencies = await repositories.Dependencies
@@ -93,7 +93,7 @@ public static class SnapshotReadDataLoader
             resolvedContext,
             snapshotId,
             ActiveReadFilter.Apply(nodes, resolvedContext),
-            roles,
+            audiences,
             resolutions,
             ActiveReadFilter.Apply(contents, resolvedContext),
             dependencies,

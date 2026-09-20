@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 
 namespace KnowHowToAI.Core.Application.Retrieval.Search;
@@ -11,9 +11,9 @@ namespace KnowHowToAI.Core.Application.Retrieval.Search;
 /// Transportneutraler Search-Use-Case (search): Textsuche über Titel, Description und Content.
 /// V1 bietet eine deterministische parametrisierte Substring-Suche (ADR-V1-006)
 /// und verspricht weder semantische noch linguistische Volltextsuche.
-/// Ohne <c>RoleId</c> werden ausschließlich die rollenunabhängigen Felder Title und
-/// Description durchsucht. Mit <c>RoleId</c> werden die angefragte aktive Rolle und ihre
-/// vollständige Resolution Order über <see cref="RoleResolver.ValidateOrder"/> geprüft;
+/// Ohne <c>AudienceId</c> werden ausschließlich die rollenunabhängigen Felder Title und
+/// Description durchsucht. Mit <c>AudienceId</c> werden die angefragte aktive Zielgruppe und ihre
+/// vollständige Resolution Order über <see cref="AudienceResolver.ValidateOrder"/> geprüft;
 /// Fehler werden mit denselben stabilen Fehlercodes wie die Rollenauflösung gemeldet und
 /// niemals als leeres Ergebnis behandelt.
 /// </summary>
@@ -63,7 +63,7 @@ public sealed class SearchService
         var request = new SearchRequest(
             resolvedContext.SnapshotId,
             query.Text,
-            query.RoleId,
+            query.AudienceId,
             effectiveLimit + 1,
             query.Cursor,
             _retrievalPolicy.SnippetMaximumCharacters,
@@ -101,22 +101,22 @@ public sealed class SearchService
         ResolvedReadContext resolvedContext,
         SearchRepositoryResult results,
         long? effectiveChangeVersion) =>
-        ValidateRequestedRoleResolution(query, resolvedContext, results)
+        ValidateRequestedAudienceResolution(query, resolvedContext, results)
         ?? ValidateLockedCursorChangeVersion(query.Cursor, resolvedContext.Source, effectiveChangeVersion);
 
-    private static DomainError? ValidateRequestedRoleResolution(
+    private static DomainError? ValidateRequestedAudienceResolution(
         SearchQuery query,
         ResolvedReadContext resolvedContext,
         SearchRepositoryResult results)
     {
-        if (query.RoleId is not { } requestedRole)
+        if (query.AudienceId is not { } requestedAudience)
             return null;
 
-        var validation = RoleResolver.ValidateOrder(
+        var validation = AudienceResolver.ValidateOrder(
             resolvedContext.SnapshotId,
-            requestedRole,
-            results.Roles ?? Array.Empty<Role>(),
-            results.Resolutions ?? Array.Empty<RoleResolution>());
+            requestedAudience,
+            results.Audiences ?? Array.Empty<Audience>(),
+            results.Resolutions ?? Array.Empty<AudienceResolution>());
         return validation.IsSuccess ? null : validation.Error;
     }
 
@@ -178,7 +178,7 @@ public sealed class SearchService
         }
 
         if (!string.Equals(parsedCursor.QueryText, query.Text, StringComparison.Ordinal)
-            || parsedCursor.RoleId != query.RoleId
+            || parsedCursor.AudienceId != query.AudienceId
             || !string.Equals(parsedCursor.FilterFingerprint, query.Filter?.Fingerprint, StringComparison.Ordinal))
         {
             return new DomainError(
@@ -208,7 +208,7 @@ public sealed class SearchService
             resolvedContext.SnapshotId,
             resolvedContext.ChangeVersion,
             query.Text,
-            query.RoleId,
+            query.AudienceId,
             lastRank,
             lastHit.SortOrder,
             lastHit.NodeId,

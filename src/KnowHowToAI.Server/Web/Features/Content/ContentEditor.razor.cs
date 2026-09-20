@@ -204,7 +204,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
                 TransactionId.Value,
                 new ReplaceContentRequest(
                     new NodeId(NodeId),
-                    new RoleId(RoleId),
+                    new AudienceId(RoleId),
                     ContentMode.Independent,
                     markdown,
                     [],

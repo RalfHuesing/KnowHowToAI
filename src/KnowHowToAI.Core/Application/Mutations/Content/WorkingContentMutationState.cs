@@ -2,7 +2,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.Core.Application.Mutations.Content;
 
@@ -10,7 +10,7 @@ namespace KnowHowToAI.Core.Application.Mutations.Content;
 public sealed record WorkingContentMutationState(
     SnapshotId SnapshotId,
     IReadOnlyList<Node> Nodes,
-    IReadOnlyList<Role> Roles,
+    IReadOnlyList<Audience> Audiences,
     IReadOnlyList<NodeContent> Contents,
     IReadOnlyList<ContentDependency> Dependencies);
 

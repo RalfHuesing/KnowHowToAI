@@ -32,7 +32,7 @@ internal static class McpTransactionMapper
         report.Warnings.Select(McpResultMapper.ToWarning).ToArray(),
         report.StaleContents.Select(static stale => new McpStaleContentData(
             stale.NodeId.ToString(),
-            stale.RoleId.ToString(),
+            stale.AudienceId.ToString(),
             stale.ContentRevisionId.ToString())).ToArray(),
         report.RefactoringCandidates.Select(static candidate => new McpRefactoringCandidateData(
             candidate.NodeId.ToString(),

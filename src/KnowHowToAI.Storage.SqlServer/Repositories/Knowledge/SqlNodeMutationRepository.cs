@@ -224,10 +224,10 @@ internal sealed class SqlNodeMutationRepository : SqlRepository, INodeMutationRe
         IReadOnlyList<NodeContent> currentContents,
         CancellationToken cancellationToken)
     {
-        var previousByKey = previousContents.ToDictionary(content => (content.NodeId, content.RoleId));
-        var inserts = currentContents.Where(content => !previousByKey.ContainsKey((content.NodeId, content.RoleId)))
+        var previousByKey = previousContents.ToDictionary(content => (content.NodeId, content.AudienceId));
+        var inserts = currentContents.Where(content => !previousByKey.ContainsKey((content.NodeId, content.AudienceId)))
             .Select(SqlMutationParameterMapper.ToContentParameters).ToArray();
-        var updates = currentContents.Where(content => previousByKey.TryGetValue((content.NodeId, content.RoleId), out var previous) && previous != content)
+        var updates = currentContents.Where(content => previousByKey.TryGetValue((content.NodeId, content.AudienceId), out var previous) && previous != content)
             .Select(SqlMutationParameterMapper.ToContentParameters).ToArray();
         if (inserts.Length > 0)
             await context.ExecuteAsync(InsertContentSql, inserts, cancellationToken).ConfigureAwait(false);

@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Application.Retrieval.Export;
 using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Core.Domain.Roles;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Navigation;
 using KnowHowToAI.Server.Mcp.Mapping;
@@ -58,7 +58,7 @@ internal sealed class RetrievalTools
             McpPagingMapper.NormalizeLimit(
                 limit, _retrievalPolicy.SearchPageSize, _retrievalPolicy.SearchMaximumPageSize),
             cursor,
-            roleId is null ? null : new RoleId(roleId));
+            roleId is null ? null : new AudienceId(roleId));
         var result = await _searchService.SearchAsync(query, context.Value!, cancellationToken).ConfigureAwait(false);
         return McpRetrievalMapper.ToEnvelope(result);
     }
@@ -84,7 +84,7 @@ internal sealed class RetrievalTools
             return McpToolEnvelope<McpExportTreeData>.Failure(parsedRootNodeId.Error!);
 
         var result = await _exportService
-            .ExportTreeAsync(parsedRootNodeId.Value!.Value, context.Value!, new RoleId(roleId), cancellationToken)
+            .ExportTreeAsync(parsedRootNodeId.Value!.Value, context.Value!, new AudienceId(roleId), cancellationToken)
             .ConfigureAwait(false);
         return McpRetrievalMapper.ToExportEnvelope(result);
     }
