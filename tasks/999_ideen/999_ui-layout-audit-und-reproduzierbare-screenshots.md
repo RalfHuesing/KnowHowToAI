@@ -1,6 +1,6 @@
 # Idee: Reproduzierbares UI-Screenshot-Audit und Use-Case-zentriertes Layout-Refactoring
 
-**Status:** Step 1 ist als On-Demand-Runner umgesetzt; das eigentliche UI/UX-Audit und Layout-Refactoring bleiben spätere Schritte. Die verbindliche Betriebsbeschreibung steht in [Konfiguration und Betrieb](../../docs/Konfiguration-und-Betrieb.md). Betrifft Web-Frontend, Playwright-BrowserTests, UI/UX-Design und automatisiertes Agenten-Audit.
+**Status:** Step 1 (On-Demand-Runner), das M1-Ist-Audit und die erste visuelle Iteration sind umgesetzt. M1.5-T0–T6 sind erledigt; M1.5-T7 bleibt als offener kleiner Abschluss-Leaf bestehen. Das verbindliche Bedienkonzept und die nächste M2-Etappe liegen unter [UI/UX-Refactoring](../ui-ux-refactoring/README.md). Die verbindliche Betriebsbeschreibung des Runners steht in [Konfiguration und Betrieb](../../docs/Konfiguration-und-Betrieb.md). Betrifft Web-Frontend, Playwright-BrowserTests, UI/UX-Design und automatisiertes Agenten-Audit.
 
 ---
 
@@ -24,7 +24,7 @@ Dabei stand verständlicherweise bisher die **technische Korrektheit** im Vorder
 
 ## 2. Die Vision
 
-Nach Fertigstellung von M5 (wenn alle Kernfeatures inklusive Rollen-Content und Editor im System existieren) wird ein **ganzheitliches Layout-Audit und Refactoring** durchgeführt:
+Das Audit und Refactoring läuft als versioniertes, rollierendes Vorhaben ab dem belegten Webfrontend-Ist-Stand; es wartet nicht mehr auf einen späteren Komplettmeilenstein. Die aktuelle Zielrichtung ist:
 1. **Weg von der Technik-UI:** Technische Aspekte (Snapshots, Transaktionen, Pins) rücken dezent in den Hintergrund (z. B. dezente Status-Pills, Kontext-Menüs oder Fußzeile).
 2. **Hin zum fokussierten Wissens-Arbeitsplatz:** Das eigentliche Wissen (Titel, Hierarchie, Markdown-Content, Relationen) steht absolut im Zentrum – aufgeräumt, typografisch harmonisch, intuitiv bedienbar.
 3. **Automatisierte Sichtprüfung durch Agenten:** Mittels reproduzierbarer Vollbild-Screenshots aller Seiten und Zustände kann ein multimodales LLM die UI systematisch auf "Nutzungs-Bullshit", Designbrüche und Usability-Fallen analysieren.
@@ -64,7 +64,7 @@ Damit Mensch und Agent über dieselben visuellen Fakten sprechen, wird ein isoli
 
 Sobald die Screenshots erzeugt sind, können diese einem multimodalen LLM (oder einem spezialisierten Subagenten) übergeben werden, um ein systematisches UX-Review durchzuführen.
 
-Die versionierte Auswertung und die daraus abgeleiteten kleinen UI/UX-Slices liegen im eigenständigen Vorhaben [UI/UX-Refactoring – M1 Ist-Audit und erste visuelle Iteration](../ui-ux-refactoring/roadmap/01-ist-audit-und-erste-iteration/roadmap.md). Screenshot-Artefakte bleiben temporär; versioniert werden dort Befunde und Folgeplanung.
+Die versionierte Auswertung und die daraus abgeleiteten kleinen UI/UX-Slices liegen im eigenständigen Vorhaben [UI/UX-Refactoring](../ui-ux-refactoring/README.md), mit dem historischen [M1 Ist-Audit und erste visuelle Iteration](../ui-ux-refactoring/roadmap/01-ist-audit-und-erste-iteration/roadmap.md), dem [Bedienkonzept](../ui-ux-refactoring/konzept/README.md) und der nächsten [M2-Etappe](../ui-ux-refactoring/roadmap/02-systemrahmen-und-navigationsfluss/roadmap.md). Screenshot-Artefakte bleiben temporär; versioniert werden dort Befunde, Entscheidungen und Folgeplanung.
 
 ### Typische Prüffragen des Audits:
 1. **Visuelle Hierarchie & Fokus:**
@@ -85,11 +85,11 @@ Die versionierte Auswertung und die daraus abgeleiteten kleinen UI/UX-Slices lie
 
 ## 5. Step 3: Layout-Refactoring (Umsetzung)
 
-Aus den Ergebnissen des Audits entsteht ein gezielter Arbeitsplan:
-- **Navigation & Shell:** Überarbeitung von `MainLayout.razor` und `NavMenu.razor` zu einer modernen, ergonomischen App-Shell (saubere Icons/Buttons, klare aktive Zustände).
-- **Aktionsleisten & Controls:** Konsistente Platzierung von Action-Buttons (Primary, Secondary, Danger), Verhinderung von Zeilenumbrüchen bei variabler Breite.
-- **Editor-Integration:** Klare optische Trennung von Lese- und Schreibmodus, intuitive Speicher-/Verwerfen-Aktionen, transparente Darstellung von Rollen-Fallbacks.
-- **Design-Tokens:** Nutzung der bestehenden Vanilla-CSS-Tokens für konsistente Abstände, Typografie und Farbkodierung.
+Aus den Ergebnissen des Audits entsteht ein gezielter Arbeitsplan. Die erste Folgeetappe ist [M2 Systemrahmen und Navigationsfluss](../ui-ux-refactoring/roadmap/02-systemrahmen-und-navigationsfluss/roadmap.md):
+- **Navigation & Shell:** featureweise Nutzung des bestehenden `MainLayout.razor`-/`PrimaryNavigation.razor`-Rahmens mit klarer aktiver Führung; keine neuen Ziele.
+- **Aktionsleisten & Controls:** `action-group` mit genau einer primären Aktion, ohne globale Action Registry.
+- **Editor-Integration:** bestehende Read-/Working-, Dirty-, Speichern- und Transaction-Verträge sichtbar führen; Fallback-/erster Content bleibt M5.4.
+- **Design-Tokens:** bestehende Vanilla-CSS-Tokens für konsistente Abstände, Typografie, Flächen und semantische Farben über `page-frame`/`readable`/`action-group` nutzen.
 
 ---
 

@@ -13,6 +13,10 @@ Dieses eigenständige, rollierende Vorhaben verbessert die Verständlichkeit und
 
 ## Aufbau
 
-Der aktuelle Slice ist unter [M1 Ist-Audit und erste Iteration](roadmap/01-ist-audit-und-erste-iteration/roadmap.md) dokumentiert. Die [Planung](roadmap/01-ist-audit-und-erste-iteration/planning.md) beschreibt Reihenfolge und Entscheidungsgrenzen. Befunde liegen in [synthesis.md](roadmap/01-ist-audit-und-erste-iteration/findings/synthesis.md) und je Screenshot in den zugehörigen Dateien. Die aus dem abgeschlossenen Re-Audit abgeleiteten M1.4-Leaves und die ausführungsreifen M1.5-Leaves liegen im selben Milestone-Verzeichnis.
+Der verbindliche konzeptionelle Einstieg liegt in [Bedienkonzept UI/UX-Refactoring](konzept/README.md). Dort sind Bedienmodell, mentale Modelle, Nutzerreisen, IA-Optionen, Layout-/Aktionssystem, Evidenzinventar und Entscheidungsregister schlank verlinkt.
+
+Der abgeschlossene historische Slice ist unter [M1 Ist-Audit und erste Iteration](roadmap/01-ist-audit-und-erste-iteration/roadmap.md) dokumentiert. Die [M1-Planung](roadmap/01-ist-audit-und-erste-iteration/planning.md) beschreibt Reihenfolge und Entscheidungsgrenzen. Befunde liegen in [synthesis.md](roadmap/01-ist-audit-und-erste-iteration/findings/synthesis.md) und je Screenshot in den zugehörigen Dateien. M1.5-T0–T6 sind erledigt; [M1.5-T7](roadmap/01-ist-audit-und-erste-iteration/tasks/M1.5-T7.md) bleibt offen.
+
+Die nächste Etappe ist [M2 Systemrahmen und Navigationsfluss](roadmap/02-systemrahmen-und-navigationsfluss/roadmap.md), mit [M2-Planung](roadmap/02-systemrahmen-und-navigationsfluss/planning.md) und drei sicheren Leaves. M2 berücksichtigt M1.5-T7 als bestehende Verantwortung und legt keinen Duplikat-Task an. Nach den ersten Leaves stoppt die Arbeit an einem manuellen Entscheidungsgate für IA, Terminologie und Bearbeitungseinstieg.
 
 Screenshots und `manifest.json` sind reproduzierbare, temporäre Audit-Artefakte unter `temp/ui-audit/` und werden nicht versioniert. Versioniert werden die textlichen Befunde, die Nachweise und die daraus abgeleiteten kleinen Tasks.
