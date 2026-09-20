@@ -4,27 +4,81 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: var(--ktai-space-1) var(--ktai-space-4);
+    gap: var(--ktai-space-2);
     min-width: 0;
 }
 
-.knowledge-context__item {
+.knowledge-context__segment {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ktai-space-1);
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border-subtle);
+    border-radius: var(--ktai-radius-sm);
+    background-color: var(--ktai-color-surface-subtle);
+    line-height: var(--ktai-line-height-tight);
+}
+
+.knowledge-context__segment--snapshot {
+    border-color: var(--ktai-color-info-emphasis-background);
+    background-color: var(--ktai-color-info-background);
+}
+
+.knowledge-context__segment--working {
+    border-color: var(--ktai-color-warning-background);
+    background-color: var(--ktai-color-warning-background);
+}
+
+.knowledge-context__segment--status {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.knowledge-context__segment--action {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.knowledge-context__label {
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.knowledge-context__value {
+    color: var(--ktai-color-text);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.knowledge-context__detail {
+    color: var(--ktai-color-text-secondary);
+}
+
+.knowledge-context__technical {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ktai-space-2);
+    min-width: 0;
+    color: var(--ktai-color-text-muted);
+    font-size: var(--ktai-font-size-xs);
+}
+
+.knowledge-context__technical-item {
     display: inline-flex;
     align-items: center;
     gap: var(--ktai-space-1);
     min-width: 0;
 }
 
-.knowledge-context__label {
-    color: var(--ktai-color-text-secondary);
-}
-
-.knowledge-context__value {
-    color: var(--ktai-color-text);
-}
-
-.knowledge-context__detail {
-    color: var(--ktai-color-text-secondary);
+.knowledge-context__technical-label {
+    color: var(--ktai-color-text-muted);
 }
 
 .knowledge-context__trigger {
@@ -47,4 +101,21 @@
 .knowledge-context__trigger:focus-visible {
     outline: 2px solid var(--ktai-color-primary);
     outline-offset: 1px;
+}
+
+@media (max-width: 40rem) {
+    .knowledge-context {
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .knowledge-context__segment {
+        flex: 1 1 auto;
+    }
+
+    .knowledge-context__segment--status,
+    .knowledge-context__segment--action {
+        flex: 0 0 auto;
+        align-self: center;
+    }
 }

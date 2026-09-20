@@ -25,6 +25,11 @@ public sealed partial class KnowledgeContextBar : ComponentBase
     private string? ReadContextDetail =>
         FirstNonEmpty(Context.DisplayName, Context.ContextId);
 
+    private bool IsWorkingTransaction =>
+        Context.ReadContext == KnowledgeReadContextKind.Transaction
+        || Context.BaseSnapshotId is not null
+        || Context.ChangeVersion is not null;
+
     private string RoleText =>
         string.IsNullOrWhiteSpace(Context.RoleName)
             ? "Keine Rolle ausgewählt"

@@ -76,6 +76,46 @@ public sealed class KnowledgeContextBarTests : BunitContext
     }
 
     [Fact]
+    public void KeepsTheReadContextAndItsFriendlyNameInDistinctSegments()
+    {
+        var cut = RenderBar(new KnowledgeContextViewModel(
+            KnowledgeReadContextKind.Release,
+            ContextId: "42",
+            DisplayName: "Freigabe Herbst"));
+
+        var snapshotSegment = cut.Find("[data-testid='context-snapshot-segment']");
+        var detailSegment = cut.Find("[data-testid='context-detail-segment']");
+
+        Assert.Contains("Wissensbasis:", snapshotSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Release", snapshotSegment.TextContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("Freigabe Herbst", snapshotSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Bereich/Detail:", detailSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Freigabe Herbst", detailSegment.TextContent, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GroupsWorkingTransactionMetadataInItsOwnSegment()
+    {
+        var cut = RenderBar(new KnowledgeContextViewModel(
+            KnowledgeReadContextKind.Transaction,
+            ContextId: "tx-1",
+            DisplayName: "Glossar überarbeiten",
+            BaseSnapshotId: 42L,
+            ChangeVersion: 7L));
+
+        var workingSegment = cut.Find("[data-testid='context-working-transaction']");
+        var snapshotSegment = cut.Find("[data-testid='context-snapshot-segment']");
+        var detailSegment = cut.Find("[data-testid='context-detail-segment']");
+
+        Assert.Contains("Working-Transaction:", workingSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Base-Snapshot:", workingSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Änderungsversion:", workingSegment.TextContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("Glossar überarbeiten", snapshotSegment.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Glossar überarbeiten", detailSegment.TextContent, StringComparison.Ordinal);
+        Assert.Equal("Technische Transaktionsdaten", workingSegment.QuerySelector(".knowledge-context__technical")?.GetAttribute("aria-label"));
+    }
+
+    [Fact]
     public void RendersNoContextDetailAndNoInventedDataWithoutProvidedNameOrId()
     {
         var cut = RenderBar(new KnowledgeContextViewModel(KnowledgeReadContextKind.Current));

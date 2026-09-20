@@ -187,6 +187,22 @@ Verträge, Routen, Datenquellen und Working-Editor 15–17 blieben unverändert.
 Der gezielte Lauf `temp/ui-audit/m1-5-t3/2026-09-20_22-45-00/` ist mit 20/20
 Zuständen grün; 04/05 sowie 15–17 wurden bei 1280×800 visuell geprüft.
 
+## M1.5-T4-Ergebnis
+
+Die globale `KnowledgeContextBar` trennt Wissensbasis/Read-Context,
+fachlichen Bereich beziehungsweise Detailnamen und Working-Transaction jetzt
+als eigene, kompakte Segmente. Base-Snapshot und Änderungsversion bleiben im
+Working-Transaction-Segment als sekundäre technische Werte verfügbar; Rolle,
+Dirty-Status und der vorhandene Kontext-/Rollen-Selektor bleiben eigenständig
+und unverändert erreichbar. Read-Context-Auflösung, ViewModel, Query-
+Parameter, Routen, Aktionen und Rollenverwaltung wurden nicht geändert.
+
+Der UiAudit-Lauf `temp/ui-audit/2026-09-20_22-54-11/` ist mit 20/20 Zuständen
+bei 1280×800 grün. Die Zustände 01, 08, 10, 11, 12 und 15 wurden visuell
+geprüft. `ResponsiveShellSmokeTests` (2/2), `LayoutShellSmokeTests` (2/2)
+und `VisualShellSmokeTests` (2/2) sind grün; die Shell-Baselines für 1280×720
+und 1024×720 wurden nach manueller Diff-Prüfung aktualisiert.
+
 ## M1.5-Folgepriorität aus dem Re-Audit
 
 M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:
