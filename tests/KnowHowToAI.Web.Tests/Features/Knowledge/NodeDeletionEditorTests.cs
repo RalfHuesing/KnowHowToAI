@@ -13,6 +13,7 @@ using KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.Features.Knowledge.Components;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -83,10 +84,7 @@ public sealed class NodeDeletionEditorTests : BunitContext
         var contents = new[] { Content(ChildNodeId), Content(GrandchildNodeId) };
         var repository = new InMemoryNodeMutationRepository(
             new WorkingNodeMutationState(SnapshotId, nodes, contents, [], nodes.Select(node => node.NodeId).ToArray()));
-        var mutationService = new NodeMutationApplicationService(
-            repository,
-            new NodeMutationService(new FixedIdentifierGenerator()),
-            Policy());
+        var mutationService = TestNodeMutations.CreateService(repository);
         Services.AddSingleton(mutationService);
 
         var store = new InMemoryKnowledgeStore();
@@ -113,14 +111,6 @@ public sealed class NodeDeletionEditorTests : BunitContext
             .Add(component => component.Node, ViewModel())
             .Add(component => component.TransactionId, TransactionId)
             .Add(component => component.OnMutationSucceeded, EventCallback.Factory.Create<NodeMutationResult>(this, onSuccess ?? (_ => { }))));
-
-    private static ValidationPolicy Policy() => new()
-    {
-        ContentSizeWarningBytes = 4096,
-        ChildCountWarning = 100,
-        HierarchyDepthWarning = 8,
-        PossibleEmbeddedHeadingWarning = true
-    };
 
     private static Node Node(NodeId nodeId, NodeId? parentNodeId = null) =>
         new(SnapshotId, nodeId, parentNodeId, nodeId == ChildNodeId ? "Child" : "Root", null, 0, false);

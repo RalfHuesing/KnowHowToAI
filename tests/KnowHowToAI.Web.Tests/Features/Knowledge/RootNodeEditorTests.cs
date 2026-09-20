@@ -5,6 +5,7 @@ using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Features.Knowledge.Components;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -56,16 +57,7 @@ public sealed class RootNodeEditorTests : BunitContext
     {
         var repository = new InMemoryNodeMutationRepository(
             new WorkingNodeMutationState(SnapshotId, [], [], [], []));
-        Services.AddSingleton(new NodeMutationApplicationService(
-            repository,
-            new NodeMutationService(new FixedIdentifierGenerator { FixedNodeId = RootNodeId }),
-            new ValidationPolicy
-            {
-                ContentSizeWarningBytes = 4096,
-                ChildCountWarning = 100,
-                HierarchyDepthWarning = 8,
-                PossibleEmbeddedHeadingWarning = true
-            }));
+        Services.AddSingleton(TestNodeMutations.CreateService(repository, RootNodeId));
         return repository;
     }
 }

@@ -7,6 +7,7 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.Features.Knowledge.Components;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -96,16 +97,7 @@ public sealed class NodeMetadataEditorTests : BunitContext
     private InMemoryNodeMutationRepository AddService(WorkingNodeMutationState state)
     {
         var repository = new InMemoryNodeMutationRepository(state);
-        Services.AddSingleton(new NodeMutationApplicationService(
-            repository,
-            new NodeMutationService(new FixedIdentifierGenerator { FixedNodeId = ChildNodeId }),
-            new ValidationPolicy
-            {
-                ContentSizeWarningBytes = 4096,
-                ChildCountWarning = 100,
-                HierarchyDepthWarning = 8,
-                PossibleEmbeddedHeadingWarning = true
-            }));
+        Services.AddSingleton(TestNodeMutations.CreateService(repository, ChildNodeId));
         return repository;
     }
 
