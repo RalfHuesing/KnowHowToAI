@@ -6,7 +6,7 @@
 
 Abhängigkeit: [M3](../03-read-only-wissenscockpit/roadmap.md)
 
-Verbindliche M0-Basis: Strukturpflege erweitert denselben nativen, 100er-cursorpaginierten Knowledge Tree aus M3. Es wird keine Tree-Komponente gesucht oder ersetzt. `Parent`, `Before` und `After` sind die einzigen Move-Zielpositionen und müssen per Drag-and-drop sowie über fokussierbare Aktionsbuttons denselben Mutationseinstieg verwenden. Komponenten- und Browsernachweise verwenden bUnit mit xUnit v3 beziehungsweise Microsoft.Playwright .NET mit der installierten aktuellen Chrome-Stable-Version, `Channel = "chrome"`, `Headless = true`.
+Verbindliche M0-Basis: Strukturpflege erweitert denselben nativen, 100er-cursorpaginierten Knowledge Tree aus M3. Es wird keine Tree-Komponente gesucht oder ersetzt. `Parent`, `Before` und `After` sind die einzigen Move-Zielpositionen und verwenden den gemeinsamen Mutationseinstieg. Gemäß der späteren M4.3-T5-Entscheidung erfolgt die Strukturverschiebung bewusst per mausbasierter Drag-and-drop-Interaktion ohne Verschiebe- oder Zielpositionsbuttons. Komponenten- und Browsernachweise verwenden bUnit mit xUnit v3 beziehungsweise Microsoft.Playwright .NET mit der installierten aktuellen Chrome-Stable-Version, `Channel = "chrome"`, `Headless = true`.
 
 Ziel: Benutzer können Working Transactions sicher führen und die Node-Struktur visuell ändern.
 
@@ -49,13 +49,23 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
 
 - [ ] **M4.4 abschließen**
 
-  - [ ] **M4.4-T1 – [`SnapshotConflict` verständlich behandeln](tasks/M4.4-T1.md)**
+  - [x] **M4.4-T1 – [`SnapshotConflict` verständlich behandeln](tasks/M4.4-T1.md)**
 ## M4.5 – Manueller Milestone-Audit
 
-- [ ] **M4.5 – M4-Abschlussaudit manuell mit dem Benutzer durchführen**
-  - Durchführung: nach Abschluss der verbleibenden M4-Implementierungs-Leaf-Tasks gemeinsam mit dem Benutzer; dieser Punkt ist kein delegierbarer Implementierungs-Leaf-Task.
-  - Prüfen: den vollständigen M4-Ist-Stand, Transaction-Lebenszyklus, Strukturpflege, Konfliktbehandlung, Abnahmebelege und die synchronisierte Ist-Dokumentation gegen die M4-Ziele und Invarianten prüfen.
-  - Ergebnis: offene Befunde und gegebenenfalls separate Nacharbeitstasks dokumentieren; M4 erst nach manueller gemeinsamer Abnahme schließen.
+- [x] **M4.5 – M4-Abschlussaudit manuell mit dem Benutzer durchführen**
+  - Durchführung: am 2026-09-20 gegen den vollständigen M4-Ist-Stand; dieser Punkt ist kein delegierbarer Implementierungs-Leaf-Task.
+  - Geprüft: Transaction-Lebenszyklus, Strukturpflege, Konfliktbehandlung, Abnahmebelege und synchronisierte Ist-Dokumentation gegen M4-Ziele und Invarianten.
+  - Ergebnis: am 2026-09-20 gegen `c12f792` durchgeführt; Urteil „Nacharbeit erforderlich“, Details und verworfene Hinweise siehe [Audit](audit.md).
+
+## M4.6 – Audit-Nacharbeiten
+
+- [ ] **M4.6 abschließen**
+
+  - [ ] **M4.6-T1 – [Exakte Before-/After-Positionierung sicherstellen](tasks/M4.6-T1.md)**
+  - [ ] **M4.6-T2 – [Dirty-State der M4-Strukturformulare anbinden](tasks/M4.6-T2.md)**
+  - [ ] **M4.6-T3 – [MCP-Strukturmutationen gegen stale Writes absichern](tasks/M4.6-T3.md)**
+  - [ ] **M4.6-T4 – [Validierungsbefunde an die gelesene ChangeVersion binden](tasks/M4.6-T4.md)**
+  - [ ] **M4.6-T5 – [SnapshotConflict-Reapply mit echten Änderungen nachweisen](tasks/M4.6-T5.md)**
 ## Milestone-Abnahme
 
 - Transaction-Lebenszyklus und vollständige Node-Strukturpflege funktionieren ohne Agent.
