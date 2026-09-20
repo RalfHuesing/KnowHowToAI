@@ -15,6 +15,7 @@ using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Transactions;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -44,13 +45,11 @@ public sealed class TransactionPageTests : BunitContext
             ChildCountWarning = 10,
             HierarchyDepthWarning = 10
         };
-        Services.AddSingleton(_pageRegionState);
-        Services.AddSingleton(_workspaceState);
-        Services.AddSingleton(new ToastState());
+        Services.AddWebPageStates(_pageRegionState, _workspaceState);
         Services.AddSingleton<IClock>(new FixedClock(Now));
         Services.AddSingleton(_harness.CreateService());
         Services.AddSingleton(_harness.CreateHistoryService());
-        JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js").Mode = JSRuntimeMode.Loose;
+        JSInterop.SetupAppDialog();
     }
 
     [Fact]

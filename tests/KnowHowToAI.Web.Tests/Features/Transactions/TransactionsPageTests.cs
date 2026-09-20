@@ -7,6 +7,7 @@ using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Transactions;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,8 +24,7 @@ public sealed class TransactionsPageTests : BunitContext
     public TransactionsPageTests()
     {
         _harness = new TransactionTestHarness(now: Now);
-        Services.AddSingleton(_pageRegionState);
-        Services.AddSingleton(_workspaceState);
+        Services.AddWebPageStates(_pageRegionState, _workspaceState);
         Services.AddSingleton<IClock>(new FixedClock(Now));
         Services.AddSingleton<ICurrentUserService>(new TestCurrentUserService("TestUser"));
         Services.AddSingleton(_harness.CreateService());

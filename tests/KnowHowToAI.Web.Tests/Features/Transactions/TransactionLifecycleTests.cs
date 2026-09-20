@@ -11,6 +11,7 @@ using KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 using KnowHowToAI.Server.Web.Features.Transactions;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,17 +36,15 @@ public sealed class TransactionLifecycleTests : BunitContext
             SnapshotState.Working,
             Now,
             null));
-        Services.AddSingleton(new PageRegionState());
-        Services.AddSingleton(_workspaceState);
-        Services.AddSingleton(_toastState);
+        Services.AddWebPageStates(workspaceState: _workspaceState, toastState: _toastState);
         Services.AddSingleton<IClock>(new FixedClock(Now));
         Services.AddSingleton(new TransactionService(
             _repository,
             new InMemoryWorkingSnapshotValidationDataRepository(),
             new FixedIdentifierGenerator(),
-            new ValidationPolicy()));
+            TestPolicies.DefaultValidation));
         Services.AddSingleton(_historyHarness.CreateHistoryService());
-        JSInterop.SetupModule("./Web/Components/Shared/Dialogs/AppDialog.razor.js").Mode = JSRuntimeMode.Loose;
+        JSInterop.SetupAppDialog();
     }
 
     [Fact]
