@@ -153,7 +153,11 @@ Injection auf (keine REST-Schicht). Die Ergebnisse werden über statische
 Mapper (`KnowledgeNavigationMapper`, `RoleMapper`, `SearchMapper`,
 `HistoryMapper`) in unveränderliche UI-ViewModels überführt. Fehlercodes,
 Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
-erhalten; Domain-Typen erscheinen nicht im Rendering.
+erhalten; Domain-Typen erscheinen nicht im Rendering. Das transportneutrale
+Validierungsergebnis trägt die beim atomaren Working-Snapshot-Read gelesene
+`ChangeVersion`; die Transaction-Ansicht verwendet diese Version für Findings
+und markiert den Bericht bei einer bekannten neueren Workspace-Version als
+stale.
 
 Zustandsbehaftete Razor-Komponenten besitzen zugleich die Circuit- und
 Renderergrenze: Lifecycle-, UI- und Interop-Methoden behalten nach eigenen

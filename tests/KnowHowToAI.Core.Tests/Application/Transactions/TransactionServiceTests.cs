@@ -123,7 +123,7 @@ public sealed class TransactionServiceTests
             new TransactionRepositoryFake(),
             new ValidationDataRepositoryFake
             {
-                ReadResult = Result<WorkingSnapshotValidationData>.Success(new WorkingSnapshotValidationData([], [], [], [], []))
+                ReadResult = Result<WorkingSnapshotValidationData>.Success(new WorkingSnapshotValidationData([], [], [], [], [], 17))
             },
             new FixedIdentifierGenerator { FixedTransactionId = GeneratedTransactionId },
             ValidationPolicy());
@@ -132,6 +132,7 @@ public sealed class TransactionServiceTests
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
+        Assert.Equal(17, result.Value.ChangeVersion);
     }
 
     [Theory]

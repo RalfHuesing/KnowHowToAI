@@ -78,14 +78,16 @@ public sealed class TransactionService
 
         var data = dataResult.Value!;
 
-        return Result<TransactionValidationReport>.Success(TransactionValidator.Validate(new TransactionValidationRequest(
+        var report = TransactionValidator.Validate(new TransactionValidationRequest(
             data.Nodes,
             data.Roles,
             data.RoleResolutions,
             data.Contents,
             data.Dependencies,
             _validationPolicy.ToQualityWarningThresholds(),
-            _validationPolicy.PossibleEmbeddedHeadingWarning)));
+            _validationPolicy.PossibleEmbeddedHeadingWarning));
+
+        return Result<TransactionValidationReport>.Success(report with { ChangeVersion = data.ChangeVersion });
     }
 
     /// <summary>

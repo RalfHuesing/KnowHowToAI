@@ -30,7 +30,8 @@ internal sealed class SqlWorkingSnapshotValidationDataRepository : IWorkingSnaps
                 readResult.Value.Roles,
                 readResult.Value.RoleResolutions,
                 readResult.Value.Contents,
-                readResult.Value.Dependencies))
+                readResult.Value.Dependencies,
+                readResult.Value.ChangeVersion))
             : Result<WorkingSnapshotValidationData>.Failure(readResult.Error!);
     }
 }

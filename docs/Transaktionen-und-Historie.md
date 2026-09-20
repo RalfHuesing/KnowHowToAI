@@ -116,6 +116,11 @@ committed Snapshot gelesen. Beide Selektoren zugleich sind unzulässig
 `list_children`, `list_roles`, `search`, `export_tree`, `validate_transaction` und
 die Historien-Tools (Verträge: [MCP-API](McpApi.md)).
 
+`validate_transaction` liest Graphdaten, Findings und `ChangeVersion` gemeinsam
+unter derselben Working-Transaction-Sperre. Das Validierungsergebnis trägt diese
+gelesene Version als Provenienz; eine bekannte neuere lokale Workspace-Version
+markiert die Befunde als stale und löst keine automatische Neulesung aus.
+
 ## Löschsemantik
 
 Historische Wissensstände werden nicht zerstört:

@@ -7,7 +7,8 @@ public sealed record TransactionValidationReport(
     IReadOnlyList<DomainError> Errors,
     IReadOnlyList<DomainWarning> Warnings,
     IReadOnlyList<StaleContent> StaleContents,
-    IReadOnlyList<RefactoringCandidate> RefactoringCandidates)
+    IReadOnlyList<RefactoringCandidate> RefactoringCandidates,
+    long ChangeVersion = 0)
 {
     public bool IsValid => Errors.Count == 0;
 }

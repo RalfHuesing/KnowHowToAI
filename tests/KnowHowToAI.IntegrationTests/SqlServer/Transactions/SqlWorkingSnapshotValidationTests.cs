@@ -56,10 +56,12 @@ public sealed class SqlWorkingSnapshotValidationTests
 
         Assert.True(overlapping.IsSuccess);
         Assert.True(overlapping.Value!.IsValid);
+        Assert.Equal(0, overlapping.Value.ChangeVersion);
         AssertCompletePreMutationView(validationRepository.LastRead);
         Assert.Equal(5, mutationResult.Value);
         Assert.Equal(1, mutationResult.ChangeVersion);
         Assert.True(afterMutationView.IsSuccess);
+        Assert.Equal(1, afterMutationView.Value!.ChangeVersion);
         AssertCompletePostMutationView(afterMutationView.Value);
 
         Assert.True(afterMutation.IsSuccess);

@@ -20,14 +20,13 @@ public sealed partial class TransactionValidation : ComponentBase, IDisposable
 
     private TransactionValidationViewModel? _result;
     private string? _errorMessage;
-    private long? _validatedChangeVersion;
     private bool _isValidating;
     private Guid _resultTransactionId;
 
     private long CurrentChangeVersion => WorkspaceState.CurrentChangeVersion ?? Transaction.ChangeVersion;
 
     private bool ResultsAreStale => _result is not null
-        && _validatedChangeVersion != CurrentChangeVersion;
+        && _result.ChangeVersion != CurrentChangeVersion;
 
     protected override void OnInitialized() => WorkspaceState.Changed += OnWorkspaceChanged;
 
@@ -38,7 +37,6 @@ public sealed partial class TransactionValidation : ComponentBase, IDisposable
 
         _result = null;
         _errorMessage = null;
-        _validatedChangeVersion = null;
         _resultTransactionId = Transaction.TransactionId.Value;
     }
 
@@ -51,12 +49,10 @@ public sealed partial class TransactionValidation : ComponentBase, IDisposable
         if (result.IsSuccess)
         {
             _result = TransactionValidationMapper.ToViewModel(result.Value!);
-            _validatedChangeVersion = CurrentChangeVersion;
         }
         else
         {
             _result = null;
-            _validatedChangeVersion = null;
             _errorMessage = result.Error!.Message;
         }
 

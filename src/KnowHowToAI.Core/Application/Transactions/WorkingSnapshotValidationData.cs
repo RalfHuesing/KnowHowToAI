@@ -11,4 +11,5 @@ public sealed record WorkingSnapshotValidationData(
     IReadOnlyList<Role> Roles,
     IReadOnlyList<RoleResolution> RoleResolutions,
     IReadOnlyList<NodeContent> Contents,
-    IReadOnlyList<ContentDependency> Dependencies);
+    IReadOnlyList<ContentDependency> Dependencies,
+    long ChangeVersion = 0);

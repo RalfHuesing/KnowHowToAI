@@ -28,7 +28,7 @@
     else if (ResultsAreStale)
     {
         <p class="transaction-validation__stale" role="status" data-testid="validation-results-stale">
-            Diese Befunde beziehen sich auf ChangeVersion @_validatedChangeVersion. Die Transaction wurde danach geändert; bitte erneut validieren.
+            Diese Befunde beziehen sich auf ChangeVersion @_result.ChangeVersion. Die Transaction wurde danach geändert; bitte erneut validieren.
         </p>
     }
     else if (_result.IsValid)

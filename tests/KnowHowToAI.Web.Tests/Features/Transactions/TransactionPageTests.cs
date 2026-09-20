@@ -234,6 +234,21 @@ public sealed class TransactionPageTests : BunitContext
     }
 
     [Fact]
+    public void TransactionPage_ValidationUsesReadChangeVersionAsFindingProvenance()
+    {
+        var transaction = AddOpenTransaction(changeVersion: 1);
+        _harness.SetValidationData(transaction.TransactionId, EmptyValidationData(changeVersion: 1));
+
+        var cut = Render<TransactionPage>(parameters => parameters.Add(p => p.TransactionId, transaction.TransactionId.Value));
+        _workspaceState.SetChangeVersion(2);
+
+        cut.Find("[data-testid='validate-transaction-button']").Click();
+
+        var stale = cut.Find("[data-testid='validation-results-stale']");
+        Assert.Contains("ChangeVersion 1", stale.TextContent);
+    }
+
+    [Fact]
     public void TransactionPage_TransactionDiff_ShowsCreatedModifiedMovedAndDeletedNodes()
     {
         var transaction = AddOpenTransaction();
@@ -340,7 +355,7 @@ public sealed class TransactionPageTests : BunitContext
         return transaction;
     }
 
-    private static WorkingSnapshotValidationData EmptyValidationData() => new([], [], [], [], []);
+    private static WorkingSnapshotValidationData EmptyValidationData(long changeVersion = 1) => new([], [], [], [], [], changeVersion);
 
     private static WorkingSnapshotValidationData ValidationData(Guid nodeId, string contentMd)
     {
@@ -351,7 +366,8 @@ public sealed class TransactionPageTests : BunitContext
             [new Role(snapshotId, roleId, "Default", null, false)],
             [new RoleResolution(snapshotId, roleId, roleId, 1)],
             [new NodeContent(snapshotId, new NodeId(nodeId), roleId, new ContentRevisionId(ContentRevisionGuid), ContentMode.Independent, contentMd, false)],
-            []);
+            [],
+            1);
     }
 
     private static WorkingSnapshotValidationData MixedValidationData(Guid sourceId, Guid derivedId)
@@ -370,7 +386,8 @@ public sealed class TransactionPageTests : BunitContext
                 new NodeContent(snapshotId, new NodeId(sourceId), roleId, sourceRevisionId, ContentMode.Independent, "Quelle", true),
                 new NodeContent(snapshotId, new NodeId(derivedId), roleId, new ContentRevisionId(DerivedRevisionGuid), ContentMode.Derived, "# Fehler", false)
             ],
-            [new ContentDependency(snapshotId, new NodeId(derivedId), roleId, new NodeId(sourceId), roleId, sourceRevisionId)]);
+            [new ContentDependency(snapshotId, new NodeId(derivedId), roleId, new NodeId(sourceId), roleId, sourceRevisionId)],
+            1);
     }
 
     private sealed class TestCurrentUserService : ICurrentUserService

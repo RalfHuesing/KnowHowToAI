@@ -9,7 +9,8 @@ public sealed record TransactionValidationViewModel(
     IReadOnlyList<TransactionValidationIssueViewModel> Errors,
     IReadOnlyList<TransactionValidationIssueViewModel> Warnings,
     IReadOnlyList<TransactionValidationStaleContentViewModel> StaleContents,
-    IReadOnlyList<TransactionValidationRefactoringViewModel> RefactoringCandidates);
+    IReadOnlyList<TransactionValidationRefactoringViewModel> RefactoringCandidates,
+    long ChangeVersion);
 
 /// <summary>Ein handlungsorientierter Fehler- oder Warnbefund.</summary>
 public sealed record TransactionValidationIssueViewModel(
@@ -46,7 +47,8 @@ public static class TransactionValidationMapper
                 content.ContentRevisionId.Value)).ToArray(),
             report.RefactoringCandidates.Select(static candidate => new TransactionValidationRefactoringViewModel(
                 candidate.NodeId.Value,
-                candidate.ReasonCodes)).ToArray());
+                candidate.ReasonCodes)).ToArray(),
+            report.ChangeVersion);
     }
 
     private static TransactionValidationIssueViewModel ToIssue(DomainIssue issue) =>
