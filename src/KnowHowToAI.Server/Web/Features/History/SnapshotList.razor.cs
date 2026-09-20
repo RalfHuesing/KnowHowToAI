@@ -17,6 +17,12 @@ public sealed partial class SnapshotList
     public string? RoleId { get; set; }
 
     [Parameter]
+    public long? SelectedBaseSnapshotId { get; set; }
+
+    [Parameter]
+    public long? SelectedTargetSnapshotId { get; set; }
+
+    [Parameter]
     public EventCallback<IReadOnlyList<SnapshotViewModel>> OnSnapshotsChanged { get; set; }
 
     [Parameter]

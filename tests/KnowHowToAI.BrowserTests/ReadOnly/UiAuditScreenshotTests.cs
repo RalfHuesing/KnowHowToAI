@@ -165,6 +165,8 @@ public sealed class UiAuditScreenshotTests
         await GotoAsync(page, address, "/history?roleId=Default");
         await Assertions.Expect(page.GetByTestId("history-page")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("snapshot-list")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("history-comparison-context")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("history-selection-status")).ToContainTextAsync("Ausgang");
         await CaptureAsync(page, "08_history_list", viewport, output, captures);
 
         var snapshotItems = page.GetByTestId("snapshot-list").Locator(":scope > li");
@@ -176,6 +178,10 @@ public sealed class UiAuditScreenshotTests
             await baseAction.ClickAsync();
             await targetAction.ClickAsync();
 
+            var selectionStatus = page.GetByTestId("history-selection-status");
+            await Assertions.Expect(selectionStatus).ToContainTextAsync("Ausgang");
+            await Assertions.Expect(selectionStatus).ToContainTextAsync("Ziel");
+
             var diffList = page.GetByTestId("snapshot-diff-list");
             var emptyDiff = page.GetByTestId("snapshot-diff-empty");
             var selectionRequired = page.GetByTestId("snapshot-diff-selection-required");
@@ -186,7 +192,8 @@ public sealed class UiAuditScreenshotTests
             {
                 await Assertions.Expect(diffList).ToBeVisibleAsync();
                 await Assertions.Expect(diffList.Locator("li").First).ToBeVisibleAsync();
-                await diffList.ScrollIntoViewIfNeededAsync();
+                await Assertions.Expect(page.GetByTestId("snapshot-diff-summary")).ToBeVisibleAsync();
+                await Assertions.Expect(page.GetByTestId("snapshot-diff-summary")).ToContainTextAsync("Snapshot");
                 await Assertions.Expect(diffList.Locator("li").First).ToBeInViewportAsync();
                 diffScenario = "09_history_snapshot-diff";
             }

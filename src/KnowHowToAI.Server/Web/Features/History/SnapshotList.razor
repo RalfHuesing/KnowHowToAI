@@ -3,7 +3,13 @@
 @using Microsoft.AspNetCore.Components.Web
 
 <section class="snapshot-list history-page__section" aria-labelledby="snapshots-heading">
-    <h2 id="snapshots-heading">Committed Snapshots</h2>
+    <header class="snapshot-list__header">
+        <div>
+            <p class="history-page__eyebrow">Auswahl</p>
+            <h3 id="snapshots-heading">Historische Wissensstände</h3>
+            <p>Die Auswahl bleibt auf unveränderliche, abgeschlossene Stände beschränkt.</p>
+        </div>
+    </header>
     @if (_isLoading)
     {
         <p role="status" data-testid="history-loading">Historie wird geladen …</p>
@@ -21,41 +27,56 @@
         <ol class="history-page__list" data-testid="snapshot-list">
             @foreach (var snapshot in _page.Items)
             {
-                <li>
+                <li class="history-page__snapshot-item">
                     <button type="button" class="history-page__item" @onclick="() => NavigateToSnapshot(snapshot.SnapshotId)" data-testid="snapshot-select-@snapshot.SnapshotId">
-                        <span class="history-page__item-title">Snapshot @snapshot.SnapshotId</span>
-                        <span class="history-page__metadata" title="@FormatUtc(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)">Committed @FormatTimestamp(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)</span>
-                        @if (snapshot.BaseSnapshotId is { } baseSnapshotId)
-                        {
-                            <span class="history-page__metadata">Basis: Snapshot @baseSnapshotId</span>
-                        }
-                        @if (snapshot.TransactionId is { } transactionId)
-                        {
-                            <span class="history-page__metadata" data-testid="snapshot-transaction-@snapshot.SnapshotId">
-                                Transaction @transactionId
-                                @if (!string.IsNullOrWhiteSpace(snapshot.Actor))
-                                {
-                                    @: · Actor: @snapshot.Actor
-                                }
-                                @if (!string.IsNullOrWhiteSpace(snapshot.Client))
-                                {
-                                    @: · Client: @snapshot.Client
-                                }
-                                @if (!string.IsNullOrWhiteSpace(snapshot.Purpose))
-                                {
-                                    @: · Zweck: @snapshot.Purpose
-                                }
-                                @if (!string.IsNullOrWhiteSpace(snapshot.CommitMessage))
-                                {
-                                    @: · Commit: @snapshot.CommitMessage
-                                }
-                            </span>
-                        }
+                        <span class="history-page__item-title">Historischer Wissensstand</span>
+                        <span class="history-page__metadata" title="@FormatUtc(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)">Snapshot @snapshot.SnapshotId · Committed @FormatTimestamp(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)</span>
                     </button>
-                    <div class="history-page__selection-actions">
-                        <button type="button" @onclick="() => OnBaseSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-base-@snapshot.SnapshotId">Als Ausgang wählen</button>
-                        <button type="button" @onclick="() => OnTargetSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-target-@snapshot.SnapshotId">Als Ziel wählen</button>
+                    <div class="history-page__selection-actions" aria-label="Vergleichsauswahl für historischen Wissensstand">
+                        <button type="button" class="@(SelectedBaseSnapshotId == snapshot.SnapshotId ? "is-selected" : null)" aria-pressed="@(SelectedBaseSnapshotId == snapshot.SnapshotId)" @onclick="() => OnBaseSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-base-@snapshot.SnapshotId">Als Ausgang wählen</button>
+                        <button type="button" class="@(SelectedTargetSnapshotId == snapshot.SnapshotId ? "is-selected" : null)" aria-pressed="@(SelectedTargetSnapshotId == snapshot.SnapshotId)" @onclick="() => OnTargetSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-target-@snapshot.SnapshotId">Als Ziel wählen</button>
                     </div>
+                    <details class="history-page__technical">
+                        <summary>Technische Details</summary>
+                        <dl class="history-page__technical-list">
+                            <div>
+                                <dt>Snapshot-ID</dt>
+                                <dd>@snapshot.SnapshotId</dd>
+                            </div>
+                            @if (snapshot.BaseSnapshotId is { } baseSnapshotId)
+                            {
+                                <div>
+                                    <dt>Basis-Snapshot</dt>
+                                    <dd>@baseSnapshotId</dd>
+                                </div>
+                            }
+                            @if (snapshot.TransactionId is { } transactionId)
+                            {
+                                <div data-testid="snapshot-transaction-@snapshot.SnapshotId">
+                                    <dt>Erzeugende Transaction</dt>
+                                    <dd>
+                                        @transactionId
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.Actor))
+                                        {
+                                            @: · Actor: @snapshot.Actor
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.Client))
+                                        {
+                                            @: · Client: @snapshot.Client
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.Purpose))
+                                        {
+                                            @: · Zweck: @snapshot.Purpose
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(snapshot.CommitMessage))
+                                        {
+                                            @: · Commit: @snapshot.CommitMessage
+                                        }
+                                    </dd>
+                                </div>
+                            }
+                        </dl>
+                    </details>
                 </li>
             }
         </ol>

@@ -49,3 +49,17 @@ Ausgang wählen“ und „Als Ziel wählen“. Die technische Snapshot-/Transact
 Einordnung ist sichtbar, konkurriert aber mit der fachlichen Auswahlhandlung.
 M1.5-T5 führt diese Auswahl und den anschließenden Vergleichskontext stärker;
 History-, Snapshot- und Routenverträge bleiben unverändert.
+
+## M1.5-T5-Ergebnis
+
+Die History führt die vorhandene Auswahl jetzt in einem gemeinsamen
+Vergleichs-Arbeitsabschnitt. Ausgang und Ziel werden mit ihrem aktuellen
+Auswahlstatus sichtbar zusammengefasst; die bestehenden Aktionen „Als Ausgang
+wählen“ und „Als Ziel wählen“ bleiben je Snapshot unverändert erreichbar.
+Primäre Snapshot-/Zeitinformationen stehen vor den technischen Werten, die
+unter „Technische Details“ vollständig zugänglich bleiben. Die bestehende
+Snapshot-Navigation, Pagination und Release-Funktion wurden nicht geändert.
+
+Der gezielte UiAudit-Lauf
+`temp/ui-audit/m1-5-t5/2026-09-20_23-20-36/08_history_list_desktop_1280x800.png`
+belegt den gemeinsamen Auswahlrahmen im Desktop-Viewport 1280×800.

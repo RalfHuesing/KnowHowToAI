@@ -1,6 +1,6 @@
 .history-page {
     display: grid;
-    gap: var(--ktai-space-6);
+    gap: var(--ktai-space-5);
 }
 
 .history-page__header,
@@ -8,6 +8,98 @@
 ::deep .history-page__section {
     display: grid;
     gap: var(--ktai-space-2);
+}
+
+.history-page__header h1,
+.history-page__header p,
+.history-page__comparison-header h2,
+.history-page__comparison-header p,
+::deep .snapshot-list__header h3,
+::deep .snapshot-list__header p,
+::deep .snapshot-diff__header h2,
+::deep .snapshot-diff__header p {
+    margin: 0;
+}
+
+.history-page__comparison {
+    display: grid;
+    gap: var(--ktai-space-5);
+    border: 1px solid var(--ktai-color-border-light);
+    border-radius: var(--ktai-radius-md);
+    background: var(--ktai-color-surface);
+    padding: var(--ktai-space-5);
+    box-shadow: var(--ktai-shadow-surface);
+}
+
+.history-page__comparison-header {
+    display: grid;
+    gap: var(--ktai-space-4);
+}
+
+.history-page__comparison-header > div:first-child {
+    display: grid;
+    gap: var(--ktai-space-1);
+}
+
+.history-page__comparison-header > div:first-child > p:last-child,
+::deep .snapshot-list__header p:last-child,
+::deep .snapshot-diff__header p:last-child {
+    color: var(--ktai-color-text-secondary);
+}
+
+.history-page__eyebrow,
+::deep .snapshot-diff__eyebrow {
+    color: var(--ktai-color-primary);
+    font-size: var(--ktai-font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.history-page__selection-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ktai-space-3);
+}
+
+.history-page__selection {
+    display: grid;
+    gap: var(--ktai-space-1);
+    border: 1px solid var(--ktai-color-border-subtle);
+    border-radius: var(--ktai-radius-sm);
+    background: var(--ktai-color-surface-subtle);
+    padding: var(--ktai-space-3);
+}
+
+.history-page__selection-label {
+    color: var(--ktai-color-text-muted);
+    font-size: var(--ktai-font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.history-page__selection strong {
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-lg);
+}
+
+.history-page__selection-hint {
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-sm);
+}
+
+.history-page__comparison-grid {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.9fr) minmax(0, 1.4fr);
+    gap: var(--ktai-space-5);
+    align-items: start;
+}
+
+::deep .history-page__comparison-grid > .history-page__section {
+    min-width: 0;
+    border-top: 1px solid var(--ktai-color-border-subtle);
+    padding-top: var(--ktai-space-4);
 }
 
 ::deep .history-page__list {
@@ -23,9 +115,9 @@
     width: 100%;
     gap: var(--ktai-space-1);
     border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-sm);
+    border-radius: var(--ktai-radius-md);
     background: var(--ktai-color-surface);
-    padding: var(--ktai-space-3);
+    padding: var(--ktai-space-4);
     color: inherit;
     text-align: left;
 }
@@ -35,8 +127,15 @@
 }
 
 ::deep .history-page__item-title {
-    color: var(--ktai-color-primary);
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-lg);
     font-weight: 700;
+}
+
+::deep .history-page__item:hover,
+::deep .history-page__item:focus-visible {
+    border-color: var(--ktai-color-primary);
+    box-shadow: 0 0 0 2px var(--ktai-color-info-emphasis-background);
 }
 
 ::deep .history-page__metadata {
@@ -71,10 +170,78 @@
     font: inherit;
 }
 
+::deep .history-page__selection-actions button.is-selected {
+    border-color: var(--ktai-color-primary);
+    background: var(--ktai-color-info-emphasis-background);
+    color: var(--ktai-color-primary-active);
+    font-weight: 700;
+}
+
+::deep .history-page__technical,
+::deep .snapshot-diff__technical {
+    border-top: 1px solid var(--ktai-color-border-subtle);
+    padding-top: var(--ktai-space-2);
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-xs);
+}
+
+::deep .history-page__technical summary,
+::deep .snapshot-diff__technical summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+::deep .history-page__technical summary:hover,
+::deep .snapshot-diff__technical summary:hover {
+    color: var(--ktai-color-primary);
+}
+
+::deep .history-page__technical[open] summary,
+::deep .snapshot-diff__technical[open] summary {
+    margin-bottom: var(--ktai-space-2);
+}
+
+::deep .history-page__technical-list {
+    display: grid;
+    gap: var(--ktai-space-2);
+    margin: 0;
+}
+
+::deep .history-page__technical-list > div {
+    display: grid;
+    grid-template-columns: minmax(7rem, auto) 1fr;
+    gap: var(--ktai-space-2);
+}
+
+::deep .history-page__technical-list dt {
+    font-weight: 600;
+}
+
+::deep .history-page__technical-list dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
 ::deep .history-page__release-result {
     display: grid;
     gap: var(--ktai-space-2);
     border: 1px solid var(--ktai-color-primary);
     border-radius: var(--ktai-radius-sm);
     padding: var(--ktai-space-3);
+}
+
+@media (max-width: 56rem) {
+    .history-page__comparison-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 36rem) {
+    .history-page__comparison {
+        padding: var(--ktai-space-4);
+    }
+
+    .history-page__selection-summary {
+        grid-template-columns: 1fr;
+    }
 }

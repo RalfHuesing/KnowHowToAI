@@ -58,3 +58,20 @@ Capture aber nicht als zusammenhängender Kontext geführt; technische IDs
 dominieren den sichtbaren Diff. M1.5-T5 darf deshalb nur Darstellung,
 Gruppierung und progressive Sichtbarkeit ändern. Auswahl-, Lade- und
 Diff-Logik sowie Routen bleiben unverändert.
+
+## M1.5-T5-Ergebnis
+
+Der bestehende Vergleichskontext ist jetzt als zusammenhängender
+Arbeitsabschnitt sichtbar: Ausgang und Ziel bleiben oben als aktueller Status
+lesbar, das Ergebnis führt die Überschrift „Snapshot-Diff“ und die sichtbare
+Zusammenfassung mit Änderungsanzahl. Ein leerer, nicht ausgewählter oder noch
+ladender Diff bleibt jeweils ehrlich als Status erkennbar. In den Einträgen
+stehen fachliche Entität, Änderung und Vorher/Nachher-Inhalt vor den
+technischen Primär-/Sekundär-IDs; diese bleiben unter „Technische Details“
+vollständig zugänglich. Auswahl-, Lade-, Paging- und Diff-Semantik sowie die
+Routen blieben unverändert.
+
+Der gezielte UiAudit-Lauf
+`temp/ui-audit/m1-5-t5/2026-09-20_23-20-36/09_history_snapshot-diff_desktop_1280x800.png`
+belegt im Desktop-Viewport 1280×800 gleichzeitig Auswahlstatus,
+Diff-Überschrift, Zusammenfassung und repräsentative Diff-Einträge.

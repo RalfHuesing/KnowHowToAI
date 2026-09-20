@@ -15,15 +15,41 @@
         <InlineAlert Kind="AlertKind.Info" Message="Working Transactions gehören nicht zur Historie und werden separat im Transaction-Arbeitsbereich bearbeitet." />
     </section>
 
-    <SnapshotList RoleId="@QueryRoleId"
-                  OnSnapshotsChanged="SnapshotsChangedAsync"
-                  OnBaseSnapshotSelected="SelectBaseSnapshotAsync"
-                  OnTargetSnapshotSelected="SelectTargetSnapshotAsync" />
+    <section class="history-page__comparison" aria-labelledby="history-comparison-heading" data-testid="history-comparison-context">
+        <header class="history-page__comparison-header">
+            <div>
+                <p class="history-page__eyebrow">Arbeitsabschnitt</p>
+                <h2 id="history-comparison-heading">Snapshots vergleichen</h2>
+                <p>Wählen Sie einen Ausgangs- und einen Zielstand. Das Ergebnis zeigt nur die Unterschiede zwischen diesen unveränderlichen Wissensständen.</p>
+            </div>
+            <div class="history-page__selection-summary" aria-live="polite" data-testid="history-selection-status">
+                <div class="history-page__selection">
+                    <span class="history-page__selection-label">Ausgang</span>
+                    <strong>@FormatSelection(_baseSnapshotId)</strong>
+                    <span class="history-page__selection-hint">Älterer Wissensstand</span>
+                </div>
+                <div class="history-page__selection">
+                    <span class="history-page__selection-label">Ziel</span>
+                    <strong>@FormatSelection(_targetSnapshotId)</strong>
+                    <span class="history-page__selection-hint">Zu vergleichender Wissensstand</span>
+                </div>
+            </div>
+        </header>
 
-    <SnapshotDiffPanel BaseSnapshotId="@_baseSnapshotId"
-                       TargetSnapshotId="@_targetSnapshotId"
-                       NodeFilterId="@_nodeFilterId"
-                       InitialErrorMessage="@_comparisonErrorMessage" />
+        <div class="history-page__comparison-grid">
+            <SnapshotList RoleId="@QueryRoleId"
+                          SelectedBaseSnapshotId="@_baseSnapshotId"
+                          SelectedTargetSnapshotId="@_targetSnapshotId"
+                          OnSnapshotsChanged="SnapshotsChangedAsync"
+                          OnBaseSnapshotSelected="SelectBaseSnapshotAsync"
+                          OnTargetSnapshotSelected="SelectTargetSnapshotAsync" />
+
+            <SnapshotDiffPanel BaseSnapshotId="@_baseSnapshotId"
+                               TargetSnapshotId="@_targetSnapshotId"
+                               NodeFilterId="@_nodeFilterId"
+                               InitialErrorMessage="@_comparisonErrorMessage" />
+        </div>
+    </section>
 
     <ReleasePanel Snapshots="@_snapshots" RoleId="@QueryRoleId" />
 </section>

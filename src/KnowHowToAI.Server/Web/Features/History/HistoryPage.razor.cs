@@ -66,6 +66,11 @@ public sealed partial class HistoryPage
             _comparisonErrorMessage = "Der Knotenfilter ist ungültig.";
     }
 
+    private static string FormatSelection(long? snapshotId) =>
+        snapshotId is { } value
+            ? $"Snapshot {value.ToString(CultureInfo.InvariantCulture)}"
+            : "Noch nicht gewählt";
+
     private long? TryParseSnapshotId(string? value, string label)
     {
         if (string.IsNullOrWhiteSpace(value))

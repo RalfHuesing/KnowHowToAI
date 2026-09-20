@@ -34,9 +34,14 @@ public sealed class HistoryPageTests : BunitContext
             Assert.Single(cut.FindAll("[data-testid^='snapshot-select-']"));
             Assert.Single(cut.FindAll("[data-testid^='release-select-']"));
             Assert.Contains("Working Transactions gehören nicht", cut.Find("[data-testid='history-working-separation']").TextContent);
+            Assert.Contains("Ausgang", cut.Find("[data-testid='history-selection-status']").TextContent);
+            Assert.Equal(2, cut.FindAll(".history-page__selection").Count);
+            Assert.Equal(2, cut.FindAll(".history-page__selection strong").Count(element => element.TextContent.Contains("Noch nicht gewählt", StringComparison.Ordinal)));
+            Assert.NotEmpty(cut.FindAll(".history-page__technical"));
         });
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='snapshot-diff-target-3']").Click());
+        cut.WaitForAssertion(() => Assert.Contains("Snapshot 3", cut.Find("[data-testid='history-selection-status']").TextContent));
         await cut.InvokeAsync(() => cut.Find("[data-testid='snapshot-list-next']").Click());
         cut.WaitForAssertion(() =>
         {
@@ -47,6 +52,8 @@ public sealed class HistoryPageTests : BunitContext
         await cut.InvokeAsync(() => cut.Find("[data-testid='snapshot-diff-base-2']").Click());
         cut.WaitForAssertion(() =>
         {
+            Assert.Contains("Snapshot 2", cut.Find("[data-testid='history-selection-status']").TextContent);
+            Assert.Contains("Snapshot 2", cut.Find("[data-testid='snapshot-diff-summary']").TextContent);
             Assert.Contains("Knoten", cut.Find("[data-testid='snapshot-diff-list']").TextContent);
             Assert.Contains("Vorher", cut.Find("[data-testid='snapshot-diff-list']").TextContent);
             Assert.Contains("Nachher", cut.Find("[data-testid='snapshot-diff-list']").TextContent);

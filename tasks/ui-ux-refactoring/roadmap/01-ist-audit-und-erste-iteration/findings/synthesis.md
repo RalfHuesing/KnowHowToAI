@@ -206,6 +206,27 @@ geprüft; 10 zeigt `Bereich: Transactions`, 12/15 den gefüllten Working-
 Transaction-Zweck. Die ergänzten Transaktions-Regressionstests decken Zweck
 mit und ohne technische Werte ab. `ResponsiveShellSmokeTests` (2/2) ist grün.
 
+## M1.5-T5-Ergebnis
+
+History 08/09 führt die bestehende Ausgangs-/Zielauswahl und das vorhandene
+Vergleichsergebnis jetzt als gemeinsamen Arbeitsabschnitt. Der aktuelle
+Auswahlstatus ist sichtbar; Zustand 09 zeigt zusätzlich die bestehende
+„Snapshot-Diff“-Überschrift, die Änderungszusammenfassung und repräsentative
+Einträge. Fachliche Entität, Änderung und Vorher/Nachher-Werte stehen vor den
+technischen Primär-/Sekundär-IDs. Snapshot-, Transaction- und Node-IDs bleiben
+unter „Technische Details“ vollständig erreichbar. Nicht ausgewählte, leere,
+fehlerhafte und ladende Vergleiche bleiben als ihre tatsächlichen Zustände
+erkennbar; es wurde keine Auswahl-, Lade-, Paging- oder Diff-Logik verändert.
+
+Der UiAudit-Lauf
+`temp/ui-audit/m1-5-t5/2026-09-20_23-20-36/manifest.json` ist mit 20/20
+Zuständen bei 1280×800 grün. Die Captures 08 und 09 wurden visuell geprüft;
+History-FastTests (8/8), History-Browser-Smoke (1/1), Build und der
+AiNetLinter-Verify für die Änderungen (Score 10.0, 0 Verstöße) sind grün. Der
+Solution-Verify bleibt wegen des vorbestehenden, außerhalb dieses Scopes
+liegenden `AIContextFootprint`-Befunds in `RolesPage.razor.cs` bei Score 9.2;
+die Rollenverwaltung wurde gemäß Leaf nicht verändert.
+
 ## M1.5-Folgepriorität aus dem Re-Audit
 
 M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:

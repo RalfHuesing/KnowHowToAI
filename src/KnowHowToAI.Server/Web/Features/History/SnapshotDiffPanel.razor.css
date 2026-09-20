@@ -3,6 +3,59 @@
     gap: var(--ktai-space-3);
 }
 
+.snapshot-diff__header {
+    display: grid;
+    gap: var(--ktai-space-1);
+}
+
+.snapshot-diff__header h2 {
+    margin: 0;
+}
+
+.snapshot-diff__header p:last-child,
+.snapshot-diff__status {
+    color: var(--ktai-color-text-secondary);
+    margin: 0;
+}
+
+.snapshot-diff__eyebrow {
+    color: var(--ktai-color-primary);
+    font-size: var(--ktai-font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.snapshot-diff__summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--ktai-space-2);
+    border-radius: var(--ktai-radius-sm);
+    background: var(--ktai-color-surface-subtle);
+    margin: 0;
+    padding: var(--ktai-space-3);
+}
+
+.snapshot-diff__summary strong {
+    color: var(--ktai-color-text);
+}
+
+.snapshot-diff__filter-context {
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-sm);
+}
+
+.snapshot-diff__empty-state {
+    display: grid;
+    gap: var(--ktai-space-2);
+}
+
+.snapshot-diff__empty-state > :last-child {
+    margin: 0;
+    color: var(--ktai-color-text-secondary);
+}
+
 .snapshot-diff__list {
     display: grid;
     gap: var(--ktai-space-2);
@@ -17,6 +70,7 @@
     gap: var(--ktai-space-3);
     border: 1px solid var(--ktai-color-border);
     border-radius: var(--ktai-radius-sm);
+    background: var(--ktai-color-surface);
     padding: var(--ktai-space-3);
 }
 
@@ -45,4 +99,13 @@
 .snapshot-diff__after span {
     color: var(--ktai-color-text);
     font-weight: 700;
+}
+
+.snapshot-diff__technical {
+    margin-top: var(--ktai-space-3);
+}
+
+.snapshot-diff__ids span {
+    color: var(--ktai-color-text);
+    font-weight: 600;
 }
