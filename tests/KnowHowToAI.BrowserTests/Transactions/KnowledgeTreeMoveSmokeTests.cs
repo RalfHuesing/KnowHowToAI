@@ -60,6 +60,7 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await Assertions.Expect(children.Nth(2)).ToBeVisibleAsync(new() { Timeout = 15_000 });
             var sourceIndex = position == "Before" ? 2 : 0;
             var targetIndex = position == "Before" ? 0 : 2;
+            var initialTitles = await ReadVisibleSiblingTitlesAsync(page);
             var source = await children.Nth(sourceIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Quellknoten fehlt.");
             var target = await children.Nth(targetIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Zielknoten fehlt.");
 
@@ -68,6 +69,13 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToContainTextAsync("Änderungsversion: 1");
             await Assertions.Expect(page.GetByTestId("tree-move-error")).ToHaveCountAsync(0);
             await Assertions.Expect(page.GetByTestId($"treeitem-{source}")).ToBeVisibleAsync();
+            if (position is "Before" or "After")
+            {
+                var expectedTitles = position == "Before"
+                    ? new[] { initialTitles[2], initialTitles[0], initialTitles[1] }.Concat(initialTitles.Skip(3)).ToArray()
+                    : new[] { initialTitles[1], initialTitles[2], initialTitles[0] }.Concat(initialTitles.Skip(3)).ToArray();
+                Assert.Equal(expectedTitles, await ReadVisibleSiblingTitlesAsync(page));
+            }
 
             await MoveVisibleSiblingAsync(page, sourceIndex: 0, targetIndex: 1, "After", 0.875);
             await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToContainTextAsync("Änderungsversion: 2");
@@ -86,6 +94,12 @@ public sealed class KnowledgeTreeMoveSmokeTests
         var source = await children.Nth(sourceIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Quellknoten fehlt.");
         var target = await children.Nth(targetIndex).GetAttributeAsync("data-nodeid") ?? throw new InvalidOperationException("Zielknoten fehlt.");
         await DragAndDropAsync(page, source, target, position, relativeY);
+    }
+
+    private static async Task<IReadOnlyList<string>> ReadVisibleSiblingTitlesAsync(IPage page)
+    {
+        var titles = await page.Locator("div[role='treeitem'][aria-level='2'] .tree-node-title").AllTextContentsAsync();
+        return titles.Select(title => title.Trim()).ToArray();
     }
 
     private static async Task DragAndDropAsync(IPage page, string source, string target, string position, double relativeY)

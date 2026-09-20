@@ -75,11 +75,19 @@ public sealed class NodeMutationService(IIdentifierGenerator identifierGenerator
         if (parentError is not null)
             return Result<HierarchyMutationResult>.Failure(parentError);
 
-        return FinalizeMutation(
-            Replace(nodes, node with { ParentNodeId = command.ParentNodeId, SortOrder = command.SortOrder }),
-            node.NodeId,
-            node.SnapshotId,
-            [node.ParentNodeId, command.ParentNodeId]);
+        var movedNodes = SiblingOrderNormalizer.Move(
+            nodes,
+            new MoveInsertion(
+                node.SnapshotId,
+                node.NodeId,
+                command.ParentNodeId,
+                command.SortOrder));
+        var report = HierarchyValidator.Validate(movedNodes);
+        if (!report.IsValid)
+            return Result<HierarchyMutationResult>.Failure(report.Errors[0]);
+
+        var movedNode = FindActiveNode(movedNodes, node.NodeId)!;
+        return Result<HierarchyMutationResult>.Success(new HierarchyMutationResult(movedNode, movedNodes));
     }
 
     public Result<HierarchyMutationResult> Update(IEnumerable<Node> existingNodes, UpdateNodeCommand command)

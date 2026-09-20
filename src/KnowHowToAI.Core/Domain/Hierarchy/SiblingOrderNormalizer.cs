@@ -29,6 +29,65 @@ public static class SiblingOrderNormalizer
         return Normalize(nodes, affectedGroups.Contains);
     }
 
+    /// <summary>
+    /// Verschiebt eine aktive Node an den angegebenen Einfügeindex der Zielgruppe.
+    /// Der Index wird nach Entfernung der Quelle aus ihrer bisherigen Gruppe
+    /// ausgewertet; dadurch bleibt die sichtbare Before-/After-Position auch bei
+    /// einer Verschiebung innerhalb derselben Geschwistergruppe exakt erhalten.
+    /// </summary>
+    internal static IReadOnlyList<Node> Move(
+        IEnumerable<Node> nodes,
+        MoveInsertion insertion)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+
+        var movedNodes = nodes.ToArray();
+        var sourceIndex = Array.FindIndex(
+            movedNodes,
+            node => !node.IsDeleted && node.SnapshotId == insertion.SnapshotId && node.NodeId == insertion.NodeId);
+        if (sourceIndex < 0)
+            return Array.AsReadOnly(movedNodes);
+
+        var source = movedNodes[sourceIndex];
+        var targetGroup = (insertion.SnapshotId, insertion.TargetParentNodeId);
+        var targetSiblingIndexes = Enumerable.Range(0, movedNodes.Length)
+            .Where(index => index != sourceIndex
+                && !movedNodes[index].IsDeleted
+                && (movedNodes[index].SnapshotId, movedNodes[index].ParentNodeId) == targetGroup)
+            .ToList();
+        targetSiblingIndexes.Sort((left, right) => Compare(movedNodes[left], movedNodes[right]));
+
+        var insertionIndex = Math.Clamp(insertion.TargetIndex, 0, targetSiblingIndexes.Count);
+        var orderedTargetIndexes = targetSiblingIndexes.ToArray().ToList();
+        orderedTargetIndexes.Insert(insertionIndex, sourceIndex);
+
+        var movedSource = source with { ParentNodeId = insertion.TargetParentNodeId };
+        movedNodes[sourceIndex] = movedSource;
+        for (var sortOrder = 0; sortOrder < orderedTargetIndexes.Count; sortOrder++)
+        {
+            var index = orderedTargetIndexes[sortOrder];
+            movedNodes[index] = movedNodes[index] with { SortOrder = sortOrder };
+        }
+
+        var sourceGroup = (insertion.SnapshotId, source.ParentNodeId);
+        if (sourceGroup != targetGroup)
+        {
+            var sourceSiblingIndexes = Enumerable.Range(0, movedNodes.Length)
+                .Where(index => index != sourceIndex
+                    && !movedNodes[index].IsDeleted
+                    && (movedNodes[index].SnapshotId, movedNodes[index].ParentNodeId) == sourceGroup)
+                .ToList();
+            sourceSiblingIndexes.Sort((left, right) => Compare(movedNodes[left], movedNodes[right]));
+            for (var sortOrder = 0; sortOrder < sourceSiblingIndexes.Count; sortOrder++)
+            {
+                var index = sourceSiblingIndexes[sortOrder];
+                movedNodes[index] = movedNodes[index] with { SortOrder = sortOrder };
+            }
+        }
+
+        return Array.AsReadOnly(movedNodes);
+    }
+
     private static IReadOnlyList<Node> Normalize(
         IEnumerable<Node> nodes,
         Func<(SnapshotId SnapshotId, NodeId? ParentNodeId), bool> shouldNormalize)

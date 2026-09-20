@@ -61,7 +61,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
 
 - [ ] **M4.6 abschließen**
 
-  - [ ] **M4.6-T1 – [Exakte Before-/After-Positionierung sicherstellen](tasks/M4.6-T1.md)**
+  - [x] **M4.6-T1 – [Exakte Before-/After-Positionierung sicherstellen](tasks/M4.6-T1.md)**
   - [ ] **M4.6-T2 – [Dirty-State der M4-Strukturformulare anbinden](tasks/M4.6-T2.md)**
   - [ ] **M4.6-T3 – [MCP-Strukturmutationen gegen stale Writes absichern](tasks/M4.6-T3.md)**
   - [ ] **M4.6-T4 – [Validierungsbefunde an die gelesene ChangeVersion binden](tasks/M4.6-T4.md)**

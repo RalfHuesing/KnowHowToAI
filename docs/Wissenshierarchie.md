@@ -38,6 +38,13 @@ Sobald ein Root existiert, bilden alle weiteren aktiven Nodes genau einen von ih
 ausgehenden Baum. `get_root` liefert bei leerer Wissensbasis `availability = None`
 statt einen künstlichen Node.
 
+Strukturmutationen mit einer expliziten Zielposition behandeln `Before` und
+`After` als Einfügeoperationen: Die Quelle wird zuerst aus ihrer bisherigen
+Geschwistergruppe entfernt, anschließend an der sichtbaren Zielposition eingefügt
+und die betroffenen Gruppen wieder auf die lückenlose Reihenfolge `0..N-1`
+normalisiert. Die NodeId ist dabei nur ein Tie-Breaker für bereits ungültige
+Gleichstände, nicht die Semantik einer neuen Verschiebung.
+
 ## Eine globale Hierarchie für alle Rollen
 
 Alle Rollen verwenden dieselben Nodes und dieselbe Hierarchie. Es gibt keine

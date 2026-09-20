@@ -29,11 +29,13 @@ public sealed class TreeMoveCoordinator(
         if (_workspaceState.ActiveTransactionId is not { } activeTransactionId)
             return TreeMoveOperationResult.Rejected("Strukturänderungen erfordern eine offene Transaction.");
 
+        var target = FindVisibleNode(_treeWorkspace.VisualRootNode, request.TargetNodeId);
+        var source = FindVisibleNode(_treeWorkspace.VisualRootNode, request.SourceNodeId);
         var (parentNodeId, sortOrder) = request.Position switch
         {
             TreeMovePosition.Parent => (new NodeId?(new NodeId(request.TargetNodeId)), int.MaxValue),
-            TreeMovePosition.Before => (ToNodeId(request.TargetParentNodeId), request.TargetSortOrder),
-            TreeMovePosition.After => (ToNodeId(request.TargetParentNodeId), request.TargetSortOrder + 1),
+            TreeMovePosition.Before => (ToNodeId(request.TargetParentNodeId), CalculateInsertionIndex(source, target, request.TargetSortOrder, after: false)),
+            TreeMovePosition.After => (ToNodeId(request.TargetParentNodeId), CalculateInsertionIndex(source, target, request.TargetSortOrder, after: true)),
             _ => throw new ArgumentOutOfRangeException(nameof(request))
         };
         var result = await _nodeMutationService.MoveAsync(
@@ -69,6 +71,40 @@ public sealed class TreeMoveCoordinator(
     }
 
     private static NodeId? ToNodeId(Guid? nodeId) => nodeId.HasValue ? new NodeId(nodeId.Value) : null;
+
+    private static int CalculateInsertionIndex(
+        KnowledgeTreeNodeViewModel? source,
+        KnowledgeTreeNodeViewModel? target,
+        int targetSortOrder,
+        bool after)
+    {
+        if (source is null || target is null || source.NodeId == target.NodeId)
+            return after && source?.NodeId != target?.NodeId ? targetSortOrder + 1 : targetSortOrder;
+
+        var sourceIsBeforeTarget = source.ParentNodeId == target.ParentNodeId
+            && source.Summary.SortOrder < target.Summary.SortOrder;
+        var targetIndexAfterSourceRemoval = targetSortOrder - (sourceIsBeforeTarget ? 1 : 0);
+        return after ? targetIndexAfterSourceRemoval + 1 : targetIndexAfterSourceRemoval;
+    }
+
+    private static KnowledgeTreeNodeViewModel? FindVisibleNode(
+        KnowledgeTreeNodeViewModel? root,
+        Guid nodeId)
+    {
+        if (root is null)
+            return null;
+        if (root.NodeId == nodeId)
+            return root;
+
+        foreach (var child in root.Children)
+        {
+            var match = FindVisibleNode(child, nodeId);
+            if (match is not null)
+                return match;
+        }
+
+        return null;
+    }
 }
 
 /// <summary>Transportiert die bestätigte Mutation oder die bereits neu geladene Ablehnung an die Seite.</summary>
