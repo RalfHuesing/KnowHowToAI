@@ -47,7 +47,7 @@ Leaves geteilt.
 - [x] [M1.5-T4 – KnowledgeContextBar klar segmentieren](tasks/M1.5-T4.md) – Snapshot, Bereich und Working-Transaction getrennt lesbar; Verträge und Routen unverändert.
 - [x] [M1.5-T5 – History-Auswahl und Vergleichskontext führen](tasks/M1.5-T5.md) – Zustände 08/09; bestehende Ausgang/Ziel-Auswahl sichtbar, IDs progressiv/sekundär.
 - [x] [M1.5-T6 – Suchbegriffe Freshness/Findings eindeutschen](tasks/M1.5-T6.md) – sichtbare UI-Begriffe, technische Codes und Suchverträge unverändert; Zustände 06/07 bei 1280×800 visuell bestätigt.
-- [ ] [M1.5-T7 – Offene Transactions als Ein-Karten-Grid harmonisieren](tasks/M1.5-T7.md) – keine leere Spalte, bestehende Karten und Aktionen unverändert.
+- [x] [M1.5-T7 – Offene Transactions als Ein-Karten-Grid harmonisieren](tasks/M1.5-T7.md) – keine leere Spalte, bestehende Karten und Aktionen unverändert.
 
 ## Nicht freigegebene Kandidaten
 
@@ -65,4 +65,4 @@ fachlichen Entscheidung geplant.
 
 ## Abschlusskriterien
 
-M1.1 ist mit den 20 Befunddateien und der Synthese abgeschlossen. M1.2 gilt nach gezieltem Testlauf, visueller Prüfung und dokumentiertem Vergleich als abgeschlossen. M1.3 ist mit dem Lauf `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen. M1.4 ist nach sieben Leaf-Abnahmen und dem begrenzten Re-Audit `temp/ui-audit/2026-09-20_21-35-15` abgeschlossen. M1.5 wird nach den acht Leaf-Abnahmen und einem begrenzten Re-Audit geschlossen.
+M1.1 ist mit den 20 Befunddateien und der Synthese abgeschlossen. M1.2 gilt nach gezieltem Testlauf, visueller Prüfung und dokumentiertem Vergleich als abgeschlossen. M1.3 ist mit dem Lauf `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen. M1.4 ist nach sieben Leaf-Abnahmen und dem begrenzten Re-Audit `temp/ui-audit/2026-09-20_21-35-15` abgeschlossen. M1.5 ist nach den acht Leaf-Abnahmen und dem begrenzten Abschluss-Re-Audit `temp/ui-audit/m1-5-t7/final/manifest.json` geschlossen. Der Lauf umfasst 20 Zustände bei 1280×800; Zustand 10 zeigt den leeren Transactions-Grundzustand, Zustand 11 genau eine offene Transaction im Ein-Karten-Grid. Routen, Karteninhalte, technische Details und bestehende Aktionen blieben unverändert.

@@ -269,3 +269,23 @@ weiterhin Validieren → Commit/Verwerfen. `RolesPage.razor.cs` und Rollen-
 Verwaltung bleiben ein separater Out-of-scope-Task. Die P2-Befunde 15–17
 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) bleiben
 im Backlog.
+
+## M1.5-T7-Ergebnis und Abschluss-Re-Audit
+
+Das offene-Transaction-Grid verwendet bei genau einer Karte eine einzelne,
+maximal `48rem` breite Grid-Spur. Dadurch entfällt die zuvor sichtbare leere
+zweite Spalte; Titel, Kontextmetadaten, technische Details, Fortsetzen- und
+Detailaktion bleiben unverändert. Mehrere Karten verwenden weiterhin das
+bestehende responsive Raster und behalten Reihenfolge, Inhalte und Links.
+
+Der Abschlusslauf `temp/ui-audit/m1-5-t7/final/manifest.json` ist mit 20/20
+Zuständen bei 1280×800 grün. Zustand 10 zeigt den leeren Transactions-
+Grundzustand; Zustand 11 zeigt genau eine offene Transaction als ruhige,
+harmonisch begrenzte Einzelkarte. Beide Captures wurden visuell geprüft. Der
+Transactions-Komponententest ist mit 6/6 grün; der direkte Browser-Smoke für
+Refresh und Browsernavigation ist mit 1/1 grün. Build und vollständige
+FastTests sind nach Abschluss der parallel laufenden, außerhalb dieses Scopes
+liegenden Rollen-Refaktorierung grün; der Solution-Verify blieb mit Score 10.0
+und null Verstößen grün. Der separate Reconnect-/Host-Restart-Smoke ließ den
+Testhost abstürzen, ohne Bezug zum Transaction-Grid. M1.5 ist mit diesem
+begrenzten Re-Audit abgeschlossen.

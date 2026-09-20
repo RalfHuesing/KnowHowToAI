@@ -86,6 +86,13 @@
     gap: var(--ktai-space-5);
 }
 
+/* Keep a single working card calm and readable instead of reserving an empty
+   second track; the regular responsive grid remains unchanged for multiple
+   open transactions. */
+.transaction-grid:has(> .transaction-card:only-child) {
+    grid-template-columns: minmax(0, 48rem);
+}
+
 .transaction-card {
     border: 1px solid var(--ktai-color-border-light);
     border-radius: var(--ktai-radius-sm);

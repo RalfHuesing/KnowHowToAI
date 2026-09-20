@@ -44,3 +44,14 @@ Keine.
 ## M1.3-Re-Audit und Folgeentscheidung
 
 Aktuelle Quelle vor der Korrektur: `temp/ui-audit/2026-09-20_20-05-26/11_transactions_open_desktop_1280x800.png`. Der P1-Befund wurde mit [M1.4-T1](../../tasks/M1.4-T1.md) innerhalb des bestehenden Vertrags behoben: „Als Arbeitskontext fortsetzen“ steht im 1280×800-Viewport als primäre Aktion vor „Details anzeigen“. Akteur und Client bleiben als Kontext sichtbar; Erstellt am, Basis-/Arbeits-Snapshot und Änderungsversion liegen unter dem nativen Bereich „Technische Details“. Nicht angegebene Werte werden als „Nicht angegeben“ beschriftet. Die neue Quelle ist `temp/ui-audit/2026-09-20_20-25-44/11_transactions_open_desktop_1280x800.png`; Route, Links, Working-/Dirty-/Commit-/Discard-Semantik und Tastaturreihenfolge blieben unverändert.
+
+## M1.5-T7-Re-Audit
+
+Der Abschlusslauf `temp/ui-audit/m1-5-t7/final/11_transactions_open_desktop_1280x800.png`
+belegt Zustand 11 mit genau einer offenen Transaction. Die Karte nutzt jetzt eine
+einzelne, harmonisch begrenzte Grid-Spur (`48rem` maximal); die vorher reservierte
+leere zweite Spalte entfällt. Titel, Akteur, Client, progressive technische
+Details sowie „Als Arbeitskontext fortsetzen“ und „Details anzeigen“ bleiben
+unverändert erreichbar. Zustand 10 (`10_transactions_overview_desktop_1280x800.png`)
+zeigt im gleichen Lauf den leeren Grundzustand; der Mehrkartenfall bleibt im
+bestehenden responsiven Raster unverändert.
