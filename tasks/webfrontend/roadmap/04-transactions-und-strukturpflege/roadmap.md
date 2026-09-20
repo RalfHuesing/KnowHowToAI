@@ -2,7 +2,7 @@
 
 [Roadmap-Index](../../Roadmap.md)
 
-- [ ] **M4 abschließen**
+- [x] **M4 abschließen**
 
 Abhängigkeit: [M3](../03-read-only-wissenscockpit/roadmap.md)
 
@@ -30,7 +30,9 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
   - [x] **M4.1-T2 – [Transaction-State und Navigationsschutz implementieren](tasks/M4.1-T2.md)**
 ## M4.2 – Validierung und Abschluss
 
-- [ ] **M4.2 abschließen**
+- [x] **M4.2 abschließen**
+  - Abnahme nach M4.2-T4 bestätigt; die Korrekturrunde M4.6-T4 bindet
+    Validierungsbefunde an die atomar gelesene ChangeVersion (`d2886ff`).
 
   - [x] **M4.2-T1 – [Transaction validieren und Findings darstellen](tasks/M4.2-T1.md)**
   - [x] **M4.2-T2 – [Transaction-Diff vor Commit darstellen](tasks/M4.2-T2.md)**
@@ -38,7 +40,10 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
   - [x] **M4.2-T4 – [Release aus committed Snapshot anlegen](tasks/M4.2-T4.md)**
 ## M4.3 – Node-Pflege
 
-- [ ] **M4.3 abschließen**
+- [x] **M4.3 abschließen**
+  - Abnahme nach M4.3-T1/T2/T3 sowie den ergänzenden T4/T5-Nachweisen
+    bestätigt; M4.6-T1 bis M4.6-T3 schließen die Auditbefunde mit
+    `7fd135b`, `b09755e` und `a960cb0`.
 
   - [x] **M4.3-T1 – [Nodes erstellen und Stammdaten bearbeiten](tasks/M4.3-T1.md)**
   - [x] **M4.3-T2 – [Nodes kontrolliert löschen](tasks/M4.3-T2.md)**
@@ -47,7 +52,10 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
   - [x] **M4.3-T5 – [Intuitives Drag-and-drop im Wissensbaum und Bereinigung der Verschiebe-Buttons](tasks/M4.3-T5.md)**
 ## M4.4 – Konflikte
 
-- [ ] **M4.4 abschließen**
+- [x] **M4.4 abschließen**
+  - Die Bestandsimplementierung aus M4.4-T1 (`da39177`) ist abgenommen;
+    M4.6-T5 weist den nichtleeren Reapply-Ablauf mit echten Änderungen in
+    `b11c9e8` nach.
 
   - [x] **M4.4-T1 – [`SnapshotConflict` verständlich behandeln](tasks/M4.4-T1.md)**
 ## M4.5 – Manueller Milestone-Audit
@@ -59,7 +67,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
 
 ## M4.6 – Audit-Nacharbeiten
 
-- [ ] **M4.6 abschließen**
+- [x] **M4.6 abschließen**
 
   - [x] **M4.6-T1 – [Exakte Before-/After-Positionierung sicherstellen](tasks/M4.6-T1.md)**
   - [x] **M4.6-T2 – [Dirty-State der M4-Strukturformulare anbinden](tasks/M4.6-T2.md)**
@@ -68,6 +76,12 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
   - [x] **M4.6-T5 – [SnapshotConflict-Reapply mit echten Änderungen nachweisen](tasks/M4.6-T5.md)**
 ## Milestone-Abnahme
 
-- Transaction-Lebenszyklus und vollständige Node-Strukturpflege funktionieren ohne Agent.
-- Jede Mutation verwendet eine explizite Transaction und erscheint in Validierung sowie Diff.
-- Navigation, Reconnect, Neustart und parallele MCP-Änderungen sind sicher behandelt.
+- [x] Transaction-Lebenszyklus und vollständige Node-Strukturpflege funktionieren ohne Agent; belegt durch M4.2/M4.3 einschließlich M4.6-T1 und den grünen M4-relevanten Browser-Nachweisen.
+- [x] Jede Mutation verwendet eine explizite Transaction und erscheint in Validierung sowie Diff; Validierungsbefunde tragen die Read-Version (`d2886ff`).
+- [x] Navigation, Reconnect, Neustart und parallele MCP-Änderungen sind sicher behandelt; Dirty-State, MCP-ChangeVersion-Guards und SnapshotConflict-Reapply sind in M4.6-T2 bis T5 abgenommen.
+
+## Audit
+
+- [x] Begrenzter Audit gegen Ziel, Kriterien, Invarianten und Nachweise
+- Ergebnis: bestanden nach einer gezielten Korrekturrunde (M4.6); endgültiger
+  Nachweis und die Abschlussgates stehen in [audit.md](audit.md).

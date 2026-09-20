@@ -3,11 +3,13 @@
 ## Auditstand
 
 - Datum: 2026-09-20
-- Geprüfter Git-Stand: `c12f79229532929fc2505e0abcdd10f660811f0d`
-- Ausgangszustand: sauberer Working Tree; Branch `v2` zwei Commits vor
-  `origin/v2`.
-- Urteil: **Nacharbeit erforderlich**. Der Audit ist vollständig durchgeführt,
-  M4 bleibt wegen der offenen Tasks M4.6-T1 bis M4.6-T5 offen.
+- Initialer Auditstand: `c12f79229532929fc2505e0abcdd10f660811f0d`; Urteil der
+  ersten Runde: Nacharbeit erforderlich wegen der fünf Befunde A1–A5.
+- Final geprüfter Git-Stand: `b11c9e82978b549f12f7d1100c4fc6a9f61ed240`
+  (`b11c9e8`); Branch `v2`, sauberer Ausgangs-Working-Tree.
+- Urteil: **bestanden**. Die gezielte Korrekturrunde M4.6 ist abgeschlossen;
+  M4.2, M4.3, M4.4 und M4.6 sowie die drei Milestone-Abnahmekriterien sind
+  geschlossen.
 
 ## Umfang und Nachweise
 
@@ -133,6 +135,52 @@ UI-/MCP-Ablaufs, keine zusätzliche Testvariante. Nacharbeit:
 Belege: `SnapshotConflictSmokeTests.cs:25-61` und
 `TransactionLifecycleTests.cs:102-137`.
 
+## Korrekturrunde M4.6
+
+Die fünf Befunde A1–A5 wurden in genau einer gezielten Korrekturrunde
+bearbeitet. Die Leaf-Abschlussnachweise und die zugehörigen Commits sind:
+
+| Leaf | Ergebnis | Commit |
+| --- | --- | --- |
+| M4.6-T1 | Exakte `Before`-/`After`-Einfügepositionen, Parentwechsel und Randpositionen sind serverseitig persistent und per Browser geprüft (Browser 3/3). | `7fd135b` |
+| M4.6-T2 | Strukturformulare liefern ihren Dirty-State an den bestehenden Navigationsschutz; Save, Cancel, Fehler und Verwerfen sind abgedeckt (Browser 1/1). | `b09755e` |
+| M4.6-T3 | `create_node`, `move_node` und `reorder_node` übertragen `expectedChangeVersion`; stale Writes werden atomar abgelehnt. | `a960cb0` |
+| M4.6-T4 | Validierungsbefunde führen die atomar gelesene ChangeVersion bis zur UI und werden bei einer neueren Workspace-Version stale. | `d2886ff` |
+| M4.6-T5 | SnapshotConflict mit echter UI- und MCP-Änderung, bewusstem Reapply und explizitem Discard ist persistent nachgewiesen (Browser 1/1). | `b11c9e8` |
+
+Damit sind M4.6 und die abhängigen Parent-Status abgeschlossen: M4.2 nach
+M4.2-T4 und M4.6-T4, M4.3 nach M4.3-T1/T2/T3 (ergänzt um T4/T5) und
+M4.6-T1/T2/T3 sowie M4.4 auf Basis der Bestandsimplementierung M4.4-T1
+(`da39177`) und M4.6-T5.
+
+## Finale Gates
+
+- `pwsh -NoProfile -File scripts/build.ps1`: grün.
+- AiNetLinter Solution-Pass: `verdict=pass`, `score=10.0`,
+  `violationCount=0`.
+- FastTests: 1.037/1.037 bestanden.
+- Integration: 79/79 bestanden.
+- M4-relevante Browser-E2E: M4.6-T1 3/3, M4.6-T2 1/1 und M4.6-T5 1/1
+  bestanden; die übrigen M4-Nachweise sind in den jeweiligen Leaf-Dateien
+  dokumentiert.
+
+### Abgrenzung der VisualShell-Baseline
+
+Im Gesamt-Browserlauf bleiben zwei VisualShell-Baselineabweichungen bestehen
+(23/25 Browser-Tests bestanden). Beide liegen außerhalb des M4-Scopes und
+sind vorbestehend. Der Historiencheck der beiden Baseline-Dateien ergibt an
+`d2886ff`, `7fd135b` und dem aktuellen Stand `b11c9e8` identische Git-Blob-
+Hashes:
+
+| Baseline | identischer Blob-Hash |
+| --- | --- |
+| `Shell-1024x720-light.png` | `c37d8c9938de266052b5dec169ad4674d269125` |
+| `Shell-1280x720-light.png` | `ee1359c9ef3eb3e19fcbd1621d4ae4fccbb11fa6` |
+
+Nach der Projektregel für vorbestehende, außerhalb des Scopes liegende Fehler
+sind sie kein M4-Blocker; die M4-relevanten Browser-Nachweise bleiben
+vollständig grün.
+
 ## Verworfene oder nicht taskwürdige Hinweise
 
 - Die alte M4-Kopfaussage zu fokussierbaren Verschiebebuttons widersprach dem
@@ -149,7 +197,9 @@ Belege: `SnapshotConflictSmokeTests.cs:25-61` und
 
 ## Abschlussurteil
 
-Der Abschlussaudit wurde durchgeführt und M4.5 kann als erledigt gelten. Die
-bereits geplanten Leaf-Tasks einschließlich M4.4-T1 sind implementiert; bei
-M4.4-T1 fehlte nur die Statuspflege. Wegen fünf belegter Nacharbeiten ist M4
-nicht bestanden und bleibt bis zur Abnahme von M4.6 offen.
+Die erste Audit-Runde wurde durch die Korrekturrunde M4.6 vollständig
+abgeschlossen. Die Bestandsimplementierung einschließlich M4.4-T1, die fünf
+Korrekturen, alle drei Milestone-Abnahmekriterien und die finalen Gates sind
+belegt. Die zwei außerhalb M4 liegenden, historisch unveränderten
+VisualShell-Baselineabweichungen ändern daran nichts. **M4 ist bestanden und
+geschlossen.**
