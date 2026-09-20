@@ -37,7 +37,16 @@ internal static class Program
 
     internal static Microsoft.AspNetCore.Builder.WebApplicationBuilder CreateBuilder(string[] args)
     {
-        var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
+        var contentRootPath = File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"))
+            ? Directory.GetCurrentDirectory()
+            : AppContext.BaseDirectory;
+
+        var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(
+            new Microsoft.AspNetCore.Builder.WebApplicationOptions
+            {
+                Args = args,
+                ContentRootPath = contentRootPath
+            });
 
         builder.Services.Configure<ConsoleLifetimeOptions>(options => options.SuppressStatusMessages = true);
         builder.Logging.ClearProviders();
