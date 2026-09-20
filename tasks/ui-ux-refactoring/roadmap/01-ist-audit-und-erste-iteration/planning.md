@@ -22,6 +22,7 @@ Zielgruppe sind Support-Mitarbeitende und Consultants. Die Oberfläche soll clea
 - **M1.2-T2:** den bestehenden Wissensarbeitsplatz und Editor so ordnen, dass der erste Viewport die bestehende Aufgabe, den Modus und das Speichern verständlich führt.
 - **M1.3:** manueller Re-Audit mit Manifest und 20 Captures. Der Lauf ist abgeschlossen: 03 bestätigt den Root, 09 den Snapshot-Diff und 20 den bestehenden Löschdialog. M1.2 ist damit abgenommen.
 - **M1.4:** zuerst die Transaktionszustände 11, 12 und 13/14; danach der neue Navigation-Leaf M1.4-T7; anschließend Suche 07, Dashboard 01 und die fachlich sichere Microcopy für 02/05. Die bereits vergebenen IDs T4–T6 bleiben stabil, werden aber erst nach T7 ausgeführt. Jeder Leaf bleibt auf vorhandene Ziele, Aktionen und Verträge beschränkt.
+- **M1.5:** der Re-Audit `temp/ui-audit/2026-09-20_21-35-15` ist die Evidenzbasis. Zuerst wird die Capture-Präsenz von Shell/Header in Zustand 04 ausschließlich im Test deterministisch abgesichert. Danach folgen ContextSelector 02, Knowledge Detail 04/05, die segmentierte KnowledgeContextBar und History 08/09. Die unabhängige Schluss-Harmonisierung ist in Suchbegriffe (T6) und Transaction-Grid (T7) geteilt. Die Reihenfolge ist verbindlich; Routen, Daten, Aktionen und Verträge bleiben unverändert.
 
 ## M1.4-Entscheidungsgrenzen
 
@@ -31,6 +32,9 @@ Zielgruppe sind Support-Mitarbeitende und Consultants. Die Oberfläche soll clea
 - Verbindlich: Dashboard 01 führt den vorhandenen Wissenszugang als primären Einstieg, Diagnose/Snapshot bleiben sekundär. Zustände 02/05 erhalten ausschließlich fachlich sichere Microcopy; keine neue Handlung, Rollenlogik oder Fallback-Funktion.
 - Verbindlich: M1.4-T7 ordnet ausschließlich die bestehenden Shell-Ziele in einer modernen, cleanen visuellen Navigation mit erkennbarem aktivem Zustand. Hover-/Focus-Zustände sind normale CSS-Zustände; es gibt keine neue Route, kein neues Feature und keine Tastatur-Abnahme.
 - Nicht freigegeben: Änderungen an `RolesPage.razor.cs`, neue Aktionen, neue Dialogverträge, neue Such-/Fallback-/Rollenlogik oder P2-Nacharbeiten 15–17.
+- Nicht freigegeben: Produktänderungen zur Capture-Korrektur in Zustand 04; der Capture-Leaf ist test-only und darf fehlende Präsenz nicht durch Scroll-, Overlay- oder DOM-Manipulation kaschieren.
+- Nicht freigegeben: eine Änderung der Transaction-Reihenfolge. Das mögliche Verhalten „Commit vor Validierung“ ist ein zurückgestelltes Entscheidungsgate; bis zu einer separaten fachlichen Entscheidung bleibt Validieren → Commit/Verwerfen unverändert und wird in M1.5 nicht implementiert.
+- Nicht freigegeben: `RolesPage.razor.cs` und Rollen-Verwaltung; sie bleiben ein separater Out-of-scope-Task. Die P2-Befunde 15–17 bleiben im Backlog.
 - Neu zu bewerten: konkrete Abstände, Reihenfolge innerhalb des bestehenden Arbeitsabschnitts und Formulierung, sofern Fachbedeutung und Verträge unverändert bleiben. Bei einer nötigen Vertragsänderung stoppt der Ausführer und eskaliert.
 
 ## Entscheidungsgrenze
@@ -40,3 +44,10 @@ Aktuell blockiert keine Nutzerentscheidung. Normale visuelle Detailentscheidunge
 ## Testbudget und Artefakte
 
 M1.1 und dieses Planungsupdate sind Doku-only-Slices: Struktur-/Linkprüfung und `git diff --check`, kein Produkt- oder Testcode. M1.2-T1 nutzt den bestehenden on-demand UiAudit-Runner und normale Skip-/Filterverträge; M1.2-T2 ergänzt nur risikogerechte bestehende Browser-/Komponententests. M1.4 nutzt je Leaf den kleinsten betroffenen Komponententest-/Browserfilter plus den passenden 1280×800-Capture; kein vollständiger visueller Umbau, keine eigenen Keyboard-Tests und kein ungezielter Volltest als Leaf-Voraussetzung. Bestehende native Tastatur-/Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, blockiert aber keinen Slice. Auditbilder werden bei Bedarf neu erzeugt, aber nicht committed.
+
+Für M1.5 gilt dasselbe kleinste Testbudget: T1 ergänzt nur deterministische
+Browser-/UiAudit-Wartebedingungen und Assertions; keine Produkt- oder CSS-
+Änderung im Capture-Leaf. T2–T7 verwenden je Leaf den kleinsten betroffenen
+Web-Komponenten-/Browserfilter und den jeweils genannten 1280×800-Zustand;
+ein vollständiger visueller Umbau, eigene Keyboard-Tests und ein ungezielter
+Volltest sind nicht erforderlich. Auditbilder und Manifeste bleiben temporär.

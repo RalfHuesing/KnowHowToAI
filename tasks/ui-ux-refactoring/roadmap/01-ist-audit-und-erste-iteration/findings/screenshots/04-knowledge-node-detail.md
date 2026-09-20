@@ -41,3 +41,14 @@ Knowledge-Detail-Komponente, Read-only-/Working-Vertrag, Editor- und Dirty-State
 ## Audit-Lücken
 
 Keine.
+
+## M1.4/M1.5-Re-Audit
+
+Der Lauf `temp/ui-audit/2026-09-20_21-35-15/04_knowledge_node-detail_desktop_1280x800.png`
+zeigt weiterhin den bestehenden Shell-/Headerbereich, Baumkontext, Read-only-
+Kennzeichnung und die vorhandenen History-/Download-Wege. M1.5-T1 sichert die
+Shell-/Header-Präsenz im Capture ausschließlich mit deterministischen
+Test-Wartebedingungen und Assertions; M1.5-T3 ordnet den vorhandenen Inhalt
+beziehungsweise Read-only-Kontext vor den unveränderten sekundären Links.
+Fehlt der vorhandene Bereich im Testlauf, wird das als Audit-Lücke ausgewiesen
+und nicht durch eine Produktannahme kaschiert.

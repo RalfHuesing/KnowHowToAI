@@ -48,3 +48,13 @@ Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/09_history_sna
 ## M1.3-Bestätigung
 
 Der grüne manuelle Re-Audit-Lauf `temp/ui-audit/2026-09-20_20-05-26/09_history_snapshot-diff_desktop_1280x800.png` bestätigt erneut sichtbare Snapshot-Änderungen. Die Capture-Lücke ist abgeschlossen; History/Diff bleibt fachlich unverändert und außerhalb der ersten M1.4-Reihe.
+
+## M1.5-Re-Audit und Folgeentscheidung
+
+Der Lauf `temp/ui-audit/2026-09-20_21-35-15/09_history_snapshot-diff_desktop_1280x800.png`
+bestätigt erneut sichtbare Vergleichseinträge. Die Auswahl der vorhandenen
+Ausgangs-/Ziel-Snapshots und der Vergleich sind im Ablauf vorhanden, werden im
+Capture aber nicht als zusammenhängender Kontext geführt; technische IDs
+dominieren den sichtbaren Diff. M1.5-T5 darf deshalb nur Darstellung,
+Gruppierung und progressive Sichtbarkeit ändern. Auswahl-, Lade- und
+Diff-Logik sowie Routen bleiben unverändert.

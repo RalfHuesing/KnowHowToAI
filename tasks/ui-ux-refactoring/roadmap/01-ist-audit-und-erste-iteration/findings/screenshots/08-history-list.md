@@ -40,3 +40,12 @@ Snapshot-/Diff-Vertrag, Node-History-Navigation und M1.2-T1 für Zustand 09.
 ## Audit-Lücken
 
 Keine für die sichtbare Grundliste.
+
+## M1.5-Re-Audit
+
+`temp/ui-audit/2026-09-20_21-35-15/08_history_list_desktop_1280x800.png`
+bestätigt die bestehende History-Liste mit den vorhandenen Aktionen „Als
+Ausgang wählen“ und „Als Ziel wählen“. Die technische Snapshot-/Transaction-
+Einordnung ist sichtbar, konkurriert aber mit der fachlichen Auswahlhandlung.
+M1.5-T5 führt diese Auswahl und den anschließenden Vergleichskontext stärker;
+History-, Snapshot- und Routenverträge bleiben unverändert.

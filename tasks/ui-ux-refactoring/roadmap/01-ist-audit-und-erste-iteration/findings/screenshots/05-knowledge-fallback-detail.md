@@ -56,3 +56,8 @@ als bestehende Wege beziehungsweise progressive Diagnose erhalten. Der
 Capture-Lauf `temp/ui-audit/2026-09-20_21-35-15/` bestätigt Zustand 05 bei
 1280×800; die Microcopy ist sichtbar, ohne neue Quelle, Aktion oder
 Fallback-Semantik einzuführen.
+
+Der gleiche Re-Audit-Lauf bestätigt den bestehenden Shell-/Header- und
+Detailrahmen. M1.5-T3 führt den vorhandenen Fallback-/Inhaltskontext vor den
+sekundären History-/Download-Links; Linkziele, Datenquelle und Fallback-
+Semantik bleiben unverändert.

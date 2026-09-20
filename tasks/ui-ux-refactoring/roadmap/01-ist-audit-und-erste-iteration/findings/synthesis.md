@@ -42,7 +42,7 @@ Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27` war der techn
 
 M1.2 ist abgenommen. Die Zustände 15–17 bestätigen die beabsichtigte erste Viewport-Führung: Strukturaktionen beziehungsweise Dirty-Status und Speichern sind sichtbar, technische Details bleiben progressiv zugänglich. Die Zustände 03/09/20 sind semantisch und visuell auditierbar. Der Re-Audit ändert keine Fachverträge und eröffnet keine neue Produktfunktion.
 
-## M1.4-Folgepriorität
+## M1.4-Folgepriorität (abgeschlossen)
 
 1. Transaktionen: 11 führt die bestehende Öffnen-/Fortsetzen-Aktion und ordnet technische Leerwerte sekundär; 12 führt die bestehende Reihenfolge Validieren → Commit/Verwerfen und ordnet technische Metadaten sekundär; 13/14 erhalten eine gemeinsame moderne Dialogdarstellung bei unverändertem Vertrag.
 2. Shell-Navigation: Ein neuer Nutzerbefund beschreibt die linke Navigation als rohe, historisch wirkende href-Linkliste. M1.4-T7 ordnet ausschließlich bestehende Ziele in einer modernen, cleanen visuellen Hierarchie mit aktivem Zustand; Hover/Focus bleiben normale CSS-Zustände, ohne eigenes Keyboard-Ziel.
@@ -55,8 +55,10 @@ P2-Nacharbeiten 15–17 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis
 
 M1.2-T1 stabilisierte nur die capture-seitige Sichtbarkeit und Assertions.
 M1.2-T2 ist mit dem dokumentierten Re-Audit abgeschlossen. M1.3 ist anhand des
-Laufs `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen; Folgearbeit bleibt auf
-die sechs kleinen, belegten M1.4-Slices begrenzt.
+Laufs `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen; M1.4 ist mit seinen
+sieben Leaves und dem Lauf `temp/ui-audit/2026-09-20_21-35-15` abgeschlossen.
+Die Folgearbeit ist als M1.5 auf die sieben oben beschriebenen, kleinen Slices
+begrenzt.
 
 ## M1.4-T7-Ergebnis
 
@@ -72,15 +74,15 @@ unverändert.
 
 ## M1.4-T1-Ergebnis
 
-Zustand 11 ist mit dem Capture `temp/ui-audit/2026-09-20_20-25-44/11_transactions_open_desktop_1280x800.png` erneut belegt. Die vorhandene Fortsetzen-Aktion ist im ersten Arbeitsabschnitt primär sichtbar; Lifecycle-Metadaten sind unter „Technische Details“ progressiv erreichbar. Die bestehende Route, Working-/Dirty-/Commit-/Discard-Semantik und Accessibility-Reihenfolge wurden nicht verändert. Der kleinste Web-Komponententest, der Transaktions-Browser-Smoke und der gezielte UiAudit-Lauf sind grün; M1.4-T3 bis T6 bleiben offen.
+Zustand 11 ist mit dem Capture `temp/ui-audit/2026-09-20_20-25-44/11_transactions_open_desktop_1280x800.png` erneut belegt. Die vorhandene Fortsetzen-Aktion ist im ersten Arbeitsabschnitt primär sichtbar; Lifecycle-Metadaten sind unter „Technische Details“ progressiv erreichbar. Die bestehende Route, Working-/Dirty-/Commit-/Discard-Semantik und Accessibility-Reihenfolge wurden nicht verändert. Der kleinste Web-Komponententest, der Transaktions-Browser-Smoke und der gezielte UiAudit-Lauf sind grün.
 
 ## M1.4-T2-Ergebnis
 
-Zustand 12 ist mit dem Capture `temp/ui-audit/2026-09-20_20-45-17/12_transaction_detail_desktop_1280x800.png` belegt. Die bestehende Reihenfolge Validieren → Commit/Verwerfen ist im ersten Viewport als Arbeitsablauf geführt; Commit ist die primäre Abschlussaktion, Verwerfen bleibt sicher erreichbar und sekundär. Technische IDs, Statusdetails und bekannte Leerwerte sind unter „Technische Details“ progressiv angeordnet, der unveränderte Netto-Diff steht nach dem Abschlussabschnitt. Web-Komponententest, Transaktions-Browser-Smoke, UiAudit und Build sind grün; eigene Tastatur-/Fokusnachweise waren nicht Teil des Produktziels. M1.4-T3 bis T6 und T7 bleiben offen.
+Zustand 12 ist mit dem Capture `temp/ui-audit/2026-09-20_20-45-17/12_transaction_detail_desktop_1280x800.png` belegt. Die bestehende Reihenfolge Validieren → Commit/Verwerfen ist im ersten Viewport als Arbeitsablauf geführt; Commit ist die primäre Abschlussaktion, Verwerfen bleibt sicher erreichbar und sekundär. Technische IDs, Statusdetails und bekannte Leerwerte sind unter „Technische Details“ progressiv angeordnet, der unveränderte Netto-Diff steht nach dem Abschlussabschnitt. Web-Komponententest, Transaktions-Browser-Smoke, UiAudit und Build sind grün; eigene Tastatur-/Fokusnachweise waren nicht Teil des Produktziels.
 
 ## M1.4-T3-Ergebnis
 
-Zustände 13 und 14 teilen mit dem Capture-Lauf `temp/ui-audit/2026-09-20_20-58-00/` eine gemeinsame Bestätigungsdialogdarstellung: ruhige Oberfläche, konsistente Breite und Abstände sowie genau eine visuell primäre Abschlussaktion. Commit bleibt blau primär, Verwerfen bleibt als destruktive rote Aktion klar erkennbar. Die bestehenden Folgeformulierungen, Button-Reihenfolge, Escape-/Abbruchpfad und Lifecycle-Verträge wurden nicht verändert; native Fokussemantik bleibt im bestehenden `AppDialog`-Pfad. Beide 1280×800-Captures zeigen den vollständigen Dialog. M1.4-T4 bis T6 und T7 bleiben offen.
+Zustände 13 und 14 teilen mit dem Capture-Lauf `temp/ui-audit/2026-09-20_20-58-00/` eine gemeinsame Bestätigungsdialogdarstellung: ruhige Oberfläche, konsistente Breite und Abstände sowie genau eine visuell primäre Abschlussaktion. Commit bleibt blau primär, Verwerfen bleibt als destruktive rote Aktion klar erkennbar. Die bestehenden Folgeformulierungen, Button-Reihenfolge, Escape-/Abbruchpfad und Lifecycle-Verträge wurden nicht verändert; native Fokussemantik bleibt im bestehenden `AppDialog`-Pfad. Beide 1280×800-Captures zeigen den vollständigen Dialog.
 
 ## M1.4-T4-Ergebnis
 
@@ -91,7 +93,7 @@ erste Trefferkarte im 1280×800-Viewport sichtbar sind. Der Such-Smoke prüft
 weiterhin den vorhandenen Fallback-Filter und die bestehende Navigation. Der
 UiAudit-Lauf `temp/ui-audit/2026-09-20_21-18-44/` bestätigt die Zustände 06 als
 Regression und 07 als Ergebnisfokus; Suchroute, Ranking, Reihenfolge und
-Trefferaktion wurden nicht verändert. M1.4-T5 und T6 bleiben offen.
+Trefferaktion wurden nicht verändert.
 
 ## M1.4-T5-Ergebnis
 
@@ -104,7 +106,6 @@ Historie-Link bleibt als sekundäre Folgeaktion sichtbar. Es wurden keine neuen
 Routen, Aktionen, Daten oder Verträge eingeführt. Der Capture-Lauf
 `temp/ui-audit/2026-09-20_21-26-50/` bestätigt Zustand 01 bei 1280×800; der
 gezielte Dashboard-Komponententest und Dashboard-Browser-Smoke sind grün.
-M1.4-T6 bleibt offen.
 
 ## M1.4-T6-Ergebnis
 
@@ -118,3 +119,44 @@ Fallback-Rolle. Auswahl, Bestätigung, Rollenauflösung, Datenquelle,
 02 und 05 wurden visuell geprüft. Der kleinste Web-Komponententest und Build
 sind grün. Die ausdrücklich ausgeschlossene Änderung an `RolesPage.razor.cs`
 blieb unangetastet.
+
+## M1.4-Abschluss und Re-Audit-Nachweis
+
+Die sieben M1.4-Leaves T1–T7 sind mit ihren Detail-Checklisten, Nachweisen und
+der Roadmap-Checkbox abgeschlossen. Der begrenzte Re-Audit-Lauf
+`temp/ui-audit/2026-09-20_21-35-15/manifest.json` enthält erneut alle 20
+Zustände bei 1280×800. Der Lauf belegt den erreichten M1.4-Stand; er ist kein
+Nachweis für eine neue Produktfunktion und ändert keine Fachverträge. Die in
+T5 und T7 zunächst offen gebliebenen, durch die Abschlussnachweise tatsächlich
+erfüllten Akzeptanz-Checkboxen wurden bei der Dokumentationskorrektur
+konsistent geschlossen.
+
+## M1.5-Folgepriorität aus dem Re-Audit
+
+M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:
+
+1. Capture 04 erhält deterministische Shell-/Header-Wartebedingungen und
+   Assertions im Test. Der Runner darf Produktzustände weder erzeugen noch
+   kaschieren.
+2. Zustand 02 erhält die gemeinsame moderne `AppDialog`-Oberfläche von 13/14;
+   die Dialogsemantik bleibt unverändert.
+3. In den Read-only-Detailzuständen 04/05 stehen Inhalt beziehungsweise die
+   fachliche Fallback-Einordnung vor den bestehenden sekundären History- und
+   Download-Links; Links und Funktionen bleiben erhalten.
+4. Die `KnowledgeContextBar` segmentiert Snapshot, Bereich und Working-
+   Transaction sichtbar, ohne Read-Context-Verträge oder Routen anzutasten.
+5. History 08/09 führt die vorhandene Ausgang/Ziel-Auswahl und den
+   Vergleichskontext. Technische IDs bleiben progressiv und sekundär; die
+   Auswahl- und Diff-Logik wird nicht geändert.
+6. Die sichtbaren Suchbegriffe `Freshness` und `Findings` werden in einem
+   eigenen kleinen Leaf deutsch benannt.
+7. Das offene-Transaction-Grid wird in einem eigenen kleinen Leaf als
+   Ein-Karten-Grid ohne leere Spalte harmonisiert; Karten, Routen und Aktionen
+   bleiben unverändert.
+
+Das Verhaltenstor **„Commit vor Validierung“** ist ausdrücklich zurückgestellt
+und nicht implementiert: Bis zu einer separaten fachlichen Entscheidung gilt
+weiterhin Validieren → Commit/Verwerfen. `RolesPage.razor.cs` und Rollen-
+Verwaltung bleiben ein separater Out-of-scope-Task. Die P2-Befunde 15–17
+(gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) bleiben
+im Backlog.
