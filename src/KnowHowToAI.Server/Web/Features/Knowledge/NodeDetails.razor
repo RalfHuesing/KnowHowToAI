@@ -38,6 +38,56 @@ else if (ViewModel is not null)
             }
         </header>
 
+        @if (ViewModel.FallbackUsed)
+        {
+            <section class="node-content-context node-content-context--fallback"
+                     aria-label="Einordnung des Inhalts" data-testid="node-content-fallback-context">
+                <p><strong>Inhalt aus Fallback-Rolle</strong></p>
+                <p>
+                    Für die angefragte Rolle <strong>@ViewModel.RequestedRoleId</strong> ist an diesem Knoten kein eigener Inhalt hinterlegt.
+                    Es wird der vorhandene Inhalt
+                    @if (ViewModel.ResolvedRoleId is not null)
+                    {
+                        <strong>der Fallback-Rolle „@ViewModel.ResolvedRoleId“</strong>
+                    }
+                    else
+                    {
+                        <strong>einer hinterlegten Fallback-Rolle</strong>
+                    }
+                    angezeigt. Die angefragte Rolle und der Wissenskontext bleiben unverändert.
+                </p>
+            </section>
+        }
+
+        @if (ShowContent)
+        {
+            <section class="node-details-content" aria-label="Inhalt" data-testid="node-details-content">
+                @if (string.IsNullOrWhiteSpace(ViewModel.ContentMd))
+                {
+                    <div class="node-content-empty" data-testid="node-content-empty">
+                        <em>Kein Inhalt für diese Rolle vorhanden.</em>
+                    </div>
+                }
+                else
+                {
+                    <div class="node-content-markdown" data-testid="node-content-markdown">
+                        @SafeMarkdownRenderer.Render(ViewModel.ContentMd)
+                    </div>
+                }
+            </section>
+        }
+
+        <nav class="node-details-actions" aria-label="Weitere Ansichten" data-testid="node-details-actions">
+            <a href="/history?nodeId=@ViewModel.NodeId" data-testid="node-details-history-link">Änderungshistorie dieses Knotens</a>
+
+            @if (!string.IsNullOrWhiteSpace(MarkdownDownloadUrl))
+            {
+                <a class="node-details-download" href="@MarkdownDownloadUrl" data-testid="node-details-markdown-download">
+                    Teilbaum als Markdown herunterladen
+                </a>
+            }
+        </nav>
+
         <details class="node-details-meta" data-testid="node-details-meta">
             <summary>Technische Details</summary>
             <dl class="node-meta-list">
@@ -120,53 +170,5 @@ else if (ViewModel is not null)
                 </section>
             }
         </details>
-
-        <a href="/history?nodeId=@ViewModel.NodeId" data-testid="node-details-history-link">Änderungshistorie dieses Knotens</a>
-
-        @if (!string.IsNullOrWhiteSpace(MarkdownDownloadUrl))
-        {
-            <a class="node-details-download" href="@MarkdownDownloadUrl" data-testid="node-details-markdown-download">
-                Teilbaum als Markdown herunterladen
-            </a>
-        }
-
-        @if (ViewModel.FallbackUsed)
-        {
-            <section class="node-content-context node-content-context--fallback"
-                     aria-label="Einordnung des Inhalts" data-testid="node-content-fallback-context">
-                <p><strong>Inhalt aus Fallback-Rolle</strong></p>
-                <p>
-                    Für die angefragte Rolle <strong>@ViewModel.RequestedRoleId</strong> ist an diesem Knoten kein eigener Inhalt hinterlegt.
-                    Es wird der vorhandene Inhalt
-                    @if (ViewModel.ResolvedRoleId is not null)
-                    {
-                        <strong>der Fallback-Rolle „@ViewModel.ResolvedRoleId“</strong>
-                    }
-                    else
-                    {
-                        <strong>einer hinterlegten Fallback-Rolle</strong>
-                    }
-                    angezeigt. Die angefragte Rolle und der Wissenskontext bleiben unverändert.
-                </p>
-            </section>
-        }
-
-        @if (ShowContent)
-        {
-            <section class="node-details-content" aria-label="Inhalt" data-testid="node-details-content">
-                @if (string.IsNullOrWhiteSpace(ViewModel.ContentMd))
-                {
-                    <div class="node-content-empty" data-testid="node-content-empty">
-                        <em>Kein Inhalt für diese Rolle vorhanden.</em>
-                    </div>
-                }
-                else
-                {
-                    <div class="node-content-markdown" data-testid="node-content-markdown">
-                        @SafeMarkdownRenderer.Render(ViewModel.ContentMd)
-                    </div>
-                }
-            </section>
-        }
     </article>
 }

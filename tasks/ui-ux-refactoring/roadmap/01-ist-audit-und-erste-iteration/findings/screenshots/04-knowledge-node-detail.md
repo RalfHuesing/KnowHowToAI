@@ -57,3 +57,12 @@ Test-Wartebedingungen und Assertions; M1.5-T3 ordnet den vorhandenen Inhalt
 beziehungsweise Read-only-Kontext vor den unveränderten sekundären Links.
 Der Lauf ist mit 20/20 Zuständen grün; der zusätzliche Nachweis beschränkt sich
 auf Zustand 04 und verändert weder Route noch Capture-Namen.
+
+## M1.5-T3-Ergebnis
+
+Der UiAudit-Lauf `temp/ui-audit/m1-5-t3/2026-09-20_22-45-00/` bestätigt Zustand
+04 bei 1280×800. Der vorhandene Read-only-Inhalt steht vor einer ruhigen
+sekundären Aktionsgruppe mit den unveränderten History- und Markdown-Download-
+Links. Technische Node-/Content-Details bleiben vollständig erhalten und sind
+unter „Technische Details“ progressiv erreichbar. Read-only-Anzeige, Route,
+Linkziele und Datenverträge blieben unverändert.

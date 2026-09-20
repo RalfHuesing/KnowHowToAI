@@ -175,6 +175,18 @@ AppDialog-Nutzer nur dieselbe Basestyle. Der UiAudit-Lauf
 `temp/ui-audit/m1-5-t2/2026-09-20_22-36-23/` bestätigt 20/20 Zustände bei
 1280×800, einschließlich 02 sowie der Regressionen 13/14.
 
+## M1.5-T3-Ergebnis
+
+Die Read-only-Detailansicht führt in 04 den vorhandenen Inhalt und in 05 die
+vorhandene Fallback-Einordnung mit dem aufgelösten Inhalt vor die bestehenden
+sekundären History-/Markdown-Download-Wege. Beide Links bleiben mit denselben
+Zielen erreichbar und sind als gemeinsame, ruhige Aktionsgruppe angeordnet.
+Technische Details sind weiterhin vollständig vorhanden, aber im nativen
+Bereich „Technische Details“ progressiv offengelegt. Read-only-/Fallback-/Rollen-
+Verträge, Routen, Datenquellen und Working-Editor 15–17 blieben unverändert.
+Der gezielte Lauf `temp/ui-audit/m1-5-t3/2026-09-20_22-45-00/` ist mit 20/20
+Zuständen grün; 04/05 sowie 15–17 wurden bei 1280×800 visuell geprüft.
+
 ## M1.5-Folgepriorität aus dem Re-Audit
 
 M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:

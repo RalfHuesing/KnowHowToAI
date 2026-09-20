@@ -61,3 +61,13 @@ Der gleiche Re-Audit-Lauf bestätigt den bestehenden Shell-/Header- und
 Detailrahmen. M1.5-T3 führt den vorhandenen Fallback-/Inhaltskontext vor den
 sekundären History-/Download-Links; Linkziele, Datenquelle und Fallback-
 Semantik bleiben unverändert.
+
+## M1.5-T3-Ergebnis
+
+Der UiAudit-Lauf `temp/ui-audit/m1-5-t3/2026-09-20_22-45-00/` bestätigt Zustand
+05 bei 1280×800. Die bestehende fachliche Einordnung des fehlenden eigenen
+Inhalts und der aufgelösten Fallback-Rolle steht unmittelbar vor dem angezeigten
+Inhalt; danach folgt die harmonische sekundäre Aktionsgruppe mit denselben
+History-/Download-Zielen. Die technischen Rollen-, Verfügbarkeits- und
+Revisionsdetails bleiben unter „Technische Details“ progressiv zugänglich.
+Es wurde keine neue Fallback-Aktion oder Inhaltsquelle eingeführt.

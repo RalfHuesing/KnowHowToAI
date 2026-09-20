@@ -137,6 +137,25 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
+    public void NodeDetails_WithContent_RendersContentBeforeSecondaryActionsAndTechnicalDetails()
+    {
+        var vm = MakeViewModel(contentMd: "Lesbarer Inhalt");
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.MarkdownDownloadUrl, "/downloads/markdown"));
+
+        var article = cut.Find("[data-testid='node-details']");
+        var content = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-content");
+        var actions = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-actions");
+        var technicalDetails = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-meta");
+
+        var markup = article.InnerHtml;
+        Assert.True(markup.IndexOf(content.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal));
+        Assert.True(markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(technicalDetails.OuterHtml, StringComparison.Ordinal));
+        Assert.Equal(2, actions.QuerySelectorAll("a").Length);
+    }
+
+    [Fact]
     public void NodeDetails_WithEmptyContent_ShowsEmptyHint()
     {
         var vm = MakeViewModel(contentMd: null, availability: "None");
@@ -165,6 +184,28 @@ public sealed class NodeDetailsTests : BunitContext
         Assert.Contains("kein eigener Inhalt hinterlegt", fallbackContext.TextContent);
         Assert.Contains("Fallback-Rolle „Architect“", fallbackContext.TextContent);
         Assert.Contains("Wissenskontext bleiben unverändert", fallbackContext.TextContent);
+    }
+
+    [Fact]
+    public void NodeDetails_WithFallback_RendersFallbackContextBeforeSecondaryActions()
+    {
+        var vm = MakeViewModel(
+            contentMd: "Fallback-Inhalt",
+            fallbackUsed: true,
+            resolvedRoleId: "Architect",
+            availability: "Fallback");
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.MarkdownDownloadUrl, "/downloads/markdown"));
+
+        var article = cut.Find("[data-testid='node-details']");
+        var fallbackContext = article.Children.First(element => element.GetAttribute("data-testid") == "node-content-fallback-context");
+        var actions = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-actions");
+
+        var markup = article.InnerHtml;
+        Assert.True(markup.IndexOf(fallbackContext.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal));
+        Assert.Equal("/history?nodeId=" + vm.NodeId, cut.Find("[data-testid='node-details-history-link']").GetAttribute("href"));
+        Assert.Equal("/downloads/markdown", cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href"));
     }
 
     [Fact]

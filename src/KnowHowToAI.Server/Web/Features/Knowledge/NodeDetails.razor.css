@@ -169,8 +169,25 @@
     color: var(--ktai-color-text-secondary);
 }
 
+.node-details-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ktai-space-2) var(--ktai-space-4);
+    padding-top: var(--ktai-space-1);
+}
+
+.node-details-actions a {
+    color: var(--ktai-color-primary);
+    font-size: var(--ktai-font-size-sm);
+}
+
+.node-details-actions a:hover {
+    color: var(--ktai-color-primary-hover);
+}
+
 .node-details-download {
-    align-self: flex-start;
+    align-self: auto;
 }
 
 .node-content-context {
