@@ -22,11 +22,5 @@
 }
 
 .search-form__submit {
-    border: 0;
-    border-radius: var(--ktai-radius-sm);
-    background: var(--ktai-color-primary);
-    color: var(--ktai-color-primary-contrast);
-    padding: var(--ktai-space-2) var(--ktai-space-3);
-    font: inherit;
-    font-weight: 600;
+    flex: 0 0 auto;
 }

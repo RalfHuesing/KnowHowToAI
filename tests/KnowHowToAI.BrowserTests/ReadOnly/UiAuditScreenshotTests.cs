@@ -127,6 +127,16 @@ public sealed class UiAuditScreenshotTests
         await page.GetByTestId("search-text").FillAsync("Markdown-Download");
         await page.GetByTestId("search-submit").ClickAsync();
         await Assertions.Expect(page.GetByTestId("search-results")).ToBeVisibleAsync();
+        var searchResults = page.GetByTestId("search-results");
+        await Assertions.Expect(searchResults.Locator(".search-results__summary")).ToBeInViewportAsync();
+        var firstResult = searchResults.Locator(".search-results__node").First;
+        await Assertions.Expect(firstResult).ToBeVisibleAsync();
+        await Assertions.Expect(firstResult).ToBeInViewportAsync();
+        var firstResultBox = await firstResult.BoundingBoxAsync();
+        Assert.NotNull(firstResultBox);
+        Assert.True(
+            firstResultBox.Y + firstResultBox.Height <= viewport.Height,
+            "Die vollständige erste Suchtrefferkarte muss im ersten Viewport sichtbar sein.");
         await CaptureAsync(page, "07_search_results", viewport, output, captures);
     }
 

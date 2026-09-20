@@ -81,3 +81,14 @@ Zustand 12 ist mit dem Capture `temp/ui-audit/2026-09-20_20-45-17/12_transaction
 ## M1.4-T3-Ergebnis
 
 Zustände 13 und 14 teilen mit dem Capture-Lauf `temp/ui-audit/2026-09-20_20-58-00/` eine gemeinsame Bestätigungsdialogdarstellung: ruhige Oberfläche, konsistente Breite und Abstände sowie genau eine visuell primäre Abschlussaktion. Commit bleibt blau primär, Verwerfen bleibt als destruktive rote Aktion klar erkennbar. Die bestehenden Folgeformulierungen, Button-Reihenfolge, Escape-/Abbruchpfad und Lifecycle-Verträge wurden nicht verändert; native Fokussemantik bleibt im bestehenden `AppDialog`-Pfad. Beide 1280×800-Captures zeigen den vollständigen Dialog. M1.4-T4 bis T6 und T7 bleiben offen.
+
+## M1.4-T4-Ergebnis
+
+Die Suche führt die Treffer wieder vor den Filterdetails: Das bestehende
+Filterfeld ist bei unveränderter Semantik in einem kompakten Desktop-
+2-Spaltenraster sekundär angeordnet, während Trefferzahl und die vollständige
+erste Trefferkarte im 1280×800-Viewport sichtbar sind. Der Such-Smoke prüft
+weiterhin den vorhandenen Fallback-Filter und die bestehende Navigation. Der
+UiAudit-Lauf `temp/ui-audit/2026-09-20_21-18-44/` bestätigt die Zustände 06 als
+Regression und 07 als Ergebnisfokus; Suchroute, Ranking, Reihenfolge und
+Trefferaktion wurden nicht verändert. M1.4-T5 und T6 bleiben offen.

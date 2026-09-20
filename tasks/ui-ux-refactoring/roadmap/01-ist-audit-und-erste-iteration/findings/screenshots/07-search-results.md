@@ -44,3 +44,14 @@ Keine.
 ## M1.3-Re-Audit und Folgeentscheidung
 
 Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/07_search_results_desktop_1280x800.png`. Der Re-Audit bestätigt den P1-Ergebnisfokus-Befund. [M1.4-T4](../../tasks/M1.4-T4.md) soll die vorhandene Trefferzahl und die vollständige erste Trefferkarte im 1280×800-Viewport führen und Filter kompakter/sekundär machen. Suchsemantik, Ranking, Trefferreihenfolge, Route und bestehende Trefferaktion bleiben unverändert.
+
+## M1.4-T4-Ergebnis
+
+Die Filterfläche nutzt die vorhandene semantische Gruppierung jetzt in einem
+kompakten Desktop-2-Spaltenraster mit ruhiger Secondary-Surface und kleineren
+Abständen. Suchfeld und Trefferkarte verwenden die globalen Button-/Design-
+Tokens; Suchsemantik, Ranking, Trefferreihenfolge, Route und Trefferaktion
+blieben unverändert. Der UiAudit-Lauf `temp/ui-audit/2026-09-20_21-18-44`
+bestätigt bei 1280×800 die sichtbare Trefferzahl und die vollständig sichtbare
+erste Karte. Die Browser-Smoke- und Web-Komponententests bestätigen weiterhin
+Filterzugriff und Navigation.

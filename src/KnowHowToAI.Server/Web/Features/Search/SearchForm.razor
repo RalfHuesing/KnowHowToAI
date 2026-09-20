@@ -7,7 +7,7 @@
         <input id="knowledge-search-text" class="search-form__input" type="search"
                @bind="_text" disabled="@IsSearching"
                data-testid="search-text" autocomplete="off" />
-        <button type="submit" class="search-form__submit" disabled="@IsSearching" data-testid="search-submit">
+        <button type="submit" class="search-form__submit btn btn-primary" disabled="@IsSearching" data-testid="search-submit">
             @(IsSearching ? "Suche läuft …" : "Suchen")
         </button>
     </div>

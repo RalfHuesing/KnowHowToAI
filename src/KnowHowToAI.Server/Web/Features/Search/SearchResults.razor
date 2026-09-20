@@ -47,7 +47,7 @@ else if (Page is { } results)
         </ol>
         @if (!string.IsNullOrEmpty(results.NextCursor))
         {
-            <button type="button" class="search-results__next" @onclick="OnNext" data-testid="search-next">
+            <button type="button" class="search-results__next btn btn-secondary" @onclick="OnNext" data-testid="search-next">
                 Weitere Treffer
             </button>
         }

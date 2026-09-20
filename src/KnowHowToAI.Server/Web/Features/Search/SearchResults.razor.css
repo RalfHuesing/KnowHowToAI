@@ -50,11 +50,4 @@
 
 .search-results__next {
     justify-self: start;
-    border: 1px solid var(--ktai-color-primary);
-    border-radius: var(--ktai-radius-sm);
-    background: var(--ktai-color-surface);
-    color: var(--ktai-color-primary);
-    padding: var(--ktai-space-2) var(--ktai-space-3);
-    font: inherit;
-    font-weight: 600;
 }
