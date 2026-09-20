@@ -65,7 +65,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
   - [x] **M4.6-T2 – [Dirty-State der M4-Strukturformulare anbinden](tasks/M4.6-T2.md)**
   - [x] **M4.6-T3 – [MCP-Strukturmutationen gegen stale Writes absichern](tasks/M4.6-T3.md)**
   - [x] **M4.6-T4 – [Validierungsbefunde an die gelesene ChangeVersion binden](tasks/M4.6-T4.md)**
-  - [ ] **M4.6-T5 – [SnapshotConflict-Reapply mit echten Änderungen nachweisen](tasks/M4.6-T5.md)**
+  - [x] **M4.6-T5 – [SnapshotConflict-Reapply mit echten Änderungen nachweisen](tasks/M4.6-T5.md)**
 ## Milestone-Abnahme
 
 - Transaction-Lebenszyklus und vollständige Node-Strukturpflege funktionieren ohne Agent.
