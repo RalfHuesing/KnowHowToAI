@@ -101,6 +101,12 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../konzept/08-
     - Tests: bUnit-Komponententest für leeren Baum mit und ohne aktive Transaction; Playwright-Browsernachweis für Initialanlage des Root-Knotens in einer leeren Datenbank.
     - Abnahme: Ein Benutzer kann eine komplett leere Wissensbasis ausschließlich über die Web-UI mit einem ersten Root-Knoten initialisieren.
 
+  - [ ] **M4.3-T5 – Intuitives Drag-and-drop im Wissensbaum und Bereinigung der Verschiebe-Buttons**
+    - Referenz: [temp/_prompts/prompt-tree-drag-and-drop.md](../../../temp/_prompts/prompt-tree-drag-and-drop.md)
+    - Umfang: Beseitigung der permanenten und temporären Verschiebe-Buttons („Verschieben“, „Unter…“, „Vor…“, „Nach…“) im Wissensbaum; Umstellung auf ein modernes, visuelles Drag-and-drop mit Drop-Indikatorlinien (oben = Before, Mitte = Parent, unten = After); Entfall der Tastatur-Verschiebebuttons zugunsten eines sauberen DOMs.
+    - Tests: bUnit-Komponententests und Playwright-Browser-E2E für die drei Drop-Zonen (`Before`, `Parent`, `After`).
+    - Abnahme: Der Wissensbaum besitzt im Normalzustand keinerlei Verschiebebuttons mehr; Verschieben erfolgt flüssig per Maus-Drag auf den Zielknoten; bestehende Move-Mutationen funktionieren unverändert.
+
 ## M4.4 – Konflikte
 
 - [ ] **M4.4 abschließen**
