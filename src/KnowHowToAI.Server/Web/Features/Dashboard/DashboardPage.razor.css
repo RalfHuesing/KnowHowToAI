@@ -91,6 +91,10 @@
     overflow-wrap: break-word;
 }
 
+::deep .snapshot-summary {
+    grid-column: 1 / -1;
+}
+
 ::deep .dashboard-card h2 {
     margin: 0;
     font-size: var(--ktai-font-size-xl);
@@ -311,6 +315,10 @@
     }
     ::deep .dashboard-card {
         padding: var(--ktai-space-3);
+    }
+
+    ::deep .snapshot-summary {
+        grid-column: auto;
     }
     ::deep .summary-grid {
         grid-template-columns: 1fr;

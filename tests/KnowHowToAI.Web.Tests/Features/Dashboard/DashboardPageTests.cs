@@ -71,6 +71,27 @@ public sealed class DashboardPageTests : Bunit.BunitContext
     }
 
     [Fact]
+    public void LeadsWithKnowledgeAccessAndKeepsSystemDetailsProgressive()
+    {
+        var harness = new DashboardTestHarness(now: Now);
+        Services.AddSingleton(harness.CreateService());
+
+        var cut = Render<DashboardPage>();
+
+        var knowledgeEntry = cut.Find("[data-testid=knowledge-entry]");
+        Assert.Equal("Wissenszugang", knowledgeEntry.QuerySelector(".entry-kicker")?.TextContent);
+        var knowledgeLink = knowledgeEntry.QuerySelector("[data-testid=link-knowledge]");
+        Assert.NotNull(knowledgeLink);
+        Assert.Contains("btn-primary", knowledgeLink!.GetAttribute("class"), StringComparison.Ordinal);
+        Assert.Equal("/knowledge", knowledgeLink.GetAttribute("href"));
+
+        var details = cut.Find("[data-testid=snapshot-summary] details.snapshot-details");
+        Assert.False(details.HasAttribute("open"));
+        Assert.Contains("Systemstand und Release", details.QuerySelector("summary")?.TextContent, StringComparison.Ordinal);
+        Assert.NotNull(cut.Find("[data-testid=current-snapshot-info]"));
+    }
+
+    [Fact]
     public void RendersOpenTransactionsWithAgeWarningAndValidationErrors()
     {
         var harness = new DashboardTestHarness(now: Now);

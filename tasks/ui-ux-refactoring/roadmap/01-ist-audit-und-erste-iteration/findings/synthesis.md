@@ -92,3 +92,16 @@ weiterhin den vorhandenen Fallback-Filter und die bestehende Navigation. Der
 UiAudit-Lauf `temp/ui-audit/2026-09-20_21-18-44/` bestätigt die Zustände 06 als
 Regression und 07 als Ergebnisfokus; Suchroute, Ranking, Reihenfolge und
 Trefferaktion wurden nicht verändert. M1.4-T5 und T6 bleiben offen.
+
+## M1.4-T5-Ergebnis
+
+Zustand 01 führt den bestehenden Wissenszugang im ersten Arbeitsbereich als
+primäre Aufgabe: Der vorhandene `/knowledge`-Einstieg erscheint als klar
+markierte primäre Linkfläche mit aufgabenorientierter Startbotschaft. Der
+technische Snapshot-/Release-Stand bleibt vollständig erhalten und ist unter
+„Systemstand und Release anzeigen“ progressiv erreichbar; der vorhandene
+Historie-Link bleibt als sekundäre Folgeaktion sichtbar. Es wurden keine neuen
+Routen, Aktionen, Daten oder Verträge eingeführt. Der Capture-Lauf
+`temp/ui-audit/2026-09-20_21-26-50/` bestätigt Zustand 01 bei 1280×800; der
+gezielte Dashboard-Komponententest und Dashboard-Browser-Smoke sind grün.
+M1.4-T6 bleibt offen.

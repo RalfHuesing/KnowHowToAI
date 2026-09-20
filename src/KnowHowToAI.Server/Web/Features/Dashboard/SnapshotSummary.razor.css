@@ -13,11 +13,61 @@
 
 h2 {
     margin: 0;
-    font-size: var(--ktai-font-size-xl);
+    font-size: var(--ktai-font-size-2xl);
     font-weight: 600;
     color: var(--ktai-color-text);
-    border-bottom: 1px solid var(--ktai-color-border);
-    padding-bottom: var(--ktai-space-2);
+}
+
+.knowledge-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ktai-space-3);
+}
+
+.knowledge-entry h2 {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.entry-kicker {
+    margin: 0;
+    color: var(--ktai-color-primary);
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.entry-intro {
+    margin: 0;
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-base);
+    line-height: var(--ktai-line-height-relaxed);
+    max-width: 48rem;
+}
+
+.knowledge-entry-actions {
+    margin-top: var(--ktai-space-2);
+}
+
+.dashboard-primary-link {
+    width: fit-content;
+}
+
+.snapshot-details {
+    border-top: 1px solid var(--ktai-color-border);
+    padding-top: var(--ktai-space-4);
+}
+
+.snapshot-details summary {
+    color: var(--ktai-color-text-secondary);
+    cursor: pointer;
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 600;
+}
+
+.snapshot-details[open] summary {
+    margin-bottom: var(--ktai-space-4);
 }
 
 h3 {
@@ -87,5 +137,9 @@ dd {
     dl {
         grid-template-columns: 1fr;
         gap: 2px;
+    }
+
+    h2 {
+        font-size: var(--ktai-font-size-xl);
     }
 }

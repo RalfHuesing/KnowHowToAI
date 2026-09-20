@@ -28,7 +28,7 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
   - [x] [M1.4-T3 – Gemeinsame Transaktionsdialogdarstellung](tasks/M1.4-T3.md) – Zustände 13/14.
   - [x] [M1.4-T7 – Moderne Shell-Navigation](tasks/M1.4-T7.md) – vier bestehende Ziele als moderne Linkflächen mit sichtbarem aktivem Zustand; Routen und Responsive-Vertrag unverändert.
   - [x] [M1.4-T4 – Trefferfokus in der Suche](tasks/M1.4-T4.md) – Zustand 07; Filter kompakt sekundär, Trefferzahl und erste Trefferkarte im ersten Viewport.
-  - [ ] [M1.4-T5 – Wissenszugang auf dem Dashboard führen](tasks/M1.4-T5.md) – Zustand 01.
+  - [x] [M1.4-T5 – Wissenszugang auf dem Dashboard führen](tasks/M1.4-T5.md) – Zustand 01; der bestehende Wissensbaum ist primär, Systemstand/Release bleiben sekundär.
   - [ ] [M1.4-T6 – Sichere Kontext-Microcopy für Rolle und Fallback](tasks/M1.4-T6.md) – Zustände 02/05.
 
 ## Nicht freigegebene Kandidaten
