@@ -56,3 +56,7 @@ M1.2-T1 stabilisierte nur die capture-seitige Sichtbarkeit und Assertions.
 M1.2-T2 ist mit dem dokumentierten Re-Audit abgeschlossen. M1.3 ist anhand des
 Laufs `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen; Folgearbeit bleibt auf
 die sechs kleinen, belegten M1.4-Slices begrenzt.
+
+## M1.4-T1-Ergebnis
+
+Zustand 11 ist mit dem Capture `temp/ui-audit/2026-09-20_20-25-44/11_transactions_open_desktop_1280x800.png` erneut belegt. Die vorhandene Fortsetzen-Aktion ist im ersten Arbeitsabschnitt primär sichtbar; Lifecycle-Metadaten sind unter „Technische Details“ progressiv erreichbar. Die bestehende Route, Working-/Dirty-/Commit-/Discard-Semantik und Accessibility-Reihenfolge wurden nicht verändert. Der kleinste Web-Komponententest, der Transaktions-Browser-Smoke und der gezielte UiAudit-Lauf sind grün; M1.4-T2 bis T6 bleiben offen.

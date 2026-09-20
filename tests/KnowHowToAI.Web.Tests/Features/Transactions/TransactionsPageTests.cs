@@ -77,6 +77,40 @@ public sealed class TransactionsPageTests : BunitContext
     }
 
     [Fact]
+    public void TransactionsPage_PrimaryResumeActionPrecedesDetailsAndTechnicalMetadataIsProgressive()
+    {
+        var txId = new TransactionId(Guid.NewGuid());
+        _harness.AddTransaction(new KnowledgeTransaction(
+            txId,
+            new SnapshotId(1),
+            new SnapshotId(10),
+            TransactionState.Open,
+            ChangeVersion: 3,
+            CreatedAtUtc: Now,
+            CommittedAtUtc: null,
+            Purpose: null,
+            Actor: null,
+            Client: null,
+            CommitMessage: null));
+
+        var cut = Render<TransactionsPage>();
+
+        var item = cut.Find($"[data-testid='transaction-item-{txId.Value}']");
+        var technicalDetails = item.QuerySelector($"[data-testid='tx-technical-details-{txId.Value}']");
+        Assert.NotNull(technicalDetails);
+        Assert.False(technicalDetails!.HasAttribute("open"));
+        Assert.Equal("Technische Details", technicalDetails.QuerySelector("summary")?.TextContent.Trim());
+        Assert.Contains("Nicht angegeben", item.TextContent);
+
+        var actions = item.QuerySelectorAll(".transaction-card__actions a");
+        Assert.Equal(2, actions.Length);
+        Assert.Equal($"tx-resume-link-{txId.Value}", actions[0].GetAttribute("data-testid"));
+        Assert.Contains("btn-primary", actions[0].GetAttribute("class"));
+        Assert.Equal($"tx-details-link-{txId.Value}", actions[1].GetAttribute("data-testid"));
+        Assert.Contains("btn-secondary", actions[1].GetAttribute("class"));
+    }
+
+    [Fact]
     public void TransactionsPage_AgeWarningBadge_ShownWhenOlderThan7Days()
     {
         var recentTxId = new TransactionId(Guid.NewGuid());

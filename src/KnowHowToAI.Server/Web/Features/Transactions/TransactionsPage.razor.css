@@ -138,6 +138,35 @@
     color: var(--ktai-color-text);
 }
 
+.transaction-card__context {
+    margin-top: calc(var(--ktai-space-1) * -1);
+}
+
+.transaction-card__technical {
+    border-top: 1px solid var(--ktai-color-border-subtle);
+    padding-top: var(--ktai-space-3);
+    font-size: var(--ktai-font-size-xs);
+}
+
+.transaction-card__technical summary {
+    color: var(--ktai-color-text-secondary);
+    cursor: pointer;
+    font-weight: 600;
+    list-style-position: inside;
+}
+
+.transaction-card__technical summary:hover {
+    color: var(--ktai-color-primary);
+}
+
+.transaction-card__technical[open] summary {
+    margin-bottom: var(--ktai-space-3);
+}
+
+.transaction-card__technical .transaction-card__meta {
+    margin: 0;
+}
+
 .transaction-card__actions {
     display: flex;
     gap: var(--ktai-space-2);

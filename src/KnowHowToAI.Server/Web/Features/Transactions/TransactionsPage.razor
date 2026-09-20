@@ -74,28 +74,34 @@
                             }
                         </div>
 
-                        <dl class="transaction-card__meta">
+                        <dl class="transaction-card__meta transaction-card__context">
                             <dt>Akteur:</dt>
-                            <dd>@(tx.Actor ?? "Unbekannt")</dd>
+                            <dd>@(tx.Actor ?? "Nicht angegeben")</dd>
                             <dt>Client:</dt>
-                            <dd>@(tx.Client ?? "Unbekannt")</dd>
-                            <dt>Erstellt am:</dt>
-                            <dd data-volatile="" title="@tx.CreatedAtUtc.ToString("u")">
-                                @tx.CreatedAtUtc.ToString("g")
-                            </dd>
-                            <dt>Base-Snapshot:</dt>
-                            <dd>@tx.BaseSnapshotId</dd>
-                            <dt>Working-Snapshot:</dt>
-                            <dd>@tx.WorkingSnapshotId</dd>
-                            <dt>ChangeVersion:</dt>
-                            <dd>@tx.ChangeVersion</dd>
+                            <dd>@(tx.Client ?? "Nicht angegeben")</dd>
                         </dl>
 
+                        <details class="transaction-card__technical" data-testid="tx-technical-details-@tx.TransactionId">
+                            <summary>Technische Details</summary>
+                            <dl class="transaction-card__meta">
+                                <dt>Erstellt am:</dt>
+                                <dd data-volatile="" title="@tx.CreatedAtUtc.ToString("u")">
+                                    @tx.CreatedAtUtc.ToString("g")
+                                </dd>
+                                <dt>Basis-Snapshot:</dt>
+                                <dd>@tx.BaseSnapshotId</dd>
+                                <dt>Arbeits-Snapshot:</dt>
+                                <dd>@tx.WorkingSnapshotId</dd>
+                                <dt>Änderungsversion:</dt>
+                                <dd>@tx.ChangeVersion</dd>
+                            </dl>
+                        </details>
+
                         <div class="transaction-card__actions">
-                            <a href="/transactions/@tx.TransactionId" class="btn btn-secondary"
-                               data-testid="tx-details-link-@tx.TransactionId">Details anzeigen</a>
                             <a href="/knowledge?transactionId=@tx.TransactionId" class="btn btn-primary"
                                data-testid="tx-resume-link-@tx.TransactionId">Als Arbeitskontext fortsetzen</a>
+                            <a href="/transactions/@tx.TransactionId" class="btn btn-secondary"
+                               data-testid="tx-details-link-@tx.TransactionId">Details anzeigen</a>
                         </div>
                     </article>
                 }

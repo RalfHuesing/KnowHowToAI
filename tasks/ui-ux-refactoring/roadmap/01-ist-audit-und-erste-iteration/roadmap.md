@@ -23,7 +23,7 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
   - Nachweis: `temp/ui-audit/2026-09-20_20-05-26/`, `manifest.json`, 20 Zustände bei 1280×800.
   - Ergebnis: 03 zeigt den bestätigten Root, 09 einen sichtbaren Snapshot-Diff und 20 den fokussierten bestehenden Löschdialog. 15–17 zeigen Strukturaktionen beziehungsweise Dirty/Save im ersten Viewport; die Verträge bleiben unverändert.
 - [ ] **M1.4 Belegte Folgekorrekturen** – sequenzielle, kleine UI-Slices aus dem Re-Audit.
-  - [ ] [M1.4-T1 – Transaktion öffnen und fortsetzen](tasks/M1.4-T1.md) – Zustand 11.
+  - [x] [M1.4-T1 – Transaktion öffnen und fortsetzen](tasks/M1.4-T1.md) – Zustand 11; bestehende Fortsetzen-Aktion im ersten Viewport geführt, technische Details progressiv.
   - [ ] [M1.4-T2 – Transaktionsdetail und Abschlussreihenfolge](tasks/M1.4-T2.md) – Zustand 12.
   - [ ] [M1.4-T3 – Gemeinsame Transaktionsdialogdarstellung](tasks/M1.4-T3.md) – Zustände 13/14.
   - [ ] [M1.4-T4 – Trefferfokus in der Suche](tasks/M1.4-T4.md) – Zustand 07.
