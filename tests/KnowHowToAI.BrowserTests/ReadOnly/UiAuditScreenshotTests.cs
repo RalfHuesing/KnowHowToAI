@@ -105,6 +105,26 @@ public sealed class UiAuditScreenshotTests
         await Assertions.Expect(child).ToBeVisibleAsync();
         await child.ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
+
+        // Zustand 04 darf erst aufgenommen werden, wenn die bereits gerenderte
+        // Anwendungsshell und der Detailbereich im ersten Viewport angekommen
+        // sind. Die Assertions verwenden ausschließlich vorhandene semantische
+        // Anker; sie erzeugen, verschieben oder kaschieren keinen Produktinhalt.
+        var shell = page.GetByTestId("shell-root");
+        var shellHeader = page.GetByRole(AriaRole.Banner);
+        var primaryNavigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
+        var shellMain = page.Locator("#shell-main");
+        var nodeDetails = page.GetByTestId("node-details");
+        var nodeDetailsTitle = page.GetByTestId("node-details-title");
+        await Assertions.Expect(shell).ToBeVisibleAsync();
+        await Assertions.Expect(shellHeader).ToBeVisibleAsync();
+        await Assertions.Expect(primaryNavigation).ToBeVisibleAsync();
+        await Assertions.Expect(shellMain).ToBeVisibleAsync();
+        await Assertions.Expect(nodeDetails).ToBeVisibleAsync();
+        await Assertions.Expect(nodeDetailsTitle).ToBeVisibleAsync();
+        await Assertions.Expect(shellHeader).ToBeInViewportAsync();
+        await Assertions.Expect(primaryNavigation).ToBeInViewportAsync();
+        await Assertions.Expect(nodeDetailsTitle).ToBeInViewportAsync();
         await CaptureAsync(page, "04_knowledge_node-detail", viewport, output, captures);
 
         await GotoAsync(page, address, "/knowledge?roleId=BrowserDownloadReader");

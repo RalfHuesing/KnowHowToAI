@@ -131,6 +131,19 @@ T5 und T7 zunächst offen gebliebenen, durch die Abschlussnachweise tatsächlich
 erfüllten Akzeptanz-Checkboxen wurden bei der Dokumentationskorrektur
 konsistent geschlossen.
 
+## M1.5-T1-Ergebnis
+
+Zustand 04 wartet im bestehenden UiAudit-Runner vor dem Screenshot auf die
+vorhandene Shell, den Shell-Header, die Hauptnavigation, den globalen
+Shell-Main-Bereich und den sichtbaren Node-Detailtitel. Header, Navigation und
+Detailtitel werden zusätzlich mit den Playwright-Viewport-Assertions im
+1280×800-Viewport abgesichert. Der gezielte Lauf
+`temp/ui-audit/m1-5-t1-rerun/2026-09-20_22-00-50/` ist mit 20/20 Zuständen grün;
+das Bild `04_knowledge_node-detail_desktop_1280x800.png` bestätigt die
+tatsächlich gerenderte Präsenz. Bei fehlender Präsenz würde der Test als
+Audit-Lücke fehlschlagen. Es wurden ausschließlich Testbedingungen geändert;
+Produktdateien, Routen, Capture-Namen und Manifestformat blieben unverändert.
+
 ## M1.5-Folgepriorität aus dem Re-Audit
 
 M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:

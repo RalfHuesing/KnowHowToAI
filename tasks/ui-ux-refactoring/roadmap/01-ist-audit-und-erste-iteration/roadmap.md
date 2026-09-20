@@ -38,7 +38,7 @@ angegebenen Reihenfolge um. Jeder Leaf bleibt auf die vorhandenen Routen,
 Aktionen, Daten und Verträge beschränkt. Die letzte Harmonisierung ist wegen
 der disjunkten Verantwortungen in zwei Leaves geteilt.
 
-- [ ] [M1.5-T1 – Capture 04 Shell/Header-Präsenz deterministisch absichern](tasks/M1.5-T1.md) – Test-only; der Capture darf Produktzustände weder kaschieren noch erzeugen.
+- [x] [M1.5-T1 – Capture 04 Shell/Header-Präsenz deterministisch absichern](tasks/M1.5-T1.md) – Test-only; der Capture darf Produktzustände weder kaschieren noch erzeugen.
 - [ ] [M1.5-T2 – ContextSelector als moderne AppDialog-Oberfläche](tasks/M1.5-T2.md) – Zustand 02, Darstellung passend zu 13/14; keine Dialogsemantik ändern.
 - [ ] [M1.5-T3 – Read-only Knowledge Detail vor History/Download führen](tasks/M1.5-T3.md) – Zustände 04/05; Inhalt/Fallback vor bestehenden sekundären Links, Funktionen unverändert.
 - [ ] [M1.5-T4 – KnowledgeContextBar klar segmentieren](tasks/M1.5-T4.md) – Snapshot, Bereich und Working-Transaction getrennt lesbar; Verträge und Routen unverändert.
