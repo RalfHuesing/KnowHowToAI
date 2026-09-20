@@ -1,14 +1,8 @@
 @namespace KnowHowToAI.Server.Web.Components.Layout.PageRegions
 
-<nav id="shell-navigation" aria-label="Hauptnavigation" class="shell-panel shell-panel--navigation"
+<nav id="shell-navigation" aria-label="Hauptnavigation" tabindex="-1" @ref="_navigationElement"
+     class="shell-panel shell-panel--navigation"
      @onkeydown="HandleKeydown">
-    <div class="shell-panel-header">
-        <div class="shell-panel-heading">
-            <h2 class="shell-panel-title" tabindex="-1" @ref="_titleElement">Navigation</h2>
-            <p class="shell-panel-description">Arbeitsbereiche</p>
-        </div>
-        <button type="button" class="shell-panel-close" @onclick="OnClose">Navigation schließen</button>
-    </div>
     <ul class="shell-nav-list">
         <li>
             <NavLink class="shell-nav-link" href="/" Match="NavLinkMatch.All">Start</NavLink>

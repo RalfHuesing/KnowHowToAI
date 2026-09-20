@@ -8,10 +8,11 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 /// Layout-Smokes gegen die echte Shell: Desktopbreite 1280 × 720 zeigt
 /// Navigation, Arbeitsfläche und Seitenbereiche nebeneinander ohne
 /// Horizontalüberlauf, auch mit langem Testinhalt, der per Tastatur im
-/// Dokument scrollbar bleibt; kompakte Breite 1024 × 720 klappt die
-/// Seitenbereiche über beschriftete Buttons ein und aus, übergibt den Fokus
-/// an die Bereichsüberschrift und gibt ihn beim Schließen an den Auslöser
-/// zurück.
+/// Dokument scrollbar bleibt; der Desktop-Menübutton schließt und öffnet die
+/// Navigation wieder und gibt der Arbeitsfläche die geschlossene Spalte frei.
+/// Kompakte Breite 1024 × 720 klappt die Seitenbereiche über beschriftete
+/// Buttons ein und aus, übergibt den Fokus an den Bereich und gibt ihn beim
+/// Schließen an den Auslöser zurück.
 /// </summary>
 [Collection("Smoke-Host")]
 [Trait("Category", "Integration")]
@@ -46,14 +47,31 @@ public sealed class LayoutShellSmokeTests
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
         await Assertions.Expect(navigation).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Main)).ToHaveCountAsync(1);
-        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Navigation einblenden" }))
-            .ToHaveCountAsync(0);
+        var navigationToggle = page.Locator("button[aria-controls='shell-navigation']");
+        await Assertions.Expect(navigationToggle).ToBeVisibleAsync();
+        await Assertions.Expect(navigationToggle).ToHaveAttributeAsync("aria-expanded", "true");
 
         var navigationBox = await navigation.BoundingBoxAsync();
-        var mainBox = (await page.GetByRole(AriaRole.Main).BoundingBoxAsync())
+        var main = page.GetByRole(AriaRole.Main);
+        var mainBox = (await main.BoundingBoxAsync())
             ?? throw new InvalidOperationException("Hauptinhaltsbereich besitzt keine Begrenzungsbox.");
         Assert.NotNull(navigationBox);
         Assert.True(navigationBox!.X < mainBox.X, "Navigation steht in der Desktopbreite nicht links der Arbeitsfläche.");
+
+        await navigationToggle.ClickAsync();
+        await Assertions.Expect(navigation).ToHaveCountAsync(0);
+        await Assertions.Expect(navigationToggle).ToHaveAttributeAsync("aria-expanded", "false");
+        await Assertions.Expect(navigationToggle).ToHaveAccessibleNameAsync("Navigation einblenden");
+        var closedMainBox = (await main.BoundingBoxAsync())
+            ?? throw new InvalidOperationException("Hauptinhaltsbereich besitzt nach dem Schließen keine Begrenzungsbox.");
+        Assert.True(
+            closedMainBox.Width > mainBox.Width,
+            "Die geschlossene Navigation gibt der Arbeitsfläche keinen zusätzlichen Platz.");
+
+        await navigationToggle.ClickAsync();
+        await Assertions.Expect(navigation).ToBeVisibleAsync();
+        await Assertions.Expect(navigationToggle).ToHaveAttributeAsync("aria-expanded", "true");
+        await Assertions.Expect(navigationToggle).ToHaveAccessibleNameAsync("Navigation ausblenden");
 
         await AppendLongContentAsync(page);
         var metrics = await ReadScrollMetricsAsync(page);
@@ -86,28 +104,23 @@ public sealed class LayoutShellSmokeTests
         // Der Schalter erscheint erst, wenn der Circuit verbunden ist und das
         // Modul die kompakte Breite gemeldet hat; das Warten auf Sichtbarkeit
         // belegt beides ohne feste Wartezeit.
-        var navigationToggle = page.GetByRole(AriaRole.Button, new() { Name = "Navigation einblenden", Exact = true });
+        var navigationToggle = page.Locator("button[aria-controls='shell-navigation']");
+        var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
         await Assertions.Expect(navigationToggle).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Assertions.Expect(navigationToggle).ToHaveAccessibleNameAsync("Navigation einblenden");
         await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" }))
             .ToHaveCountAsync(0);
         await Assertions.Expect(page.GetByRole(AriaRole.Main)).ToHaveCountAsync(1);
 
         await OpenNavigationAsync(page, navigationToggle);
-        var panelTitle = page.GetByRole(AriaRole.Heading, new() { Name = "Navigation", Exact = true });
-        await Assertions.Expect(panelTitle).ToBeFocusedAsync();
-
-        await page.Keyboard.PressAsync("Tab");
-        var closeButton = page.GetByRole(AriaRole.Button, new() { Name = "Navigation schließen", Exact = true });
-        await Assertions.Expect(closeButton).ToBeFocusedAsync();
+        await Assertions.Expect(navigation).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Tab");
         await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Start", Exact = true })).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Shift+Tab");
-        await Assertions.Expect(closeButton).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Enter");
+        await navigationToggle.ClickAsync();
         await ExpectPanelClosedAsync(page, navigationToggle);
 
         await OpenNavigationAsync(page, navigationToggle);
-        await Assertions.Expect(panelTitle).ToBeFocusedAsync();
+        await Assertions.Expect(navigation).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Escape");
         await ExpectPanelClosedAsync(page, navigationToggle);
 

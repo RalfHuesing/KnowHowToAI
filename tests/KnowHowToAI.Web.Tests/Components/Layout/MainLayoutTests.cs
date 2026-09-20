@@ -20,7 +20,8 @@ public sealed class MainLayoutTests : ShellTestContext
         var brand = cut.Find(".shell-brand");
         Assert.Equal("KnowHowToAI", brand.TextContent);
         Assert.Equal("span", brand.TagName.ToLowerInvariant());
-        Assert.Empty(cut.FindAll("img, svg"));
+        Assert.Empty(cut.FindAll("img"));
+        Assert.Single(cut.FindAll("svg.shell-toggle-icon"));
         Assert.Contains("Inhalt", cut.Find("main").TextContent, StringComparison.Ordinal);
     }
 
@@ -61,7 +62,7 @@ public sealed class MainLayoutTests : ShellTestContext
     }
 
     [Fact]
-    public void WideModeShowsSideRegionsSideBySideWithoutToggleButtons()
+    public void WideModeShowsSideRegionsSideBySideWithPersistentNavigationToggle()
     {
         var cut = RenderMainLayoutWithAttachPage();
 
@@ -70,7 +71,28 @@ public sealed class MainLayoutTests : ShellTestContext
         Assert.Single(cut.FindAll("nav[aria-label='Hauptnavigation']"));
         Assert.Single(cut.FindAll("nav[aria-label='Breadcrumbs']"));
         Assert.Single(cut.FindAll(".shell-page-actions"));
-        Assert.Empty(cut.FindAll(".shell-toggle"));
+        Assert.Single(cut.FindAll("button[aria-controls='shell-navigation']"));
+    }
+
+    [Fact]
+    public void WideModeNavigationToggleClosesAndReopensNavigation()
+    {
+        var cut = RenderMainLayout();
+
+        var navigationToggle = cut.Find("button[aria-controls='shell-navigation']");
+        Assert.Equal("true", navigationToggle.Attributes["aria-expanded"]?.Value);
+        Assert.Single(cut.FindAll("nav[aria-label='Hauptnavigation']"));
+
+        navigationToggle.Click();
+
+        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
+        Assert.Equal("false", navigationToggle.Attributes["aria-expanded"]?.Value);
+
+        navigationToggle.Click();
+
+        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
+        Assert.Equal("true", navigationToggle.Attributes["aria-expanded"]?.Value);
+        Assert.Equal(4, cut.FindAll("nav[aria-label='Hauptnavigation'] a").Count);
     }
 
     [Fact]
@@ -130,30 +152,30 @@ public sealed class MainLayoutTests : ShellTestContext
         cut.WaitForState(() => cut.FindAll("button[aria-controls='shell-navigation']").Count == 1);
         var navigationToggle = cut.Find("button[aria-controls='shell-navigation']");
         var contextToggle = cut.Find("button[aria-controls='shell-context']");
-        Assert.Equal("Navigation einblenden", navigationToggle.TextContent);
+        Assert.Equal("Navigation einblenden", navigationToggle.TextContent.Trim());
         Assert.Equal("false", navigationToggle.Attributes["aria-expanded"]?.Value);
-        Assert.Equal("Kontext einblenden", contextToggle.TextContent);
+        Assert.Equal("Kontext einblenden", contextToggle.TextContent.Trim());
         Assert.Equal("false", contextToggle.Attributes["aria-expanded"]?.Value);
         Assert.Empty(cut.FindAll("nav[aria-label='Hauptnavigation']"));
         Assert.Empty(cut.FindAll("aside"));
 
         navigationToggle.Click();
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
-        Assert.Equal("Navigation ausblenden", navigationToggle.TextContent);
+        Assert.Equal("Navigation ausblenden", navigationToggle.TextContent.Trim());
         Assert.Equal("true", navigationToggle.Attributes["aria-expanded"]?.Value);
         Assert.Single(cut.FindAll("a[href='/']"));
 
         navigationToggle.Click();
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
-        Assert.Equal("Navigation einblenden", navigationToggle.TextContent);
+        Assert.Equal("Navigation einblenden", navigationToggle.TextContent.Trim());
 
         contextToggle.Click();
         cut.WaitForState(() => cut.FindAll("aside").Count == 1);
-        Assert.Equal("Kontext ausblenden", contextToggle.TextContent);
+        Assert.Equal("Kontext ausblenden", contextToggle.TextContent.Trim());
 
         contextToggle.Click();
         cut.WaitForState(() => cut.FindAll("aside").Count == 0);
-        Assert.Equal("Kontext einblenden", contextToggle.TextContent);
+        Assert.Equal("Kontext einblenden", contextToggle.TextContent.Trim());
     }
 
     [Fact]
@@ -167,7 +189,7 @@ public sealed class MainLayoutTests : ShellTestContext
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
         JSInterop.VerifyFocusAsyncInvoke(calledTimes: 1);
 
-        cut.Find("#shell-navigation .shell-panel-close").Click();
+        navigationToggle.Click();
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
         JSInterop.VerifyFocusAsyncInvoke(calledTimes: 2);
     }

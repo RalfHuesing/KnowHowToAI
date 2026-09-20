@@ -66,17 +66,19 @@ public sealed class VisualShellSmokeTests
         await Assertions.Expect(page.GetByRole(AriaRole.Main)).ToHaveCountAsync(1);
 
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
-        var navigationToggle = page.GetByRole(AriaRole.Button, new() { Name = "Navigation einblenden", Exact = true });
+        var navigationToggle = page.Locator("button[aria-controls='shell-navigation']");
         if (width >= 1280)
         {
             await Assertions.Expect(navigation).ToBeVisibleAsync();
-            await Assertions.Expect(navigationToggle).ToHaveCountAsync(0);
+            await Assertions.Expect(navigationToggle).ToBeVisibleAsync();
+            await Assertions.Expect(navigationToggle).ToHaveAccessibleNameAsync("Navigation ausblenden");
         }
         else
         {
             // Der Schalter erscheint erst mit verbundenem Circuit in der kompakten
             // Breite; das Warten auf Sichtbarkeit belegt beide Bedingungen ohne Wartezeit.
             await Assertions.Expect(navigationToggle).ToBeVisibleAsync(new() { Timeout = 30_000 });
+            await Assertions.Expect(navigationToggle).ToHaveAccessibleNameAsync("Navigation einblenden");
             await Assertions.Expect(navigation).ToHaveCountAsync(0);
         }
 

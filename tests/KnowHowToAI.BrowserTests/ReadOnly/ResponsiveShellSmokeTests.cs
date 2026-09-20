@@ -12,8 +12,8 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 /// (200 %) und 320 CSS-Pixel (400 %) – kein Smartphonefreigabe, echter
 /// Browserzoom bleibt Teil der manuellen Abnahme (docs/Manuelle-UI-Abnahme.md).
 /// Außerdem belegt sie die gebundene Tastatursequenz ab Dokumentanfang:
-/// Skip-Link nutzen, Hauptnavigation durchlaufen und den Seitenbereich über
-/// die Kopfbuttons öffnen und schließen. Der Kontextseitenbereich besitzt im
+/// Skip-Link nutzen, den persistenten Navigationsbutton bedienen und den
+/// Seitenbereich über den Kopfbutton öffnen und schließen. Der Kontextseitenbereich besitzt im
 /// M2-Produkt noch keinen echten Verbraucher (die Startseite hängt keinen
 /// Kontext ein); sein Öffnen-/Schließvertrag ist als Komponentenassertion in
 /// den MainLayoutTests abgesichert und wird wie der Dialog-/Toastvertrag mit
@@ -96,20 +96,15 @@ public sealed class ResponsiveShellSmokeTests
         await page.Keyboard.PressAsync("Tab");
         await Assertions.Expect(startAction).ToBeFocusedAsync();
 
-        // Hauptnavigation durchlaufen: in der kompakten Breite liegt sie
-        // hinter dem beschrifteten Kopfbutton; rückwärts ist er der nächste
-        // Tabstopp vor dem Hauptinhalt.
-        await page.Keyboard.PressAsync("Shift+Tab");
-        await Assertions.Expect(navigationToggle).ToBeFocusedAsync();
+        // Die Navigation liegt in der kompakten Breite hinter dem
+        // beschrifteten Kopfbutton. Der Button bleibt als native
+        // Tastatursteuerung bedienbar.
         await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" }))
             .ToHaveCountAsync(0);
 
+        await navigationToggle.FocusAsync();
         await OpenNavigationWithKeyboardAsync(page, navigationToggle);
-        var panelTitle = page.GetByRole(AriaRole.Heading, new() { Name = "Navigation", Exact = true });
-        await Assertions.Expect(panelTitle).ToBeFocusedAsync();
-
-        await page.Keyboard.PressAsync("Tab");
-        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Navigation schließen", Exact = true }))
+        await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" }))
             .ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Tab");
         await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Start", Exact = true })).ToBeFocusedAsync();

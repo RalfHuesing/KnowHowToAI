@@ -489,15 +489,19 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   `matchMedia` gemeldet) stehen Navigation, Arbeitsfläche und optionaler
   Kontextbereich nebeneinander; die Arbeitsfläche nutzt
   `minmax(0, 1fr)`, um nicht unter `min-width`-Defaults zu überlaufen.
-- In kompakten Breiten klappen klar beschriftete Kopfbuttons die
-  Seitenbereiche ein und aus; sie erscheinen als überlagernde Panels
-  unterhalb des Kopfs. Öffnen setzt den Fokus auf die
-  Bereichsüberschrift, Schließen (Schalter, Schließen-Button, Escape)
-  gibt ihn an den Auslöser zurück, und Escape schließt nur den zuletzt
-  geöffneten überlagernden Bereich. Keine fixierten Höhen für normalen
-  Inhalt; die Seite und die Arbeitsfläche scrollen im Dokument. Unterhalb
-  von 1024 besteht nur die Zoom-/Reflow-Anforderung, keine
-  Smartphone-Navigation.
+- Die Navigation startet im Desktop offen. Ein dauerhaft sichtbarer
+  Drei-Linien-Menübutton oben links in der App-Leiste steuert sie in allen
+  Breiten über den zugänglichen Zustandsnamen sowie `aria-expanded` und
+  `aria-controls`; beim Desktop-Schließen gibt die Navigation ihre Spalte an
+  die Arbeitsfläche frei.
+- In kompakten Breiten steuert derselbe klar beschriftete Kopfbutton die
+  Navigation als überlagerndes Panel unterhalb des Kopfs; der Kontextbereich
+  besitzt bei Bedarf einen eigenen Kopfbutton. Öffnen setzt den Fokus auf den
+  jeweiligen Bereich, Schließen (Kopfbutton, Escape) gibt ihn an den Auslöser
+  zurück, und Escape schließt nur den zuletzt geöffneten überlagernden Bereich.
+  Keine fixierten Höhen für normalen Inhalt; die Seite und die Arbeitsfläche
+  scrollen im Dokument. Unterhalb von 1024 besteht nur die Zoom-/Reflow-
+  Anforderung, keine Smartphone-Navigation.
 - Der Verbindungsverlust des Interactive-Server-Circuits wird durch die
   offizielle .NET-10-Reconnect-Oberfläche behandelt: Die Komponente
   `ReconnectModal` (unter `Web/Components/Layout/Shell`, aus `App.razor`

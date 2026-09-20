@@ -131,6 +131,25 @@ T5 und T7 zunächst offen gebliebenen, durch die Abschlussnachweise tatsächlich
 erfüllten Akzeptanz-Checkboxen wurden bei der Dokumentationskorrektur
 konsistent geschlossen.
 
+## M1.5-T0-Ergebnis
+
+Die Shell führt den dauerhaft sichtbaren Drei-Linien-Menübutton oben links in
+der App-Leiste jetzt in Desktop und kompakter Breite. Desktop startet mit
+geöffneter Navigation; derselbe Button schließt sie, gibt die Sidebar-Spalte
+an die Arbeitsfläche frei und öffnet sie wieder. Der Button führt den
+zugänglichen Zustandsnamen sowie aria-expanded/aria-controls. In kompakter
+Breite bleibt die Navigation ein Drawer/Overlay; Escape und der Button geben
+den Fokus an den Auslöser zurück. Der redundante Paneltitel, „Arbeitsbereiche“
+und „Navigation schließen“ sind entfernt. Start (/), Suche (/search),
+Transactions (/transactions) und Rollen (/roles) bleiben die exakt vier
+erreichbaren Ziele.
+
+Der Red-Test in MainLayoutTests war vor der Produktänderung rot und ist danach
+mit 11/11 grün. LayoutShellSmokeTests (2/2), ResponsiveShellSmokeTests (2/2)
+und VisualShellSmokeTests (2/2) sind grün. Die visuellen Shell-Baselines für
+1280 × 720 und 1024 × 720 wurden nach manueller Prüfung der aktuellen
+Captures übernommen. RolesPage und Rollenverwaltung blieben unangetastet.
+
 ## M1.5-T1-Ergebnis
 
 Zustand 04 wartet im bestehenden UiAudit-Runner vor dem Screenshot auf die

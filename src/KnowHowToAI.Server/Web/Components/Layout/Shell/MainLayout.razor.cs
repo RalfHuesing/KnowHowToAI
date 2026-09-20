@@ -15,7 +15,7 @@ namespace KnowHowToAI.Server.Web.Components.Layout.Shell;
 /// (<see cref="ContextPanel"/>). Ab 1280 CSS-Pixeln (vom zugehörigen Modul
 /// gemeldet) stehen die Bereiche nebeneinander; in kompakten Breiten klappen
 /// klar beschriftete Kopfbuttons sie ein und aus, Öffnen setzt den Fokus auf
-/// die Bereichsüberschrift, Schließen gibt ihn an den Auslöser zurück und
+/// den Bereich, Schließen gibt ihn an den Auslöser zurück und
 /// Escape schließt nur den zuletzt geöffneten überlagernden Bereich. Eine
 /// Fachseite hängt ihre Bereiche über <see cref="PageRegionState"/> ein und
 /// kennt kein Seitenraster.
@@ -242,7 +242,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
             var navigation = _primaryNavigation;
             if (navigation is not null)
             {
-                await navigation.FocusTitleAsync();
+                await navigation.FocusAsync();
             }
         }
         else

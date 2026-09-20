@@ -32,6 +32,12 @@ Bei jeder Stufe prüfen:
 3. Der Zoom-/Reflow-Nachweis ist keine Smartphonefreigabe; die Shell
    unterstützt unterhalb von 1024 CSS-Pixeln bewusst nur Zoom und Reflow.
 
+Der Menübutton „Navigation einblenden“ beziehungsweise „Navigation
+ausblenden“ bleibt als Drei-Linien-Button oben links in der App-Leiste sichtbar.
+Auf dem Desktop startet die Navigation offen; nach dem Schließen muss derselbe
+Button die Navigation wieder öffnen. In kompakter Breite erscheint die
+Navigation als Drawer/Overlay.
+
 ## Kurze Tastaturschritte (in jeder Zoomstufe gleich)
 
 Ausgangspunkt ist jeweils der Seitengrundzustand nach dem Laden von `/`
@@ -40,12 +46,11 @@ Ausgangspunkt ist jeweils der Seitengrundzustand nach dem Laden von `/`
 1. Tab – der Skip-Link „Zum Hauptinhalt springen“ erhält den Fokus und wird
    sichtbar; der Fokusring bleibt während der gesamten Folge sichtbar.
 2. Enter – der Fokus springt auf den Hauptinhalt.
-3. Umschalt + Tab – der Fokus erreicht den Kopfbutton „Navigation
-   einblenden“.
-4. Enter – der Navigationsbereich öffnet sich; der Fokus liegt auf der
-   Bereichsüberschrift.
-5. Tab – „Navigation schließen“, danach Tab – der Start-Link; die
-   Reihenfolge ist logisch und ohne Tabfalle.
+3. Umschalt + Tab beziehungsweise der sichtbare App-Leisten-Button –
+   der Fokus erreicht den Kopfbutton „Navigation einblenden“.
+4. Enter – der Navigationsbereich öffnet sich; der Fokus liegt auf dem
+   Navigationsbereich.
+5. Tab – der Start-Link; die Reihenfolge ist logisch und ohne Tabfalle.
 6. Escape – der Bereich schließt sich; der Fokus kehrt zum Auslöser zurück.
 7. Den Dialog- und Toast-Tastaturvertrag mit dem jeweils ersten echten
    Verbraucher prüfen (Öffnen, Fokusfalle, Escape entspricht Abbrechen,

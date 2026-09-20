@@ -9,38 +9,6 @@
     border-right: 1px solid var(--ktai-color-border);
 }
 
-.shell-panel-heading {
-    min-width: 0;
-}
-
-.shell-panel-description {
-    margin: var(--ktai-space-1) 0 0;
-    color: var(--ktai-color-text-muted);
-    font-size: var(--ktai-font-size-sm);
-}
-
-.shell-panel--navigation ::deep .shell-panel-header {
-    align-items: flex-start;
-    margin-bottom: var(--ktai-space-6);
-}
-
-.shell-panel--navigation ::deep .shell-panel-close {
-    flex-shrink: 0;
-    padding: var(--ktai-space-1) var(--ktai-space-2);
-    border: 1px solid var(--ktai-color-border-light);
-    border-radius: var(--ktai-radius-full);
-    background-color: var(--ktai-color-surface);
-    color: var(--ktai-color-text-secondary);
-    font-size: var(--ktai-font-size-xs);
-    white-space: nowrap;
-}
-
-.shell-panel--navigation ::deep .shell-panel-close:hover {
-    border-color: var(--ktai-color-border-hover);
-    background-color: var(--ktai-color-surface);
-    color: var(--ktai-color-text);
-}
-
 .shell-nav-list {
     margin: 0;
     padding: 0;
