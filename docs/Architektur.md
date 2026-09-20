@@ -246,6 +246,9 @@ verworfen; jede Reduktion bleibt als `role=status` sichtbar und wird als
 ungespeicherte Änderung markiert. Die Clipboard-Verarbeitung arbeitet
 ausschließlich auf den gelieferten Strings, lädt keine Bildquelle und ersetzt
 den vollständigen Editorwert bei einer serverseitigen Ablehnung nicht.
+Der versionierte Golden Master wird zusätzlich im Browser mit dem gebündelten
+Crepe über fünf aufeinanderfolgende Save-/Remount-Roundtrips geführt; jeder
+Server-Readback wird gegen die Markdig-Semantik der Fixture geprüft.
 Nach erfolgreichem Commit oder Discard setzt die Seite `WorkspaceState` und
 den Kontextbereich auf den Current-Read-Context, navigiert zum Wissensbaum
 unter Erhalt der Rolle und bestätigt den Abschluss über die globale

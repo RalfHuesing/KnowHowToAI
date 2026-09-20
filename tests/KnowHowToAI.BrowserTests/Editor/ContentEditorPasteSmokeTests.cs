@@ -1,5 +1,6 @@
 using System.Text.Json;
 using KnowHowToAI.BrowserTests.TestSupport;
+using Markdig;
 using Microsoft.Playwright;
 using ModelContextProtocol.Client;
 
@@ -9,6 +10,9 @@ namespace KnowHowToAI.BrowserTests.Editor;
 [Trait("Category", "Integration")]
 public sealed class ContentEditorPasteSmokeTests
 {
+    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .Build();
     private readonly SmokeHostFixture _fixture;
 
     public ContentEditorPasteSmokeTests(SmokeHostFixture fixture) => _fixture = fixture;
@@ -70,6 +74,82 @@ public sealed class ContentEditorPasteSmokeTests
         }
     }
 
+    [Fact]
+    public async Task ContentEditor_RoundTripsGoldenMasterThroughRealCrepeForFiveCycles()
+    {
+        var markdown = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "GoldenMaster.md"));
+        Assert.True(markdown.Length >= 4096);
+        var baseline = SemanticProjection(markdown);
+
+        await using var browser = await ChromeBrowser.LaunchAsync();
+        await using var client = await McpClient.CreateAsync(new HttpClientTransport(
+            new HttpClientTransportOptions
+            {
+                Endpoint = new Uri($"{_fixture.Host.Address}/mcp"),
+                TransportMode = HttpTransportMode.StreamableHttp
+            }));
+
+        var transaction = await CallAsync(client, "begin_transaction", new Dictionary<string, object?>
+        {
+            ["purpose"] = "M5.2-T2 Golden-Master-Roundtrip"
+        });
+        var transactionId = RequiredString(transaction, "transactionId");
+        try
+        {
+            var root = await CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
+            var rootNodeId = RequiredString(root, "nodeId");
+            var created = await CallAsync(client, "create_node", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["title"] = "Golden-Master Browser Roundtrip",
+                ["parentNodeId"] = rootNodeId,
+                ["contentMd"] = markdown,
+                ["roleId"] = "Default"
+            });
+            var nodeId = RequiredString(created, "nodeId");
+            var url = $"{_fixture.Host.Address}/knowledge/{nodeId}?roleId=Default&transactionId={transactionId}";
+            await using var page = await browser.NewPageAsync();
+
+            for (var cycle = 1; cycle <= 5; cycle++)
+            {
+                await page.GotoAsync(url, new PageGotoOptions
+                {
+                    WaitUntil = WaitUntilState.DOMContentLoaded,
+                    Timeout = 30_000
+                });
+                await CircuitProbe.WaitForInteractivityAsync(page);
+                var editor = page.GetByTestId("content-editor");
+                await Assertions.Expect(editor).ToBeVisibleAsync();
+                await Assertions.Expect(page.GetByTestId("content-editor-surface"))
+                    .ToHaveAttributeAsync("data-paste-policy", "active", new() { Timeout = 15_000 });
+                await Assertions.Expect(editor.Locator(".ProseMirror")).ToBeVisibleAsync(new() { Timeout = 15_000 });
+
+                var save = editor.GetByTestId("content-editor-save");
+                await Assertions.Expect(save).ToBeEnabledAsync();
+                await save.ClickAsync();
+                await Assertions.Expect(editor.GetByRole(AriaRole.Status))
+                    .ToContainTextAsync("Gespeichert", new() { Timeout = 15_000 });
+
+                var readback = await CallAsync(client, "get_node", new Dictionary<string, object?>
+                {
+                    ["nodeId"] = nodeId,
+                    ["roleId"] = "Default",
+                    ["transactionId"] = transactionId
+                });
+                var actualMarkdown = readback.GetProperty("data").GetProperty("content").GetString();
+                Assert.NotNull(actualMarkdown);
+                Assert.Equal(baseline, SemanticProjection(actualMarkdown!));
+            }
+        }
+        finally
+        {
+            await client.CallToolAsync("discard_transaction", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId
+            });
+        }
+    }
+
     private static async Task<JsonElement> CallAsync(
         McpClient client,
         string toolName,
@@ -85,4 +165,6 @@ public sealed class ContentEditorPasteSmokeTests
     private static string RequiredString(JsonElement response, string propertyName) =>
         response.GetProperty("data").GetProperty(propertyName).GetString()
         ?? throw new InvalidOperationException($"MCP-Feld '{propertyName}' fehlt.");
+
+    private static string SemanticProjection(string markdown) => Markdown.ToHtml(markdown, MarkdownPipeline);
 }
