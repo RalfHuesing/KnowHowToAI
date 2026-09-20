@@ -78,6 +78,14 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
+    public void NodeDetails_WithViewModel_LabelsReadOnlyContext()
+    {
+        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, MakeViewModel()));
+
+        Assert.Equal("Nur lesen", cut.Find("[data-testid='node-details-context']").TextContent.Trim());
+    }
+
+    [Fact]
     public void NodeDetails_WithViewModel_RendersMetadata()
     {
         var vm = MakeViewModel();

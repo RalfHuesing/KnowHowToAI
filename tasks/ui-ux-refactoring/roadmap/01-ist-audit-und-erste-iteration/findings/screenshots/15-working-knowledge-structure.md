@@ -45,3 +45,12 @@ M1.2-T2, Working-/Dirty-/Transaction-Verträge, Responsive- und Keyboard-Reihenf
 ## Audit-Lücken
 
 Keine.
+
+## Re-Audit nach M1.2-T2
+
+`temp/ui-audit/2026-09-20_20-05-26/15_working-knowledge-structure_desktop_1280x800.png`
+
+Die technische Detailfläche ist zunächst geschlossen. Der Node ist als
+`Working` gekennzeichnet; „Struktur“ führt die bestehenden Stammdaten- und
+Child-Aktionen im ersten sichtbaren Arbeitsabschnitt. Der Inhaltsabschnitt ist
+räumlich und typografisch getrennt, ohne bestehende Funktionen zu entfernen.

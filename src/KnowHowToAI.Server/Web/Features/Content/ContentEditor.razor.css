@@ -13,7 +13,14 @@
 
 .content-editor__mode-switch {
     display: flex;
+    align-items: center;
     gap: var(--ktai-space-2);
+}
+
+.content-editor__mode-label {
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 600;
 }
 
 .content-editor__source-label {
@@ -46,7 +53,7 @@
 .content-editor__actions {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: var(--ktai-space-3);
 }
 

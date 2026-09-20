@@ -10,17 +10,23 @@ Die 20 Einzelbefunde unter [findings/screenshots](screenshots) beziehen sich auf
 
 In 15 sind Strukturaktionen im ersten Viewport nicht sichtbar. In 16 und 17 sind Dirty-State und Editorinhalt sichtbar, das Speichern liegt jedoch unterhalb des Viewports. Damit ist die zentrale Support-Aufgabe – Text einer Node bearbeiten und sicher abschließen oder verwerfen – nicht als zusammenhängender Ablauf lesbar. Die technische Metadaten-/Linkfläche nimmt gleichzeitig viel vertikalen Raum ein. Siehe 15–17.
 
+Der M1.2-T2-Re-Audit vom 20.09.2026 zeigt den korrigierten Ist-Zustand:
+Strukturaktionen stehen in 15 im ersten Arbeitsabschnitt, Speichern und Dirty-
+Status in 16/17 direkt am Editor. „Working“ beziehungsweise „Nur lesen“ sind
+am Node sichtbar; technische Metadaten liegen unter „Technische Details“.
+Nachweis: `temp/ui-audit/2026-09-20_20-05-26/`.
+
 ### P0/P1 – Bestätigung und destruktive Sicherheit
 
 20 beweist den ausgelösten Löschpfad, zeigt aber im 1280×800-Viewport keine sichtbare Bestätigung; die erwartete Bestätigung liegt unterhalb des sichtbaren Bereichs. Das ist eine Audit-Lücke mit hoher Relevanz für destruktives Verhalten, keine Freigabe für eine Produktannahme. 13/14 zeigen zusätzlich inkonsistente, harte Dialograhmen. Siehe 13, 14 und 20.
 
 ### P1 – Technischer Zustand verdrängt Inhalt
 
-15–17 führen Revision, Node-ID, Verfügbarkeit, Inhaltsmodus und Links vor dem eigentlichen Inhalt. 18/19 machen RoleId und den globalen Kontext prominent, während die aufgabenorientierte Erklärung zurücktritt. Die technische Information muss erhalten bleiben, ist aber derzeit nicht progressiv offengelegt. Siehe 15–19.
+15–17 führten Revision, Node-ID, Verfügbarkeit, Inhaltsmodus und Links vor dem eigentlichen Inhalt. 18/19 machen RoleId und den globalen Kontext prominent, während die aufgabenorientierte Erklärung zurücktritt. In 15–17 sind diese technischen Angaben nun unter „Technische Details“ progressiv offengelegt; die Information bleibt erhalten. Siehe 15–19.
 
 ### P1/P2 – Modus und Kontext sind implizit
 
-18 kennzeichnet Read-only verständlich, 19 leitet Working nur aus der sichtbaren Formular-/Aktionsfläche ab. Der globale Hinweis „Keine Rolle ausgewählt“ bleibt daneben stehen. 16/17 zeigen den Dirty-Hinweis, koppeln ihn aber nicht sichtbar an Speichern/Verwerfen. Das erhöht die kognitive Last, obwohl die bestehenden Zustände vorhanden sind.
+18 kennzeichnet Read-only verständlich, 19 leitet Working nur aus der sichtbaren Formular-/Aktionsfläche ab. Der globale Hinweis „Keine Rolle ausgewählt“ bleibt daneben stehen. In 15–17 ist der Arbeitsmodus am Node sichtbar; 16/17 führen den Dirty-Hinweis und Speichern im selben Inhaltsabschnitt. Transaktionsweites Verwerfen bleibt separat.
 
 ### P2 – Navigation, Suche und History als Folgearbeit
 
@@ -34,4 +40,7 @@ Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27` schließt die
 
 ## Nächster kleiner Slice
 
-M1.2-T1 stabilisiert nur die capture-seitige Sichtbarkeit und Assertions. M1.2-T2 adressiert anschließend den bestehenden Wissensarbeitsplatz/Editor. Erst der manuelle Re-Audit entscheidet, ob daraus weitere kleine Tasks entstehen.
+M1.2-T1 stabilisierte nur die capture-seitige Sichtbarkeit und Assertions.
+M1.2-T2 ist mit dem dokumentierten Re-Audit abgeschlossen. M1.3 bestätigt oder
+verwirft die Befunde anhand eines neuen manuellen Audits; Folgearbeit bleibt auf
+kleine, belegte Slices begrenzt.

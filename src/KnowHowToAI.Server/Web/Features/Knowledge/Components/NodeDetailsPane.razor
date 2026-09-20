@@ -7,25 +7,50 @@
                  IsLoading="@_isLoading"
                  ErrorMessage="@_errorMessage"
                  NodeNotFound="@_nodeNotFound"
-                 ShowContent="@ShowReadOnlyContent" />
-    @if (CanEditContent)
-    {
-        <ContentEditor NodeId="@_viewModel!.NodeId"
-                       RoleId="@_viewModel.RequestedRoleId"
-                       Markdown="@_viewModel.ContentMd"
-                       IsReadOnly="false"
-                       TransactionId="@TransactionId"
-                       ExpectedChangeVersion="@ChangeVersion"
-                       OnMutationSucceeded="HandleContentMutationSucceededAsync" />
-    }
+                 ShowContent="@ShowReadOnlyContent"
+                 IsWorking="@TransactionId.HasValue" />
     @if (_viewModel is not null && TransactionId.HasValue)
     {
-        <NodeMetadataEditor Node="@_viewModel"
-                            TransactionId="@TransactionId"
-                            ExpectedChangeVersion="@ChangeVersion"
-                            OnMutationSucceeded="HandleMutationSucceededAsync" />
-        <NodeDeletionEditor Node="@_viewModel"
-                            TransactionId="@TransactionId.Value"
-                            OnMutationSucceeded="HandleMutationSucceededAsync" />
+        <section class="node-workspace-section node-structure-section" aria-labelledby="node-structure-heading" data-testid="node-structure-section">
+            <header class="node-workspace-section__header">
+                <div>
+                    <h2 id="node-structure-heading">Struktur</h2>
+                    <p>Stammdaten und Children der ausgewählten Node.</p>
+                </div>
+            </header>
+            <NodeMetadataEditor Node="@_viewModel"
+                                TransactionId="@TransactionId"
+                                ExpectedChangeVersion="@ChangeVersion"
+                                OnMutationSucceeded="HandleMutationSucceededAsync" />
+        </section>
+    }
+
+    @if (CanEditContent)
+    {
+        <section class="node-workspace-section node-content-section" aria-labelledby="node-content-heading" data-testid="node-content-section">
+            <header class="node-workspace-section__header">
+                <div>
+                    <h2 id="node-content-heading">Inhalt bearbeiten</h2>
+                    <p>WYSIWYG und Markdown-Quelle bearbeiten denselben Inhalt.</p>
+                </div>
+            </header>
+            <ContentEditor NodeId="@_viewModel!.NodeId"
+                           RoleId="@_viewModel.RequestedRoleId"
+                           Markdown="@_viewModel.ContentMd"
+                           IsReadOnly="false"
+                           TransactionId="@TransactionId"
+                           ExpectedChangeVersion="@ChangeVersion"
+                           OnMutationSucceeded="HandleContentMutationSucceededAsync" />
+        </section>
+    }
+
+    @if (_viewModel is not null && TransactionId.HasValue)
+    {
+        <details class="node-workspace-advanced" data-testid="node-workspace-advanced">
+            <summary>Weitere Arbeitsbereich-Aktionen</summary>
+            <NodeDeletionEditor Node="@_viewModel"
+                                TransactionId="@TransactionId.Value"
+                                OnMutationSucceeded="HandleMutationSucceededAsync" />
+        </details>
     }
 </div>

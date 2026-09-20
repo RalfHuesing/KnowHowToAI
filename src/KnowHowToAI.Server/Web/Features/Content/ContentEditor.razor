@@ -6,7 +6,24 @@
          aria-label="Markdown-Inhalt"
          data-testid="content-editor"
          data-readonly="@IsReadOnly">
+    @if (!IsReadOnly)
+    {
+        <div class="content-editor__actions">
+            <span class="content-editor__status" role="status" aria-live="polite">
+                @(_isSaving ? "Wird gespeichert…" : _pasteWasReduced ? "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert." : WorkspaceState.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
+            </span>
+            <button type="button"
+                    class="btn btn-primary"
+                    data-testid="content-editor-save"
+                    disabled="@(_isSaving || !TransactionId.HasValue)"
+                    @onclick="SaveAsync">
+                Speichern
+            </button>
+        </div>
+    }
+
     <div class="content-editor__mode-switch" role="group" aria-label="Editor-Modus">
+        <span class="content-editor__mode-label">Ansicht:</span>
         <button type="button"
                 class="btn @(IsSourceMode ? "btn-secondary" : "btn-primary")"
                 data-testid="content-editor-mode-wysiwyg"
@@ -50,19 +67,4 @@
         </div>
     }
 
-    @if (!IsReadOnly)
-    {
-        <div class="content-editor__actions">
-            <span class="content-editor__status" role="status" aria-live="polite">
-                @(_isSaving ? "Wird gespeichert…" : _pasteWasReduced ? "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert." : WorkspaceState.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
-            </span>
-            <button type="button"
-                    class="btn btn-primary"
-                    data-testid="content-editor-save"
-                    disabled="@(_isSaving || !TransactionId.HasValue)"
-                    @onclick="SaveAsync">
-                Speichern
-            </button>
-        </div>
-    }
 </section>

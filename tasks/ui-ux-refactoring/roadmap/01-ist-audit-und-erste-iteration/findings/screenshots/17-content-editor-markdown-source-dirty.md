@@ -44,3 +44,12 @@ M1.2-T2, Editor-/Dirty-/Keyboard-Verträge und separater Transaction-Lifecycle f
 ## Audit-Lücken
 
 Keine.
+
+## Re-Audit nach M1.2-T2
+
+`temp/ui-audit/2026-09-20_20-05-26/17_content-editor-markdown-source-dirty_desktop_1280x800.png`
+
+Der Source-Modus führt dieselbe Inhaltsaufgabe wie WYSIWYG: Modusbezeichnung,
+Dirty-Status und Speichern bleiben gemeinsam sichtbar. Das native Textarea-
+Fokusverhalten und der bestehende Moduswechsel sind erhalten; transaktionsweites
+Verwerfen bleibt ausschließlich in der separaten Lifecycle-Navigation.

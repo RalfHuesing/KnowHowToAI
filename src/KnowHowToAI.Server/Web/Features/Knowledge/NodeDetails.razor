@@ -24,7 +24,13 @@ else if (ViewModel is not null)
 {
     <article class="node-details" data-testid="node-details" aria-label="@ViewModel.Title">
         <header class="node-details-header">
-            <h1 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h1>
+            <div class="node-details-heading-row">
+                <h1 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h1>
+                <span class="node-details-context node-details-context--@(IsWorking ? "working" : "readonly")"
+                      data-testid="node-details-context">
+                    @(IsWorking ? "Working" : "Nur lesen")
+                </span>
+            </div>
 
             @if (!string.IsNullOrWhiteSpace(ViewModel.Description))
             {
@@ -32,7 +38,8 @@ else if (ViewModel is not null)
             }
         </header>
 
-        <section class="node-details-meta" aria-label="Metadaten" data-testid="node-details-meta">
+        <details class="node-details-meta" data-testid="node-details-meta">
+            <summary>Technische Details</summary>
             <dl class="node-meta-list">
                 <div class="node-meta-item">
                     <dt>Rolle</dt>
@@ -89,7 +96,30 @@ else if (ViewModel is not null)
                     <dd class="node-meta-id" data-testid="node-details-node-id">@ViewModel.NodeId</dd>
                 </div>
             </dl>
-        </section>
+
+            @if (ViewModel.SourceRevisions.Count > 0)
+            {
+                <section class="node-details-provenance" aria-label="Quellrevisionen" data-testid="node-details-provenance">
+                    <h2 class="node-section-heading">Quellrevisionen (Derived)</h2>
+                    <ul class="node-provenance-list">
+                        @foreach (var rev in ViewModel.SourceRevisions)
+                        {
+                            <li class="node-provenance-item" data-testid="node-provenance-item">
+                                <span class="node-provenance-source">
+                                    Knoten <code>@rev.SourceNodeId.ToString("N")[..8]…</code>
+                                    Rolle <strong>@rev.SourceRoleId</strong>
+                                    Revision <code>@rev.SourceContentRevisionId.ToString("N")[..8]…</code>
+                                    <span class="node-meta-badge node-meta-badge--@rev.Freshness.ToLowerInvariant()"
+                                          data-testid="node-provenance-freshness">
+                                        Quelle: @MapFreshnessLabel(rev.Freshness)
+                                    </span>
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        </details>
 
         <a href="/history?nodeId=@ViewModel.NodeId" data-testid="node-details-history-link">Änderungshistorie dieses Knotens</a>
 
@@ -98,29 +128,6 @@ else if (ViewModel is not null)
             <a class="node-details-download" href="@MarkdownDownloadUrl" data-testid="node-details-markdown-download">
                 Teilbaum als Markdown herunterladen
             </a>
-        }
-
-        @if (ViewModel.SourceRevisions.Count > 0)
-        {
-            <section class="node-details-provenance" aria-label="Quellrevisionen" data-testid="node-details-provenance">
-                <h2 class="node-section-heading">Quellrevisionen (Derived)</h2>
-                <ul class="node-provenance-list">
-                    @foreach (var rev in ViewModel.SourceRevisions)
-                    {
-                        <li class="node-provenance-item" data-testid="node-provenance-item">
-                            <span class="node-provenance-source">
-                                Knoten <code>@rev.SourceNodeId.ToString("N")[..8]…</code>
-                                Rolle <strong>@rev.SourceRoleId</strong>
-                                Revision <code>@rev.SourceContentRevisionId.ToString("N")[..8]…</code>
-                                <span class="node-meta-badge node-meta-badge--@rev.Freshness.ToLowerInvariant()"
-                                      data-testid="node-provenance-freshness">
-                                    Quelle: @MapFreshnessLabel(rev.Freshness)
-                                </span>
-                            </span>
-                        </li>
-                    }
-                </ul>
-            </section>
         }
 
         @if (ShowContent)

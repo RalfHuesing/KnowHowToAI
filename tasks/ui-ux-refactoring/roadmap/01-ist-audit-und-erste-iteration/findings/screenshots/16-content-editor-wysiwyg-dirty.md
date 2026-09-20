@@ -44,3 +44,12 @@ M1.2-T2, Editor-/Dirty-/Working-Vertrag, Keyboard-Fokus, Transaction-Lifecycle f
 ## Audit-Lücken
 
 Keine.
+
+## Re-Audit nach M1.2-T2
+
+`temp/ui-audit/2026-09-20_20-05-26/16_content-editor-wysiwyg-dirty_desktop_1280x800.png`
+
+„Ungespeicherte Änderungen“ und die bestehende Speichern-Aktion stehen nun im
+selben sichtbaren Inhaltsabschnitt oberhalb der WYSIWYG-Fläche. Der Working-
+Kontext ist am Node verständlich markiert; technische Details verdrängen den
+Editor nicht mehr.

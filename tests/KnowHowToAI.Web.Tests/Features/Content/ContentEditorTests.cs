@@ -51,6 +51,24 @@ public sealed class ContentEditorTests : BunitContext
     }
 
     [Fact]
+    public void SaveAction_IsRenderedBeforeEditorSurface()
+    {
+        ConfigureLooseModule();
+        AddServices();
+        var cut = Render<ContentEditor>(parameters => parameters
+            .Add(editor => editor.NodeId, NodeId.Value)
+            .Add(editor => editor.RoleId, RoleId.Value)
+            .Add(editor => editor.Markdown, "Inhalt")
+            .Add(editor => editor.TransactionId, TransactionId)
+            .Add(editor => editor.ExpectedChangeVersion, 0L));
+
+        var markup = cut.Markup;
+        Assert.True(
+            markup.IndexOf("data-testid=\"content-editor-save\"", StringComparison.Ordinal)
+                < markup.IndexOf("data-testid=\"content-editor-surface\"", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task SaveKeepsDirtyStateAndEditorValueWhenServerRejectsMutation()
     {
         ConfigureLooseModule();
