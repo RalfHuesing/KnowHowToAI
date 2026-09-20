@@ -10,6 +10,7 @@ using KnowHowToAI.Core.Domain.Roles;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,8 +44,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
 
         var cut = Render<KnowledgeTree>();
         Assert.NotNull(cut.Find("[data-testid='tree-empty']"));
@@ -62,8 +62,7 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
 
@@ -94,8 +93,7 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
 
@@ -141,8 +139,7 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
@@ -194,8 +191,7 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         var treeState = new KnowledgeTreeState(service);
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
@@ -248,8 +244,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         harness.AddDependency(new ContentDependency(DefaultSnapshotId, staleId, DefaultRoleId, sourceId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid())));
 
         var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
@@ -310,8 +305,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         harness.AddNode(new Node(DefaultSnapshotId, targetId, rootId, "Ziel", null, 1, false));
 
         var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
@@ -336,8 +330,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         harness.AddNode(new Node(DefaultSnapshotId, targetId, rootId, "Ziel", null, 1, false));
 
         var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
-        Services.AddSingleton(treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(treeState);
+        Services.AddKnowledgeTreeWorkspace(treeState);
         await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 

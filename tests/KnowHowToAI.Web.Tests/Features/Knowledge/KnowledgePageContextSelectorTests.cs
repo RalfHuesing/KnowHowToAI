@@ -72,16 +72,13 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         _roleStorage = new InMemoryRoleStorageService("Developer");
         _contextSelector = new ContextSelectorState();
 
-        Services.AddSingleton(_navigationService);
-        Services.AddSingleton(_treeState);
-        Services.AddSingleton<IKnowledgeTreeWorkspace>(_treeState);
-        Services.AddSingleton(_workspaceState);
-        Services.AddSingleton(_pageRegions);
-        Services.AddSingleton(_contextResolver);
-        Services.AddSingleton<IRoleStorageService>(_roleStorage);
-        Services.AddSingleton(_contextSelector);
-        Services.AddSingleton<IContextSelectionCatalog, EmptyContextSelectionCatalog>();
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(_navigationService));
+        Services.AddWebPageStates(_pageRegions, _workspaceState, _contextSelector)
+            .AddSingleton(_navigationService)
+            .AddKnowledgeTreeWorkspace(_treeState)
+            .AddSingleton(_contextResolver)
+            .AddSingleton<IRoleStorageService>(_roleStorage)
+            .AddSingleton<IContextSelectionCatalog, EmptyContextSelectionCatalog>()
+            .AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(_navigationService));
 
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
