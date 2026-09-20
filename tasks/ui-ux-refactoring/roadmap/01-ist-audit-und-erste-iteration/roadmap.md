@@ -34,10 +34,13 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
 ## M1.5 – Moderne Detail- und Kontextführung
 
 M1.5 setzt die im Re-Audit belegten, rein visuellen Folgekorrekturen in der
-angegebenen Reihenfolge um. Jeder Leaf bleibt auf die vorhandenen Routen,
-Aktionen, Daten und Verträge beschränkt. Die letzte Harmonisierung ist wegen
-der disjunkten Verantwortungen in zwei Leaves geteilt.
+angegebenen Reihenfolge um. Der neue Shell-Befund erhält als dringendster
+Leaf die stabile ID T0; die bestehenden T1–T7 bleiben unverändert. Jeder Leaf
+bleibt auf die vorhandenen Routen, Aktionen, Daten und Verträge beschränkt.
+Die letzte Harmonisierung ist wegen der disjunkten Verantwortungen in zwei
+Leaves geteilt.
 
+- [ ] [M1.5-T0 – Dauerhafter Menübutton für die Shell-Navigation](tasks/M1.5-T0.md) – Desktop offen/schließen/wieder öffnen, kompakter Drawer bleibt erhalten; exakt vier bestehende Ziele.
 - [x] [M1.5-T1 – Capture 04 Shell/Header-Präsenz deterministisch absichern](tasks/M1.5-T1.md) – Test-only; der Capture darf Produktzustände weder kaschieren noch erzeugen.
 - [ ] [M1.5-T2 – ContextSelector als moderne AppDialog-Oberfläche](tasks/M1.5-T2.md) – Zustand 02, Darstellung passend zu 13/14; keine Dialogsemantik ändern.
 - [ ] [M1.5-T3 – Read-only Knowledge Detail vor History/Download führen](tasks/M1.5-T3.md) – Zustände 04/05; Inhalt/Fallback vor bestehenden sekundären Links, Funktionen unverändert.
@@ -62,4 +65,4 @@ fachlichen Entscheidung geplant.
 
 ## Abschlusskriterien
 
-M1.1 ist mit den 20 Befunddateien und der Synthese abgeschlossen. M1.2 gilt nach gezieltem Testlauf, visueller Prüfung und dokumentiertem Vergleich als abgeschlossen. M1.3 ist mit dem Lauf `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen. M1.4 ist nach sieben Leaf-Abnahmen und dem begrenzten Re-Audit `temp/ui-audit/2026-09-20_21-35-15` abgeschlossen. M1.5 wird nach den sieben Leaf-Abnahmen und einem begrenzten Re-Audit geschlossen.
+M1.1 ist mit den 20 Befunddateien und der Synthese abgeschlossen. M1.2 gilt nach gezieltem Testlauf, visueller Prüfung und dokumentiertem Vergleich als abgeschlossen. M1.3 ist mit dem Lauf `temp/ui-audit/2026-09-20_20-05-26` abgeschlossen. M1.4 ist nach sieben Leaf-Abnahmen und dem begrenzten Re-Audit `temp/ui-audit/2026-09-20_21-35-15` abgeschlossen. M1.5 wird nach den acht Leaf-Abnahmen und einem begrenzten Re-Audit geschlossen.

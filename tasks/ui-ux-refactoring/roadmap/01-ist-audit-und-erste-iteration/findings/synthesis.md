@@ -148,22 +148,31 @@ Produktdateien, Routen, Capture-Namen und Manifestformat blieben unverändert.
 
 M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:
 
-1. Capture 04 erhält deterministische Shell-/Header-Wartebedingungen und
+1. **Dringender Shell-Befund:** Die aktuelle Implementierung rendert den
+   Header-Toggle nur in `_isCompactMode`, während `PrimaryNavigation` auf
+   Desktop den eigenen Textbutton „Navigation schließen“ rendert. Nach dem
+   Schließen gibt es auf Desktop keinen sichtbaren Wiederöffnungsweg. Zusätzlich
+   sind „Navigation“, „Arbeitsbereiche“ und der Close-Text redundant. M1.5-T0
+   führt einen dauerhaften Menübutton oben links in der App-Leiste mit
+   zugänglichem Zustandsnamen ein, hält Desktop standardmäßig offen, gibt beim
+   Schließen dem Hauptinhalt Platz frei und erhält den kompakten Drawer/Overlay.
+   Red-Test-first und die vier bestehenden Routen sind verbindlich.
+2. Capture 04 erhält deterministische Shell-/Header-Wartebedingungen und
    Assertions im Test. Der Runner darf Produktzustände weder erzeugen noch
    kaschieren.
-2. Zustand 02 erhält die gemeinsame moderne `AppDialog`-Oberfläche von 13/14;
+3. Zustand 02 erhält die gemeinsame moderne `AppDialog`-Oberfläche von 13/14;
    die Dialogsemantik bleibt unverändert.
-3. In den Read-only-Detailzuständen 04/05 stehen Inhalt beziehungsweise die
+4. In den Read-only-Detailzuständen 04/05 stehen Inhalt beziehungsweise die
    fachliche Fallback-Einordnung vor den bestehenden sekundären History- und
    Download-Links; Links und Funktionen bleiben erhalten.
-4. Die `KnowledgeContextBar` segmentiert Snapshot, Bereich und Working-
+5. Die `KnowledgeContextBar` segmentiert Snapshot, Bereich und Working-
    Transaction sichtbar, ohne Read-Context-Verträge oder Routen anzutasten.
-5. History 08/09 führt die vorhandene Ausgang/Ziel-Auswahl und den
+6. History 08/09 führt die vorhandene Ausgang/Ziel-Auswahl und den
    Vergleichskontext. Technische IDs bleiben progressiv und sekundär; die
    Auswahl- und Diff-Logik wird nicht geändert.
-6. Die sichtbaren Suchbegriffe `Freshness` und `Findings` werden in einem
+7. Die sichtbaren Suchbegriffe `Freshness` und `Findings` werden in einem
    eigenen kleinen Leaf deutsch benannt.
-7. Das offene-Transaction-Grid wird in einem eigenen kleinen Leaf als
+8. Das offene-Transaction-Grid wird in einem eigenen kleinen Leaf als
    Ein-Karten-Grid ohne leere Spalte harmonisiert; Karten, Routen und Aktionen
    bleiben unverändert.
 

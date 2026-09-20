@@ -22,7 +22,7 @@ Zielgruppe sind Support-Mitarbeitende und Consultants. Die Oberfläche soll clea
 - **M1.2-T2:** den bestehenden Wissensarbeitsplatz und Editor so ordnen, dass der erste Viewport die bestehende Aufgabe, den Modus und das Speichern verständlich führt.
 - **M1.3:** manueller Re-Audit mit Manifest und 20 Captures. Der Lauf ist abgeschlossen: 03 bestätigt den Root, 09 den Snapshot-Diff und 20 den bestehenden Löschdialog. M1.2 ist damit abgenommen.
 - **M1.4:** zuerst die Transaktionszustände 11, 12 und 13/14; danach der neue Navigation-Leaf M1.4-T7; anschließend Suche 07, Dashboard 01 und die fachlich sichere Microcopy für 02/05. Die bereits vergebenen IDs T4–T6 bleiben stabil, werden aber erst nach T7 ausgeführt. Jeder Leaf bleibt auf vorhandene Ziele, Aktionen und Verträge beschränkt.
-- **M1.5:** der Re-Audit `temp/ui-audit/2026-09-20_21-35-15` ist die Evidenzbasis. Zuerst wird die Capture-Präsenz von Shell/Header in Zustand 04 ausschließlich im Test deterministisch abgesichert. Danach folgen ContextSelector 02, Knowledge Detail 04/05, die segmentierte KnowledgeContextBar und History 08/09. Die unabhängige Schluss-Harmonisierung ist in Suchbegriffe (T6) und Transaction-Grid (T7) geteilt. Die Reihenfolge ist verbindlich; Routen, Daten, Aktionen und Verträge bleiben unverändert.
+- **M1.5:** der Re-Audit `temp/ui-audit/2026-09-20_21-35-15` ist die Evidenzbasis. Der bestätigte Shell-Codebefund erhält als dringenden ersten Leaf T0: dauerhafter Menübutton, Desktop schließen/wieder öffnen und kompakter Drawer ohne Funktionsverlust. Danach wird die Capture-Präsenz von Shell/Header in Zustand 04 ausschließlich im Test deterministisch abgesichert; es folgen ContextSelector 02, Knowledge Detail 04/05, die segmentierte KnowledgeContextBar und History 08/09. Die unabhängige Schluss-Harmonisierung ist in Suchbegriffe (T6) und Transaction-Grid (T7) geteilt. Die Reihenfolge ist verbindlich; Routen, Daten, Aktionen und Verträge bleiben unverändert.
 
 ## M1.4-Entscheidungsgrenzen
 
@@ -37,6 +37,14 @@ Zielgruppe sind Support-Mitarbeitende und Consultants. Die Oberfläche soll clea
 - Nicht freigegeben: `RolesPage.razor.cs` und Rollen-Verwaltung; sie bleiben ein separater Out-of-scope-Task. Die P2-Befunde 15–17 bleiben im Backlog.
 - Neu zu bewerten: konkrete Abstände, Reihenfolge innerhalb des bestehenden Arbeitsabschnitts und Formulierung, sofern Fachbedeutung und Verträge unverändert bleiben. Bei einer nötigen Vertragsänderung stoppt der Ausführer und eskaliert.
 
+## M1.5-Entscheidungsgrenzen
+
+- **Verbindlich:** Der Menübutton steht in der App-Leiste oben links, ist in allen Breiten sichtbar, verwendet ein gängiges Drei-Linien-Symbol und einen zugänglichen Namen mit dem aktuellen Zustand. Desktop startet mit geöffneter Sidebar; Schließen gibt dem Hauptinhalt den frei gewordenen Platz, und derselbe Button öffnet wieder.
+- **Verbindlich:** In kompakter Breite bleibt die Navigation ein Drawer/Overlay. Die vier bestehenden Ziele Start (`/`), Suche (`/search`), Transactions (`/transactions`) und Rollen (`/roles`) bleiben exakt erhalten.
+- **Verbindlich:** Der redundante interne Navigationstitel, die Beschreibung „Arbeitsbereiche“ und der Textbutton „Navigation schließen“ werden entfernt oder auf eine nicht redundante kompakte Steuerung reduziert. Die bestehende native Bediensemantik darf ohne Zusatzaufwand erhalten bleiben; Tastatur ist kein eigenes Produktziel.
+- **Verbindlich:** Red-Test-first: Zuerst schlagen Browser-/Layouttests für Desktop Schließen und anschließendes Wiederöffnen fehl; danach wird die minimale Shell-/Navigation-Änderung umgesetzt und die responsive Regression geprüft.
+- **Nicht freigegeben:** neue Routen, Ziele, Navigationslogik, Rollen-/Berechtigungsbedeutung, Overlay-Verträge oder eigene Keyboard-Abnahme.
+
 ## Entscheidungsgrenze
 
 Aktuell blockiert keine Nutzerentscheidung. Normale visuelle Detailentscheidungen (Abstände, Reihenfolge, Beschriftung innerhalb der Leitplanken) trifft die Umsetzung anhand der Evidenz. Eine neue Nutzerentscheidung ist nur erforderlich, wenn Fachbedeutung, destruktives Verhalten oder ein bestehender Vertrag verändert würde.
@@ -45,7 +53,10 @@ Aktuell blockiert keine Nutzerentscheidung. Normale visuelle Detailentscheidunge
 
 M1.1 und dieses Planungsupdate sind Doku-only-Slices: Struktur-/Linkprüfung und `git diff --check`, kein Produkt- oder Testcode. M1.2-T1 nutzt den bestehenden on-demand UiAudit-Runner und normale Skip-/Filterverträge; M1.2-T2 ergänzt nur risikogerechte bestehende Browser-/Komponententests. M1.4 nutzt je Leaf den kleinsten betroffenen Komponententest-/Browserfilter plus den passenden 1280×800-Capture; kein vollständiger visueller Umbau, keine eigenen Keyboard-Tests und kein ungezielter Volltest als Leaf-Voraussetzung. Bestehende native Tastatur-/Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, blockiert aber keinen Slice. Auditbilder werden bei Bedarf neu erzeugt, aber nicht committed.
 
-Für M1.5 gilt dasselbe kleinste Testbudget: T1 ergänzt nur deterministische
+Für M1.5 gilt dasselbe kleinste Testbudget: T0 beginnt mit einem gezielt roten
+Desktop-Browser-/Layouttest für Schließen und Wiederöffnen und prüft danach die
+kompakte Responsive-Regression; eigene Keyboard-Tests sind nicht erforderlich.
+T1 ergänzt nur deterministische
 Browser-/UiAudit-Wartebedingungen und Assertions; keine Produkt- oder CSS-
 Änderung im Capture-Leaf. T2–T7 verwenden je Leaf den kleinsten betroffenen
 Web-Komponenten-/Browserfilter und den jeweils genannten 1280×800-Zustand;
