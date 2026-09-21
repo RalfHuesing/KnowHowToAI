@@ -15,6 +15,6 @@ public sealed record McpSearchHitData(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Snippet,
     [property: JsonPropertyName("hitField")] string HitField,
     [property: JsonPropertyName("availability")] string Availability,
-    [property: JsonPropertyName("resolvedRole")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ResolvedRole,
+    [property: JsonPropertyName("resolvedAudienceId")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ResolvedAudienceId,
     [property: JsonPropertyName("freshness")] string Freshness);

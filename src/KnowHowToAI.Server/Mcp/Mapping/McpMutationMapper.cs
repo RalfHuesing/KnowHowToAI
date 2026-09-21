@@ -8,13 +8,13 @@ using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Content;
 using KnowHowToAI.Server.Mcp.Contracts.Mutations.Nodes;
-using KnowHowToAI.Server.Mcp.Contracts.Mutations.Roles;
+using KnowHowToAI.Server.Mcp.Contracts.Mutations.Audiences;
 using KnowHowToAI.Server.Mcp.Contracts.Navigation;
 
 namespace KnowHowToAI.Server.Mcp.Mapping;
 
 /// <summary>
-/// Bildet die transportneutralen Ergebnisse der Node-, Content- und Rollen-Mutationen
+/// Bildet die transportneutralen Ergebnisse der Node-, Content- und Zielgruppen-Mutationen
 /// auf den gemeinsamen MCP-Antwort-Envelope und die Mutations-DTOs ab.
 /// Enthält keine Fachlogik.
 /// </summary>
@@ -52,18 +52,18 @@ internal static class McpMutationMapper
             : McpToolEnvelope<McpNodeMutationData>.Failure(content.Error!, warnings);
     }
 
-    public static McpToolEnvelope<McpRoleData> ToRoleMutationEnvelope(Result<AudienceMutationResult> result) =>
+    public static McpToolEnvelope<McpAudienceData> ToAudienceMutationEnvelope(Result<AudienceMutationResult> result) =>
         result.IsSuccess
-            ? McpToolEnvelope<McpRoleData>.Success(ToRoleData(result.Value!))
-            : McpToolEnvelope<McpRoleData>.Failure(result.Error!, MapWarnings(result));
+            ? McpToolEnvelope<McpAudienceData>.Success(ToAudienceData(result.Value!))
+            : McpToolEnvelope<McpAudienceData>.Failure(result.Error!, MapWarnings(result));
 
-    public static McpToolEnvelope<McpRoleResolutionData> ToRoleResolutionMutationEnvelope(
+    public static McpToolEnvelope<McpAudienceResolutionData> ToAudienceResolutionMutationEnvelope(
         Result<AudienceResolutionMutationResult> result)
     {
         var warnings = MapWarnings(result);
         return result.IsSuccess
-            ? McpToolEnvelope<McpRoleResolutionData>.Success(ToResolutionData(result.Value!), warnings)
-            : McpToolEnvelope<McpRoleResolutionData>.Failure(result.Error!, warnings);
+            ? McpToolEnvelope<McpAudienceResolutionData>.Success(ToResolutionData(result.Value!), warnings)
+            : McpToolEnvelope<McpAudienceResolutionData>.Failure(result.Error!, warnings);
     }
 
     /// <summary>
@@ -110,10 +110,10 @@ internal static class McpMutationMapper
 
     private static Result<ContentDependencySource> ParseSource(McpContentSourceData source)
     {
-        if (string.IsNullOrWhiteSpace(source.RoleId))
+        if (string.IsNullOrWhiteSpace(source.AudienceId))
         {
             return Result<ContentDependencySource>.Failure(CreateInvalidSourceError(
-                DependencyErrorCodes.SourceAudienceIdDetail, source.RoleId ?? string.Empty));
+                DependencyErrorCodes.SourceAudienceIdDetail, source.AudienceId ?? string.Empty));
         }
 
         if (!Guid.TryParseExact(source.NodeId, "D", out var sourceNodeId))
@@ -130,7 +130,7 @@ internal static class McpMutationMapper
 
         return Result<ContentDependencySource>.Success(new ContentDependencySource(
             new NodeId(sourceNodeId),
-            new AudienceId(source.RoleId),
+            new AudienceId(source.AudienceId),
             new ContentRevisionId(revisionId)));
     }
 
@@ -168,16 +168,16 @@ internal static class McpMutationMapper
         result.SnapshotId.ToString(),
         result.ChangeVersion);
 
-    private static McpRoleData ToRoleData(AudienceMutationResult result) => new(
+    private static McpAudienceData ToAudienceData(AudienceMutationResult result) => new(
         result.Audience.AudienceId.ToString(),
         result.Audience.Name,
         result.Audience.Description,
         result.SnapshotId.ToString(),
         result.ChangeVersion);
 
-    private static McpRoleResolutionData ToResolutionData(AudienceResolutionMutationResult result) => new(
+    private static McpAudienceResolutionData ToResolutionData(AudienceResolutionMutationResult result) => new(
         result.RequestedAudienceId.ToString(),
-        result.Resolutions.Select(static resolution => new McpRoleResolutionItemData(
+        result.Resolutions.Select(static resolution => new McpAudienceResolutionItemData(
             resolution.CandidateAudienceId.ToString(),
             resolution.Priority)).ToArray(),
         result.SnapshotId.ToString(),

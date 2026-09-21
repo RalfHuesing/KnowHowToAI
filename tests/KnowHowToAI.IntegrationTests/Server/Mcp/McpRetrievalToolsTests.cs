@@ -22,7 +22,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 public sealed class McpRetrievalToolsTests
 {
     private static readonly SnapshotId CurrentSnapshotId = new(100);
-    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
     private static readonly NodeId RootId = new(Guid.Parse("40000000-0000-0000-0000-000000000000"));
     private static readonly NodeId ChildId = new(Guid.Parse("40000000-0000-0000-0000-000000000001"));
     private static readonly NodeId UnknownNodeId = new(Guid.Parse("40000000-0000-0000-0000-000000009999"));
@@ -114,18 +114,18 @@ public sealed class McpRetrievalToolsTests
     }
 
     [Fact]
-    public async Task Search_UnknownRole_ReturnsStableRoleErrorEnvelope()
+    public async Task Search_UnknownAudience_ReturnsStableAudienceErrorEnvelope()
     {
         var repository = new ScriptedRetrievalRepository { Response = SearchResponse(TwoHits()) };
         var tools = CreateSearchTools(repository);
 
-        var envelope = await tools.Search("Auftrag", roleId: "Nonexistent");
+        var envelope = await tools.Search("Auftrag", audienceId: "Nonexistent");
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal("RequestedRoleNotFound", envelope.Code);
+        Assert.Equal("RequestedAudienceNotFound", envelope.Code);
         Assert.Equal(
             "Nonexistent",
-            envelope.Details!["requestedRoleId"]);
+            envelope.Details!["requestedAudienceId"]);
         Assert.Null(envelope.Data);
     }
 
@@ -149,7 +149,7 @@ public sealed class McpRetrievalToolsTests
         var harness = CreateExportHarness(withContent: true, chainLength: 2);
         var tools = CreateExportTools(harness);
 
-        var envelope = await tools.ExportTree(RootId.ToString(), RoleDeveloper.Value);
+        var envelope = await tools.ExportTree(RootId.ToString(), AudienceDeveloper.Value);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(
@@ -164,7 +164,7 @@ public sealed class McpRetrievalToolsTests
         var harness = CreateExportHarness(withContent: true, chainLength: 7);
         var tools = CreateExportTools(harness);
 
-        var envelope = await tools.ExportTree(RootId.ToString(), RoleDeveloper.Value);
+        var envelope = await tools.ExportTree(RootId.ToString(), AudienceDeveloper.Value);
 
         Assert.True(envelope.IsSuccess);
         var warning = Assert.Single(envelope.Warnings!);
@@ -178,7 +178,7 @@ public sealed class McpRetrievalToolsTests
         var harness = CreateExportHarness(withContent: false, chainLength: 1);
         var tools = CreateExportTools(harness);
 
-        var envelope = await tools.ExportTree(RootId.ToString(), RoleDeveloper.Value);
+        var envelope = await tools.ExportTree(RootId.ToString(), AudienceDeveloper.Value);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(string.Empty, envelope.Data!.Markdown);
@@ -191,7 +191,7 @@ public sealed class McpRetrievalToolsTests
         var harness = CreateExportHarness(withContent: true, chainLength: 1);
         var tools = CreateExportTools(harness);
 
-        var envelope = await tools.ExportTree(UnknownNodeId.ToString(), RoleDeveloper.Value);
+        var envelope = await tools.ExportTree(UnknownNodeId.ToString(), AudienceDeveloper.Value);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(NavigationErrorCodes.NodeNotFound, envelope.Code);
@@ -207,7 +207,7 @@ public sealed class McpRetrievalToolsTests
         var harness = CreateExportHarness(withContent: true, chainLength: 1);
         var tools = CreateExportTools(harness);
 
-        var envelope = await tools.ExportTree(rawNodeId, RoleDeveloper.Value);
+        var envelope = await tools.ExportTree(rawNodeId, AudienceDeveloper.Value);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(NavigationErrorCodes.InvalidNodeId, envelope.Code);
@@ -222,7 +222,7 @@ public sealed class McpRetrievalToolsTests
 
         var envelope = await tools.ExportTree(
             RootId.ToString(),
-            RoleDeveloper.Value,
+            AudienceDeveloper.Value,
             transactionId: "0d0b1f5a-4e12-4c1e-9f31-5d3e2a8d7b90",
             snapshotId: "100");
 
@@ -238,7 +238,7 @@ public sealed class McpRetrievalToolsTests
             Response = SearchResponse(TwoHits())
         }).Search("Auftrag");
         var exportEnvelope = await CreateExportTools(CreateExportHarness(withContent: true, chainLength: 2))
-            .ExportTree(RootId.ToString(), RoleDeveloper.Value);
+            .ExportTree(RootId.ToString(), AudienceDeveloper.Value);
 
         var searchJson = JsonSerializer.Serialize(searchEnvelope);
         var exportJson = JsonSerializer.Serialize(exportEnvelope);
@@ -298,7 +298,7 @@ public sealed class McpRetrievalToolsTests
             if (withContent)
             {
                 harness.AddContent(new NodeContent(
-                    CurrentSnapshotId, nodeId, RoleDeveloper,
+                    CurrentSnapshotId, nodeId, AudienceDeveloper,
                     new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent,
                     depth == 1 ? "Inhalt Hauptkapitel." : $"Inhalt Unterabschnitt {depth}.", false));
             }
@@ -316,10 +316,10 @@ public sealed class McpRetrievalToolsTests
     [
         new SearchHit(
             RootId, "Auftragserfassung", "Aufträge erfassen.", null,
-            "Title", Availability.Explicit, RoleDeveloper, Freshness.Current, SortOrder: 1),
+            "Title", Availability.Explicit, AudienceDeveloper, Freshness.Current, SortOrder: 1),
         new SearchHit(
             ChildId, "Preisfindung", "Berechnung von Preisen.", "... Auftrag ...",
-            "Content", Availability.Explicit, RoleDeveloper, Freshness.Current, SortOrder: 2)
+            "Content", Availability.Explicit, AudienceDeveloper, Freshness.Current, SortOrder: 2)
     ];
 
     private static SearchHit[] FiveHits() =>

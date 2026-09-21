@@ -118,14 +118,14 @@ internal static class McpHistoryMapper
         foreach (var e in diff.Audiences)
         {
             var side = e.After ?? e.Before;
-            entries.Add(new McpDiffEntryData(e.Kind.ToString(), "role", side!.AudienceId.ToString()));
+            entries.Add(new McpDiffEntryData(e.Kind.ToString(), "audience", side!.AudienceId.ToString()));
         }
 
         foreach (var e in diff.AudienceResolutions)
         {
             var side = e.After ?? e.Before;
             entries.Add(new McpDiffEntryData(
-                e.Kind.ToString(), "roleResolution",
+                e.Kind.ToString(), "audienceResolution",
                 side!.RequestedAudienceId.ToString(),
                 side.CandidateAudienceId.ToString()));
         }

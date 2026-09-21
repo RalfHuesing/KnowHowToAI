@@ -236,21 +236,21 @@ public sealed class HistoryReadParityTests : BunitContext
         Assert.Equal(nodeId.Value.ToString("D"), mcpNode.Id);
         Assert.Equal(nodeId.Value.ToString("D"), uiNode.PrimaryId);
 
-        // 2. Role (Added)
-        var mcpRole = Assert.Single(mcpData.Items, e => e.EntityType == "role");
+        // 2. Audience (Added)
+        var mcpRole = Assert.Single(mcpData.Items, e => e.EntityType == "audience");
         var uiRole = Assert.Single(uiVm.Entries, e => e.EntityType == "Role");
         Assert.Equal("Added", mcpRole.Kind);
         Assert.Equal("Added", uiRole.Kind);
         Assert.Equal(roleAdmin.Value, mcpRole.Id);
         Assert.Equal(roleAdmin.Value, uiRole.PrimaryId);
 
-        // 3. RoleResolution (Modified)
-        var mcpRes = Assert.Single(mcpData.Items, e => e.EntityType == "roleResolution");
+        // 3. AudienceResolution (Modified)
+        var mcpRes = Assert.Single(mcpData.Items, e => e.EntityType == "audienceResolution");
         var uiRes = Assert.Single(uiVm.Entries, e => e.EntityType == "RoleResolution");
         Assert.Equal("Modified", mcpRes.Kind);
         Assert.Equal("Modified", uiRes.Kind);
         Assert.Equal(roleDeveloper.Value, mcpRes.Id);
-        Assert.Equal(roleAdmin.Value, mcpRes.RoleId);
+        Assert.Equal(roleAdmin.Value, mcpRes.AudienceId);
         Assert.Equal(roleDeveloper.Value, uiRes.PrimaryId);
         Assert.Equal(roleAdmin.Value, uiRes.SecondaryId);
         Assert.Contains(roleDeveloper.Value, uiRes.Detail);
@@ -262,7 +262,7 @@ public sealed class HistoryReadParityTests : BunitContext
         Assert.Equal("Modified", mcpContent.Kind);
         Assert.Equal("Modified", uiContent.Kind);
         Assert.Equal(nodeId.Value.ToString("D"), mcpContent.Id);
-        Assert.Equal(roleDeveloper.Value, mcpContent.RoleId);
+        Assert.Equal(roleDeveloper.Value, mcpContent.AudienceId);
         Assert.Equal(nodeId.Value.ToString("D"), uiContent.PrimaryId);
         Assert.Equal(roleDeveloper.Value, uiContent.SecondaryId);
 
@@ -272,7 +272,7 @@ public sealed class HistoryReadParityTests : BunitContext
         Assert.Equal("Deleted", mcpDep.Kind);
         Assert.Equal("Deleted", uiDep.Kind);
         Assert.Equal(nodeId.Value.ToString("D"), mcpDep.Id);
-        Assert.Equal(roleDeveloper.Value, mcpDep.RoleId);
+        Assert.Equal(roleDeveloper.Value, mcpDep.AudienceId);
         Assert.Equal(nodeId.Value.ToString("D"), uiDep.PrimaryId);
         Assert.Equal(nodeId.Value.ToString("D"), uiDep.SecondaryId);
     }

@@ -117,7 +117,10 @@ Kompilationen in `KnowHowToAI.Analyzers.Tests` geprüft.
 Validatoren, Redaction), `Hosting` (Composition Root, DI, Kestrel-Start,
 kontrollierter Shutdown, `DummyCurrentUserService`), `Mcp.Contracts.*` (Request-/Response-DTOs je Toolgruppe),
 `Mcp.Tools.*` (dünne Handler), `Mcp.Mapping` (ausschließlich
-Transport-/Result-Mapping), `Web.Components` (Shell, Router, Layout,
+Transport-/Result-Mapping; die MCP-Audience-Verträge liegen in den
+Audience-DTOs und den ausschließlich `list_audiences`, `create_audience`,
+`update_audience`, `delete_audience` und `set_audience_resolution` benannten
+Handlern), `Web.Components` (Shell, Router, Layout,
 zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 `Web/Components/Shared/Dialogs` (nativer Dialog-Wrapper `AppDialog` mit
 schmaler JS-Isolation in `AppDialog.razor.js` und `ConfirmationDialog`),

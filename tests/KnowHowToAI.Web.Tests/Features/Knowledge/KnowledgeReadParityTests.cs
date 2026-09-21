@@ -86,13 +86,13 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         Assert.Equal(mcp.Title, cut.Find("[data-testid='node-details-title']").TextContent.Trim());
         Assert.Contains(mcp.Description!, cut.Find("[data-testid='node-details-description']").TextContent, StringComparison.Ordinal);
-        Assert.Contains(mcp.RequestedRole, cut.Find("[data-testid='node-details-role']").TextContent, StringComparison.Ordinal);
+        Assert.Contains(mcp.RequestedAudienceId, cut.Find("[data-testid='node-details-role']").TextContent, StringComparison.Ordinal);
         Assert.Contains(mcp.Content!, cut.Find("[data-testid='node-details-content']").TextContent, StringComparison.Ordinal);
         var mcpSource = Assert.Single(mcp.SourceRevisions!);
         var provenance = cut.Find("[data-testid='node-provenance-item']").TextContent;
         Assert.Contains(mcpSource.SourceNodeId.Replace("-", string.Empty, StringComparison.Ordinal)[..8], provenance, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(mcpSource.SourceContentRevisionId.Replace("-", string.Empty, StringComparison.Ordinal)[..8], provenance, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains(mcpSource.SourceRoleId, provenance, StringComparison.Ordinal);
+        Assert.Contains(mcpSource.SourceAudienceId, provenance, StringComparison.Ordinal);
         Assert.Contains("Quelle: Aktuell", provenance, StringComparison.Ordinal);
     }
 
@@ -143,8 +143,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Assert.Equal(mcpData.Title, uiVm.Title);
         Assert.Equal(mcpData.Description, uiVm.Description);
         Assert.Equal(mcpData.SortOrder, uiVm.SortOrder);
-        Assert.Equal(mcpData.RequestedRole, uiVm.RequestedRoleId);
-        Assert.Equal(mcpData.ResolvedRole, uiVm.ResolvedRoleId);
+        Assert.Equal(mcpData.RequestedAudienceId, uiVm.RequestedRoleId);
+        Assert.Equal(mcpData.ResolvedAudienceId, uiVm.ResolvedRoleId);
         Assert.Equal(mcpData.FallbackUsed, uiVm.FallbackUsed);
         Assert.Equal(mcpData.Availability, uiVm.Availability);
         Assert.Equal(mcpData.Freshness, uiVm.Freshness);
@@ -206,9 +206,9 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var uiVm = KnowledgeNavigationMapper.ToNodeDetailsViewModel(nodeWithContent)!;
 
         // Beide Transportsysteme müssen den Fallback konsistent ausweisen
-        Assert.Equal(mcpData(mcpEnvelope).RequestedRole, uiVm.RequestedRoleId);
+        Assert.Equal(mcpData(mcpEnvelope).RequestedAudienceId, uiVm.RequestedRoleId);
         Assert.Equal("Developer", uiVm.RequestedRoleId);
-        Assert.Equal(mcpData(mcpEnvelope).ResolvedRole, uiVm.ResolvedRoleId);
+        Assert.Equal(mcpData(mcpEnvelope).ResolvedAudienceId, uiVm.ResolvedRoleId);
         Assert.Equal("Default", uiVm.ResolvedRoleId);
         Assert.True(mcpData(mcpEnvelope).FallbackUsed);
         Assert.True(uiVm.FallbackUsed);
@@ -285,7 +285,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var mcpSource = Assert.Single(mcp.SourceRevisions!);
         var uiSource = Assert.Single(ui.SourceRevisions);
         Assert.Equal(mcpSource.SourceNodeId, uiSource.SourceNodeId.ToString("D"));
-        Assert.Equal(mcpSource.SourceRoleId, uiSource.SourceRoleId);
+        Assert.Equal(mcpSource.SourceAudienceId, uiSource.SourceRoleId);
         Assert.Equal(mcpSource.SourceContentRevisionId, uiSource.SourceContentRevisionId.ToString("D"));
         Assert.Equal(mcpSource.Freshness, uiSource.Freshness);
     }
@@ -310,7 +310,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         Assert.Equal("None", mcpEnvelope.Data!.Availability);
         Assert.Equal("None", uiVm.Availability);
-        Assert.Null(mcpEnvelope.Data.ResolvedRole);
+        Assert.Null(mcpEnvelope.Data.ResolvedAudienceId);
         Assert.Null(uiVm.ResolvedRoleId);
         Assert.Null(mcpEnvelope.Data.Content);
         Assert.Null(uiVm.ContentMd);
@@ -370,7 +370,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
             Assert.Equal(mcpChild.ChildCount, uiChild.ChildCount);
             Assert.Equal(mcpChild.ContentSizeBytes, uiChild.ContentSizeBytes);
             Assert.Equal(mcpChild.Availability, uiChild.Availability);
-            Assert.Equal(mcpChild.ResolvedRole, uiChild.ResolvedRoleId);
+            Assert.Equal(mcpChild.ResolvedAudienceId, uiChild.ResolvedRoleId);
             Assert.Equal(mcpChild.Freshness, uiChild.Freshness);
             Assert.Equal(mcpChild.Findings ?? [], uiChild.Findings ?? []);
         }

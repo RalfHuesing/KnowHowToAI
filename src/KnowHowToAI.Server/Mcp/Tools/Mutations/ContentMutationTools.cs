@@ -22,19 +22,19 @@ internal sealed class ContentMutationTools
         _contentMutationService = contentMutationService ?? throw new ArgumentNullException(nameof(contentMutationService));
 
     [McpServerTool(Name = "replace_content", Destructive = false, Idempotent = false, OpenWorld = false)]
-    [Description("Ersetzt oder legt den expliziten Rollen-Content einer Node vollständig an; " +
+    [Description("Ersetzt oder legt den expliziten Zielgruppen-Content einer Node vollständig an; " +
         "bei Derived werden die Source-Revisions unter sources übergeben. Überschriften sind " +
         "in contentMd verboten (HeadingNotAllowed) — Gliederung über Listen und Fließtext; " +
         "freistehende fette Ersatztitel lösen die Warnung PossibleEmbeddedHeading aus (kein Fehler).")]
     public async Task<McpToolEnvelope<McpContentMutationData>> ReplaceContent(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
-        [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Angefragte Zielgruppe (audienceId aus list_audiences).")] string audienceId,
         [Description("Content-Modus: exakt 'Independent' oder 'Derived'.")] string contentMode,
         [Description("Vollständiger Markdown-Inhalt ohne Überschriften; Gliederung über Listen " +
             "und Fließtext, Ersatztitel ggf. als freistehender Fettabsatz (Warnung PossibleEmbeddedHeading).")] string contentMd,
         [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long expectedChangeVersion,
-        [Description("Optionale Source-Revisions für Derived Content (je nodeId, roleId, contentRevisionId).")] McpContentSourceData[]? sources = null,
+        [Description("Optionale Source-Revisions für Derived Content (je nodeId, audienceId, contentRevisionId).")] McpContentSourceData[]? sources = null,
         CancellationToken cancellationToken = default)
     {
         var parsedTransactionId = McpTransactionMapper.ParseTransactionId(transactionId);
@@ -53,7 +53,7 @@ internal sealed class ContentMutationTools
 
         var request = new ReplaceContentRequest(
             parsedNodeId.Value!.Value,
-            new AudienceId(roleId),
+            new AudienceId(audienceId),
             parsedContentMode.Value,
             contentMd,
             parsedSources.Value!,
@@ -64,12 +64,12 @@ internal sealed class ContentMutationTools
     }
 
     [McpServerTool(Name = "replace_text", Destructive = false, Idempotent = false, OpenWorld = false)]
-    [Description("Ersetzt exakt ein Vorkommen von oldText im expliziten Rollen-Content " +
+    [Description("Ersetzt exakt ein Vorkommen von oldText im expliziten Zielgruppen-Content " +
         "einer Node; 0 Treffer liefern TextNotFound, mehrere MultipleTextMatches.")]
     public async Task<McpToolEnvelope<McpContentMutationData>> ReplaceText(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
-        [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Angefragte Zielgruppe (audienceId aus list_audiences).")] string audienceId,
         [Description("Exakt einmal vorkommender Textabschnitt.")] string oldText,
         [Description("Ersatztext für das Vorkommen.")] string newText,
         [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long expectedChangeVersion,
@@ -82,7 +82,7 @@ internal sealed class ContentMutationTools
 
         var request = new ReplaceTextRequest(
             parsedNodeId.Value!.Value,
-            new AudienceId(roleId),
+            new AudienceId(audienceId),
             oldText,
             newText,
             expectedChangeVersion);
@@ -92,12 +92,12 @@ internal sealed class ContentMutationTools
     }
 
     [McpServerTool(Name = "delete_content", Destructive = true, Idempotent = false, OpenWorld = false)]
-    [Description("Entfernt ausschließlich den expliziten Rollen-Content einer Node " +
+    [Description("Entfernt ausschließlich den expliziten Zielgruppen-Content einer Node " +
         "durch Soft-Delete, ohne die Node selbst zu verändern.")]
     public async Task<McpToolEnvelope<McpContentMutationData>> DeleteContent(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
-        [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Angefragte Zielgruppe (audienceId aus list_audiences).")] string audienceId,
         [Description("Erwarteter ChangeVersion-Stand der offenen Transaction; Stale Writes werden atomar abgelehnt.")] long expectedChangeVersion,
         CancellationToken cancellationToken = default)
     {
@@ -107,7 +107,7 @@ internal sealed class ContentMutationTools
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
         return McpMutationMapper.ToEnvelope(await _contentMutationService
-            .DeleteContentAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, new AudienceId(roleId), expectedChangeVersion, cancellationToken)
+            .DeleteContentAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, new AudienceId(audienceId), expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }
 

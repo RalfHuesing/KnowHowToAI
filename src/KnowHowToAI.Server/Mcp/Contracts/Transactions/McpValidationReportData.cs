@@ -25,7 +25,7 @@ public sealed record McpValidationIssueData(
 /// <summary>Ein Derived Content, dessen Provenienz nicht mehr aktuell ist.</summary>
 public sealed record McpStaleContentData(
     [property: JsonPropertyName("nodeId")] string NodeId,
-    [property: JsonPropertyName("roleId")] string RoleId,
+    [property: JsonPropertyName("audienceId")] string AudienceId,
     [property: JsonPropertyName("contentRevisionId")] string ContentRevisionId);
 
 /// <summary>Ein Node mit Qualitätsbefunden als bewusster Refactoring-Kandidat.</summary>

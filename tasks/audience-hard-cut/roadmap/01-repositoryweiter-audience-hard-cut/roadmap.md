@@ -46,8 +46,8 @@ unverändert.
 
 ## M1.2 – MCP-Hard-Cut
 
-- [ ] **M1.2 abschließen**
-  - [ ] [M1.2-T1 – MCP-Tools und Transportverträge auf Audience umstellen](tasks/M1.2-T1.md)
+- [x] **M1.2 abschließen**
+  - [x] [M1.2-T1 – MCP-Tools und Transportverträge auf Audience umstellen](tasks/M1.2-T1.md)
 
 ## M1.3 – Web-Hard-Cut
 

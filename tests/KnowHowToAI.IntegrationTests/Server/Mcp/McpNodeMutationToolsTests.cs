@@ -160,12 +160,12 @@ public sealed class McpNodeMutationToolsTests
         var envelope = await tools.CreateNode(
             TransactionId.ToString(), "Neues Kapitel",
             parentNodeId: RootNodeId.ToString(), sortOrder: 99,
-            contentMd: "Kapitelinhalt ohne Überschrift.", roleId: "Developer");
+            contentMd: "Kapitelinhalt ohne Überschrift.", audienceId: "Developer");
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(GeneratedNodeId.ToString(), envelope.Data!.NodeId);
         Assert.Equal("Neues Kapitel", envelope.Data.Title);
-        Assert.Equal("Developer", envelope.Data.RoleId);
+        Assert.Equal("Developer", envelope.Data.AudienceId);
         Assert.Equal(ContentRevisionIdFor(10).ToString(), envelope.Data.ContentRevisionId);
         Assert.Equal("Independent", envelope.Data.ContentMode);
         Assert.Equal("Current", envelope.Data.Freshness);
@@ -173,7 +173,7 @@ public sealed class McpNodeMutationToolsTests
     }
 
     [Fact]
-    public async Task CreateNode_WithContentButMissingRoleId_IsRejectedWithoutCreatingNode()
+    public async Task CreateNode_WithContentButMissingAudienceId_IsRejectedWithoutCreatingNode()
     {
         var nodeRepository = EmptyState();
         var tools = CreateTools(nodeRepository, ContentStateForCreatedNode());
@@ -181,7 +181,7 @@ public sealed class McpNodeMutationToolsTests
         var envelope = await tools.CreateNode(TransactionId.ToString(), "Kapitel", contentMd: "Inhalt.");
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal("RoleIdRequired", envelope.Code);
+        Assert.Equal("AudienceIdRequired", envelope.Code);
         Assert.Equal(0, nodeRepository.ChangeVersion);
     }
 
@@ -192,7 +192,7 @@ public sealed class McpNodeMutationToolsTests
         var tools = CreateTools(nodeRepository, ContentStateForCreatedNode());
 
         var envelope = await tools.CreateNode(
-            TransactionId.ToString(), "Kapitel", contentMd: "Inhalt.", roleId: "Developer", contentMode: "Bogus");
+            TransactionId.ToString(), "Kapitel", contentMd: "Inhalt.", audienceId: "Developer", contentMode: "Bogus");
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(DependencyErrorCodes.InvalidDependency, envelope.Code);
@@ -204,11 +204,11 @@ public sealed class McpNodeMutationToolsTests
     {
         var tools = CreateTools(EmptyState());
 
-        var envelope = await tools.CreateNode(TransactionId.ToString(), "Hauptkapitel", roleId: "Developer");
+        var envelope = await tools.CreateNode(TransactionId.ToString(), "Hauptkapitel", audienceId: "Developer");
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(GeneratedNodeId.ToString(), envelope.Data!.NodeId);
-        Assert.Null(envelope.Data.RoleId);
+        Assert.Null(envelope.Data.AudienceId);
         Assert.Null(envelope.Data.ContentRevisionId);
         Assert.Null(envelope.Data.ContentMode);
         Assert.Null(envelope.Data.Freshness);
@@ -400,7 +400,7 @@ public sealed class McpNodeMutationToolsTests
         new(new WorkingContentMutationState(
             SnapshotId,
             [Node(GeneratedNodeId)],
-            [Role(new AudienceId("Developer"))],
+            [Audience(new AudienceId("Developer"))],
             [],
             []));
 
@@ -416,8 +416,8 @@ public sealed class McpNodeMutationToolsTests
     private static Node Node(NodeId nodeId, NodeId? parentNodeId = null) =>
         new(SnapshotId, nodeId, parentNodeId, "Titel", null, 0, IsDeleted: false);
 
-    private static Audience Role(AudienceId roleId) =>
-        new(SnapshotId, roleId, roleId.Value, null, IsDeleted: false);
+    private static Audience Audience(AudienceId audienceId) =>
+        new(SnapshotId, audienceId, audienceId.Value, null, IsDeleted: false);
 
     private static NodeContent Content(NodeId nodeId) =>
         new(

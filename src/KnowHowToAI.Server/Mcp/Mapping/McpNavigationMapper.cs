@@ -32,10 +32,10 @@ internal static class McpNavigationMapper
             ? McpToolEnvelope<McpChildrenPageData>.Success(ToChildrenData(result.Value!))
             : McpToolEnvelope<McpChildrenPageData>.Failure(result.Error!, MapWarnings(result));
 
-    public static McpToolEnvelope<McpRolePageData> ToEnvelope(Result<AudiencePage> result) =>
+    public static McpToolEnvelope<McpAudiencePageData> ToEnvelope(Result<AudiencePage> result) =>
         result.IsSuccess
-            ? McpToolEnvelope<McpRolePageData>.Success(ToRolePageData(result.Value!))
-            : McpToolEnvelope<McpRolePageData>.Failure(result.Error!, MapWarnings(result));
+            ? McpToolEnvelope<McpAudiencePageData>.Success(ToAudiencePageData(result.Value!))
+            : McpToolEnvelope<McpAudiencePageData>.Failure(result.Error!, MapWarnings(result));
 
     /// <summary>
     /// Parst einen Node-ID-String exakt im Format der Tool-Ausgaben (GUID "D").
@@ -88,8 +88,8 @@ internal static class McpNavigationMapper
             item.Findings)).ToArray(),
         page.NextCursor);
 
-    private static McpRolePageData ToRolePageData(AudiencePage page) => new(
-        page.Items.Select(static audience => new McpRoleData(
+    private static McpAudiencePageData ToAudiencePageData(AudiencePage page) => new(
+        page.Items.Select(static audience => new McpAudienceData(
             audience.AudienceId.ToString(),
             audience.Name,
             audience.Description)).ToArray(),

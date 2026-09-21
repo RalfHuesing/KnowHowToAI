@@ -15,15 +15,15 @@ vollständigen Content aller Treffer.
 
 ## Navigation-Metadaten
 
-Ein Node besitzt neben `Title` eine kurze rollenunabhängige `Description` mit
+Ein Node besitzt neben `Title` eine kurze zielgruppenunabhängige `Description` mit
 nur Navigationskontext, keinem umfangreichen Fachwissen. `list_children` liefert
 je Kind: `nodeId`, `title`, `description`, `sortOrder`, `childCount`,
-`contentSizeBytes`, `availability`, `resolvedRole`, `freshness`. Der Agent
+`contentSizeBytes`, `availability`, `resolvedAudienceId`, `freshness`. Der Agent
 entscheidet daran, welche Nodes er tatsächlich laden muss.
 
 ## Paginierung und Cursors
 
-Große Mengen (Kind-Nodes, Rollen, Suchergebnisse, Diffs, committed Snapshots, Releases) werden
+Große Mengen (Kind-Nodes, Zielgruppen, Suchergebnisse, Diffs, committed Snapshots, Releases) werden
 seitenweise über **opake Keyset-Cursors** paginiert, gesteuert über die
 `RetrievalPolicy` (`DefaultPageSize`, `MaximumPageSize`, `SearchPageSize`,
 `SearchMaximumPageSize`; [Konfiguration und
@@ -32,11 +32,11 @@ Betrieb](Konfiguration-und-Betrieb.md)):
 - `limit` gilt einheitlich: fehlend oder ≤ 0 ergibt die konfigurierte
   Standardseitengröße, Werte über dem Maximum werden auf das Maximum geklemmt.
 - Cursor-Strings bleiben opak und werden unverändert weitergereicht.
-- Der Cursor ist an Snapshot, Suchtext, Rolle, die normalisierte Suchfilterauswahl und – bei Working Reads – an die
+- Der Cursor ist an Snapshot, Suchtext, Zielgruppe, die normalisierte Suchfilterauswahl und – bei Working Reads – an die
   `ChangeVersion` der Transaction gebunden. Eine zwischenzeitliche Mutation oder
   ein Wechsel des Current Snapshots führt stabil zu `CursorExpired`; eine falsche
   Snapshot-/Filterbindung zu `InvalidCursor`.
-- `list_roles` sortiert deterministisch nach `RoleId` ordinal aufsteigend;
+- `list_audiences` sortiert deterministisch nach `AudienceId` ordinal aufsteigend;
   `list_children` nach `sortOrder`, dann `NodeId`.
 - Die Historienübersicht liest ausschließlich committed Snapshots, absteigend nach
   `SnapshotId`, über einen opaken Keyset-Cursor. Working und verworfene Snapshots
@@ -44,7 +44,7 @@ Betrieb](Konfiguration-und-Betrieb.md)):
 
 ## Export
 
-`export_tree(rootNodeId, roleId, Selektor)` exportiert einen Teilbaum als
+`export_tree(rootNodeId, audienceId, Selektor)` exportiert einen Teilbaum als
 Markdown. Der ausgewählte Root ist immer Heading-Level 1; Kinder erhalten
 entsprechend ihrer relativen Tiefe tiefere Level:
 
@@ -63,7 +63,7 @@ erlaubt maximal `######`), damit die Ausgabe in jedem Parser standardkonform
 bleibt, plus die transparente Qualitätswarnung `HierarchyTooDeep` mit der
 tatsächlichen Tiefe.
 
-Rollenauflösung beim Export: für jeden Node wird die konfigurierte Rollenauflösung
+Zielgruppenauflösung beim Export: für jeden Node wird die konfigurierte Zielgruppenauflösung
 durchgeführt. Ein Node wird berücksichtigt, wenn für ihn Content auflösbar ist
 **oder** mindestens ein exportierter Nachfahre existiert – Struktur-Nodes ohne
 eigenen Content bleiben so erhalten, irrelevante Zweige entfallen vollständig.
@@ -71,22 +71,22 @@ eigenen Content bleiben so erhalten, irrelevante Zweige entfallen vollständig.
 ## Search
 
 Die Suche durchsucht Node-Titel, Descriptions und den aktiven auflösbaren Content
-gemäß Rollenauflösung.
+gemäß Zielgruppenauflösung.
 
-Rollenbezug:
+Zielgruppenbezug:
 
-- Ohne `roleId` werden ausschließlich `Title` und `Description` durchsucht; es
-  findet keine stille Auswahl eines Rollen-Contents statt (Treffer ohne Rolle:
+- Ohne `audienceId` werden ausschließlich `Title` und `Description` durchsucht; es
+  findet keine stille Auswahl eines Zielgruppen-Contents statt (Treffer ohne Zielgruppe:
   `Availability = None`).
-- Mit `roleId` werden die angefragte Rolle und ihre vollständige Resolution Order
-  mit denselben Regeln und stabilen Fehlercodes wie die Rollenauflösung geprüft
-  (`RequestedRoleNotFound`, `RequestedRoleDeleted`, `CandidateRoleNotFound`,
-  `CandidateRoleDeleted`, `DuplicateCandidateRole`, `DuplicatePriority`,
+- Mit `audienceId` werden die angefragte Zielgruppe und ihre vollständige Resolution Order
+  mit denselben Regeln und stabilen Fehlercodes wie die Zielgruppenauflösung geprüft
+  (`RequestedAudienceNotFound`, `RequestedAudienceDeleted`, `CandidateAudienceNotFound`,
+  `CandidateAudienceDeleted`, `DuplicateCandidateAudience`, `DuplicatePriority`,
   `InvalidPriority`). Ein Auflösungsfehler ist ein Fachfehler, nie ein leeres
   Suchergebnis.
-- Mit `roleId` wird je Node exakt die erste Content-Auswahl der Resolution Order
-  verwendet (`Explicit` für die angefragte Rolle, `Fallback` für die erste
-  Kandidatenrolle mit aktivem Content). Ohne konfigurierte Order wird nur in
+- Mit `audienceId` wird je Node exakt die erste Content-Auswahl der Resolution Order
+  verwendet (`Explicit` für die angefragte Zielgruppe, `Fallback` für die erste
+  Kandidatenzielgruppe mit aktivem Content). Ohne konfigurierte Order wird nur in
   `Title` und `Description` gefunden.
 
 Deterministisches Ranking:
@@ -98,7 +98,7 @@ Deterministisches Ranking:
 Bei gleichem Rang erfolgt die Sortierung stabil nach `sortOrder` aufsteigend, dann
 nach `NodeId`.
 
-Die Suche kann Treffer zusätzlich nach der aufgelösten Content-Rolle,
+Die Suche kann Treffer zusätzlich nach der aufgelösten Content-Zielgruppe,
 `Availability`, `Freshness` und vorhandenen Findings filtern. Mehrere Werte
 derselben Facette gelten als Oder; unterschiedliche Facetten als Und. Ein
 fehlender oder leerer Filter ist identisch zur ungefilterten Suche. Die Filterung
@@ -128,7 +128,7 @@ Da Nodes bewusst klein sind, ist ein vollständiger Replace die
 Standardoperation:
 
 ```text
-replace_content(transactionId, nodeId, roleId, contentMode, contentMd, sources?)
+replace_content(transactionId, nodeId, audienceId, contentMode, contentMd, sources?)
 ```
 
 Die alte Version bleibt über den Base-Snapshot erhalten; ein zusätzliches
@@ -137,7 +137,7 @@ Delta-Format ist nicht nötig.
 Für kleine punktuelle Änderungen existiert:
 
 ```text
-replace_text(transactionId, nodeId, roleId, oldText, newText)
+replace_text(transactionId, nodeId, audienceId, oldText, newText)
 ```
 
 Regeln: `oldText` genau 1x gefunden → ersetzen; 0x → `TextNotFound`;
@@ -165,10 +165,10 @@ Validatoren sind in zwei Kategorien getrennt:
 
 - Raw HTML, Markdown- oder HTML-Heading im Content
 - Front Matter, nicht erlaubtes Linkziel oder Markdown-/HTML-Bild im Content
-- ungültige Parent-ID, Hierarchiezyklus, nicht existierende Node/Rolle
+- ungültige Parent-ID, Hierarchiezyklus, nicht existierende Node/Zielgruppe
 - geschlossene Transaction
 - `replace_text` ohne oder mit mehreren Matches
-- ungültige Content-Dependency, ungültige Role Resolution
+- ungültige Content-Dependency, ungültige Audience Resolution
 - Commit auf veraltetem Base Snapshot
 
 **Qualitätswarnungen** – die Änderung wird gespeichert:
@@ -188,14 +188,14 @@ erscheinen dort als Erfolg mit `isValid: false` im Payload.
 ## Messgestützte Performance-Entscheidungen
 
 Die folgenden Entscheidungen sind mit realen SQL-Messungen gegen eine
-repräsentative Datenmenge (401 Nodes, 440 Contents, 20 Dependencies, 3 Rollen,
+repräsentative Datenmenge (401 Nodes, 440 Contents, 20 Dependencies, 3 Zielgruppen,
 2 Resolution Orders; erzeugt ausschließlich über die produktiven
 Working-Transaction/Commit-Pfade) getroffen und in den Abnahme-Integrationstests
 `SqlSearchAbnahmeTests` (`SqlServer/Abnahme/`) laufend neu messbar:
 
 - **Keine Search-Index-Migration.** Maximale 1795 logische Reads und ~23 ms
   Wall-Clock pro Suchseite, Ausführung < 1 ms; der Plan arbeitet mit Index Seeks
-  und skaliert mit der Treffermenge pro Rolle, nicht mit dem Gesamtbestand. Ein
+  und skaliert mit der Treffermenge pro Zielgruppe, nicht mit dem Gesamtbestand. Ein
   nicht sargbares `LIKE '%…%'` könnte Head-Lookups nur marginal verbessern.
 - **Transitive Freshness in der Search-CTE.** Die rekursive SQL-CTE bewertet den
   vollständigen Derived-Dependency-Graphen vor Filterung und Keyset-Paging. Bei

@@ -152,7 +152,7 @@ public sealed class SearchReadParityTests : BunitContext
             Assert.Equal(mcpHit.Snippet, uiHit.Snippet);
             Assert.Equal(mcpHit.HitField, uiHit.HitField);
             Assert.Equal(mcpHit.Availability, uiHit.Availability);
-            Assert.Equal(mcpHit.ResolvedRole, uiHit.ResolvedRoleId);
+            Assert.Equal(mcpHit.ResolvedAudienceId, uiHit.ResolvedRoleId);
             Assert.Equal(mcpHit.Freshness, uiHit.Freshness);
         }
     }

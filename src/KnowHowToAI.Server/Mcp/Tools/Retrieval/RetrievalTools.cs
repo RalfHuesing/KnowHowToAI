@@ -34,12 +34,12 @@ internal sealed class RetrievalTools
     }
 
     [McpServerTool(Name = "search", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
-    [Description("Deterministische Substring-Suche über Titel, Description und rollenaufgelösten " +
+    [Description("Deterministische Substring-Suche über Titel, Description und zielgruppenaufgelösten " +
         "Content mit schlanken Treffermetadaten und Snippets (Metadata-First).")]
     public async Task<McpToolEnvelope<McpSearchPageData>> Search(
         [Description("Suchtext (exakte Substring-Suche).")] string text,
-        [Description("Optionale angefragte Rolle; ohne Rolle werden nur Title und Description durchsucht.")]
-        string? roleId = null,
+        [Description("Optionale angefragte Zielgruppe; ohne Zielgruppe werden nur Title und Description durchsucht.")]
+        string? audienceId = null,
         [Description("Optionaler Transaction-Selektor (Working Snapshot).")] string? transactionId = null,
         [Description("Optionaler Snapshot-Selektor (historischer Stand).")] string? snapshotId = null,
         [Description("Optional: gelöschte Fachobjekte einbeziehen (Standard false).")] bool? includeDeleted = null,
@@ -58,7 +58,7 @@ internal sealed class RetrievalTools
             McpPagingMapper.NormalizeLimit(
                 limit, _retrievalPolicy.SearchPageSize, _retrievalPolicy.SearchMaximumPageSize),
             cursor,
-            roleId is null ? null : new AudienceId(roleId));
+            audienceId is null ? null : new AudienceId(audienceId));
         var result = await _searchService.SearchAsync(query, context.Value!, cancellationToken).ConfigureAwait(false);
         return McpRetrievalMapper.ToEnvelope(result);
     }
@@ -68,7 +68,7 @@ internal sealed class RetrievalTools
         "Heading-Level 1; Qualitätswarnungen bleiben auf Envelope-Ebene sichtbar.")]
     public async Task<McpToolEnvelope<McpExportTreeData>> ExportTree(
         [Description("Node-ID des Export-Roots (GUID-String).")] string rootNodeId,
-        [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Angefragte Zielgruppe (audienceId aus list_audiences).")] string audienceId,
         [Description("Optionaler Transaction-Selektor (Working Snapshot).")] string? transactionId = null,
         [Description("Optionaler Snapshot-Selektor (historischer Stand).")] string? snapshotId = null,
         [Description("Optional: gelöschte Fachobjekte einbeziehen (Standard false).")] bool? includeDeleted = null,
@@ -84,7 +84,7 @@ internal sealed class RetrievalTools
             return McpToolEnvelope<McpExportTreeData>.Failure(parsedRootNodeId.Error!);
 
         var result = await _exportService
-            .ExportTreeAsync(parsedRootNodeId.Value!.Value, context.Value!, new AudienceId(roleId), cancellationToken)
+            .ExportTreeAsync(parsedRootNodeId.Value!.Value, context.Value!, new AudienceId(audienceId), cancellationToken)
             .ConfigureAwait(false);
         return McpRetrievalMapper.ToExportEnvelope(result);
     }

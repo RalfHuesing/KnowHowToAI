@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace KnowHowToAI.Server.Mcp.Contracts.Navigation;
 
 /// <summary>
-/// Node mit aufgelöstem Rollen-Content im MCP-Vertrag (get_root, get_node).
+/// Node mit aufgelöstem Zielgruppen-Content im MCP-Vertrag (get_root, get_node).
 /// Alle IDs sind Strings im Format der Tool-Ausgaben und ohne Umformatierung
 /// als Folgeparameter verwendbar.
 /// </summary>
@@ -13,9 +13,9 @@ public sealed record McpNodeData(
     [property: JsonPropertyName("description")]
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Description,
     [property: JsonPropertyName("sortOrder")] int SortOrder,
-    [property: JsonPropertyName("requestedRole")] string RequestedRole,
-    [property: JsonPropertyName("resolvedRole")]
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ResolvedRole,
+    [property: JsonPropertyName("requestedAudienceId")] string RequestedAudienceId,
+    [property: JsonPropertyName("resolvedAudienceId")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ResolvedAudienceId,
     [property: JsonPropertyName("fallbackUsed")] bool FallbackUsed,
     [property: JsonPropertyName("availability")] string Availability,
     [property: JsonPropertyName("freshness")] string Freshness,

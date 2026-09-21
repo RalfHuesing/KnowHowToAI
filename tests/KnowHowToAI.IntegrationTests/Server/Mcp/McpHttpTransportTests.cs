@@ -41,9 +41,9 @@ public sealed class McpHttpTransportTests
         var expectedNames = new[]
         {
             "begin_transaction", "get_transaction", "validate_transaction", "commit_transaction", "discard_transaction",
-            "get_root", "get_node", "list_children", "list_roles", "search", "export_tree",
+            "get_root", "get_node", "list_children", "list_audiences", "search", "export_tree",
             "create_node", "update_node", "move_node", "reorder_node", "delete_node",
-            "create_role", "update_role", "delete_role", "set_role_resolution",
+            "create_audience", "update_audience", "delete_audience", "set_audience_resolution",
             "replace_content", "replace_text", "delete_content",
             "get_snapshot", "list_releases", "compare_snapshots", "get_transaction_changes", "create_release"
         };
@@ -55,7 +55,7 @@ public sealed class McpHttpTransportTests
 
     [Fact]
     [Trait("Category", "Integration")]
-    public async Task StreamableHttpClient_CallsListRolesThroughTheRealHttpBoundary()
+    public async Task StreamableHttpClient_CallsListAudiencesThroughTheRealHttpBoundary()
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
         harness.AddAudience(new Audience(new SnapshotId(1), new AudienceId("Developer"), "Entwicklung", null, false));
@@ -66,7 +66,7 @@ public sealed class McpHttpTransportTests
         });
         await using var client = await McpClient.CreateAsync(CreateTransport(host.Address));
 
-        var result = await client.CallToolAsync("list_roles");
+        var result = await client.CallToolAsync("list_audiences");
 
         Assert.Null(result.IsError);
     }
@@ -97,7 +97,7 @@ public sealed class McpHttpTransportTests
         var parameterError = await client.CallToolAsync("get_node", new Dictionary<string, object?>
         {
             ["nodeId"] = "not-a-guid",
-            ["roleId"] = "Developer"
+            ["audienceId"] = "Developer"
         });
         var domainError = await client.CallToolAsync("get_transaction", new Dictionary<string, object?>
         {
@@ -126,7 +126,7 @@ public sealed class McpHttpTransportTests
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
         var observingHandler = new FirstByteObservingHandler();
-        var streaming = new StreamingRoleRepository(observingHandler.FirstResponseByteObserved.Task);
+        var streaming = new StreamingAudienceRepository(observingHandler.FirstResponseByteObserved.Task);
         var navigation = new NavigationService(
             harness.CreateRepositories() with { Audiences = streaming },
             CreateRetrievalPolicy());
@@ -139,7 +139,7 @@ public sealed class McpHttpTransportTests
         await using var client = await McpClient.CreateAsync(
             new HttpClientTransport(CreateOptions(host.Address), httpClient));
 
-        var request = client.CallToolAsync("list_roles").AsTask();
+        var request = client.CallToolAsync("list_audiences").AsTask();
         await streaming.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
         // Der erste Response-Byte erreicht den Client, waehrend der Tool-Aufruf
@@ -159,9 +159,9 @@ public sealed class McpHttpTransportTests
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
         harness.AddAudience(new Audience(new SnapshotId(1), new AudienceId("Developer"), "Entwicklung", null, false));
-        var roles = new FirstCallBlockingRoleRepository(harness.CreateRepositories().Audiences);
+        var audiences = new FirstCallBlockingAudienceRepository(harness.CreateRepositories().Audiences);
         var navigation = new NavigationService(
-            harness.CreateRepositories() with { Audiences = roles },
+            harness.CreateRepositories() with { Audiences = audiences },
             CreateRetrievalPolicy());
         await using var host = await McpHttpHost.StartAsync(services =>
         {
@@ -173,11 +173,11 @@ public sealed class McpHttpTransportTests
         using var cancellation = new CancellationTokenSource();
 
         var abortedRequest = abortedClient
-            .CallToolAsync("list_roles", cancellationToken: cancellation.Token)
+            .CallToolAsync("list_audiences", cancellationToken: cancellation.Token)
             .AsTask();
-        await roles.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await audiences.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
-        var successCall = successClient.CallToolAsync("list_roles").AsTask();
+        var successCall = successClient.CallToolAsync("list_audiences").AsTask();
         var successResult = await successCall.WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Null(successResult.IsError);
@@ -185,7 +185,7 @@ public sealed class McpHttpTransportTests
         cancellation.Cancel();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => abortedRequest);
-        await roles.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await audiences.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public sealed class McpHttpTransportTests
         await using var client = await McpClient.CreateAsync(CreateTransport(host.Address));
 
         var begin = await client.CallToolAsync("begin_transaction");
-        var mutation = await client.CallToolAsync("create_role", new Dictionary<string, object?>
+        var mutation = await client.CallToolAsync("create_audience", new Dictionary<string, object?>
         {
             ["transactionId"] = WorkflowTransactionRepository.Id.ToString(), ["name"] = "Reviewer",
             ["expectedChangeVersion"] = 0L
@@ -298,7 +298,7 @@ public sealed class McpHttpTransportTests
         }
     }
 
-    private sealed class StreamingRoleRepository(Task firstResponseByteObserved) : IAudienceRepository
+    private sealed class StreamingAudienceRepository(Task firstResponseByteObserved) : IAudienceRepository
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -322,7 +322,7 @@ public sealed class McpHttpTransportTests
             Task.FromResult<IReadOnlyList<AudienceResolution>>([]);
     }
 
-    private sealed class FirstCallBlockingRoleRepository(IAudienceRepository inner) : IAudienceRepository
+    private sealed class FirstCallBlockingAudienceRepository(IAudienceRepository inner) : IAudienceRepository
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 

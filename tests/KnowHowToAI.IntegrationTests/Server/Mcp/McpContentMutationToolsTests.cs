@@ -29,20 +29,20 @@ public sealed class McpContentMutationToolsTests
     private static readonly NodeId SourceNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000002"));
     private static readonly ContentRevisionId SourceRevisionId =
         new(Guid.Parse("b4e0e04a-2dce-4b5e-8b34-4bd2b9f0e020"));
-    private static readonly AudienceId RoleDeveloper = new("Developer");
-    private static readonly AudienceId RoleEndUser = new("EndUser");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
+    private static readonly AudienceId AudienceEndUser = new("EndUser");
 
     [Fact]
     public async Task ReplaceContent_Independent_CreatesExplicitContentWithFreshnessCurrent()
     {
-        var tools = CreateTools(StateWithNodeAndRole());
+        var tools = CreateTools(StateWithNodeAndAudience());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Inhalt ohne Struktur.", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Independent", "Inhalt ohne Struktur.", 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(NodeId.ToString(), envelope.Data!.NodeId);
-        Assert.Equal(RoleDeveloper.Value, envelope.Data.RoleId);
+        Assert.Equal(AudienceDeveloper.Value, envelope.Data.AudienceId);
         Assert.Equal(nameof(ContentMode.Independent), envelope.Data.ContentMode);
         Assert.Equal(nameof(Freshness.Current), envelope.Data.Freshness);
         Assert.Equal(SnapshotId.ToString(), envelope.Data.SnapshotId);
@@ -53,13 +53,13 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceContent_StaleChangeVersion_IsRejectedWithStableDetails()
     {
-        var repository = StateWithNodeRoleAndDeveloperContent("Alt");
+        var repository = StateWithNodeAudienceAndDeveloperContent("Alt");
         var tools = CreateTools(repository);
 
         var current = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Aktuell", expectedChangeVersion: 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Independent", "Aktuell", expectedChangeVersion: 0);
         var stale = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Veraltet", expectedChangeVersion: 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Independent", "Veraltet", expectedChangeVersion: 0);
 
         Assert.True(current.IsSuccess);
         Assert.False(stale.IsSuccess);
@@ -72,16 +72,16 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceContent_DerivedWithSource_MapsDerivedContentAndKeepsSourceFreshness()
     {
-        var tools = CreateTools(StateWithNodeRoleAndSourceContent());
+        var tools = CreateTools(StateWithNodeAudienceAndSourceContent());
 
         var envelope = await tools.ReplaceContent(
             TransactionId.ToString(),
             NodeId.ToString(),
-            RoleEndUser.Value,
+            AudienceEndUser.Value,
             "Derived",
             "Abgeleiteter Inhalt.",
             0,
-            [new McpContentSourceData(SourceNodeId.ToString(), RoleDeveloper.Value, SourceRevisionId.ToString())]);
+            [new McpContentSourceData(SourceNodeId.ToString(), AudienceDeveloper.Value, SourceRevisionId.ToString())]);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(nameof(ContentMode.Derived), envelope.Data!.ContentMode);
@@ -91,10 +91,10 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceContent_WithMarkdownHeading_IsRejectedWithStableHeadingNotAllowed()
     {
-        var tools = CreateTools(StateWithNodeAndRole());
+        var tools = CreateTools(StateWithNodeAndAudience());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "# Überschrift", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Independent", "# Überschrift", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(ContentStructureCodes.HeadingNotAllowed, envelope.Code);
@@ -104,10 +104,10 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceContent_StandaloneTitleParagraph_KeepsSuccessWithEmbeddedHeadingWarning()
     {
-        var tools = CreateTools(StateWithNodeAndRole());
+        var tools = CreateTools(StateWithNodeAndAudience());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Titel", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Independent", "Titel", 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Contains(
@@ -123,11 +123,11 @@ public sealed class McpContentMutationToolsTests
         string content,
         string expectedCode)
     {
-        var repository = StateWithNodeAndRole();
+        var repository = StateWithNodeAndAudience();
         var tools = CreateTools(repository);
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", content, 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Independent", content, 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(expectedCode, envelope.Code);
@@ -140,10 +140,10 @@ public sealed class McpContentMutationToolsTests
     [InlineData("")]
     public async Task ReplaceContent_UnknownContentMode_IsRejectedAsInvalidDependency(string rawContentMode)
     {
-        var tools = CreateTools(StateWithNodeAndRole());
+        var tools = CreateTools(StateWithNodeAndAudience());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, rawContentMode, "Inhalt", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, rawContentMode, "Inhalt", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(DependencyErrorCodes.InvalidDependency, envelope.Code);
@@ -153,16 +153,16 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceContent_MalformedSourceNodeId_IsRejectedAsInvalidDependency()
     {
-        var tools = CreateTools(StateWithNodeAndRole());
+        var tools = CreateTools(StateWithNodeAndAudience());
 
         var envelope = await tools.ReplaceContent(
             TransactionId.ToString(),
             NodeId.ToString(),
-            RoleEndUser.Value,
+            AudienceEndUser.Value,
             "Derived",
             "Abgeleiteter Inhalt.",
             0,
-            [new McpContentSourceData("not-a-guid", RoleDeveloper.Value, SourceRevisionId.ToString())]);
+            [new McpContentSourceData("not-a-guid", AudienceDeveloper.Value, SourceRevisionId.ToString())]);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(DependencyErrorCodes.InvalidDependency, envelope.Code);
@@ -175,7 +175,7 @@ public sealed class McpContentMutationToolsTests
         var tools = CreateTools(EmptyState());
 
         var envelope = await tools.ReplaceContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Independent", "Inhalt", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Independent", "Inhalt", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(HierarchyErrorCodes.NodeNotFound, envelope.Code);
@@ -185,11 +185,11 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceText_ReplacesSingleOccurrenceAndKeepsFreshnessCurrent()
     {
-        var repository = StateWithNodeRoleAndDeveloperContent("Inhalt mit Suchbegriff.");
+        var repository = StateWithNodeAudienceAndDeveloperContent("Inhalt mit Suchbegriff.");
         var tools = CreateTools(repository);
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Suchbegriff", "Ersatz", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Suchbegriff", "Ersatz", 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(nameof(Freshness.Current), envelope.Data!.Freshness);
@@ -200,10 +200,10 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceText_WithoutMatch_ReturnsStableTextNotFound()
     {
-        var tools = CreateTools(StateWithNodeRoleAndDeveloperContent("Inhalt."));
+        var tools = CreateTools(StateWithNodeAudienceAndDeveloperContent("Inhalt."));
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Fehlt", "Ersatz", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Fehlt", "Ersatz", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.TextNotFound, envelope.Code);
@@ -212,10 +212,10 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceText_WithMultipleMatches_ReturnsStableMultipleTextMatches()
     {
-        var tools = CreateTools(StateWithNodeRoleAndDeveloperContent("Doppelt Doppelt."));
+        var tools = CreateTools(StateWithNodeAudienceAndDeveloperContent("Doppelt Doppelt."));
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Doppelt", "Einfach", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Doppelt", "Einfach", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.MultipleTextMatches, envelope.Code);
@@ -224,10 +224,10 @@ public sealed class McpContentMutationToolsTests
     [Fact]
     public async Task ReplaceText_WithoutExplicitContent_ReturnsStableExplicitContentNotFound()
     {
-        var tools = CreateTools(StateWithNodeAndRole());
+        var tools = CreateTools(StateWithNodeAndAudience());
 
         var envelope = await tools.ReplaceText(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, "Alt", "Neu", 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, "Alt", "Neu", 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.ExplicitContentNotFound, envelope.Code);
@@ -235,27 +235,27 @@ public sealed class McpContentMutationToolsTests
     }
 
     [Fact]
-    public async Task DeleteContent_TombstonesOnlyTheRequestedRoleContent()
+    public async Task DeleteContent_TombstonesOnlyTheRequestedAudienceContent()
     {
-        var repository = StateWithNodeRoleAndTwoRoleContents();
+        var repository = StateWithNodeAudienceAndTwoAudienceContents();
         var tools = CreateTools(repository);
 
         var envelope = await tools.DeleteContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, 0);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(nameof(Freshness.Unknown), envelope.Data!.Freshness);
-        Assert.True(repository.State.Contents.Single(content => content.AudienceId == RoleDeveloper).IsDeleted);
-        Assert.False(repository.State.Contents.Single(content => content.AudienceId == RoleEndUser).IsDeleted);
+        Assert.True(repository.State.Contents.Single(content => content.AudienceId == AudienceDeveloper).IsDeleted);
+        Assert.False(repository.State.Contents.Single(content => content.AudienceId == AudienceEndUser).IsDeleted);
     }
 
     [Fact]
     public async Task DeleteContent_WithoutExplicitContent_ReturnsStableExplicitContentNotFound()
     {
-        var tools = CreateTools(StateWithNodeAndRole());
+        var tools = CreateTools(StateWithNodeAndAudience());
 
         var envelope = await tools.DeleteContent(
-            TransactionId.ToString(), NodeId.ToString(), RoleDeveloper.Value, 0);
+            TransactionId.ToString(), NodeId.ToString(), AudienceDeveloper.Value, 0);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(TextOperationCodes.ExplicitContentNotFound, envelope.Code);
@@ -273,35 +273,35 @@ public sealed class McpContentMutationToolsTests
                 PossibleEmbeddedHeadingWarning = true
             }));
 
-    private static InMemoryContentMutationRepository StateWithNodeRoleAndDeveloperContent(string contentMd) =>
+    private static InMemoryContentMutationRepository StateWithNodeAudienceAndDeveloperContent(string contentMd) =>
         new(new WorkingContentMutationState(
             SnapshotId,
             [Node(NodeId)],
-            [Role(RoleDeveloper), Role(RoleEndUser)],
-            [Content(NodeId, RoleDeveloper, contentMd)],
+            [Audience(AudienceDeveloper), Audience(AudienceEndUser)],
+            [Content(NodeId, AudienceDeveloper, contentMd)],
             []));
 
-    private static InMemoryContentMutationRepository StateWithNodeRoleAndSourceContent() =>
+    private static InMemoryContentMutationRepository StateWithNodeAudienceAndSourceContent() =>
         new(new WorkingContentMutationState(
         SnapshotId,
         [Node(NodeId), Node(SourceNodeId)],
-        [Role(RoleDeveloper), Role(RoleEndUser)],
-        [Content(SourceNodeId, RoleDeveloper, "Quelle.")],
+        [Audience(AudienceDeveloper), Audience(AudienceEndUser)],
+        [Content(SourceNodeId, AudienceDeveloper, "Quelle.")],
         []));
 
-    private static InMemoryContentMutationRepository StateWithNodeRoleAndTwoRoleContents() =>
+    private static InMemoryContentMutationRepository StateWithNodeAudienceAndTwoAudienceContents() =>
         new(new WorkingContentMutationState(
         SnapshotId,
         [Node(NodeId)],
-        [Role(RoleDeveloper), Role(RoleEndUser)],
-        [Content(NodeId, RoleDeveloper, "Developer-Inhalt."), Content(NodeId, RoleEndUser, "EndUser-Inhalt.")],
+        [Audience(AudienceDeveloper), Audience(AudienceEndUser)],
+        [Content(NodeId, AudienceDeveloper, "Developer-Inhalt."), Content(NodeId, AudienceEndUser, "EndUser-Inhalt.")],
         []));
 
-    private static InMemoryContentMutationRepository StateWithNodeAndRole() =>
+    private static InMemoryContentMutationRepository StateWithNodeAndAudience() =>
         new(new WorkingContentMutationState(
         SnapshotId,
         [Node(NodeId)],
-        [Role(RoleDeveloper), Role(RoleEndUser)],
+        [Audience(AudienceDeveloper), Audience(AudienceEndUser)],
         [],
         []));
 
@@ -310,11 +310,11 @@ public sealed class McpContentMutationToolsTests
     private static Node Node(NodeId nodeId) =>
         new(SnapshotId, nodeId, null, "Titel", null, 0, IsDeleted: false);
 
-    private static Audience Role(AudienceId roleId) =>
-        new(SnapshotId, roleId, roleId.Value, null, IsDeleted: false);
+    private static Audience Audience(AudienceId audienceId) =>
+        new(SnapshotId, audienceId, audienceId.Value, null, IsDeleted: false);
 
-    private static NodeContent Content(NodeId nodeId, AudienceId roleId, string contentMd) =>
-        new(SnapshotId, nodeId, roleId, SourceRevisionId, ContentMode.Independent, contentMd, IsDeleted: false);
+    private static NodeContent Content(NodeId nodeId, AudienceId audienceId, string contentMd) =>
+        new(SnapshotId, nodeId, audienceId, SourceRevisionId, ContentMode.Independent, contentMd, IsDeleted: false);
 
     private sealed class FixedIdentifierGenerator : IIdentifierGenerator
     {

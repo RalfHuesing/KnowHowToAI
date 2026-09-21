@@ -27,9 +27,9 @@ internal sealed class NavigationTools
 
     [McpServerTool(Name = "get_root", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
     [Description("Liefert den aktiven Root-Node des ausgewählten Wissensstandes mit aufgelöstem " +
-        "Rollen-Content. Ein Snapshot ohne Root bleibt ein Erfolg ohne data.")]
+        "Zielgruppen-Content. Ein Snapshot ohne Root bleibt ein Erfolg ohne data.")]
     public async Task<McpToolEnvelope<McpNodeData>> GetRoot(
-        [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Angefragte Zielgruppe (audienceId aus list_audiences).")] string audienceId,
         [Description("Optionaler Transaction-Selektor (Working Snapshot).")] string? transactionId = null,
         [Description("Optionaler Snapshot-Selektor (historischer Stand).")] string? snapshotId = null,
         [Description("Optional: gelöschte Fachobjekte einbeziehen (Standard false).")] bool? includeDeleted = null,
@@ -40,16 +40,16 @@ internal sealed class NavigationTools
             return McpToolEnvelope<McpNodeData>.Failure(context.Error!);
 
         var result = await _navigationService
-            .GetRootAsync(context.Value!, new AudienceId(roleId), cancellationToken)
+            .GetRootAsync(context.Value!, new AudienceId(audienceId), cancellationToken)
             .ConfigureAwait(false);
         return McpNavigationMapper.ToEnvelope(result);
     }
 
     [McpServerTool(Name = "get_node", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
-    [Description("Liefert eine einzelne Node mit aufgelöstem Rollen-Content, Availability und Freshness.")]
+    [Description("Liefert eine einzelne Node mit aufgelöstem Zielgruppen-Content, Availability und Freshness.")]
     public async Task<McpToolEnvelope<McpNodeData>> GetNode(
         [Description("Node-ID aus einer vorherigen Tool-Antwort (GUID-String).")] string nodeId,
-        [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Angefragte Zielgruppe (audienceId aus list_audiences).")] string audienceId,
         [Description("Optionaler Transaction-Selektor (Working Snapshot).")] string? transactionId = null,
         [Description("Optionaler Snapshot-Selektor (historischer Stand).")] string? snapshotId = null,
         [Description("Optional: gelöschte Fachobjekte einbeziehen (Standard false).")] bool? includeDeleted = null,
@@ -64,7 +64,7 @@ internal sealed class NavigationTools
             return McpToolEnvelope<McpNodeData>.Failure(parsedNodeId.Error!);
 
         var result = await _navigationService
-            .GetNodeAsync(parsedNodeId.Value!.Value, context.Value!, new AudienceId(roleId), cancellationToken)
+            .GetNodeAsync(parsedNodeId.Value!.Value, context.Value!, new AudienceId(audienceId), cancellationToken)
             .ConfigureAwait(false);
         return McpNavigationMapper.ToEnvelope(result);
     }
@@ -73,7 +73,7 @@ internal sealed class NavigationTools
     [Description("Liefert paginierte, deterministisch sortierte Kind-Nodes als Metadaten " +
         "(Metadata-First), ohne vollständigen Content.")]
     public async Task<McpToolEnvelope<McpChildrenPageData>> ListChildren(
-        [Description("Angefragte Rolle (roleId aus list_roles).")] string roleId,
+        [Description("Angefragte Zielgruppe (audienceId aus list_audiences).")] string audienceId,
         [Description("Optionale Node-ID des Elternknotens (GUID-String); ohne Wert werden die " +
             "Kinder der Wurzelebene geliefert.")] string? parentNodeId = null,
         [Description("Optionaler Transaction-Selektor (Working Snapshot).")] string? transactionId = null,
@@ -95,19 +95,19 @@ internal sealed class NavigationTools
         var query = new ListChildrenQuery(
             parsedParentNodeId.Value,
             context.Value!,
-            new AudienceId(roleId),
+            new AudienceId(audienceId),
             McpPagingMapper.NormalizeLimit(limit, _retrievalPolicy.DefaultPageSize, _retrievalPolicy.MaximumPageSize),
             cursor);
         var result = await _navigationService.ListChildrenAsync(query, cancellationToken).ConfigureAwait(false);
         return McpNavigationMapper.ToEnvelope(result);
     }
 
-    [McpServerTool(Name = "list_roles", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
-    [Description("Liefert paginierte, deterministisch nach roleId sortierte aktive Rollen.")]
-    public async Task<McpToolEnvelope<McpRolePageData>> ListRoles(
+    [McpServerTool(Name = "list_audiences", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
+    [Description("Liefert paginierte, deterministisch nach audienceId sortierte aktive Zielgruppen.")]
+    public async Task<McpToolEnvelope<McpAudiencePageData>> ListAudiences(
         [Description("Optionaler Transaction-Selektor (Working Snapshot).")] string? transactionId = null,
         [Description("Optionaler Snapshot-Selektor (historischer Stand).")] string? snapshotId = null,
-        [Description("Optional: gelöschte Rollen einbeziehen (Standard false).")] bool? includeDeleted = null,
+        [Description("Optional: gelöschte Zielgruppen einbeziehen (Standard false).")] bool? includeDeleted = null,
         [Description("Optionale Seitengröße; fehlend oder ≤ 0 ergibt die konfigurierte Standardseitengröße, " +
             "Werte oberhalb des Maximums werden geklemmt.")] int? limit = null,
         [Description("Optionaler opaker Folgecursor aus einer vorherigen Antwort.")] string? cursor = null,
@@ -115,7 +115,7 @@ internal sealed class NavigationTools
     {
         var context = MapContext(transactionId, snapshotId, includeDeleted);
         if (!context.IsSuccess)
-            return McpToolEnvelope<McpRolePageData>.Failure(context.Error!);
+            return McpToolEnvelope<McpAudiencePageData>.Failure(context.Error!);
 
         var query = new ListAudiencesQuery(
             context.Value!,

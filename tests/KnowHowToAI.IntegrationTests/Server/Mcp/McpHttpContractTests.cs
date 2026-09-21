@@ -31,8 +31,8 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 ///   sind ausschließlich transactionId/snapshotId); Release-Kontext ist über get_snapshot,
 ///   list_releases und create_release in McpHttpWriteContractTests.HistoryTools_ReturnSnapshotDiffAndReleaseContracts abgedeckt.
 /// - Paging und ungültige Cursor: ListChildren_PaginatesStablyAndRejectsInvalidCursor (weitere Paging-Varianten: McpPagingMapperTests).
-/// - Root/Node/Children/Rollen: GetRoot_ReturnsNodeContractWithResolvedContent, GetNode_WithUnknownNodeId_ReturnsStableNodeNotFound,
-///   ListChildren_PaginatesStablyAndRejectsInvalidCursor, ListRoles_ReturnsRoleMetadataItems.
+/// - Root/Node/Children/Zielgruppen: GetRoot_ReturnsNodeContractWithResolvedContent, GetNode_WithUnknownNodeId_ReturnsStableNodeNotFound,
+///   ListChildren_PaginatesStablyAndRejectsInvalidCursor, ListAudiences_ReturnsAudienceMetadataItems.
 /// - Suche und Markdownexport: Search_ReturnsHitsWithQueryAndMetadataFirst, ExportTree_BuildsMarkdownFromHierarchyAndContent
 ///   (weitere Export-/Suchvarianten: McpRetrievalToolsTests).
 /// - Stabile Fehlercodes: Parameter → InvalidNodeId (McpHttpTransportTests.StreamableHttpClient_ReportsParameterAndDomainErrorsWithStableCodesAndDetails)
@@ -53,7 +53,7 @@ public sealed class McpHttpContractTests
     private static readonly NodeId SecondChildNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000002"));
     private static readonly NodeId ThirdChildNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000003"));
     private static readonly NodeId UnknownNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000009999"));
-    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
 
     // ── Toolmenge und Schemas ─────────────────────────────────────────────────
 
@@ -66,11 +66,11 @@ public sealed class McpHttpContractTests
         var tools = await client.ListToolsAsync();
 
         var required = RequiredArgumentsOf(tools, "get_node");
-        Assert.Subset(new[] { "nodeId", "roleId" }.ToHashSet(StringComparer.Ordinal), required);
+        Assert.Subset(new[] { "nodeId", "audienceId" }.ToHashSet(StringComparer.Ordinal), required);
 
         required = RequiredArgumentsOf(tools, "replace_content");
         Assert.Subset(
-            new[] { "transactionId", "nodeId", "roleId", "contentMode", "contentMd", "expectedChangeVersion" }.ToHashSet(StringComparer.Ordinal),
+            new[] { "transactionId", "nodeId", "audienceId", "contentMode", "contentMd", "expectedChangeVersion" }.ToHashSet(StringComparer.Ordinal),
             required);
     }
 
@@ -88,20 +88,20 @@ public sealed class McpHttpContractTests
         await using var host = await StartWithNavigationAsync(harness);
         await using var client = await McpClient.CreateAsync(McpHttpHost.CreateTransport(host.Address));
 
-        using var current = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Developer" });
+        using var current = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?> { ["audienceId"] = "Developer" });
         using var historical = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?>
         {
-            ["roleId"] = "Developer",
+            ["audienceId"] = "Developer",
             ["snapshotId"] = "10"
         });
         using var working = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?>
         {
-            ["roleId"] = "Developer",
+            ["audienceId"] = "Developer",
             ["transactionId"] = TransactionId.ToString()
         });
         using var ambiguous = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?>
         {
-            ["roleId"] = "Developer",
+            ["audienceId"] = "Developer",
             ["transactionId"] = TransactionId.ToString(),
             ["snapshotId"] = "10"
         });
@@ -140,7 +140,7 @@ public sealed class McpHttpContractTests
             });
         });
         await using var client = await McpClient.CreateAsync(McpHttpHost.CreateTransport(host.Address));
-        var arguments = new Dictionary<string, object?> { ["roleId"] = "Developer", ["parentNodeId"] = RootNodeId.ToString() };
+        var arguments = new Dictionary<string, object?> { ["audienceId"] = "Developer", ["parentNodeId"] = RootNodeId.ToString() };
 
         using var firstPage = await McpHttpToolCalls.CallAsync(client, "list_children", arguments);
         var nextCursor = firstPage.RootElement.GetProperty("data").GetProperty("nextCursor").GetString();
@@ -165,7 +165,7 @@ public sealed class McpHttpContractTests
             invalidCursor.RootElement.GetProperty("details").GetProperty("cursor").GetString());
     }
 
-    // ── Root/Node/Rollen ──────────────────────────────────────────────────────
+    // ── Root/Node/Zielgruppen ──────────────────────────────────────────────────────
 
     [Fact]
     public async Task GetRoot_ReturnsNodeContractWithResolvedContent()
@@ -174,14 +174,14 @@ public sealed class McpHttpContractTests
         await using var host = await StartWithNavigationAsync(harness);
         await using var client = await McpClient.CreateAsync(McpHttpHost.CreateTransport(host.Address));
 
-        using var envelope = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Developer" });
+        using var envelope = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?> { ["audienceId"] = "Developer" });
 
         var data = envelope.RootElement.GetProperty("data");
         Assert.Equal("Success", envelope.RootElement.GetProperty("code").GetString());
         Assert.Equal(RootNodeId.ToString(), data.GetProperty("nodeId").GetString());
         Assert.Equal("Hauptkapitel", data.GetProperty("title").GetString());
-        Assert.Equal("Developer", data.GetProperty("requestedRole").GetString());
-        Assert.Equal("Developer", data.GetProperty("resolvedRole").GetString());
+        Assert.Equal("Developer", data.GetProperty("requestedAudienceId").GetString());
+        Assert.Equal("Developer", data.GetProperty("resolvedAudienceId").GetString());
         Assert.False(data.GetProperty("fallbackUsed").GetBoolean());
         Assert.Equal("Explicit", data.GetProperty("availability").GetString());
         Assert.Equal("Current", data.GetProperty("freshness").GetString());
@@ -199,7 +199,7 @@ public sealed class McpHttpContractTests
         using var envelope = await McpHttpToolCalls.CallAsync(client, "get_node", new Dictionary<string, object?>
         {
             ["nodeId"] = UnknownNodeId.ToString(),
-            ["roleId"] = "Developer"
+            ["audienceId"] = "Developer"
         });
 
         Assert.Equal("NodeNotFound", envelope.RootElement.GetProperty("code").GetString());
@@ -210,18 +210,18 @@ public sealed class McpHttpContractTests
     }
 
     [Fact]
-    public async Task ListRoles_ReturnsRoleMetadataItems()
+    public async Task ListAudiences_ReturnsAudienceMetadataItems()
     {
         var harness = new NavigationTestHarness(new SnapshotId(1));
         harness.AddAudience(new Audience(new SnapshotId(1), new AudienceId("Admin"), "Admin", "Verwaltung", false));
         await using var host = await StartWithNavigationAsync(harness);
         await using var client = await McpClient.CreateAsync(McpHttpHost.CreateTransport(host.Address));
 
-        using var envelope = await McpHttpToolCalls.CallAsync(client, "list_roles");
+        using var envelope = await McpHttpToolCalls.CallAsync(client, "list_audiences");
 
         Assert.Equal("Success", envelope.RootElement.GetProperty("code").GetString());
         Assert.Equal(2, envelope.RootElement.GetProperty("data").GetProperty("items").GetArrayLength());
-        Assert.Equal("Admin", envelope.RootElement.GetProperty("data").GetProperty("items")[0].GetProperty("roleId").GetString());
+        Assert.Equal("Admin", envelope.RootElement.GetProperty("data").GetProperty("items")[0].GetProperty("audienceId").GetString());
         Assert.Equal("Verwaltung",
             envelope.RootElement.GetProperty("data").GetProperty("items")[0].GetProperty("description").GetString());
     }
@@ -235,8 +235,8 @@ public sealed class McpHttpContractTests
         {
             Response = Result<SearchRepositoryResult>.Success(new SearchRepositoryResult(
             [
-                new SearchHit(RootNodeId, "Auftragserfassung", null, null, "Title", Availability.Explicit, RoleDeveloper, Freshness.Current),
-                new SearchHit(FirstChildNodeId, "Preisfindung", null, "... Auftrag ...", "Content", Availability.Explicit, RoleDeveloper, Freshness.Current)
+                new SearchHit(RootNodeId, "Auftragserfassung", null, null, "Title", Availability.Explicit, AudienceDeveloper, Freshness.Current),
+                new SearchHit(FirstChildNodeId, "Preisfindung", null, "... Auftrag ...", "Content", Availability.Explicit, AudienceDeveloper, Freshness.Current)
             ]))
         };
         var harness = new NavigationTestHarness(new SnapshotId(1));
@@ -273,7 +273,7 @@ public sealed class McpHttpContractTests
         using var envelope = await McpHttpToolCalls.CallAsync(client, "export_tree", new Dictionary<string, object?>
         {
             ["rootNodeId"] = RootNodeId.ToString(),
-            ["roleId"] = "Developer"
+            ["audienceId"] = "Developer"
         });
 
         Assert.Equal("Success", envelope.RootElement.GetProperty("code").GetString());
@@ -331,7 +331,7 @@ public sealed class McpHttpContractTests
         var harness = new NavigationTestHarness(new SnapshotId(1));
         harness.AddNode(Node(new SnapshotId(1), "Hauptkapitel"));
         harness.AddContent(new NodeContent(
-            new SnapshotId(1), RootNodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()),
+            new SnapshotId(1), RootNodeId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()),
             ContentMode.Independent, "Inhalt Hauptkapitel.", false));
         return harness;
     }
@@ -358,7 +358,7 @@ public sealed class McpHttpContractTests
             if (withContent)
             {
                 harness.AddContent(new NodeContent(
-                    new SnapshotId(1), nodeId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()),
+                    new SnapshotId(1), nodeId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()),
                     ContentMode.Independent,
                     depth == 1 ? "Inhalt Hauptkapitel." : $"Inhalt Unterabschnitt {depth}.", false));
             }

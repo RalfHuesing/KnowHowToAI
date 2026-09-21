@@ -29,8 +29,8 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 ///
 /// - Begin/Commit/Discard: BeginAndCommitWorkflow_ReturnsCommittedTransactionState (Commit) und
 ///   McpHttpTransportTests.StreamableHttpClient_CompletesBeginMutationAndDiscardWorkflow (Begin/Discard).
-/// - Node-, Rollen- und Contentmutationen: CreateNode_CreatesRootNodeInWorkingSnapshotOverHttp,
-///   ReplaceContent_WritesExplicitRoleContent; create_role über den Writepfad in
+/// - Node-, Zielgruppen- und Contentmutationen: CreateNode_CreatesRootNodeInWorkingSnapshotOverHttp,
+///   ReplaceContent_WritesExplicitAudienceContent; create_audience über den Writepfad in
 ///   McpHttpTransportTests.StreamableHttpClient_CompletesBeginMutationAndDiscardWorkflow.
 /// - Historie/Diff/Release (inkl. Release-Read-Context, da Read-Tools keinen Release-Selektor
 ///   annehmen): HistoryTools_ReturnSnapshotDiffAndReleaseContracts (weitere Historienvarianten: McpHistoryToolsTests).
@@ -51,7 +51,7 @@ public sealed class McpHttpWriteContractTests
     private static readonly NodeId RootNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000000000"));
     private static readonly NodeId GeneratedNodeId = new(new Guid(10, 0, 0, new byte[8]));
     private static readonly ContentRevisionId GeneratedRevisionId = new(new Guid(20, 0, 0, new byte[8]));
-    private static readonly AudienceId RoleDeveloper = new("Developer");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
 
     // ── Begin/Commit/Discard ──────────────────────────────────────────────────
 
@@ -110,9 +110,9 @@ public sealed class McpHttpWriteContractTests
     }
 
     [Fact]
-    public async Task ReplaceContent_WritesExplicitRoleContent()
+    public async Task ReplaceContent_WritesExplicitAudienceContent()
     {
-        var content = ContentStateWithNodeAndRole();
+        var content = ContentStateWithNodeAndAudience();
         await using var host = await StartWithMutationServicesAsync(content: content);
         await using var client = await McpClient.CreateAsync(McpHttpHost.CreateTransport(host.Address));
 
@@ -120,7 +120,7 @@ public sealed class McpHttpWriteContractTests
         {
             ["transactionId"] = TransactionId.ToString(),
             ["nodeId"] = RootNodeId.ToString(),
-            ["roleId"] = "Developer",
+            ["audienceId"] = "Developer",
             ["contentMode"] = "Independent",
             ["contentMd"] = "Inhalt ohne Struktur.",
             ["expectedChangeVersion"] = 0L
@@ -128,7 +128,7 @@ public sealed class McpHttpWriteContractTests
 
         var data = envelope.RootElement.GetProperty("data");
         Assert.Equal("Success", envelope.RootElement.GetProperty("code").GetString());
-        Assert.Equal("Developer", data.GetProperty("roleId").GetString());
+        Assert.Equal("Developer", data.GetProperty("audienceId").GetString());
         Assert.Equal("Independent", data.GetProperty("contentMode").GetString());
         Assert.Equal("Current", data.GetProperty("freshness").GetString());
         Assert.Equal(WorkingSnapshotId.ToString(), data.GetProperty("snapshotId").GetString());
@@ -140,7 +140,7 @@ public sealed class McpHttpWriteContractTests
     [Fact]
     public async Task ReplaceContent_StandaloneTitleParagraph_SucceedsWithPossibleEmbeddedHeadingWarning()
     {
-        var content = ContentStateWithNodeAndRole();
+        var content = ContentStateWithNodeAndAudience();
         await using var host = await StartWithMutationServicesAsync(content: content);
         await using var client = await McpClient.CreateAsync(McpHttpHost.CreateTransport(host.Address));
 
@@ -148,7 +148,7 @@ public sealed class McpHttpWriteContractTests
         {
             ["transactionId"] = TransactionId.ToString(),
             ["nodeId"] = RootNodeId.ToString(),
-            ["roleId"] = "Developer",
+            ["audienceId"] = "Developer",
             ["contentMode"] = "Independent",
             ["contentMd"] = "Titel",
             ["expectedChangeVersion"] = 0L
@@ -228,7 +228,7 @@ public sealed class McpHttpWriteContractTests
 
         using var envelope = await McpHttpToolCalls.CallAsync(client, "get_root", new Dictionary<string, object?>
         {
-            ["roleId"] = "Developer",
+            ["audienceId"] = "Developer",
             ["transactionId"] = TransactionId.ToString()
         });
 
@@ -376,11 +376,11 @@ public sealed class McpHttpWriteContractTests
         Client: null,
         CommitMessage: null);
 
-    private static InMemoryContentMutationRepository ContentStateWithNodeAndRole() => new(
+    private static InMemoryContentMutationRepository ContentStateWithNodeAndAudience() => new(
         new WorkingContentMutationState(
             WorkingSnapshotId,
             [new Node(WorkingSnapshotId, RootNodeId, null, "Titel", null, 0, false)],
-            [new Audience(WorkingSnapshotId, RoleDeveloper, "Developer", null, false)],
+            [new Audience(WorkingSnapshotId, AudienceDeveloper, "Developer", null, false)],
             [],
             []));
 

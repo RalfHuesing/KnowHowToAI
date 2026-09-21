@@ -342,7 +342,7 @@ public sealed class McpHistoryToolsTests
             new ScriptedTransactionRepository(null),
             new EmptyHierarchyRepository(),
             new EmptyContentRepository(),
-            new EmptyRoleRepository(),
+            new EmptyAudienceRepository(),
             new EmptyDependencyRepository());
 
     private static Snapshot CommittedSnapshot(SnapshotId id, SnapshotId? baseId) =>
@@ -469,7 +469,7 @@ public sealed class McpHistoryToolsTests
             Task.FromResult<IReadOnlyList<NodeContent>>([]);
     }
 
-    private sealed class EmptyRoleRepository : IAudienceRepository
+    private sealed class EmptyAudienceRepository : IAudienceRepository
     {
         public Task<IReadOnlyList<Audience>> ListBySnapshotAsync(
             SnapshotId snapshotId, CancellationToken cancellationToken = default) =>

@@ -40,7 +40,7 @@ public sealed class McpResultMapperTests
     [InlineData("InvalidCursor")]
     [InlineData("CursorExpired")]
     [InlineData("NodeNotFound")]
-    [InlineData("RoleNotFound")]
+    [InlineData("AudienceNotFound")]
     [InlineData("HeadingNotAllowed")]
     [InlineData("TextNotFound")]
     [InlineData("MultipleTextMatches")]

@@ -1,21 +1,21 @@
 # MCP-API
 
 Der MCP-Server stellt 28 Tools über stateless MCP Streamable HTTP unter `/mcp`
-bereit. Alle IDs (`NodeId`, `RoleId`,
+bereit. Alle IDs (`NodeId`, `AudienceId`,
 `TransactionId`, `SnapshotId`) sind symmetrisch: Ausgaben sind ohne Bereinigung
 oder Typkonvertierung als Eingabe für Folgetools nutzbar (Round-Trip-Garantie).
-Rollen werden immer explizit als `roleId` übergeben; es gibt keinen globalen
-Session-Rollenstatus.
+Zielgruppen werden immer explizit als `audienceId` übergeben; es gibt keinen globalen
+Session-Zielgruppenstatus.
 
 ## Tool-Inventar
 
 | Gruppe | Tools |
 |---|---|
 | Transactions | `begin_transaction`, `get_transaction`, `validate_transaction`, `commit_transaction`, `discard_transaction` |
-| Navigation (read-only) | `get_root`, `get_node`, `list_children`, `list_roles` |
+| Navigation (read-only) | `get_root`, `get_node`, `list_children`, `list_audiences` |
 | Retrieval (read-only) | `search`, `export_tree` |
 | Struktur (write) | `create_node`, `update_node`, `move_node`, `reorder_node`, `delete_node` |
-| Rollen (write) | `create_role`, `update_role`, `delete_role`, `set_role_resolution` |
+| Zielgruppen (write) | `create_audience`, `update_audience`, `delete_audience`, `set_audience_resolution` |
 | Content (write) | `replace_content`, `replace_text`, `delete_content` |
 | Historie (read-only) | `get_snapshot`, `list_releases`, `compare_snapshots`, `get_transaction_changes` |
 | Releases (Metadaten) | `create_release` |
@@ -90,7 +90,7 @@ Beispiele (in Vertragstests fixiert):
 |---|---|---|
 | `begin_transaction` | `purpose` (optional), `actor` (optional), `client` (optional) | `transactionId`, `baseSnapshotId`, `workingSnapshotId`, `state`, `createdAtUtc`; optional `committedAtUtc`, `purpose`, `actor`, `client`, `commitMessage` |
 | `get_transaction` | `transactionId` (erforderlich) | dieselben Feldnamen wie `begin_transaction` |
-| `validate_transaction` | `transactionId` (erforderlich) | `isValid`, `errors` (je `code`, `message`, optionales `details`), `warnings` (McpWarning), `staleContents` (je `nodeId`, `roleId`, `contentRevisionId`), `refactoringCandidates` (je `nodeId`, `reasonCodes`) |
+| `validate_transaction` | `transactionId` (erforderlich) | `isValid`, `errors` (je `code`, `message`, optionales `details`), `warnings` (McpWarning), `staleContents` (je `nodeId`, `audienceId`, `contentRevisionId`), `refactoringCandidates` (je `nodeId`, `reasonCodes`) |
 | `commit_transaction` | `transactionId` (erforderlich), `commitMessage` (optional) | dieselben Feldnamen wie `begin_transaction`; Validierungsbefunde erscheinen zusätzlich als `warnings` auf Envelope-Ebene, auch bei fachlicher Ablehnung |
 | `discard_transaction` | `transactionId` (erforderlich) | kein `data` |
 
@@ -115,22 +115,22 @@ Alle Read-Tools verwenden die Selektor-Felder und die einheitliche
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `get_root` | `roleId` (erforderlich), Selektor-Felder | Node-Felder: `nodeId`, `title`, optional `description`, `sortOrder`, `requestedRole`, optional `resolvedRole`, `fallbackUsed`, `availability`, `freshness`, optional `contentRevisionId` und `content`; ohne Root kein `data` |
-| `get_node` | `nodeId`, `roleId` (erforderlich), Selektor-Felder | dieselben Node-Felder wie `get_root` |
-| `list_children` | `roleId` (erforderlich), optional `parentNodeId`, Selektor-Felder, `limit`, `cursor` | optional `parentNodeId`, `items` (je `nodeId`, `title`, optional `description`, `sortOrder`, `childCount`, `contentSizeBytes`, `availability`, optional `resolvedRole`, `freshness`), optional `nextCursor` |
-| `list_roles` | Selektor-Felder, `limit`, `cursor` | `items` (je `roleId`, `name`, optional `description`), optional `nextCursor` |
-| `search` | `text` (erforderlich), optional `roleId`, Selektor-Felder, `limit`, `cursor` | `query`, `items` (je `nodeId`, `title`, optional `description`, optional `snippet`, `hitField`, `availability`, optional `resolvedRole`, `freshness`), optional `nextCursor` |
-| `export_tree` | `rootNodeId`, `roleId` (erforderlich), Selektor-Felder | `markdown`; Export-Warnungen (`HierarchyTooDeep`, `StaleDerivedContent`) erscheinen als `warnings` auf Envelope-Ebene |
+| `get_root` | `audienceId` (erforderlich), Selektor-Felder | Node-Felder: `nodeId`, `title`, optional `description`, `sortOrder`, `requestedAudienceId`, optional `resolvedAudienceId`, `fallbackUsed`, `availability`, `freshness`, optional `contentRevisionId` und `content`; ohne Root kein `data` |
+| `get_node` | `nodeId`, `audienceId` (erforderlich), Selektor-Felder | dieselben Node-Felder wie `get_root` |
+| `list_children` | `audienceId` (erforderlich), optional `parentNodeId`, Selektor-Felder, `limit`, `cursor` | optional `parentNodeId`, `items` (je `nodeId`, `title`, optional `description`, `sortOrder`, `childCount`, `contentSizeBytes`, `availability`, optional `resolvedAudienceId`, `freshness`), optional `nextCursor` |
+| `list_audiences` | Selektor-Felder, `limit`, `cursor` | `items` (je `audienceId`, `name`, optional `description`), optional `nextCursor` |
+| `search` | `text` (erforderlich), optional `audienceId`, Selektor-Felder, `limit`, `cursor` | `query`, `items` (je `nodeId`, `title`, optional `description`, optional `snippet`, `hitField`, `availability`, optional `resolvedAudienceId`, `freshness`), optional `nextCursor` |
+| `export_tree` | `rootNodeId`, `audienceId` (erforderlich), Selektor-Felder | `markdown`; Export-Warnungen (`HierarchyTooDeep`, `StaleDerivedContent`) erscheinen als `warnings` auf Envelope-Ebene |
 
 ## Request-/Response-Felder der Struktur-Tools
 
 Alle Struktur-Tools ändern ausschließlich den Working Snapshot der offenen
-Transaction; `delete_node` wirkt global über alle Rollen
+Transaction; `delete_node` wirkt global über alle Zielgruppen
 ([Transaktionen und Historie](Transaktionen-und-Historie.md)).
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `create_node` | `transactionId`, `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0), optional `expectedChangeVersion`, optional `contentMd` (setzt im selben Aufruf den Rollen-Content; dann `roleId` erforderlich, optional `contentMode`, Standard `Independent`, optional `sources`) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds`; bei `contentMd` zusätzlich `roleId`, `contentRevisionId`, `contentMode`, `freshness` |
+| `create_node` | `transactionId`, `title` (erforderlich), optional `description`, optional `parentNodeId` (ohne Wert wird eine Root-Node angelegt), optional `sortOrder` (Standard 0), optional `expectedChangeVersion`, optional `contentMd` (setzt im selben Aufruf den Zielgruppen-Content; dann `audienceId` erforderlich, optional `contentMode`, Standard `Independent`, optional `sources`) | `nodeId`, optional `parentNodeId`, `title`, `snapshotId`, `changeVersion`, `affectedNodeIds`; bei `contentMd` zusätzlich `audienceId`, `contentRevisionId`, `contentMode`, `freshness` |
 | `update_node` | `transactionId`, `nodeId`, `title` (erforderlich), optional `description`, optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
 | `move_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `parentNodeId` (ohne Wert wird die Node zur Root-Node), optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
 | `reorder_node` | `transactionId`, `nodeId`, `sortOrder` (erforderlich), optional `expectedChangeVersion` | dieselben Feldnamen wie `create_node` |
@@ -143,22 +143,22 @@ Working-Stand zur Vorbedingung. Weicht er beim atomaren Write ab, wird die Mutat
 der Working Snapshot bleibt unverändert. Der Client lädt den betroffenen Bereich neu
 und sendet eine bewusste Gegenänderung, falls sie weiter gewünscht ist.
 
-## Request-/Response-Felder der Rollen- und Content-Tools
+## Request-/Response-Felder der Zielgruppen- und Content-Tools
 
-Rollen- und Content-Mutationen erfordern neben der offenen `transactionId` den
+Zielgruppen- und Content-Mutationen erfordern neben der offenen `transactionId` den
 zuvor gelesenen `expectedChangeVersion`-Stand als Pflichtfeld. Fehlt das Feld,
 weist das MCP-Eingabeschema den Aufruf vor der Mutation zurück. Die Antwort enthält bei Erfolg
 den Working-`snapshotId` und die danach gültige `changeVersion`.
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `create_role` | `transactionId`, `name`, `expectedChangeVersion` (erforderlich), optional `description` | `roleId`, `name`, optional `description`, `snapshotId`, `changeVersion` |
-| `update_role` | `transactionId`, `roleId`, `name`, `expectedChangeVersion` (erforderlich), optional `description` | dieselben Rollenfelder |
-| `delete_role` | `transactionId`, `roleId`, `expectedChangeVersion` | dieselben Rollenfelder |
-| `set_role_resolution` | `transactionId`, `roleId`, `candidateRoleIds`, `expectedChangeVersion` | `requestedRoleId`, `items`, `snapshotId`, `changeVersion` |
-| `replace_content` | `transactionId`, `nodeId`, `roleId`, `contentMode`, `contentMd`, `expectedChangeVersion` (erforderlich), optional `sources` | `nodeId`, `roleId`, `contentRevisionId`, `contentMode`, `freshness`, `snapshotId`, `changeVersion` |
-| `replace_text` | `transactionId`, `nodeId`, `roleId`, `oldText`, `newText`, `expectedChangeVersion` | dieselben Contentfelder |
-| `delete_content` | `transactionId`, `nodeId`, `roleId`, `expectedChangeVersion` | dieselben Contentfelder |
+| `create_audience` | `transactionId`, `name`, `expectedChangeVersion` (erforderlich), optional `description` | `audienceId`, `name`, optional `description`, `snapshotId`, `changeVersion` |
+| `update_audience` | `transactionId`, `audienceId`, `name`, `expectedChangeVersion` (erforderlich), optional `description` | dieselben Zielgruppenfelder |
+| `delete_audience` | `transactionId`, `audienceId`, `expectedChangeVersion` | dieselben Zielgruppenfelder |
+| `set_audience_resolution` | `transactionId`, `audienceId`, `candidateAudienceIds`, `expectedChangeVersion` | `requestedAudienceId`, `items`, `snapshotId`, `changeVersion` |
+| `replace_content` | `transactionId`, `nodeId`, `audienceId`, `contentMode`, `contentMd`, `expectedChangeVersion` (erforderlich), optional `sources` | `nodeId`, `audienceId`, `contentRevisionId`, `contentMode`, `freshness`, `snapshotId`, `changeVersion` |
+| `replace_text` | `transactionId`, `nodeId`, `audienceId`, `oldText`, `newText`, `expectedChangeVersion` | dieselben Contentfelder |
+| `delete_content` | `transactionId`, `nodeId`, `audienceId`, `expectedChangeVersion` | dieselben Contentfelder |
 
 Weicht der erwartete Stand beim atomaren Write ab, liefern alle genannten
 Mutationen `ChangeVersionConflict` mit `expectedChangeVersion` und
@@ -176,33 +176,33 @@ IDs führen zu `NodeNotFound` beziehungsweise `ParentNodeNotFound` mit dem Rohwe
 in den Details; nicht parsebare ID-Strings sind Parameterfehler und führen zu
 `InvalidNodeId`.
 
-## Request-/Response-Felder der Rollen-Tools
+## Request-/Response-Felder der Zielgruppen-Tools
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `create_role` | `transactionId`, `name` (erforderlich; er bestimmt den `roleId`), optional `description` | `roleId`, `name`, optional `description` |
-| `update_role` | `transactionId`, `roleId`, `name` (erforderlich), optional `description` | dieselben Feldnamen wie `create_role` |
-| `delete_role` | `transactionId`, `roleId` (erforderlich) | dieselben Feldnamen wie `create_role` |
-| `set_role_resolution` | `transactionId`, `roleId`, `candidateRoleIds` (erforderlich; die Reihenfolge bestimmt die Priorität, 1 = höchste) | `requestedRoleId`, `items` (je `candidateRoleId`, `priority`) |
+| `create_audience` | `transactionId`, `name` (erforderlich; er bestimmt den `audienceId`), optional `description` | `audienceId`, `name`, optional `description` |
+| `update_audience` | `transactionId`, `audienceId`, `name` (erforderlich), optional `description` | dieselben Feldnamen wie `create_audience` |
+| `delete_audience` | `transactionId`, `audienceId` (erforderlich) | dieselben Feldnamen wie `create_audience` |
+| `set_audience_resolution` | `transactionId`, `audienceId`, `candidateAudienceIds` (erforderlich; die Reihenfolge bestimmt die Priorität, 1 = höchste) | `requestedAudienceId`, `items` (je `candidateAudienceId`, `priority`) |
 
-Regeln: `set_role_resolution` ersetzt die Order vollständig und bleibt nicht
-rekursiv ([Rollen und Content](Zielgruppen-und-Content.md)). Eine referenzierte Rolle
+Regeln: `set_audience_resolution` ersetzt die Order vollständig und bleibt nicht
+rekursiv ([Zielgruppen und Content](Zielgruppen-und-Content.md)). Eine referenzierte Zielgruppe
 (Content, Dependencies, Resolution Orders) kann nicht gelöscht werden
-(`RoleInUse`). Doppelte Kandidaten führen zu `DuplicateCandidateRole`, unbekannte
-zu `CandidateRoleNotFound`.
+(`AudienceInUse`). Doppelte Kandidaten führen zu `DuplicateCandidateAudience`, unbekannte
+zu `CandidateAudienceNotFound`.
 
 ## Request-/Response-Felder der Content-Tools
 
 | Tool | Request-Felder | Response-Daten (`data`) |
 |---|---|---|
-| `replace_content` | `transactionId`, `nodeId`, `roleId`, `contentMode` (erforderlich; exakt `Independent` oder `Derived`), `contentMd` (erforderlich), optional `sources` (je `nodeId`, `roleId`, `contentRevisionId`) | `nodeId`, `roleId`, `contentRevisionId`, `contentMode`, `freshness`, `snapshotId`, `changeVersion` |
-| `replace_text` | `transactionId`, `nodeId`, `roleId`, `oldText`, `newText` (erforderlich) | dieselben Feldnamen wie `replace_content` |
-| `delete_content` | `transactionId`, `nodeId`, `roleId` (erforderlich) | dieselben Feldnamen wie `replace_content` |
+| `replace_content` | `transactionId`, `nodeId`, `audienceId`, `contentMode` (erforderlich; exakt `Independent` oder `Derived`), `contentMd` (erforderlich), optional `sources` (je `nodeId`, `audienceId`, `contentRevisionId`) | `nodeId`, `audienceId`, `contentRevisionId`, `contentMode`, `freshness`, `snapshotId`, `changeVersion` |
+| `replace_text` | `transactionId`, `nodeId`, `audienceId`, `oldText`, `newText` (erforderlich) | dieselben Feldnamen wie `replace_content` |
+| `delete_content` | `transactionId`, `nodeId`, `audienceId` (erforderlich) | dieselben Feldnamen wie `replace_content` |
 
 Regeln:
 
-- Content-Tools verändern ausschließlich den expliziten Rollen-Content der
-  übergebenen `roleId` und lassen die Node unverändert; `delete_content`
+- Content-Tools verändern ausschließlich den expliziten Zielgruppen-Content der
+  übergebenen `audienceId` und lassen die Node unverändert; `delete_content`
   tombstoned per Soft-Delete.
 - Ein unbekannter `contentMode`-Wert ist eine harte Dependency-Verletzung und
   führt zu `InvalidDependency`; derselbe Code gilt für nicht parsebare
@@ -246,13 +246,13 @@ ergänzt werden; veröffentlichte Codes werden nicht beiläufig umbenannt.
   `TransactionNotFound`, `TransactionClosed`, `SnapshotConflict`, `ChangeVersionConflict`,
   `SnapshotMutationConflict`, `InvalidCursor`, `CursorExpired`,
   `WorkingSnapshotNotOpen`, `TransactionDiscarded`
-- Struktur/Rollen: `NodeNotFound`, `InvalidNodeId`, `RootAlreadyExists`, `ParentNodeNotFound`,
-  `InvalidHierarchy`, `NodeHasChildren`, `RoleNotFound`, `RoleInUse`,
-  `RoleResolutionNotConfigured`, `InvalidRoleResolution`, `DuplicateNodeId`,
+- Struktur/Zielgruppen: `NodeNotFound`, `InvalidNodeId`, `RootAlreadyExists`, `ParentNodeNotFound`,
+  `InvalidHierarchy`, `NodeHasChildren`, `AudienceNotFound`, `AudienceInUse`,
+  `AudienceResolutionNotConfigured`, `InvalidAudienceResolution`, `DuplicateNodeId`,
   `HierarchyCycle`, `NodeIdAlreadyUsed`, `SelfParentNotAllowed`, `SnapshotMismatch`,
-  `TitleRequired`, `TitleTooLong`, `DescriptionTooLong`, `RoleNameRequired`, `RoleIdRequired`, `CandidateRoleDeleted`,
-  `CandidateRoleNotFound`, `DuplicateCandidateRole`, `DuplicatePriority`,
-  `InvalidPriority`, `RequestedRoleDeleted`, `RequestedRoleNotFound`
+  `TitleRequired`, `TitleTooLong`, `DescriptionTooLong`, `AudienceNameRequired`, `AudienceIdRequired`, `CandidateAudienceDeleted`,
+  `CandidateAudienceNotFound`, `DuplicateCandidateAudience`, `DuplicatePriority`,
+  `InvalidPriority`, `RequestedAudienceDeleted`, `RequestedAudienceNotFound`
 - Content: `ExplicitContentNotFound`, `HeadingNotAllowed`, `FrontMatterNotAllowed`,
   `RawHtmlNotAllowed`, `LinkTargetNotAllowed`, `ExternalImageNotAllowed`,
   `TextNotFound`, `MultipleTextMatches`, `InvalidDependency`, `DependencyCycle`

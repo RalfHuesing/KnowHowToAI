@@ -13,14 +13,14 @@ public static class McpErrorCatalog
         "WorkingSnapshotNotOpen", "TransactionDiscarded"
     ];
 
-    private static readonly string[] StructureRoleErrorCodes =
+    private static readonly string[] StructureAudienceErrorCodes =
     [
         "NodeNotFound", "InvalidNodeId", "RootAlreadyExists", "ParentNodeNotFound", "InvalidHierarchy", "NodeHasChildren",
-        "RoleNotFound", "RoleInUse", "RoleResolutionNotConfigured", "InvalidRoleResolution",
+        "AudienceNotFound", "AudienceInUse", "AudienceResolutionNotConfigured", "InvalidAudienceResolution",
         "DuplicateNodeId", "HierarchyCycle", "NodeIdAlreadyUsed", "SelfParentNotAllowed", "SnapshotMismatch",
-        "TitleRequired", "TitleTooLong", "DescriptionTooLong", "RoleNameRequired", "RoleIdRequired", "CandidateRoleDeleted",
-        "CandidateRoleNotFound", "DuplicateCandidateRole", "DuplicatePriority", "InvalidPriority",
-        "RequestedRoleDeleted", "RequestedRoleNotFound"
+        "TitleRequired", "TitleTooLong", "DescriptionTooLong", "AudienceNameRequired", "AudienceIdRequired", "CandidateAudienceDeleted",
+        "CandidateAudienceNotFound", "DuplicateCandidateAudience", "DuplicatePriority", "InvalidPriority",
+        "RequestedAudienceDeleted", "RequestedAudienceNotFound"
     ];
 
     private static readonly string[] ContentErrorCodes =
@@ -45,7 +45,7 @@ public static class McpErrorCatalog
     public static IReadOnlyList<string> KnownErrorCodes { get; } =
     [
         .. ContextStateErrorCodes,
-        .. StructureRoleErrorCodes,
+        .. StructureAudienceErrorCodes,
         .. ContentErrorCodes,
         .. MigrationReleaseErrorCodes
     ];

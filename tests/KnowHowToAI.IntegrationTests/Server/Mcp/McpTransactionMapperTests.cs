@@ -70,7 +70,7 @@ public sealed class McpTransactionMapperTests
             [new DomainError(HeadingNotAllowed, "Überschrift ist unzulässig.", new Dictionary<string, string>
             {
                 [TransactionValidationCodes.NodeIdDetail] = SampleTransactionId.ToString(),
-                ["roleId"] = "Developer"
+                ["audienceId"] = "Developer"
             })],
             [new DomainWarning("NodeTooLarge", "Content übersteigt die Warnschwelle.", new Dictionary<string, string>
             {
@@ -88,11 +88,11 @@ public sealed class McpTransactionMapperTests
         Assert.False(data.IsValid);
         var error = Assert.Single(data.Errors);
         Assert.Equal(HeadingNotAllowed, error.Code);
-        Assert.Equal("Developer", error.Details!["roleId"]);
+        Assert.Equal("Developer", error.Details!["audienceId"]);
         var warning = Assert.Single(data.Warnings);
         Assert.Equal("NodeTooLarge", warning.Code);
         var stale = Assert.Single(data.StaleContents);
-        Assert.Equal("Developer", stale.RoleId);
+        Assert.Equal("Developer", stale.AudienceId);
         var candidate = Assert.Single(data.RefactoringCandidates);
         Assert.Equal(["NodeTooLarge"], candidate.ReasonCodes);
     }

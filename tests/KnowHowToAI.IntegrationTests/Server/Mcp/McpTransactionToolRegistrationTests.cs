@@ -7,7 +7,7 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Registrierungsvertragstests: die veröffentlichten V1-Tools (Transaktionen, Navigation,
-/// Search, Export, Struktur-, Content- und Rollen-Mutationen sowie Historien- und
+/// Search, Export, Struktur-, Content- und Zielgruppen-Mutationen sowie Historien- und
 /// Release-Tools) werden über die MCP-Server-Pipeline mit stabilen Namen,
 /// Beschreibungen, Input-Schemata und Annotations-Hinweisen bereitgestellt
 /// (M6.3, M6.4, M6.5, M6.6).
@@ -20,12 +20,12 @@ public sealed class McpTransactionToolRegistrationTests
         "begin_transaction",
         "commit_transaction",
         "compare_snapshots",
+        "create_audience",
         "create_node",
         "create_release",
-        "create_role",
+        "delete_audience",
         "delete_content",
         "delete_node",
-        "delete_role",
         "discard_transaction",
         "export_tree",
         "get_node",
@@ -33,17 +33,17 @@ public sealed class McpTransactionToolRegistrationTests
         "get_snapshot",
         "get_transaction",
         "get_transaction_changes",
+        "list_audiences",
         "list_children",
         "list_releases",
-        "list_roles",
         "move_node",
         "reorder_node",
         "replace_content",
         "replace_text",
         "search",
-        "set_role_resolution",
+        "set_audience_resolution",
+        "update_audience",
         "update_node",
-        "update_role",
         "validate_transaction"
     ];
 
@@ -58,7 +58,7 @@ public sealed class McpTransactionToolRegistrationTests
         "get_transaction_changes",
         "list_children",
         "list_releases",
-        "list_roles",
+        "list_audiences",
         "search",
         "validate_transaction"
     ];
@@ -67,7 +67,7 @@ public sealed class McpTransactionToolRegistrationTests
     [
         "delete_content",
         "delete_node",
-        "delete_role",
+        "delete_audience",
         "discard_transaction"
     ];
 
@@ -82,6 +82,30 @@ public sealed class McpTransactionToolRegistrationTests
             .ToArray();
 
         Assert.Equal(ExpectedToolNames, toolNames);
+    }
+
+    [Fact]
+    public void ServerAssembly_ExcludesLegacyRoleToolsAndJsonFields()
+    {
+        using var provider = BuildToolProvider();
+        var tools = provider.GetServices<McpServerTool>().ToArray();
+        var toolNames = tools.Select(tool => tool.ProtocolTool.Name).ToArray();
+
+        Assert.DoesNotContain("list_roles", toolNames);
+        Assert.DoesNotContain("create_role", toolNames);
+        Assert.DoesNotContain("update_role", toolNames);
+        Assert.DoesNotContain("delete_role", toolNames);
+        Assert.DoesNotContain("set_role_resolution", toolNames);
+
+        foreach (var tool in tools)
+        {
+            var schema = tool.ProtocolTool.InputSchema.GetRawText();
+            Assert.DoesNotContain("roleId", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain("requestedRole", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain("resolvedRole", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain("candidateRole", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain("sourceRole", schema, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -144,34 +168,34 @@ public sealed class McpTransactionToolRegistrationTests
                 StringComparer.Ordinal);
 
         Assert.Equal(
-            new[] { "includeDeleted", "roleId", "snapshotId", "transactionId" },
+            new[] { "audienceId", "includeDeleted", "snapshotId", "transactionId" },
             SortedPropertyNames(schemas["get_root"]));
-        Assert.Equal(new[] { "roleId" }, SortedRequiredNames(schemas["get_root"]));
+        Assert.Equal(new[] { "audienceId" }, SortedRequiredNames(schemas["get_root"]));
 
         Assert.Equal(
-            new[] { "includeDeleted", "nodeId", "roleId", "snapshotId", "transactionId" },
+            new[] { "audienceId", "includeDeleted", "nodeId", "snapshotId", "transactionId" },
             SortedPropertyNames(schemas["get_node"]));
-        Assert.Equal(new[] { "nodeId", "roleId" }, SortedRequiredNames(schemas["get_node"]));
+        Assert.Equal(new[] { "audienceId", "nodeId" }, SortedRequiredNames(schemas["get_node"]));
 
         Assert.Equal(
-            new[] { "cursor", "includeDeleted", "limit", "parentNodeId", "roleId", "snapshotId", "transactionId" },
+            new[] { "audienceId", "cursor", "includeDeleted", "limit", "parentNodeId", "snapshotId", "transactionId" },
             SortedPropertyNames(schemas["list_children"]));
-        Assert.Equal(new[] { "roleId" }, SortedRequiredNames(schemas["list_children"]));
+        Assert.Equal(new[] { "audienceId" }, SortedRequiredNames(schemas["list_children"]));
 
         Assert.Equal(
             new[] { "cursor", "includeDeleted", "limit", "snapshotId", "transactionId" },
-            SortedPropertyNames(schemas["list_roles"]));
-        Assert.DoesNotContain("required", schemas["list_roles"].EnumerateObject().Select(property => property.Name));
+            SortedPropertyNames(schemas["list_audiences"]));
+        Assert.DoesNotContain("required", schemas["list_audiences"].EnumerateObject().Select(property => property.Name));
 
         Assert.Equal(
-            new[] { "cursor", "includeDeleted", "limit", "roleId", "snapshotId", "text", "transactionId" },
+            new[] { "audienceId", "cursor", "includeDeleted", "limit", "snapshotId", "text", "transactionId" },
             SortedPropertyNames(schemas["search"]));
         Assert.Equal(new[] { "text" }, SortedRequiredNames(schemas["search"]));
 
         Assert.Equal(
-            new[] { "includeDeleted", "roleId", "rootNodeId", "snapshotId", "transactionId" },
+            new[] { "audienceId", "includeDeleted", "rootNodeId", "snapshotId", "transactionId" },
             SortedPropertyNames(schemas["export_tree"]));
-        Assert.Equal(new[] { "roleId", "rootNodeId" }, SortedRequiredNames(schemas["export_tree"]));
+        Assert.Equal(new[] { "audienceId", "rootNodeId" }, SortedRequiredNames(schemas["export_tree"]));
     }
 
     [Fact]
@@ -185,7 +209,7 @@ public sealed class McpTransactionToolRegistrationTests
                 StringComparer.Ordinal);
 
         Assert.Equal(
-            new[] { "contentMd", "contentMode", "description", "expectedChangeVersion", "parentNodeId", "roleId", "sortOrder", "sources", "title", "transactionId" },
+            new[] { "audienceId", "contentMd", "contentMode", "description", "expectedChangeVersion", "parentNodeId", "sortOrder", "sources", "title", "transactionId" },
             SortedPropertyNames(schemas["create_node"]));
         Assert.Equal(new[] { "title", "transactionId" }, SortedRequiredNames(schemas["create_node"]));
 
@@ -209,51 +233,51 @@ public sealed class McpTransactionToolRegistrationTests
         Assert.Equal(new[] { "nodeId", "transactionId" }, SortedRequiredNames(schemas["delete_node"]));
 
         Assert.Equal(
-            new[] { "contentMd", "contentMode", "expectedChangeVersion", "nodeId", "roleId", "sources", "transactionId" },
+            new[] { "audienceId", "contentMd", "contentMode", "expectedChangeVersion", "nodeId", "sources", "transactionId" },
             SortedPropertyNames(schemas["replace_content"]));
         Assert.Equal(
-            new[] { "contentMd", "contentMode", "expectedChangeVersion", "nodeId", "roleId", "transactionId" },
+            new[] { "audienceId", "contentMd", "contentMode", "expectedChangeVersion", "nodeId", "transactionId" },
             SortedRequiredNames(schemas["replace_content"]));
         var sourcesSchema = schemas["replace_content"].GetProperty("properties").GetProperty("sources");
         Assert.Contains("array", sourcesSchema.GetRawText(), StringComparison.Ordinal);
         Assert.Contains("contentRevisionId", schemas["replace_content"].GetRawText(), StringComparison.Ordinal);
 
         Assert.Equal(
-            new[] { "expectedChangeVersion", "newText", "nodeId", "oldText", "roleId", "transactionId" },
+            new[] { "audienceId", "expectedChangeVersion", "newText", "nodeId", "oldText", "transactionId" },
             SortedPropertyNames(schemas["replace_text"]));
         Assert.Equal(
-            new[] { "expectedChangeVersion", "newText", "nodeId", "oldText", "roleId", "transactionId" },
+            new[] { "audienceId", "expectedChangeVersion", "newText", "nodeId", "oldText", "transactionId" },
             SortedRequiredNames(schemas["replace_text"]));
         Assert.Equal(
-            new[] { "expectedChangeVersion", "nodeId", "roleId", "transactionId" },
+            new[] { "audienceId", "expectedChangeVersion", "nodeId", "transactionId" },
             SortedRequiredNames(schemas["delete_content"]));
 
         Assert.Equal(
             new[] { "description", "expectedChangeVersion", "name", "transactionId" },
-            SortedPropertyNames(schemas["create_role"]));
-        Assert.Equal(new[] { "expectedChangeVersion", "name", "transactionId" }, SortedRequiredNames(schemas["create_role"]));
+            SortedPropertyNames(schemas["create_audience"]));
+        Assert.Equal(new[] { "expectedChangeVersion", "name", "transactionId" }, SortedRequiredNames(schemas["create_audience"]));
 
         Assert.Equal(
-            new[] { "description", "expectedChangeVersion", "name", "roleId", "transactionId" },
-            SortedPropertyNames(schemas["update_role"]));
+            new[] { "audienceId", "description", "expectedChangeVersion", "name", "transactionId" },
+            SortedPropertyNames(schemas["update_audience"]));
         Assert.Equal(
-            new[] { "expectedChangeVersion", "name", "roleId", "transactionId" },
-            SortedRequiredNames(schemas["update_role"]));
+            new[] { "audienceId", "expectedChangeVersion", "name", "transactionId" },
+            SortedRequiredNames(schemas["update_audience"]));
 
         Assert.Equal(
-            new[] { "candidateRoleIds", "expectedChangeVersion", "roleId", "transactionId" },
-            SortedPropertyNames(schemas["set_role_resolution"]));
+            new[] { "audienceId", "candidateAudienceIds", "expectedChangeVersion", "transactionId" },
+            SortedPropertyNames(schemas["set_audience_resolution"]));
         Assert.Equal(
-            new[] { "candidateRoleIds", "expectedChangeVersion", "roleId", "transactionId" },
-            SortedRequiredNames(schemas["set_role_resolution"]));
+            new[] { "audienceId", "candidateAudienceIds", "expectedChangeVersion", "transactionId" },
+            SortedRequiredNames(schemas["set_audience_resolution"]));
 
         Assert.Equal(
-            new[] { "expectedChangeVersion", "roleId", "transactionId" },
-            SortedRequiredNames(schemas["delete_role"]));
+            new[] { "audienceId", "expectedChangeVersion", "transactionId" },
+            SortedRequiredNames(schemas["delete_audience"]));
     }
 
     [Fact]
-    public void RolesAndContentMutationSchemas_RejectMissingExpectedChangeVersion()
+    public void AudiencesAndContentMutationSchemas_RejectMissingExpectedChangeVersion()
     {
         using var provider = BuildToolProvider();
         var schemas = provider.GetServices<McpServerTool>()
@@ -264,7 +288,7 @@ public sealed class McpTransactionToolRegistrationTests
 
         foreach (var toolName in new[]
         {
-            "create_role", "update_role", "delete_role", "set_role_resolution",
+            "create_audience", "update_audience", "delete_audience", "set_audience_resolution",
             "replace_content", "replace_text", "delete_content"
         })
         {

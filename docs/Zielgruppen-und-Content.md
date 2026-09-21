@@ -4,11 +4,11 @@
 
 Zielgruppen sind vollständig frei definierbar (z. B. `Default`, `Developer`,
 `Consultant`, `EndUser`, `Administrator`, `Support`, `AI`). Eine feste,
-in der Geschäftslogik kodierte Rollenstruktur gibt es nicht. Das Seed-Skript legt
+in der Geschäftslogik kodierte Zielgruppenstruktur gibt es nicht. Das Seed-Skript legt
 die initiale Zielgruppe `Default` samt Resolution Order an; danach werden Zielgruppen und
 ihre Resolution Orders wie jeder andere versionierte Wissenszustand innerhalb
-einer Transaction über die Service-/MCP-Grenzen gepflegt (`create_role`,
-`update_role`, `delete_role`, `set_role_resolution`). Die Weboberfläche stellt
+einer Transaction über die Service-/MCP-Grenzen gepflegt (`create_audience`,
+`update_audience`, `delete_audience`, `set_audience_resolution`). Die Weboberfläche stellt
 die Rollenpflege unter `/roles` bereit; Resolution Orders bleiben dort bis zur
 separaten Umsetzung read-only. Die Seite lädt Zielgruppen für den über Query
 gewählten Current-, Snapshot-, Release- oder Working-Kontext. Nur eine offene
@@ -57,7 +57,7 @@ Für jede angefragte Zielgruppe existiert eine frei konfigurierbare, geordnete
 Kandidatenliste:
 
 ```text
-RequestedRole = Developer
+RequestedAudience = Developer
 Resolution order:
 1. Developer
 2. Consultant
@@ -72,25 +72,25 @@ zyklische Fallback-Ketten können dadurch nicht entstehen. Regeln:
 - eine Zielgruppe kommt innerhalb einer Order nicht mehrfach vor,
 - es kann vorkommen, dass für keinen Kandidaten Content existiert.
 
-`set_role_resolution` ersetzt die Order der angefragten Zielgruppe vollständig.
+`set_audience_resolution` ersetzt die Order der angefragten Zielgruppe vollständig.
 
 ## Transparenz der Auflösung
 
 ```text
-get_node(nodeId, role = Developer)
+get_node(nodeId, audience = Developer)
 ```
 
 liefert beispielsweise:
 
 ```text
-requestedRole = Developer
-resolvedRole = Consultant
+requestedAudience = Developer
+resolvedAudience = Consultant
 fallbackUsed = true
 ```
 
 Die tatsächlich verwendete Zielgruppe wird nie implizit verborgen. Zielgruppen werden in
-allen contentbezogenen MCP-Aufrufen explizit als `roleId` übergeben; es gibt keinen
-unsichtbaren globalen Rollenstatus pro Session.
+allen contentbezogenen MCP-Aufrufen explizit als `audienceId` übergeben; es gibt keinen
+unsichtbaren globalen Zielgruppenstatus pro Session.
 
 ## Keine unnötigen Duplikate
 
@@ -120,8 +120,8 @@ wie viele Snapshots inzwischen entstanden sind.
 Expliziter Zielgruppen-Content kann aus anderen Wissensinhalten abgeleitet sein:
 
 ```text
-Target: NodeId + RoleId
-Source:  NodeId + RoleId + ContentRevisionId
+Target: NodeId + AudienceId
+Source:  NodeId + AudienceId + ContentRevisionId
 ```
 
 Eine Abhängigkeit kann auch auf einen anderen Node zeigen; das System ist nicht
@@ -166,8 +166,8 @@ Zwei getrennte Dimensionen:
   für unabhängigen Content entfällt die Abhängigkeitsprüfung
 
 ```text
-RequestedRole: EndUser    →  Availability: Explicit,  Freshness: Stale
-RequestedRole: Developer  →  Availability: Fallback, ResolvedRole: Consultant, Freshness: Current
+RequestedAudience: EndUser    →  Availability: Explicit,  Freshness: Stale
+RequestedAudience: Developer  →  Availability: Fallback, ResolvedAudience: Consultant, Freshness: Current
 ```
 
 Beispielhafte Angaben einer Antwort sind also kombinierbar und unabhängig

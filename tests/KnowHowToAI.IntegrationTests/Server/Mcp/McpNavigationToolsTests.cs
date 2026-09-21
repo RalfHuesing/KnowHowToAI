@@ -11,17 +11,17 @@ namespace KnowHowToAI.IntegrationTests.Server.Mcp;
 
 /// <summary>
 /// Handler-Vertragstests der Navigation-Tools (get_root, get_node, list_children,
-/// list_roles): dünne Delegation an den NavigationService mit protokollkonformer
+/// list_audiences): dünne Delegation an den NavigationService mit protokollkonformer
 /// Error-Struktur, ID-Round-Trip und Paging-Grenzen. Keine SQL- oder Server-Infrastruktur.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class McpNavigationToolsTests
 {
     private static readonly SnapshotId CurrentSnapshotId = new(100);
-    private static readonly AudienceId RoleDeveloper = new("Developer");
-    private static readonly AudienceId RoleAdmin = new("Admin");
-    private static readonly AudienceId RoleConsultant = new("Consultant");
-    private static readonly AudienceId RoleUnknown = new("Nonexistent");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
+    private static readonly AudienceId AudienceAdmin = new("Admin");
+    private static readonly AudienceId AudienceConsultant = new("Consultant");
+    private static readonly AudienceId AudienceUnknown = new("Nonexistent");
 
     private static readonly NodeId RootId = new(Guid.Parse("30000000-0000-0000-0000-000000000000"));
     private static readonly NodeId Child1Id = new(Guid.Parse("30000000-0000-0000-0000-000000000001"));
@@ -30,18 +30,18 @@ public sealed class McpNavigationToolsTests
     private static readonly NodeId UnknownNodeId = new(Guid.Parse("30000000-0000-0000-0000-000000009999"));
 
     [Fact]
-    public async Task GetRoot_WithResolvedContent_MapsNodeDataWithResolvedRoleAndContent()
+    public async Task GetRoot_WithResolvedContent_MapsNodeDataWithResolvedAudienceAndContent()
     {
         var harness = CreateHarnessWithRootAndChild();
         var tools = CreateTools(harness);
 
-        var envelope = await tools.GetRoot(RoleDeveloper.Value);
+        var envelope = await tools.GetRoot(AudienceDeveloper.Value);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(RootId.ToString(), envelope.Data!.NodeId);
         Assert.Equal("Hauptkapitel", envelope.Data.Title);
-        Assert.Equal(RoleDeveloper.ToString(), envelope.Data.RequestedRole);
-        Assert.Equal(RoleDeveloper.ToString(), envelope.Data.ResolvedRole);
+        Assert.Equal(AudienceDeveloper.ToString(), envelope.Data.RequestedAudienceId);
+        Assert.Equal(AudienceDeveloper.ToString(), envelope.Data.ResolvedAudienceId);
         Assert.False(envelope.Data.FallbackUsed);
         Assert.Equal(nameof(Availability.Explicit), envelope.Data.Availability);
         Assert.Equal(nameof(Freshness.Current), envelope.Data.Freshness);
@@ -54,7 +54,7 @@ public sealed class McpNavigationToolsTests
     {
         var tools = CreateTools(new NavigationTestHarness(CurrentSnapshotId));
 
-        var envelope = await tools.GetRoot(RoleDeveloper.Value);
+        var envelope = await tools.GetRoot(AudienceDeveloper.Value);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal("Success", envelope.Code);
@@ -67,7 +67,7 @@ public sealed class McpNavigationToolsTests
     {
         var tools = CreateTools(CreateHarnessWithRootAndChild());
 
-        var envelope = await tools.GetNode(UnknownNodeId.ToString(), RoleDeveloper.Value);
+        var envelope = await tools.GetNode(UnknownNodeId.ToString(), AudienceDeveloper.Value);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(NavigationErrorCodes.NodeNotFound, envelope.Code);
@@ -83,7 +83,7 @@ public sealed class McpNavigationToolsTests
     {
         var tools = CreateTools(CreateHarnessWithRootAndChild());
 
-        var envelope = await tools.GetNode(rawNodeId, RoleDeveloper.Value);
+        var envelope = await tools.GetNode(rawNodeId, AudienceDeveloper.Value);
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(NavigationErrorCodes.InvalidNodeId, envelope.Code);
@@ -93,7 +93,7 @@ public sealed class McpNavigationToolsTests
     [Theory]
     [InlineData("get_node")]
     [InlineData("list_children")]
-    [InlineData("list_roles")]
+    [InlineData("list_audiences")]
     public async Task ReadTools_WithBothSelectors_ReturnsInvalidReadContext(string toolName)
     {
         var tools = CreateTools(CreateHarnessWithRootAndChild());
@@ -103,10 +103,10 @@ public sealed class McpNavigationToolsTests
         var envelope = toolName switch
         {
             "get_node" => (await tools.GetNode(
-                RootId.ToString(), RoleDeveloper.Value, transactionId, snapshotId)).Code,
+                RootId.ToString(), AudienceDeveloper.Value, transactionId, snapshotId)).Code,
             "list_children" => (await tools.ListChildren(
-                RoleDeveloper.Value, RootId.ToString(), transactionId, snapshotId)).Code,
-            _ => (await tools.ListRoles(transactionId, snapshotId)).Code
+                AudienceDeveloper.Value, RootId.ToString(), transactionId, snapshotId)).Code,
+            _ => (await tools.ListAudiences(transactionId, snapshotId)).Code
         };
 
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, envelope);
@@ -118,7 +118,7 @@ public sealed class McpNavigationToolsTests
         var harness = CreateHarnessWithRootAndChild();
         var tools = CreateTools(harness);
 
-        var envelope = await tools.ListChildren(RoleDeveloper.Value, parentNodeId: RootId.ToString());
+        var envelope = await tools.ListChildren(AudienceDeveloper.Value, parentNodeId: RootId.ToString());
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(RootId.ToString(), envelope.Data!.ParentNodeId);
@@ -140,7 +140,7 @@ public sealed class McpNavigationToolsTests
     {
         var tools = CreateTools(CreateHarnessWithThreeChildren());
 
-        var envelope = await tools.ListChildren(RoleDeveloper.Value, parentNodeId: RootId.ToString());
+        var envelope = await tools.ListChildren(AudienceDeveloper.Value, parentNodeId: RootId.ToString());
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(2, envelope.Data!.Items.Count);
@@ -152,7 +152,7 @@ public sealed class McpNavigationToolsTests
     {
         var tools = CreateTools(CreateHarnessWithThreeChildren());
 
-        var envelope = await tools.ListChildren(RoleDeveloper.Value, parentNodeId: RootId.ToString(), limit: 9999);
+        var envelope = await tools.ListChildren(AudienceDeveloper.Value, parentNodeId: RootId.ToString(), limit: 9999);
 
         Assert.True(envelope.IsSuccess);
         Assert.Equal(3, envelope.Data!.Items.Count);
@@ -164,9 +164,9 @@ public sealed class McpNavigationToolsTests
     {
         var tools = CreateTools(CreateHarnessWithThreeChildren());
 
-        var firstPage = await tools.ListChildren(RoleDeveloper.Value, parentNodeId: RootId.ToString());
+        var firstPage = await tools.ListChildren(AudienceDeveloper.Value, parentNodeId: RootId.ToString());
         var secondPage = await tools.ListChildren(
-            RoleDeveloper.Value, parentNodeId: RootId.ToString(), cursor: firstPage.Data!.NextCursor);
+            AudienceDeveloper.Value, parentNodeId: RootId.ToString(), cursor: firstPage.Data!.NextCursor);
 
         Assert.True(firstPage.IsSuccess);
         Assert.True(secondPage.IsSuccess);
@@ -185,7 +185,7 @@ public sealed class McpNavigationToolsTests
     {
         var tools = CreateTools(CreateHarnessWithThreeChildren());
 
-        var envelope = await tools.ListChildren(RoleDeveloper.Value, RootId.ToString(), cursor: "kaputter-cursor");
+        var envelope = await tools.ListChildren(AudienceDeveloper.Value, RootId.ToString(), cursor: "kaputter-cursor");
 
         Assert.False(envelope.IsSuccess);
         Assert.Equal(NavigationErrorCodes.InvalidCursor, envelope.Code);
@@ -194,42 +194,42 @@ public sealed class McpNavigationToolsTests
     }
 
     [Fact]
-    public async Task ListChildren_UnknownRole_ReturnsStableRoleErrorEnvelope()
+    public async Task ListChildren_UnknownAudience_ReturnsStableAudienceErrorEnvelope()
     {
         var tools = CreateTools(CreateHarnessWithThreeChildren());
 
-        var envelope = await tools.ListChildren(RoleUnknown.Value, RootId.ToString());
+        var envelope = await tools.ListChildren(AudienceUnknown.Value, RootId.ToString());
 
         Assert.False(envelope.IsSuccess);
-        Assert.Equal("RequestedRoleNotFound", envelope.Code);
+        Assert.Equal("RequestedAudienceNotFound", envelope.Code);
         Assert.Equal(
-            RoleUnknown.ToString(),
-            envelope.Details!["requestedRoleId"]);
+            AudienceUnknown.ToString(),
+            envelope.Details!["requestedAudienceId"]);
         Assert.Null(envelope.Data);
     }
 
     [Fact]
-    public async Task ListRoles_MapsRolesInOrdinalOrderAndPaginates()
+    public async Task ListAudiences_MapsAudiencesInOrdinalOrderAndPaginates()
     {
         var harness = new NavigationTestHarness(CurrentSnapshotId);
-        harness.AddAudience(new Audience(CurrentSnapshotId, RoleConsultant, "Consultant", null, false));
-        harness.AddAudience(new Audience(CurrentSnapshotId, RoleAdmin, "Admin", "Verwaltung", false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceConsultant, "Consultant", null, false));
+        harness.AddAudience(new Audience(CurrentSnapshotId, AudienceAdmin, "Admin", "Verwaltung", false));
         var tools = CreateTools(harness);
 
-        var firstPage = await tools.ListRoles(limit: 2);
-        var secondPage = await tools.ListRoles(limit: 2, cursor: firstPage.Data!.NextCursor);
+        var firstPage = await tools.ListAudiences(limit: 2);
+        var secondPage = await tools.ListAudiences(limit: 2, cursor: firstPage.Data!.NextCursor);
 
         Assert.True(firstPage.IsSuccess);
         Assert.Equal(
-            new[] { RoleAdmin.ToString(), RoleConsultant.ToString() },
-            firstPage.Data!.Items.Select(item => item.RoleId).ToArray());
+            new[] { AudienceAdmin.ToString(), AudienceConsultant.ToString() },
+            firstPage.Data!.Items.Select(item => item.AudienceId).ToArray());
         Assert.Equal("Admin", firstPage.Data.Items[0].Name);
         Assert.Equal("Verwaltung", firstPage.Data.Items[0].Description);
         Assert.NotNull(firstPage.Data.NextCursor);
         Assert.True(secondPage.IsSuccess);
         Assert.Equal(
-            new[] { RoleDeveloper.ToString() },
-            secondPage.Data!.Items.Select(item => item.RoleId).ToArray());
+            new[] { AudienceDeveloper.ToString() },
+            secondPage.Data!.Items.Select(item => item.AudienceId).ToArray());
         Assert.Null(secondPage.Data.NextCursor);
     }
 
@@ -237,10 +237,10 @@ public sealed class McpNavigationToolsTests
     public async Task SuccessAndErrorEnvelopes_SerializeWithStableCamelCaseFieldNames()
     {
         var tools = CreateTools(CreateHarnessWithRootAndChild());
-        var successJson = JsonSerializer.Serialize(await tools.GetRoot(RoleDeveloper.Value));
+        var successJson = JsonSerializer.Serialize(await tools.GetRoot(AudienceDeveloper.Value));
         var errorTools = CreateTools(new NavigationTestHarness(CurrentSnapshotId));
         var errorJson = JsonSerializer.Serialize(await errorTools.GetNode(
-            UnknownNodeId.ToString(), RoleDeveloper.Value));
+            UnknownNodeId.ToString(), AudienceDeveloper.Value));
 
         using var success = JsonDocument.Parse(successJson);
         Assert.Equal("Success", success.RootElement.GetProperty("code").GetString());
@@ -267,15 +267,15 @@ public sealed class McpNavigationToolsTests
         harness.AddNode(new Node(CurrentSnapshotId, Child2Id, RootId, "Unterabschnitt 2", null, 2, false));
         harness.AddNode(new Node(CurrentSnapshotId, Child3Id, Child1Id, "Detailpunkt", null, 1, false));
         harness.AddContent(new NodeContent(
-            CurrentSnapshotId, RootId, RoleDeveloper,
+            CurrentSnapshotId, RootId, AudienceDeveloper,
             new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent,
             "Inhalt Hauptkapitel.", false));
         harness.AddContent(new NodeContent(
-            CurrentSnapshotId, Child2Id, RoleDeveloper,
+            CurrentSnapshotId, Child2Id, AudienceDeveloper,
             new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent,
             "Inhalt Unterabschnitt.", false));
         harness.AddContent(new NodeContent(
-            CurrentSnapshotId, Child3Id, RoleDeveloper,
+            CurrentSnapshotId, Child3Id, AudienceDeveloper,
             new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent,
             "Inhalt Detailpunkt.", false));
         return harness;

@@ -37,7 +37,7 @@ internal sealed class NodeMutationTools
     [McpServerTool(Name = "create_node", Destructive = false, Idempotent = false, OpenWorld = false)]
     [Description("Legt eine Node als globale Strukturänderung innerhalb einer offenen Transaction an; " +
         "ohne parentNodeId wird eine Root-Node erzeugt. Mit contentMd wird im selben Aufruf der " +
-        "explizite Rollen-Content gesetzt (Semantik von replace_content: roleId erforderlich, " +
+        "explizite Zielgruppen-Content gesetzt (Semantik von replace_content: audienceId erforderlich, " +
         "contentMode optional mit Standard 'Independent').")]
     public async Task<McpToolEnvelope<McpNodeMutationData>> CreateNode(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,
@@ -50,13 +50,13 @@ internal sealed class NodeMutationTools
         [Description("Optionaler vollständiger Markdown-Inhalt ohne Überschriften, der im selben " +
             "Aufruf gesetzt wird (Gliederung über Listen und Fließtext, Ersatztitel ggf. als " +
             "freistehender Fettabsatz).")] string? contentMd = null,
-        [Description("Rolle des Contents (roleId aus list_roles); erforderlich, wenn contentMd gesetzt ist.")] string? roleId = null,
+        [Description("Zielgruppe des Contents (audienceId aus list_audiences); erforderlich, wenn contentMd gesetzt ist.")] string? audienceId = null,
         [Description("Content-Modus bei contentMd: 'Independent' (Standard) oder 'Derived'.")] string? contentMode = null,
-        [Description("Optionale Source-Revisions für Derived Content (je nodeId, roleId, contentRevisionId).")] McpContentSourceData[]? sources = null,
+        [Description("Optionale Source-Revisions für Derived Content (je nodeId, audienceId, contentRevisionId).")] McpContentSourceData[]? sources = null,
         [Description("Optionaler erwarteter ChangeVersion-Stand der Transaction; bei einer zwischenzeitlichen Mutation wird der Write abgelehnt.")] long? expectedChangeVersion = null,
         CancellationToken cancellationToken = default)
     {
-        var parsedArguments = ParseCreateArguments(transactionId, parentNodeId, roleId, contentMode, contentMd, sources);
+        var parsedArguments = ParseCreateArguments(transactionId, parentNodeId, audienceId, contentMode, contentMd, sources);
         if (!parsedArguments.IsSuccess)
             return McpToolEnvelope<McpNodeMutationData>.Failure(parsedArguments.Error!);
 
@@ -89,7 +89,7 @@ internal sealed class NodeMutationTools
     private static Result<ParsedCreateArguments> ParseCreateArguments(
         string transactionId,
         string? parentNodeId,
-        string? roleId,
+        string? audienceId,
         string? contentMode,
         string? contentMd,
         McpContentSourceData[]? sources)
@@ -102,7 +102,7 @@ internal sealed class NodeMutationTools
         if (!parsedParentNodeId.IsSuccess)
             return Result<ParsedCreateArguments>.Failure(parsedParentNodeId.Error!);
 
-        var parsedContent = ParseOptionalContentSpec(roleId, contentMode, contentMd, sources);
+        var parsedContent = ParseOptionalContentSpec(audienceId, contentMode, contentMd, sources);
         if (!parsedContent.IsSuccess)
             return Result<ParsedCreateArguments>.Failure(parsedContent.Error!);
 
@@ -125,7 +125,7 @@ internal sealed class NodeMutationTools
     {
         var contentRequest = new ReplaceContentRequest(
             created.Value!.Node.NodeId,
-            spec.Role,
+            spec.Audience,
             spec.ContentMode,
             spec.ContentMd,
             spec.Sources,
@@ -137,14 +137,14 @@ internal sealed class NodeMutationTools
     }
 
     private readonly record struct CombinedContentSpec(
-        AudienceId Role, ContentMode ContentMode, string ContentMd, IReadOnlyList<ContentDependencySource> Sources);
+        AudienceId Audience, ContentMode ContentMode, string ContentMd, IReadOnlyList<ContentDependencySource> Sources);
 
     /// <summary>
     /// Liefert die Content-Spezifikation des kombinierten create_node-Aufrufs oder null,
     /// wenn kein contentMd gesetzt ist.
     /// </summary>
     private static Result<CombinedContentSpec?> ParseOptionalContentSpec(
-        string? roleId,
+        string? audienceId,
         string? contentMode,
         string? contentMd,
         McpContentSourceData[]? sources)
@@ -152,30 +152,30 @@ internal sealed class NodeMutationTools
         if (contentMd is null)
             return Result<CombinedContentSpec?>.Success(null);
 
-        var required = ParseRequiredContentSpec(roleId, contentMode, contentMd, sources);
+        var required = ParseRequiredContentSpec(audienceId, contentMode, contentMd, sources);
         return required.IsSuccess
             ? Result<CombinedContentSpec?>.Success(required.Value)
             : Result<CombinedContentSpec?>.Failure(required.Error!);
     }
 
     /// <summary>
-    /// Parst den Content-Spec bei gesetztem contentMd: roleId ist erforderlich
-    /// (stabile Fehlermeldung RoleIdRequired), contentMode optional (Standard 'Independent').
+    /// Parst den Content-Spec bei gesetztem contentMd: audienceId ist erforderlich
+    /// (stabile Fehlermeldung AudienceIdRequired), contentMode optional (Standard 'Independent').
     /// </summary>
     private static Result<CombinedContentSpec> ParseRequiredContentSpec(
-        string? roleId,
+        string? audienceId,
         string? contentMode,
         string contentMd,
         McpContentSourceData[]? sources)
     {
-        if (string.IsNullOrWhiteSpace(roleId))
+        if (string.IsNullOrWhiteSpace(audienceId))
         {
             return Result<CombinedContentSpec>.Failure(new DomainError(
                 AudienceMutationErrorCodes.AudienceIdRequired,
-                "Bei gesetztem contentMd ist roleId erforderlich.",
+                "Bei gesetztem contentMd ist audienceId erforderlich.",
                 new Dictionary<string, string>
                 {
-                    [AudienceMutationErrorCodes.AudienceIdDetail] = roleId ?? string.Empty
+                    [AudienceMutationErrorCodes.AudienceIdDetail] = audienceId ?? string.Empty
                 }));
         }
 
@@ -190,7 +190,7 @@ internal sealed class NodeMutationTools
             return Result<CombinedContentSpec>.Failure(parsedSources.Error!);
 
         return Result<CombinedContentSpec>.Success(new CombinedContentSpec(
-            new AudienceId(roleId),
+            new AudienceId(audienceId),
             parsedContentMode.Value,
             contentMd,
             parsedSources.Value!));
@@ -273,7 +273,7 @@ internal sealed class NodeMutationTools
     }
 
     [McpServerTool(Name = "delete_node", Destructive = true, Idempotent = false, OpenWorld = false)]
-    [Description("Löscht eine Node als globale Strukturänderung über alle Rollen; eine Node " +
+    [Description("Löscht eine Node als globale Strukturänderung über alle Zielgruppen; eine Node " +
         "mit aktiven Children erfordert deleteSubtree=true.")]
     public async Task<McpToolEnvelope<McpNodeMutationData>> DeleteNode(
         [Description("Transaction-ID einer offenen Transaction (GUID-String).")] string transactionId,

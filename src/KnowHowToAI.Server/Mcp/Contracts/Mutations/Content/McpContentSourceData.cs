@@ -8,5 +8,5 @@ namespace KnowHowToAI.Server.Mcp.Contracts.Mutations.Content;
 /// </summary>
 public sealed record McpContentSourceData(
     [property: JsonPropertyName("nodeId")] string NodeId,
-    [property: JsonPropertyName("roleId")] string RoleId,
+    [property: JsonPropertyName("audienceId")] string AudienceId,
     [property: JsonPropertyName("contentRevisionId")] string ContentRevisionId);

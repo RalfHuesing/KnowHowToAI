@@ -113,7 +113,7 @@ Read-Funktionen akzeptieren optional eine `transactionId` (Working Snapshot) ode
 – für historische Analyse – eine `snapshotId`; ohne Selektor wird der aktuelle
 committed Snapshot gelesen. Beide Selektoren zugleich sind unzulässig
 (`InvalidReadContext`). Dies gilt einheitlich für `get_root`, `get_node`,
-`list_children`, `list_roles`, `search`, `export_tree`, `validate_transaction` und
+`list_children`, `list_audiences`, `search`, `export_tree`, `validate_transaction` und
 die Historien-Tools (Verträge: [MCP-API](McpApi.md)).
 
 `validate_transaction` liest Graphdaten, Findings und `ChangeVersion` gemeinsam

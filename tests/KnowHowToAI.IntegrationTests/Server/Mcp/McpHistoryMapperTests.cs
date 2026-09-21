@@ -17,7 +17,7 @@ public sealed class McpHistoryMapperTests
     [Fact]
     public void SnapshotDiff_PreservesBindingCategoryOrder()
     {
-        var role = new Audience(TargetSnapshotId, new AudienceId("Developer"), "Developer", null, false);
+        var audience = new Audience(TargetSnapshotId, new AudienceId("Developer"), "Developer", null, false);
         var node = new Node(
             TargetSnapshotId,
             new NodeId(Guid.Parse("30000000-0000-0000-0000-000000000001")),
@@ -30,14 +30,14 @@ public sealed class McpHistoryMapperTests
             BaseSnapshotId,
             TargetSnapshotId,
             [new NodeDiffEntry(DiffChangeKind.Added, null, node)],
-            [new AudienceDiffEntry(DiffChangeKind.Added, null, role)],
+            [new AudienceDiffEntry(DiffChangeKind.Added, null, audience)],
             [],
             [],
             []);
 
         var envelope = McpHistoryMapper.ToSnapshotDiffEnvelope(Result<SnapshotDiff>.Success(diff));
 
-        Assert.Equal(["role", "node"], envelope.Data!.Items.Select(item => item.EntityType));
+        Assert.Equal(["audience", "node"], envelope.Data!.Items.Select(item => item.EntityType));
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public sealed class McpHistoryMapperTests
         using var document = JsonDocument.Parse(json);
         var item = document.RootElement.GetProperty("data").GetProperty("items")[0];
         Assert.Equal(targetNodeId.ToString(), item.GetProperty("id").GetString());
-        Assert.Equal("EndUser", item.GetProperty("roleId").GetString());
+        Assert.Equal("EndUser", item.GetProperty("audienceId").GetString());
         Assert.Equal(sourceNodeId.ToString(), item.GetProperty("sourceNodeId").GetString());
-        Assert.Equal("Developer", item.GetProperty("sourceRoleId").GetString());
+        Assert.Equal("Developer", item.GetProperty("sourceAudienceId").GetString());
     }
 }
