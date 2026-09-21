@@ -44,6 +44,8 @@ Nutzeranweisungen haben Vorrang.
 
 - Kein temporärer Dateisystem-Workflow für Wissensinhalte (kein DB -> Temp-Datei -> Edit -> DB); alle Lese- und Schreibvorgänge laufen direkt über die MCP-/Service-API.
 - Credentials gehören niemals in Diagnosen, Logs oder Toolantworten.
+- **Temporäre Agenten-Artefakte (`temp/agents/`)**: Für umfangreiche Recherchen, Rohdaten, Zwischenstände oder Detailanalysen dürfen Agenten isolierte Unterordner unter `temp/agents/<task-oder-thema>/` anlegen. Die Rückgabe an den koordinierenden Agenten muss token-effizient bleiben (Kernaussage, Fazit, Entscheidungsgrundlage + Pfadverweis); die Datei dient als detaillierter Nachweis und Nachschlagebeleg, nicht als Ersatz für eine prägnante Antwort.
+
 
 ## Konfiguration
 
