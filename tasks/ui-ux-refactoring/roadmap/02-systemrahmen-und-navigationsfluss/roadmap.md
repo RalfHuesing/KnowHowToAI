@@ -49,7 +49,7 @@ Entscheidungsgate zwischen den Leaves entfällt.
   - Nur lesen: Ziel, Invarianten, Links, Nachweise und Scopegrenzen prüfen.
     Bei Findings höchstens eine Korrekturrunde; keine eigenständige
     Produkt- oder Feature-Erweiterung.
-  - Ergebnis: Korrekturrunde erforderlich; siehe [Audit](audit.md).
+  - Ergebnis: bestanden nach einmaliger Korrekturrunde; siehe [Audit](audit.md).
 
 ## Milestone-Abnahme
 

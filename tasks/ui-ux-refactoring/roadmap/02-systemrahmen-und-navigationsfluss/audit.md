@@ -2,8 +2,9 @@
 
 ## Ergebnis
 
-**Korrekturrunde erforderlich.** Der Audit wurde am 2026-09-21 gegen den
-Arbeitsstand `4064683` durchgeführt. Die vier Leaf-Checkboxen sind in der
+**Bestanden nach einmaliger Korrekturrunde.** Der initiale Audit wurde am
+2026-09-21 gegen den Arbeitsstand `4064683` durchgeführt. Die vier
+Leaf-Checkboxen waren in der
 Milestone-Roadmap geschlossen; zwei M2-Abnahmepunkte bleiben wegen fehlender
 Belege offen. Es wurde kein Produktions- oder Testcode geändert.
 
