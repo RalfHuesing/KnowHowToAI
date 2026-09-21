@@ -187,7 +187,7 @@ vollständig grün.
   später beauftragten M4.3-T5 und dem aktualisierten Bedienkonzept. Sie wurde als
   Roadmap-Synchronisierung korrigiert; die bewusst mausbasierte Verschiebung ist
   kein Implementierungsbefund.
-- Fehlende ChangeVersion-Guards für Rollen- und Contentmutationen werden nicht in
+- Fehlende ChangeVersion-Guards für Zielgruppen- und Contentmutationen werden nicht in
   M4 gezogen; diese Benutzeroberflächen und ihre Vertragsabnahme gehören zu M5.
 - Der optionale, vom MCP-Aufrufer gelieferte Actor entspricht dem dokumentierten
   MCP-Vertrag. Die UI-Ermittlung über `ICurrentUserService` begründet keinen

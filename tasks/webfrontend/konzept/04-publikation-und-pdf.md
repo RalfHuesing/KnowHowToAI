@@ -8,8 +8,8 @@ Die UI exportiert den aktuell ausgewählten Node einschließlich seines gesamten
 
 - Auswahl des Root-Nodes exportiert die gesamte Wissenshierarchie.
 - Auswahl eines inneren Nodes exportiert nur diesen Node und seine Nachfahren.
-- Export verwendet den aktuell gewählten Lesekontext und die angefragte Rolle.
-- Rollen-Fallback und Strukturregeln entsprechen dem bestehenden `export_tree`-Verhalten.
+- Export verwendet den aktuell gewählten Lesekontext und die angefragte Zielgruppe.
+- Zielgruppen-Fallback und Strukturregeln entsprechen dem bestehenden `export_tree`-Verhalten.
 - Content wird unverändert exportiert. TODO-Texte sind normaler Inhalt und erscheinen im PDF.
 
 ## Genau ein Template
@@ -33,7 +33,7 @@ src/KnowHowToAI.Server/Pdf/Templates/Default/
 ## Technische Pipeline
 
 ```text
-ausgewählter Node + Rolle + Read Context
+ausgewählter Node + Zielgruppe + Read Context
   → export_tree als Markdown
   → Pandoc mit HTML-Template und CSS
   → WeasyPrint als PDF-Engine
@@ -54,7 +54,7 @@ pandoc --pdf-engine=weasyprint --template=<template.html> --css=<document.css> -
 
 ## UI-Ablauf
 
-1. Benutzer steht auf einem Node und wählt Rolle sowie Lesekontext.
+1. Benutzer steht auf einem Node und wählt Zielgruppe sowie Lesekontext.
 2. Benutzer klickt `PDF-Export`.
 3. Server erzeugt das PDF.
 4. Browser lädt die Datei als `application/pdf` herunter.

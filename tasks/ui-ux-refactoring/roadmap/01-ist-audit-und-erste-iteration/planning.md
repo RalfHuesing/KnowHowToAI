@@ -29,21 +29,21 @@ Zielgruppe sind Support-Mitarbeitende und Consultants. Die Oberfläche soll clea
 - Verbindlich: Zustand 11 führt die bestehende Öffnen-/Fortsetzen-Aktion, Zustand 12 die bestehende Reihenfolge Validieren → Commit/Verwerfen; technische IDs und Leerwerte werden nur sekundär beziehungsweise progressiv angeordnet.
 - Verbindlich: Zustände 13/14 erhalten eine gemeinsame moderne Dialogdarstellung. Commit-/Discard-Semantik, Abbruchweg und Transaktionsverträge bleiben unverändert; bestehende native Fokussemantik darf ohne Zusatzaufwand erhalten bleiben, ist aber keine eigene Abnahme.
 - Verbindlich: Suche 07 zeigt Trefferzahl und die vollständige erste vorhandene Trefferkarte im 1280×800-Viewport; Filter werden kompakter/sekundär. Suchsemantik, Ranking und Trefferreihenfolge ändern sich nicht. Zustand 06 wird nicht als Nulltreffer-Beleg erweitert.
-- Verbindlich: Dashboard 01 führt den vorhandenen Wissenszugang als primären Einstieg, Diagnose/Snapshot bleiben sekundär. Zustände 02/05 erhalten ausschließlich fachlich sichere Microcopy; keine neue Handlung, Rollenlogik oder Fallback-Funktion.
+- Verbindlich: Dashboard 01 führt den vorhandenen Wissenszugang als primären Einstieg, Diagnose/Snapshot bleiben sekundär. Zustände 02/05 erhalten ausschließlich fachlich sichere Microcopy; keine neue Handlung, Zielgruppenlogik oder Fallback-Funktion.
 - Verbindlich: M1.4-T7 ordnet ausschließlich die bestehenden Shell-Ziele in einer modernen, cleanen visuellen Navigation mit erkennbarem aktivem Zustand. Hover-/Focus-Zustände sind normale CSS-Zustände; es gibt keine neue Route, kein neues Feature und keine Tastatur-Abnahme.
-- Nicht freigegeben: Änderungen an `RolesPage.razor.cs`, neue Aktionen, neue Dialogverträge, neue Such-/Fallback-/Rollenlogik oder P2-Nacharbeiten 15–17.
+- Nicht freigegeben: Änderungen an `AudiencesPage.razor.cs`, neue Aktionen, neue Dialogverträge, neue Such-/Fallback-/Zielgruppenlogik oder P2-Nacharbeiten 15–17.
 - Nicht freigegeben: Produktänderungen zur Capture-Korrektur in Zustand 04; der Capture-Leaf ist test-only und darf fehlende Präsenz nicht durch Scroll-, Overlay- oder DOM-Manipulation kaschieren.
 - Nicht freigegeben: eine Änderung der Transaction-Reihenfolge. Das mögliche Verhalten „Commit vor Validierung“ ist ein zurückgestelltes Entscheidungsgate; bis zu einer separaten fachlichen Entscheidung bleibt Validieren → Commit/Verwerfen unverändert und wird in M1.5 nicht implementiert.
-- Nicht freigegeben: `RolesPage.razor.cs` und Rollen-Verwaltung; sie bleiben ein separater Out-of-scope-Task. Die P2-Befunde 15–17 bleiben im Backlog.
+- Nicht freigegeben: `AudiencesPage.razor.cs` und Zielgruppen-Verwaltung; sie bleiben ein separater Out-of-scope-Task. Die P2-Befunde 15–17 bleiben im Backlog.
 - Neu zu bewerten: konkrete Abstände, Reihenfolge innerhalb des bestehenden Arbeitsabschnitts und Formulierung, sofern Fachbedeutung und Verträge unverändert bleiben. Bei einer nötigen Vertragsänderung stoppt der Ausführer und eskaliert.
 
 ## M1.5-Entscheidungsgrenzen
 
 - **Verbindlich:** Der Menübutton steht in der App-Leiste oben links, ist in allen Breiten sichtbar, verwendet ein gängiges Drei-Linien-Symbol und einen zugänglichen Namen mit dem aktuellen Zustand. Desktop startet mit geöffneter Sidebar; Schließen gibt dem Hauptinhalt den frei gewordenen Platz, und derselbe Button öffnet wieder.
-- **Verbindlich:** In kompakter Breite bleibt die Navigation ein Drawer/Overlay. Die vier bestehenden Ziele Start (`/`), Suche (`/search`), Transactions (`/transactions`) und Rollen (`/roles`) bleiben exakt erhalten.
+- **Verbindlich:** In kompakter Breite bleibt die Navigation ein Drawer/Overlay. Die vier bestehenden Ziele Start (`/`), Suche (`/search`), Transactions (`/transactions`) und Zielgruppen (`/audiences`) bleiben exakt erhalten.
 - **Verbindlich:** Der redundante interne Navigationstitel, die Beschreibung „Arbeitsbereiche“ und der Textbutton „Navigation schließen“ werden entfernt oder auf eine nicht redundante kompakte Steuerung reduziert. Die bestehende native Bediensemantik darf ohne Zusatzaufwand erhalten bleiben; Tastatur ist kein eigenes Produktziel.
 - **Verbindlich:** Red-Test-first: Zuerst schlagen Browser-/Layouttests für Desktop Schließen und anschließendes Wiederöffnen fehl; danach wird die minimale Shell-/Navigation-Änderung umgesetzt und die responsive Regression geprüft.
-- **Nicht freigegeben:** neue Routen, Ziele, Navigationslogik, Rollen-/Berechtigungsbedeutung, Overlay-Verträge oder eigene Keyboard-Abnahme.
+- **Nicht freigegeben:** neue Routen, Ziele, Navigationslogik, Zielgruppen-/Berechtigungsbedeutung, Overlay-Verträge oder eigene Keyboard-Abnahme.
 
 ## Entscheidungsgrenze
 

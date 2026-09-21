@@ -54,7 +54,7 @@ Vorbereitung ohne Vorratsimplementierung:
 - Eingaben, Ergebnisse und Fehler der Application-Schicht sind transportneutral.
 - Web und MCP enthalten nur Mapping, Transportlogik und Darstellung.
 - Fachliche Regeln werden weder in Blazor-Komponenten noch in MCP-Tools dupliziert.
-- Explizite Arbeitskontexte wie `TransactionId`, `SnapshotId`, Rolle und Cursor bleiben Teil der Use-Case-Aufrufe.
+- Explizite Arbeitskontexte wie `TransactionId`, `SnapshotId`, Zielgruppe und Cursor bleiben Teil der Use-Case-Aufrufe.
 - Eine spätere API erhält eigene versionierte Contracts und Mapper; Domain-Typen werden nicht direkt serialisiert.
 - `/api` bleibt als Routingkonvention für diesen späteren Adapter reserviert.
 
@@ -118,8 +118,8 @@ Eine gemeinsame EXE ist unkritisch, wenn Lebensdauern korrekt behandelt werden:
 
 - Stateless MCP und zweckgebundene HTTP-Endpunkte besitzen einen Request-Scope.
 - Blazor Interactive Server besitzt einen Circuit-Scope, der länger als ein HTTP-Request lebt.
-- Application Services und Repositories speichern deshalb keinen ausgewählten Node, keine Rolle und keine aktive Transaction als impliziten Mutable State.
-- Arbeitskontext wird als `TransactionId`, `SnapshotId`, `RoleId` und `ChangeVersion` explizit übergeben.
+- Application Services und Repositories speichern deshalb keinen ausgewählten Node, keine Zielgruppe und keine aktive Transaction als impliziten Mutable State.
+- Arbeitskontext wird als `TransactionId`, `SnapshotId`, `AudienceId` und `ChangeVersion` explizit übergeben.
 - SQL-Verbindungen bleiben kurzlebig und operationsbezogen.
 - Blazor-Circuit-State enthält nur flüchtigen Darstellungszustand; nach Reconnect ist fachlicher Zustand rekonstruierbar.
 

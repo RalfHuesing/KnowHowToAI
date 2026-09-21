@@ -1,16 +1,16 @@
-# 20 – Rollen-Löschdialog
+# 20 – Zielgruppen-Löschdialog
 
 ## Quelle und Zustand
 
-`temp/ui-audit/2026-09-20_18-36-16/20_roles_delete-dialog_desktop_1280x800.png` · Route `/roles` · Löschaktion ausgelöst, erwarteter Bestätigungsdialog · Desktop 1280×800.
+`temp/ui-audit/2026-09-20_18-36-16/20_audiences_delete-dialog_desktop_1280x800.png` · Route `/audiences` · Löschaktion ausgelöst, erwarteter Bestätigungsdialog · Desktop 1280×800.
 
 ## Neutrale Beobachtung
 
-- Der Capture zeigt im sichtbaren Bereich praktisch dieselbe Rollenliste wie 19.
-- Formular und Rollen-Karten bleiben an ihrer bisherigen Position.
+- Der Capture zeigt im sichtbaren Bereich praktisch dieselbe Zielgruppenliste wie 19.
+- Formular und Zielgruppen-Karten bleiben an ihrer bisherigen Position.
 - Die Löschaktion ist aus dem Zustand/der Interaktion bekannt, aber kein sichtbarer Bestätigungsdialog liegt über der Liste.
 - Der untere Bereich des erwarteten Pfads befindet sich außerhalb des 1280×800-Viewports.
-- Ein Bestätigungstext, betroffener Rollenname und primäre destruktive Aktion sind im Bild nicht prüfbar.
+- Ein Bestätigungstext, betroffener Zielgruppenname und primäre destruktive Aktion sind im Bild nicht prüfbar.
 - Der Screenshot kann daher den Click bzw. Szenariofortschritt, nicht aber die Nutzerentscheidung vor Löschung belegen.
 
 ## Probleme und Schwere
@@ -22,9 +22,9 @@
 
 ## Gelungene Aspekte
 
-- Die Rollenliste und die ausgelöste Aktion sind reproduzierbar vorbereitet.
+- Die Zielgruppenliste und die ausgelöste Aktion sind reproduzierbar vorbereitet.
 - Der Befund macht die Grenze zwischen Interaktion und sichtbarem Ergebnis klar.
-- Die bestehende Rollenkarte bleibt als Kontext erhalten.
+- Die bestehende Zielgruppenkarte bleibt als Kontext erhalten.
 
 ## Folgerungen ohne Featureausweitung
 
@@ -35,7 +35,7 @@
 
 ## Abhängigkeiten
 
-M1.2-T1, bestehender Rollen-/Dialog-/Keyboard-Vertrag, Working-Transaction-Lifecycle.
+M1.2-T1, bestehender Zielgruppen-/Dialog-/Keyboard-Vertrag, Working-Transaction-Lifecycle.
 
 ## Audit-Lücken
 
@@ -43,8 +43,8 @@ M1.2-T1, bestehender Rollen-/Dialog-/Keyboard-Vertrag, Working-Transaction-Lifec
 
 ## M1.2-Nachweis
 
-Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/20_roles_delete-dialog_desktop_1280x800.png` prüft den vorhandenen Bestätigungstext und die primäre Löschaktion, scrollt den Bestätigungsbereich in den Viewport und setzt den Fokus auf die vorhandene Bestätigungsaktion. Das Bild zeigt den bestehenden Dialog vollständig; die ursprüngliche Audit-Lücke ist für den Runner geschlossen.
+Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/20_audiences_delete-dialog_desktop_1280x800.png` prüft den vorhandenen Bestätigungstext und die primäre Löschaktion, scrollt den Bestätigungsbereich in den Viewport und setzt den Fokus auf die vorhandene Bestätigungsaktion. Das Bild zeigt den bestehenden Dialog vollständig; die ursprüngliche Audit-Lücke ist für den Runner geschlossen.
 
 ## M1.3-Bestätigung
 
-Der grüne manuelle Re-Audit-Lauf `temp/ui-audit/2026-09-20_20-05-26/20_roles_delete-dialog_desktop_1280x800.png` bestätigt erneut den fokussierten bestehenden Löschdialog. Die Capture-Lücke ist abgeschlossen; `RolesPage.razor.cs` bleibt ausdrücklich außerhalb der M1.4-Produkt-Slices.
+Der grüne manuelle Re-Audit-Lauf `temp/ui-audit/2026-09-20_20-05-26/20_audiences_delete-dialog_desktop_1280x800.png` bestätigt erneut den fokussierten bestehenden Löschdialog. Die Capture-Lücke ist abgeschlossen; `AudiencesPage.razor.cs` bleibt ausdrücklich außerhalb der M1.4-Produkt-Slices.

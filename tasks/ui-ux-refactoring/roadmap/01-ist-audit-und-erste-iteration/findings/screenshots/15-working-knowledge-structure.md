@@ -9,7 +9,7 @@
 - Der Header benennt Wissensbasis, Transaction und Working Transaction.
 - Links ist die Navigation geöffnet; daneben zeigt ein Baum nur den Root/den ausgewählten Wissensbereich.
 - Der zentrale Node-Titel „Browser-Testwissen“ und die Verfügbarkeit „Eigener Inhalt“ sind sichtbar.
-- Metadaten wie Rolle, Aktualität, Revision, Inhaltsmodus, Position und Node-ID stehen vor dem Editor.
+- Metadaten wie Zielgruppe, Aktualität, Revision, Inhaltsmodus, Position und Node-ID stehen vor dem Editor.
 - History-Link und Markdown-Download sind sichtbar.
 - WYSIWYG/Markdown-Quelle sind als Modusauswahl vorhanden.
 - Strukturaktionen und der eigentliche Editorinhalt liegen teilweise unterhalb des 1280×800-Viewport.

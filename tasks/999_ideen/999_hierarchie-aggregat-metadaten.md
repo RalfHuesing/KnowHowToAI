@@ -6,7 +6,7 @@
 
 ## Ausgangslage
 
-Konzept Abschnitt 51 fordert pro Node `Title` plus kurze rollenunabhängige
+Konzept Abschnitt 51 fordert pro Node `Title` plus kurze zielgruppenunabhängige
 `Description`/`Purpose`. Der Retrieval-Flow (Abschnitt 50) ist
 `list_children → Metadaten prüfen → Nodes auswählen → get_node`.
 

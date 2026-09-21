@@ -22,21 +22,21 @@ Nachweis: `temp/ui-audit/2026-09-20_20-05-26/`.
 
 ### P1 – Technischer Zustand verdrängt Inhalt
 
-15–17 führten Revision, Node-ID, Verfügbarkeit, Inhaltsmodus und Links vor dem eigentlichen Inhalt. 18/19 machen RoleId und den globalen Kontext prominent, während die aufgabenorientierte Erklärung zurücktritt. In 15–17 sind diese technischen Angaben nun unter „Technische Details“ progressiv offengelegt; die Information bleibt erhalten. Siehe 15–19.
+15–17 führten Revision, Node-ID, Verfügbarkeit, Inhaltsmodus und Links vor dem eigentlichen Inhalt. 18/19 machen AudienceId und den globalen Kontext prominent, während die aufgabenorientierte Erklärung zurücktritt. In 15–17 sind diese technischen Angaben nun unter „Technische Details“ progressiv offengelegt; die Information bleibt erhalten. Siehe 15–19.
 
 ### P1/P2 – Modus und Kontext sind implizit
 
-18 kennzeichnet Read-only verständlich, 19 leitet Working nur aus der sichtbaren Formular-/Aktionsfläche ab. Der globale Hinweis „Keine Rolle ausgewählt“ bleibt daneben stehen. In 15–17 ist der Arbeitsmodus am Node sichtbar; 16/17 führen den Dirty-Hinweis und Speichern im selben Inhaltsabschnitt. Transaktionsweites Verwerfen bleibt separat.
+18 kennzeichnet Read-only verständlich, 19 leitet Working nur aus der sichtbaren Formular-/Aktionsfläche ab. Der globale Hinweis „Keine Zielgruppe ausgewählt“ bleibt daneben stehen. In 15–17 ist der Arbeitsmodus am Node sichtbar; 16/17 führen den Dirty-Hinweis und Speichern im selben Inhaltsabschnitt. Transaktionsweites Verwerfen bleibt separat.
 
 ### P2 – Navigation, Suche und History als Folgearbeit
 
-01 wirkt technisch-diagnostisch dominiert; 02/03 erklären Rollenauswahl und Bestätigung schwach. 06/07 lassen Filterfläche Ergebnisse verdrängen, 08 ist technisch formuliert. Der neue Lauf bestätigt für 09 einen sichtbaren Diff-Zustand; 06 bleibt der Grundzustand ohne Nulltreffer-Produktbeleg. Diese Bereiche werden nur in den kleinen M1.4-Leaves weitergeführt.
+01 wirkt technisch-diagnostisch dominiert; 02/03 erklären Zielgruppenauswahl und Bestätigung schwach. 06/07 lassen Filterfläche Ergebnisse verdrängen, 08 ist technisch formuliert. Der neue Lauf bestätigt für 09 einen sichtbaren Diff-Zustand; 06 bleibt der Grundzustand ohne Nulltreffer-Produktbeleg. Diese Bereiche werden nur in den kleinen M1.4-Leaves weitergeführt.
 
 ## Audit-Lücken und Konsequenz
 
 03 ist nur der ausgewählte Zustand vor einer belastbaren Root-Bestätigung, 09 belegt keinen Snapshot-Diff, 20 zeigt keine sichtbare Löschbestätigung. Diese drei Lücken sind in den Einzeldateien markiert und bilden M1.2-T1. Bis dahin werden sie nicht als Produktbefund „behoben“ dargestellt.
 
-Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27` war der technische Zwischenstand für M1.2-T1. Der grüne manuelle M1.3-Re-Audit `temp/ui-audit/2026-09-20_20-05-26` bestätigt denselben capture-seitigen Abschluss erneut: 03 belegt den gerenderten Root nach geschlossener Rollenauswahl, 09 zeigt sichtbare Snapshot-Änderungen und 20 zeigt den fokussierten vorhandenen Löschdialog. Die ursprünglichen Befunde bleiben als historische M1.1-Beobachtung erhalten; sie sind nicht als Produktkorrektur zu lesen.
+Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27` war der technische Zwischenstand für M1.2-T1. Der grüne manuelle M1.3-Re-Audit `temp/ui-audit/2026-09-20_20-05-26` bestätigt denselben capture-seitigen Abschluss erneut: 03 belegt den gerenderten Root nach geschlossener Zielgruppenauswahl, 09 zeigt sichtbare Snapshot-Änderungen und 20 zeigt den fokussierten vorhandenen Löschdialog. Die ursprünglichen Befunde bleiben als historische M1.1-Beobachtung erhalten; sie sind nicht als Produktkorrektur zu lesen.
 
 ## M1.3-Re-Audit-Ergebnis
 
@@ -49,7 +49,7 @@ M1.2 ist abgenommen. Die Zustände 15–17 bestätigen die beabsichtigte erste V
 3. Suche 07: Filter kompakter/sekundär, Trefferzahl und vollständige erste vorhandene Trefferkarte im 1280×800-Viewport; Suchsemantik bleibt unverändert. 06 ist nur Grundzustand und kein Nulltreffer-Nachweis.
 4. Dashboard 01: vorhandener Wissenszugang primär, Diagnose/Snapshot sekundär. 02 und 05 erhalten nur fachlich sichere Microcopy ohne neue Handlung.
 
-P2-Nacharbeiten 15–17 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) sind ausdrücklich nicht Teil der ersten M1.4-Reihe. `RolesPage.razor.cs` bleibt außerhalb des Scopes.
+P2-Nacharbeiten 15–17 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) sind ausdrücklich nicht Teil der ersten M1.4-Reihe. `AudiencesPage.razor.cs` bleibt außerhalb des Scopes.
 
 ## Nächster kleiner Slice
 
@@ -63,9 +63,9 @@ begrenzt.
 ## M1.4-T7-Ergebnis
 
 Die linke Shell-Navigation verwendet weiterhin exakt die vier Ziele Start (`/`),
-Suche (`/search`), Transactions (`/transactions`) und Rollen (`/roles`), stellt
+Suche (`/search`), Transactions (`/transactions`) und Zielgruppen (`/audiences`), stellt
 sie aber als ruhig gruppierte Linkflächen mit klaren Abständen, Surface und
-aktivem `NavLink`-Zustand dar. Der Scope bleibt rein visuell; Rollen-, Routing-
+aktivem `NavLink`-Zustand dar. Der Scope bleibt rein visuell; Zielgruppen-, Routing-
 und Responsive-Verträge bleiben unverändert. Der UiAudit-Lauf
 `temp/ui-audit/2026-09-20_21-09-03` bestätigt die Navigation in 01, 11, 12 und
 15 sowie die Regression 20 bei 1280×800. Die Shell-Baseline für 1280×720 wurde
@@ -110,14 +110,14 @@ gezielte Dashboard-Komponententest und Dashboard-Browser-Smoke sind grün.
 ## M1.4-T6-Ergebnis
 
 Zustände 02 und 05 führen die vorhandene fachliche Bedeutung jetzt direkt am
-Arbeitsabschnitt: Die Rollenauswahl erklärt Zielgruppe/Perspektive und die
+Arbeitsabschnitt: Die Zielgruppenauswahl erklärt Zielgruppe/Perspektive und die
 Trennung von Inhaltskontext und Zugriffsberechtigung; der Fallback-Detailzustand
 erklärt den fehlenden eigenen Inhalt und die Anzeige aus der aufgelösten
-Fallback-Rolle. Auswahl, Bestätigung, Rollenauflösung, Datenquelle,
+Fallback-Zielgruppe. Auswahl, Bestätigung, Zielgruppenauflösung, Datenquelle,
 Änderungshistorie und Download bleiben unverändert. Der gezielte UiAudit-Lauf
 `temp/ui-audit/2026-09-20_21-35-15/` bestätigt 20/20 Zustände bei 1280×800;
 02 und 05 wurden visuell geprüft. Der kleinste Web-Komponententest und Build
-sind grün. Die ausdrücklich ausgeschlossene Änderung an `RolesPage.razor.cs`
+sind grün. Die ausdrücklich ausgeschlossene Änderung an `AudiencesPage.razor.cs`
 blieb unangetastet.
 
 ## M1.4-Abschluss und Re-Audit-Nachweis
@@ -143,14 +143,14 @@ zugänglichen Zustandsnamen sowie aria-expanded/aria-controls. In kompakter
 Breite bleibt die Navigation ein Drawer/Overlay; Escape und der Button geben
 den Fokus an den Auslöser zurück. Der redundante Paneltitel, „Arbeitsbereiche“
 und „Navigation schließen“ sind entfernt. Start (/), Suche (/search),
-Transactions (/transactions) und Rollen (/roles) bleiben die exakt vier
+Transactions (/transactions) und Zielgruppen (/audiences) bleiben die exakt vier
 erreichbaren Ziele.
 
 Der Red-Test in MainLayoutTests war vor der Produktänderung rot und ist danach
 mit 11/11 grün. LayoutShellSmokeTests (2/2), ResponsiveShellSmokeTests (2/2)
 und VisualShellSmokeTests (2/2) sind grün. Die visuellen Shell-Baselines für
 1280 × 720 und 1024 × 720 wurden nach manueller Prüfung der aktuellen
-Captures übernommen. RolesPage und Rollenverwaltung blieben unangetastet.
+Captures übernommen. AudiencesPage und Zielgruppenverwaltung blieben unangetastet.
 
 ## M1.5-T1-Ergebnis
 
@@ -169,7 +169,7 @@ Produktdateien, Routen, Capture-Namen und Manifestformat blieben unverändert.
 
 Der ContextSelector in Zustand 02 teilt jetzt die gemeinsame `AppDialog`-Basis
 mit den Zuständen 13/14: Surface, feiner Rand, Radius, Schatten, Backdrop,
-Breite und Innenabstände sind harmonisiert. Die bestehende Rollen-/Auswahl-
+Breite und Innenabstände sind harmonisiert. Die bestehende Zielgruppen-/Auswahl-
 und Dialogsemantik blieb unverändert; `CreateReleaseDialog` erhält als weiterer
 AppDialog-Nutzer nur dieselbe Basestyle. Der UiAudit-Lauf
 `temp/ui-audit/m1-5-t2/2026-09-20_22-36-23/` bestätigt 20/20 Zustände bei
@@ -182,7 +182,7 @@ vorhandene Fallback-Einordnung mit dem aufgelösten Inhalt vor die bestehenden
 sekundären History-/Markdown-Download-Wege. Beide Links bleiben mit denselben
 Zielen erreichbar und sind als gemeinsame, ruhige Aktionsgruppe angeordnet.
 Technische Details sind weiterhin vollständig vorhanden, aber im nativen
-Bereich „Technische Details“ progressiv offengelegt. Read-only-/Fallback-/Rollen-
+Bereich „Technische Details“ progressiv offengelegt. Read-only-/Fallback-/Zielgruppen-
 Verträge, Routen, Datenquellen und Working-Editor 15–17 blieben unverändert.
 Der gezielte Lauf `temp/ui-audit/m1-5-t3/2026-09-20_22-45-00/` ist mit 20/20
 Zuständen grün; 04/05 sowie 15–17 wurden bei 1280×800 visuell geprüft.
@@ -195,10 +195,10 @@ Segmente. Ein `DisplayName` wird bei Current-/Nicht-Transaction-Kontexten als
 `Bereich` geführt; bei einer Transaction steht der vorhandene Zweck bzw. Name
 als gefüllter `Working-Transaction`-Wert. Ein Working-Segment ohne Zweck und
 ohne technische Werte wird nicht gerendert. Base-Snapshot und Änderungsversion
-bleiben dort als sekundäre technische Werte verfügbar; Rolle, Dirty-Status und
-der vorhandene Kontext-/Rollen-Selektor bleiben eigenständig und unverändert
+bleiben dort als sekundäre technische Werte verfügbar; Zielgruppe, Dirty-Status und
+der vorhandene Kontext-/Zielgruppen-Selektor bleiben eigenständig und unverändert
 erreichbar. Read-Context-Auflösung, ViewModel, Query-Parameter, Routen,
-Aktionen und Rollenverwaltung wurden nicht geändert.
+Aktionen und Zielgruppenverwaltung wurden nicht geändert.
 
 Der korrigierte UiAudit-Lauf `temp/ui-audit/2026-09-20_23-05-15/` ist mit
 20/20 Zuständen bei 1280×800 grün. Die Zustände 10, 12 und 15 wurden visuell
@@ -224,8 +224,8 @@ Zuständen bei 1280×800 grün. Die Captures 08 und 09 wurden visuell geprüft;
 History-FastTests (8/8), History-Browser-Smoke (1/1), Build und der
 AiNetLinter-Verify für die Änderungen (Score 10.0, 0 Verstöße) sind grün. Der
 Solution-Verify bleibt wegen des vorbestehenden, außerhalb dieses Scopes
-liegenden `AIContextFootprint`-Befunds in `RolesPage.razor.cs` bei Score 9.2;
-die Rollenverwaltung wurde gemäß Leaf nicht verändert.
+liegenden `AIContextFootprint`-Befunds in `AudiencesPage.razor.cs` bei Score 9.2;
+die Zielgruppenverwaltung wurde gemäß Leaf nicht verändert.
 
 ## M1.5-Folgepriorität aus dem Re-Audit
 
@@ -265,7 +265,7 @@ M1.5 bleibt eine sequenzielle Reihe kleiner, rein visueller Slices:
 
 Das Verhaltenstor **„Commit vor Validierung“** ist ausdrücklich zurückgestellt
 und nicht implementiert: Bis zu einer separaten fachlichen Entscheidung gilt
-weiterhin Validieren → Commit/Verwerfen. `RolesPage.razor.cs` und Rollen-
+weiterhin Validieren → Commit/Verwerfen. `AudiencesPage.razor.cs` und Zielgruppen-
 Verwaltung bleiben ein separater Out-of-scope-Task. Die P2-Befunde 15–17
 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) bleiben
 im Backlog.
@@ -285,7 +285,7 @@ harmonisch begrenzte Einzelkarte. Beide Captures wurden visuell geprüft. Der
 Transactions-Komponententest ist mit 6/6 grün; der direkte Browser-Smoke für
 Refresh und Browsernavigation ist mit 1/1 grün. Build und vollständige
 FastTests sind nach Abschluss der parallel laufenden, außerhalb dieses Scopes
-liegenden Rollen-Refaktorierung grün; der Solution-Verify blieb mit Score 10.0
+liegenden Zielgruppen-Refaktorierung grün; der Solution-Verify blieb mit Score 10.0
 und null Verstößen grün. Der separate Reconnect-/Host-Restart-Smoke ließ den
 Testhost abstürzen, ohne Bezug zum Transaction-Grid. M1.5 ist mit diesem
 begrenzten Re-Audit abgeschlossen.

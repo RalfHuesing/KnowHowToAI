@@ -88,7 +88,7 @@ KnowHowToAI.Core/
 ├─ Domain/
 │  ├─ Common/
 │  ├─ Hierarchy/
-│  ├─ Roles/
+│  ├─ Audiences/
 │  ├─ Content/
 │  ├─ Dependencies/
 │  ├─ Versioning/
@@ -103,7 +103,7 @@ KnowHowToAI.Core/
    ├─ Dashboard/                     # aggregierte Dashboard-Reads
    ├─ Navigation/
    ├─ Transactions/
-   ├─ Mutations/{Nodes,Roles,Content}/
+   ├─ Mutations/{Nodes,Audiences,Content}/
    ├─ Retrieval/{Search,Export}/
    ├─ History/
    ├─ Assets/                        # Asset-Use-Cases ab M8
@@ -133,7 +133,7 @@ Request-, Query-, Result- und Page-Records liegen im Namespace des zugehörigen 
 | M3 | `DashboardService`, `DashboardQuery`, `DashboardResult` | `Core/Application/Dashboard` | transportneutrale Dashboardaggregation |
 | M3 | `IDashboardRepository` | `Core/Application/Abstractions/Persistence` | ausschließlich fehlende, effizient aggregierbare Dashboard-Reads |
 | M3 | `SqlDashboardRepository` | `Storage.SqlServer/Repositories/Retrieval` | SQL-Implementierung des Dashboard-Ports |
-| M3 | `WorkspaceState` | `Server/Web/State` | aus URL rekonstruierbarer Circuit-Cache für Node, Rolle und Read Context |
+| M3 | `WorkspaceState` | `Server/Web/State` | aus URL rekonstruierbarer Circuit-Cache für Node, Zielgruppe und Read Context |
 | M3 | `MarkdownDownloadEndpoint` | `Server/Web/Endpoints` | Markdown-Download auf `MarkdownExportService` mappen |
 | M3 | `ICurrentUserService` | `Core/Application/Abstractions/Runtime` | gibt `CurrentUser` (Name, Id) zurück; einziger Actor-Einstiegspunkt; enthält keine Auth-Logik |
 | M3 | `CurrentUser` | `Core/Application/Abstractions/Runtime` | immutable record mit `Id` (string) und `Name` (string); kein Domain-Typ |
@@ -207,7 +207,7 @@ KnowHowToAI.Server/
 │  │  ├─ Search/
 │  │  ├─ History/
 │  │  ├─ Transactions/
-│  │  ├─ Roles/
+│  │  ├─ Audiences/
 │  │  ├─ Content/
 │  │  ├─ PdfExport/                  # M7
 │  │  └─ Assets/                     # M8
@@ -256,11 +256,11 @@ KnowHowToAI.Server/
 | Feature | Route | Routable Page | Featurelokale Hauptkomponenten |
 |---|---|---|---|
 | Dashboard | `/` | `DashboardPage.razor` | `SnapshotSummary`, `OpenTransactionList`, `QualitySummary`, `RecentChanges` |
-| Wissen | `/knowledge`, `/knowledge/{NodeId:guid}` | `KnowledgePage.razor` | nativer `KnowledgeTree`, `Breadcrumbs`, `NodeDetails`, `RoleContentView` |
+| Wissen | `/knowledge`, `/knowledge/{NodeId:guid}` | `KnowledgePage.razor` | nativer `KnowledgeTree`, `Breadcrumbs`, `NodeDetails`, `AudienceContentView` |
 | Suche | `/search` | `SearchPage.razor` | `SearchForm`, `SearchResults`, `KnowledgeFilter` |
 | Historie | `/history` | `HistoryPage.razor` | `SnapshotList`, `ReleaseList`, `SnapshotDiff`, `CreateReleaseDialog` |
 | Transactions | `/transactions`, `/transactions/{TransactionId:guid}` | `TransactionsPage.razor`, `TransactionPage.razor` | `TransactionHeader`, `TransactionValidation`, `TransactionDiff`, `CommitDialog` |
-| Rollen | `/roles` | `RolesPage.razor` | `RoleEditor`, `ResolutionOrderEditor`, `FallbackPreview` |
+| Zielgruppen | `/audiences` | `AudiencesPage.razor` | `AudienceEditor`, `ResolutionOrderEditor`, `FallbackPreview` |
 | Content | keine eigene Route | – | `ContentEditor`, `ContentMetadata`, `SourceRevisionEditor`, `MarkdownSourceEditor` |
 | PDF | keine eigene Route | – | `PdfExportButton` in der Wissensansicht |
 | Assets | keine eigene Route | – | `AssetUpload`, `AssetImage`, Integration in `ContentEditor` |
@@ -282,12 +282,12 @@ Der fachliche Lesekontext ist rekonstruierbar und wird nicht ausschließlich im 
 - Ohne Selektor wird der Current Snapshot gelesen.
 - Genau einer der Query-Parameter `transactionId`, `snapshotId` oder `releaseId` darf gesetzt sein.
 - `releaseId` wird an der Web-Grenze auf den unveränderlichen Snapshot des Releases aufgelöst.
-- `roleId` ist für rollenaufgelösten Content, Suche sowie Markdown- und PDF-Export verpflichtend. Die letzte Rolle wird pro Browsertab im `localStorage` (Schlüssel `knowhowtoai.lastRoleId`) gespeichert. Beim Laden wird der Wert gegen die Rollenliste geprüft; fehlt er oder ist die Rolle nicht mehr vorhanden, zeigt die UI einen modalen Pflichtauswahl-Selektor; es gibt keine stille Standardrolle. Jeder fachliche Aufruf übergibt anschließend eine explizite `RoleId`.
+- `audienceId` ist für zielgruppenaufgelösten Content, Suche sowie Markdown- und PDF-Export verpflichtend. Die letzte Zielgruppe wird pro Browsertab im `localStorage` (Schlüssel `knowhowtoai.lastAudienceId`) gespeichert. Beim Laden wird der Wert gegen die Zielgruppenliste geprüft; fehlt er oder ist die Zielgruppe nicht mehr vorhanden, zeigt die UI einen modalen Pflichtauswahl-Selektor; es gibt keine stille Standardzielgruppe. Jeder fachliche Aufruf übergibt anschließend eine explizite `AudienceId`.
 - Der ausgewählte Node steht in der Route `/knowledge/{NodeId}`.
 - Filter, Paging-Cursor und Dialogzustand sind kein globaler fachlicher Kontext und bleiben featurelokal.
 - Eine URL mit ungültigem oder nicht mehr vorhandenem Kontext zeigt einen fachlichen Fehler und fällt nicht still auf Current zurück.
 
-`WorkspaceState` darf die aus Route und Query gelesenen Werte für den Circuit cachen. Route und Query bleiben die rekonstruierbare Quelle für Node, Rolle und Read Context. Persistierter Wissenszustand liegt ausschließlich in Application/Storage.
+`WorkspaceState` darf die aus Route und Query gelesenen Werte für den Circuit cachen. Route und Query bleiben die rekonstruierbare Quelle für Node, Zielgruppe und Read Context. Persistierter Wissenszustand liegt ausschließlich in Application/Storage.
 
 ## Technische Browser-Endpunkte
 
@@ -296,7 +296,7 @@ Es entsteht keine allgemeine REST-API. Zulässige Endpunktgruppen:
 | Methode und Route | Zeitpunkt | Zweck |
 |---|---|---|
 | MCP-Mapping auf `/mcp` | M1 | einziger MCP-Transport, Streamable HTTP |
-| `GET /downloads/markdown` | M3 | Markdown-Teilbaum als Datei; Query verwendet `nodeId`, `roleId` und höchstens einen Read-Context-Selektor |
+| `GET /downloads/markdown` | M3 | Markdown-Teilbaum als Datei; Query verwendet `nodeId`, `audienceId` und höchstens einen Read-Context-Selektor |
 | `GET /downloads/pdf` | M7 | PDF-Teilbaum als Datei mit demselben Queryvertrag wie Markdown |
 | `POST /assets` | M8 | kontrollierter Bild-Upload als `multipart/form-data` |
 | `GET /assets/{AssetId:guid}` | M8 | immutable Assetbinärdaten mit gespeichertem MIME-Type |
@@ -308,7 +308,7 @@ Fehlerantworten der Browser-Endpunkte verwenden RFC-9457-`ProblemDetails` und en
 | HTTP-Status | Bedeutung |
 |---:|---|
 | `400` | ungültige oder widersprüchliche Query-/Form-Daten |
-| `404` | Node, Rolle, Snapshot, Release, Transaktion oder Asset nicht vorhanden |
+| `404` | Node, Zielgruppe, Snapshot, Release, Transaktion oder Asset nicht vorhanden |
 | `409` | fachlicher Zustandskonflikt, beispielsweise bereits geschlossene Transaktion |
 | `413` | Asset überschreitet die in M8 festgelegte Maximalgröße |
 | `415` | nicht zugelassener Asset-MIME-Type |
@@ -316,7 +316,7 @@ Fehlerantworten der Browser-Endpunkte verwenden RFC-9457-`ProblemDetails` und en
 
 Ein fehlgeschlagener Download liefert ausschließlich `ProblemDetails` und niemals eine teilweise erzeugte Datei. Erfolgreiche Uploads liefern `201 Created` mit der kanonischen Asset-URL; erfolgreiche Downloads liefern `200 OK` mit korrektem MIME-Type und `Content-Disposition: attachment`.
 
-Downloadantworten setzen `Cache-Control: no-store`. Der Dateiname des PDF-Exports lautet `<bereinigter-NodeTitel>-<RoleId>.pdf`, der Markdown-Dateiname entsprechend `.md`. Ungültige Dateinamenszeichen werden durch `-` ersetzt, wiederholte Bindestriche zusammengezogen und der Basisname auf 120 Zeichen begrenzt; bei leerem Ergebnis wird die `NodeId` verwendet.
+Downloadantworten setzen `Cache-Control: no-store`. Der Dateiname des PDF-Exports lautet `<bereinigter-NodeTitel>-<AudienceId>.pdf`, der Markdown-Dateiname entsprechend `.md`. Ungültige Dateinamenszeichen werden durch `-` ersetzt, wiederholte Bindestriche zusammengezogen und der Basisname auf 120 Zeichen begrenzt; bei leerem Ergebnis wird die `NodeId` verwendet.
 
 ## Konfigurationsstruktur
 
@@ -365,14 +365,14 @@ Die Pfade werden relativ zum Content Root aufgelöst, sofern sie nicht absolut s
 - MCP- und Browser-Endpunkte erhalten den Request-Scope, speichern darin aber keinen fachlichen Zustand über den Request hinaus.
 - Options und unveränderliche Policies sind Singleton.
 - `PandocPdfRenderer` ist stateless; jeder Renderaufruf besitzt einen eigenen begrenzten Prozess und ein eigenes Arbeitsverzeichnis.
-- Ausgewählter Node, Rolle, Snapshot und Transaction werden jedem Application-Aufruf explizit übergeben.
+- Ausgewählter Node, Zielgruppe, Snapshot und Transaction werden jedem Application-Aufruf explizit übergeben.
 
 ## Teststruktur
 
 ```text
 tests/KnowHowToAI.Web.Tests/
 ├─ Components/{Layout,Shared}/
-├─ Features/{Dashboard,Knowledge,Search,History,Transactions,Roles,Content,PdfExport,Assets}/
+├─ Features/{Dashboard,Knowledge,Search,History,Transactions,Audiences,Content,PdfExport,Assets}/
 ├─ State/
 └─ TestSupport/
 
@@ -388,7 +388,7 @@ tests/KnowHowToAI.BrowserTests/
 - `Web.Tests` spiegelt die Produktionsfeaturegrenzen. Component-Tests verwenden bUnit mit xUnit v3, prüfen Rendering und Interaktion und mocken dünnes JS-Interop; fachliche Varianten verbleiben in `Core.Tests`.
 - `BrowserTests` enthält nur vollständige Benutzerabläufe und verwendet Microsoft.Playwright .NET. Page Objects liegen ausschließlich in `TestSupport` und enthalten keine Assertions. Jeder reguläre Lauf startet ausschließlich die installierte aktuelle Google-Chrome-Stable-Version mit `Channel = "chrome"` und `Headless = true`; fehlendes Chrome ist ein klarer Preflight-Fehler. Es gibt keinen Chromium-Fallback, keinen sichtbaren Browserstart und keine weitere Browsermatrix.
 - Der Browser-Testhost startet die veröffentlichte Server-EXE aus einem frisch erzeugten `dotnet publish`-Verzeichnis und verwendet dieses als Content Root. Funktionale Workflow-Smokes und bytegenaue visuelle Shell-Smokes verwenden getrennte, dedizierte Browser-Testdatenbanken; beide werden beim Start über die normalen Migrationen einschließlich Initial-Seed in den benötigten Zustand gebracht und sind nie die von `ManualDatabaseIntegration` destruktiv verwendete Datenbank. Die visuelle Datenbank enthält ausschließlich den stabilen minimalen Read-only-Bestand, die Workflowdatenbank darf ihren reproduzierbaren History-/Release-Bestand ergänzen. Readiness, Circuitzustand und Interaktionen werden ausschließlich über beobachtbare Zustände und Playwright-Web-first-Assertions abgewartet; feste Sleeps sind verboten. Der Host wird auch bei Testfehlern beendet und der gebundene Port freigegeben.
-- Locator-Priorität ist Rolle, Label und danach stabile Test-ID. Screenshots werden erst nach semantischen und Verhaltensassertionen erzeugt; volatile Inhalte werden stabil maskiert und Baselines nie im regulären Lauf automatisch überschrieben.
+- Locator-Priorität ist Zielgruppe, Label und danach stabile Test-ID. Screenshots werden erst nach semantischen und Verhaltensassertionen erzeugt; volatile Inhalte werden stabil maskiert und Baselines nie im regulären Lauf automatisch überschrieben.
 - Vitest wird eingeführt, wenn produktiver JavaScript-/TypeScript-Code eigene Zustände mit Verzweigungen, Transformationen oder Retry-/Lifecyclelogik verwaltet. Für den M5.2-T1-Crepe-Adapter ist diese Bedingung durch WeakMap-Instanzzustand, idempotenten Dispose und Callback-Fehlerpfade erfüllt; die Suite liegt in `src/KnowHowToAI.Server/Frontend/tests` und läuft über `scripts/test-fast.ps1`. Reine Aufrufadapter ohne diese Logik benötigen weiterhin kein Vitest.
 - Host-/Routing-/MCP-Tests bleiben in `KnowHowToAI.IntegrationTests/Server`.
 - SQL- und Assetmetadaten-Tests bleiben in `KnowHowToAI.IntegrationTests/SqlServer`.

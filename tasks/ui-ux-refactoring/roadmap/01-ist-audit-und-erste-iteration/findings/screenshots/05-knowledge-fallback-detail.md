@@ -48,9 +48,9 @@ Aktuelle Quelle: `temp/ui-audit/2026-09-20_20-05-26/05_knowledge_fallback-detail
 ## M1.4-T6-Ergebnis
 
 Der bestehende Detailrahmen zeigt bei verwendeten Fallback-Inhalten jetzt eine
-kurze Einordnung vor dem Inhalt: Für die angefragte Rolle ist an diesem Knoten
+kurze Einordnung vor dem Inhalt: Für die angefragte Zielgruppe ist an diesem Knoten
 kein eigener Inhalt hinterlegt; angezeigt wird der vorhandene Inhalt der
-aufgelösten Fallback-Rolle. Die angefragte Rolle und der Wissenskontext bleiben
+aufgelösten Fallback-Zielgruppe. Die angefragte Zielgruppe und der Wissenskontext bleiben
 dabei unverändert. Änderungshistorie, Download und technische Details bleiben
 als bestehende Wege beziehungsweise progressive Diagnose erhalten. Der
 Capture-Lauf `temp/ui-audit/2026-09-20_21-35-15/` bestätigt Zustand 05 bei
@@ -66,8 +66,8 @@ Semantik bleiben unverändert.
 
 Der UiAudit-Lauf `temp/ui-audit/m1-5-t3/2026-09-20_22-45-00/` bestätigt Zustand
 05 bei 1280×800. Die bestehende fachliche Einordnung des fehlenden eigenen
-Inhalts und der aufgelösten Fallback-Rolle steht unmittelbar vor dem angezeigten
+Inhalts und der aufgelösten Fallback-Zielgruppe steht unmittelbar vor dem angezeigten
 Inhalt; danach folgt die harmonische sekundäre Aktionsgruppe mit denselben
-History-/Download-Zielen. Die technischen Rollen-, Verfügbarkeits- und
+History-/Download-Zielen. Die technischen Zielgruppen-, Verfügbarkeits- und
 Revisionsdetails bleiben unter „Technische Details“ progressiv zugänglich.
 Es wurde keine neue Fallback-Aktion oder Inhaltsquelle eingeführt.

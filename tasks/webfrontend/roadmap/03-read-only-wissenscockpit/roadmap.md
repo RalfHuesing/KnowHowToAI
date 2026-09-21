@@ -8,7 +8,7 @@ Abhängigkeit: [M2](../02-designsystem-und-shell/roadmap.md)
 
 Verbindliche M0-Basis: Der Tree ist nativ und lädt Children serverseitig mit opaken Cursors und exakt 100 Einträgen pro Seite; höchstens zehn Seiten liegen gleichzeitig im Circuit. Radzen und eine erneute Tree-Auswahl sind ausgeschlossen. Komponenten- und Browsernachweise verwenden bUnit mit xUnit v3 beziehungsweise Microsoft.Playwright .NET mit der installierten aktuellen Google-Chrome-Stable-Version, `Channel = "chrome"`, `Headless = true`.
 
-Ziel: Menschen können den gesamten vorhandenen Wissensstand, seine Struktur, Rollenauflösung und Historie ohne MCP-Client verstehen.
+Ziel: Menschen können den gesamten vorhandenen Wissensstand, seine Struktur, Zielgruppenauflösung und Historie ohne MCP-Client verstehen.
 
 Referenzen: [Dashboard](../../konzept/02-bedienkonzept-und-ui.md#dashboard), [Wissensbaum](../../konzept/02-bedienkonzept-und-ui.md#wissensbaum), [Historie und Releases](../../konzept/02-bedienkonzept-und-ui.md#historie-und-releases), [Blazor-interne Aufrufe](../../konzept/05-architektur-api-und-mcp.md#blazor-interne-aufrufe)
 
@@ -18,7 +18,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
 
 - [x] **M3.0 abschließen**
   - Durchgeführt am 2026-09-19 gemeinsam mit dem Benutzer.
-  - Entschieden: O-008 (initiale Rolle: letzten gespeicherten `localStorage`-Wert verwenden, Pflichtauswahl bei fehlendem/ungültigem Eintrag), O-007 (Actor über `ICurrentUserService`-Seam, initiale Dummy-Implementierung), O-025 (mehrere gleichzeitige Clients erlaubt, keine Locks, `ChangeVersion`-Ablehnung), O-026 (keine automatische Transaction-Lebensdauer, Alter im Dashboard sichtbar, Warnbadge ab 7 Tagen), O-027 (Undo nur im Editor bis Speichern, kein globaler Undo-Stack).
+  - Entschieden: O-008 (initiale Zielgruppe: letzten gespeicherten `localStorage`-Wert verwenden, Pflichtauswahl bei fehlendem/ungültigem Eintrag), O-007 (Actor über `ICurrentUserService`-Seam, initiale Dummy-Implementierung), O-025 (mehrere gleichzeitige Clients erlaubt, keine Locks, `ChangeVersion`-Ablehnung), O-026 (keine automatische Transaction-Lebensdauer, Alter im Dashboard sichtbar, Warnbadge ab 7 Tagen), O-027 (Undo nur im Editor bis Speichern, kein globaler Undo-Stack).
   - Konzepte aktualisiert: [Bedienkonzept und UI](../../konzept/02-bedienkonzept-und-ui.md), [Projektstruktur und Codekonventionen](../../konzept/08-projektstruktur-und-codekonventionen.md), [Offene Fragen](../../konzept/07-entscheidungen-und-offene-fragen.md).
   - Gate: M3.1 und folgende Arbeitspakete sind durch Implementierungsagenten ausführbar.
 
@@ -38,11 +38,11 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
 
   - [x] **M3.3-T1 – [Lazy-Loading-Datenadapter für den Wissensbaum implementieren](tasks/M3.3-T1.md)**
   - [x] **M3.3-T2 – [Read-only Knowledge Tree und Breadcrumbs implementieren](tasks/M3.3-T2.md)**
-## M3.4 – Rolle, Lesekontext und Node
+## M3.4 – Zielgruppe, Lesekontext und Node
 
 - [x] **M3.4 abschließen**
 
-  - [x] **M3.4-T1 – [Globalen Rollen- und Lesekontext-Selektor implementieren](tasks/M3.4-T1.md)**
+  - [x] **M3.4-T1 – [Globalen Zielgruppen- und Lesekontext-Selektor implementieren](tasks/M3.4-T1.md)**
   - [x] **M3.4-T2 – [Read-only Node-Detailansicht implementieren](tasks/M3.4-T2.md)**
 ## M3.5 – Suche
 
@@ -75,7 +75,7 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
 
   - [x] **M3.9-T1 – [Tree-Circuit tatsächlich begrenzen und Request-Rennen schließen](tasks/M3.9-T1.md)**
   - [x] **M3.9-T2 – [Direkte Node-Navigation über beliebige Cursorseiten zuverlässig rekonstruieren](tasks/M3.9-T2.md)**
-  - [x] **M3.9-T3 – [Web-Lesegrenze für Rollen, Diagnostik und Working-Version vervollständigen](tasks/M3.9-T3.md)**
+  - [x] **M3.9-T3 – [Web-Lesegrenze für Zielgruppen, Diagnostik und Working-Version vervollständigen](tasks/M3.9-T3.md)**
   - [x] **M3.9-T4 – [Provenienz und Tree-Status aus echten Reads anzeigen](tasks/M3.9-T4.md)**
   - [x] **M3.9-T5 – [Dashboard partiell fehlertolerant und mengenfest machen](tasks/M3.9-T5.md)**
   - [x] **M3.9-T6 – [Historienmetadaten und echten Browser-Diff nachweisen](tasks/M3.9-T6.md)**
@@ -84,5 +84,5 @@ Verbindliche Zielstruktur: [Projektstruktur und Codekonventionen](../../konzept/
 ## Milestone-Abnahme
 
 - Der vorhandene Wissensstand ist ohne MCP-Client navigierbar, suchbar, historisch einsehbar und als Markdown exportierbar.
-- Rolle, Read Context, Fallback, Provenienz und Freshness sind sichtbar.
+- Zielgruppe, Read Context, Fallback, Provenienz und Freshness sind sichtbar.
 - UI und MCP verwenden dieselben Application-Use-Cases ohne duplizierte Fachlogik.

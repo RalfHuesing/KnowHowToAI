@@ -12,23 +12,23 @@ Support-Mitarbeitende und Consultants suchen, lesen, prüfen und pflegen Wissen.
 
 ### Baum: „Wo liegt etwas?“
 
-Der Wissensbaum ist die räumliche Orientierung. Ein Node hat eine stabile `NodeId`, einen Titel in der Hierarchie und optionalen Content je Rolle. Auswahl, Breadcrumb und Detailansicht müssen denselben Node meinen. Expandieren, Paging und Drag-and-drop verändern die Ansicht; sie verändern den fachlichen Zustand nur, wenn eine bestehende Strukturmutation tatsächlich ausgeführt wird.
+Der Wissensbaum ist die räumliche Orientierung. Ein Node hat eine stabile `NodeId`, einen Titel in der Hierarchie und optionalen Content je Zielgruppe. Auswahl, Breadcrumb und Detailansicht müssen denselben Node meinen. Expandieren, Paging und Drag-and-drop verändern die Ansicht; sie verändern den fachlichen Zustand nur, wenn eine bestehende Strukturmutation tatsächlich ausgeführt wird.
 
-### Rolle: „Für wen sehe ich es?“
+### Zielgruppe: „Für wen sehe ich es?“
 
-Eine Rolle ist eine Inhalts- und Zielgruppenperspektive, keine Authentifizierung und keine ACL. Sie entscheidet, welcher Content aufgelöst wird; sie gewährt keine Berechtigung. Die UI muss `requestedRole`, `resolvedRole` und Fallback-Provenienz verständlich unterscheiden.
+Eine Zielgruppe ist eine Inhalts- und Zielgruppenperspektive, keine Authentifizierung und keine ACL. Sie entscheidet, welcher Content aufgelöst wird; sie gewährt keine Berechtigung. Die UI muss `requestedAudience`, `resolvedAudience` und Fallback-Provenienz verständlich unterscheiden.
 
 ### ReadContext: „Welche Linse nutze ich?“
 
-`ReadContext` ist die Leselinse: Current Snapshot, historischer Snapshot, Release oder Working Transaction. Er ist nicht bloß ein Filter und nicht austauschbar mit Rolle oder Node. Genau ein Query-Selektor `transactionId`, `snapshotId` oder `releaseId` darf gelten; ohne Selektor wird Current gelesen. Die Kontextleiste hält diese Linse global sichtbar.
+`ReadContext` ist die Leselinse: Current Snapshot, historischer Snapshot, Release oder Working Transaction. Er ist nicht bloß ein Filter und nicht austauschbar mit Zielgruppe oder Node. Genau ein Query-Selektor `transactionId`, `snapshotId` oder `releaseId` darf gelten; ohne Selektor wird Current gelesen. Die Kontextleiste hält diese Linse global sichtbar.
 
 ### Transaction: „Welche Arbeitskopie ändere ich?“
 
-Eine Transaction ist eine sichtbare Arbeitskopie eines Snapshots. Alle Node-, Rollen- und Content-Mutationen gehören zu ihr. Mehrere Clients dürfen parallel schreiben; stale `ChangeVersion` wird fachlich abgelehnt. Der Working-Zustand bleibt bis Commit oder Discard offen.
+Eine Transaction ist eine sichtbare Arbeitskopie eines Snapshots. Alle Node-, Zielgruppen- und Content-Mutationen gehören zu ihr. Mehrere Clients dürfen parallel schreiben; stale `ChangeVersion` wird fachlich abgelehnt. Der Working-Zustand bleibt bis Commit oder Discard offen.
 
 ### Save ist nicht Commit
 
-`Speichern` schreibt eine einzelne Node-, Rollen- oder Contentänderung in die Working Transaction und aktualisiert die sichtbare `ChangeVersion`. `Commit` prüft und veröffentlicht die gesamte Arbeitskopie als Current Snapshot; `Discard` verwirft sie vollständig. Ein Editor-Dirty-State ist lokale unpersistierte Eingabe vor `Speichern`; er darf nicht mit uncommitted Working-Änderungen oder globalem Discard vermischt werden.
+`Speichern` schreibt eine einzelne Node-, Zielgruppen- oder Contentänderung in die Working Transaction und aktualisiert die sichtbare `ChangeVersion`. `Commit` prüft und veröffentlicht die gesamte Arbeitskopie als Current Snapshot; `Discard` verwirft sie vollständig. Ein Editor-Dirty-State ist lokale unpersistierte Eingabe vor `Speichern`; er darf nicht mit uncommitted Working-Änderungen oder globalem Discard vermischt werden.
 
 ## Gestaltungsfolgen
 

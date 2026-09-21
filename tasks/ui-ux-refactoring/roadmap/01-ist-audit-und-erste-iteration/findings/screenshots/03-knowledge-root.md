@@ -2,13 +2,13 @@
 
 ## Quelle und Zustand
 
-`temp/ui-audit/2026-09-20_18-36-16/03_knowledge_root_desktop_1280x800.png` · Route `/knowledge` · Rolle ausgewählt, Root-Zustand vor belastbarer Bestätigung · Desktop 1280×800.
+`temp/ui-audit/2026-09-20_18-36-16/03_knowledge_root_desktop_1280x800.png` · Route `/knowledge` · Zielgruppe ausgewählt, Root-Zustand vor belastbarer Bestätigung · Desktop 1280×800.
 
 ## Neutrale Beobachtung
 
-- Der Screenshot zeigt den Knowledge-Shell-Kontext nach einer Rollenaktion.
+- Der Screenshot zeigt den Knowledge-Shell-Kontext nach einer Zielgruppenaktion.
 - Der Baum-/Root-Bereich ist sichtbar, aber die Aufnahme macht den Übergang von Auswahl zu bestätigtem Root nicht eindeutig.
-- Der globale Rollenhinweis bleibt Teil der Shell.
+- Der globale Zielgruppenhinweis bleibt Teil der Shell.
 - Die sichtbare Information reicht nicht aus, um eine konkrete Root-Node-Auswahl sicher zu bestätigen.
 - Der Dateiname behauptet Root, während der sichtbare Zustand eher „ausgewählt vor Bestätigung“ belegt.
 - Ein späterer Agent kann aus dem Bild allein nicht sicher entscheiden, ob der Datenkontext bereits aktiv ist.
@@ -16,13 +16,13 @@
 ## Probleme und Schwere
 
 - **P1 – Auditsemantik:** Name und tatsächlicher sichtbarer Zustand können auseinanderfallen.
-- **P1 – Kontext:** Beziehung zwischen Rolle, Root und Inhalt wird nicht eindeutig erklärt.
+- **P1 – Kontext:** Beziehung zwischen Zielgruppe, Root und Inhalt wird nicht eindeutig erklärt.
 - **P2 – Affordance:** Die nächste bestätigende Aktion bzw. ihr Ergebnis ist nicht klar erkennbar.
 - **P2 – Vertrauen:** Ein automatischer Vergleich könnte fälschlich einen bestätigten Root als belegt melden.
 
 ## Gelungene Aspekte
 
-- Die Rollenaktion und der Knowledge-Bereich sind reproduzierbar erreichbar.
+- Die Zielgruppenaktion und der Knowledge-Bereich sind reproduzierbar erreichbar.
 - Die Shell behält Navigation und Kontext bei.
 - Der Zustand eignet sich als Ausgangspunkt für eine präzisere web-first Assertion.
 
@@ -30,12 +30,12 @@
 
 - Capture erst nach sichtbarer Bestätigung des bestehenden Root-Zustands schreiben.
 - Dateiname, Manifest und Befund an den tatsächlich gerenderten Zustand koppeln.
-- Die vorhandene Root-/Rollenbedeutung nicht durch eine neue Produktbotschaft ersetzen.
+- Die vorhandene Root-/Zielgruppenbedeutung nicht durch eine neue Produktbotschaft ersetzen.
 - Bei Nichterreichbarkeit die Audit-Lücke explizit ausweisen.
 
 ## Abhängigkeiten
 
-M1.2-T1, Visual-Shell-Seed, Rollen-/Knowledge-State und bestehende Bestätigungsnavigation.
+M1.2-T1, Visual-Shell-Seed, Zielgruppen-/Knowledge-State und bestehende Bestätigungsnavigation.
 
 ## Audit-Lücken
 
@@ -43,7 +43,7 @@ M1.2-T1, Visual-Shell-Seed, Rollen-/Knowledge-State und bestehende Bestätigungs
 
 ## M1.2-Nachweis
 
-Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/03_knowledge_root_desktop_1280x800.png` wartet nach der Rollenaktion auf das geschlossene Auswahlfenster, die URL mit `roleId=Default`, den gerenderten Wissensbaum und den sichtbaren Root-Titel `Browser-Testwissen`. Der Capture zeigt damit den bestätigten Root-Zustand; die ursprüngliche Audit-Lücke ist für den Runner geschlossen.
+Der stabilisierte UiAudit-Lauf `temp/ui-audit/2026-09-20_19-48-27/03_knowledge_root_desktop_1280x800.png` wartet nach der Zielgruppenaktion auf das geschlossene Auswahlfenster, die URL mit `audienceId=Default`, den gerenderten Wissensbaum und den sichtbaren Root-Titel `Browser-Testwissen`. Der Capture zeigt damit den bestätigten Root-Zustand; die ursprüngliche Audit-Lücke ist für den Runner geschlossen.
 
 ## M1.3-Bestätigung
 

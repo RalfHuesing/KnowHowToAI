@@ -21,7 +21,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | Dokument | Inhalt |
 |---|---|
 | [Vision und Produktprinzipien](konzept/01-vision-und-produktprinzipien.md) | Zweck, Nutzen, Zielgruppen, bestehende Kernleitplanken, Erfolgskriterien |
-| [Bedienkonzept und UI](konzept/02-bedienkonzept-und-ui.md) | visueller Stil, Layout, Dashboard, Wissensbaum, Editor, Transactions, Historie, Rollen |
+| [Bedienkonzept und UI](konzept/02-bedienkonzept-und-ui.md) | visueller Stil, Layout, Dashboard, Wissensbaum, Editor, Transactions, Historie, Zielgruppen |
 | [Content und Assets](konzept/03-content-und-assets.md) | Rich Text, freier Markdown-Content einschließlich TODOs, Bilder und Asset-Modell |
 | [Publikation und PDF](konzept/04-publikation-und-pdf.md) | einfacher Teilbaumexport mit einem Template, Pandoc und WeasyPrint |
 | [Architektur, API und MCP](konzept/05-architektur-api-und-mcp.md) | gemeinsamer Host, interne Blazor-Aufrufe, MCP HTTP, optionale spätere REST-API, Ports und Schichtengrenzen |
@@ -77,7 +77,7 @@ Dieser Ordner beschreibt Zielbild, Entscheidungen und Umsetzungsreihenfolge für
 | K-026 | Die ignorierten Verzeichnisse unter `temp/webfrontend-spikes/` bleiben uncommittete Referenz-Fixtures; sie sind weder Produktionscode noch kopierbare Implementierungsvorlagen oder dauerhafte Testprojekte |
 | K-027 | Der Markdown-Quellmodus ist Bestandteil von M5; er teilt mit WYSIWYG kanonisches Markdown, Validierung, Dirty-State und ChangeVersion. |
 | K-028 | Milkdown wird lokal mit npm, `package-lock.json` und esbuild gebündelt; Output liegt unter `wwwroot/generated/content-editor`, es gibt keinen CDN-/Runtime-Download und Node ist nur Buildvoraussetzung. |
-| K-029 | Rollenadministration gehört zur M5/V1-Weboberfläche; Fallback bleibt read-only, explizit leerer Content unterdrückt Fallback nach Bestätigung, und Derived-Quellen werden nur über Node-Suche und Rolle gewählt und revisioniert gepinnt. |
-| K-030 | Rollen- und Content-Writes folgen dem M4-ChangeVersion-Vertrag einschließlich atomarer stale-Ablehnung und Rücktransport der neuen Version bis UI/MCP. |
+| K-029 | Zielgruppenadministration gehört zur M5/V1-Weboberfläche; Fallback bleibt read-only, explizit leerer Content unterdrückt Fallback nach Bestätigung, und Derived-Quellen werden nur über Node-Suche und Zielgruppe gewählt und revisioniert gepinnt. |
+| K-030 | Zielgruppen- und Content-Writes folgen dem M4-ChangeVersion-Vertrag einschließlich atomarer stale-Ablehnung und Rücktransport der neuen Version bis UI/MCP. |
 
 Noch offene Punkte: [Offene Fragen](konzept/07-entscheidungen-und-offene-fragen.md).

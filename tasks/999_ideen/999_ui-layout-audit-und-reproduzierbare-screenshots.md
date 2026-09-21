@@ -6,7 +6,7 @@
 
 ## 1. Ausgangslage & Motivation
 
-Das Web-Frontend von KnowHowToAI wurde im Zuge der Roadmaps M1 bis M5 funktional und architektonisch solide aufgebaut (Read-Only Cockpit, Snapshot-Modell, Working Transactions, Reconnect-Resilienz, ChangeVersion-Schutz, Crepe-Editor, Rollenverwaltung). 
+Das Web-Frontend von KnowHowToAI wurde im Zuge der Roadmaps M1 bis M5 funktional und architektonisch solide aufgebaut (Read-Only Cockpit, Snapshot-Modell, Working Transactions, Reconnect-Resilienz, ChangeVersion-Schutz, Crepe-Editor, Zielgruppenverwaltung).
 
 Dabei stand verständlicherweise bisher die **technische Korrektheit** im Vordergrund:
 - Transaktionen, Snapshots, Dirty-States und ChangeVersions funktionieren zuverlässig.
@@ -17,7 +17,7 @@ Dabei stand verständlicherweise bisher die **technische Korrektheit** im Vorder
   - **Mangelnde Affordance & Orientierung:** Für einen Menschen ist auf den ersten Blick oft unklar:
     - *Wie bearbeite ich diesen Text?*
     - *Wo und wie speichere ich meine Änderungen?* (Autosave, Speichern-Button, Tastatur-Shortcut?)
-    - *Was ist geschützter Fallback-Inhalt, was ist expliziter Inhalt dieser Rolle?*
+    - *Was ist geschützter Fallback-Inhalt, was ist expliziter Inhalt dieser Zielgruppe?*
     - *In welchem Kontext/Modus befinde ich mich gerade?*
 
 ---
@@ -48,7 +48,7 @@ Damit Mensch und Agent über dieselben visuellen Fakten sprechen, wird ein isoli
   4. *Working Transaction:* Strukturpflege (Node anlegen, umbenennen, verschieben).
   5. *Content-Editor (WYSIWYG):* Aktiver Bearbeitungsmodus mit Crepe-Toolbar und dirty state.
   6. *Content-Editor (Markdown-Quellcode):* Quelltextansicht mit Formatierungsoptionen.
-  7. *Rollen:* Read-only- und Working-Ansicht, Löschbestätigung sowie die
+  7. *Zielgruppen:* Read-only- und Working-Ansicht, Löschbestätigung sowie die
      Fallback-Darstellung am ausgewählten Wissensknoten.
   8. *Feedback:* Commit-, Verwerfen- und Löschbestätigungen.
 - **Ablage:**

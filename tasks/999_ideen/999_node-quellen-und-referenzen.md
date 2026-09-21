@@ -14,7 +14,7 @@ Bei wachsendem Wissensbestand entstehen zwei grundlegende Herausforderungen:
    - Ein lesender Agent kann nicht unterscheiden, ob ein Inhalt ein reales, nachprüfbares Faktum beschreibt oder eine historische Vermutung war.
 
 2. **Hierarchische Silos vs. vernetztes Wissen (Querspringen):**
-   - Die Wissensbasis ist hierarchisch strukturiert (strikter Baum: `ParentNodeId`). Das ist ideal für Organisation, Breadcrumbs und Rollenvererbung.
+   - Die Wissensbasis ist hierarchisch strukturiert (strikter Baum: `ParentNodeId`). Das ist ideal für Organisation, Breadcrumbs und Zielgruppenvererbung.
    - Reales Fachwissen ist jedoch ein **Graph**: Ein Feature-Node unter `Features/Billing` hat starken inhaltlichen Bezug zu `Security/Authentication` und `Architecture/MessageBus`.
    - Ohne Querverweise muss ein Agent mühsam durch den Baum navigieren oder blind per Volltextsuche nach verwandten Konzepten fahnden – was viele Tokens verbrennt.
 

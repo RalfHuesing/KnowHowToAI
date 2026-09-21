@@ -9,7 +9,7 @@
 ## Aufgaben
 
 - [ ] **M7.1: Referenzworkflow**
-  - [ ] Rollen Consultant, Developer und EndUser samt Resolution Orders transaktional
+  - [ ] Zielgruppen Consultant, Developer und EndUser samt Resolution Orders transaktional
     anlegen
   - [ ] Consultant-Wissen erfassen und committen
   - [ ] Developer-Content daraus ableiten/ergänzen und mehrfach versionieren

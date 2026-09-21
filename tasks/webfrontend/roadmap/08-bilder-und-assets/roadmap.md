@@ -6,7 +6,7 @@
 
 Priorität: niedrig. Umsetzung nach dem PDF-Export.
 
-Abhängigkeit: [M5](../05-rollen-content-und-rich-text/roadmap.md), [M7](../07-pdf-export/roadmap.md)
+Abhängigkeit: [M5](../05-zielgruppen-content-und-rich-text/roadmap.md), [M7](../07-pdf-export/roadmap.md)
 
 Verbindliche M0-Basis: Bilder erweitern den bestehenden Milkdown-Editor `@milkdown/crepe` über dessen bereits vorbereiteten internen Hook; es findet keine neue Editor- oder Komponentenwahl statt. Browserfälle verwenden Microsoft.Playwright .NET mit der installierten aktuellen Chrome-Stable-Version, `Channel = "chrome"`, `Headless = true`.
 

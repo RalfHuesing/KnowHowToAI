@@ -163,7 +163,7 @@ Quellen:
 
 | ID | Zu entscheiden | Empfehlung | Konsequenz |
 |---|---|---|---|
-| O-008 | initiale Rolle | keine stille fachliche Defaultrolle; letzte Wahl nur im Browsertab merken und bei Einstieg sichtbar bestätigen | verhindert unbemerkte Rollenauflösung |
+| O-008 | initiale Zielgruppe | keine stille fachliche Defaultzielgruppe; letzte Wahl nur im Browsertab merken und bei Einstieg sichtbar bestätigen | verhindert unbemerkte Zielgruppenauflösung |
 | O-007 | Transaction Actor ohne Auth | beim Beginnen frei eingebbar, pro Browsertab vorbefüllt, danach immutable; `Client` fest auf Webclient setzen | liefert nachvollziehbare Metadaten ohne vorgetäuschte Identität |
 | O-025 | mehrere Clients in derselben Transaction | zulassen, keine Locks; `ChangeVersion` bei jeder Mutation, stale Write ablehnen und neu laden | UI und MCP bleiben gleichwertige Clients ohne Lockverwaltung |
 | O-026 | offene Transactions | kein automatischer Ablauf/keine automatische Löschung; Alter anzeigen, explizit committen/discarden | kein stiller Wissensverlust; alte Transactions bleiben sichtbar |

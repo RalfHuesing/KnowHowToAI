@@ -56,21 +56,21 @@ Die folgenden Ergebnisse sind nach M0 verbindlich und keine erneuten Auswahlauft
 
 ```text
 ┌ Navigation/Baum ─────┬ Node-Editor/Ansicht ─────┬ Kontext/Status ────┐
-│ Suche und Filter     │ Titel, Beschreibung          │ Rolle/Fallback       │
-│ Lazy Tree           │ Rollen-Content              │ Freshness/Quellen    │
+│ Suche und Filter     │ Titel, Beschreibung          │ Zielgruppe/Fallback       │
+│ Lazy Tree           │ Zielgruppen-Content              │ Freshness/Quellen    │
 │ Drag-and-drop       │ Rich Text + Vorschau        │ Findings/Quellen     │
 │ Badges              │ Diff bei Änderung          │ Historie             │
 └──────────────────────┴────────────────────────────┴─────────────────────┘
-Kontextleiste: Wissensbasis | Snapshot/Transaction | Rolle | Änderungszustand
+Kontextleiste: Wissensbasis | Snapshot/Transaction | Zielgruppe | Änderungszustand
 ```
 
-Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand oder aufgelöster Fallback-Content darf nie unbemerkt bearbeitet werden.
+Snapshot/Transaction und Zielgruppe bleiben global sichtbar. Historischer Zustand oder aufgelöster Fallback-Content darf nie unbemerkt bearbeitet werden.
 
 ## Dashboard
 
 - Current Snapshot und letzter Release.
 - Alle offenen Transactions mit Zweck, Akteur, Client, Alter, Base Snapshot und `ChangeVersion`; ohne Auth gibt es keine belastbare Einschränkung auf „eigene“ Transactions.
-- Qualitätsübersicht des Current Snapshot: stale Derived Contents und Qualitätswarnungen über alle Rollen.
+- Qualitätsübersicht des Current Snapshot: stale Derived Contents und Qualitätswarnungen über alle Zielgruppen.
 - Harte Validierungsfehler werden pro offener Transaction gezeigt; ein committed Snapshot besitzt definitionsgemäß keine harten Validierungsfehler.
 - Zuletzt geänderte Nodes werden aus dem Diff zwischen Current Snapshot und seinem direkten committed Vorgänger abgeleitet; Releases werden nach Erzeugungszeit sortiert.
 - Direkte Einstiege in Wissensbaum, Transaction, Vergleich und Publikation.
@@ -81,10 +81,10 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 - Der einzelne fachliche Root wird separat geladen; Children werden ausschließlich bei Expand mit `limit = 100` über den vorhandenen Navigation-Use-Case angefordert. `nextCursor` bleibt opak und wird unverändert für die nächste Seite desselben Parents weitergereicht.
 - Eine geladene Parent-Seite enthält höchstens 100 Einträge. Seitennavigation ersetzt die sichtbare Seite desselben Parents, statt frühere Seiten im DOM anzuhängen. Für „Zurück“ speichert der Circuit je Parent nur die zuvor verwendeten opaken Cursorstrings, keine früheren Itemseiten; der vorherige Cursor wird erneut serverseitig geladen.
 - Der Circuit hält höchstens zehn geladene 100er-Seiten. Beim Laden einer elften Seite wird die am längsten ungenutzte Seite eines nicht ausgewählten Teilbaums entfernt und dieser Zweig sichtbar geschlossen. Gehören alle zehn Seiten zum aktuellen Auswahlpfad, wird die rootnächste Seite entfernt und ihr Kind auf dem Auswahlpfad zum visuellen Root des Tree-Ausschnitts; die vollständige globale Herkunft bleibt über Breadcrumbs navigierbar. Breadcrumb-Navigation oberhalb des Ausschnitts lädt die benötigte Seite erneut und unterliegt derselben Zehn-Seiten-Regel. Eine höfliche Statusmeldung erklärt das Schließen beziehungsweise Neuzentrieren.
-- Auswahl, Expand-Zustand, aktuell sichtbare Seiten und LRU-Reihenfolge sind ausschließlich flüchtiger Circuit-State. Route und Query bleiben Quelle für Node, Rolle und Read Context; nach Reload werden nur die für den ausgewählten Pfad benötigten Seiten erneut geladen.
+- Auswahl, Expand-Zustand, aktuell sichtbare Seiten und LRU-Reihenfolge sind ausschließlich flüchtiger Circuit-State. Route und Query bleiben Quelle für Node, Zielgruppe und Read Context; nach Reload werden nur die für den ausgewählten Pfad benötigten Seiten erneut geladen.
 - Der DOM enthält niemals den Gesamtbaum. Die Begrenzung erfolgt durch serverseitiges Paging und den Zehn-Seiten-Cache; echte Viewport-Virtualisierung ist weder Voraussetzung noch behauptete Eigenschaft.
-- Suche nach Titel, Beschreibung und rollenaufgelöstem Content.
-- Filter nach Rolle, Availability, Freshness und Findings wirken auf die paginierte Trefferliste neben der Suche. Innerhalb einer Filtergruppe gilt ODER, zwischen Filtergruppen UND; ungefilterte Ansicht ist der Default. Der Tree wird nicht clientseitig beschnitten; die Auswahl eines Treffers fokussiert dessen Node im Tree.
+- Suche nach Titel, Beschreibung und zielgruppenaufgelöstem Content.
+- Filter nach Zielgruppe, Availability, Freshness und Findings wirken auf die paginierte Trefferliste neben der Suche. Innerhalb einer Filtergruppe gilt ODER, zwischen Filtergruppen UND; ungefilterte Ansicht ist der Default. Der Tree wird nicht clientseitig beschnitten; die Auswahl eines Treffers fokussiert dessen Node im Tree.
 - Badges für eigenen Content, Fallback, fehlenden Content, stale und Warnung.
 - Drag-and-drop für Verschieben und Sortierung mit Zielvorschau.
 - Der Tree verwendet `role="tree"`/`role="treeitem"`, roving `tabindex`, `aria-level`, `aria-selected` und bei Parents `aria-expanded`. Pflichtbedienung: `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`, `End`, `Enter` und Leertaste.
@@ -96,19 +96,19 @@ Snapshot/Transaction und Rolle bleiben global sichtbar. Historischer Zustand ode
 ## Node-Ansicht und Editor
 
 - Struktur: Titel, Description, Parent, SortOrder, stabile NodeId.
-- Der globale Rollen-Selektor steuert die Node-Ansicht; die Ansicht zeigt `Explicit`, `Fallback` oder `None` und erzeugt keinen zweiten lokalen Rollenmechanismus.
-- `requestedRole`, `resolvedRole`, Content Mode, Revision und Freshness.
+- Der globale Zielgruppen-Selektor steuert die Node-Ansicht; die Ansicht zeigt `Explicit`, `Fallback` oder `None` und erzeugt keinen zweiten lokalen Zielgruppenmechanismus.
+- `requestedAudience`, `resolvedAudience`, Content Mode, Revision und Freshness.
 - Rich-Text-Editor und explizit zuschaltbare Markdown-Quellansicht. Beide Modi verwenden denselben kanonischen Markdown-, Dirty-State-, Validierungs- und Speicherkontext.
 - Vorschau erzeugt Node-Überschrift aus der Struktur, nicht aus `ContentMd`.
 - Derived Content zeigt Source-Revisions und deren Freshness.
 - Vergleich mit Base Snapshot und historischen Snapshots.
-- Rollen-Content-Löschung und globale Node-Löschung sind klar getrennt.
+- Zielgruppen-Content-Löschung und globale Node-Löschung sind klar getrennt.
 
 ### Speichern und unpersistierter Zustand
 
 - Formulare und der Contenteditor speichern ausschließlich über eine explizite Benutzeraktion; es gibt kein Autosave und kein zeitgesteuertes Debounce-Schreiben.
 - Nach erfolgreicher Mutation werden Working Snapshot, `ChangeVersion`, Diff-Indikator und dargestellte Daten aus der Serverantwort aktualisiert.
-- Navigation, Rollen-/Nodewechsel, Reconnect-Reload und Schließen eines dirty Editors zeigen `Bleiben` oder `Ungespeicherte Eingabe verwerfen`; es gibt kein implizites Speichern.
+- Navigation, Zielgruppen-/Nodewechsel, Reconnect-Reload und Schließen eines dirty Editors zeigen `Bleiben` oder `Ungespeicherte Eingabe verwerfen`; es gibt kein implizites Speichern.
 - Drag-and-drop persistiert beim Drop unmittelbar in die aktive Transaction. Bei Serverablehnung kehrt der Tree zum bestätigten Serverzustand zurück und zeigt den strukturierten Fehler.
 - Resolution Orders werden lokal sortiert und erst mit `Speichern` als vollständige Reihenfolge ersetzt.
 - Commit und Discard besitzen immer einen expliziten Bestätigungsdialog.
@@ -123,7 +123,7 @@ Editor-, TODO- und Assetdetails: [Content und Assets](03-content-und-assets.md).
 - **Actor (O-007):** Der Actor wird beim Starten einer neuen Transaction durch `ICurrentUserService.GetCurrentUserName()` gesetzt. Die initiale Implementierung ist ein Dummy-Service, der einen konfigurierten oder festen Platzhalternamen zurückgibt; der Service wird später durch echte Authentifizierung ersetzt, ohne dass Transaction-Komponenten angepasst werden müssen. Der Actor-Wert ist nach dem Start immutable.
 - **Gleichzeitige Clients (O-025):** Mehrere UI- oder MCP-Clients dürfen gleichzeitig in derselben offenen Transaction schreiben. Es gibt keine Locks. Jede Mutation überträgt `ChangeVersion`; stale Writes werden vom Server deterministisch abgelehnt. Der Client zeigt einen fachlichen Hinweis und fordert zum Neuladen des betroffenen Bereichs auf.
 - **Transaction-Lebensdauer (O-026):** Offene Transactions verfallen nicht automatisch. Das Dashboard zeigt das Alter einer Transaction deutlich an; Transactions älter als sieben Tage erhalten ein Warnbadge. Schließen erfolgt ausschließlich durch explizites Commit oder Discard.
-- Strukturierter Netto-Diff nach Rollen, Resolution Orders, Nodes, Contents und Dependencies.
+- Strukturierter Netto-Diff nach Zielgruppen, Resolution Orders, Nodes, Contents und Dependencies.
 - Validierung mit Errors, Warnings, Stale Contents und Refactoring-Kandidaten.
 - Bewusste Diff- und Validation-Sicht vor Commit.
 - Discard mit klarer Auswirkung auf den Working Snapshot.
@@ -139,17 +139,17 @@ Editor-, TODO- und Assetdetails: [Content und Assets](03-content-und-assets.md).
 
 Routen, Query-Parameter und die Rekonstruktion des Arbeitskontexts: [Projektstruktur und Codekonventionen](08-projektstruktur-und-codekonventionen.md#url--und-arbeitskontext).
 
-## Rollenverwaltung
+## Zielgruppenverwaltung
 
-- Rollen erstellen, umbenennen und löschen.
+- Zielgruppen erstellen, umbenennen und löschen.
 - Resolution Order als sortierbare Liste bearbeiten.
 - Fallback-Auswirkung an einem auswählbaren Beispiel-Node transparent vorschauen; es gibt keine globale Bestandsanalyse und keine stille Umsortierung gespeicherter Reihenfolgen.
-- Rollenadministration ist Bestandteil der M5/V1-Weboberfläche und bleibt fachlich von Authentifizierung und ACL getrennt.
+- Zielgruppenadministration ist Bestandteil der M5/V1-Weboberfläche und bleibt fachlich von Authentifizierung und ACL getrennt.
 - Änderungen erfolgen in einer Transaction.
 - Keine Vermischung mit Authentifizierung oder ACL.
 
-### Rollen-Content-Aktionen
+### Zielgruppen-Content-Aktionen
 
-- Aufgelöster Fallback ist read-only. Die UI bietet ausdrücklich „Eigenen Inhalt anlegen“ und optional „Fallback als Ausgangstext übernehmen“; keine Aktion bearbeitet oder dupliziert still die Quellrolle.
+- Aufgelöster Fallback ist read-only. Die UI bietet ausdrücklich „Eigenen Inhalt anlegen“ und optional „Fallback als Ausgangstext übernehmen“; keine Aktion bearbeitet oder dupliziert still die Quellzielgruppe.
 - Explizit leerer eigener Content ist zulässig, unterdrückt den Fallback aber erst nach klarer Bestätigung. „Eigenen Content löschen“ ist eine getrennte Aktion und aktiviert anschließend wieder den Fallback.
-- `Independent`/`Derived` wechseln nur explizit. Derived erhält mindestens eine über Node-Suche und Rolle ausgewählte aktive explizite Source und pinnt deren aktuelle Revision; manuelle GUID-Eingabe gibt es nicht.
+- `Independent`/`Derived` wechseln nur explizit. Derived erhält mindestens eine über Node-Suche und Zielgruppe ausgewählte aktive explizite Source und pinnt deren aktuelle Revision; manuelle GUID-Eingabe gibt es nicht.

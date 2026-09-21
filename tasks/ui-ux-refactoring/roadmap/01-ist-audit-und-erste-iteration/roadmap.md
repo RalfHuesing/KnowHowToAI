@@ -29,7 +29,7 @@ Die bestehende Oberfläche wird anhand reproduzierbarer Desktop-Zustände auf Ve
   - [x] [M1.4-T7 – Moderne Shell-Navigation](tasks/M1.4-T7.md) – vier bestehende Ziele als moderne Linkflächen mit sichtbarem aktivem Zustand; Routen und Responsive-Vertrag unverändert.
   - [x] [M1.4-T4 – Trefferfokus in der Suche](tasks/M1.4-T4.md) – Zustand 07; Filter kompakt sekundär, Trefferzahl und erste Trefferkarte im ersten Viewport.
   - [x] [M1.4-T5 – Wissenszugang auf dem Dashboard führen](tasks/M1.4-T5.md) – Zustand 01; der bestehende Wissensbaum ist primär, Systemstand/Release bleiben sekundär.
-  - [x] [M1.4-T6 – Sichere Kontext-Microcopy für Rolle und Fallback](tasks/M1.4-T6.md) – Zustände 02/05; fachliche Bedeutung erklärt, Verträge unverändert.
+  - [x] [M1.4-T6 – Sichere Kontext-Microcopy für Zielgruppe und Fallback](tasks/M1.4-T6.md) – Zustände 02/05; fachliche Bedeutung erklärt, Verträge unverändert.
 
 ## M1.5 – Moderne Detail- und Kontextführung
 
@@ -54,7 +54,7 @@ Leaves geteilt.
 Zustand 06 bleibt der belegte Suchgrundzustand; ein Nulltreffer-Produktbefund ist
 nicht belegt und erhält keinen eigenen Task. Die P2-Nacharbeiten 15–17
 (gleichrangige Strukturaktionen, doppelter Dirty-Hinweis, Fokus-Scroll) bleiben
-im Backlog. `RolesPage.razor.cs` und die Rollen-Verwaltung bleiben ein separater
+im Backlog. `AudiencesPage.razor.cs` und die Zielgruppen-Verwaltung bleiben ein separater
 Out-of-scope-Task und sind nicht Teil von M1.5.
 
 Das Verhaltenstor **„Commit vor Validierung“** ist ausdrücklich zurückgestellt:

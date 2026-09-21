@@ -1,13 +1,13 @@
 # KnowHowToAI
 
-Hierarchische, versionierte und rollenabhängige Wissensbasis für Agenten und
+Hierarchische, versionierte und zielgruppenabhängige Wissensbasis für Agenten und
 Menschen. Der Zugriff erfolgt ausschließlich über MCP (Model Context Protocol)
 als stateless Streamable HTTP unter `/mcp`.
 
 ## Was ist das?
 
 KnowHowToAI speichert fachliches und technisches Wissen nicht als Markdown-Dateien,
-sondern strukturiert in einem MS SQL Server: eine globale Node-Hierarchie, pro Rolle
+sondern strukturiert in einem MS SQL Server: eine globale Node-Hierarchie, pro Zielgruppe
 eigene oder per Fallback aufgelöste Inhalte, vollständige unveränderliche Snapshots
 pro Transaktion und benannte Releases. Agenten arbeiten mit kleinen,
 deterministischen Tools (`begin_transaction`, `create_node`, `replace_content`,
@@ -20,7 +20,7 @@ Ableitungen (Stale), ohne automatisch zu synchronisieren.
 ## Kernfunktionen
 
 - Globale Wissenshierarchie mit stabilen Node-IDs, ein Root pro Snapshot
-- Frei definierbare Rollen mit deterministischen, nicht-rekursiven Resolution
+- Frei definierbare Zielgruppen mit deterministischen, nicht-rekursiven Resolution
   Orders und transparentem Fallback
 - Vollständige, unveränderliche Snapshots: jede Änderung läuft über eine
   Transaction mit eigenem Working Snapshot; konkurrierende Commits scheitern
@@ -28,7 +28,7 @@ Ableitungen (Stale), ohne automatisch zu synchronisieren.
 - Content-Revisions und Content-Abhängigkeiten mit transitiver Stale-Erkennung
 - Gespeicherter Markdown-Content ohne Überschriften; die Dokumentstruktur entsteht
   aus der Hierarchie (Heading-freier Export)
-- Rollenbezogener Markdown-Export, exakte parametrisierte Textsuche mit
+- Zielgruppenbezogener Markdown-Export, exakte parametrisierte Textsuche mit
   deterministischem Ranking, seitenweises Paging über opake Cursors
 - Strukturierte, maschinenlesbare Tool-Antworten mit stabilen Fehler- und
   Warncodes

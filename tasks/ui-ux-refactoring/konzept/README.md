@@ -27,7 +27,7 @@ Dieses Verzeichnis ist die verbindliche Ziel- und Entscheidungsgrundlage für da
 
 M1.0–M1.5 sind abgeschlossen. M2 berücksichtigt den abgeschlossenen Ein-Karten-Grid-Nachweis aus M1.5-T7 als Regression und legt keinen Duplikat-Leaf an. M2 startet mit drei sicheren Korrekturslices und endet vor weiteren IA-/Terminologieentscheidungen an einem manuellen Entscheidungsgate.
 
-Die erste M2-Etappe ist ausdrücklich keine Gesamtneugestaltung: Sie liefert einen gemeinsamen Vollbreiten-Seitenrahmen mit lesbarer Prosa-Messung und einer Action-Group-Basis, korrigiert Mutation-Selection/URL-Synchronisation red-test-first und führt vom Transaktionsdetail sichtbar in den Bearbeitungsfluss. Featureweise Migration wird an 1280, 1920, 2560 und Responsive belegt; `RolesPage` bleibt außerhalb dieses Slices.
+Die erste M2-Etappe ist ausdrücklich keine Gesamtneugestaltung: Sie liefert einen gemeinsamen Vollbreiten-Seitenrahmen mit lesbarer Prosa-Messung und einer Action-Group-Basis, korrigiert Mutation-Selection/URL-Synchronisation red-test-first und führt vom Transaktionsdetail sichtbar in den Bearbeitungsfluss. Featureweise Migration wird an 1280, 1920, 2560 und Responsive belegt; `AudiencesPage` bleibt außerhalb dieses Slices.
 
 ## Änderungsregeln für dieses Konzept
 

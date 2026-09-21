@@ -6,16 +6,16 @@ Die Reisen beschreiben das erwartete Bedienmodell mit bestehenden Funktionen. Si
 
 ## Finden und lesen
 
-`Start (/) → Wissensbaum (/knowledge) → Pflicht-Rollenauswahl → Node (/knowledge/{NodeId})`.
+`Start (/) → Wissensbaum (/knowledge) → Pflicht-Zielgruppenauswahl → Node (/knowledge/{NodeId})`.
 
 1. Start führt zum vorhandenen Wissenszugang; Diagnose bleibt sekundär.
-2. Fehlt eine gültige Rolle aus Query oder geprüftem `localStorage`, öffnet sich der bestehende Pflichtselektor. Rolle erklärt Perspektive, nicht Zugriff.
-3. Nach Bestätigung werden Rolle, `ReadContext`, Baum und Auswahl gemeinsam aktiv; `NodeId` in URL, Tree-Auswahl, Breadcrumb und Detail müssen übereinstimmen.
+2. Fehlt eine gültige Zielgruppe aus Query oder geprüftem `localStorage`, öffnet sich der bestehende Pflichtselektor. Zielgruppe erklärt Perspektive, nicht Zugriff.
+3. Nach Bestätigung werden Zielgruppe, `ReadContext`, Baum und Auswahl gemeinsam aktiv; `NodeId` in URL, Tree-Auswahl, Breadcrumb und Detail müssen übereinstimmen.
 4. Read-only zeigt Inhalt beziehungsweise ehrlichen None-/Fallback-Zustand. History und Markdown-Download bleiben kompakte Folgewege.
 
 ## Konkreten Eintrag bearbeiten
 
-Aus einer konkreten Read-only-Node ist der Übergang zur Bearbeitung der kritischste bestehende Nutzungspfad. **M2 macht ihn sichtbar, ohne eine neue fachliche Bearbeitungslogik vorwegzunehmen:** Transaktion beginnen oder fortsetzen → `/knowledge?transactionId=...&roleId=...` → Auswahl einer konkreten Node → lokaler Abschnitt „Struktur“ beziehungsweise „Inhalt bearbeiten“.
+Aus einer konkreten Read-only-Node ist der Übergang zur Bearbeitung der kritischste bestehende Nutzungspfad. **M2 macht ihn sichtbar, ohne eine neue fachliche Bearbeitungslogik vorwegzunehmen:** Transaktion beginnen oder fortsetzen → `/knowledge?transactionId=...&audienceId=...` → Auswahl einer konkreten Node → lokaler Abschnitt „Struktur“ beziehungsweise „Inhalt bearbeiten“.
 
 Der aktuelle Code bietet den Working-Arbeitsplatz innerhalb derselben Knowledge-Seite (`NodeDetailsPane`), aber in Read-only fehlt im sichtbaren Node-Detail ein auffindbarer Einstieg. Ob ein node-lokaler Einstieg direkt eine neue Transaction beginnt oder zuerst zur bestehenden Transaction-Übersicht führt, ist offen (siehe [Entscheidungsregister](06-entscheidungsregister.md)).
 
@@ -44,9 +44,9 @@ Der seltene, lineare und folgenreiche Abschluss kann nach dem M2-Gate als Assist
 
 `/history` zeigt Snapshot-/Release-Listen und den bestehenden Vergleich von Ausgang und Ziel. `nodeId` filtert die Node-Historie; `snapshotId` oder `releaseId` führen als ReadContext in `/knowledge`. IDs bleiben für Experten erreichbar, die fachliche Vergleichsbedeutung steht zuerst.
 
-## Rollen und Fallback
+## Zielgruppen und Fallback
 
-`/roles` verwaltet Rollen in einer Working Transaction. Aufgelöster Fallback ist read-only und wird mit angefragter und aufgelöster Rolle erklärt. RoleId, Revision und technische Herkunft gehören in die progressive Ebene. Rolle ist Perspektive, keine ACL. Rollenverwaltung bleibt in M2 außerhalb des Migrationsumfangs.
+`/audiences` verwaltet Zielgruppen in einer Working Transaction. Aufgelöster Fallback ist read-only und wird mit angefragter und aufgelöster Zielgruppe erklärt. AudienceId, Revision und technische Herkunft gehören in die progressive Ebene. Zielgruppe ist Perspektive, keine ACL. Zielgruppenverwaltung bleibt in M2 außerhalb des Migrationsumfangs.
 
 ## Leere, Fehler-, Konflikt- und Dirty-Zustände
 

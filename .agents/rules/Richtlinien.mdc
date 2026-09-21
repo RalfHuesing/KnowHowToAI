@@ -14,22 +14,22 @@ Nutzeranweisungen haben Vorrang.
 - **Schichtenarchitektur & Entkopplung**: Strikte Schichtung: `Adapter (MCP/Web/technisches HTTP)` -> `Application Services` -> `Domain` -> `Repository` -> `MS SQL Server`. Adapter enthalten nur Transport, Mapping oder Darstellung; keine Geschäftslogik und keine Kopplung von Core/Storage an Blazor, HTTP oder einen MCP-Transport. UI und MCP verwenden dieselben Application-Use-Cases.
 - **Agentischer MCP-Fokus & Token-Effizienz**:
   - Progressive Disclosure und Metadata-First; keine Dumps ganzer Bäume.
-  - Maschinenlesbare Antworten mit stabilen Fehlercodes und ohne Konvertierung wiederverwendbaren `NodeId`, `RoleId`, `TransactionId`, `SnapshotId` und `ReleaseId`.
+  - Maschinenlesbare Antworten mit stabilen Fehlercodes und ohne Konvertierung wiederverwendbaren `NodeId`, `AudienceId`, `TransactionId`, `SnapshotId` und `ReleaseId`.
   - Änderungen am versionierten Wissen erfordern eine `TransactionId`; einzige Ausnahme ist das atomare Registrieren eines Releases auf einen committed Snapshot.
-  - Core-Leseoperationen akzeptieren entweder `TransactionId` (Working Snapshot), `SnapshotId` (Historie) oder keinen Selektor (Current Snapshot), niemals mehrere Selektoren. Adapter dürfen `ReleaseId` akzeptieren, müssen es aber vor dem Core-Aufruf auf dessen unveränderlichen Snapshot auflösen. Rollen werden explizit übergeben.
+  - Core-Leseoperationen akzeptieren entweder `TransactionId` (Working Snapshot), `SnapshotId` (Historie) oder keinen Selektor (Current Snapshot), niemals mehrere Selektoren. Adapter dürfen `ReleaseId` akzeptieren, müssen es aber vor dem Core-Aufruf auf dessen unveränderlichen Snapshot auflösen. Zielgruppen werden explizit übergeben.
 - **Snapshot- & Transaktionsmodell**:
   - Tabellen-Präfix `KnowHowToAI_`.
-  - Vollständige Snapshot-Kopien pro Transaktion (Working Snapshot auf Basis des Current Snapshot), einschließlich Rollen und Role Resolution Orders.
+  - Vollständige Snapshot-Kopien pro Transaktion (Working Snapshot auf Basis des Current Snapshot), einschließlich Zielgruppen und Audience Resolution Orders.
   - Keine lang laufenden offenen SQL-Transaktionen; KnowHowTo-AI-Transaktionen bestehen aus kurzen, atomaren SQL-Operationen.
   - Committed/historische Snapshots sind unveränderlich. Fachobjekte werden im Working Snapshot per Tombstone entfernt; identitätslose Zuordnungen dürfen dort atomar ersetzt werden, da der Base Snapshot die Historie erhält.
   - Kein automatisches Merge/Rebase; konkurrierende Commits ergeben `SnapshotConflict`.
-  - Globale Node-Löschung und rollenbezogene Content-Löschung strikt unterscheiden.
+  - Globale Node-Löschung und zielgruppenbezogene Content-Löschung strikt unterscheiden.
   - Pro Snapshot existiert höchstens ein aktiver persistierter Root-Node; der initiale leere Snapshot darf noch keinen Root besitzen.
 - **Wissens- & Content-Invarianten**:
   - Markdown ist reines Inhaltsformat (`ContentMd`), nicht Dokumentstruktur. Die Struktur liegt vollständig im relationalen Modell.
   - Node-Titel liegen in der Hierarchie. Gewöhnliche Erwähnungen im Fließtext sind erlaubt; absichtliche Überschriften/Ersatztitel nicht. Parser-sichere Markdown-/HTML-Headings sind harte Fehler, nur heuristisch erkennbare Fälle Warnungen; kein String-Matching auf `#`.
-  - Rollen sind frei definierbar; Fallback erfolgt deterministisch über explizite, nicht-rekursive Resolution Orders. Änderungen erfolgen nur in einer Working Transaction.
-  - Eigener Rollen-Content ist `Independent` oder `Derived`. Derived Content speichert explizite Source-Revisions; Freshness wird transitiv ausgewertet und Dependency-Zyklen sind unzulässig.
+  - Zielgruppen sind frei definierbar; Fallback erfolgt deterministisch über explizite, nicht-rekursive Resolution Orders. Änderungen erfolgen nur in einer Working Transaction.
+  - Eigener Zielgruppen-Content ist `Independent` oder `Derived`. Derived Content speichert explizite Source-Revisions; Freshness wird transitiv ausgewertet und Dependency-Zyklen sind unzulässig.
   - Die konfigurierte Contentgröße erzeugt nur `NodeTooLarge`, kein Speicher-/Commitlimit; Refactoring erfolgt bewusst über Child-Nodes in einer eigenen Transaction.
 - **Einfachheit & Wiederverwendung**: Bevorzuge direkte, konkrete, lesbare und gut debuggable Lösungen sowie unveränderliche Datenmodelle (`record`, Immutability). Prüfe vor neuen Helfern, Mappings, Modellen, Services oder Abstraktionen vorhandene Projektbausteine und geeignete Funktionen des unterstützten Ziel-Frameworks; verwende sie, wenn Semantik und Vertrag passen. Keine spekulativen Wrapper, Schichten, Entwurfsmuster oder Interfaces. Abstraktionen erfordern belegten Mehrwert für Boundary, Testbarkeit, Verständlichkeit oder tatsächliche Wiederverwendung. Keine Kompaktheit um ihrer selbst willen; Guard Clauses nutzen, wenn sie Verschachtelung reduzieren.
 - **Abhängigkeiten & Lizenzen**: Keine kostenpflichtigen Komponenten oder Abonnements. Alle direkten und transitiven externen Abhängigkeiten müssen kostenlos nutzbar und mit der Distribution des MIT-lizenzierten Projekts vereinbar sein; Copyright-, Lizenz- und NOTICE-Pflichten einhalten. Standardmäßig nur permissive Lizenzen wie MIT, 0BSD, BSD-2/3-Clause, ISC oder Apache-2.0; andere Lizenzen erfordern dokumentierte Prüfung und ausdrückliche Benutzerentscheidung. Für triviale Funktionalität oder wenige Zeilen CSS keine umfangreiche Bibliothek einführen.
@@ -47,7 +47,7 @@ Nutzeranweisungen haben Vorrang.
 
 ## Konfiguration
 
-- Die Wissensdatenbank enthält keine Betriebs-, Retrieval- oder Quality-Konfiguration. Fachlicher versionierter Zustand wie Rollen und Resolution Orders bleibt davon unberührt und gehört weiterhin in Snapshots.
+- Die Wissensdatenbank enthält keine Betriebs-, Retrieval- oder Quality-Konfiguration. Fachlicher versionierter Zustand wie Zielgruppen und Resolution Orders bleibt davon unberührt und gehört weiterhin in Snapshots.
 - Es existiert genau eine JSON-Konfigurationsdatei: `src/KnowHowToAI.Server/appsettings.json`; keine umgebungs- oder testspezifischen Appsettings. Die Datenbankverbindung kommt ausschließlich aus deren versionierter `DatabaseConnection`-Sektion; ihr Serverwert darf einen zur Laufzeit expandierten Windows-Platzhalter enthalten und besitzt keine Connection-String-Umgebungsvariable. Übrige Overrides folgen `appsettings.json` < Environment < Kommandozeile.
 - Der Server bindet Konfiguration beim Start einmalig an immutable typed Options und validiert Werte sowie feldübergreifende Beziehungen fail-fast; kein Live-Reload.
 - Domain, Application und Storage kennen weder `IConfiguration` noch frei verteilte Konfigurationsschlüssel. Der Composition Root übergibt validierte Policy-Records.

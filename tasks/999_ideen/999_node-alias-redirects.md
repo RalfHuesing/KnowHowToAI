@@ -41,8 +41,8 @@ Ranking-Erweiterung), hoher Effekt bei großem Bestand.
 - **Ranking-Integration:** Neuer `HitField`-Wert und Rang-Einordnung müssen
   in die verbindliche Rang-Liste (Abschnitt 224 ff.) eingebaut werden —
   Vertrags- und Konzept-Änderung.
-- **Mehrsprachigkeit:** Aliase pro Sprache/Role? Rollenmodell (Modul 02)
-  könnte relevant werden — klären, ob Aliase rollenunabhängig sind
+- **Mehrsprachigkeit:** Aliase pro Sprache/Audience? Zielgruppenmodell (Modul 02)
+  könnte relevant werden — klären, ob Aliase zielgruppenunabhängig sind
   (empfohlen: ja, sie sind Namens-Varianten, kein Wissen).
 - **Missbrauch/Qualität:** Wer pflegt Aliase? Agent-getrieben bei Bedarf
   (Werkzeug „Alias hinzufügen") vs. kuratiert; Gefahr von Alias-Flut →

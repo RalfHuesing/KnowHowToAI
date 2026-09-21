@@ -17,7 +17,7 @@ Der MCP-Server bietet sichere fachliche Primitive, aber keine menschlich erfassb
 
 - Struktur, Umfang und Zustand der Wissensbasis sind schwer überschaubar.
 - Manuelle Nachbearbeitung ist unnötig indirekt.
-- Transactions, Releases, Snapshots, Rollenauflösung, Stale-Zustände und Findings benötigen visuelle Arbeitsoberflächen.
+- Transactions, Releases, Snapshots, Zielgruppenauflösung, Stale-Zustände und Findings benötigen visuelle Arbeitsoberflächen.
 - Verschieben und Sortieren von Nodes ist visuell einfacher und sicherer.
 - Zielgruppengerechte Dokumente benötigen einen einfachen PDF-Export ab einem gewählten Node.
 
@@ -41,16 +41,16 @@ Das Frontend ist die vollumfängliche menschliche Arbeits- und Publikationsoberf
 Das Frontend erhält die implementierten Invarianten:
 
 - Globale Node-Hierarchie mit stabilen `NodeId`s.
-- Rollenabhängiger Content bei gemeinsamer Hierarchie.
+- Zielgruppenabhängiger Content bei gemeinsamer Hierarchie.
 - Node-Titel bilden die Dokumentstruktur; `ContentMd` enthält keine Überschriften.
 - Writes erfolgen ausschließlich in KnowHowTo-AI-Transactions.
 - Working Snapshots werden validiert, committed oder verworfen.
 - Committed Snapshots sind unveränderlich; konkurrierende Commits erzeugen `SnapshotConflict`.
 - Releases sind unveränderliche Verweise auf committed Snapshots.
-- Rollen-Fallback, Provenienz und transitive Stale-Erkennung bleiben transparent.
+- Zielgruppen-Fallback, Provenienz und transitive Stale-Erkennung bleiben transparent.
 - Reads bleiben metadata-first und paginiert.
 - Fachlogik verbleibt in Domain und Application; UI und MCP sind Adapter. Spätere REST- oder Automationsadapter verwenden dieselben Application Services.
-- Content-Rollen sind Zielgruppenrollen, keine Benutzerrechte.
+- Content-Zielgruppen sind inhaltliche Adressaten, keine Benutzerrechte.
 
 Verbindlicher Ist-Stand: [`docs/`](../../../docs/README.md).
 
@@ -59,18 +59,18 @@ Verbindlicher Ist-Stand: [`docs/`](../../../docs/README.md).
 | Akteur | Hauptaufgaben |
 |---|---|
 | Wissensautor | Navigieren, suchen, Nodes strukturieren und freien Content bearbeiten |
-| Consultant | Fachwissen und Kundenanpassungen pflegen, Rollen-Content ableiten, Publikationen vorbereiten |
+| Consultant | Fachwissen und Kundenanpassungen pflegen, Zielgruppen-Content ableiten, Publikationen vorbereiten |
 | Entwickler | Technisches Wissen lesen und ergänzen, historische Stände und Diffs prüfen |
 | Redakteur | Per normaler Suche gefundene TODO-Texte, stale Content und Qualitätswarnungen bearbeiten |
-| Endkunde | Erhält rollenbezogene PDF-Ausgaben; kein direkter Erstzugriff |
+| Endkunde | Erhält zielgruppenbezogene PDF-Ausgaben; kein direkter Erstzugriff |
 | Externer Agent | Liest und schreibt über MCP innerhalb expliziter Transactions |
 | Spätere n8n-/Systemintegration | Kann bei bestätigtem Bedarf einen eigenen REST-/OpenAPI-Adapter erhalten |
 | Späterer integrierter Agent | Bearbeitet explizite Such- und Überarbeitungsaufträge aus der UI |
 
 ## Erfolgskriterien des ersten nutzbaren Frontends
 
-- Struktur, Rollen, offene Transactions und Releases sind ohne MCP-Client verständlich.
-- Nodes und Rollen-Content lassen sich transaktional anlegen, bearbeiten, verschieben, validieren und committen.
+- Struktur, Zielgruppen, offene Transactions und Releases sind ohne MCP-Client verständlich.
+- Nodes und Zielgruppen-Content lassen sich transaktional anlegen, bearbeiten, verschieben, validieren und committen.
 - Fallback, Freshness, Findings und Arbeitsstand sind jederzeit sichtbar.
 - UI- und MCP-Reads liefern denselben fachlichen Zustand.
 - Durch UI oder Agent committed Änderungen erscheinen ohne Synchronisationsschritt beim jeweils anderen Client.

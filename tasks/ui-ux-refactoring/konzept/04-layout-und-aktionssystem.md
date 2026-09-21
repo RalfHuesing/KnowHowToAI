@@ -26,7 +26,7 @@ Bei 1280 CSS-Pixeln ist die Desktop-Funktion vollständig sichtbar; 1920 und 256
 - **Destruktiv:** klar getrennt und semantisch markiert (`Verwerfen`, `Löschen`), immer mit bestehender Bestätigung.
 - **Selten:** History/Download kompakt als Text oder Icon-plus-Text; Icon-only erst nach einer expliziten Entscheidung und zugänglichem Namen.
 
-Globale Aktionen ändern den Kontext oder die Sicht (`Rolle/ReadContext wählen`, Shell-Navigation). Lokale Aktionen ändern Node, Content oder Transaction. Eine globale Aktion darf nicht die lokale Hauptaktion verdrängen.
+Globale Aktionen ändern den Kontext oder die Sicht (`Zielgruppe/ReadContext wählen`, Shell-Navigation). Lokale Aktionen ändern Node, Content oder Transaction. Eine globale Aktion darf nicht die lokale Hauptaktion verdrängen.
 
 ## PageActions-Slot
 

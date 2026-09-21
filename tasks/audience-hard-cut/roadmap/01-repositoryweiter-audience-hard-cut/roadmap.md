@@ -57,8 +57,8 @@ unverändert.
 
 ## M1.4 – Regeln und Planungsbestand
 
-- [ ] **M1.4 abschließen**
-  - [ ] [M1.4-T1 – Regeln und ausführbare Planungsartefakte konsolidieren](tasks/M1.4-T1.md)
+- [x] **M1.4 abschließen**
+  - [x] [M1.4-T1 – Regeln und ausführbare Planungsartefakte konsolidieren](tasks/M1.4-T1.md)
 
 ## M1.5 – Repositoryabschluss
 

@@ -19,9 +19,9 @@ M2 ist die nächste kleine Etappe nach M1.5. Sie bearbeitet belegte Handlungs- u
 
 ## Reihenfolge
 
-1. **M2.1-T1** erstellt die gemeinsame Layoutbasis und migriert nur benannte Features. `RolesPage` bleibt ausgeschlossen. M1.5-T7 wird nicht kopiert; sein abgeschlossener Transaction-Grid-Nachweis bleibt in M1 und wird als Regression verwendet.
+1. **M2.1-T1** erstellt die gemeinsame Layoutbasis und migriert nur benannte Features. `AudiencesPage` bleibt ausgeschlossen. M1.5-T7 wird nicht kopiert; sein abgeschlossener Transaction-Grid-Nachweis bleibt in M1 und wird als Regression verwendet.
 2. **M2.2-T1** beginnt mit einem isolierten roten Test für URL-/Selection-Drift und deckt Create root, Create child, Update und Delete ab. Erst danach folgt die kleinste Korrektur.
-3. **M2.3-T1** führt den bestehenden `TransactionPage`-Link `Im Wissensbaum öffnen` in der sichtbaren Bearbeitungsreise; Linkziel bleibt `/knowledge?transactionId=...` mit vorhandener Rolle.
+3. **M2.3-T1** führt den bestehenden `TransactionPage`-Link `Im Wissensbaum öffnen` in der sichtbaren Bearbeitungsreise; Linkziel bleibt `/knowledge?transactionId=...` mit vorhandener Zielgruppe.
 4. **M2-Gate:** manueller Entscheid zu IA, Terminologie und node-lokalem Bearbeitungseinstieg. Ohne Gate keine neuen Routen und keine M2.4-Folgearbeit.
 
 ## Design- und Prüfregeln
@@ -33,7 +33,7 @@ M2 ist die nächste kleine Etappe nach M1.5. Sie bearbeitet belegte Handlungs- u
 - **Verbindlich:** Tastatur ist kein eigenes Produktziel dieser Etappe, native Semantik darf aber nicht absichtlich brechen.
 - **Verbindlich:** Layoutmigrationen werden bei 1280, 1920, 2560 sowie bestehender Responsive-Referenz geprüft.
 - **Verbindlich:** `NodeId` bleibt stabil; nach Mutation wird die sichtbare Auswahl aktualisiert und URL-/Breadcrumb-Synchronisation geprüft.
-- **Nicht freigegeben:** Fallback-/erster Content bei `Availability=None`; dafür gilt `tasks/webfrontend/roadmap/05-rollen-content-und-rich-text/tasks/M5.4-T1.md`.
+- **Nicht freigegeben:** Fallback-/erster Content bei `Availability=None`; dafür gilt `tasks/webfrontend/roadmap/05-zielgruppen-content-und-rich-text/tasks/M5.4-T1.md`.
 
 ## Testbudget
 
@@ -42,7 +42,7 @@ Die Leaves verwenden nur den kleinsten passenden Component-/Browser-Test plus ge
 ## Entscheidungsgate-Kriterien
 
 - [ ] Die drei Leaves sind mit Nachweisen und Roadmap-Checkboxen abgeschlossen.
-- [ ] Kein M1.5-T7-Duplikat und keine Änderung an `RolesPage` wurde eingeführt.
+- [ ] Kein M1.5-T7-Duplikat und keine Änderung an `AudiencesPage` wurde eingeführt.
 - [ ] IA-Option Hybrid versus stärker getrennte Task-Seiten ist mit Auswirkungen bewertet.
 - [ ] Node-lokaler Einstieg versus Transaction-first ist mit echtem Workflow-/Fachfeedback entschieden oder bewusst zurückgestellt.
-- [ ] Terminologie, Icon/Text-Regel, PageActions-Kandidaten und Pflichtrolle-vor-Navigation haben eine dokumentierte Entscheidung.
+- [ ] Terminologie, Icon/Text-Regel, PageActions-Kandidaten und Pflichtzielgruppe-vor-Navigation haben eine dokumentierte Entscheidung.

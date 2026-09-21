@@ -4,7 +4,7 @@
 
 - [ ] **M6 abschließen**
 
-Abhängigkeit: [M1](../01-webhost-und-mcp-http/roadmap.md) bis [M5](../05-rollen-content-und-rich-text/roadmap.md)
+Abhängigkeit: [M1](../01-webhost-und-mcp-http/roadmap.md) bis [M5](../05-zielgruppen-content-und-rich-text/roadmap.md)
 
 Verbindliche M0-Basis: gemeinsamer Kestrel-Origin und stateless `/mcp` werden gehärtet, nicht neu entworfen. Tree-Messungen beziehen sich auf natives 100er-Cursor-Paging mit höchstens zehn Circuit-Seiten; Radzen/alternative Trees und eine allgemeine UI-Bibliothek bleiben ausgeschlossen. Browser-E2E verwendet Playwright .NET mit der installierten aktuellen Chrome-Stable-Version, `Channel = "chrome"`, `Headless = true`.
 

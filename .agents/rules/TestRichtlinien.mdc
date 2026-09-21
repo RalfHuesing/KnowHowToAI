@@ -34,6 +34,6 @@ alwaysApply: false
   - Jeder Core-Read-Kontext wird gegen Current, expliziten Snapshot und Working Transaction geprüft; mehrere Selektoren sind ein Negativfall. Adapter mit `ReleaseId` prüfen zusätzlich dessen eindeutige Snapshot-Auflösung.
   - Jeder Mutations-Use-Case prüft offene, fehlende und geschlossene Transaction sowie unveränderten Current Snapshot vor Commit.
   - Commit/Discard werden auf Wiederholung und Rennen geprüft; bei Fehlern darf kein partieller Zustandswechsel verbleiben.
-  - Rollen-Fallback und Freshness werden getrennt geprüft, einschließlich Fallback auf Derived Content und transitiv stale Quellen.
+  - Zielgruppen-Fallback und Freshness werden getrennt geprüft, einschließlich Fallback auf Derived Content und transitiv stale Quellen.
   - Paging-/Limit-Verträge prüfen stabile Reihenfolge, Seiten ohne Duplikate/Lücken und ungültige Cursor.
 - **Abgrenzung**: Prüfzeitpunkt, Reihenfolge, Skripte und Quality-Gates stehen ausschließlich in `Richtlinien.mdc`.

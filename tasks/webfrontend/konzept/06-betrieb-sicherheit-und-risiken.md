@@ -25,7 +25,7 @@ Bis dahin gilt:
 - Keine Veröffentlichung von UI, Assets oder MCP im Internet.
 - UI, Assets und MCP liegen im selben Origin.
 - CORS wird nicht pauschal geöffnet; eine spätere externe Integrations-API benötigt ein eigenes Zugriffskonzept.
-- Jeder erreichbare Client besitzt technisch Vollzugriff auf die angebotenen Endpunkte; dies wird nicht durch Content-Rollen eingeschränkt.
+- Jeder erreichbare Client besitzt technisch Vollzugriff auf die angebotenen Endpunkte; dies wird nicht durch Content-Zielgruppen eingeschränkt.
 
 Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für Authentifizierung, Autorisierung, Audit und gegebenenfalls Mandantentrennung.
 
@@ -43,7 +43,7 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 | Risiko | Gegenmaßnahme |
 |---|---|
 | UI umgeht Domainregeln | Ausschließlich Application Services; End-to-End-Vertragstests für UI-nahe Services und MCP |
-| Benutzer verliert Arbeitskontext | Snapshot/Transaction/Rolle permanent sichtbar; Navigation und Circuit-Verlust absichern |
+| Benutzer verliert Arbeitskontext | Snapshot/Transaction/Zielgruppe permanent sichtbar; Navigation und Circuit-Verlust absichern |
 | Route-Kollision zwischen Blazor, Web-Endpunkten und MCP | Feste Präfixe; `/mcp` explizit; Routing-Smoke-Tests; `/api` für spätere Integration reserviert |
 | Unterschiedliche DI-Scopes erzeugen versteckten Zustand | Stateless Application Services; fachlichen Kontext explizit übergeben |
 | Ein späterer Proxy blockiert WebSockets oder Streaming | Proxywahl und Intranet-Deploymenttest im manuellen M6.0-Gate; Timeouts und Upgrade-Verhalten dort prüfen |
@@ -52,7 +52,7 @@ Vor Erweiterung des Nutzer- oder Netzwerkkreises folgt ein eigenes Konzept für 
 | Drag-and-drop erzeugt falsche Struktur | Zielvorschau, serverseitige Validierung, Transaction-Diff vor Commit |
 | Rich-Text-Editor verändert Markdown | Roundtrip-Tests, Markdown-natives Modell, Quellmodus, keine HTML-first-Konvertierung |
 | Bilder blähen Snapshots auf | Immutable, per Hash deduplizierte Assets; Snapshot referenziert statt kopiert |
-| Content-Rollen werden als Rechte missverstanden | UI-Texte und Architektur trennen Zielgruppe strikt von Zugriffsschutz |
+| Content-Zielgruppen werden als Rechte missverstanden | UI-Texte und Architektur trennen Zielgruppe strikt von Zugriffsschutz |
 | Mehrere Clients committen parallel | `SnapshotConflict` sichtbar behandeln; geführtes manuelles Reapply statt implizitem Merge |
 | MCP und UI weichen semantisch ab | Gemeinsame Application Services und Adaptertests gegen dieselben Use Cases |
 | Frontend wird zum zweiten Produktkern | Fachlogik ausschließlich in Core/Application; dünne Adapter |

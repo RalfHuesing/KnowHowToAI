@@ -36,7 +36,7 @@ Alle Benutzer- und Spikeentscheidungen für M0 bis M5 sind geschlossen. Weitere 
 
 M0 ist abgeschlossen. Die evidenzbasierten Ergebnisse O-001, O-003, O-002 und O-015 sind als K-021 bis K-025 im [Konzeptindex](README.md#gesetzte-leitentscheidungen) festgehalten und für alle Folge-Milestones verbindlich. Allgemeine UI-Basis, Tree, Editor und Testwerkzeuge werden nicht erneut gesucht oder zwischen Varianten entschieden.
 
-Freigabestand 2026-09-20: M0–M4 sind abgeschlossen. M5.0 ist mit dem [Planungsartefakt](roadmap/05-rollen-content-und-rich-text/planning.md) geschlossen; M5.1–M5.5 sind zur sequenziellen Agentenausführung freigegeben. M6–M8 bleiben bis zum jeweiligen manuellen Gate gesperrt.
+Freigabestand 2026-09-20: M0–M4 sind abgeschlossen. M5.0 ist mit dem [Planungsartefakt](roadmap/05-zielgruppen-content-und-rich-text/planning.md) geschlossen; M5.1–M5.5 sind zur sequenziellen Agentenausführung freigegeben. M6–M8 bleiben bis zum jeweiligen manuellen Gate gesperrt.
 
 ## Gesamtausführung durch einen Agenten
 
@@ -77,7 +77,7 @@ Der Status wird ausschließlich in der jeweiligen Milestone-Datei gepflegt.
 | [M2 – Designsystem und Anwendungsshell](roadmap/02-designsystem-und-shell/roadmap.md) | belastbare moderne UI-Grundlage | M1 |
 | [M3 – Read-only Wissenscockpit](roadmap/03-read-only-wissenscockpit/roadmap.md) | vollständige menschliche Lesesicht; beginnt mit manuellem M3.0-Gate | M2 |
 | [M4 – Transactions und Strukturpflege](roadmap/04-transactions-und-strukturpflege/roadmap.md) | sichere visuelle Strukturänderungen; beginnt mit manuellem M4.0-Gate | M3 |
-| [M5 – Rollen-Content und Rich Text](roadmap/05-rollen-content-und-rich-text/roadmap.md) | vollständige Contentpflege ohne Agent; M5.0 abgeschlossen, M5.1–M5.5 freigegeben | M4 |
+| [M5 – Zielgruppen-Content und Rich Text](roadmap/05-zielgruppen-content-und-rich-text/roadmap.md) | vollständige Contentpflege ohne Agent; M5.0 abgeschlossen, M5.1–M5.5 freigegeben | M4 |
 | [M6 – Betriebs- und Qualitätshärtung](roadmap/06-betrieb-und-qualitaet/roadmap.md) | belastbarer Kernbetrieb; beginnt mit manuellem M6.0-Gate | M1–M5 |
 | [M7 – Einfacher PDF-Teilbaumexport](roadmap/07-pdf-export/roadmap.md) | niedrig priorisierter PDF-Download; beginnt mit manuellem M7.0-Gate | M6 |
 | [M8 – Bilder und Assetverwaltung](roadmap/08-bilder-und-assets/roadmap.md) | niedrig priorisierte Bilder; beginnt mit manuellem M8.0-Gate | M5, M7 |

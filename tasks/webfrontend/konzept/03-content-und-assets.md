@@ -18,11 +18,11 @@ Der erste schreibende Frontend-Schnitt verwendet ausschließlich Milkdown `@milk
 - Bekannte Sicherheitsfälle bleiben unverändert prüfbar: Raw HTML und Markdown-/HTML-Headings werden nicht still entfernt, sondern an der maßgeblichen Servergrenze abgelehnt; externe Bilder lösen keinen Request aus; Paste-Reduktionen erzeugen einen sichtbaren `role=status`-Hinweis; eine Serverablehnung überschreibt nie den ungespeicherten Editorwert.
 - Die spätere M8-Integration darf über den vorhandenen Hook ausschließlich eine bereits serverseitig erzeugte interne Assetreferenz einsetzen. Sie aktiviert keine externen Bild-URLs und keinen direkten Browserupload aus Milkdown heraus.
 
-### Rollen-Content-Modi
+### Zielgruppen-Content-Modi
 
 - Aufgelöster Fallback ist read-only. Eigener Content wird nur über eine explizite Aktion angelegt oder ersetzt; ein Fallback darf nur bewusst als Ausgangstext übernommen werden.
 - Explizit leerer `ContentMd` ist gültiger eigener Content und unterdrückt Fallback nach Bestätigung. Löschen der eigenen Zuordnung ist eine getrennte Mutation und reaktiviert Fallback.
-- `Independent` und `Derived` sind explizite Modi. Derived speichert mindestens eine über Node-Suche und Rolle gewählte aktive explizite Source mit ihrer aktuellen Revision; Quellen dürfen nicht manuell als GUID eingegeben werden. Ein Wechsel zu Independent entfernt Quellen nur bestätigt.
+- `Independent` und `Derived` sind explizite Modi. Derived speichert mindestens eine über Node-Suche und Zielgruppe gewählte aktive explizite Source mit ihrer aktuellen Revision; Quellen dürfen nicht manuell als GUID eingegeben werden. Ein Wechsel zu Independent entfernt Quellen nur bestätigt.
 
 ## Sichere Markdown-, Link- und Paste-Policy
 
@@ -95,7 +95,7 @@ CreatedBy
 ## Spätere integrierte Agenten
 
 - Externe Agenten suchen und bearbeiten Content weiterhin über MCP.
-- Eine spätere integrierte Agentenfunktion erhält Suchtext, ausgewählte Nodes, Rolle und Arbeitsauftrag explizit.
+- Eine spätere integrierte Agentenfunktion erhält Suchtext, ausgewählte Nodes, Zielgruppe und Arbeitsauftrag explizit.
 - Vorschlag, Diff, Findings und Commit bleiben sichtbar und kontrollierbar.
 - Semantic Kernel oder andere Orchestrierung liegt hinter einer eigenen Application-Grenze.
 - Daraus entsteht kein besonderes TODO-Datenmodell.

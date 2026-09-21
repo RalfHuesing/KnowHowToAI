@@ -6,7 +6,7 @@
 
 ## 1. Ausgangslage & Problemstellung
 
-In der KnowHowToAI-Plattform liegt Wissen tief hierarchisch und versioniert in einer Datenbank (Knoten, Pfade, Rollenkontexte). 
+In der KnowHowToAI-Plattform liegt Wissen tief hierarchisch und versioniert in einer Datenbank (Knoten, Pfade, Zielgruppenkontexte).
 
 Wenn ein Agent einen Nutzer-Prompt erhält, steht er vor folgendem Problem:
 * **Top-Down-Traversal ist eine Token- und Latenzfalle:** Hangelt sich der Agent Ebene für Ebene durch den Baum (`list_children` → Auswerten → `list_children` → Auswerten → `get_node`), entsteht bei breiten Verzweigungen (Branching Factor) ein exponentieller Overhead. Der Agent benötigt viele Round-Trips, verbraucht tausende Tokens und biegt leicht in falsche Zweige ab.
@@ -81,7 +81,7 @@ Wenn ein Agent einen Nutzer-Prompt erhält, steht er vor folgendem Problem:
 * **Konzept:** Die Such-Schnittstelle bietet explizite Filter für Metadaten und Pfade:
   * `include_paths`: z. B. `["/IT/*"]`
   * `exclude_paths`: z. B. `["/Archiv/*", "/Recht/*"]`
-  * `role`: Rollenkontext (bereits Kern von KnowHowToAI)
+  * `audience`: Zielgruppenkontext (bereits Kern von KnowHowToAI)
 * **Vorteile:**
   * Rein deterministisch und extrem schnell via SQL (`WHERE Path NOT LIKE '/Archiv/%'`).
   * Erkennt der Agent in Runde 1, dass Treffer aus `/Archiv` oder `/Vorlagen` stören, kann er diese gezielt ausblenden.
@@ -158,7 +158,7 @@ In der Praxis dürfte eine Kombination mehrerer Ansätze den optimalen Kompromis
                │              ┌─────────────────────────────────────────────────┐
                │              │ Tier 2: Deterministic / Hybrid Search           │
                │              │ - FTS + Vektoren (oder Query Expansion)         │
-               │              │ - Facetten-Filter (Rolle, Exclude-Paths)        │
+               │              │ - Facetten-Filter (Zielgruppe, Exclude-Paths)        │
                │              │ - Ausgabe: Max. 5 kompakte "Hit-Cards"          │
                │              └────────────────────────┬────────────────────────┘
                │                                       │
@@ -178,6 +178,6 @@ In der Praxis dürfte eine Kombination mehrerer Ansätze den optimalen Kompromis
 1. **Vektor-Unterstützung in der DB:**
    Soll Vektorsuche nativ in SQL Server abgebildet werden (z. B. neuere Vector-Funktionen oder externe Hilfsstrukturen), oder genügt anfangs eine rein deterministische FTS-Lösung mit Breadcrumbs?
 2. **Brain-Persistenz & Scope:**
-   Ist das „Agenten-Brain“ global für alle Agenten/Nutzer verfügbar, oder rollen- bzw. mandantenabhängig (um Datenschutz und Rollentrennung zu wahren)?
+   Ist das „Agenten-Brain“ global für alle Agenten/Nutzer verfügbar, oder zielgruppen- bzw. mandantenabhängig (um Datenschutz und Zielgruppentrennung zu wahren)?
 3. **Lebenszyklus von Trails:**
    Welche Kriterien führen zum Verfall (Decay) von gelernten Pfaden, wenn Knoten zwar noch existieren, sich ihr Inhalt aber inhaltlich geändert hat?
