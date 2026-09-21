@@ -12,9 +12,41 @@ internal static class SqlSchemaContractAssertions
     {
         await using var connection = await database.ConnectionFactory.OpenAsync();
         await AssertColumnsAsync(connection);
+        await AssertAudienceCollationsAsync(connection);
         await AssertConstraintsAsync(connection);
         await AssertForeignKeysAsync(connection);
         await AssertIndexesAsync(connection);
+    }
+
+    private static async Task AssertAudienceCollationsAsync(SqlConnection connection)
+    {
+        const string sql = """
+            SELECT tableInfo.name + N'|' + columnInfo.name + N'|' + columnInfo.collation_name
+            FROM sys.columns AS columnInfo
+            INNER JOIN sys.tables AS tableInfo ON tableInfo.object_id = columnInfo.object_id
+            INNER JOIN sys.schemas AS schemaInfo ON schemaInfo.schema_id = tableInfo.schema_id
+            WHERE schemaInfo.name = N'dbo'
+              AND (
+                    (tableInfo.name = N'KnowHowToAI_Audience' AND columnInfo.name = N'AudienceId')
+                 OR (tableInfo.name = N'KnowHowToAI_AudienceResolution' AND columnInfo.name = N'RequestedAudienceId')
+                 OR (tableInfo.name = N'KnowHowToAI_AudienceResolution' AND columnInfo.name = N'CandidateAudienceId')
+                 OR (tableInfo.name = N'KnowHowToAI_NodeContent' AND columnInfo.name = N'AudienceId')
+                 OR (tableInfo.name = N'KnowHowToAI_ContentDependency' AND columnInfo.name = N'TargetAudienceId')
+                 OR (tableInfo.name = N'KnowHowToAI_ContentDependency' AND columnInfo.name = N'SourceAudienceId')
+              )
+            ORDER BY tableInfo.name, columnInfo.name;
+            """;
+        var actual = await ReadRowsAsync(connection, sql);
+        Assert.Equal(
+            [
+                "KnowHowToAI_Audience|AudienceId|Latin1_General_100_BIN2",
+                "KnowHowToAI_AudienceResolution|CandidateAudienceId|Latin1_General_100_BIN2",
+                "KnowHowToAI_AudienceResolution|RequestedAudienceId|Latin1_General_100_BIN2",
+                "KnowHowToAI_ContentDependency|SourceAudienceId|Latin1_General_100_BIN2",
+                "KnowHowToAI_ContentDependency|TargetAudienceId|Latin1_General_100_BIN2",
+                "KnowHowToAI_NodeContent|AudienceId|Latin1_General_100_BIN2"
+            ],
+            actual);
     }
 
     private static async Task AssertColumnsAsync(SqlConnection connection)

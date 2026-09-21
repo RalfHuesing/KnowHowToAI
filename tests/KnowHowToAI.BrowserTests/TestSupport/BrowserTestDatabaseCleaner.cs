@@ -1,3 +1,4 @@
+using KnowHowToAI.TestSupport;
 using Microsoft.Data.SqlClient;
 
 namespace KnowHowToAI.BrowserTests.TestSupport;
@@ -11,8 +12,11 @@ internal static class BrowserTestDatabaseCleaner
 {
     public static async Task CleanSchemaAsync(
         BrowserTestDatabaseSettings settings,
+        SqlCleanupTarget productTarget,
         CancellationToken cancellationToken = default)
     {
+        SqlCleanupTargetGuard.ValidateAndDedupe(productTarget, [settings.CleanupTarget]);
+
         var builder = new SqlConnectionStringBuilder
         {
             DataSource = settings.Server,

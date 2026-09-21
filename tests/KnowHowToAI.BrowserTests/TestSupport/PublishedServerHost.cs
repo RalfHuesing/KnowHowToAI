@@ -58,6 +58,10 @@ public sealed class PublishedServerHost : IAsyncDisposable
         {
             var workflowDatabaseSettings = BrowserTestDatabaseSettings.LoadWorkflow(repositoryRoot);
             var visualDatabaseSettings = BrowserTestDatabaseSettings.LoadVisualShell(repositoryRoot);
+            var productTarget = BrowserTestDatabaseSettings.LoadProductTarget(repositoryRoot);
+            SqlCleanupTargetGuard.ValidateAndDedupe(
+                productTarget,
+                [workflowDatabaseSettings.CleanupTarget, visualDatabaseSettings.CleanupTarget]);
             var databaseSettings = databaseKind switch
             {
                 BrowserTestDatabaseKind.Workflow => workflowDatabaseSettings,
@@ -68,7 +72,7 @@ public sealed class PublishedServerHost : IAsyncDisposable
             // Sie bereinigt ausschließlich die explizit gewählte, präfixgeschützte
             // Workflow- oder Visual-Testdatenbank.
             if (cleanDatabase)
-                await BrowserTestDatabaseCleaner.CleanSchemaAsync(databaseSettings).ConfigureAwait(false);
+                await BrowserTestDatabaseCleaner.CleanSchemaAsync(databaseSettings, productTarget).ConfigureAwait(false);
             var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);
             // Explizite Adresse für Tests, die denselben Circuit-Origin erneut

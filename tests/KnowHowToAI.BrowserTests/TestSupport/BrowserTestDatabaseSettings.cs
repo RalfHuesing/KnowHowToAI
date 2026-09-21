@@ -10,6 +10,7 @@ namespace KnowHowToAI.BrowserTests.TestSupport;
 /// </summary>
 internal sealed record BrowserTestDatabaseSettings
 {
+    internal const string ProductSectionName = "DatabaseConnection";
     internal const string WorkflowSectionName = "BrowserTestDatabaseConnection";
     internal const string VisualShellSectionName = "BrowserVisualTestDatabaseConnection";
 
@@ -28,6 +29,22 @@ internal sealed record BrowserTestDatabaseSettings
 
     public static BrowserTestDatabaseSettings LoadVisualShell(string repositoryRoot) =>
         Load(repositoryRoot, VisualShellSectionName);
+
+    internal static SqlCleanupTarget LoadProductTarget(string repositoryRoot)
+    {
+        var appSettingsPath = Path.Combine(
+            repositoryRoot,
+            "src",
+            "KnowHowToAI.Server",
+            "appsettings.json");
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile(appSettingsPath, optional: false)
+            .Build();
+        var section = configuration.GetRequiredSection(ProductSectionName);
+        return new SqlCleanupTarget(
+            ResolveServer(GetRequiredValue(section, ProductSectionName, nameof(Server)), ProductSectionName),
+            GetRequiredValue(section, ProductSectionName, nameof(Database)));
+    }
 
     internal SqlCleanupTarget CleanupTarget => new(Server, Database);
 

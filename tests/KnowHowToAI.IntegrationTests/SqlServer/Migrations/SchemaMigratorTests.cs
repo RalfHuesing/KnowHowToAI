@@ -280,27 +280,79 @@ public sealed class SqlSchemaMigratorTests
         await using var conn = await db.ConnectionFactory.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
-            SELECT COUNT(*)
+            SELECT
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_Snapshot),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_SystemState),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_Audience),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_AudienceResolution),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_Node),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_NodeContent),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_ContentDependency),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_Transaction),
+                (SELECT COUNT(*) FROM dbo.KnowHowToAI_Release);
+            """;
+        await using (var counts = await cmd.ExecuteReaderAsync())
+        {
+            Assert.True(await counts.ReadAsync());
+            Assert.Equal(1, counts.GetInt32(0));
+            Assert.Equal(1, counts.GetInt32(1));
+            Assert.Equal(1, counts.GetInt32(2));
+            Assert.Equal(1, counts.GetInt32(3));
+            Assert.Equal(0, counts.GetInt32(4));
+            Assert.Equal(0, counts.GetInt32(5));
+            Assert.Equal(0, counts.GetInt32(6));
+            Assert.Equal(0, counts.GetInt32(7));
+            Assert.Equal(0, counts.GetInt32(8));
+            Assert.False(await counts.ReadAsync());
+        }
+
+        cmd.CommandText = """
+            SELECT snapshot.SnapshotId, snapshot.BaseSnapshotId, snapshot.State,
+                   snapshot.CreatedAtUtc, snapshot.CommittedAtUtc,
+                   systemState.Id, systemState.CurrentSnapshotId, systemState.LastUpdatedUtc
             FROM dbo.KnowHowToAI_SystemState AS systemState
             INNER JOIN dbo.KnowHowToAI_Snapshot AS snapshot
                 ON snapshot.SnapshotId = systemState.CurrentSnapshotId
-            INNER JOIN dbo.KnowHowToAI_Audience AS audienceInfo
-                ON audienceInfo.SnapshotId = snapshot.SnapshotId
-            INNER JOIN dbo.KnowHowToAI_AudienceResolution AS resolution
-                ON resolution.SnapshotId = snapshot.SnapshotId
-                AND resolution.RequestedAudienceId = audienceInfo.AudienceId
-            WHERE systemState.Id = 1
-              AND snapshot.State = 'Committed'
-              AND snapshot.BaseSnapshotId IS NULL
-              AND snapshot.CommittedAtUtc IS NOT NULL
-              AND audienceInfo.AudienceId = N'Default'
-              AND audienceInfo.Name = N'Default'
-              AND audienceInfo.IsDeleted = 0
-              AND resolution.CandidateAudienceId = N'Default'
-              AND resolution.Priority = 1;
+            WHERE systemState.Id = 1;
             """;
-        var matchingSeedStates = (int)(await cmd.ExecuteScalarAsync())!;
-        Assert.Equal(1, matchingSeedStates);
+        await using (var snapshotReader = await cmd.ExecuteReaderAsync())
+        {
+            Assert.True(await snapshotReader.ReadAsync());
+            var snapshotId = snapshotReader.GetInt64(0);
+            Assert.True(snapshotReader.IsDBNull(1));
+            Assert.Equal("Committed", snapshotReader.GetString(2));
+            var createdAt = snapshotReader.GetDateTime(3);
+            Assert.Equal(createdAt, snapshotReader.GetDateTime(4));
+            Assert.Equal(1, snapshotReader.GetInt32(5));
+            Assert.Equal(snapshotId, snapshotReader.GetInt64(6));
+            Assert.Equal(createdAt, snapshotReader.GetDateTime(7));
+            Assert.False(await snapshotReader.ReadAsync());
+        }
+
+        cmd.CommandText = """
+            SELECT AudienceId, Name, Description, IsDeleted
+            FROM dbo.KnowHowToAI_Audience;
+            """;
+        await using (var audienceReader = await cmd.ExecuteReaderAsync())
+        {
+            Assert.True(await audienceReader.ReadAsync());
+            Assert.Equal("Default", audienceReader.GetString(0));
+            Assert.Equal("Default", audienceReader.GetString(1));
+            Assert.Equal("Allgemeine, zielgruppenunabhängige Standardinhalte", audienceReader.GetString(2));
+            Assert.False(audienceReader.GetBoolean(3));
+            Assert.False(await audienceReader.ReadAsync());
+        }
+
+        cmd.CommandText = """
+            SELECT RequestedAudienceId, CandidateAudienceId, Priority
+            FROM dbo.KnowHowToAI_AudienceResolution;
+            """;
+        await using var resolutionReader = await cmd.ExecuteReaderAsync();
+        Assert.True(await resolutionReader.ReadAsync());
+        Assert.Equal("Default", resolutionReader.GetString(0));
+        Assert.Equal("Default", resolutionReader.GetString(1));
+        Assert.Equal(1, resolutionReader.GetInt32(2));
+        Assert.False(await resolutionReader.ReadAsync());
     }
 
     private static async Task AssertNoDuplicateVersionsInJournalAsync(SqlTestDatabase db)

@@ -199,8 +199,10 @@ geprüft.
   minimalen Bestand. Workflow-Smokes beschreiben diese Datenbank nie. Ihr
   Testhost darf vor dem Start ebenfalls ausschließlich `dbo`-Objekte mit
   `KnowHowToAI_`-Präfix in diesem exakt konfigurierten Ziel bereinigen.
-  `DatabaseConnection` bleibt für alle Testharness-Cleanup-Pfade unerreichbar;
-  die vier SQL-Systemdatenbanken, nicht konfigurierte Ziele und Datenbank-/Schema-
+  `DatabaseConnection` wird für die Produktidentität ausschließlich mit Server
+  und Datenbank verglichen; Credentials werden nicht gelesen und die Verbindung
+  bleibt für alle Testharness-Cleanup-Pfade unerreichbar. Die vier SQL-Systemdatenbanken,
+  nicht konfigurierte Ziele und Datenbank-/Schema-
   Erzeugung oder -Löschung werden durch den gemeinsamen Guard ausgeschlossen.
   Identische Browserziele werden dedupliziert.
   Ein bewusst ausgeführter Host-Neustart innerhalb desselben Browserflows kann
