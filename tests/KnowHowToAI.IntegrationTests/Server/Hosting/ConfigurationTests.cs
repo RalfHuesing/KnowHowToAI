@@ -82,6 +82,11 @@ public sealed class ConfigurationTests
         // Migrations
         Assert.Equal(60, options.Migrations.LockTimeoutSeconds);
         Assert.True(options.Migrations.ApplyOnStartup);
+
+        // Logging
+        var loggingOptions = host.Services.GetRequiredService<IOptions<LoggingOptions>>().Value;
+        Assert.Equal("Information", loggingOptions.MinimumLevel);
+        Assert.Equal("logs/knowhowtoai-.log", loggingOptions.FilePath);
     }
 
     [Fact]

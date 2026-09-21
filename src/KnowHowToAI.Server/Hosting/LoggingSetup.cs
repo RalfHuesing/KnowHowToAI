@@ -23,9 +23,15 @@ internal static class LoggingSetup
 
         if (!string.IsNullOrWhiteSpace(options.FilePath))
         {
+            var logPath = ResolveLogFilePath(options.FilePath);
             configuration.WriteTo.File(
-                options.FilePath,
+                logPath,
                 rollingInterval: RollingInterval.Day);
         }
     }
+
+    internal static string ResolveLogFilePath(string filePath) =>
+        Path.IsPathRooted(filePath)
+            ? filePath
+            : Path.Combine(AppContext.BaseDirectory, filePath);
 }

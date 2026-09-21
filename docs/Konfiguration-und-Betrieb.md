@@ -61,8 +61,8 @@ Alle Schlüssel liegen unter `KnowHowToAI` in der zentralen `appsettings.json`
 | `Migrations:LockTimeoutSeconds` | `60` | `1..600` | Warten auf Migration-Lock |
 | `Migrations:ApplyOnStartup` | `true` | Boolean | ausstehende Migrationen beim Start anwenden |
 
-Dazu `Logging:MinimumLevel` (Default `Information`) und das optionale
-`Logging:FilePath` (täglich rotierende Protokolldatei; `null` = rein stderr).
+Dazu `Logging:MinimumLevel` (Default `Information`) und
+`Logging:FilePath` (Default `logs/knowhowtoai-.log`, täglich rotierende Protokolldatei relativ zur .exe; `null` = rein stderr).
 
 ## Bindung und Validierung
 
