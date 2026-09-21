@@ -6,6 +6,7 @@ using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Audiences;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +16,8 @@ namespace KnowHowToAI.Web.Tests.Features.Audiences;
 public sealed class AudienceEditorTests : BunitContext
 {
     private static readonly TransactionId TransactionId = new(Guid.Parse("d6b6c44b-1f9c-4ef1-a8b8-bf3c1d8e2f44"));
+
+    public AudienceEditorTests() => JSInterop.SetupAppDialog();
 
     [Fact]
     public void CurrentContext_RendersAudiencesReadOnly()
@@ -113,7 +116,8 @@ public sealed class AudienceEditorTests : BunitContext
         var cut = RenderEditor();
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[data-testid='audience-delete-Developer']")));
         cut.Find("[data-testid='audience-delete-Developer']").Click();
-        cut.Find("[data-testid='audience-delete-confirm']").Click();
+        Assert.Single(cut.FindAll("dialog[role='dialog']"));
+        cut.Find("dialog .confirmation-dialog__button--destructive").Click();
 
         cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-testid='audience-item-Developer']")));
         Assert.True(repository.State.Audiences.Single(audience => audience.AudienceId == new AudienceId("Developer")).IsDeleted);

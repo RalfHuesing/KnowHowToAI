@@ -51,6 +51,10 @@ public sealed partial class AudienceEditor : ComponentBase
 
     private long ExpectedChangeVersion => _changeVersion ?? 0;
 
+    private string DeleteDialogTitle => _pendingDeleteAudience is null
+        ? "Zielgruppe löschen"
+        : $"Zielgruppe „{_pendingDeleteAudience.Name}“ löschen?";
+
     protected override async Task OnParametersSetAsync()
     {
         if (_hasLoaded && !ContextChanged())
@@ -181,14 +185,14 @@ public sealed partial class AudienceEditor : ComponentBase
         }
     }
 
-    private Task OpenDeleteConfirmationAsync(AudienceItemViewModel audience)
+    private async Task OpenDeleteConfirmationAsync(AudienceItemViewModel audience)
     {
         if (!CanMutate)
-            return Task.CompletedTask;
+            return;
 
         _pendingDeleteAudience = audience;
         _mutationErrorMessage = null;
-        return Task.CompletedTask;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void CancelDelete() => _pendingDeleteAudience = null;

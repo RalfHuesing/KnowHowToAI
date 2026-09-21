@@ -55,7 +55,7 @@ public sealed partial class TransactionPage : ComponentBase
 
     private string KnowledgeUrl => string.IsNullOrWhiteSpace(WorkspaceState.CurrentAudienceId)
         ? $"/knowledge?transactionId={TransactionId}"
-        : $"/knowledge?transactionId={TransactionId}&audienceId={WorkspaceState.CurrentAudienceId}";
+        : $"/knowledge?transactionId={TransactionId}&audienceId={Uri.EscapeDataString(WorkspaceState.CurrentAudienceId)}";
 
     protected override async Task OnParametersSetAsync()
     {

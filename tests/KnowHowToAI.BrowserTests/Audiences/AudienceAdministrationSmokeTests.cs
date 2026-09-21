@@ -58,9 +58,16 @@ public sealed class AudienceAdministrationSmokeTests
             await Assertions.Expect(page.GetByText("Umbenannte Smoke-Zielgruppe", new() { Exact = true })).ToBeVisibleAsync();
 
             await page.GetByTestId("audience-delete-SmokeAudience").ClickAsync();
-            var deleteConfirmation = page.GetByTestId("audience-delete-confirmation");
-            await Assertions.Expect(deleteConfirmation).ToBeVisibleAsync();
-            await page.GetByTestId("audience-delete-confirm").ClickAsync();
+            var deleteDialog = page.GetByRole(AriaRole.Dialog);
+            await Assertions.Expect(deleteDialog).ToBeVisibleAsync();
+            await Assertions.Expect(deleteDialog.GetByRole(AriaRole.Button, new() { Name = "Abbrechen" })).ToBeFocusedAsync();
+            await page.Keyboard.PressAsync("Escape");
+            await Assertions.Expect(deleteDialog).ToBeHiddenAsync();
+            await Assertions.Expect(page.GetByTestId("audience-delete-SmokeAudience")).ToBeFocusedAsync();
+
+            await page.GetByTestId("audience-delete-SmokeAudience").ClickAsync();
+            await Assertions.Expect(deleteDialog).ToBeVisibleAsync();
+            await deleteDialog.GetByRole(AriaRole.Button, new() { Name = "Zielgruppe löschen" }).ClickAsync();
             await Assertions.Expect(page.GetByTestId("audience-item-SmokeAudience")).ToBeHiddenAsync();
         }
         finally

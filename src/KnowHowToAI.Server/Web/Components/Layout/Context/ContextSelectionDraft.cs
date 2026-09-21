@@ -107,7 +107,7 @@ public sealed class ContextSelectionDraft
 
         var release = releases.FirstOrDefault(option => option.Id == releaseId);
         return release is null
-            ? Result<ReadContext>.Success(new ReadContext())
+            ? Invalid("Der ausgewählte Release ist im aktuellen Katalog nicht verfügbar.")
             : Result<ReadContext>.Success(new ReadContext(SnapshotId: new SnapshotId(release.SnapshotId)));
     }
 

@@ -44,6 +44,7 @@ public sealed class ConfirmationDialogTests : BunitContext
             module.Invocations.Select(invocation => invocation.Identifier).ToArray());
         var actions = cut.FindAll(".confirmation-dialog__actions button").ToArray();
         Assert.Equal(2, actions.Length);
+        Assert.Equal("dialog", cut.Find("dialog").GetAttribute("role"));
         Assert.Equal("Abbrechen", actions[0].TextContent.Trim());
         Assert.Equal("Verwerfen", actions[1].TextContent.Trim());
         Assert.Equal("Transaktion verwerfen", cut.Find("dialog h2").TextContent);

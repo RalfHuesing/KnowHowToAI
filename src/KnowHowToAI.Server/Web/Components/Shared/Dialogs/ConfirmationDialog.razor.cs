@@ -25,6 +25,7 @@ public sealed partial class ConfirmationDialog : ComponentBase
     private AppDialog? _dialog;
     private bool _isBusy;
     private bool _isCloseWithoutCancel;
+    private bool _isOpen;
     private string? _inputValue;
 
     [Parameter, EditorRequired]
@@ -38,6 +39,9 @@ public sealed partial class ConfirmationDialog : ComponentBase
 
     [Parameter]
     public bool IsDestructive { get; set; }
+
+    [Parameter]
+    public bool IsOpen { get; set; }
 
     [Parameter]
     public EventCallback OnConfirm { get; set; }
@@ -59,8 +63,12 @@ public sealed partial class ConfirmationDialog : ComponentBase
 
     private bool HasInput => !string.IsNullOrWhiteSpace(InputLabel);
 
+    protected override Task OnParametersSetAsync() =>
+        IsOpen == _isOpen ? Task.CompletedTask : IsOpen ? OpenAsync() : CloseAsync();
+
     public async Task OpenAsync()
     {
+        _isOpen = true;
         _isBusy = false;
         _isCloseWithoutCancel = false;
         _inputValue = InputValue;
@@ -77,16 +85,16 @@ public sealed partial class ConfirmationDialog : ComponentBase
     /// </summary>
     public async Task CloseAsync()
     {
+        _isOpen = false;
         _isCloseWithoutCancel = true;
 
         if (_dialog is not null)
-        {
             await _dialog.CloseAsync();
-        }
     }
 
     private async Task HandleDialogClosedAsync()
     {
+        _isOpen = false;
         if (_isCloseWithoutCancel)
         {
             _isCloseWithoutCancel = false;

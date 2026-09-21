@@ -307,10 +307,10 @@ public sealed class UiAuditScreenshotTests
             var delete = page.GetByTestId("audience-delete-BrowserDownloadAudience");
             await Assertions.Expect(delete).ToBeVisibleAsync();
             await delete.ClickAsync();
-            var confirmation = page.GetByTestId("audience-delete-confirmation");
+            var confirmation = page.Locator("dialog.confirmation-app-dialog");
             await Assertions.Expect(confirmation).ToBeVisibleAsync();
             await Assertions.Expect(confirmation.GetByRole(AriaRole.Heading, new() { Name = "Zielgruppe „BrowserDownloadAudience“ löschen?", Exact = true })).ToBeVisibleAsync();
-            var confirmButton = confirmation.GetByTestId("audience-delete-confirm");
+            var confirmButton = confirmation.GetByRole(AriaRole.Button, new() { Name = "Zielgruppe löschen" });
             await Assertions.Expect(confirmButton).ToBeVisibleAsync();
             await confirmation.ScrollIntoViewIfNeededAsync();
             await confirmButton.FocusAsync();

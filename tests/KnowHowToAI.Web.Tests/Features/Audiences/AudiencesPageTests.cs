@@ -8,6 +8,7 @@ using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Audiences;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Features.Audiences;
@@ -16,6 +17,8 @@ namespace KnowHowToAI.Web.Tests.Features.Audiences;
 public sealed class AudiencesPageTests : BunitContext
 {
     private static readonly TransactionId TransactionId = new(Guid.Parse("d6b6c44b-1f9c-4ef1-a8b8-bf3c1d8e2f44"));
+
+    public AudiencesPageTests() => JSInterop.SetupAppDialog();
 
     [Fact]
     public void CurrentContext_RendersAudiencesReadOnly()

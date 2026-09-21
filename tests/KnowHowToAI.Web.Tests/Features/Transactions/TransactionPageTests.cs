@@ -101,6 +101,20 @@ public sealed class TransactionPageTests : BunitContext
     }
 
     [Fact]
+    public void TransactionPage_AudienceIdInKnowledgeLink_IsUriEscaped()
+    {
+        var transaction = AddOpenTransaction();
+        _workspaceState.SetAudience("A&B");
+
+        var cut = Render<TransactionPage>(parameters => parameters
+            .Add(p => p.TransactionId, transaction.TransactionId.Value));
+
+        Assert.Equal(
+            $"/knowledge?transactionId={transaction.TransactionId.Value}&audienceId=A%26B",
+            cut.Find("[data-testid='tx-open-knowledge-link']").GetAttribute("href"));
+    }
+
+    [Fact]
     public void TransactionPage_GuidesValidationBeforeCompletionAndKeepsTechnicalDetailsProgressive()
     {
         var transaction = AddOpenTransaction();

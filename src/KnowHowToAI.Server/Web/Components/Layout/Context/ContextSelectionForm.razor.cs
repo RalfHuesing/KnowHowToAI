@@ -8,13 +8,15 @@ namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 /// Orchestriert den unpersistierten Auswahlvorgang des Kontextselektors.
 /// Der Dialoghost bleibt dadurch auf Lifecycle und Zugänglichkeit begrenzt.
 /// </summary>
-public sealed partial class ContextSelectionForm : ComponentBase
+public sealed partial class ContextSelectionForm : ComponentBase, IDisposable
 {
     private readonly ContextSelectionDraft _draft = new();
     private ContextSelectionOptionsViewModel _options = ContextSelectionOptionsViewModel.Empty;
     private string? _selectedAudienceId;
     private string? _errorMessage;
     private bool _isLoadingAudiences;
+    private CancellationTokenSource? _audienceLoadCancellation;
+    private long _audienceLoadGeneration;
 
     [Inject]
     private ContextSelectorState State { get; set; } = default!;
@@ -67,26 +69,66 @@ public sealed partial class ContextSelectionForm : ComponentBase
 
     private async Task RefreshAudiencesAsync()
     {
+        var generation = ++_audienceLoadGeneration;
+        _audienceLoadCancellation?.Cancel();
+        _audienceLoadCancellation?.Dispose();
+        var cancellation = new CancellationTokenSource();
+        _audienceLoadCancellation = cancellation;
         _isLoadingAudiences = true;
         _options = _options.WithAudiences([]);
 
         var context = _draft.BuildReadContext(_options);
         if (!context.IsSuccess)
         {
-            _isLoadingAudiences = false;
+            if (generation == _audienceLoadGeneration)
+            {
+                _isLoadingAudiences = false;
+                _audienceLoadCancellation = null;
+            }
+
+            cancellation.Dispose();
+
             return;
         }
 
-        var result = await AudienceCatalog.LoadAsync(context.Value!, CancellationToken.None);
-        _options = _options.WithAudiences(result.Audiences);
-        _errorMessage = result.ErrorMessage;
-
-        if (_selectedAudienceId is not null && !_options.Audiences.Any(audience => audience.Id == _selectedAudienceId))
+        try
         {
-            _selectedAudienceId = null;
-        }
+            var readContext = context.Value!;
+            var result = await AudienceCatalog.LoadAsync(readContext, cancellation.Token);
+            if (!IsCurrentAudienceLoad(generation, readContext))
+                return;
 
-        _isLoadingAudiences = false;
+            _options = _options.WithAudiences(result.Audiences);
+            _errorMessage = result.ErrorMessage;
+
+            if (_selectedAudienceId is not null && !_options.Audiences.Any(audience => audience.Id == _selectedAudienceId))
+            {
+                _selectedAudienceId = null;
+            }
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            return;
+        }
+        finally
+        {
+            if (generation == _audienceLoadGeneration)
+            {
+                _isLoadingAudiences = false;
+                _audienceLoadCancellation = null;
+            }
+
+            cancellation.Dispose();
+        }
+    }
+
+    private bool IsCurrentAudienceLoad(long generation, ReadContext loadedContext)
+    {
+        if (generation != _audienceLoadGeneration)
+            return false;
+
+        var currentContext = _draft.BuildReadContext(_options);
+        return currentContext.IsSuccess && Equals(currentContext.Value, loadedContext);
     }
 
     private async Task ApplyAsync()
@@ -138,5 +180,13 @@ public sealed partial class ContextSelectionForm : ComponentBase
         {
             State.Close();
         }
+    }
+
+    public void Dispose()
+    {
+        _audienceLoadGeneration++;
+        _audienceLoadCancellation?.Cancel();
+        _audienceLoadCancellation?.Dispose();
+        _audienceLoadCancellation = null;
     }
 }

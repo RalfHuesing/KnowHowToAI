@@ -14,14 +14,6 @@
     background: var(--ktai-color-surface);
 }
 
-.audiences-delete-confirmation {
-    margin-bottom: var(--ktai-space-6);
-    padding: var(--ktai-space-5);
-    border: 2px solid var(--ktai-color-warning-emphasis);
-    border-radius: var(--ktai-radius-md);
-    background: var(--ktai-color-surface);
-}
-
 .audiences-card h2 {
     margin: 0 0 var(--ktai-space-4);
     font-size: var(--ktai-font-size-xl);

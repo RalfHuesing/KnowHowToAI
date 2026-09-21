@@ -1,4 +1,5 @@
 @namespace KnowHowToAI.Server.Web.Features.Audiences
+@using KnowHowToAI.Server.Web.Components.Shared.Dialogs
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using Microsoft.AspNetCore.Components.Web
 
@@ -105,14 +106,10 @@ else
     </section>
 }
 
-@if (_pendingDeleteAudience is not null)
-{
-    <section class="audiences-delete-confirmation" role="alert" aria-labelledby="audience-delete-heading" data-testid="audience-delete-confirmation">
-        <h2 id="audience-delete-heading">Zielgruppe „@_pendingDeleteAudience.Name“ löschen?</h2>
-        <p>Die Zielgruppe wird im Working Snapshot per Soft-Delete markiert. Zielgruppen mit Content, Dependencies oder Resolution Orders werden vom Server abgelehnt.</p>
-        <div class="audience-item__actions">
-            <button type="button" class="btn btn-secondary" @onclick="CancelDelete" disabled="@_isSubmitting" data-testid="audience-delete-cancel">Abbrechen</button>
-            <button type="button" class="btn btn-danger" @onclick="DeleteAudienceAsync" disabled="@_isSubmitting" data-testid="audience-delete-confirm">Zielgruppe löschen</button>
-        </div>
-    </section>
-}
+<ConfirmationDialog IsOpen="@(_pendingDeleteAudience is not null)"
+                    Title="@DeleteDialogTitle"
+                    Message="Die Zielgruppe wird im Working Snapshot per Soft-Delete markiert. Zielgruppen mit Content, Dependencies oder Resolution Orders werden vom Server abgelehnt."
+                    ConfirmText="Zielgruppe löschen"
+                    IsDestructive="true"
+                    OnConfirm="DeleteAudienceAsync"
+                    OnCancel="CancelDelete" />

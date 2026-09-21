@@ -42,6 +42,25 @@ public sealed class ContextSelectionDraftTests
     }
 
     [Fact]
+    public void UnknownRelease_IsRejectedAsInvalidReadContext()
+    {
+        var draft = new ContextSelectionDraft
+        {
+            SelectedKind = KnowledgeReadContextKind.Release,
+            SelectedReleaseId = "3"
+        };
+        var options = new ContextSelectionOptionsViewModel(
+            [new ContextSelectionReleaseOptionViewModel("4", "v4", 42)],
+            [],
+            []);
+
+        var result = draft.BuildReadContext(options);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReadContextErrorCodes.InvalidReadContext, result.Error!.Code);
+    }
+
+    [Fact]
     public void MandatoryAudienceSelection_PreservesExistingReadContextInTargetUrl()
     {
         var draft = new ContextSelectionDraft();
