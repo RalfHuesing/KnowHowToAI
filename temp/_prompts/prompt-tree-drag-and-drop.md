@@ -18,7 +18,7 @@ In Milestone M4.3-T3 wurde die Anforderung *„Tastaturalternative für das Vers
    * Gemäß Benutzerentscheidung ist eine gesonderte Tastaturbedienung (mit statischen Buttons im DOM) für das Verschieben von Knoten nicht erforderlich.
    * Der gesamte Button-Ballast (`tree-move-source-btn`, `tree-move-targets` mit den drei Buttons) wird restlos entfernt, um DOM und Code schlank und wartbar zu halten.
 2. **Natives Drag & Drop statt externer Bibliothek:**
-   * Leitentscheidung [K-022](tasks/webfrontend/README.md#L73) bleibt verbindlich: Es wird **keine** Third-Party-Tree-Bibliothek (wie Radzen, MudBlazor etc.) eingeführt.
+   * Leitentscheidung [K-022](../../tasks/webfrontend/README.md#L73) bleibt verbindlich: Es wird **keine** Third-Party-Tree-Bibliothek (wie Radzen, MudBlazor etc.) eingeführt.
    * Der native Baum mit seinem spezifischen 100er-Cursor-Paging, Prev/Next-Seiten und 10-Seiten-LRU-Cache bleibt das Fundament.
    * Intuitives Drag & Drop wird nativ und modern implementiert.
 3. **Moderne UX für Drag & Drop:**
