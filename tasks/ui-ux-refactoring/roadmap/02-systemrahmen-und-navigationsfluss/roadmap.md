@@ -29,8 +29,8 @@ Entscheidungsgate zwischen den Leaves entfällt.
     Start zum Editor derselben Node und Zielgruppe. Fallback, None, Derived und
     historische Kontexte bleiben ehrlich geführt.
 
-- [ ] **M2.1 – Gemeinsame Layoutbasis**
-  - [ ] [M2.1-T1 – Vollbreiten-Seitenrahmen, Prosa-Measure und Action-Group](tasks/M2.1-T1.md)
+- [x] **M2.1 – Gemeinsame Layoutbasis**
+  - [x] [M2.1-T1 – Vollbreiten-Seitenrahmen, Prosa-Measure und Action-Group](tasks/M2.1-T1.md)
   - Ergebnis: DRY-Basis und featureweise Adoption außerhalb `AudiencesPage`;
     der abgeschlossene M1.5-T7-Grid-Nachweis bleibt Regression.
 

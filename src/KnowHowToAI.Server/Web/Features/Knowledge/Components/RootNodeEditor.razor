@@ -24,7 +24,7 @@
                     <textarea id="root-node-description" data-testid="root-node-description" @bind="_description" @bind:after="UpdateDirty" maxlength="1000" disabled="@_isSubmitting"></textarea>
                 </div>
             </div>
-            <div class="root-node-editor-actions">
+            <div class="root-node-editor-actions action-group">
                 <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="create-root-node">
                     @(_isSubmitting ? "Wird angelegt…" : "Root-Knoten anlegen")
                 </button>

@@ -100,7 +100,7 @@
                                             </p>
                                         }
                                     </div>
-                                    <div class="node-edit-dialog__working-copy-actions">
+                                    <div class="node-edit-dialog__working-copy-actions action-group">
                                         <button type="button" class="btn btn-primary" disabled="@(!option.IsCompatible || _isBeginningWorkingCopy)"
                                                 data-testid="node-edit-working-copy-select-@option.TransactionId"
                                                 @onclick="() => SelectWorkingCopyAsync(option)">
@@ -121,7 +121,7 @@
                     <div role="alert" data-testid="node-edit-begin-error">@_beginErrorMessage</div>
                 }
 
-                <div class="node-edit-dialog__new-action">
+                <div class="node-edit-dialog__new-action action-group">
                     <button type="button" class="btn btn-secondary" disabled="@_isBeginningWorkingCopy"
                             data-testid="node-edit-begin-working-copy" @onclick="BeginWorkingCopyAsync">
                         @(_isBeginningWorkingCopy ? "Neue Arbeitskopie wird begonnen…" : "Neue Arbeitskopie beginnen")

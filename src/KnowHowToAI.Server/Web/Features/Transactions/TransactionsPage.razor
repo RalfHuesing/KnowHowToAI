@@ -3,10 +3,10 @@
 @using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 
-<div class="transactions-page" data-testid="transactions-page">
+<div class="page-frame transactions-page" data-testid="transactions-page">
     <div class="transactions-page__header">
         <h1 class="transactions-page__title">Transactions</h1>
-        <p class="transactions-page__description">
+        <p class="transactions-page__description readable">
             Verwaltung von Working Transactions für strukturierte Wissensänderungen.
         </p>
     </div>
@@ -39,7 +39,7 @@
                 <span class="form-hint">Wird über den aktuellen Benutzer gesetzt und ist danach unveränderlich.</span>
             </div>
 
-            <div class="form-actions">
+            <div class="form-actions action-group">
                 <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="begin-transaction-button">
                     @(_isSubmitting ? "Wird gestartet..." : "Transaction beginnen")
                 </button>
@@ -97,7 +97,7 @@
                             </dl>
                         </details>
 
-                        <div class="transaction-card__actions">
+                        <div class="transaction-card__actions action-group">
                             <a href="/knowledge?transactionId=@tx.TransactionId" class="btn btn-primary"
                                data-testid="tx-resume-link-@tx.TransactionId">Als Arbeitskontext fortsetzen</a>
                             <a href="/transactions/@tx.TransactionId" class="btn btn-secondary"

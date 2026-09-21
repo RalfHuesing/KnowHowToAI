@@ -7,7 +7,7 @@
         <div>
             <p class="history-page__eyebrow">Auswahl</p>
             <h3 id="snapshots-heading">Historische Wissensstände</h3>
-            <p>Die Auswahl bleibt auf unveränderliche, abgeschlossene Stände beschränkt.</p>
+            <p class="readable">Die Auswahl bleibt auf unveränderliche, abgeschlossene Stände beschränkt.</p>
         </div>
     </header>
     @if (_isLoading)
@@ -32,7 +32,7 @@
                         <span class="history-page__item-title">Historischer Wissensstand</span>
                         <span class="history-page__metadata" title="@FormatUtc(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)">Snapshot @snapshot.SnapshotId · Committed @FormatTimestamp(snapshot.CommittedAtUtc ?? snapshot.CreatedAtUtc)</span>
                     </button>
-                    <div class="history-page__selection-actions" aria-label="Vergleichsauswahl für historischen Wissensstand">
+                    <div class="history-page__selection-actions action-group" aria-label="Vergleichsauswahl für historischen Wissensstand">
                         <button type="button" class="@(SelectedBaseSnapshotId == snapshot.SnapshotId ? "is-selected" : null)" aria-pressed="@(SelectedBaseSnapshotId == snapshot.SnapshotId)" @onclick="() => OnBaseSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-base-@snapshot.SnapshotId">Als Ausgang wählen</button>
                         <button type="button" class="@(SelectedTargetSnapshotId == snapshot.SnapshotId ? "is-selected" : null)" aria-pressed="@(SelectedTargetSnapshotId == snapshot.SnapshotId)" @onclick="() => OnTargetSnapshotSelected.InvokeAsync(snapshot.SnapshotId)" data-testid="snapshot-diff-target-@snapshot.SnapshotId">Als Ziel wählen</button>
                     </div>

@@ -3,7 +3,7 @@
 
 <form class="search-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
     <label class="search-form__label" for="knowledge-search-text">Wissenssuche</label>
-    <div class="search-form__controls">
+    <div class="search-form__controls action-group">
         <input id="knowledge-search-text" class="search-form__input" type="search"
                @bind="_text" disabled="@IsSearching"
                data-testid="search-text" autocomplete="off" />

@@ -1,7 +1,6 @@
 .transaction-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--ktai-space-6);
+    display: grid;
+    gap: var(--ktai-space-6);
 }
 
 .transaction-workflow {
@@ -102,10 +101,7 @@
 }
 
 .transaction-page__actions {
-    display: flex;
-    gap: var(--ktai-space-3);
     margin-top: var(--ktai-space-4);
-    flex-wrap: wrap;
 }
 
 .snapshot-conflict {
@@ -118,10 +114,7 @@
 }
 
 .snapshot-conflict__actions {
-    display: flex;
     align-items: center;
-    gap: var(--ktai-space-3);
-    flex-wrap: wrap;
 }
 
 .snapshot-conflict__hint {

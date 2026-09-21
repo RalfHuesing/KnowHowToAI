@@ -19,7 +19,7 @@ else
 
         @if (_mode == EditorMode.None)
         {
-            <div class="node-metadata-actions">
+            <div class="node-metadata-actions action-group">
                 <button type="button" class="btn btn-secondary" @onclick="OpenEdit" data-testid="edit-node-metadata">
                     Stammdaten bearbeiten
                 </button>
@@ -46,7 +46,7 @@ else
                         <textarea id="node-metadata-description" data-testid="node-metadata-description" @bind="_description" @bind:after="UpdateDirty" maxlength="1000" disabled="@_isSubmitting"></textarea>
                     </div>
                 </div>
-                <div class="node-metadata-actions">
+                <div class="node-metadata-actions action-group">
                     <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="save-node-metadata">
                         @(_isSubmitting ? "Wird gespeichert…" : "Speichern")
                     </button>

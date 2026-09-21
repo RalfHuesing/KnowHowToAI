@@ -53,7 +53,7 @@
                     <InlineAlert Kind="AlertKind.Warnung" Message="Die Node hat Children und kann ohne Teilbaum-Löschung nicht gelöscht werden." />
                 }
             }
-            <div class="node-metadata-actions">
+            <div class="node-metadata-actions action-group">
                 <button type="button" class="btn btn-danger" @onclick="OpenConfirmationAsync" disabled="@(!_deleteSubtree && _preview.DirectChildCount > 0)" data-testid="confirm-delete-node">
                     Löschung bestätigen
                 </button>

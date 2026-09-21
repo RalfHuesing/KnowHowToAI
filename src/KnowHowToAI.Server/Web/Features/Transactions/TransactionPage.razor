@@ -6,7 +6,7 @@
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using KnowHowToAI.Server.Web.Features.History
 
-<div class="transaction-page" data-testid="transaction-page">
+<div class="page-frame transaction-page" data-testid="transaction-page">
     @if (_isLoading)
     {
         <p class="loading-state" role="status">Lade Transaction...</p>
@@ -29,7 +29,7 @@
             <div class="transaction-workflow__intro">
                 <p class="transaction-workflow__eyebrow">Arbeitsablauf</p>
                 <h2 id="transaction-workflow-heading">Prüfen und abschließen</h2>
-                <p>Arbeiten Sie die Schritte in dieser Reihenfolge ab: zuerst validieren, danach committen oder verwerfen.</p>
+                <p class="readable">Arbeiten Sie die Schritte in dieser Reihenfolge ab: zuerst validieren, danach committen oder verwerfen.</p>
             </div>
 
             <div class="transaction-workflow__step" data-testid="transaction-validation-step">
@@ -49,8 +49,8 @@
                         <p>Committen Sie die geprüften Änderungen oder verwerfen Sie sie vollständig.</p>
                     </div>
                 </div>
-                <p class="transaction-completion__hint">Commit ist nicht rückgängig zu machen. Verwerfen lässt den aktuellen Snapshot unverändert.</p>
-                <div class="transaction-page__actions" data-testid="transaction-page-actions">
+                <p class="transaction-completion__hint readable">Commit ist nicht rückgängig zu machen. Verwerfen lässt den aktuellen Snapshot unverändert.</p>
+                <div class="transaction-page__actions action-group" data-testid="transaction-page-actions">
                     @if (!string.IsNullOrWhiteSpace(_completionError))
                     {
                         <div class="transaction-page__completion-error" role="alert" data-testid="transaction-completion-error">
@@ -96,7 +96,7 @@
                 <SnapshotDiffPanel BaseSnapshotId="@_snapshotConflict.BaseSnapshotId"
                                    TargetSnapshotId="@_snapshotConflict.CurrentSnapshotId" />
 
-                <div class="snapshot-conflict__actions">
+                <div class="snapshot-conflict__actions action-group">
                     <button type="button" class="btn btn-primary" @onclick="StartManualReapplyAsync"
                             disabled="@(!CanStartManualReapply)" data-testid="snapshot-conflict-start-reapply">
                         @(_isStartingManualReapply ? "Neue Transaction wird gestartet..." : "Neue Transaction für manuelles Reapply beginnen")
@@ -110,8 +110,8 @@
 
         <section class="transaction-next-steps" aria-labelledby="transaction-next-steps-heading" data-testid="transaction-next-steps">
             <h2 id="transaction-next-steps-heading">Weiterarbeiten</h2>
-            <p>Öffnen Sie den Arbeitskontext, pflegen Sie Zielgruppen oder kehren Sie zur Übersicht zurück.</p>
-            <div class="transaction-page__actions">
+            <p class="readable">Öffnen Sie den Arbeitskontext, pflegen Sie Zielgruppen oder kehren Sie zur Übersicht zurück.</p>
+            <div class="transaction-page__actions action-group">
                 <a href="@KnowledgeUrl" class="btn btn-primary" data-testid="tx-open-knowledge-link">
                     Im Wissensbaum öffnen
                 </a>

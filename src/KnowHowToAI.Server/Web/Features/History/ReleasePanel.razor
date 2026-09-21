@@ -4,7 +4,9 @@
 
 <section class="release-panel history-page__section" aria-labelledby="releases-heading">
     <h2 id="releases-heading">Releases</h2>
-    <button type="button" class="history-page__next" @onclick="OpenCreateReleaseDialogAsync" disabled="@(Snapshots.Count == 0)" data-testid="create-release-button">Release anlegen</button>
+    <div class="action-group">
+        <button type="button" class="history-page__next" @onclick="OpenCreateReleaseDialogAsync" disabled="@(Snapshots.Count == 0)" data-testid="create-release-button">Release anlegen</button>
+    </div>
     @if (_createdRelease is not null)
     {
         <section class="history-page__release-result" role="status" data-testid="release-created">
@@ -23,7 +25,9 @@
                     }
                 </ul>
             }
-            <button type="button" class="btn btn-secondary" @onclick="() => NavigateToRelease(_createdRelease.ReleaseId)" data-testid="release-created-navigate">Release öffnen</button>
+            <div class="action-group">
+                <button type="button" class="btn btn-secondary" @onclick="() => NavigateToRelease(_createdRelease.ReleaseId)" data-testid="release-created-navigate">Release öffnen</button>
+            </div>
         </section>
     }
     @if (!string.IsNullOrWhiteSpace(_errorMessage))

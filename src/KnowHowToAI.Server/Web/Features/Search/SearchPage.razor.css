@@ -1,7 +1,6 @@
 .search-page {
     display: grid;
     gap: var(--ktai-space-4);
-    max-width: 900px;
 }
 
 .search-page__header h1,

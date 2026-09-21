@@ -1,0 +1,24 @@
+/* Gemeinsame Layoutprimitive für fachliche Arbeitsflächen. */
+.page-frame {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+.readable {
+    max-width: 70ch;
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-3);
+    min-width: 0;
+}
+
+@media (max-width: 44rem) {
+    .action-group {
+        align-items: stretch;
+    }
+}

@@ -35,7 +35,7 @@ else if (ViewModel is not null)
 
             @if (!string.IsNullOrWhiteSpace(ViewModel.Description))
             {
-                <p class="node-details-description" data-testid="node-details-description">@ViewModel.Description</p>
+                <p class="node-details-description readable" data-testid="node-details-description">@ViewModel.Description</p>
             }
         </header>
 
@@ -80,14 +80,14 @@ else if (ViewModel is not null)
                 }
                 else
                 {
-                    <div class="node-content-markdown" data-testid="node-content-markdown">
+                    <div class="node-content-markdown readable" data-testid="node-content-markdown">
                         @SafeMarkdownRenderer.Render(ViewModel.ContentMd)
                     </div>
                 }
             </section>
         }
 
-        <nav class="node-details-actions" aria-label="Weitere Ansichten" data-testid="node-details-actions">
+        <nav class="node-details-actions action-group" aria-label="Weitere Ansichten" data-testid="node-details-actions">
             @if (ShowEditAction)
             {
                 <button type="button" class="btn btn-primary" data-testid="node-details-edit"

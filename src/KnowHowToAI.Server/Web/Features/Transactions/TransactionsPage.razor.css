@@ -1,7 +1,6 @@
 .transactions-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--ktai-space-6);
+    display: grid;
+    gap: var(--ktai-space-6);
 }
 
 .transactions-page__header {
