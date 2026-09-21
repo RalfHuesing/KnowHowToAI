@@ -30,6 +30,12 @@ public sealed partial class NodeDetails
     [Parameter]
     public bool IsWorking { get; set; }
 
+    [Parameter]
+    public bool ShowEditAction { get; set; }
+
+    [Parameter]
+    public EventCallback OnEditRequested { get; set; }
+
     private bool _isLoading;
     private string? _errorMessage;
     private bool _nodeNotFound;

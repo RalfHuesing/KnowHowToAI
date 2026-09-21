@@ -23,7 +23,7 @@ Entscheidungsgate zwischen den Leaves entfällt.
 ## Arbeitspakete
 
 - [ ] **M2.0 – Node-lokalen Bearbeitungseinstieg**
-  - [ ] [M2.0-T1 – Node-lokalen Bearbeitungseinstieg führen](tasks/M2.0-T1.md)
+  - [x] [M2.0-T1 – Node-lokalen Bearbeitungseinstieg führen](tasks/M2.0-T1.md)
   - Ergebnis: `Bearbeiten` ist bei Explicit+Independent sichtbar; ein kleiner
     Dialog führt über eine ausdrückliche Arbeitskopienwahl oder einen neuen
     Start zum Editor derselben Node und Zielgruppe. Fallback, None, Derived und
