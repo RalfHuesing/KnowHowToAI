@@ -13,10 +13,11 @@ namespace KnowHowToAI.BrowserTests.TestSupport;
 /// </summary>
 public sealed class PublishedServerHost : IAsyncDisposable
 {
-    // xUnit v3 führt die Browser-Smoke-Klassen parallel aus; mehrere gleichzeitige
-    // dotnet-publish-Aufrufe desselben Projekts konkurrieren um MSBuild-Locks in
-    // obj/ und scheitern intermittierend mit Exitcode 1. Nur das Publishen wird
-    // serialisiert — die Server-Starts und -Läufe bleiben parallel.
+    // Mehrere gleichzeitige dotnet-publish-Aufrufe desselben Projekts konkurrieren
+    // um MSBuild-Locks in obj/ und scheitern intermittierend mit Exitcode 1. Das
+    // Browser-Testprojekt deaktiviert zusätzlich die xUnit-Parallelisierung, weil
+    // Workflow-Smokes und dedizierte Host-Smokes dasselbe Browser-Testziel nutzen.
+    // Der Publish-Gate bleibt als lokale Schutzgrenze bestehen.
     private static readonly SemaphoreSlim _publishGate = new(1, 1);
 
     private readonly Process _serverProcess;

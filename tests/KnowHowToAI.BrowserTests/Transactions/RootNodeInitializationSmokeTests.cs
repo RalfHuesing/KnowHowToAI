@@ -3,13 +3,13 @@ using Microsoft.Playwright;
 
 namespace KnowHowToAI.BrowserTests.Transactions;
 
-[Collection("Smoke-Host")]
+[Collection("RootNode-Host")]
 [Trait("Category", "Integration")]
 public sealed class RootNodeInitializationSmokeTests
 {
     private readonly PublishedServerHost _host;
 
-    public RootNodeInitializationSmokeTests(SmokeHostFixture fixture)
+    public RootNodeInitializationSmokeTests(RootNodeHostFixture fixture)
     {
         _host = fixture.Host;
     }
@@ -44,6 +44,7 @@ public sealed class RootNodeInitializationSmokeTests
             await Assertions.Expect(audienceSelector).ToBeHiddenAsync();
 
             await page.GetByRole(AriaRole.Treeitem).First.Locator(".tree-node-title").ClickAsync();
+            await page.GetByText("Weitere Arbeitsbereich-Aktionen", new() { Exact = true }).ClickAsync();
             await Assertions.Expect(page.GetByTestId("delete-node")).ToBeVisibleAsync();
             await page.GetByTestId("delete-node").ClickAsync();
             await Assertions.Expect(page.GetByTestId("node-deletion-preview")).ToBeVisibleAsync();

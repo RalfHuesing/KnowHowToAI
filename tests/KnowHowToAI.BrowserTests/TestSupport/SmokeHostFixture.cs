@@ -12,17 +12,7 @@ public sealed class SmokeHostFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        var host = await PublishedServerHost.StartAsync();
-        try
-        {
-            await BrowserKnowledgeSeed.EnsureWorkflowAsync(host.Address);
-            _host = host;
-        }
-        catch
-        {
-            await host.DisposeAsync();
-            throw;
-        }
+        _host = await BrowserHostBootstrap.StartSeededWorkflowAsync();
     }
 
     public async ValueTask DisposeAsync()

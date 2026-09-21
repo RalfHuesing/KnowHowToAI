@@ -1,8 +1,9 @@
 namespace KnowHowToAI.BrowserTests.TestSupport;
 
 /// <summary>
-/// Serialisiert nur fachliche Writes gegen den gemeinsamen Workflowbestand.
-/// Read-only Browser-Smokes bleiben davon unabhängig parallel ausführbar.
+/// Serialisiert fachliche Writes und MCP-Seeds gegen den gemeinsamen
+/// Workflowbestand. Die Browser-Assembly serialisiert zusätzlich alle Hosts,
+/// damit Cleanup und laufende Browserflüsse dasselbe Testziel nie überlappen.
 /// </summary>
 internal static class BrowserWorkflowDatabaseGate
 {

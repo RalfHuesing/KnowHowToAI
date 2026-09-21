@@ -190,8 +190,10 @@ geprüft.
   `BrowserDownloadAudience`, exportierbarem Teilbaum, Historienständen und Release.
   Diese Seedoperation und Browser-Smokes, die eine Working Transaction öffnen,
   teilen einen schmalen Prozess-Gate; die erzeugte Transaction wird im `finally`
-  über `discard_transaction` auf dem echten MCP-Produktpfad verworfen.
-  Read-only-Smokes bleiben parallel ausführbar.
+  über `discard_transaction` auf dem echten MCP-Produktpfad verworfen. Da auch
+  dedizierte Browser-Smoke-Hosts dasselbe manuell bereitgestellte Workflowziel
+  bereinigen, deaktiviert das Browser-Testprojekt seine xUnit-Parallelisierung;
+  damit überlappen Cleanup, Seed und laufende Browserflüsse nie.
 - Visuelle Shell-Baselines verwenden ausschließlich
   `BrowserVisualTestDatabaseConnection` mit einem eigenen Host und dem stabilen,
   minimalen Bestand. Workflow-Smokes beschreiben diese Datenbank nie. Ihr
