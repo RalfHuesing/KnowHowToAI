@@ -31,9 +31,9 @@ unverändert.
 - `Audience` bleibt Contentadressat und wird nicht mit Berechtigungen verbunden.
 - Der Benutzer hat die bekannten konfigurierten Entwicklungs-/Testdatenbanken
   bereits manuell geleert. Die SQL-Baseline wird direkt auf Audience korrigiert;
-  kein Agent löscht Tabellen, Schemas, Datenbanken oder sonstige DB-Objekte.
-  Vor dem Neuaufbau erfolgt ausschließlich eine read-only Leerstandsprüfung;
-  danach läuft der normale Migration Runner.
+  `DatabaseConnection` bleibt ohne Cleanup; präfixbegrenzter Tabellen-/Objekt-
+  Cleanup erfolgt ausschließlich für `BrowserTestDatabaseConnection`/`BrowserVisualTestDatabaseConnection`; keine Datenbank-/Schema-Erzeugung oder
+  -Löschung. Historischer Default-No-op bleibt als akzeptierte Abweichung im Leaf und Plan dokumentiert.
 - Jeder Code-Slice aktualisiert seine Ist-Dokumentation im selben Commit.
 - Accessibility-`role` und Playwrights rollenbasierte Locators bleiben erhalten;
   sie sind keine Fachterminologie.
