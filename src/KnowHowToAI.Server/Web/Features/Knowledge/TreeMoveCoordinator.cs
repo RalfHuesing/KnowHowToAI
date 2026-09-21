@@ -55,7 +55,7 @@ public sealed class TreeMoveCoordinator(
         string? releaseId,
         CancellationToken cancellationToken)
     {
-        if (_workspaceState.CurrentRoleId is not { } roleId)
+        if (_workspaceState.CurrentAudienceId is not { } audienceId)
             return;
 
         var contextResolution = await _readContextResolver.ResolveAsync(transactionId, snapshotId, releaseId, cancellationToken).ConfigureAwait(false);
@@ -67,7 +67,7 @@ public sealed class TreeMoveCoordinator(
         _workspaceState.SetContext(updatedContext, resolved.ReadContext);
         _workspaceState.SetChangeVersion(resolved.ChangeVersion);
         _pageRegions.SetKnowledgeContext(updatedContext);
-        await _treeWorkspace.InitializeAsync(resolved.ReadContext, roleId, cancellationToken).ConfigureAwait(false);
+        await _treeWorkspace.InitializeAsync(resolved.ReadContext, audienceId, cancellationToken).ConfigureAwait(false);
     }
 
     private static NodeId? ToNodeId(Guid? nodeId) => nodeId.HasValue ? new NodeId(nodeId.Value) : null;

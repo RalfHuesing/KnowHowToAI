@@ -11,7 +11,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// <param name="ChildCount">Anzahl der direkten Kindknoten.</param>
 /// <param name="ContentSizeBytes">Größe des Inhalts in Bytes.</param>
 /// <param name="Availability">Verfügbarkeitsstatus als UI-Text.</param>
-/// <param name="ResolvedRoleId">Aufgelöste Rolle (falls vorhanden).</param>
+/// <param name="ResolvedAudienceId">Aufgelöste Zielgruppe (falls vorhanden).</param>
 /// <param name="Freshness">Aktualitätsstatus als UI-Text.</param>
 /// <param name="Findings">Metadata-first Qualitätsbefunde der aufgelösten Node.</param>
 public sealed record ChildNodeViewModel(
@@ -22,6 +22,6 @@ public sealed record ChildNodeViewModel(
     int ChildCount,
     int ContentSizeBytes,
     string Availability,
-    string? ResolvedRoleId,
+    string? ResolvedAudienceId,
     string Freshness,
     IReadOnlyList<string>? Findings = null);

@@ -22,7 +22,7 @@ public sealed class UiBasisShowcaseTests : BunitContext
         Assert.Equal(
             "Der Name ist Pflichtfeld und wird beim Speichern geprüft.",
             cut.Find("[data-testid=showcase-hint]").TextContent);
-        Assert.Equal("Rollenübersicht", cut.Find("[data-testid=showcase-table] caption").TextContent);
+        Assert.Equal("Zielgruppenübersicht", cut.Find("[data-testid=showcase-table] caption").TextContent);
         Assert.Equal(2, cut.FindAll("[data-testid=showcase-table] tbody tr").Count);
         Assert.Equal("Beispieldialog", cut.Find("dialog h2").TextContent);
     }

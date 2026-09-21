@@ -9,8 +9,8 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// <param name="Title">Titel des Knotens.</param>
 /// <param name="Description">Optionale Beschreibung des Knotens.</param>
 /// <param name="SortOrder">Sortierreihenfolge unter Geschwisterknoten.</param>
-/// <param name="RequestedRoleId">Angefragte Rolle bei der Auflösung.</param>
-/// <param name="ResolvedRoleId">Tatsächlich aufgelöste Rolle des Inhalts (falls vorhanden).</param>
+/// <param name="RequestedAudienceId">Angefragte Zielgruppe bei der Auflösung.</param>
+/// <param name="ResolvedAudienceId">Tatsächlich aufgelöste Zielgruppe des Inhalts (falls vorhanden).</param>
 /// <param name="FallbackUsed">Gibt an, ob der Inhalt über Fallback-Regeln aufgelöst wurde.</param>
 /// <param name="Availability">Verfügbarkeitsstatus als UI-Text.</param>
 /// <param name="Freshness">Aktualitätsstatus als UI-Text.</param>
@@ -25,8 +25,8 @@ public sealed record NodeDetailsViewModel(
     string Title,
     string? Description,
     int SortOrder,
-    string RequestedRoleId,
-    string? ResolvedRoleId,
+    string RequestedAudienceId,
+    string? ResolvedAudienceId,
     bool FallbackUsed,
     string Availability,
     string Freshness,

@@ -32,12 +32,12 @@ public sealed class InlineAlertTests : BunitContext
     [InlineData(AlertKind.Erfolg, "status")]
     [InlineData(AlertKind.Warnung, "status")]
     public void AnnouncesErrorsImmediatelyAndAllOtherLevelsPolitely(
-        AlertKind kind, string expectedRole)
+        AlertKind kind, string expectedAudience)
     {
         var cut = Render<InlineAlert>(parameters => parameters
             .Add(alert => alert.Kind, kind)
             .Add(alert => alert.Message, "Der Name ist ein Pflichtfeld."));
 
-        Assert.Equal(expectedRole, cut.Find(".inline-alert").GetAttribute("role"));
+        Assert.Equal(expectedAudience, cut.Find(".inline-alert").GetAttribute("role"));
     }
 }

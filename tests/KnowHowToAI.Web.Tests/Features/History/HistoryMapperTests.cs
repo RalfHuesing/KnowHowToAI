@@ -92,15 +92,15 @@ public sealed class HistoryMapperTests
         var node = new Node(new SnapshotId(2), nodeId, null, "Neuer Node", null, 0, false);
         var nodeDiff = new NodeDiffEntry(DiffChangeKind.Added, Before: null, After: node);
 
-        var roleId = new AudienceId("admin");
-        var role = new Audience(new SnapshotId(2), roleId, "Admin", null, false);
-        var roleDiff = new AudienceDiffEntry(DiffChangeKind.Added, Before: null, After: role);
+        var audienceId = new AudienceId("admin");
+        var audience = new Audience(new SnapshotId(2), audienceId, "Admin", null, false);
+        var audienceDiff = new AudienceDiffEntry(DiffChangeKind.Added, Before: null, After: audience);
 
         var diff = new SnapshotDiff(
             new SnapshotId(1),
             new SnapshotId(2),
             new[] { nodeDiff },
-            new[] { roleDiff },
+            new[] { audienceDiff },
             Array.Empty<AudienceResolutionDiffEntry>(),
             Array.Empty<ContentDiffEntry>(),
             Array.Empty<DependencyDiffEntry>(),
@@ -115,9 +115,9 @@ public sealed class HistoryMapperTests
         Assert.Equal("diff-cursor-xyz", vm.NextCursor);
         Assert.Equal(2, vm.Entries.Count);
 
-        var rEntry = vm.Entries.First(e => e.EntityType == "Role");
+        var rEntry = vm.Entries.First(e => e.EntityType == "Audience");
         Assert.Equal("Added", rEntry.Kind);
-        Assert.Equal(roleId.Value, rEntry.PrimaryId);
+        Assert.Equal(audienceId.Value, rEntry.PrimaryId);
 
         var nEntry = vm.Entries.First(e => e.EntityType == "Node");
         Assert.Equal("Added", nEntry.Kind);
@@ -130,7 +130,7 @@ public sealed class HistoryMapperTests
     {
         var snapshotId = new SnapshotId(2);
         var nodeId = new NodeId(Guid.Parse("10000000-0000-0000-0000-000000000001"));
-        var roleId = new AudienceId("Developer");
+        var audienceId = new AudienceId("Developer");
         var oldRevisionId = new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000001"));
         var newRevisionId = new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000002"));
 
@@ -143,13 +143,13 @@ public sealed class HistoryMapperTests
                 new Node(snapshotId, nodeId, null, "Titel", "Neue Beschreibung", 1, false))],
             [new AudienceDiffEntry(
                 DiffChangeKind.Modified,
-                new Audience(new SnapshotId(1), roleId, "Entwickler", "Alte Rollenbeschreibung", false),
-                new Audience(snapshotId, roleId, "Entwickler", "Neue Rollenbeschreibung", false))],
+                new Audience(new SnapshotId(1), audienceId, "Entwickler", "Alte Zielgruppenbeschreibung", false),
+                new Audience(snapshotId, audienceId, "Entwickler", "Neue Zielgruppenbeschreibung", false))],
             [],
             [new ContentDiffEntry(
                 DiffChangeKind.Modified,
-                new NodeContent(new SnapshotId(1), nodeId, roleId, oldRevisionId, ContentMode.Independent, "Alter Inhalt", false),
-                new NodeContent(snapshotId, nodeId, roleId, newRevisionId, ContentMode.Independent, "Neuer Inhalt", false))],
+                new NodeContent(new SnapshotId(1), nodeId, audienceId, oldRevisionId, ContentMode.Independent, "Alter Inhalt", false),
+                new NodeContent(snapshotId, nodeId, audienceId, newRevisionId, ContentMode.Independent, "Neuer Inhalt", false))],
             [],
             NextCursor: null,
             TotalCount: 3);
@@ -160,9 +160,9 @@ public sealed class HistoryMapperTests
         Assert.Contains("Alte Beschreibung", node.Before);
         Assert.Contains("Neue Beschreibung", node.After);
 
-        var role = Assert.Single(entries, entry => entry.EntityType == "Role");
-        Assert.Contains("Alte Rollenbeschreibung", role.Before);
-        Assert.Contains("Neue Rollenbeschreibung", role.After);
+        var audience = Assert.Single(entries, entry => entry.EntityType == "Audience");
+        Assert.Contains("Alte Zielgruppenbeschreibung", audience.Before);
+        Assert.Contains("Neue Zielgruppenbeschreibung", audience.After);
 
         var content = Assert.Single(entries, entry => entry.EntityType == "Content");
         Assert.Contains("Alter Inhalt", content.Before);

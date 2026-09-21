@@ -6,33 +6,33 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 
 /// <summary>
-/// Übersetzt die Rollen eines Lesekontexts in die Auswahlwerte des Dialogs.
+/// Übersetzt die Zielgruppen eines Lesekontexts in die Auswahlwerte des Dialogs.
 /// </summary>
-public sealed class ContextSelectionRoleCatalog : IContextSelectionRoleCatalog
+public sealed class ContextSelectionAudienceCatalog : IContextSelectionAudienceCatalog
 {
     private readonly NavigationService _navigationService;
-    private readonly ILogger<ContextSelectionRoleCatalog> _logger;
+    private readonly ILogger<ContextSelectionAudienceCatalog> _logger;
 
-    public ContextSelectionRoleCatalog(NavigationService navigationService)
-        : this(navigationService, NullLogger<ContextSelectionRoleCatalog>.Instance)
+    public ContextSelectionAudienceCatalog(NavigationService navigationService)
+        : this(navigationService, NullLogger<ContextSelectionAudienceCatalog>.Instance)
     {
     }
 
-    public ContextSelectionRoleCatalog(
+    public ContextSelectionAudienceCatalog(
         NavigationService navigationService,
-        ILogger<ContextSelectionRoleCatalog> logger)
+        ILogger<ContextSelectionAudienceCatalog> logger)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<ContextSelectionRoleLoadResult> LoadAsync(
+    public async Task<ContextSelectionAudienceLoadResult> LoadAsync(
         ReadContext readContext,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var roles = new List<ContextSelectionRoleOptionViewModel>();
+            var audiences = new List<ContextSelectionAudienceOptionViewModel>();
             string? cursor = null;
             do
             {
@@ -42,32 +42,32 @@ public sealed class ContextSelectionRoleCatalog : IContextSelectionRoleCatalog
 
                 if (!result.IsSuccess)
                 {
-                    return new ContextSelectionRoleLoadResult(
+                    return new ContextSelectionAudienceLoadResult(
                         [],
                         ToDiagnostic(result.Error));
                 }
 
                 var page = result.Value!;
-                roles.AddRange(page.Items.Select(role => new ContextSelectionRoleOptionViewModel(
-                    role.AudienceId.Value,
-                    role.Name,
-                    role.Description)));
+                audiences.AddRange(page.Items.Select(audience => new ContextSelectionAudienceOptionViewModel(
+                    audience.AudienceId.Value,
+                    audience.Name,
+                    audience.Description)));
                 cursor = page.NextCursor;
             }
             while (cursor is not null);
 
-            return new ContextSelectionRoleLoadResult(roles, null);
+            return new ContextSelectionAudienceLoadResult(audiences, null);
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Rollen konnten für den gewählten Kontext nicht geladen werden.");
-            return new ContextSelectionRoleLoadResult(
+            _logger.LogError(exception, "Zielgruppen konnten für den gewählten Kontext nicht geladen werden.");
+            return new ContextSelectionAudienceLoadResult(
                 [],
-                "Rollen konnten für den gewählten Kontext nicht geladen werden.");
+                "Zielgruppen konnten für den gewählten Kontext nicht geladen werden.");
         }
     }
 
     private static string ToDiagnostic(DomainError? error) => error is null
-        ? "Rollen konnten für den gewählten Kontext nicht geladen werden."
+        ? "Zielgruppen konnten für den gewählten Kontext nicht geladen werden."
         : $"[{error.Code}] {error.Message}";
 }

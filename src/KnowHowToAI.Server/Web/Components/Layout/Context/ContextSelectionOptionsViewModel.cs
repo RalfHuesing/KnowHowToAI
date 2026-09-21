@@ -6,10 +6,10 @@ namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 public sealed record ContextSelectionOptionsViewModel(
     IReadOnlyList<ContextSelectionReleaseOptionViewModel> Releases,
     IReadOnlyList<ContextSelectionTransactionOptionViewModel> Transactions,
-    IReadOnlyList<ContextSelectionRoleOptionViewModel> Roles)
+    IReadOnlyList<ContextSelectionAudienceOptionViewModel> Audiences)
 {
     public static ContextSelectionOptionsViewModel Empty { get; } = new([], [], []);
 
-    public ContextSelectionOptionsViewModel WithRoles(IReadOnlyList<ContextSelectionRoleOptionViewModel> roles) =>
-        this with { Roles = roles };
+    public ContextSelectionOptionsViewModel WithAudiences(IReadOnlyList<ContextSelectionAudienceOptionViewModel> audiences) =>
+        this with { Audiences = audiences };
 }

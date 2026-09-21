@@ -25,14 +25,14 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
 /// <summary>
 /// M3.8-T1: Prüft die fachliche Parität von UI- und MCP-Leseergebnissen für
-/// Navigation, Rollenauflösung, Markdown-Export und Kontextgrenzen gegen gemeinsame Core-Use-Cases.
+/// Navigation, Zielgruppenauflösung, Markdown-Export und Kontextgrenzen gegen gemeinsame Core-Use-Cases.
 /// </summary>
 [Trait("Category", "Unit")]
 public sealed class KnowledgeReadParityTests : BunitContext
 {
     private static readonly SnapshotId TestSnapshotId = new(100);
-    private static readonly AudienceId RoleDeveloper = new("Developer");
-    private static readonly AudienceId RoleDefault = new("Default");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
+    private static readonly AudienceId AudienceDefault = new("Default");
     private static readonly NodeId RootId = new(Guid.Parse("10000000-0000-0000-0000-000000000001"));
     private static readonly NodeId ChildId = new(Guid.Parse("10000000-0000-0000-0000-000000000002"));
 
@@ -50,7 +50,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         harness.AddContent(new NodeContent(
             TestSnapshotId,
             RootId,
-            RoleDeveloper,
+            AudienceDeveloper,
             derivedRevisionId,
             ContentMode.Derived,
             "Gemeinsamer Inhalt",
@@ -58,7 +58,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         harness.AddContent(new NodeContent(
             TestSnapshotId,
             sourceNodeId,
-            RoleDeveloper,
+            AudienceDeveloper,
             sourceRevisionId,
             ContentMode.Independent,
             "Quellinhalt",
@@ -66,27 +66,27 @@ public sealed class KnowledgeReadParityTests : BunitContext
         harness.AddDependency(new ContentDependency(
             TestSnapshotId,
             RootId,
-            RoleDeveloper,
+            AudienceDeveloper,
             sourceNodeId,
-            RoleDeveloper,
+            AudienceDeveloper,
             sourceRevisionId));
 
         var navigationService = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
-        var applicationResult = await navigationService.GetNodeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var applicationResult = await navigationService.GetNodeAsync(RootId, new ReadContext(), AudienceDeveloper);
         var mcp = McpNavigationMapper.ToEnvelope(applicationResult).Data!;
 
         Services.AddWebPageStates()
             .AddKnowledgePageServices(
                 navigationService,
                 transactionRepository: harness.CreateRepositories().Transactions,
-                defaultRole: RoleDeveloper.Value);
-        Services.GetRequiredService<NavigationManager>().NavigateTo($"/knowledge/{RootId.Value:D}?roleId={RoleDeveloper.Value}");
+                defaultAudience: AudienceDeveloper.Value);
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"/knowledge/{RootId.Value:D}?audienceId={AudienceDeveloper.Value}");
 
         var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, RootId.Value));
 
         Assert.Equal(mcp.Title, cut.Find("[data-testid='node-details-title']").TextContent.Trim());
         Assert.Contains(mcp.Description!, cut.Find("[data-testid='node-details-description']").TextContent, StringComparison.Ordinal);
-        Assert.Contains(mcp.RequestedAudienceId, cut.Find("[data-testid='node-details-role']").TextContent, StringComparison.Ordinal);
+        Assert.Contains(mcp.RequestedAudienceId, cut.Find("[data-testid='node-details-Audience']").TextContent, StringComparison.Ordinal);
         Assert.Contains(mcp.Content!, cut.Find("[data-testid='node-details-content']").TextContent, StringComparison.Ordinal);
         var mcpSource = Assert.Single(mcp.SourceRevisions!);
         var provenance = cut.Find("[data-testid='node-provenance-item']").TextContent;
@@ -112,7 +112,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var content = new NodeContent(
             TestSnapshotId,
             RootId,
-            RoleDeveloper,
+            AudienceDeveloper,
             revisionId,
             ContentMode.Independent,
             "# Systemarchitektur\nInhalt...",
@@ -120,8 +120,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         var nodeWithContent = new NodeWithContent(
             node,
-            RoleDeveloper,
-            RoleDeveloper,
+            AudienceDeveloper,
+            AudienceDeveloper,
             Availability.Explicit,
             FallbackUsed: false,
             content,
@@ -143,8 +143,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Assert.Equal(mcpData.Title, uiVm.Title);
         Assert.Equal(mcpData.Description, uiVm.Description);
         Assert.Equal(mcpData.SortOrder, uiVm.SortOrder);
-        Assert.Equal(mcpData.RequestedAudienceId, uiVm.RequestedRoleId);
-        Assert.Equal(mcpData.ResolvedAudienceId, uiVm.ResolvedRoleId);
+        Assert.Equal(mcpData.RequestedAudienceId, uiVm.RequestedAudienceId);
+        Assert.Equal(mcpData.ResolvedAudienceId, uiVm.ResolvedAudienceId);
         Assert.Equal(mcpData.FallbackUsed, uiVm.FallbackUsed);
         Assert.Equal(mcpData.Availability, uiVm.Availability);
         Assert.Equal(mcpData.Freshness, uiVm.Freshness);
@@ -157,7 +157,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
     {
         var emptyRoot = new NodeWithContent(
             Node: null,
-            RequestedAudienceId: RoleDeveloper,
+            RequestedAudienceId: AudienceDeveloper,
             ResolvedAudienceId: null,
             Availability: Availability.None,
             FallbackUsed: false,
@@ -175,17 +175,17 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Assert.Null(uiVm);
     }
 
-    // ── Rollenauflösung (Fallback, Stale, Missing) ─────────────────────────────
+    // ── Zielgruppenauflösung (Fallback, Stale, Missing) ─────────────────────────────
 
     [Fact]
-    public void GetNode_WithRoleFallback_UiAndMcpReflectFallbackState()
+    public void GetNode_WithAudienceFallback_UiAndMcpReflectFallbackState()
     {
         var revisionId = new ContentRevisionId(Guid.NewGuid());
         var node = new Node(TestSnapshotId, RootId, null, "Root", "Desc", 0, false);
         var fallbackContent = new NodeContent(
             TestSnapshotId,
             RootId,
-            RoleDefault,
+            AudienceDefault,
             revisionId,
             ContentMode.Independent,
             "Standardinhalt",
@@ -193,8 +193,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         var nodeWithContent = new NodeWithContent(
             node,
-            RequestedAudienceId: RoleDeveloper,
-            ResolvedAudienceId: RoleDefault,
+            RequestedAudienceId: AudienceDeveloper,
+            ResolvedAudienceId: AudienceDefault,
             Availability: Availability.Fallback,
             FallbackUsed: true,
             Content: fallbackContent,
@@ -206,10 +206,10 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var uiVm = KnowledgeNavigationMapper.ToNodeDetailsViewModel(nodeWithContent)!;
 
         // Beide Transportsysteme müssen den Fallback konsistent ausweisen
-        Assert.Equal(mcpData(mcpEnvelope).RequestedAudienceId, uiVm.RequestedRoleId);
-        Assert.Equal("Developer", uiVm.RequestedRoleId);
-        Assert.Equal(mcpData(mcpEnvelope).ResolvedAudienceId, uiVm.ResolvedRoleId);
-        Assert.Equal("Default", uiVm.ResolvedRoleId);
+        Assert.Equal(mcpData(mcpEnvelope).RequestedAudienceId, uiVm.RequestedAudienceId);
+        Assert.Equal("Developer", uiVm.RequestedAudienceId);
+        Assert.Equal(mcpData(mcpEnvelope).ResolvedAudienceId, uiVm.ResolvedAudienceId);
+        Assert.Equal("Default", uiVm.ResolvedAudienceId);
         Assert.True(mcpData(mcpEnvelope).FallbackUsed);
         Assert.True(uiVm.FallbackUsed);
         Assert.Equal("Fallback", mcpData(mcpEnvelope).Availability);
@@ -226,7 +226,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var derivedContent = new NodeContent(
             TestSnapshotId,
             RootId,
-            RoleDeveloper,
+            AudienceDeveloper,
             revisionId,
             ContentMode.Derived,
             "Abgeleiteter Inhalt",
@@ -234,8 +234,8 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         var nodeWithContent = new NodeWithContent(
             node,
-            RoleDeveloper,
-            RoleDeveloper,
+            AudienceDeveloper,
+            AudienceDeveloper,
             Availability.Explicit,
             FallbackUsed: false,
             derivedContent,
@@ -268,16 +268,16 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var sourceNodeId = new NodeId(Guid.NewGuid());
         var sourceRevisionId = new ContentRevisionId(Guid.NewGuid());
         var node = new Node(TestSnapshotId, RootId, null, "Derived", null, 0, false);
-        var content = new NodeContent(TestSnapshotId, RootId, RoleDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false);
+        var content = new NodeContent(TestSnapshotId, RootId, AudienceDeveloper, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false);
         var nodeWithContent = new NodeWithContent(
             node,
-            RoleDeveloper,
-            RoleDeveloper,
+            AudienceDeveloper,
+            AudienceDeveloper,
             Availability.Explicit,
             FallbackUsed: false,
             content,
             Freshness.Stale,
-            [new DerivedSourceRevision(sourceNodeId, RoleDefault, sourceRevisionId, Freshness.Stale)]);
+            [new DerivedSourceRevision(sourceNodeId, AudienceDefault, sourceRevisionId, Freshness.Stale)]);
 
         var mcp = McpNavigationMapper.ToEnvelope(Result<NodeWithContent>.Success(nodeWithContent)).Data!;
         var ui = KnowledgeNavigationMapper.ToNodeDetailsViewModel(nodeWithContent)!;
@@ -285,7 +285,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var mcpSource = Assert.Single(mcp.SourceRevisions!);
         var uiSource = Assert.Single(ui.SourceRevisions);
         Assert.Equal(mcpSource.SourceNodeId, uiSource.SourceNodeId.ToString("D"));
-        Assert.Equal(mcpSource.SourceAudienceId, uiSource.SourceRoleId);
+        Assert.Equal(mcpSource.SourceAudienceId, uiSource.SourceAudienceId);
         Assert.Equal(mcpSource.SourceContentRevisionId, uiSource.SourceContentRevisionId.ToString("D"));
         Assert.Equal(mcpSource.Freshness, uiSource.Freshness);
     }
@@ -296,7 +296,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         var node = new Node(TestSnapshotId, RootId, null, "Root", "Desc", 0, false);
         var nodeWithContent = new NodeWithContent(
             node,
-            RequestedAudienceId: RoleDeveloper,
+            RequestedAudienceId: AudienceDeveloper,
             ResolvedAudienceId: null,
             Availability: Availability.None,
             FallbackUsed: false,
@@ -311,7 +311,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Assert.Equal("None", mcpEnvelope.Data!.Availability);
         Assert.Equal("None", uiVm.Availability);
         Assert.Null(mcpEnvelope.Data.ResolvedAudienceId);
-        Assert.Null(uiVm.ResolvedRoleId);
+        Assert.Null(uiVm.ResolvedAudienceId);
         Assert.Null(mcpEnvelope.Data.Content);
         Assert.Null(uiVm.ContentMd);
         Assert.Null(mcpEnvelope.Data.ContentRevisionId);
@@ -333,7 +333,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
                 ChildCount: 2,
                 ContentSizeBytes: 512,
                 Availability.Explicit,
-                RoleDeveloper,
+                AudienceDeveloper,
                 Freshness.Current),
             new(
                 new NodeId(Guid.NewGuid()),
@@ -343,7 +343,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
                 ChildCount: 0,
                 ContentSizeBytes: 256,
                 Availability.Fallback,
-                RoleDefault,
+                AudienceDefault,
                 Freshness.Stale)
         };
 
@@ -370,7 +370,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
             Assert.Equal(mcpChild.ChildCount, uiChild.ChildCount);
             Assert.Equal(mcpChild.ContentSizeBytes, uiChild.ContentSizeBytes);
             Assert.Equal(mcpChild.Availability, uiChild.Availability);
-            Assert.Equal(mcpChild.ResolvedAudienceId, uiChild.ResolvedRoleId);
+            Assert.Equal(mcpChild.ResolvedAudienceId, uiChild.ResolvedAudienceId);
             Assert.Equal(mcpChild.Freshness, uiChild.Freshness);
             Assert.Equal(mcpChild.Findings ?? [], uiChild.Findings ?? []);
         }
@@ -387,14 +387,14 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         var rootRev = new ContentRevisionId(Guid.NewGuid());
         harness.AddContent(new NodeContent(
-            TestSnapshotId, RootId, RoleDeveloper, rootRev, ContentMode.Independent, "Root Markdown Text", false));
+            TestSnapshotId, RootId, AudienceDeveloper, rootRev, ContentMode.Independent, "Root Markdown Text", false));
 
         var childRev = new ContentRevisionId(Guid.NewGuid());
         harness.AddContent(new NodeContent(
-            TestSnapshotId, ChildId, RoleDeveloper, childRev, ContentMode.Independent, "Kind Markdown Text", false));
+            TestSnapshotId, ChildId, AudienceDeveloper, childRev, ContentMode.Independent, "Kind Markdown Text", false));
 
         var exportService = harness.CreateExportService();
-        var exportResult = await exportService.ExportTreeAsync(RootId, new ReadContext(), RoleDeveloper);
+        var exportResult = await exportService.ExportTreeAsync(RootId, new ReadContext(), AudienceDeveloper);
         Assert.True(exportResult.IsSuccess);
 
         // MCP-Mapping

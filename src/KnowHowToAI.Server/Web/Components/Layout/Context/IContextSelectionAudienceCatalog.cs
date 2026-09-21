@@ -3,11 +3,11 @@ using KnowHowToAI.Core.Application.Navigation;
 namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 
 /// <summary>
-/// Lädt die im gewählten Lesekontext verfügbaren Rollen für den Selektor.
+/// Lädt die im gewählten Lesekontext verfügbaren Zielgruppen für den Selektor.
 /// </summary>
-public interface IContextSelectionRoleCatalog
+public interface IContextSelectionAudienceCatalog
 {
-    Task<ContextSelectionRoleLoadResult> LoadAsync(
+    Task<ContextSelectionAudienceLoadResult> LoadAsync(
         ReadContext readContext,
         CancellationToken cancellationToken = default);
 }

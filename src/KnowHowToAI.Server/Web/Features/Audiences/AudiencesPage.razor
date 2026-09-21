@@ -1,0 +1,30 @@
+@page "/audiences"
+@namespace KnowHowToAI.Server.Web.Features.Audiences
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Zielgruppen – KnowHowToAI</PageTitle>
+
+<section class="audiences-page" data-testid="audiences-page">
+    <header class="audiences-page__header">
+        <h1>Zielgruppen</h1>
+        <p>Zielgruppen für den versionierten Wissensinhalt. Zielgruppen sind keine Authentifizierungs- oder ACL-Berechtigungen.</p>
+    </header>
+
+    @if (_isLoading)
+    {
+        <p class="loading-state" role="status" data-testid="audiences-loading">Zielgruppen werden geladen…</p>
+    }
+    else if (_contextErrorMessage is not null)
+    {
+        <div role="alert" data-testid="audiences-context-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_contextErrorMessage" />
+        </div>
+    }
+    else
+    {
+        <AudienceEditor ReadContext="_readContext"
+                    ChangeVersion="CurrentChangeVersion"
+                    MutationSucceeded="HandleMutationSucceededAsync" />
+    }
+</section>

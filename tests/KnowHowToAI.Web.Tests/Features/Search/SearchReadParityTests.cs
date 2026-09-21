@@ -28,8 +28,8 @@ namespace KnowHowToAI.Web.Tests.Features.Search;
 public sealed class SearchReadParityTests : BunitContext
 {
     private static readonly SnapshotId SnapshotId = new(1);
-    private static readonly AudienceId RoleDeveloper = new("Developer");
-    private static readonly AudienceId RoleDefault = new("Default");
+    private static readonly AudienceId AudienceDeveloper = new("Developer");
+    private static readonly AudienceId AudienceDefault = new("Default");
 
     [Fact]
     public async Task Search_CommonUseCaseResult_ReachesSearchPageAndMcpContract()
@@ -40,7 +40,7 @@ public sealed class SearchReadParityTests : BunitContext
         harness.AddNode(new Node(SnapshotId, rootNodeId, null, "Wissensbasis", null, 0, false));
         harness.AddNode(new Node(SnapshotId, hitNodeId, rootNodeId, "Produktpfad", "Parität", 1, false));
         var retrieval = new InMemoryRetrievalRepository(SnapshotId);
-        retrieval.ConfigureActiveAudience(RoleDeveloper);
+        retrieval.ConfigureActiveAudience(AudienceDeveloper);
         retrieval.ResultsToReturn =
         [
             new SearchHit(
@@ -50,14 +50,14 @@ public sealed class SearchReadParityTests : BunitContext
                 "Gemeinsamer Suchtreffer",
                 "Content",
                 Availability.Explicit,
-                RoleDeveloper,
+                AudienceDeveloper,
                 Freshness.Current,
                 1,
                 ["VerifiedFinding"])
         ];
         var navigationService = harness.CreateService();
         var searchService = harness.CreateSearchService(retrieval);
-        var query = new SearchQuery("Gemeinsam", AudienceId: RoleDeveloper);
+        var query = new SearchQuery("Gemeinsam", AudienceId: AudienceDeveloper);
         var applicationResult = await searchService.SearchAsync(query, new ReadContext());
         var mcp = McpRetrievalMapper.ToEnvelope(applicationResult).Data!;
 
@@ -66,8 +66,8 @@ public sealed class SearchReadParityTests : BunitContext
                 navigationService,
                 searchService,
                 transactionRepository: harness.CreateRepositories().Transactions,
-                defaultRole: RoleDeveloper.Value);
-        Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?roleId={RoleDeveloper.Value}");
+                defaultAudience: AudienceDeveloper.Value);
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?audienceId={AudienceDeveloper.Value}");
 
         var cut = Render<SearchPage>();
         await cut.InvokeAsync(() => cut.Find("[data-testid='search-text']").Change(query.Text));
@@ -100,7 +100,7 @@ public sealed class SearchReadParityTests : BunitContext
                 "...gefundener **Architektur**-Text...",
                 HitField: "Content",
                 Availability.Explicit,
-                RoleDeveloper,
+                AudienceDeveloper,
                 Freshness.Current,
                 SortOrder: 1),
             new(
@@ -110,7 +110,7 @@ public sealed class SearchReadParityTests : BunitContext
                 "...gefundene **API**-Übersicht...",
                 HitField: "Title",
                 Availability.Fallback,
-                RoleDefault,
+                AudienceDefault,
                 Freshness.Stale,
                 SortOrder: 2),
             new(
@@ -152,7 +152,7 @@ public sealed class SearchReadParityTests : BunitContext
             Assert.Equal(mcpHit.Snippet, uiHit.Snippet);
             Assert.Equal(mcpHit.HitField, uiHit.HitField);
             Assert.Equal(mcpHit.Availability, uiHit.Availability);
-            Assert.Equal(mcpHit.ResolvedAudienceId, uiHit.ResolvedRoleId);
+            Assert.Equal(mcpHit.ResolvedAudienceId, uiHit.ResolvedAudienceId);
             Assert.Equal(mcpHit.Freshness, uiHit.Freshness);
         }
     }
@@ -168,7 +168,7 @@ public sealed class SearchReadParityTests : BunitContext
             "Snippet",
             HitField: "Content",
             Availability.Explicit,
-            RoleDeveloper,
+            AudienceDeveloper,
             Freshness.Stale,
             SortOrder: 1,
             Findings: ["StaleDerivedContent"]);

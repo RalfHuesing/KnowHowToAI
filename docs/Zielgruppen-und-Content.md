@@ -9,7 +9,7 @@ die initiale Zielgruppe `Default` samt Resolution Order an; danach werden Zielgr
 ihre Resolution Orders wie jeder andere versionierte Wissenszustand innerhalb
 einer Transaction über die Service-/MCP-Grenzen gepflegt (`create_audience`,
 `update_audience`, `delete_audience`, `set_audience_resolution`). Die Weboberfläche stellt
-die Rollenpflege unter `/roles` bereit; Resolution Orders bleiben dort bis zur
+die Zielgruppenpflege unter `/audiences` bereit; Resolution Orders bleiben dort bis zur
 separaten Umsetzung read-only. Die Seite lädt Zielgruppen für den über Query
 gewählten Current-, Snapshot-, Release- oder Working-Kontext. Nur eine offene
 Working Transaction erlaubt Erstellen, Umbenennen und Löschen; historische und

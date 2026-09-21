@@ -17,7 +17,7 @@ public sealed partial class ReleasePanel
     public IReadOnlyList<SnapshotViewModel> Snapshots { get; set; } = [];
 
     [Parameter]
-    public string? RoleId { get; set; }
+    public string? AudienceId { get; set; }
 
     private ReleasePageViewModel? _page;
     private string? _errorMessage;
@@ -54,8 +54,8 @@ public sealed partial class ReleasePanel
 
     private void NavigateToRelease(long releaseId)
     {
-        var roleQuery = string.IsNullOrWhiteSpace(RoleId) ? string.Empty : $"&roleId={Uri.EscapeDataString(RoleId)}";
-        NavigationManager.NavigateTo($"/knowledge?releaseId={releaseId.ToString(CultureInfo.InvariantCulture)}{roleQuery}");
+        var audienceQuery = string.IsNullOrWhiteSpace(AudienceId) ? string.Empty : $"&audienceId={Uri.EscapeDataString(AudienceId)}";
+        NavigationManager.NavigateTo($"/knowledge?releaseId={releaseId.ToString(CultureInfo.InvariantCulture)}{audienceQuery}");
     }
 
     private static string FormatTimestamp(DateTimeOffset timestamp) => timestamp.ToLocalTime().ToString("g", CultureInfo.CurrentCulture);

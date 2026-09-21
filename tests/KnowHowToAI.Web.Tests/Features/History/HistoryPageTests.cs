@@ -25,7 +25,7 @@ public sealed class HistoryPageTests : BunitContext
     public async Task HistoryPage_PagesImmutableSnapshotsAndReleases_AndTransfersTheSelectedContext()
     {
         ConfigureServices(pageSize: 1);
-        Services.GetRequiredService<NavigationManager>().NavigateTo("/history?roleId=Developer");
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/history?audienceId=Developer");
 
         var cut = Render<HistoryPage>();
 
@@ -63,7 +63,7 @@ public sealed class HistoryPageTests : BunitContext
         cut.WaitForAssertion(() => Assert.Contains("Inhalt", cut.Find("[data-testid='snapshot-diff-list']").TextContent));
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='snapshot-select-2']").Click());
-        Assert.EndsWith("/knowledge?snapshotId=2&roleId=Developer", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
+        Assert.EndsWith("/knowledge?snapshotId=2&audienceId=Developer", Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='release-list-next']").Click());
         cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-testid^='release-select-']")));
@@ -94,7 +94,7 @@ public sealed class HistoryPageTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             Assert.Contains("gefiltert auf Knoten", cut.Find("[data-testid='snapshot-diff-summary']").TextContent);
-            Assert.DoesNotContain("Rollenauflösung", cut.Find("[data-testid='snapshot-diff-list']").TextContent);
+            Assert.DoesNotContain("Zielgruppenauflösung", cut.Find("[data-testid='snapshot-diff-list']").TextContent);
         });
     }
 

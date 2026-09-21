@@ -14,7 +14,7 @@ public sealed partial class SnapshotList
     private NavigationManager NavigationManager { get; set; } = default!;
 
     [Parameter]
-    public string? RoleId { get; set; }
+    public string? AudienceId { get; set; }
 
     [Parameter]
     public long? SelectedBaseSnapshotId { get; set; }
@@ -59,8 +59,8 @@ public sealed partial class SnapshotList
 
     private void NavigateToSnapshot(long snapshotId)
     {
-        var roleQuery = string.IsNullOrWhiteSpace(RoleId) ? string.Empty : $"&roleId={Uri.EscapeDataString(RoleId)}";
-        NavigationManager.NavigateTo($"/knowledge?snapshotId={snapshotId.ToString(CultureInfo.InvariantCulture)}{roleQuery}");
+        var audienceQuery = string.IsNullOrWhiteSpace(AudienceId) ? string.Empty : $"&audienceId={Uri.EscapeDataString(AudienceId)}";
+        NavigationManager.NavigateTo($"/knowledge?snapshotId={snapshotId.ToString(CultureInfo.InvariantCulture)}{audienceQuery}");
     }
 
     private static string FormatTimestamp(DateTimeOffset timestamp) => timestamp.ToLocalTime().ToString("g", CultureInfo.CurrentCulture);

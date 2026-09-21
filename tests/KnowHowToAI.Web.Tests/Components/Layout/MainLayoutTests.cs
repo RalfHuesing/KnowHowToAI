@@ -142,7 +142,7 @@ public sealed class MainLayoutTests : ShellTestContext
 
         var bar = cut.Find(".shell-header-brand .knowledge-context");
         Assert.Contains("Current Snapshot", bar.TextContent, StringComparison.Ordinal);
-        Assert.Contains("Keine Rolle ausgewählt", bar.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Keine Zielgruppe ausgewählt", bar.TextContent, StringComparison.Ordinal);
         Assert.Empty(cut.FindAll(".app-status--ungespeichert"));
         Assert.Single(cut.FindAll(".knowledge-context"));
     }

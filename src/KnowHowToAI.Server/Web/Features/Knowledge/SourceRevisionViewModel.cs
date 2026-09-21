@@ -5,11 +5,11 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// Entkoppelt Razor-Komponenten von Domain-Typen.
 /// </summary>
 /// <param name="SourceNodeId">ID des Quell-Node.</param>
-/// <param name="SourceRoleId">Rolle des Quell-Contents.</param>
+/// <param name="SourceAudienceId">Zielgruppe des Quell-Contents.</param>
 /// <param name="SourceContentRevisionId">Revisions-ID des Quell-Contents zum Zeitpunkt der Abhängigkeit.</param>
 /// <param name="Freshness">Aktueller Freshness-Vergleich für die gespeicherte Quellrevision.</param>
 public sealed record SourceRevisionViewModel(
     Guid SourceNodeId,
-    string SourceRoleId,
+    string SourceAudienceId,
     Guid SourceContentRevisionId,
     string Freshness);

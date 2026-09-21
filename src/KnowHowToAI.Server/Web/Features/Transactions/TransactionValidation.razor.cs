@@ -61,11 +61,11 @@ public sealed partial class TransactionValidation : ComponentBase, IDisposable
 
     private string GetNodeUrl(Guid nodeId)
     {
-        var roleQuery = string.IsNullOrWhiteSpace(WorkspaceState.CurrentRoleId)
+        var audienceQuery = string.IsNullOrWhiteSpace(WorkspaceState.CurrentAudienceId)
             ? string.Empty
-            : $"&roleId={Uri.EscapeDataString(WorkspaceState.CurrentRoleId)}";
+            : $"&audienceId={Uri.EscapeDataString(WorkspaceState.CurrentAudienceId)}";
 
-        return $"/knowledge/{nodeId:D}?transactionId={Transaction.TransactionId.Value:D}{roleQuery}";
+        return $"/knowledge/{nodeId:D}?transactionId={Transaction.TransactionId.Value:D}{audienceQuery}";
     }
 
     private void OnWorkspaceChanged() => _ = InvokeAsync(StateHasChanged);

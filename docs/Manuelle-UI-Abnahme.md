@@ -21,7 +21,7 @@ sie nicht interaktiv aus.
 |---|---|---|
 | 100 % | 1280 CSS-Pixel | Kopf, Navigation, Arbeitsfläche nebeneinander; kein horizontaler Scrollbalken |
 | 200 % | 640 CSS-Pixel | Inhalt reflowt einspaltig; kein horizontaler Scrollbalken bei normalem Content; alle Texte und Aktionen erreichbar |
-| 400 % | 320 CSS-Pixel | wie 200 %; fachlich zweidimensionale Flächen (z. B. Tabellen) scrollen nur in ihrem eigenen Bereich |
+| 400 % | 320 CSS-Pixel | wie 200 %; fachlich zweidimensionale Flächen scrollen nur in ihrem eigenen Bereich |
 
 Bei jeder Stufe prüfen:
 

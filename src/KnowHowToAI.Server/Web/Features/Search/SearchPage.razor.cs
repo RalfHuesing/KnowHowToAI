@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.WebUtilities;
 namespace KnowHowToAI.Server.Web.Features.Search;
 
 /// <summary>
-/// Paginierte, rollen- und kontextabhängige Wissenssuche. Der Cursor bleibt
+/// Paginierte, Zielgruppen- und kontextabhängige Wissenssuche. Der Cursor bleibt
 /// featurelokal und wird ausschließlich als opaker Wert an den Search-Use-Case
 /// zurückgegeben. Bei einem Kontextwechsel oder einer neuen Suche wird ein
 /// noch laufender Request abgebrochen und kann das aktuelle Ergebnis nicht
@@ -26,7 +26,7 @@ public sealed partial class SearchPage : IDisposable
     private NavigationService NavigationService { get; set; } = default!;
 
     [Inject]
-    private IContextSelectionRoleCatalog RoleCatalog { get; set; } = default!;
+    private IContextSelectionAudienceCatalog AudienceCatalog { get; set; } = default!;
 
     [Inject]
     private IWebReadContextResolver ReadContextResolver { get; set; } = default!;
@@ -38,7 +38,7 @@ public sealed partial class SearchPage : IDisposable
     private PageRegionState PageRegions { get; set; } = default!;
 
     [Inject]
-    private IRoleStorageService RoleStorage { get; set; } = default!;
+    private IAudienceStorageService AudienceStorage { get; set; } = default!;
 
     [Inject]
     private ContextSelectorState ContextSelector { get; set; } = default!;
@@ -55,21 +55,21 @@ public sealed partial class SearchPage : IDisposable
     [SupplyParameterFromQuery(Name = "releaseId")]
     private string? QueryReleaseId { get; set; }
 
-    [SupplyParameterFromQuery(Name = "roleId")]
-    private string? QueryRoleId { get; set; }
+    [SupplyParameterFromQuery(Name = "audienceId")]
+    private string? QueryAudienceId { get; set; }
 
     private readonly object _searchLock = new();
     private CancellationTokenSource? _searchCts;
     private SearchPageViewModel? _page;
     private SearchBreadcrumbLoader? _breadcrumbLoader;
     private ReadContext? _readContext;
-    private string? _roleId;
+    private string? _audienceId;
     private string? _activeText;
     private string? _contextErrorMessage;
     private string? _searchErrorMessage;
     private SearchFilterViewModel _filter = SearchFilterViewModel.Empty;
-    private IReadOnlyList<SearchFilterOptionViewModel> _filterRoles = [];
-    private bool _hasNoRoles;
+    private IReadOnlyList<SearchFilterOptionViewModel> _filterAudiences = [];
+    private bool _hasNoAudiences;
     private bool _isReady;
     private bool _isSearching;
     private bool _isDisposed;
@@ -101,22 +101,22 @@ public sealed partial class SearchPage : IDisposable
     {
         CancelSearch(clearResults: true);
         _contextErrorMessage = null;
-        _hasNoRoles = false;
+        _hasNoAudiences = false;
         _isReady = false;
         _readContext = null;
-        _roleId = null;
+        _audienceId = null;
         _filter = SearchFilterViewModel.Empty;
-        _filterRoles = [];
+        _filterAudiences = [];
     }
 
     private async Task ApplyResolvedContextAsync(WebReadContextResolution resolution)
     {
         var readContext = resolution.ReadContext;
         var contextViewModel = resolution.ContextViewModel;
-        var rolesResult = await RoleCatalog.LoadAsync(readContext, CancellationToken.None);
-        if (!rolesResult.IsSuccess)
+        var audiencesResult = await AudienceCatalog.LoadAsync(readContext, CancellationToken.None);
+        if (!audiencesResult.IsSuccess)
         {
-            _contextErrorMessage = rolesResult.ErrorMessage!;
+            _contextErrorMessage = audiencesResult.ErrorMessage!;
             PageRegions.SetKnowledgeContext(contextViewModel with
             {
                 DisplayName = contextViewModel.DisplayName ?? "Fehlerhafter Kontext"
@@ -124,63 +124,63 @@ public sealed partial class SearchPage : IDisposable
             return;
         }
 
-        var roles = rolesResult.Roles;
-        if (roles.Count == 0)
+        var audiences = audiencesResult.Audiences;
+        if (audiences.Count == 0)
         {
-            _hasNoRoles = true;
-            var emptyContext = contextViewModel with { RoleName = null };
+            _hasNoAudiences = true;
+            var emptyContext = contextViewModel with { AudienceName = null };
             PageRegions.SetKnowledgeContext(emptyContext);
             WorkspaceState.SetContext(emptyContext, readContext);
-            WorkspaceState.SetRole(null);
+            WorkspaceState.SetAudience(null);
             return;
         }
 
-        var roleId = await ResolveEffectiveRoleAsync(roles, QueryRoleId, NavigationManager.ToAbsoluteUri(NavigationManager.Uri));
-        if (roleId is null)
+        var audienceId = await ResolveEffectiveAudienceAsync(audiences, QueryAudienceId, NavigationManager.ToAbsoluteUri(NavigationManager.Uri));
+        if (audienceId is null)
         {
-            PageRegions.SetKnowledgeContext(contextViewModel with { RoleName = null });
-            ContextSelector.Open(ContextSelectorMode.MandatoryRole, readContext, null);
+            PageRegions.SetKnowledgeContext(contextViewModel with { AudienceName = null });
+            ContextSelector.Open(ContextSelectorMode.MandatoryAudience, readContext, null);
             return;
         }
 
-        var selectedRole = roles.First(role => role.Id == roleId);
-        _filterRoles = roles.Select(role => new SearchFilterOptionViewModel(role.Id, role.Name)).ToArray();
-        var selectedContext = contextViewModel with { RoleName = selectedRole.Name, ChangeVersion = resolution.ChangeVersion };
+        var selectedAudience = audiences.First(audience => audience.Id == audienceId);
+        _filterAudiences = audiences.Select(audience => new SearchFilterOptionViewModel(audience.Id, audience.Name)).ToArray();
+        var selectedContext = contextViewModel with { AudienceName = selectedAudience.Name, ChangeVersion = resolution.ChangeVersion };
         PageRegions.SetKnowledgeContext(selectedContext);
         WorkspaceState.SetContext(selectedContext, readContext);
         WorkspaceState.SetChangeVersion(resolution.ChangeVersion);
-        WorkspaceState.SetRole(roleId);
+        WorkspaceState.SetAudience(audienceId);
         _readContext = readContext;
-        _roleId = roleId;
+        _audienceId = audienceId;
         _breadcrumbLoader = new SearchBreadcrumbLoader(NavigationService);
         _isReady = true;
     }
 
-    private async Task<string?> ResolveEffectiveRoleAsync(
-        IReadOnlyList<ContextSelectionRoleOptionViewModel> roles,
-        string? queryRoleId,
+    private async Task<string?> ResolveEffectiveAudienceAsync(
+        IReadOnlyList<ContextSelectionAudienceOptionViewModel> audiences,
+        string? queryAudienceId,
         Uri uri)
     {
-        if (!string.IsNullOrWhiteSpace(queryRoleId))
+        if (!string.IsNullOrWhiteSpace(queryAudienceId))
         {
-            if (roles.Any(role => role.Id == queryRoleId))
+            if (audiences.Any(audience => audience.Id == queryAudienceId))
             {
-                await RoleStorage.SetLastRoleIdAsync(queryRoleId);
-                return queryRoleId;
+                await AudienceStorage.SetLastAudienceIdAsync(queryAudienceId);
+                return queryAudienceId;
             }
 
-            _contextErrorMessage = $"[RequestedRoleNotFound] Die angefragte Rolle '{queryRoleId}' ist im gewählten Kontext nicht verfügbar.";
+            _contextErrorMessage = $"[RequestedAudienceNotFound] Die angefragte Zielgruppe '{queryAudienceId}' ist im gewählten Kontext nicht verfügbar.";
             return null;
         }
 
-        var storedRoleId = await RoleStorage.GetLastRoleIdAsync();
-        if (string.IsNullOrWhiteSpace(storedRoleId) || !roles.Any(role => role.Id == storedRoleId))
+        var storedAudienceId = await AudienceStorage.GetLastAudienceIdAsync();
+        if (string.IsNullOrWhiteSpace(storedAudienceId) || !audiences.Any(audience => audience.Id == storedAudienceId))
         {
             return null;
         }
 
-        UpdateUrlWithRole(uri, storedRoleId);
-        return storedRoleId;
+        UpdateUrlWithAudience(uri, storedAudienceId);
+        return storedAudienceId;
     }
 
     private Task StartSearchAsync(string text)
@@ -201,7 +201,7 @@ public sealed partial class SearchPage : IDisposable
 
     private async Task ExecuteSearchAsync(string? cursor)
     {
-        if (_readContext is null || string.IsNullOrWhiteSpace(_roleId) || _activeText is null)
+        if (_readContext is null || string.IsNullOrWhiteSpace(_audienceId) || _activeText is null)
         {
             return;
         }
@@ -225,7 +225,7 @@ public sealed partial class SearchPage : IDisposable
             var query = new SearchQuery(
                 _activeText,
                 Cursor: cursor,
-                AudienceId: new AudienceId(_roleId),
+                AudienceId: new AudienceId(_audienceId),
                 Filter: ToSearchFilter());
             var result = await SearchService.SearchAsync(query, _readContext, requestCts.Token);
             if (generation != _searchGeneration || requestCts.IsCancellationRequested)
@@ -243,7 +243,7 @@ public sealed partial class SearchPage : IDisposable
             var breadcrumbResult = await _breadcrumbLoader!.LoadAsync(
                 mapped.Value!,
                 _readContext,
-                _roleId,
+                _audienceId,
                 requestCts.Token);
             if (!breadcrumbResult.IsSuccess)
             {
@@ -266,11 +266,11 @@ public sealed partial class SearchPage : IDisposable
         }
     }
 
-    private void UpdateUrlWithRole(Uri currentUri, string roleId)
+    private void UpdateUrlWithAudience(Uri currentUri, string audienceId)
     {
         var query = QueryHelpers.ParseQuery(currentUri.Query)
             .ToDictionary(pair => pair.Key, pair => (string?)pair.Value[0]);
-        query["roleId"] = roleId;
+        query["audienceId"] = audienceId;
         NavigationManager.NavigateTo(QueryHelpers.AddQueryString(currentUri.AbsolutePath, query));
     }
 
@@ -286,7 +286,7 @@ public sealed partial class SearchPage : IDisposable
             return null;
 
         return new KnowHowToAI.Core.Application.Retrieval.Search.SearchFilter(
-            _filter.ResolvedRoleIds.Select(value => new AudienceId(value)).ToArray(),
+            _filter.ResolvedAudienceIds.Select(value => new AudienceId(value)).ToArray(),
             _filter.Availabilities.Select(Enum.Parse<Availability>).ToArray(),
             _filter.Freshnesses.Select(Enum.Parse<Freshness>).ToArray(),
             _filter.FindingCodes);

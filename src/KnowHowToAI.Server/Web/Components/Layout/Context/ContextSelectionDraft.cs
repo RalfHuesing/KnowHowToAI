@@ -59,16 +59,16 @@ public sealed class ContextSelectionDraft
         _ => Result<ReadContext>.Success(new ReadContext())
     };
 
-    public string BuildTargetUrl(Uri currentUri, ContextSelectorMode mode, string? selectedRoleId)
+    public string BuildTargetUrl(Uri currentUri, ContextSelectorMode mode, string? selectedAudienceId)
     {
         var path = string.Equals(currentUri.AbsolutePath, "/", StringComparison.Ordinal)
             ? "/knowledge"
             : currentUri.AbsolutePath;
         var queryParts = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(selectedRoleId))
+        if (!string.IsNullOrWhiteSpace(selectedAudienceId))
         {
-            queryParts.Add($"roleId={Uri.EscapeDataString(selectedRoleId)}");
+            queryParts.Add($"audienceId={Uri.EscapeDataString(selectedAudienceId)}");
         }
 
         if (mode == ContextSelectorMode.Full)

@@ -1,0 +1,118 @@
+@namespace KnowHowToAI.Server.Web.Features.Audiences
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+@if (_isLoading)
+{
+    <p class="loading-state" role="status" data-testid="audiences-loading">Zielgruppen werden geladen…</p>
+}
+else
+{
+    @if (_audiencesErrorMessage is not null)
+    {
+        <div role="alert" data-testid="audiences-load-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_audiencesErrorMessage" />
+        </div>
+    }
+
+    @if (!CanMutate)
+    {
+        <div class="audiences-page__readonly" role="status" data-testid="audiences-readonly">
+            Zielgruppen können nur in einer offenen Working Transaction geändert werden. Dieser Kontext ist schreibgeschützt.
+        </div>
+    }
+
+    @if (_mutationErrorMessage is not null)
+    {
+        <div class="audiences-page__mutation-error" role="alert" data-testid="audiences-mutation-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_mutationErrorMessage" />
+        </div>
+    }
+
+    @if (CanMutate)
+    {
+        <section class="audiences-card audiences-card--create" aria-labelledby="audience-create-heading">
+            <h2 id="audience-create-heading">Zielgruppe anlegen</h2>
+            <form @onsubmit="CreateAudienceAsync" @onsubmit:preventDefault="true" data-testid="audience-create-form">
+                <div class="audiences-form-grid">
+                    <div class="form-group">
+                        <label for="audience-create-name">Name</label>
+                        <input id="audience-create-name" class="form-input" @bind="NewAudienceName" data-testid="audience-create-name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="audience-create-description">Beschreibung (optional)</label>
+                        <input id="audience-create-description" class="form-input" @bind="NewAudienceDescription" data-testid="audience-create-description" />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="audience-create-submit">Zielgruppe anlegen</button>
+            </form>
+        </section>
+    }
+
+    <section class="audiences-card" aria-labelledby="audiences-list-heading">
+        <h2 id="audiences-list-heading">Zielgruppen (@_audiences.Count)</h2>
+        @if (_audiences.Count == 0)
+        {
+            <p class="empty-state" data-testid="audiences-empty">Keine Zielgruppen im gewählten Kontext.</p>
+        }
+        else
+        {
+            <div class="audiences-list" role="list" data-testid="audiences-list">
+                @foreach (var audience in _audiences)
+                {
+                    <article class="audience-item" role="listitem" data-testid="audience-item-@audience.AudienceId">
+                        @if (_editingAudienceId == audience.AudienceId)
+                        {
+                            <form @onsubmit="() => UpdateAudienceAsync(audience)" @onsubmit:preventDefault="true" data-testid="audience-edit-form-@audience.AudienceId">
+                                <div class="audiences-form-grid">
+                                    <div class="form-group">
+                                        <label for="audience-edit-name-@audience.AudienceId">Name</label>
+                                        <input id="audience-edit-name-@audience.AudienceId" class="form-input" @bind="EditAudienceName" data-testid="audience-edit-name-@audience.AudienceId" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="audience-edit-description-@audience.AudienceId">Beschreibung</label>
+                                        <input id="audience-edit-description-@audience.AudienceId" class="form-input" @bind="EditAudienceDescription" data-testid="audience-edit-description-@audience.AudienceId" />
+                                    </div>
+                                </div>
+                                <div class="audience-item__actions">
+                                    <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="audience-save-@audience.AudienceId">Speichern</button>
+                                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit" disabled="@_isSubmitting" data-testid="audience-cancel-@audience.AudienceId">Abbrechen</button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="audience-item__content">
+                                <h3>@audience.Name</h3>
+                                <p class="audience-item__id">ID: <code>@audience.AudienceId</code></p>
+                                @if (!string.IsNullOrWhiteSpace(audience.Description))
+                                {
+                                    <p>@audience.Description</p>
+                                }
+                            </div>
+                            @if (CanMutate)
+                            {
+                                <div class="audience-item__actions">
+                                    <button type="button" class="btn btn-secondary" @onclick="() => BeginEdit(audience)" data-testid="audience-edit-@audience.AudienceId">Umbenennen</button>
+                                    <button type="button" class="btn btn-danger" @onclick="() => OpenDeleteConfirmationAsync(audience)" data-testid="audience-delete-@audience.AudienceId">Löschen</button>
+                                </div>
+                            }
+                        }
+                    </article>
+                }
+            </div>
+        }
+    </section>
+}
+
+@if (_pendingDeleteAudience is not null)
+{
+    <section class="audiences-delete-confirmation" role="alert" aria-labelledby="audience-delete-heading" data-testid="audience-delete-confirmation">
+        <h2 id="audience-delete-heading">Zielgruppe „@_pendingDeleteAudience.Name“ löschen?</h2>
+        <p>Die Zielgruppe wird im Working Snapshot per Soft-Delete markiert. Zielgruppen mit Content, Dependencies oder Resolution Orders werden vom Server abgelehnt.</p>
+        <div class="audience-item__actions">
+            <button type="button" class="btn btn-secondary" @onclick="CancelDelete" disabled="@_isSubmitting" data-testid="audience-delete-cancel">Abbrechen</button>
+            <button type="button" class="btn btn-danger" @onclick="DeleteAudienceAsync" disabled="@_isSubmitting" data-testid="audience-delete-confirm">Zielgruppe löschen</button>
+        </div>
+    </section>
+}

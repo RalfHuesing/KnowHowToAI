@@ -42,19 +42,19 @@ else if (ViewModel is not null)
         {
             <section class="node-content-context node-content-context--fallback"
                      aria-label="Einordnung des Inhalts" data-testid="node-content-fallback-context">
-                <p><strong>Inhalt aus Fallback-Rolle</strong></p>
+                <p><strong>Inhalt aus Fallback-Zielgruppe</strong></p>
                 <p>
-                    Für die angefragte Rolle <strong>@ViewModel.RequestedRoleId</strong> ist an diesem Knoten kein eigener Inhalt hinterlegt.
+                    Für die angefragte Zielgruppe <strong>@ViewModel.RequestedAudienceId</strong> ist an diesem Knoten kein eigener Inhalt hinterlegt.
                     Es wird der vorhandene Inhalt
-                    @if (ViewModel.ResolvedRoleId is not null)
+                    @if (ViewModel.ResolvedAudienceId is not null)
                     {
-                        <strong>der Fallback-Rolle „@ViewModel.ResolvedRoleId“</strong>
+                        <strong>der Fallback-Zielgruppe „@ViewModel.ResolvedAudienceId“</strong>
                     }
                     else
                     {
-                        <strong>einer hinterlegten Fallback-Rolle</strong>
+                        <strong>einer hinterlegten Fallback-Zielgruppe</strong>
                     }
-                    angezeigt. Die angefragte Rolle und der Wissenskontext bleiben unverändert.
+                    angezeigt. Die angefragte Zielgruppe und der Wissenskontext bleiben unverändert.
                 </p>
             </section>
         }
@@ -65,7 +65,7 @@ else if (ViewModel is not null)
                 @if (string.IsNullOrWhiteSpace(ViewModel.ContentMd))
                 {
                     <div class="node-content-empty" data-testid="node-content-empty">
-                        <em>Kein Inhalt für diese Rolle vorhanden.</em>
+                        <em>Kein Inhalt für diese Zielgruppe vorhanden.</em>
                     </div>
                 }
                 else
@@ -92,13 +92,13 @@ else if (ViewModel is not null)
             <summary>Technische Details</summary>
             <dl class="node-meta-list">
                 <div class="node-meta-item">
-                    <dt>Rolle</dt>
-                    <dd data-testid="node-details-role">
-                        @ViewModel.RequestedRoleId
-                        @if (ViewModel.FallbackUsed && ViewModel.ResolvedRoleId is not null)
+                    <dt>Zielgruppe</dt>
+                    <dd data-testid="node-details-Audience">
+                        @ViewModel.RequestedAudienceId
+                        @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
                         {
-                            <span class="node-meta-fallback" title="Inhalt stammt per Fallback aus dieser Rolle">
-                                → @ViewModel.ResolvedRoleId
+                            <span class="node-meta-fallback" title="Inhalt stammt per Fallback aus dieser Zielgruppe">
+                                → @ViewModel.ResolvedAudienceId
                             </span>
                         }
                     </dd>
@@ -157,7 +157,7 @@ else if (ViewModel is not null)
                             <li class="node-provenance-item" data-testid="node-provenance-item">
                                 <span class="node-provenance-source">
                                     Knoten <code>@rev.SourceNodeId.ToString("N")[..8]…</code>
-                                    Rolle <strong>@rev.SourceRoleId</strong>
+                                    Zielgruppe <strong>@rev.SourceAudienceId</strong>
                                     Revision <code>@rev.SourceContentRevisionId.ToString("N")[..8]…</code>
                                     <span class="node-meta-badge node-meta-badge--@rev.Freshness.ToLowerInvariant()"
                                           data-testid="node-provenance-freshness">

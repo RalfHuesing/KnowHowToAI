@@ -94,7 +94,7 @@
                     @foreach (var content in result.StaleContents)
                     {
                         <li data-testid="validation-stale-node-@content.NodeId">
-                            Rolle @content.RoleId, Revision @content.ContentRevisionId
+                            Zielgruppe @content.AudienceId, Revision @content.ContentRevisionId
                             <a href="@GetNodeUrl(content.NodeId)" data-testid="validation-stale-node-link-@content.NodeId">Node öffnen</a>
                         </li>
                     }

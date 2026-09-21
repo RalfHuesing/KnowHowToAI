@@ -44,7 +44,7 @@ public sealed class DashboardPageTests : Bunit.BunitContext
         Assert.NotNull(context);
         Assert.Equal(KnowledgeReadContextKind.Current, context.ReadContext);
         Assert.Null(context.ContextId);
-        Assert.Null(context.RoleName);
+        Assert.Null(context.AudienceName);
         Assert.False(context.IsDirty);
     }
 

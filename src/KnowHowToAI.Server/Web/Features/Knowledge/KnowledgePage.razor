@@ -18,13 +18,13 @@
             <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
         </div>
     }
-    else if (_hasNoRoles)
+    else if (_hasNoAudiences)
     {
-        <div class="knowledge-empty-roles" data-testid="knowledge-empty-roles" role="status">
-            <InlineAlert Kind="AlertKind.Info" Message="Im aktuellen Wissenskontext sind keine Rollen definiert." />
+        <div class="knowledge-empty-audiences" data-testid="knowledge-empty-audiences" role="status">
+            <InlineAlert Kind="AlertKind.Info" Message="Im aktuellen Wissenskontext sind keine Zielgruppen definiert." />
         </div>
     }
-    else if (!_isAwaitingRoleSelection)
+    else if (!_isAwaitingAudienceSelection)
     {
         <div class="knowledge-layout">
             <aside class="knowledge-sidebar" aria-label="Wissensnavigation" data-testid="knowledge-sidebar">
@@ -41,7 +41,7 @@
                 {
                     <NodeDetailsPane NodeId="@TreeWorkspace.SelectedNodeId"
                                      ReadContext="@WorkspaceState.CurrentReadContext"
-                                     RoleId="@WorkspaceState.CurrentRoleId"
+                                     AudienceId="@WorkspaceState.CurrentAudienceId"
                                      ChangeVersion="@WorkspaceState.CurrentChangeVersion"
                                      TransactionId="@WorkspaceState.ActiveTransactionId"
                                      QueryTransactionId="@QueryTransactionId"

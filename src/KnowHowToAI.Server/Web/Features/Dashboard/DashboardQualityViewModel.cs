@@ -15,7 +15,7 @@ public sealed record DashboardQualityViewModel(
 /// </summary>
 public sealed record StaleContentItemViewModel(
     Guid NodeId,
-    string RoleId,
+    string AudienceId,
     Guid ContentRevisionId);
 
 /// <summary>Strukturierte, für die Oberfläche sichere Darstellung einer fachlichen Diagnose.</summary>

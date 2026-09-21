@@ -32,7 +32,7 @@ public sealed partial class NodeDeletionEditor
 
     private string ConfirmationMessage => _preview is null
         ? string.Empty
-        : $"„{_preview.Title}“ wird global über alle Rollen gelöscht. " +
+        : $"„{_preview.Title}“ wird global über alle Zielgruppen gelöscht. " +
           $"Die angezeigte Auswirkungsprüfung wird jetzt als {(_deleteSubtree ? "Teilbaum-Löschung" : "Einzellöschung")} ausgeführt.";
 
     private async Task LoadPreviewAsync()

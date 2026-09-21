@@ -53,9 +53,9 @@ public sealed partial class TransactionPage : ComponentBase
 
     private bool CanStartManualReapply => _snapshotConflict is not null && !_isStartingManualReapply && !_isSubmitting;
 
-    private string KnowledgeUrl => string.IsNullOrWhiteSpace(WorkspaceState.CurrentRoleId)
+    private string KnowledgeUrl => string.IsNullOrWhiteSpace(WorkspaceState.CurrentAudienceId)
         ? $"/knowledge?transactionId={TransactionId}"
-        : $"/knowledge?transactionId={TransactionId}&roleId={WorkspaceState.CurrentRoleId}";
+        : $"/knowledge?transactionId={TransactionId}&audienceId={WorkspaceState.CurrentAudienceId}";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -85,7 +85,7 @@ public sealed partial class TransactionPage : ComponentBase
                 DisplayName: string.IsNullOrWhiteSpace(_transaction.Purpose)
                     ? $"Transaktion {_transaction.TransactionId.Value:D}"
                     : _transaction.Purpose,
-                RoleName: WorkspaceState.CurrentRoleId,
+                AudienceName: WorkspaceState.CurrentAudienceId,
                 BaseSnapshotId: _transaction.BaseSnapshotId.Value);
 
             PageRegions.SetKnowledgeContext(contextVm);
@@ -221,7 +221,7 @@ public sealed partial class TransactionPage : ComponentBase
 
         var currentContext = new KnowledgeContextViewModel(
             KnowledgeReadContextKind.Current,
-            RoleName: WorkspaceState.CurrentRoleId);
+            AudienceName: WorkspaceState.CurrentAudienceId);
         PageRegions.SetKnowledgeContext(currentContext);
         WorkspaceState.SetContext(currentContext, new ReadContext());
         WorkspaceState.SetChangeVersion(null);
@@ -229,9 +229,9 @@ public sealed partial class TransactionPage : ComponentBase
         NavigationManager.NavigateTo(CurrentKnowledgeUrl);
     }
 
-    private string CurrentKnowledgeUrl => string.IsNullOrWhiteSpace(WorkspaceState.CurrentRoleId)
+    private string CurrentKnowledgeUrl => string.IsNullOrWhiteSpace(WorkspaceState.CurrentAudienceId)
         ? "/knowledge"
-        : $"/knowledge?roleId={Uri.EscapeDataString(WorkspaceState.CurrentRoleId)}";
+        : $"/knowledge?audienceId={Uri.EscapeDataString(WorkspaceState.CurrentAudienceId)}";
 
     private static string CreateCommitErrorMessage(CommitTransactionResult result)
     {

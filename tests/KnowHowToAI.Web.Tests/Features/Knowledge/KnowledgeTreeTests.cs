@@ -21,7 +21,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreeTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly AudienceId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultAudienceId = new("Developer");
 
     private sealed class CountingHierarchyRepository(IHierarchyRepository inner) : IHierarchyRepository
     {
@@ -51,7 +51,7 @@ public sealed class KnowledgeTreeTests : BunitContext
     }
 
     [Fact]
-    public async Task KnowledgeTree_SemanticRolesAndRovingTabindex()
+    public async Task KnowledgeTree_SemanticAudiencesAndRovingTabindex()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -64,7 +64,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var treeState = new KnowledgeTreeState(service);
         Services.AddKnowledgeTreeWorkspace(treeState);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         var cut = Render<KnowledgeTree>();
 
@@ -95,7 +95,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var treeState = new KnowledgeTreeState(service);
         Services.AddKnowledgeTreeWorkspace(treeState);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         Guid? selectedId = null;
         var cut = Render<KnowledgeTree>(parameters => parameters
@@ -141,7 +141,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var treeState = new KnowledgeTreeState(service);
         Services.AddKnowledgeTreeWorkspace(treeState);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         Guid? selectedId = null;
@@ -193,7 +193,7 @@ public sealed class KnowledgeTreeTests : BunitContext
         var treeState = new KnowledgeTreeState(service);
         Services.AddKnowledgeTreeWorkspace(treeState);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         var cut = Render<KnowledgeTree>();
@@ -229,23 +229,23 @@ public sealed class KnowledgeTreeTests : BunitContext
         var fallbackId = new NodeId(Guid.NewGuid());
         var staleId = new NodeId(Guid.NewGuid());
         var sourceId = new NodeId(Guid.NewGuid());
-        var defaultRoleId = new AudienceId("Default");
+        var defaultAudienceId = new AudienceId("Default");
         harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
         harness.AddNode(new Node(DefaultSnapshotId, explicitId, rootId, "Explicit", null, 1, false));
         harness.AddNode(new Node(DefaultSnapshotId, fallbackId, rootId, "Fallback", null, 2, false));
         harness.AddNode(new Node(DefaultSnapshotId, staleId, rootId, "Stale", null, 3, false));
         harness.AddNode(new Node(DefaultSnapshotId, sourceId, rootId, "Source", null, 4, false));
-        harness.AddAudience(new Audience(DefaultSnapshotId, defaultRoleId, "Default", null, false));
-        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, DefaultRoleId, defaultRoleId, 2));
-        harness.AddContent(new NodeContent(DefaultSnapshotId, explicitId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Explicit", false));
-        harness.AddContent(new NodeContent(DefaultSnapshotId, fallbackId, defaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Fallback", false));
-        harness.AddContent(new NodeContent(DefaultSnapshotId, staleId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Stale", false));
-        harness.AddContent(new NodeContent(DefaultSnapshotId, sourceId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Changed source", false));
-        harness.AddDependency(new ContentDependency(DefaultSnapshotId, staleId, DefaultRoleId, sourceId, DefaultRoleId, new ContentRevisionId(Guid.NewGuid())));
+        harness.AddAudience(new Audience(DefaultSnapshotId, defaultAudienceId, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, DefaultAudienceId, defaultAudienceId, 2));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, explicitId, DefaultAudienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Explicit", false));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, fallbackId, defaultAudienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Fallback", false));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, staleId, DefaultAudienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Stale", false));
+        harness.AddContent(new NodeContent(DefaultSnapshotId, sourceId, DefaultAudienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Changed source", false));
+        harness.AddDependency(new ContentDependency(DefaultSnapshotId, staleId, DefaultAudienceId, sourceId, DefaultAudienceId, new ContentRevisionId(Guid.NewGuid())));
 
         var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
         Services.AddKnowledgeTreeWorkspace(treeState);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         var cut = Render<KnowledgeTree>();
@@ -281,7 +281,7 @@ public sealed class KnowledgeTreeTests : BunitContext
             });
         var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         hierarchy.Reset();
         await treeState.ExpandNodeAsync(rootId.Value);
 
@@ -303,7 +303,7 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
         Services.AddKnowledgeTreeWorkspace(treeState);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         var cut = Render<KnowledgeTree>(parameters => parameters
@@ -331,7 +331,7 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
         Services.AddKnowledgeTreeWorkspace(treeState);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         var cut = Render<KnowledgeTree>(parameters => parameters.Add(component => component.CanMove, true));

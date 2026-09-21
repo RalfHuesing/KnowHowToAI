@@ -2,7 +2,7 @@
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 
 @* Globale Wissenskontextleiste nahe der Wortmarke: Werte als Text und
-   Status, ohne Selektor, Links oder Mutation. Die fehlende Rolle ist
+   Status, ohne Selektor, Links oder Mutation. Die fehlende Zielgruppe ist
    neutral und kein technischer Fehler; der Dirty-Zustand nutzt AppStatus
    mit Icon plus Text, nie Farbe allein. *@
 <div class="knowledge-context" role="group" aria-label="Wissenskontext" data-ktai-dirty="@(Context.IsDirty ? "true" : "false")">
@@ -46,9 +46,9 @@
             }
         </span>
     }
-    <span class="knowledge-context__segment knowledge-context__segment--role">
-        <span class="knowledge-context__label">Rolle:</span>
-        <span class="knowledge-context__value">@RoleText</span>
+    <span class="knowledge-context__segment knowledge-context__segment--audience">
+        <span class="knowledge-context__label">Zielgruppe:</span>
+        <span class="knowledge-context__value">@AudienceText</span>
     </span>
     @if (Context.IsDirty)
     {
@@ -61,8 +61,8 @@
         <span class="knowledge-context__segment knowledge-context__segment--action">
             <button type="button" class="knowledge-context__trigger"
                     @onclick="HandleOpenSelectorAsync"
-                    aria-label="Kontext und Rolle anpassen"
-                    title="Kontext und Rolle anpassen"
+                    aria-label="Kontext und Zielgruppe anpassen"
+                    title="Kontext und Zielgruppe anpassen"
                     data-testid="context-selector-trigger">
                 Anpassen
             </button>

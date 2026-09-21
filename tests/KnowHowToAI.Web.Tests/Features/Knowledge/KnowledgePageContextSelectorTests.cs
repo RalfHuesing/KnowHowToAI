@@ -30,7 +30,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     private readonly PageRegionState _pageRegions;
     private readonly InMemoryReleaseRepository _releaseRepo;
     private readonly WebReadContextResolver _contextResolver;
-    private readonly InMemoryRoleStorageService _roleStorage;
+    private readonly InMemoryAudienceStorageService _audienceStorage;
     private readonly ContextSelectorState _contextSelector;
     private readonly NodeId _historicalRootId;
 
@@ -69,16 +69,16 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         _pageRegions = new PageRegionState();
         _releaseRepo = new InMemoryReleaseRepository();
         _contextResolver = new WebReadContextResolver(_releaseRepo, _harness.CreateRepositories().Transactions);
-        _roleStorage = new InMemoryRoleStorageService("Developer");
+        _audienceStorage = new InMemoryAudienceStorageService("Developer");
         _contextSelector = new ContextSelectorState();
 
         Services.AddWebPageStates(_pageRegions, _workspaceState, _contextSelector)
             .AddSingleton(_navigationService)
             .AddKnowledgeTreeWorkspace(_treeState)
             .AddSingleton(_contextResolver)
-            .AddSingleton<IRoleStorageService>(_roleStorage)
+            .AddSingleton<IAudienceStorageService>(_audienceStorage)
             .AddSingleton<IContextSelectionCatalog, EmptyContextSelectionCatalog>()
-            .AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(_navigationService));
+            .AddSingleton<IContextSelectionAudienceCatalog>(new ContextSelectionAudienceCatalog(_navigationService));
 
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
@@ -87,28 +87,28 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     public void ContextSwitch_ToHistoricalSnapshot_ResolvesSnapshotContext()
     {
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo($"/knowledge?snapshotId={HistoricalSnapshotId.Value}&roleId=Developer");
+        navMan.NavigateTo($"/knowledge?snapshotId={HistoricalSnapshotId.Value}&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
         Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
         Assert.Equal(KnowledgeReadContextKind.Snapshot, _workspaceState.CurrentContext.ReadContext);
-        Assert.Equal("Developer", _workspaceState.CurrentRoleId);
+        Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
         Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
     }
 
     [Fact]
-    public void HistoricalNode_MapsNodeRoleAndReadContextToMarkdownDownload()
+    public void HistoricalNode_MapsNodeAudienceAndReadContextToMarkdownDownload()
     {
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo($"/knowledge/{_historicalRootId.Value:D}?snapshotId={HistoricalSnapshotId.Value}&roleId=Developer");
+        navMan.NavigateTo($"/knowledge/{_historicalRootId.Value:D}?snapshotId={HistoricalSnapshotId.Value}&audienceId=Developer");
 
         var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, _historicalRootId.Value));
 
         var downloadUrl = new Uri($"https://localhost{cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href")!}");
         var query = QueryHelpers.ParseQuery(downloadUrl.Query);
         Assert.Equal(_historicalRootId.Value.ToString("D"), query["nodeId"]);
-        Assert.Equal("Developer", query["roleId"]);
+        Assert.Equal("Developer", query["audienceId"]);
         Assert.Equal(HistoricalSnapshotId.Value.ToString(), query["snapshotId"]);
     }
 
@@ -119,7 +119,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         _releaseRepo.Add(new Release(releaseId, HistoricalSnapshotId, "v1.0.0", "Release 1", DateTimeOffset.UtcNow));
 
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo($"/knowledge?releaseId=1&roleId=Developer");
+        navMan.NavigateTo($"/knowledge?releaseId=1&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
@@ -132,7 +132,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     public void NonExistentSnapshot_ShowsErrorAndDoesNotFallBackToCurrent()
     {
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo("/knowledge?snapshotId=99999&roleId=Developer");
+        navMan.NavigateTo("/knowledge?snapshotId=99999&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
@@ -147,7 +147,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     public void MultipleContextParameters_ShowsMutualExclusionError()
     {
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo("/knowledge?snapshotId=1&releaseId=2&roleId=Developer");
+        navMan.NavigateTo("/knowledge?snapshotId=1&releaseId=2&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
@@ -157,37 +157,37 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     }
 
     [Fact]
-    public void O008_MissingRoleInQueryAndStorage_TriggersMandatoryRoleSelector()
+    public void O008_MissingAudienceInQueryAndStorage_TriggersMandatoryAudienceselector()
     {
-        _roleStorage.LastRoleId = null;
+        _audienceStorage.LastAudienceId = null;
         var navMan = Services.GetRequiredService<NavigationManager>();
         navMan.NavigateTo("/knowledge");
 
         var cut = Render<KnowledgePage>();
 
         Assert.True(_contextSelector.IsOpen);
-        Assert.Equal(ContextSelectorMode.MandatoryRole, _contextSelector.Mode);
-        Assert.Null(_workspaceState.CurrentRoleId);
+        Assert.Equal(ContextSelectorMode.MandatoryAudience, _contextSelector.Mode);
+        Assert.Null(_workspaceState.CurrentAudienceId);
     }
 
     [Fact]
-    public void O008_InvalidRoleInStorage_TriggersMandatoryRoleSelector()
+    public void O008_InvalidAudienceInStorage_TriggersMandatoryAudienceselector()
     {
-        _roleStorage.LastRoleId = "NonExistentRole";
+        _audienceStorage.LastAudienceId = "NonExistentAudience";
         var navMan = Services.GetRequiredService<NavigationManager>();
         navMan.NavigateTo("/knowledge");
 
         var cut = Render<KnowledgePage>();
 
         Assert.True(_contextSelector.IsOpen);
-        Assert.Equal(ContextSelectorMode.MandatoryRole, _contextSelector.Mode);
-        Assert.Null(_workspaceState.CurrentRoleId);
+        Assert.Equal(ContextSelectorMode.MandatoryAudience, _contextSelector.Mode);
+        Assert.Null(_workspaceState.CurrentAudienceId);
     }
 
     [Fact]
-    public void O008_RoleQueryAddedAfterMandatorySelection_InitializesKnowledgePage()
+    public void O008_AudienceQueryAddedAfterMandatorySelection_InitializesKnowledgePage()
     {
-        _roleStorage.LastRoleId = null;
+        _audienceStorage.LastAudienceId = null;
         var navMan = Services.GetRequiredService<NavigationManager>();
         navMan.NavigateTo("/knowledge");
 
@@ -200,12 +200,12 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
 
         // Der Dialog schließt seinen Circuit-State vor der Navigation nach erfolgreicher Auswahl.
         _contextSelector.Close();
-        navMan.NavigateTo("/knowledge?roleId=Developer");
+        navMan.NavigateTo("/knowledge?audienceId=Developer");
 
         cut.WaitForAssertion(() =>
         {
             Assert.False(_contextSelector.IsOpen);
-            Assert.Equal("Developer", _workspaceState.CurrentRoleId);
+            Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
             Assert.Single(cut.FindAll("[data-testid='knowledge-sidebar']"));
         });
     }
@@ -213,7 +213,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     [Fact]
     public async Task O008_MandatoryDialogSelection_ReinitializesTheRoutedKnowledgePage()
     {
-        _roleStorage.LastRoleId = null;
+        _audienceStorage.LastAudienceId = null;
         var navMan = Services.GetRequiredService<NavigationManager>();
         navMan.NavigateTo("/knowledge");
 
@@ -222,35 +222,35 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
             .Add(component => component.AppAssembly, typeof(KnowledgePage).Assembly)
             .Add(component => component.Found, RenderFoundRoute));
 
-        dialog.WaitForState(() => dialog.FindAll("[data-testid='role-option-Developer']").Count == 1);
-        var role = dialog.Find("[data-testid='role-option-Developer'] input");
-        await dialog.InvokeAsync(() => role.Change(true));
+        dialog.WaitForState(() => dialog.FindAll("[data-testid='audience-option-Developer']").Count == 1);
+        var Audience = dialog.Find("[data-testid='audience-option-Developer'] input");
+        await dialog.InvokeAsync(() => Audience.Change(true));
         var apply = dialog.Find("[data-testid='selector-apply-button']");
         await dialog.InvokeAsync(() => apply.Click());
 
         router.WaitForAssertion(() =>
         {
-            Assert.Equal("Developer", _workspaceState.CurrentRoleId);
+            Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
             Assert.Single(router.FindAll("[data-testid='knowledge-sidebar']"));
         });
     }
 
     [Fact]
-    public void Reconnect_PreservesContextAndRole()
+    public void Reconnect_PreservesContextAndAudience()
     {
-        _roleStorage.LastRoleId = "Developer";
+        _audienceStorage.LastAudienceId = "Developer";
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo($"/knowledge?snapshotId={HistoricalSnapshotId.Value}&roleId=Developer");
+        navMan.NavigateTo($"/knowledge?snapshotId={HistoricalSnapshotId.Value}&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
-        Assert.Equal("Developer", _workspaceState.CurrentRoleId);
+        Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
         Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
 
         // Zweite Komponente mit denselben Services rendern (simuliert Reconnect / neuen Circuit)
         var reconnectCut = Render<KnowledgePage>();
 
-        Assert.Equal("Developer", _workspaceState.CurrentRoleId);
+        Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
         Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
         Assert.NotNull(reconnectCut.Find("[data-testid='knowledge-page']"));
     }

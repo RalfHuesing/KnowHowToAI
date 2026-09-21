@@ -37,13 +37,13 @@ public sealed class NodeDetailsPaneTests : BunitContext
         var cut = Render<NodeDetailsPane>(parameters => parameters
             .Add(pane => pane.NodeId, nodeId.Value)
             .Add(pane => pane.ReadContext, new ReadContext())
-            .Add(pane => pane.RoleId, "Developer")
+            .Add(pane => pane.AudienceId, "Developer")
             .Add(pane => pane.QuerySnapshotId, snapshotId.Value.ToString()));
 
         Assert.Equal("Pane-Knoten", cut.Find("[data-testid='node-details-title']").TextContent.Trim());
         var downloadUrl = cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href");
         Assert.Contains($"nodeId={nodeId.Value:D}", downloadUrl, StringComparison.Ordinal);
-        Assert.Contains("roleId=Developer", downloadUrl, StringComparison.Ordinal);
+        Assert.Contains("audienceId=Developer", downloadUrl, StringComparison.Ordinal);
         Assert.Contains("snapshotId=1", downloadUrl, StringComparison.Ordinal);
     }
 
@@ -87,7 +87,7 @@ public sealed class NodeDetailsPaneTests : BunitContext
         var cut = Render<NodeDetailsPane>(parameters => parameters
             .Add(pane => pane.NodeId, nodeId.Value)
             .Add(pane => pane.ReadContext, new ReadContext(TransactionId: transactionId))
-            .Add(pane => pane.RoleId, "Developer")
+            .Add(pane => pane.AudienceId, "Developer")
             .Add(pane => pane.TransactionId, transactionId)
             .Add(pane => pane.ChangeVersion, 4L));
 

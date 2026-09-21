@@ -21,9 +21,9 @@ public interface IKnowledgeTreeWorkspace
 
     IReadOnlyList<KnowledgeTreeNodeViewModel> Breadcrumbs { get; }
 
-    bool HasContext(ReadContext readContext, string roleId);
+    bool HasContext(ReadContext readContext, string audienceId);
 
-    Task InitializeAsync(ReadContext readContext, string roleId, CancellationToken cancellationToken = default);
+    Task InitializeAsync(ReadContext readContext, string audienceId, CancellationToken cancellationToken = default);
 
     Task SelectNodeAsync(Guid? nodeId, CancellationToken cancellationToken = default);
 

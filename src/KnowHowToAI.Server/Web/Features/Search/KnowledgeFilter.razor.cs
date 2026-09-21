@@ -17,7 +17,7 @@ public sealed partial class KnowledgeFilter
     public SearchFilterViewModel Filter { get; set; } = SearchFilterViewModel.Empty;
 
     [Parameter]
-    public IReadOnlyList<SearchFilterOptionViewModel> Roles { get; set; } = [];
+    public IReadOnlyList<SearchFilterOptionViewModel> Audiences { get; set; } = [];
 
     [Parameter]
     public bool IsSearching { get; set; }
@@ -25,8 +25,8 @@ public sealed partial class KnowledgeFilter
     [Parameter]
     public EventCallback<SearchFilterViewModel> OnChanged { get; set; }
 
-    private Task ToggleRoleAsync(string value) =>
-        UpdateAsync(Filter with { ResolvedRoleIds = Toggle(Filter.ResolvedRoleIds, value) });
+    private Task ToggleAudienceAsync(string value) =>
+        UpdateAsync(Filter with { ResolvedAudienceIds = Toggle(Filter.ResolvedAudienceIds, value) });
 
     private Task ToggleAvailabilityAsync(string value) =>
         UpdateAsync(Filter with { Availabilities = Toggle(Filter.Availabilities, value) });

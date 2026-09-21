@@ -28,7 +28,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
     public Guid NodeId { get; set; }
 
     [Parameter, EditorRequired]
-    public string RoleId { get; set; } = string.Empty;
+    public string AudienceId { get; set; } = string.Empty;
 
     [Parameter]
     public string? Markdown { get; set; }
@@ -49,8 +49,8 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private ElementReference _sourceElement;
     private IJSObjectReference? _module;
     private DotNetObjectReference<ContentEditor>? _selfReference;
-    private (Guid NodeId, string RoleId, bool IsReadOnly)? _mountedRequest;
-    private (Guid NodeId, string RoleId, bool IsReadOnly)? _parameterIdentity;
+    private (Guid NodeId, string AudienceId, bool IsReadOnly)? _mountedRequest;
+    private (Guid NodeId, string AudienceId, bool IsReadOnly)? _parameterIdentity;
     private string _editorMarkdown = string.Empty;
     private string _sourceMarkdown = string.Empty;
     private string? _errorMessage;
@@ -86,7 +86,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
     protected override void OnParametersSet()
     {
-        var identity = (NodeId, RoleId, IsReadOnly);
+        var identity = (NodeId, AudienceId, IsReadOnly);
         var parameterMarkdown = Markdown ?? string.Empty;
         if (_parameterIdentity != identity)
         {
@@ -142,7 +142,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
                         _editorMarkdown,
                         _selfReference,
                         IsReadOnly);
-                    _mountedRequest = (NodeId, RoleId, IsReadOnly);
+                    _mountedRequest = (NodeId, AudienceId, IsReadOnly);
                     if (_focusEditorAfterMount)
                     {
                         _focusEditorAfterMount = false;
@@ -204,7 +204,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
                 TransactionId.Value,
                 new ReplaceContentRequest(
                     new NodeId(NodeId),
-                    new AudienceId(RoleId),
+                    new AudienceId(AudienceId),
                     ContentMode.Independent,
                     markdown,
                     [],

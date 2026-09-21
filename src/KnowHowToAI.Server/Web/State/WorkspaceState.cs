@@ -7,13 +7,13 @@ namespace KnowHowToAI.Server.Web.State;
 /// <summary>
 /// Flüchtiger Circuit-State für die Blazor-Sitzung.
 /// Hält den aus Route und Query rekonstruierten aktuellen Arbeits- und Lesekontext
-/// (Node, Rolle, Read Context und ChangeVersion) ohne fachliche Wahrheit.
+/// (Node, Zielgruppe, Read Context und ChangeVersion) ohne fachliche Wahrheit.
 /// </summary>
 public sealed class WorkspaceState
 {
     public Guid? CurrentNodeId { get; private set; }
 
-    public string? CurrentRoleId { get; private set; }
+    public string? CurrentAudienceId { get; private set; }
 
     public long? CurrentChangeVersion { get; private set; }
 
@@ -48,12 +48,12 @@ public sealed class WorkspaceState
         Changed?.Invoke();
     }
 
-    public void SetRole(string? roleId)
+    public void SetAudience(string? audienceId)
     {
-        if (string.Equals(CurrentRoleId, roleId, StringComparison.Ordinal))
+        if (string.Equals(CurrentAudienceId, audienceId, StringComparison.Ordinal))
             return;
 
-        CurrentRoleId = roleId;
+        CurrentAudienceId = audienceId;
         Changed?.Invoke();
     }
 
@@ -82,7 +82,7 @@ public sealed class WorkspaceState
     public void Reset()
     {
         CurrentNodeId = null;
-        CurrentRoleId = null;
+        CurrentAudienceId = null;
         CurrentChangeVersion = null;
         CurrentContext = new KnowledgeContextViewModel(KnowledgeReadContextKind.Current);
         CurrentReadContext = new ReadContext();

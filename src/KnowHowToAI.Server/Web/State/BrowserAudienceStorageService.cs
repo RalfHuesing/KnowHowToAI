@@ -4,23 +4,23 @@ using Microsoft.JSInterop;
 namespace KnowHowToAI.Server.Web.State;
 
 /// <summary>
-/// Persistiert die letzte Rollenauswahl im Browser-LocalStorage unter dem Schlüssel <c>knowhowtoai.lastRoleId</c>.
+/// Persistiert die letzte Zielgruppenauswahl im Browser-LocalStorage unter dem Schlüssel <c>knowhowtoai.lastAudienceId</c>.
 /// Fängt Prerendering-, Trennungs- und Browser-Sicherheitsausnahmen ab und protokolliert sie.
 /// </summary>
-public sealed class BrowserRoleStorageService : IRoleStorageService
+public sealed class BrowserAudienceStorageService : IAudienceStorageService
 {
-    public const string StorageKey = "knowhowtoai.lastRoleId";
+    public const string StorageKey = "knowhowtoai.lastAudienceId";
 
     private readonly IJSRuntime _jsRuntime;
-    private readonly ILogger<BrowserRoleStorageService> _logger;
+    private readonly ILogger<BrowserAudienceStorageService> _logger;
 
-    public BrowserRoleStorageService(IJSRuntime jsRuntime, ILogger<BrowserRoleStorageService> logger)
+    public BrowserAudienceStorageService(IJSRuntime jsRuntime, ILogger<BrowserAudienceStorageService> logger)
     {
         _jsRuntime = jsRuntime ?? throw new ArgumentNullException(nameof(jsRuntime));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async ValueTask<string?> GetLastRoleIdAsync()
+    public async ValueTask<string?> GetLastAudienceIdAsync()
     {
         try
         {
@@ -38,13 +38,13 @@ public sealed class BrowserRoleStorageService : IRoleStorageService
         }
     }
 
-    public async ValueTask SetLastRoleIdAsync(string roleId)
+    public async ValueTask SetLastAudienceIdAsync(string audienceId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(roleId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(audienceId);
 
         try
         {
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, roleId).ConfigureAwait(false);
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, audienceId).ConfigureAwait(false);
         }
         catch (InvalidOperationException ex)
         {

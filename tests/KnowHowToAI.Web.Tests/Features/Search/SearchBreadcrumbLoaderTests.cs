@@ -14,7 +14,7 @@ public sealed class SearchBreadcrumbLoaderTests
     public async Task LoadAsync_MapsTheCompleteAncestorPathWithoutExposingDomainTypes()
     {
         var snapshotId = new SnapshotId(1);
-        var roleId = new AudienceId("Developer");
+        var audienceId = new AudienceId("Developer");
         var harness = new NavigationTestHarness(snapshotId);
         var rootId = new NodeId(Guid.Parse("60000000-0000-0000-0000-000000000006"));
         var childId = new NodeId(Guid.Parse("70000000-0000-0000-0000-000000000007"));
@@ -22,14 +22,14 @@ public sealed class SearchBreadcrumbLoaderTests
         harness.AddNode(new Node(snapshotId, childId, rootId, "Kind", null, 0, false));
         var page = new SearchPageViewModel("TODO",
         [
-            new SearchHitViewModel(childId.Value, "Kind", null, "TODO", "Content", "Explicit", roleId.Value,
+            new SearchHitViewModel(childId.Value, "Kind", null, "TODO", "Content", "Explicit", audienceId.Value,
                 "Current", 0, ["Kind"])
         ], null);
 
         var resolved = await new SearchBreadcrumbLoader(harness.CreateService()).LoadAsync(
             page,
             new ReadContext(),
-            roleId.Value,
+            audienceId.Value,
             CancellationToken.None);
 
         Assert.True(resolved.IsSuccess);

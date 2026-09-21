@@ -68,7 +68,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
         ContextSelector?.Open(
             ContextSelectorMode.Full,
             WorkspaceState?.CurrentReadContext,
-            WorkspaceState?.CurrentRoleId);
+            WorkspaceState?.CurrentAudienceId);
     }
 
     protected override void OnInitialized()

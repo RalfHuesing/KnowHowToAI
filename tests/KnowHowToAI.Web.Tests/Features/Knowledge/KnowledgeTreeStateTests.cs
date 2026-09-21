@@ -12,7 +12,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreeStateTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly AudienceId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultAudienceId = new("Developer");
 
     [Fact]
     public async Task InitializeAsync_EmptySnapshot_SetsRootNodeNull()
@@ -21,7 +21,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
 
         using var treeState = new KnowledgeTreeState(service);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         Assert.Null(treeState.RootNode);
         Assert.Null(treeState.VisualRootNodeId);
@@ -46,7 +46,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         Assert.NotNull(treeState.RootNode);
 
         await treeState.ExpandNodeAsync(rootId.Value);
@@ -78,7 +78,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         // Expandieren von Level 0 bis 9 (10 geladene Seiten)
         for (var i = 0; i < 10; i++)
@@ -117,14 +117,14 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         using var treeState = new KnowledgeTreeState(service);
 
         // 1. Kontext: Snapshot 1
-        await treeState.InitializeAsync(new ReadContext(SnapshotId: DefaultSnapshotId), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(SnapshotId: DefaultSnapshotId), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         Assert.Equal("Root Snap 1", treeState.RootNode!.Title);
         Assert.Equal(1, treeState.LoadedPageCount);
 
         // 2. Kontextwechsel: Snapshot 2
-        await treeState.InitializeAsync(new ReadContext(SnapshotId: snapshotId2), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(SnapshotId: snapshotId2), DefaultAudienceId.Value);
 
         // Altes Root und alte geladene Seiten vollständig verworfen
         Assert.Equal("Root Snap 2", treeState.RootNode!.Title);
@@ -148,7 +148,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         var child1Node = treeState.FindNode(child1Id.Value);
@@ -184,7 +184,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel(); // Sofort abgebrochen
@@ -213,12 +213,12 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         using var treeState = new KnowledgeTreeState(service);
 
         var context = new ReadContext(SnapshotId: DefaultSnapshotId);
-        await treeState.InitializeAsync(context, DefaultRoleId.Value);
+        await treeState.InitializeAsync(context, DefaultAudienceId.Value);
 
         // Expandieren
         await treeState.ExpandNodeAsync(rootId.Value);
 
-        Assert.Equal(DefaultRoleId.Value, treeState.CurrentRoleId);
+        Assert.Equal(DefaultAudienceId.Value, treeState.CurrentAudienceId);
         Assert.Equal(context, treeState.CurrentReadContext);
         Assert.Equal(100, treeState.RootNode!.Children.Count);
         Assert.NotNull(treeState.RootNode.NextCursor);
@@ -251,7 +251,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         Assert.NotNull(treeState.RootNode);
         Assert.False(treeState.RootNode.IsExpanded);
@@ -312,7 +312,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         // Direkter Einstieg (z.B. per URL /knowledge/{targetId})
         await treeState.SelectNodeAsync(targetId!.Value.Value);
@@ -353,7 +353,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         var missingId = Guid.NewGuid();
         await treeState.SelectNodeAsync(missingId);
@@ -382,7 +382,7 @@ public sealed class KnowledgeTreeStateTests : BunitContext
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         // Direkter Einstieg auf tiefstem Knoten Level 11
         await treeState.SelectNodeAsync(nodeIds[11].Value);

@@ -20,7 +20,7 @@ internal sealed class SearchBreadcrumbLoader
     public async Task<Result<SearchPageViewModel>> LoadAsync(
         SearchPageViewModel page,
         ReadContext readContext,
-        string roleId,
+        string audienceId,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(page);
@@ -29,7 +29,7 @@ internal sealed class SearchBreadcrumbLoader
         for (var index = 0; index < page.Items.Count; index++)
         {
             var item = page.Items[index];
-            var breadcrumb = await LoadPathAsync(item, readContext, roleId, cancellationToken).ConfigureAwait(false);
+            var breadcrumb = await LoadPathAsync(item, readContext, audienceId, cancellationToken).ConfigureAwait(false);
             if (!breadcrumb.IsSuccess)
                 return Result<SearchPageViewModel>.Failure(breadcrumb.Error!);
 
@@ -42,7 +42,7 @@ internal sealed class SearchBreadcrumbLoader
     private async Task<Result<IReadOnlyList<string>>> LoadPathAsync(
         SearchHitViewModel hit,
         ReadContext readContext,
-        string roleId,
+        string audienceId,
         CancellationToken cancellationToken)
     {
         var path = new List<string>();
@@ -53,7 +53,7 @@ internal sealed class SearchBreadcrumbLoader
             var result = await _navigationService.GetNodeAsync(
                 new NodeId(currentNodeId),
                 readContext,
-                new AudienceId(roleId),
+                new AudienceId(audienceId),
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.IsSuccess)

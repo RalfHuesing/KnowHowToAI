@@ -37,7 +37,7 @@
         </header>
 
         <div class="history-page__comparison-grid">
-            <SnapshotList RoleId="@QueryRoleId"
+            <SnapshotList AudienceId="@QueryAudienceId"
                           SelectedBaseSnapshotId="@_baseSnapshotId"
                           SelectedTargetSnapshotId="@_targetSnapshotId"
                           OnSnapshotsChanged="SnapshotsChangedAsync"
@@ -51,5 +51,5 @@
         </div>
     </section>
 
-    <ReleasePanel Snapshots="@_snapshots" RoleId="@QueryRoleId" />
+    <ReleasePanel Snapshots="@_snapshots" AudienceId="@QueryAudienceId" />
 </section>

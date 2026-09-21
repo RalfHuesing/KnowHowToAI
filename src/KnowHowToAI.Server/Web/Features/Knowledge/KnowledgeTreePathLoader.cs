@@ -50,13 +50,13 @@ internal sealed class KnowledgeTreePathLoader
     public async Task<PathLoadResult> EnsurePathLoadedAsync(
         Guid targetNodeId,
         ReadContext readContext,
-        string? roleId,
+        string? audienceId,
         CancellationToken cancellationToken)
     {
         if (_callbacks.IsNodeKnown(targetNodeId))
             return PathLoadResult.Success();
 
-        var (path, ancestorError) = await CollectAncestorsAsync(targetNodeId, readContext, roleId, cancellationToken).ConfigureAwait(false);
+        var (path, ancestorError) = await CollectAncestorsAsync(targetNodeId, readContext, audienceId, cancellationToken).ConfigureAwait(false);
         if (ancestorError is not null)
             return ancestorError;
 
@@ -70,7 +70,7 @@ internal sealed class KnowledgeTreePathLoader
     private async Task<(List<Guid> Path, PathLoadResult? Error)> CollectAncestorsAsync(
         Guid targetNodeId,
         ReadContext readContext,
-        string? roleId,
+        string? audienceId,
         CancellationToken cancellationToken)
     {
         var currentId = targetNodeId;
@@ -91,7 +91,7 @@ internal sealed class KnowledgeTreePathLoader
             var nodeResult = await _navigationService.GetNodeAsync(
                 new NodeId(currentId),
                 readContext,
-                new AudienceId(roleId ?? string.Empty),
+                new AudienceId(audienceId ?? string.Empty),
                 cancellationToken).ConfigureAwait(false);
 
             if (!nodeResult.IsSuccess || nodeResult.Value?.Node is null)

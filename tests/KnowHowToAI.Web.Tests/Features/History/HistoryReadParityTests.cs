@@ -180,29 +180,29 @@ public sealed class HistoryReadParityTests : BunitContext
     public void CompareSnapshots_DiffContainsAllEntityKinds_UiAndMcpReflectSameChanges()
     {
         var nodeId = new NodeId(Guid.Parse("30000000-0000-0000-0000-000000000001"));
-        var roleDeveloper = new AudienceId("Developer");
-        var roleAdmin = new AudienceId("Admin");
+        var audienceDeveloper = new AudienceId("Developer");
+        var audienceAdmin = new AudienceId("Admin");
         var revBefore = new ContentRevisionId(Guid.Parse("40000000-0000-0000-0000-000000000001"));
         var revAfter = new ContentRevisionId(Guid.Parse("40000000-0000-0000-0000-000000000002"));
 
         var nodeBefore = new Node(BaseSnapshotId, nodeId, null, "Titel Alt", "Desc Alt", 1, false);
         var nodeAfter = new Node(TargetSnapshotId, nodeId, null, "Titel Neu", "Desc Neu", 1, false);
 
-        var roleAdded = new Audience(TargetSnapshotId, roleAdmin, "Administrator", "Admin-Rolle", false);
+        var audienceAdded = new Audience(TargetSnapshotId, audienceAdmin, "Administrator", "Admin-Zielgruppe", false);
 
-        var resBefore = new AudienceResolution(BaseSnapshotId, roleDeveloper, roleDeveloper, 1);
-        var resAfter = new AudienceResolution(TargetSnapshotId, roleDeveloper, roleAdmin, 1);
+        var resBefore = new AudienceResolution(BaseSnapshotId, audienceDeveloper, audienceDeveloper, 1);
+        var resAfter = new AudienceResolution(TargetSnapshotId, audienceDeveloper, audienceAdmin, 1);
 
-        var contentBefore = new NodeContent(BaseSnapshotId, nodeId, roleDeveloper, revBefore, ContentMode.Independent, "Inhalt Alt", false);
-        var contentAfter = new NodeContent(TargetSnapshotId, nodeId, roleDeveloper, revAfter, ContentMode.Independent, "Inhalt Neu", false);
+        var contentBefore = new NodeContent(BaseSnapshotId, nodeId, audienceDeveloper, revBefore, ContentMode.Independent, "Inhalt Alt", false);
+        var contentAfter = new NodeContent(TargetSnapshotId, nodeId, audienceDeveloper, revAfter, ContentMode.Independent, "Inhalt Neu", false);
 
-        var depDeleted = new ContentDependency(BaseSnapshotId, nodeId, roleDeveloper, nodeId, roleAdmin, revBefore);
+        var depDeleted = new ContentDependency(BaseSnapshotId, nodeId, audienceDeveloper, nodeId, audienceAdmin, revBefore);
 
         var diff = new SnapshotDiff(
             BaseSnapshotId,
             TargetSnapshotId,
             Nodes: [new NodeDiffEntry(DiffChangeKind.Modified, nodeBefore, nodeAfter)],
-            Audiences: [new AudienceDiffEntry(DiffChangeKind.Added, Before: null, After: roleAdded)],
+            Audiences: [new AudienceDiffEntry(DiffChangeKind.Added, Before: null, After: audienceAdded)],
             AudienceResolutions: [new AudienceResolutionDiffEntry(DiffChangeKind.Modified, resBefore, resAfter)],
             Contents: [new ContentDiffEntry(DiffChangeKind.Modified, contentBefore, contentAfter)],
             Dependencies: [new DependencyDiffEntry(DiffChangeKind.Deleted, Before: depDeleted, After: null)],
@@ -237,24 +237,24 @@ public sealed class HistoryReadParityTests : BunitContext
         Assert.Equal(nodeId.Value.ToString("D"), uiNode.PrimaryId);
 
         // 2. Audience (Added)
-        var mcpRole = Assert.Single(mcpData.Items, e => e.EntityType == "audience");
-        var uiRole = Assert.Single(uiVm.Entries, e => e.EntityType == "Role");
-        Assert.Equal("Added", mcpRole.Kind);
-        Assert.Equal("Added", uiRole.Kind);
-        Assert.Equal(roleAdmin.Value, mcpRole.Id);
-        Assert.Equal(roleAdmin.Value, uiRole.PrimaryId);
+        var mcpAudience = Assert.Single(mcpData.Items, e => e.EntityType == "audience");
+        var uiAudience = Assert.Single(uiVm.Entries, e => e.EntityType == "Audience");
+        Assert.Equal("Added", mcpAudience.Kind);
+        Assert.Equal("Added", uiAudience.Kind);
+        Assert.Equal(audienceAdmin.Value, mcpAudience.Id);
+        Assert.Equal(audienceAdmin.Value, uiAudience.PrimaryId);
 
         // 3. AudienceResolution (Modified)
         var mcpRes = Assert.Single(mcpData.Items, e => e.EntityType == "audienceResolution");
-        var uiRes = Assert.Single(uiVm.Entries, e => e.EntityType == "RoleResolution");
+        var uiRes = Assert.Single(uiVm.Entries, e => e.EntityType == "AudienceResolution");
         Assert.Equal("Modified", mcpRes.Kind);
         Assert.Equal("Modified", uiRes.Kind);
-        Assert.Equal(roleDeveloper.Value, mcpRes.Id);
-        Assert.Equal(roleAdmin.Value, mcpRes.AudienceId);
-        Assert.Equal(roleDeveloper.Value, uiRes.PrimaryId);
-        Assert.Equal(roleAdmin.Value, uiRes.SecondaryId);
-        Assert.Contains(roleDeveloper.Value, uiRes.Detail);
-        Assert.Contains(roleAdmin.Value, uiRes.Detail);
+        Assert.Equal(audienceDeveloper.Value, mcpRes.Id);
+        Assert.Equal(audienceAdmin.Value, mcpRes.AudienceId);
+        Assert.Equal(audienceDeveloper.Value, uiRes.PrimaryId);
+        Assert.Equal(audienceAdmin.Value, uiRes.SecondaryId);
+        Assert.Contains(audienceDeveloper.Value, uiRes.Detail);
+        Assert.Contains(audienceAdmin.Value, uiRes.Detail);
 
         // 4. Content (Modified)
         var mcpContent = Assert.Single(mcpData.Items, e => e.EntityType == "content");
@@ -262,9 +262,9 @@ public sealed class HistoryReadParityTests : BunitContext
         Assert.Equal("Modified", mcpContent.Kind);
         Assert.Equal("Modified", uiContent.Kind);
         Assert.Equal(nodeId.Value.ToString("D"), mcpContent.Id);
-        Assert.Equal(roleDeveloper.Value, mcpContent.AudienceId);
+        Assert.Equal(audienceDeveloper.Value, mcpContent.AudienceId);
         Assert.Equal(nodeId.Value.ToString("D"), uiContent.PrimaryId);
-        Assert.Equal(roleDeveloper.Value, uiContent.SecondaryId);
+        Assert.Equal(audienceDeveloper.Value, uiContent.SecondaryId);
 
         // 5. Dependency (Deleted)
         var mcpDep = Assert.Single(mcpData.Items, e => e.EntityType == "dependency");
@@ -272,7 +272,7 @@ public sealed class HistoryReadParityTests : BunitContext
         Assert.Equal("Deleted", mcpDep.Kind);
         Assert.Equal("Deleted", uiDep.Kind);
         Assert.Equal(nodeId.Value.ToString("D"), mcpDep.Id);
-        Assert.Equal(roleDeveloper.Value, mcpDep.AudienceId);
+        Assert.Equal(audienceDeveloper.Value, mcpDep.AudienceId);
         Assert.Equal(nodeId.Value.ToString("D"), uiDep.PrimaryId);
         Assert.Equal(nodeId.Value.ToString("D"), uiDep.SecondaryId);
     }

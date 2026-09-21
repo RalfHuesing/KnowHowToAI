@@ -10,7 +10,7 @@ namespace KnowHowToAI.Server.Web.Features.Search;
 /// <param name="Snippet">Optionaler Treffer-Textausschnitt.</param>
 /// <param name="HitField">Feld, in dem der Treffer gefunden wurde (Title, Description, Content).</param>
 /// <param name="Availability">Verfügbarkeitsstatus als UI-Text.</param>
-/// <param name="ResolvedRoleId">Aufgelöste Rolle des Inhalts (falls vorhanden).</param>
+/// <param name="ResolvedAudienceId">Aufgelöste Zielgruppe des Inhalts (falls vorhanden).</param>
 /// <param name="Freshness">Aktualitätsstatus als UI-Text.</param>
 /// <param name="SortOrder">Sortierreihenfolge des Knotens.</param>
 /// <param name="Breadcrumb">Hierarchischer Pfad vom Root bis zum Treffer.</param>
@@ -21,7 +21,7 @@ public sealed record SearchHitViewModel(
     string? Snippet,
     string HitField,
     string Availability,
-    string? ResolvedRoleId,
+    string? ResolvedAudienceId,
     string Freshness,
     int SortOrder,
     IReadOnlyList<string> Breadcrumb,

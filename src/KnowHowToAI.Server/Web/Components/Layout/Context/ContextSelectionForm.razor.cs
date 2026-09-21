@@ -12,9 +12,9 @@ public sealed partial class ContextSelectionForm : ComponentBase
 {
     private readonly ContextSelectionDraft _draft = new();
     private ContextSelectionOptionsViewModel _options = ContextSelectionOptionsViewModel.Empty;
-    private string? _selectedRoleId;
+    private string? _selectedAudienceId;
     private string? _errorMessage;
-    private bool _isLoadingRoles;
+    private bool _isLoadingAudiences;
 
     [Inject]
     private ContextSelectorState State { get; set; } = default!;
@@ -23,10 +23,10 @@ public sealed partial class ContextSelectionForm : ComponentBase
     private IContextSelectionCatalog Catalog { get; set; } = default!;
 
     [Inject]
-    private IContextSelectionRoleCatalog RoleCatalog { get; set; } = default!;
+    private IContextSelectionAudienceCatalog AudienceCatalog { get; set; } = default!;
 
     [Inject]
-    private IRoleStorageService RoleStorage { get; set; } = default!;
+    private IAudienceStorageService AudienceStorage { get; set; } = default!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
@@ -39,14 +39,14 @@ public sealed partial class ContextSelectionForm : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         _draft.ApplyInitialContext(State.InitialReadContext);
-        _selectedRoleId = State.InitialRoleId;
+        _selectedAudienceId = State.InitialAudienceId;
 
         if (State.Mode == ContextSelectorMode.Full)
         {
             _options = await Catalog.LoadAsync(CancellationToken.None);
         }
 
-        await RefreshRolesAsync();
+        await RefreshAudiencesAsync();
     }
 
     private async Task SelectKindAsync(KnowledgeReadContextKind kind)
@@ -56,37 +56,37 @@ public sealed partial class ContextSelectionForm : ComponentBase
 
         _draft.SelectedKind = kind;
         _errorMessage = null;
-        await RefreshRolesAsync();
+        await RefreshAudiencesAsync();
     }
 
     private async Task OnContextParameterChangedAsync()
     {
         _errorMessage = null;
-        await RefreshRolesAsync();
+        await RefreshAudiencesAsync();
     }
 
-    private async Task RefreshRolesAsync()
+    private async Task RefreshAudiencesAsync()
     {
-        _isLoadingRoles = true;
-        _options = _options.WithRoles([]);
+        _isLoadingAudiences = true;
+        _options = _options.WithAudiences([]);
 
         var context = _draft.BuildReadContext(_options);
         if (!context.IsSuccess)
         {
-            _isLoadingRoles = false;
+            _isLoadingAudiences = false;
             return;
         }
 
-        var result = await RoleCatalog.LoadAsync(context.Value!, CancellationToken.None);
-        _options = _options.WithRoles(result.Roles);
+        var result = await AudienceCatalog.LoadAsync(context.Value!, CancellationToken.None);
+        _options = _options.WithAudiences(result.Audiences);
         _errorMessage = result.ErrorMessage;
 
-        if (_selectedRoleId is not null && !_options.Roles.Any(role => role.Id == _selectedRoleId))
+        if (_selectedAudienceId is not null && !_options.Audiences.Any(audience => audience.Id == _selectedAudienceId))
         {
-            _selectedRoleId = null;
+            _selectedAudienceId = null;
         }
 
-        _isLoadingRoles = false;
+        _isLoadingAudiences = false;
     }
 
     private async Task ApplyAsync()
@@ -107,13 +107,13 @@ public sealed partial class ContextSelectionForm : ComponentBase
             WorkspaceState.SetDirty(false);
         }
 
-        if (!string.IsNullOrWhiteSpace(_selectedRoleId))
+        if (!string.IsNullOrWhiteSpace(_selectedAudienceId))
         {
-            await RoleStorage.SetLastRoleIdAsync(_selectedRoleId);
+            await AudienceStorage.SetLastAudienceIdAsync(_selectedAudienceId);
         }
 
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var targetUrl = _draft.BuildTargetUrl(uri, State.Mode, _selectedRoleId);
+        var targetUrl = _draft.BuildTargetUrl(uri, State.Mode, _selectedAudienceId);
 
         _isConfirmingDirtySwitch = false;
         State.Close();
@@ -126,8 +126,8 @@ public sealed partial class ContextSelectionForm : ComponentBase
         if (!context.IsSuccess)
             return context.Error!.Message;
 
-        return _options.Roles.Count > 0 && string.IsNullOrWhiteSpace(_selectedRoleId)
-            ? "Bitte wählen Sie eine Rolle aus."
+        return _options.Audiences.Count > 0 && string.IsNullOrWhiteSpace(_selectedAudienceId)
+            ? "Bitte wählen Sie eine Zielgruppe aus."
             : null;
     }
 

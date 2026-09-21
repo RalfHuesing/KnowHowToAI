@@ -73,7 +73,7 @@ public sealed class KnowledgePageRootNodeTests : BunitContext
         if (activeTransaction)
         {
             Services.GetRequiredService<NavigationManager>().NavigateTo(
-                $"/knowledge?transactionId={TransactionId.Value:D}&roleId=Developer");
+                $"/knowledge?transactionId={TransactionId.Value:D}&audienceId=Developer");
         }
 
         return Render<KnowledgePage>();

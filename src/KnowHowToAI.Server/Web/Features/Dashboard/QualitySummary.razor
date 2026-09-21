@@ -17,8 +17,8 @@
                         @foreach (var stale in Quality.StaleContents)
                         {
                             <li>
-                                <a href="/knowledge/@stale.NodeId?roleId=@Uri.EscapeDataString(stale.RoleId)" class="dashboard-link">Node @stale.NodeId</a>
-                                <span class="badge badge-warning">Rolle: @stale.RoleId</span>
+                                <a href="/knowledge/@stale.NodeId?audienceId=@Uri.EscapeDataString(stale.AudienceId)" class="dashboard-link">Node @stale.NodeId</a>
+                                <span class="badge badge-warning">Zielgruppe: @stale.AudienceId</span>
                             </li>
                         }
                     </ul>
@@ -30,7 +30,7 @@
             </div>
 
             <div class="quality-section" data-testid="warnings-section">
-                <h3>Qualitätswarnungen über alle Rollen (@Quality.WarningCount)</h3>
+                <h3>Qualitätswarnungen über alle Zielgruppen (@Quality.WarningCount)</h3>
                 @if (Quality.WarningCount > 0)
                 {
                     <ul class="quality-list" data-testid="warnings-list">

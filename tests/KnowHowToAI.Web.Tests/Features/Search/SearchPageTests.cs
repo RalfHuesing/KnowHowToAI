@@ -54,9 +54,9 @@ public sealed class SearchPageTests : BunitContext
                 }
             }
 
-            var roles = new[] { new Audience(SnapshotId, AudienceId, AudienceId.Value, null, false) };
+            var audiences = new[] { new Audience(SnapshotId, AudienceId, AudienceId.Value, null, false) };
             var resolutions = new[] { new AudienceResolution(SnapshotId, AudienceId, AudienceId, 1) };
-            return Result<SearchRepositoryResult>.Success(new SearchRepositoryResult([_completedHit], Audiences: roles, Resolutions: resolutions));
+            return Result<SearchRepositoryResult>.Success(new SearchRepositoryResult([_completedHit], Audiences: audiences, Resolutions: resolutions));
         }
     }
 
@@ -184,7 +184,7 @@ public sealed class SearchPageTests : BunitContext
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow));
 
-        Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?snapshotId={historicalSnapshotId.Value}&roleId={AudienceId.Value}");
+        Services.GetRequiredService<NavigationManager>().NavigateTo($"/search?snapshotId={historicalSnapshotId.Value}&audienceId={AudienceId.Value}");
         var cut = Render<SearchPage>();
 
         Assert.Equal(historicalSnapshotId, Services.GetRequiredService<WorkspaceState>().CurrentReadContext.SnapshotId);
@@ -236,18 +236,18 @@ public sealed class SearchPageTests : BunitContext
     private void RegisterPageServices(NavigationService navigationService, SearchService searchService)
     {
         Services.AddWebPageStates()
-            .AddSearchPageServices(navigationService, searchService, defaultRole: AudienceId.Value);
+            .AddSearchPageServices(navigationService, searchService, defaultAudience: AudienceId.Value);
     }
 
     [Fact]
-    public void ExplicitlyInvalidRole_DoesNotFallBackToStoredRole()
+    public void ExplicitlyInvalidAudience_DoesNotFallBackToStoredAudience()
     {
         ConfigureSearch(searchPageSize: 10);
-        Services.GetRequiredService<NavigationManager>().NavigateTo("/search?roleId=Missing");
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/search?audienceId=Missing");
 
         var cut = Render<SearchPage>();
 
-        Assert.Contains("RequestedRoleNotFound", cut.Find("[data-testid='search-context-error']").TextContent);
+        Assert.Contains("RequestedAudienceNotFound", cut.Find("[data-testid='search-context-error']").TextContent);
         Assert.True(Services.GetRequiredService<ContextSelectorState>().IsOpen);
     }
 }

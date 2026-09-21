@@ -11,7 +11,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreePathLoaderTests
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly AudienceId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultAudienceId = new("Developer");
 
     [Fact]
     public async Task EnsurePathLoadedAsync_WhenNodeAlreadyKnown_DoesNothing()
@@ -30,7 +30,7 @@ public sealed class KnowledgeTreePathLoaderTests
                 id => id == knownId,
                 id => null));
 
-        await loader.EnsurePathLoadedAsync(knownId, new ReadContext(), DefaultRoleId.Value, CancellationToken.None);
+        await loader.EnsurePathLoadedAsync(knownId, new ReadContext(), DefaultAudienceId.Value, CancellationToken.None);
 
         Assert.False(expanded);
     }
@@ -96,7 +96,7 @@ public sealed class KnowledgeTreePathLoaderTests
                 id => knownNodes.ContainsKey(id),
                 id => knownNodes.TryGetValue(id, out var n) ? n : null));
 
-        var result = await loader.EnsurePathLoadedAsync(grandchildId.Value, new ReadContext(), DefaultRoleId.Value, CancellationToken.None);
+        var result = await loader.EnsurePathLoadedAsync(grandchildId.Value, new ReadContext(), DefaultAudienceId.Value, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Contains(rootId.Value, expandedIds);
@@ -123,7 +123,7 @@ public sealed class KnowledgeTreePathLoaderTests
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
 
         using var treeState = new KnowledgeTreeState(service);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         var pagedCount = 0;
         var loader = new KnowledgeTreePathLoader(
@@ -134,7 +134,7 @@ public sealed class KnowledgeTreePathLoaderTests
                 id => treeState.FindNode(id) is not null,
                 treeState.FindNode));
 
-        var result = await loader.EnsurePathLoadedAsync(targetId.Value, new ReadContext(), DefaultRoleId.Value, CancellationToken.None);
+        var result = await loader.EnsurePathLoadedAsync(targetId.Value, new ReadContext(), DefaultAudienceId.Value, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(treeState.FindNode(targetId.Value));
@@ -177,7 +177,7 @@ public sealed class KnowledgeTreePathLoaderTests
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         var pagedParents = new List<Guid>();
         var loader = new KnowledgeTreePathLoader(
@@ -188,7 +188,7 @@ public sealed class KnowledgeTreePathLoaderTests
                 id => treeState.FindNode(id) is not null,
                 treeState.FindNode));
 
-        var result = await loader.EnsurePathLoadedAsync(targetId!.Value.Value, new ReadContext(), DefaultRoleId.Value, CancellationToken.None);
+        var result = await loader.EnsurePathLoadedAsync(targetId!.Value.Value, new ReadContext(), DefaultAudienceId.Value, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(treeState.FindNode(targetId.Value.Value));
@@ -198,7 +198,7 @@ public sealed class KnowledgeTreePathLoaderTests
     }
 
     [Fact]
-    public async Task EnsurePathLoadedAsync_CallProtocol_VerifiesParentContextRoleLimitAndUnchangedCursor()
+    public async Task EnsurePathLoadedAsync_CallProtocol_VerifiesParentContextAudienceLimitAndUnchangedCursor()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -218,7 +218,7 @@ public sealed class KnowledgeTreePathLoaderTests
         // Erzeuge Initial-TreeState
         using var treeState = new KnowledgeTreeState(service);
         var readContext = new ReadContext(SnapshotId: DefaultSnapshotId);
-        await treeState.InitializeAsync(readContext, DefaultRoleId.Value);
+        await treeState.InitializeAsync(readContext, DefaultAudienceId.Value);
 
         var capturedQueries = new List<ListChildrenQuery>();
         var rootNode = treeState.RootNode!;
@@ -234,7 +234,7 @@ public sealed class KnowledgeTreePathLoaderTests
                     capturedQueries.Add(new ListChildrenQuery(
                         new NodeId(id),
                         readContext,
-                        DefaultRoleId,
+                        DefaultAudienceId,
                         Limit: 100,
                         Cursor: cursorBefore));
                     await treeState.PageNextAsync(id, ct);
@@ -242,17 +242,17 @@ public sealed class KnowledgeTreePathLoaderTests
                 id => treeState.FindNode(id) is not null,
                 treeState.FindNode));
 
-        var result = await loader.EnsurePathLoadedAsync(targetId.Value, readContext, DefaultRoleId.Value, CancellationToken.None);
+        var result = await loader.EnsurePathLoadedAsync(targetId.Value, readContext, DefaultAudienceId.Value, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(2, capturedQueries.Count);
 
-        // Protokollprüfung: Parent, Kontext, Rolle, Limit = 100 und unveränderter Cursor
+        // Protokollprüfung: Parent, Kontext, Zielgruppe, Limit = 100 und unveränderter Cursor
         foreach (var q in capturedQueries)
         {
             Assert.Equal(rootId, q.ParentNodeId);
             Assert.Equal(readContext, q.Context);
-            Assert.Equal(DefaultRoleId, q.AudienceId);
+            Assert.Equal(DefaultAudienceId, q.AudienceId);
             Assert.Equal(100, q.Limit);
             Assert.False(string.IsNullOrEmpty(q.Cursor));
         }
@@ -279,7 +279,7 @@ public sealed class KnowledgeTreePathLoaderTests
                 id => false,
                 id => null));
 
-        var result = await loader.EnsurePathLoadedAsync(missingNodeId, new ReadContext(), DefaultRoleId.Value, CancellationToken.None);
+        var result = await loader.EnsurePathLoadedAsync(missingNodeId, new ReadContext(), DefaultAudienceId.Value, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(NavigationErrorCodes.NodeNotFound, result.ErrorCode);
@@ -321,7 +321,7 @@ public sealed class KnowledgeTreePathLoaderTests
                 id => false,
                 id => id == rootId.Value ? rootVm : null));
 
-        var result = await loader.EnsurePathLoadedAsync(childId.Value, new ReadContext(), DefaultRoleId.Value, CancellationToken.None);
+        var result = await loader.EnsurePathLoadedAsync(childId.Value, new ReadContext(), DefaultAudienceId.Value, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(NavigationErrorCodes.InvalidCursor, result.ErrorCode);

@@ -23,7 +23,7 @@ public sealed class ContextSelectionDraftTests
     }
 
     [Fact]
-    public void SelectedRelease_UsesItsResolvedSnapshotForRoleLoading()
+    public void SelectedRelease_UsesItsResolvedSnapshotForAudienceLoading()
     {
         var draft = new ContextSelectionDraft
         {
@@ -42,15 +42,15 @@ public sealed class ContextSelectionDraftTests
     }
 
     [Fact]
-    public void MandatoryRoleSelection_PreservesExistingReadContextInTargetUrl()
+    public void MandatoryAudienceSelection_PreservesExistingReadContextInTargetUrl()
     {
         var draft = new ContextSelectionDraft();
 
         var targetUrl = draft.BuildTargetUrl(
             new Uri("https://localhost/knowledge/abc?snapshotId=42"),
-            ContextSelectorMode.MandatoryRole,
+            ContextSelectorMode.MandatoryAudience,
             "Developer");
 
-        Assert.Equal("/knowledge/abc?roleId=Developer&snapshotId=42", targetUrl);
+        Assert.Equal("/knowledge/abc?audienceId=Developer&snapshotId=42", targetUrl);
     }
 }

@@ -22,12 +22,12 @@ public sealed class KnowledgeContextBarTests : BunitContext
     }
 
     [Theory]
-    [InlineData(null, "Keine Rolle ausgewählt")]
+    [InlineData(null, "Keine Zielgruppe ausgewählt")]
     [InlineData("Developer", "Developer")]
-    public void RendersTheSelectedRoleOrANeutralMissingState(string? roleName, string expectedText)
+    public void RendersTheSelectedAudienceOrANeutralMissingState(string? AudienceName, string expectedText)
     {
         var cut = RenderBar(new KnowledgeContextViewModel(
-            KnowledgeReadContextKind.Current, RoleName: roleName));
+            KnowledgeReadContextKind.Current, AudienceName: AudienceName));
 
         Assert.Contains(expectedText, cut.Find(".knowledge-context").TextContent, StringComparison.Ordinal);
     }

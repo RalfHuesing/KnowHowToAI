@@ -20,7 +20,7 @@ public sealed partial class NodeDetailsPane
     public ReadContext? ReadContext { get; set; }
 
     [Parameter]
-    public string? RoleId { get; set; }
+    public string? AudienceId { get; set; }
 
     [Parameter]
     public long? ChangeVersion { get; set; }
@@ -48,7 +48,7 @@ public sealed partial class NodeDetailsPane
     private string? _errorMessage;
     private bool _nodeNotFound;
     private bool _isLoading;
-    private (Guid? NodeId, ReadContext? ReadContext, string? RoleId, long? ChangeVersion)? _loadedRequest;
+    private (Guid? NodeId, ReadContext? ReadContext, string? AudienceId, long? ChangeVersion)? _loadedRequest;
 
     private bool CanEditContent =>
         _viewModel is not null
@@ -60,20 +60,20 @@ public sealed partial class NodeDetailsPane
 
     protected override async Task OnParametersSetAsync()
     {
-        var request = (NodeId, ReadContext, RoleId, ChangeVersion);
+        var request = (NodeId, ReadContext, AudienceId, ChangeVersion);
         if (_loadedRequest == request)
             return;
 
         _loadedRequest = request;
         Clear();
-        if (NodeId is not { } nodeId || ReadContext is null || string.IsNullOrWhiteSpace(RoleId))
+        if (NodeId is not { } nodeId || ReadContext is null || string.IsNullOrWhiteSpace(AudienceId))
             return;
 
         _isLoading = true;
         var result = await NavigationService.GetNodeAsync(
             new NodeId(nodeId),
             ReadContext,
-            new AudienceId(RoleId),
+            new AudienceId(AudienceId),
             CancellationToken.None);
         _isLoading = false;
 
@@ -87,7 +87,7 @@ public sealed partial class NodeDetailsPane
         }
 
         _viewModel = KnowledgeNavigationMapper.ToNodeDetailsViewModel(result.Value, ChangeVersion);
-        _markdownDownloadUrl = CreateMarkdownDownloadUrl(nodeId, RoleId);
+        _markdownDownloadUrl = CreateMarkdownDownloadUrl(nodeId, AudienceId);
     }
 
     private async Task HandleMutationSucceededAsync(NodeMutationResult mutation)
@@ -99,12 +99,12 @@ public sealed partial class NodeDetailsPane
     private Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult mutation) =>
         OnContentMutationSucceeded.InvokeAsync(mutation);
 
-    private string CreateMarkdownDownloadUrl(Guid nodeId, string roleId)
+    private string CreateMarkdownDownloadUrl(Guid nodeId, string audienceId)
     {
         var query = new Dictionary<string, string?>
         {
             ["nodeId"] = nodeId.ToString("D"),
-            ["roleId"] = roleId,
+            ["audienceId"] = AudienceId,
             ["transactionId"] = QueryTransactionId,
             ["snapshotId"] = QuerySnapshotId,
             ["releaseId"] = QueryReleaseId

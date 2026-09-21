@@ -12,7 +12,7 @@ public sealed class NodeDetailsTests : BunitContext
         string freshness = "Current",
         string? contentMode = "Independent",
         bool fallbackUsed = false,
-        string? resolvedRoleId = null)
+        string? resolvedAudienceId = null)
     {
         var nodeId = Guid.NewGuid();
         return new NodeDetailsViewModel(
@@ -21,8 +21,8 @@ public sealed class NodeDetailsTests : BunitContext
             Title: "Test-Knoten",
             Description: "Eine Beschreibung",
             SortOrder: 1,
-            RequestedRoleId: "Developer",
-            ResolvedRoleId: resolvedRoleId ?? "Developer",
+            RequestedAudienceId: "Developer",
+            ResolvedAudienceId: resolvedAudienceId ?? "Developer",
             FallbackUsed: fallbackUsed,
             Availability: availability,
             Freshness: freshness,
@@ -116,7 +116,7 @@ public sealed class NodeDetailsTests : BunitContext
     public void NodeDetails_WithMarkdownDownloadUrl_RendersDownloadLink()
     {
         var vm = MakeViewModel();
-        var downloadUrl = $"/downloads/markdown?nodeId={vm.NodeId:D}&roleId=Developer&snapshotId=7";
+        var downloadUrl = $"/downloads/markdown?nodeId={vm.NodeId:D}&audienceId=Developer&snapshotId=7";
 
         var cut = Render<NodeDetails>(p => p
             .Add(x => x.ViewModel, vm)
@@ -167,22 +167,22 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
-    public void NodeDetails_WithFallback_ShowsFallbackInRole()
+    public void NodeDetails_WithFallback_ShowsFallbackInAudience()
     {
         var vm = MakeViewModel(
             fallbackUsed: true,
-            resolvedRoleId: "Architect",
+            resolvedAudienceId: "Architect",
             availability: "Fallback");
 
         var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
 
-        var roleElement = cut.Find("[data-testid='node-details-role']");
-        Assert.Contains("Architect", roleElement.TextContent);
-        Assert.Contains("→", roleElement.TextContent);
+        var AudienceElement = cut.Find("[data-testid='node-details-Audience']");
+        Assert.Contains("Architect", AudienceElement.TextContent);
+        Assert.Contains("→", AudienceElement.TextContent);
 
         var fallbackContext = cut.Find("[data-testid='node-content-fallback-context']");
         Assert.Contains("kein eigener Inhalt hinterlegt", fallbackContext.TextContent);
-        Assert.Contains("Fallback-Rolle „Architect“", fallbackContext.TextContent);
+        Assert.Contains("Fallback-Zielgruppe „Architect“", fallbackContext.TextContent);
         Assert.Contains("Wissenskontext bleiben unverändert", fallbackContext.TextContent);
     }
 
@@ -192,7 +192,7 @@ public sealed class NodeDetailsTests : BunitContext
         var vm = MakeViewModel(
             contentMd: "Fallback-Inhalt",
             fallbackUsed: true,
-            resolvedRoleId: "Architect",
+            resolvedAudienceId: "Architect",
             availability: "Fallback");
         var cut = Render<NodeDetails>(p => p
             .Add(x => x.ViewModel, vm)
@@ -211,12 +211,12 @@ public sealed class NodeDetailsTests : BunitContext
     [Fact]
     public void NodeDetails_WithoutFallback_DoesNotShowArrow()
     {
-        var vm = MakeViewModel(fallbackUsed: false, resolvedRoleId: "Developer");
+        var vm = MakeViewModel(fallbackUsed: false, resolvedAudienceId: "Developer");
 
         var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
 
-        var roleElement = cut.Find("[data-testid='node-details-role']");
-        Assert.DoesNotContain("→", roleElement.TextContent);
+        var AudienceElement = cut.Find("[data-testid='node-details-Audience']");
+        Assert.DoesNotContain("→", AudienceElement.TextContent);
     }
 
     [Fact]

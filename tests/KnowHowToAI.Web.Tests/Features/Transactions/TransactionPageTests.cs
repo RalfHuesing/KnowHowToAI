@@ -71,7 +71,7 @@ public sealed class TransactionPageTests : BunitContext
             CommitMessage: null);
 
         _harness.AddTransaction(tx);
-        _workspaceState.SetRole("Architekt");
+        _workspaceState.SetAudience("Architekt");
 
         var cut = Render<TransactionPage>(parameters => parameters
             .Add(p => p.TransactionId, txId.Value));
@@ -95,9 +95,9 @@ public sealed class TransactionPageTests : BunitContext
         Assert.Equal(KnowledgeReadContextKind.Transaction, _workspaceState.CurrentContext.ReadContext);
         Assert.Equal(txId, _workspaceState.CurrentReadContext.TransactionId);
 
-        // Link in den Wissensbaum mit Rolle
+        // Link in den Wissensbaum mit Zielgruppe
         var openKnowledgeLink = cut.Find("[data-testid='tx-open-knowledge-link']");
-        Assert.Equal($"/knowledge?transactionId={txId.Value}&roleId=Architekt", openKnowledgeLink.GetAttribute("href"));
+        Assert.Equal($"/knowledge?transactionId={txId.Value}&audienceId=Architekt", openKnowledgeLink.GetAttribute("href"));
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public sealed class TransactionPageTests : BunitContext
         var transaction = AddOpenTransaction();
         var nodeId = ValidationNodeGuid;
         _harness.SetValidationData(transaction.TransactionId, ValidationData(nodeId, "# Nicht erlaubt"));
-        _workspaceState.SetRole("Architekt");
+        _workspaceState.SetAudience("Architekt");
 
         var cut = Render<TransactionPage>(parameters => parameters.Add(p => p.TransactionId, transaction.TransactionId.Value));
 
@@ -209,7 +209,7 @@ public sealed class TransactionPageTests : BunitContext
         Assert.Single(cut.FindAll("[data-testid='validation-invalid']"));
         Assert.Contains("HeadingNotAllowed", cut.Find("[data-testid='validation-errors']").TextContent);
         Assert.Equal(
-            $"/knowledge/{nodeId:D}?transactionId={transaction.TransactionId.Value:D}&roleId=Architekt",
+            $"/knowledge/{nodeId:D}?transactionId={transaction.TransactionId.Value:D}&audienceId=Architekt",
             cut.Find($"[data-testid='validation-error-node-{nodeId:D}']").GetAttribute("href"));
     }
 
@@ -393,12 +393,12 @@ public sealed class TransactionPageTests : BunitContext
     private static WorkingSnapshotValidationData ValidationData(Guid nodeId, string contentMd)
     {
         var snapshotId = new SnapshotId(2);
-        var roleId = new AudienceId("Default");
+        var audienceId = new AudienceId("Default");
         return new WorkingSnapshotValidationData(
             [new Node(snapshotId, new NodeId(nodeId), null, "Root", null, 0, false)],
-            [new Audience(snapshotId, roleId, "Default", null, false)],
-            [new AudienceResolution(snapshotId, roleId, roleId, 1)],
-            [new NodeContent(snapshotId, new NodeId(nodeId), roleId, new ContentRevisionId(ContentRevisionGuid), ContentMode.Independent, contentMd, false)],
+            [new Audience(snapshotId, audienceId, "Default", null, false)],
+            [new AudienceResolution(snapshotId, audienceId, audienceId, 1)],
+            [new NodeContent(snapshotId, new NodeId(nodeId), audienceId, new ContentRevisionId(ContentRevisionGuid), ContentMode.Independent, contentMd, false)],
             [],
             1);
     }
@@ -406,20 +406,20 @@ public sealed class TransactionPageTests : BunitContext
     private static WorkingSnapshotValidationData MixedValidationData(Guid sourceId, Guid derivedId)
     {
         var snapshotId = new SnapshotId(2);
-        var roleId = new AudienceId("Default");
+        var audienceId = new AudienceId("Default");
         var sourceRevisionId = new ContentRevisionId(SourceRevisionGuid);
         return new WorkingSnapshotValidationData(
             [
                 new Node(snapshotId, new NodeId(sourceId), null, "Source", null, 0, false),
                 new Node(snapshotId, new NodeId(derivedId), new NodeId(sourceId), "Derived", null, 0, false)
             ],
-            [new Audience(snapshotId, roleId, "Default", null, false)],
-            [new AudienceResolution(snapshotId, roleId, roleId, 1)],
+            [new Audience(snapshotId, audienceId, "Default", null, false)],
+            [new AudienceResolution(snapshotId, audienceId, audienceId, 1)],
             [
-                new NodeContent(snapshotId, new NodeId(sourceId), roleId, sourceRevisionId, ContentMode.Independent, "Quelle", true),
-                new NodeContent(snapshotId, new NodeId(derivedId), roleId, new ContentRevisionId(DerivedRevisionGuid), ContentMode.Derived, "# Fehler", false)
+                new NodeContent(snapshotId, new NodeId(sourceId), audienceId, sourceRevisionId, ContentMode.Independent, "Quelle", true),
+                new NodeContent(snapshotId, new NodeId(derivedId), audienceId, new ContentRevisionId(DerivedRevisionGuid), ContentMode.Derived, "# Fehler", false)
             ],
-            [new ContentDependency(snapshotId, new NodeId(derivedId), roleId, new NodeId(sourceId), roleId, sourceRevisionId)],
+            [new ContentDependency(snapshotId, new NodeId(derivedId), audienceId, new NodeId(sourceId), audienceId, sourceRevisionId)],
             1);
     }
 

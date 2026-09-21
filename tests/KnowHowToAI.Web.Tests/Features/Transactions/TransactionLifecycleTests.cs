@@ -60,7 +60,7 @@ public sealed class TransactionLifecycleTests : BunitContext
     [Fact]
     public void Commit_AfterConfirmation_CommitsWithMessageAndSwitchesToCurrentSnapshot()
     {
-        _workspaceState.SetRole("Architekt");
+        _workspaceState.SetAudience("Architekt");
         _repository.CommitResult = new CommitTransactionResult(CommittedTransaction(), null, null);
 
         var cut = RenderPage();
@@ -76,7 +76,7 @@ public sealed class TransactionLifecycleTests : BunitContext
         Assert.Equal(KnowHowToAI.Server.Web.Components.Layout.Context.KnowledgeReadContextKind.Current, _workspaceState.CurrentContext.ReadContext);
         Assert.Single(_toastState.Entries);
         Assert.Contains("committed", _toastState.Entries[0].Message, StringComparison.Ordinal);
-        Assert.EndsWith("/knowledge?roleId=Architekt", BrowserNavigation.Uri, StringComparison.Ordinal);
+        Assert.EndsWith("/knowledge?audienceId=Architekt", BrowserNavigation.Uri, StringComparison.Ordinal);
     }
 
     [Fact]

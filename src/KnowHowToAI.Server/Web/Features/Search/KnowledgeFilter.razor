@@ -6,10 +6,10 @@
     <p class="knowledge-filter__hint">Mehrere Werte einer Gruppe erweitern die Auswahl. Gruppen werden gemeinsam eingeschränkt.</p>
 
     <div class="knowledge-filter__group">
-        <span class="knowledge-filter__label">Aufgelöste Rolle</span>
-        @foreach (var role in Roles)
+        <span class="knowledge-filter__label">Aufgelöste Zielgruppe</span>
+        @foreach (var audience in Audiences)
         {
-            <label><input type="checkbox" checked="@Filter.ResolvedRoleIds.Contains(role.Value)" @onclick="() => ToggleRoleAsync(role.Value)" data-testid="filter-role-@role.Value" /> @role.Label</label>
+            <label><input type="checkbox" checked="@Filter.ResolvedAudienceIds.Contains(audience.Value)" @onclick="() => ToggleAudienceAsync(audience.Value)" data-testid="filter-audience-@audience.Value" /> @audience.Label</label>
         }
     </div>
     <div class="knowledge-filter__group">

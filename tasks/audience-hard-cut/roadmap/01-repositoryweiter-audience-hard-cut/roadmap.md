@@ -52,7 +52,7 @@ unverändert.
 ## M1.3 – Web-Hard-Cut
 
 - [ ] **M1.3 abschließen**
-  - [ ] [M1.3-T1 – Webzustand, Route und Zielgruppenoberfläche umstellen](tasks/M1.3-T1.md)
+  - [x] [M1.3-T1 – Webzustand, Route und Zielgruppenoberfläche umstellen](tasks/M1.3-T1.md)
   - [ ] [M1.3-T2 – Browser-Seeds und Ende-zu-Ende-Abläufe umstellen](tasks/M1.3-T2.md)
 
 ## M1.4 – Regeln und Planungsbestand

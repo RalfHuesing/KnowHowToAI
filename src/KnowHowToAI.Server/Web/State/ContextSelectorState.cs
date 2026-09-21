@@ -8,21 +8,21 @@ namespace KnowHowToAI.Server.Web.State;
 public enum ContextSelectorMode
 {
     /// <summary>
-    /// Vollständige Auswahl von Lesekontext (Current, Snapshot, Release, Working Transaction) und Rolle.
+    /// Vollständige Auswahl von Lesekontext (Current, Snapshot, Release, Working Transaction) und Zielgruppe.
     /// Kann vom Benutzer abgebrochen werden.
     /// </summary>
     Full,
 
     /// <summary>
-    /// Modaler Pflichtauswahl-Selektor gemäß O-008: Es fehlt eine gültige Rolle,
-    /// daher muss eine Rolle für den aktuellen Kontext gewählt werden.
+    /// Modaler Pflichtauswahl-Selektor gemäß O-008: Es fehlt eine gültige Zielgruppe,
+    /// daher muss eine Zielgruppe für den aktuellen Kontext gewählt werden.
     /// Kann nicht ohne Auswahl abgebrochen werden.
     /// </summary>
-    MandatoryRole
+    MandatoryAudience
 }
 
 /// <summary>
-/// Flüchtiger Circuit-State für den globalen Rollen- und Lesekontext-Selektor.
+/// Flüchtiger Circuit-State für den globalen Zielgruppen- und Lesekontext-Selektor.
 /// Koordiniert das Öffnen und Schließen des modalen Auswahldialogs über Komponentengrenzen hinweg.
 /// </summary>
 public sealed class ContextSelectorState
@@ -33,18 +33,18 @@ public sealed class ContextSelectorState
 
     public ReadContext? InitialReadContext { get; private set; }
 
-    public string? InitialRoleId { get; private set; }
+    public string? InitialAudienceId { get; private set; }
 
     public event Action? Changed;
 
     public void Open(
         ContextSelectorMode mode,
         ReadContext? initialReadContext = null,
-        string? initialRoleId = null)
+        string? initialAudienceId = null)
     {
         Mode = mode;
         InitialReadContext = initialReadContext;
-        InitialRoleId = initialRoleId;
+        InitialAudienceId = initialAudienceId;
         IsOpen = true;
         Changed?.Invoke();
     }

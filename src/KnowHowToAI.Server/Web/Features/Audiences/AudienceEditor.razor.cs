@@ -3,12 +3,12 @@ using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using Microsoft.AspNetCore.Components;
 
-namespace KnowHowToAI.Server.Web.Features.Roles;
+namespace KnowHowToAI.Server.Web.Features.Audiences;
 
 /// <summary>
-/// Lädt und projiziert Rollen sowie deren Working-Transaction-Mutationen.
+/// Lädt und projiziert Zielgruppen sowie deren Working-Transaction-Mutationen.
 /// </summary>
-public sealed partial class RoleEditor : ComponentBase
+public sealed partial class AudienceEditor : ComponentBase
 {
     [Inject]
     private NavigationService NavigationService { get; set; } = default!;
@@ -28,22 +28,22 @@ public sealed partial class RoleEditor : ComponentBase
     private ReadContext? _loadedReadContext;
     private long? _loadedChangeVersion;
     private long? _changeVersion;
-    private IReadOnlyList<RoleItemViewModel> _roles = [];
-    private string? _rolesErrorMessage;
+    private IReadOnlyList<AudienceItemViewModel> _audiences = [];
+    private string? _audiencesErrorMessage;
     private string? _mutationErrorMessage;
     private bool _isLoading;
     private bool _isSubmitting;
-    private string? _editingRoleId;
-    private RoleItemViewModel? _pendingDeleteRole;
+    private string? _editingAudienceId;
+    private AudienceItemViewModel? _pendingDeleteAudience;
     private bool _hasLoaded;
 
-    internal string NewRoleName { get; set; } = string.Empty;
+    internal string NewAudienceName { get; set; } = string.Empty;
 
-    internal string NewRoleDescription { get; set; } = string.Empty;
+    internal string NewAudienceDescription { get; set; } = string.Empty;
 
-    internal string EditRoleName { get; set; } = string.Empty;
+    internal string EditAudienceName { get; set; } = string.Empty;
 
-    internal string EditRoleDescription { get; set; } = string.Empty;
+    internal string EditAudienceDescription { get; set; } = string.Empty;
 
     private bool IsWorkingTransaction => ReadContext.TransactionId.HasValue;
 
@@ -59,20 +59,20 @@ public sealed partial class RoleEditor : ComponentBase
         _loadedReadContext = ReadContext;
         _loadedChangeVersion = ChangeVersion;
         _changeVersion = ChangeVersion;
-        _rolesErrorMessage = null;
+        _audiencesErrorMessage = null;
         _mutationErrorMessage = null;
-        _editingRoleId = null;
-        _pendingDeleteRole = null;
-        _roles = [];
+        _editingAudienceId = null;
+        _pendingDeleteAudience = null;
+        _audiences = [];
         _isLoading = true;
-        await LoadRolesAsync();
+        await LoadAudiencesAsync();
         _isLoading = false;
         _hasLoaded = true;
     }
 
-    private async Task LoadRolesAsync()
+    private async Task LoadAudiencesAsync()
     {
-        var roles = new List<RoleItemViewModel>();
+        var audiences = new List<AudienceItemViewModel>();
         string? cursor = null;
 
         do
@@ -82,22 +82,22 @@ public sealed partial class RoleEditor : ComponentBase
                 CancellationToken.None);
             if (!result.IsSuccess)
             {
-                _rolesErrorMessage = RoleMapper.ToErrorMessage(result.Error!);
+                _audiencesErrorMessage = AudienceMapper.ToErrorMessage(result.Error!);
                 return;
             }
 
-            var page = RoleMapper.ToRolePageViewModel(result.Value!);
-            roles.AddRange(page.Items);
+            var page = AudienceMapper.ToAudiencePageViewModel(result.Value!);
+            audiences.AddRange(page.Items);
             if (page.ChangeVersion is { } changeVersion)
                 _changeVersion = changeVersion;
             cursor = page.NextCursor;
         }
         while (cursor is not null);
 
-        _roles = roles;
+        _audiences = audiences;
     }
 
-    private async Task CreateRoleAsync()
+    private async Task CreateAudienceAsync()
     {
         if (!CanMutate)
             return;
@@ -108,20 +108,20 @@ public sealed partial class RoleEditor : ComponentBase
         {
             var result = await AudienceMutationService.CreateAudienceMutationAsync(
                 ReadContext.TransactionId!.Value,
-                NewRoleName,
-                NullIfWhiteSpace(NewRoleDescription),
+                NewAudienceName,
+                NullIfWhiteSpace(NewAudienceDescription),
                 ExpectedChangeVersion,
                 CancellationToken.None);
             if (!result.IsSuccess)
             {
-                _mutationErrorMessage = RoleMapper.ToErrorMessage(result.Error!);
+                _mutationErrorMessage = AudienceMapper.ToErrorMessage(result.Error!);
                 return;
             }
 
             var mutation = result.Value!;
             ProjectCreated(mutation);
-            NewRoleName = string.Empty;
-            NewRoleDescription = string.Empty;
+            NewAudienceName = string.Empty;
+            NewAudienceDescription = string.Empty;
             await NotifyMutationSucceededAsync(mutation.ChangeVersion);
         }
         finally
@@ -130,24 +130,24 @@ public sealed partial class RoleEditor : ComponentBase
         }
     }
 
-    private void BeginEdit(RoleItemViewModel role)
+    private void BeginEdit(AudienceItemViewModel audience)
     {
         if (!CanMutate)
             return;
 
-        _editingRoleId = role.RoleId;
-        EditRoleName = role.Name;
-        EditRoleDescription = role.Description ?? string.Empty;
+        _editingAudienceId = audience.AudienceId;
+        EditAudienceName = audience.Name;
+        EditAudienceDescription = audience.Description ?? string.Empty;
         _mutationErrorMessage = null;
     }
 
     private void CancelEdit()
     {
-        _editingRoleId = null;
+        _editingAudienceId = null;
         _mutationErrorMessage = null;
     }
 
-    private async Task UpdateRoleAsync(RoleItemViewModel role)
+    private async Task UpdateAudienceAsync(AudienceItemViewModel audience)
     {
         if (!CanMutate)
             return;
@@ -159,20 +159,20 @@ public sealed partial class RoleEditor : ComponentBase
             var result = await AudienceMutationService.UpdateAudienceMutationAsync(
                 ReadContext.TransactionId!.Value,
                 new UpdateAudienceMutationRequest(
-                    new AudienceId(role.RoleId),
-                    EditRoleName,
-                    NullIfWhiteSpace(EditRoleDescription),
+                    new AudienceId(audience.AudienceId),
+                    EditAudienceName,
+                    NullIfWhiteSpace(EditAudienceDescription),
                     ExpectedChangeVersion),
                 CancellationToken.None);
             if (!result.IsSuccess)
             {
-                _mutationErrorMessage = RoleMapper.ToErrorMessage(result.Error!);
+                _mutationErrorMessage = AudienceMapper.ToErrorMessage(result.Error!);
                 return;
             }
 
             var mutation = result.Value!;
             ProjectUpdated(mutation);
-            _editingRoleId = null;
+            _editingAudienceId = null;
             await NotifyMutationSucceededAsync(mutation.ChangeVersion);
         }
         finally
@@ -181,21 +181,21 @@ public sealed partial class RoleEditor : ComponentBase
         }
     }
 
-    private Task OpenDeleteConfirmationAsync(RoleItemViewModel role)
+    private Task OpenDeleteConfirmationAsync(AudienceItemViewModel audience)
     {
         if (!CanMutate)
             return Task.CompletedTask;
 
-        _pendingDeleteRole = role;
+        _pendingDeleteAudience = audience;
         _mutationErrorMessage = null;
         return Task.CompletedTask;
     }
 
-    private void CancelDelete() => _pendingDeleteRole = null;
+    private void CancelDelete() => _pendingDeleteAudience = null;
 
-    private async Task DeleteRoleAsync()
+    private async Task DeleteAudienceAsync()
     {
-        if (!CanMutate || _pendingDeleteRole is null)
+        if (!CanMutate || _pendingDeleteAudience is null)
             return;
 
         _isSubmitting = true;
@@ -204,18 +204,18 @@ public sealed partial class RoleEditor : ComponentBase
         {
             var result = await AudienceMutationService.DeleteAudienceMutationAsync(
                 ReadContext.TransactionId!.Value,
-                new AudienceId(_pendingDeleteRole.RoleId),
+                new AudienceId(_pendingDeleteAudience.AudienceId),
                 ExpectedChangeVersion,
                 CancellationToken.None);
             if (!result.IsSuccess)
             {
-                _mutationErrorMessage = RoleMapper.ToErrorMessage(result.Error!);
+                _mutationErrorMessage = AudienceMapper.ToErrorMessage(result.Error!);
                 return;
             }
 
             var mutation = result.Value!;
             ProjectDeleted(mutation);
-            _pendingDeleteRole = null;
+            _pendingDeleteAudience = null;
             await NotifyMutationSucceededAsync(mutation.ChangeVersion);
         }
         finally
@@ -233,20 +233,20 @@ public sealed partial class RoleEditor : ComponentBase
 
     private void ProjectCreated(AudienceMutationResult mutation)
     {
-        var projected = RoleMapper.ToRoleItemViewModel(mutation.Audience);
-        _roles = _roles.Append(projected)
-            .OrderBy(role => role.RoleId, StringComparer.Ordinal)
+        var projected = AudienceMapper.ToAudienceItemViewModel(mutation.Audience);
+        _audiences = _audiences.Append(projected)
+            .OrderBy(audience => audience.AudienceId, StringComparer.Ordinal)
             .ToArray();
     }
 
     private void ProjectUpdated(AudienceMutationResult mutation)
     {
-        var projected = RoleMapper.ToRoleItemViewModel(mutation.Audience);
-        _roles = _roles.Select(role => role.RoleId == projected.RoleId ? projected : role).ToArray();
+        var projected = AudienceMapper.ToAudienceItemViewModel(mutation.Audience);
+        _audiences = _audiences.Select(audience => audience.AudienceId == projected.AudienceId ? projected : audience).ToArray();
     }
 
     private void ProjectDeleted(AudienceMutationResult mutation) =>
-        _roles = _roles.Where(role => role.RoleId != mutation.AudienceId.Value).ToArray();
+        _audiences = _audiences.Where(audience => audience.AudienceId != mutation.AudienceId.Value).ToArray();
 
     private bool ContextChanged() =>
         !Equals(_loadedReadContext?.TransactionId, ReadContext.TransactionId)

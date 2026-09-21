@@ -4,7 +4,7 @@ namespace KnowHowToAI.Server.Web.Components.Layout.Context;
 
 /// <summary>
 /// Globale Kontextleiste nahe der Wortmarke: stellt Wissensstand
-/// (Read-Context-Art mit optionaler ID/Bezeichnung), Rolle und
+/// (Read-Context-Art mit optionaler ID/Bezeichnung), Zielgruppe und
 /// Änderungszustand aus genau einem <see cref="KnowledgeContextViewModel"/>
 /// dar. Ohne Selektor, Links oder Mutation; nicht vorhandene Angaben
 /// erscheinen nicht, statt Dummy-Daten zu zeigen.
@@ -35,10 +35,10 @@ public sealed partial class KnowledgeContextBar : ComponentBase
         (IsTransactionContext && (ReadContextDetail is not null || HasTechnicalTransactionValues))
         || (!IsTransactionContext && HasTechnicalTransactionValues);
 
-    private string RoleText =>
-        string.IsNullOrWhiteSpace(Context.RoleName)
-            ? "Keine Rolle ausgewählt"
-            : Context.RoleName;
+    private string AudienceText =>
+        string.IsNullOrWhiteSpace(Context.AudienceName)
+            ? "Keine Zielgruppe ausgewählt"
+            : Context.AudienceName;
 
     private async Task HandleOpenSelectorAsync()
     {

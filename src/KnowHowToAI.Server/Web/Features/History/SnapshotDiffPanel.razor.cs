@@ -83,8 +83,8 @@ public sealed partial class SnapshotDiffPanel
     {
         "Node" => "Knoten",
         "Content" => "Inhalt",
-        "Role" => "Rolle",
-        "RoleResolution" => "Rollenauflösung",
+        "Audience" => "Zielgruppe",
+        "AudienceResolution" => "Zielgruppenauflösung",
         "Dependency" => "Abhängigkeit",
         _ => entityType
     };

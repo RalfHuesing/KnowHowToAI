@@ -12,8 +12,8 @@ public static class SnapshotDiffMapper
             diff.Nodes.Count + diff.Audiences.Count + diff.AudienceResolutions.Count +
             diff.Contents.Count + diff.Dependencies.Count);
 
-        AddRoleEntries(entries, diff.Audiences);
-        AddRoleResolutionEntries(entries, diff.AudienceResolutions);
+        AddAudienceEntries(entries, diff.Audiences);
+        AddAudienceResolutionEntries(entries, diff.AudienceResolutions);
         AddNodeEntries(entries, diff.Nodes);
         AddContentEntries(entries, diff.Contents);
         AddDependencyEntries(entries, diff.Dependencies);
@@ -26,24 +26,24 @@ public static class SnapshotDiffMapper
             diff.NextCursor);
     }
 
-    private static void AddRoleEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<AudienceDiffEntry> changes)
+    private static void AddAudienceEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<AudienceDiffEntry> changes)
     {
         foreach (var change in changes)
         {
             var side = change.After ?? change.Before;
-            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Role", side!.AudienceId.Value,
+            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Audience", side!.AudienceId.Value,
                 Detail: side.AudienceId.Value,
-                Before: change.Before is null ? null : DescribeRole(change.Before),
-                After: change.After is null ? null : DescribeRole(change.After)));
+                Before: change.Before is null ? null : DescribeAudience(change.Before),
+                After: change.After is null ? null : DescribeAudience(change.After)));
         }
     }
 
-    private static void AddRoleResolutionEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<AudienceResolutionDiffEntry> changes)
+    private static void AddAudienceResolutionEntries(List<SnapshotDiffEntryViewModel> entries, IReadOnlyList<AudienceResolutionDiffEntry> changes)
     {
         foreach (var change in changes)
         {
             var side = change.After ?? change.Before;
-            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "RoleResolution", side!.RequestedAudienceId.Value, side.CandidateAudienceId.Value,
+            entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "AudienceResolution", side!.RequestedAudienceId.Value, side.CandidateAudienceId.Value,
                 Detail: $"{side.RequestedAudienceId} → {side.CandidateAudienceId}",
                 Before: change.Before is null ? null : $"Priorität: {change.Before.Priority}",
                 After: change.After is null ? null : $"Priorität: {change.After.Priority}"));
@@ -67,7 +67,7 @@ public static class SnapshotDiffMapper
         {
             var side = change.After ?? change.Before;
             entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Content", side!.NodeId.Value.ToString(), side.AudienceId.Value,
-                Detail: $"Knoten {side.NodeId} · Rolle {side.AudienceId}",
+                Detail: $"Knoten {side.NodeId} · Zielgruppe {side.AudienceId}",
                 Before: change.Before is null ? null : DescribeContent(change.Before),
                 After: change.After is null ? null : DescribeContent(change.After)));
         }
@@ -79,7 +79,7 @@ public static class SnapshotDiffMapper
         {
             var side = change.After ?? change.Before;
             entries.Add(new SnapshotDiffEntryViewModel(change.Kind.ToString(), "Dependency", side!.TargetNodeId.Value.ToString(), side.SourceNodeId.Value.ToString(),
-                $"Zielrolle {side.TargetAudienceId} → Quellrolle {side.SourceAudienceId}",
+                $"Zielgruppe {side.TargetAudienceId} → Quell-Zielgruppe {side.SourceAudienceId}",
                 change.Before is null ? null : DescribeDependency(change.Before),
                 change.After is null ? null : DescribeDependency(change.After)));
         }
@@ -88,8 +88,8 @@ public static class SnapshotDiffMapper
     private static string DescribeNode(KnowHowToAI.Core.Domain.Hierarchy.Node node) =>
         $"Titel: {node.Title}; Beschreibung: {node.Description ?? "Keine"}; Position: {node.SortOrder}; Parent: {node.ParentNodeId?.Value.ToString() ?? "Root"}";
 
-    private static string DescribeRole(KnowHowToAI.Core.Domain.Audiences.Audience role) =>
-        $"Name: {role.Name}; Beschreibung: {role.Description ?? "Keine"}";
+    private static string DescribeAudience(KnowHowToAI.Core.Domain.Audiences.Audience audience) =>
+        $"Name: {audience.Name}; Beschreibung: {audience.Description ?? "Keine"}";
 
     private static string DescribeContent(KnowHowToAI.Core.Domain.Content.NodeContent content) =>
         $"Modus: {content.ContentMode}; Revision: {content.ContentRevisionId}; Inhalt: {content.ContentMd}";

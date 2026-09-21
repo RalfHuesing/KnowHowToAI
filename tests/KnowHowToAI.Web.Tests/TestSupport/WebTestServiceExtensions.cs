@@ -45,14 +45,14 @@ public static class WebTestServiceExtensions
     /// <summary>
     /// Registriert alle für Knowledge-Pages notwendigen Services in einem Aufruf:
     /// NavigationService, KnowledgeTreeState, IKnowledgeTreeWorkspace, WebReadContextResolver,
-    /// IRoleStorageService und IContextSelectionRoleCatalog.
+    /// IAudienceStorageService und IContextSelectionAudienceCatalog.
     /// </summary>
     public static IServiceCollection AddKnowledgePageServices(
         this IServiceCollection services,
         NavigationService navigationService,
         IReleaseRepository? releaseRepository = null,
         ITransactionRepository? transactionRepository = null,
-        string defaultRole = "Developer")
+        string defaultAudience = "Developer")
     {
         var treeState = new KnowledgeTreeState(navigationService);
         var contextResolver = new WebReadContextResolver(
@@ -62,14 +62,14 @@ public static class WebTestServiceExtensions
         services.AddKnowledgeTreeWorkspace(treeState);
         services.AddSingleton(contextResolver);
         services.AddSingleton<IWebReadContextResolver>(contextResolver);
-        services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(defaultRole));
-        services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        services.AddSingleton<IAudienceStorageService>(new InMemoryAudienceStorageService(defaultAudience));
+        services.AddSingleton<IContextSelectionAudienceCatalog>(new ContextSelectionAudienceCatalog(navigationService));
         return services;
     }
 
     /// <summary>
     /// Registriert alle für Search-Pages notwendigen Services:
-    /// NavigationService, SearchService, WebReadContextResolver, IRoleStorageService, IContextSelectionRoleCatalog.
+    /// NavigationService, SearchService, WebReadContextResolver, IAudienceStorageService, IContextSelectionAudienceCatalog.
     /// </summary>
     public static IServiceCollection AddSearchPageServices(
         this IServiceCollection services,
@@ -77,7 +77,7 @@ public static class WebTestServiceExtensions
         SearchService searchService,
         IReleaseRepository? releaseRepository = null,
         ITransactionRepository? transactionRepository = null,
-        string defaultRole = "Developer")
+        string defaultAudience = "Developer")
     {
         var contextResolver = new WebReadContextResolver(
             releaseRepository ?? new InMemoryReleaseRepository(),
@@ -86,8 +86,8 @@ public static class WebTestServiceExtensions
         services.AddSingleton(searchService);
         services.AddSingleton(contextResolver);
         services.AddSingleton<IWebReadContextResolver>(contextResolver);
-        services.AddSingleton<IRoleStorageService>(new InMemoryRoleStorageService(defaultRole));
-        services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(navigationService));
+        services.AddSingleton<IAudienceStorageService>(new InMemoryAudienceStorageService(defaultAudience));
+        services.AddSingleton<IContextSelectionAudienceCatalog>(new ContextSelectionAudienceCatalog(navigationService));
         return services;
     }
 

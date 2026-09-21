@@ -16,9 +16,9 @@ public sealed partial class ContextSelectorDialog : ComponentBase, IAsyncDisposa
     [Inject]
     private ContextSelectorState State { get; set; } = default!;
 
-    internal string DialogTitle => State.Mode == ContextSelectorMode.MandatoryRole
-        ? "Rolle auswählen"
-        : "Wissenskontext und Rolle anpassen";
+    internal string DialogTitle => State.Mode == ContextSelectorMode.MandatoryAudience
+        ? "Zielgruppe auswählen"
+        : "Wissenskontext und Zielgruppe anpassen";
 
     protected override void OnInitialized()
     {
@@ -51,7 +51,7 @@ public sealed partial class ContextSelectorDialog : ComponentBase, IAsyncDisposa
 
     private async Task HandleDialogClosedAsync()
     {
-        if (State.Mode == ContextSelectorMode.MandatoryRole && State.IsOpen)
+        if (State.Mode == ContextSelectorMode.MandatoryAudience && State.IsOpen)
         {
             if (_dialog is not null)
             {

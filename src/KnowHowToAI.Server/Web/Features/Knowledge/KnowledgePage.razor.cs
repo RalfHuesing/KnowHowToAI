@@ -14,7 +14,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// Routable Wissenscockpit-Seite (/knowledge und /knowledge/{NodeId:guid}).
 /// Rekonstruiert den Arbeitskontext aus Route und Query und orchestriert
 /// Tree, Breadcrumbs, Workspace-State und Node-Detailansicht.
-/// Setzt O-008 verbindlich um: keine stille Standardrolle; wenn kein Eintrag
+/// Setzt O-008 verbindlich um: keine stille Standardzielgruppe; wenn kein Eintrag
 /// in Query oder localStorage vorhanden ist, erscheint der modale Pflichtauswahl-Selektor.
 /// </summary>
 public sealed partial class KnowledgePage : IDisposable
@@ -35,10 +35,10 @@ public sealed partial class KnowledgePage : IDisposable
     private PageRegionState PageRegions { get; set; } = default!;
 
     [Inject]
-    private IContextSelectionRoleCatalog RoleCatalog { get; set; } = default!;
+    private IContextSelectionAudienceCatalog AudienceCatalog { get; set; } = default!;
 
     [Inject]
-    private IRoleStorageService RoleStorage { get; set; } = default!;
+    private IAudienceStorageService AudienceStorage { get; set; } = default!;
 
     [Inject]
     private ContextSelectorState ContextSelector { get; set; } = default!;
@@ -55,19 +55,19 @@ public sealed partial class KnowledgePage : IDisposable
     [SupplyParameterFromQuery(Name = "releaseId")]
     private string? QueryReleaseId { get; set; }
 
-    [SupplyParameterFromQuery(Name = "roleId")]
-    private string? QueryRoleId { get; set; }
+    [SupplyParameterFromQuery(Name = "audienceId")]
+    private string? QueryAudienceId { get; set; }
 
     private string? _errorMessage;
-    private bool _hasNoRoles;
-    private bool _isAwaitingRoleSelection;
+    private bool _hasNoAudiences;
+    private bool _isAwaitingAudienceSelection;
     private bool _isDisposed;
 
     protected override async Task OnParametersSetAsync()
     {
         _errorMessage = null;
-        _hasNoRoles = false;
-        _isAwaitingRoleSelection = false;
+        _hasNoAudiences = false;
+        _isAwaitingAudienceSelection = false;
 
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
 
@@ -89,10 +89,10 @@ public sealed partial class KnowledgePage : IDisposable
         var readContext = contextResolution.Value!.ReadContext;
         var contextVm = contextResolution.Value.ContextViewModel;
 
-        var rolesResult = await RoleCatalog.LoadAsync(readContext, CancellationToken.None);
-        if (!rolesResult.IsSuccess)
+        var audiencesResult = await AudienceCatalog.LoadAsync(readContext, CancellationToken.None);
+        if (!audiencesResult.IsSuccess)
         {
-            _errorMessage = rolesResult.ErrorMessage!;
+            _errorMessage = audiencesResult.ErrorMessage!;
             PageRegions.SetKnowledgeContext(contextVm with
             {
                 DisplayName = contextVm.DisplayName ?? "Fehlerhafter Kontext"
@@ -100,24 +100,24 @@ public sealed partial class KnowledgePage : IDisposable
             return;
         }
 
-        var availableRoles = rolesResult.Roles;
-        if (availableRoles.Count == 0)
+        var availableAudiences = audiencesResult.Audiences;
+        if (availableAudiences.Count == 0)
         {
-            ApplyEmptyRolesState(contextVm, readContext);
+            ApplyEmptyAudiencesState(contextVm, readContext);
             return;
         }
 
-        var roleId = await ResolveEffectiveRoleAsync(availableRoles, QueryRoleId, uri);
+        var audienceId = await ResolveEffectiveAudienceAsync(availableAudiences, QueryAudienceId, uri);
 
-        if (string.IsNullOrWhiteSpace(roleId))
+        if (string.IsNullOrWhiteSpace(audienceId))
         {
-            _isAwaitingRoleSelection = true;
-            PageRegions.SetKnowledgeContext(contextVm with { RoleName = null });
-            ContextSelector.Open(ContextSelectorMode.MandatoryRole, readContext, null);
+            _isAwaitingAudienceSelection = true;
+            PageRegions.SetKnowledgeContext(contextVm with { AudienceName = null });
+            ContextSelector.Open(ContextSelectorMode.MandatoryAudience, readContext, null);
             return;
         }
 
-        await ApplySelectedRoleAndInitializeAsync(contextVm, readContext, availableRoles, roleId, contextResolution.Value!.ChangeVersion);
+        await ApplySelectedAudienceAndInitializeAsync(contextVm, readContext, availableAudiences, audienceId, contextResolution.Value!.ChangeVersion);
     }
 
     protected override void OnInitialized() => WorkspaceState.Changed += HandleWorkspaceChanged;
@@ -131,66 +131,66 @@ public sealed partial class KnowledgePage : IDisposable
         }
     }
 
-    private void ApplyEmptyRolesState(KnowledgeContextViewModel contextVm, ReadContext readContext)
+    private void ApplyEmptyAudiencesState(KnowledgeContextViewModel contextVm, ReadContext readContext)
     {
-        _hasNoRoles = true;
-        var emptyRolesContextVm = contextVm with { RoleName = null };
-        PageRegions.SetKnowledgeContext(emptyRolesContextVm);
-        WorkspaceState.SetContext(emptyRolesContextVm, readContext);
-        WorkspaceState.SetRole(null);
+        _hasNoAudiences = true;
+        var emptyAudiencesContextVm = contextVm with { AudienceName = null };
+        PageRegions.SetKnowledgeContext(emptyAudiencesContextVm);
+        WorkspaceState.SetContext(emptyAudiencesContextVm, readContext);
+        WorkspaceState.SetAudience(null);
     }
 
-    private async Task<string?> ResolveEffectiveRoleAsync(
-        IReadOnlyList<ContextSelectionRoleOptionViewModel> availableRoles,
-        string? queryRoleId,
+    private async Task<string?> ResolveEffectiveAudienceAsync(
+        IReadOnlyList<ContextSelectionAudienceOptionViewModel> availableAudiences,
+        string? queryAudienceId,
         Uri uri)
     {
-        if (!string.IsNullOrWhiteSpace(queryRoleId))
+        if (!string.IsNullOrWhiteSpace(queryAudienceId))
         {
-            if (availableRoles.Any(r => r.Id == queryRoleId))
+            if (availableAudiences.Any(r => r.Id == queryAudienceId))
             {
-                await RoleStorage.SetLastRoleIdAsync(queryRoleId);
-                return queryRoleId;
+                await AudienceStorage.SetLastAudienceIdAsync(queryAudienceId);
+                return queryAudienceId;
             }
 
-            _errorMessage = $"[RequestedRoleNotFound] Die angefragte Rolle '{queryRoleId}' ist im gewählten Kontext nicht verfügbar.";
+            _errorMessage = $"[RequestedAudienceNotFound] Die angefragte Zielgruppe '{queryAudienceId}' ist im gewählten Kontext nicht verfügbar.";
             return null;
         }
 
-        var lastRoleId = await RoleStorage.GetLastRoleIdAsync();
-        if (!string.IsNullOrWhiteSpace(lastRoleId) && availableRoles.Any(r => r.Id == lastRoleId))
+        var lastAudienceId = await AudienceStorage.GetLastAudienceIdAsync();
+        if (!string.IsNullOrWhiteSpace(lastAudienceId) && availableAudiences.Any(r => r.Id == lastAudienceId))
         {
-            UpdateUrlWithRole(uri, lastRoleId);
-            return lastRoleId;
+            UpdateUrlWithAudience(uri, lastAudienceId);
+            return lastAudienceId;
         }
 
         return null;
     }
 
-    private async Task ApplySelectedRoleAndInitializeAsync(
+    private async Task ApplySelectedAudienceAndInitializeAsync(
         KnowledgeContextViewModel contextVm,
         ReadContext readContext,
-        IReadOnlyList<ContextSelectionRoleOptionViewModel> availableRoles,
-        string roleId,
+        IReadOnlyList<ContextSelectionAudienceOptionViewModel> availableAudiences,
+        string audienceId,
         long? changeVersion)
     {
-        var matchedRole = availableRoles.First(r => r.Id == roleId);
-        var effectiveContextVm = contextVm with { RoleName = matchedRole.Name, ChangeVersion = changeVersion };
+        var matchedAudience = availableAudiences.First(r => r.Id == audienceId);
+        var effectiveContextVm = contextVm with { AudienceName = matchedAudience.Name, ChangeVersion = changeVersion };
         PageRegions.SetKnowledgeContext(effectiveContextVm);
 
         WorkspaceState.SetContext(effectiveContextVm, readContext);
         WorkspaceState.SetChangeVersion(changeVersion);
-        WorkspaceState.SetRole(roleId);
+        WorkspaceState.SetAudience(audienceId);
 
-        if (!TreeWorkspace.HasContext(readContext, roleId))
+        if (!TreeWorkspace.HasContext(readContext, audienceId))
         {
-            await TreeWorkspace.InitializeAsync(readContext, roleId, CancellationToken.None);
+            await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
         }
 
-        await ApplyNodeSelectionAsync(readContext, roleId);
+        await ApplyNodeSelectionAsync(readContext, audienceId);
     }
 
-    private async Task ApplyNodeSelectionAsync(ReadContext readContext, string roleId)
+    private async Task ApplyNodeSelectionAsync(ReadContext readContext, string audienceId)
     {
         if (NodeId.HasValue)
         {
@@ -206,7 +206,7 @@ public sealed partial class KnowledgePage : IDisposable
 
     private async Task HandleNodeMutationSucceededAsync(NodeMutationResult mutation)
     {
-        if (WorkspaceState.CurrentRoleId is not { } roleId || !WorkspaceState.ActiveTransactionId.HasValue)
+        if (WorkspaceState.CurrentAudienceId is not { } audienceId || !WorkspaceState.ActiveTransactionId.HasValue)
             return;
 
         WorkspaceState.SetChangeVersion(mutation.ChangeVersion);
@@ -214,7 +214,7 @@ public sealed partial class KnowledgePage : IDisposable
         WorkspaceState.SetContext(updatedContext, WorkspaceState.CurrentReadContext);
         PageRegions.SetKnowledgeContext(updatedContext);
 
-        await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, roleId, CancellationToken.None);
+        await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, audienceId, CancellationToken.None);
         var selectedNodeId = mutation.Node.IsDeleted ? mutation.Node.ParentNodeId?.Value : mutation.Node.NodeId.Value;
         await TreeWorkspace.SelectNodeAsync(selectedNodeId, CancellationToken.None);
         WorkspaceState.SetNode(selectedNodeId);
@@ -227,17 +227,17 @@ public sealed partial class KnowledgePage : IDisposable
         WorkspaceState.SetContext(updatedContext, WorkspaceState.CurrentReadContext);
         PageRegions.SetKnowledgeContext(updatedContext);
 
-        if (WorkspaceState.CurrentRoleId is { } roleId)
+        if (WorkspaceState.CurrentAudienceId is { } audienceId)
         {
-            await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, roleId, CancellationToken.None);
+            await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, audienceId, CancellationToken.None);
             await TreeWorkspace.SelectNodeAsync(NodeId, CancellationToken.None);
         }
     }
 
-    private void UpdateUrlWithRole(Uri currentUri, string roleId)
+    private void UpdateUrlWithAudience(Uri currentUri, string audienceId)
     {
         var query = QueryHelpers.ParseQuery(currentUri.Query);
-        if (query.TryGetValue("roleId", out var existing) && existing == roleId)
+        if (query.TryGetValue("audienceId", out var existing) && existing == audienceId)
         {
             return;
         }
@@ -247,7 +247,7 @@ public sealed partial class KnowledgePage : IDisposable
         {
             dict[kvp.Key] = kvp.Value[0];
         }
-        dict["roleId"] = roleId;
+        dict["audienceId"] = audienceId;
 
         var newUrl = QueryHelpers.AddQueryString(currentUri.AbsolutePath, dict);
         NavigationManager.NavigateTo(newUrl);

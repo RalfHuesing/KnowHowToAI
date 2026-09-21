@@ -18,8 +18,8 @@
 }
 
 <p class="context-selector-dialog__purpose" data-testid="selector-purpose">
-    Die Rolle bestimmt, für welche Zielgruppe der Wissensinhalt aufbereitet ist.
-    @if (State.Mode == ContextSelectorMode.MandatoryRole)
+    Die Auswahl bestimmt, für welche Zielgruppe der Wissensinhalt aufbereitet ist.
+    @if (State.Mode == ContextSelectorMode.MandatoryAudience)
     {
         <text>Nach der Auswahl wird die Wissensbasis in dieser Perspektive geöffnet.</text>
     }
@@ -27,36 +27,36 @@
     {
         <text>Nach dem Übernehmen sehen Sie die Wissensbasis in dieser Perspektive.</text>
     }
-    Die Rolle ist ein Inhaltskontext, keine Zugriffsberechtigung.
+    Die Zielgruppe ist ein Inhaltskontext, keine Zugriffsberechtigung.
 </p>
 
 <fieldset class="context-selector-dialog__group">
     <legend class="context-selector-dialog__legend">
-        @(State.Mode == ContextSelectorMode.MandatoryRole ? "Rolle auswählen (Pflichtauswahl)" : "Rolle auswählen")
+        @(State.Mode == ContextSelectorMode.MandatoryAudience ? "Zielgruppe auswählen (Pflichtauswahl)" : "Zielgruppe auswählen")
     </legend>
-    @if (_isLoadingRoles)
+    @if (_isLoadingAudiences)
     {
-        <div class="context-selector-dialog__loading" role="status">Lade Rollen...</div>
+        <div class="context-selector-dialog__loading" role="status">Lade Zielgruppen...</div>
     }
-    else if (_options.Roles.Count == 0)
+    else if (_options.Audiences.Count == 0)
     {
-        <p class="context-selector-dialog__empty" data-testid="empty-roles-message">
-            Keine Rollen im aktuellen Kontext vorhanden.
+        <p class="context-selector-dialog__empty" data-testid="empty-audiences-message">
+            Keine Zielgruppen im aktuellen Kontext vorhanden.
         </p>
     }
     else
     {
-        <div class="context-selector-dialog__roles" role="radiogroup" aria-label="Verfügbare Rollen">
-            @foreach (var role in _options.Roles)
+        <div class="context-selector-dialog__audiences" role="radiogroup" aria-label="Verfügbare Zielgruppen">
+            @foreach (var audience in _options.Audiences)
             {
-                <label class="context-selector-dialog__role-option" data-testid="role-option-@role.Id">
-                    <input type="radio" name="selectedRole" value="@role.Id"
-                           checked="@(_selectedRoleId == role.Id)"
-                           @onchange="@(() => _selectedRoleId = role.Id)" />
-                    <span class="context-selector-dialog__role-name">@role.Name</span>
-                    @if (!string.IsNullOrWhiteSpace(role.Description))
+                <label class="context-selector-dialog__audience-option" data-testid="audience-option-@audience.Id">
+                    <input type="radio" name="selectedAudience" value="@audience.Id"
+                           checked="@(_selectedAudienceId == audience.Id)"
+                           @onchange="@(() => _selectedAudienceId = audience.Id)" />
+                    <span class="context-selector-dialog__audience-name">@audience.Name</span>
+                    @if (!string.IsNullOrWhiteSpace(audience.Description))
                     {
-                        <span class="context-selector-dialog__role-desc">@role.Description</span>
+                        <span class="context-selector-dialog__audience-desc">@audience.Description</span>
                     }
                 </label>
             }
@@ -73,8 +73,8 @@
         </button>
     }
     <button type="button" class="context-selector-dialog__button context-selector-dialog__button--primary"
-            disabled="@(_isLoadingRoles || (_options.Roles.Count > 0 && string.IsNullOrWhiteSpace(_selectedRoleId)))"
+            disabled="@(_isLoadingAudiences || (_options.Audiences.Count > 0 && string.IsNullOrWhiteSpace(_selectedAudienceId)))"
             @onclick="ApplyAsync" data-testid="selector-apply-button">
-        @(State.Mode == ContextSelectorMode.MandatoryRole ? "Auswählen" : "Übernehmen")
+        @(State.Mode == ContextSelectorMode.MandatoryAudience ? "Auswählen" : "Übernehmen")
     </button>
 </div>

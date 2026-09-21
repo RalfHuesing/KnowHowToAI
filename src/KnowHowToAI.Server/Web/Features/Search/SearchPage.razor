@@ -8,7 +8,7 @@
 <section class="search-page" data-testid="search-page">
     <header class="search-page__header">
         <h1>Wissenssuche</h1>
-        <p>Durchsucht Titel, Beschreibungen und den für die gewählte Rolle aufgelösten Inhalt.</p>
+        <p>Durchsucht Titel, Beschreibungen und den für die gewählte Zielgruppe aufgelösten Inhalt.</p>
     </header>
 
     @if (!string.IsNullOrWhiteSpace(_contextErrorMessage))
@@ -17,16 +17,16 @@
             <InlineAlert Kind="AlertKind.Fehler" Message="@_contextErrorMessage" />
         </div>
     }
-    else if (_hasNoRoles)
+    else if (_hasNoAudiences)
     {
-        <div data-testid="search-empty-roles" role="status">
-            <InlineAlert Kind="AlertKind.Info" Message="Im aktuellen Wissenskontext sind keine Rollen definiert." />
+        <div data-testid="search-empty-audiences" role="status">
+            <InlineAlert Kind="AlertKind.Info" Message="Im aktuellen Wissenskontext sind keine Zielgruppen definiert." />
         </div>
     }
     else if (_isReady)
     {
         <SearchForm IsSearching="@_isSearching" OnSearch="StartSearchAsync" />
-        <KnowledgeFilter Filter="@_filter" Roles="@_filterRoles" IsSearching="@_isSearching" OnChanged="ApplyFilterAsync" />
+        <KnowledgeFilter Filter="@_filter" Audiences="@_filterAudiences" IsSearching="@_isSearching" OnChanged="ApplyFilterAsync" />
         <SearchResults Page="@_page" IsSearching="@_isSearching" ErrorMessage="@_searchErrorMessage" HasFilter="@(!_filter.IsEmpty)"
                        OnNext="LoadNextPageAsync" OnNavigate="NavigateToNode" />
     }

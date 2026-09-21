@@ -11,8 +11,8 @@ public sealed partial class HistoryPage
     [Inject]
     private PageRegionState PageRegions { get; set; } = default!;
 
-    [SupplyParameterFromQuery(Name = "roleId")]
-    private string? QueryRoleId { get; set; }
+    [SupplyParameterFromQuery(Name = "audienceId")]
+    private string? QueryAudienceId { get; set; }
 
     [SupplyParameterFromQuery(Name = "baseSnapshotId")]
     private string? QueryBaseSnapshotId { get; set; }

@@ -9,12 +9,12 @@ namespace KnowHowToAI.Web.Tests.State;
 public sealed class WorkspaceStateTests
 {
     [Fact]
-    public void InitialState_IsCurrentWithoutNodeOrRole()
+    public void InitialState_IsCurrentWithoutNodeOrAudience()
     {
         var state = new WorkspaceState();
 
         Assert.Null(state.CurrentNodeId);
-        Assert.Null(state.CurrentRoleId);
+        Assert.Null(state.CurrentAudienceId);
         Assert.Null(state.CurrentChangeVersion);
         Assert.Equal(KnowledgeReadContextKind.Current, state.CurrentContext.ReadContext);
         Assert.Null(state.CurrentReadContext.SnapshotId);
@@ -44,19 +44,19 @@ public sealed class WorkspaceStateTests
     }
 
     [Fact]
-    public void SetRole_UpdatesPropertyAndFiresChangedOnlyWhenDifferent()
+    public void SetAudience_UpdatesPropertyAndFiresChangedOnlyWhenDifferent()
     {
         var state = new WorkspaceState();
         var changeCount = 0;
         state.Changed += () => changeCount++;
 
-        var roleId = "architect";
-        state.SetRole(roleId);
+        var audienceId = "architect";
+        state.SetAudience(audienceId);
 
-        Assert.Equal(roleId, state.CurrentRoleId);
+        Assert.Equal(audienceId, state.CurrentAudienceId);
         Assert.Equal(1, changeCount);
 
-        state.SetRole(roleId);
+        state.SetAudience(audienceId);
         Assert.Equal(1, changeCount);
     }
 
@@ -104,7 +104,7 @@ public sealed class WorkspaceStateTests
     {
         var state = new WorkspaceState();
         state.SetNode(Guid.NewGuid());
-        state.SetRole("architect");
+        state.SetAudience("architect");
         state.SetChangeVersion(10L);
         state.SetContext(
             new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, ContextId: "tx-1"),
@@ -116,7 +116,7 @@ public sealed class WorkspaceStateTests
         state.Reset();
 
         Assert.Null(state.CurrentNodeId);
-        Assert.Null(state.CurrentRoleId);
+        Assert.Null(state.CurrentAudienceId);
         Assert.Null(state.CurrentChangeVersion);
         Assert.Equal(KnowledgeReadContextKind.Current, state.CurrentContext.ReadContext);
         Assert.Null(state.CurrentReadContext.TransactionId);

@@ -21,7 +21,7 @@ public sealed class ContextSelectorDialogTests : BunitContext
     private readonly NavigationTestHarness _harness;
     private readonly NavigationService _navigationService;
     private readonly ContextSelectorState _selectorState;
-    private readonly InMemoryRoleStorageService _roleStorage;
+    private readonly InMemoryAudienceStorageService _audienceStorage;
 
     private sealed class EmptyContextSelectionCatalog : IContextSelectionCatalog
     {
@@ -34,14 +34,14 @@ public sealed class ContextSelectorDialogTests : BunitContext
         _harness = new NavigationTestHarness(DefaultSnapshotId);
         _navigationService = _harness.CreateService();
         _selectorState = new ContextSelectorState();
-        _roleStorage = new InMemoryRoleStorageService();
+        _audienceStorage = new InMemoryAudienceStorageService();
 
         Services.AddSingleton(_navigationService);
         Services.AddSingleton(_selectorState);
         Services.AddSingleton(new WorkspaceState());
-        Services.AddSingleton<IRoleStorageService>(_roleStorage);
+        Services.AddSingleton<IAudienceStorageService>(_audienceStorage);
         Services.AddSingleton<IContextSelectionCatalog, EmptyContextSelectionCatalog>();
-        Services.AddSingleton<IContextSelectionRoleCatalog>(new ContextSelectionRoleCatalog(_navigationService));
+        Services.AddSingleton<IContextSelectionAudienceCatalog>(new ContextSelectionAudienceCatalog(_navigationService));
 
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
@@ -54,7 +54,7 @@ public sealed class ContextSelectorDialogTests : BunitContext
         await cut.InvokeAsync(() => _selectorState.Open(ContextSelectorMode.Full));
         cut.WaitForState(() => cut.FindAll("[data-testid='context-selector-dialog']").Count > 0);
 
-        Assert.Equal("Wissenskontext und Rolle anpassen", cut.Find("h2").TextContent);
+        Assert.Equal("Wissenskontext und Zielgruppe anpassen", cut.Find("h2").TextContent);
         Assert.NotNull(cut.Find("[data-testid='selector-cancel-button']"));
         Assert.NotNull(cut.Find("[data-testid='selector-apply-button']"));
         Assert.Equal("Übernehmen", cut.Find("[data-testid='selector-apply-button']").TextContent.Trim());
@@ -67,14 +67,14 @@ public sealed class ContextSelectorDialogTests : BunitContext
     }
 
     [Fact]
-    public async Task RendersInMandatoryRoleMode_ShowsOnlyRoleSelectionWithoutCancelButton()
+    public async Task RendersInMandatoryAudienceMode_ShowsOnlyAudienceSelectionWithoutCancelButton()
     {
         var cut = Render<ContextSelectorDialog>();
 
-        await cut.InvokeAsync(() => _selectorState.Open(ContextSelectorMode.MandatoryRole));
+        await cut.InvokeAsync(() => _selectorState.Open(ContextSelectorMode.MandatoryAudience));
         cut.WaitForState(() => cut.FindAll("[data-testid='context-selector-dialog']").Count > 0);
 
-        Assert.Equal("Rolle auswählen", cut.Find("h2").TextContent);
+        Assert.Equal("Zielgruppe auswählen", cut.Find("h2").TextContent);
         Assert.Empty(cut.FindAll("[data-testid='selector-cancel-button']"));
         var applyButton = cut.Find("[data-testid='selector-apply-button']");
         Assert.NotNull(applyButton);
@@ -131,44 +131,44 @@ public sealed class ContextSelectorDialogTests : BunitContext
     }
 
     [Fact]
-    public async Task SelectingRoleAndApplying_SavesToRoleStorageAndNavigates()
+    public async Task SelectingAudienceAndApplying_SavesToAudienceStorageAndNavigates()
     {
         var cut = Render<ContextSelectorDialog>();
 
         await cut.InvokeAsync(() => _selectorState.Open(ContextSelectorMode.Full));
-        cut.WaitForState(() => cut.FindAll("[data-testid='role-option-Developer']").Count > 0);
+        cut.WaitForState(() => cut.FindAll("[data-testid='audience-option-Developer']").Count > 0);
 
-        var roleOption = cut.Find("[data-testid='role-option-Developer'] input");
-        await cut.InvokeAsync(() => roleOption.Change(true));
+        var audienceOption = cut.Find("[data-testid='audience-option-Developer'] input");
+        await cut.InvokeAsync(() => audienceOption.Change(true));
 
         var applyButton = cut.Find("[data-testid='selector-apply-button']");
         await cut.InvokeAsync(() => applyButton.Click());
 
-        Assert.Equal("Developer", _roleStorage.LastRoleId);
+        Assert.Equal("Developer", _audienceStorage.LastAudienceId);
         var navMan = Services.GetRequiredService<NavigationManager>();
-        Assert.Contains("roleId=Developer", navMan.Uri);
+        Assert.Contains("audienceId=Developer", navMan.Uri);
         Assert.False(_selectorState.IsOpen);
     }
 
     [Fact]
-    public async Task EmptyRoleList_DisplaysEmptyMessage()
+    public async Task EmptyAudienceList_DisplaysEmptyMessage()
     {
         var emptySnapshotId = new SnapshotId(999);
         var emptyHarness = new NavigationTestHarness(emptySnapshotId);
-        // Rolle für den Snapshot löschen
+        // Zielgruppe für den Snapshot löschen
         var emptyService = emptyHarness.CreateService();
 
         Services.AddSingleton(emptyService);
 
         var cut = Render<ContextSelectorDialog>();
         await cut.InvokeAsync(() => _selectorState.Open(
-            ContextSelectorMode.MandatoryRole,
+            ContextSelectorMode.MandatoryAudience,
             new ReadContext(SnapshotId: new SnapshotId(404))));
 
         cut.WaitForState(() => cut.FindAll("[data-testid='context-selector-dialog']").Count > 0);
 
-        // Da Snapshot 404 nicht existiert / keine Rollen hat
-        var emptyMessage = cut.Find("[data-testid='empty-roles-message']");
+        // Da Snapshot 404 nicht existiert / keine Zielgruppen hat
+        var emptyMessage = cut.Find("[data-testid='empty-audiences-message']");
         Assert.NotNull(emptyMessage);
     }
 
@@ -191,19 +191,19 @@ public sealed class ContextSelectorDialogTests : BunitContext
     }
 
     [Fact]
-    public async Task RoleCatalog_LoadsRolesBeyondTheFirstOpaquePage()
+    public async Task AudienceCatalog_LoadsAudiencesBeyondTheFirstOpaquePage()
     {
         for (var index = 0; index < 101; index++)
         {
-            var id = new AudienceId($"Role-{index:D3}");
+            var id = new AudienceId($"audience-{index:D3}");
             _harness.AddAudience(new Audience(DefaultSnapshotId, id, id.Value, null, false));
         }
 
-        var catalog = new ContextSelectionRoleCatalog(_navigationService);
+        var catalog = new ContextSelectionAudienceCatalog(_navigationService);
         var result = await catalog.LoadAsync(new ReadContext());
 
         Assert.True(result.IsSuccess);
-        Assert.Contains(result.Roles, role => role.Id == "Role-100");
-        Assert.Equal(102, result.Roles.Count);
+        Assert.Contains(result.Audiences, Audience => Audience.Id == "audience-100");
+        Assert.Equal(102, result.Audiences.Count);
     }
 }

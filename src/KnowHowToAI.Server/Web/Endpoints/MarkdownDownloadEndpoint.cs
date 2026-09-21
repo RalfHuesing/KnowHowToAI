@@ -35,7 +35,7 @@ internal static class MarkdownDownloadEndpoint
     {
         try
         {
-            var requestError = ValidateRequest(request, httpContext, out var parsedNodeId, out var roleId);
+            var requestError = ValidateRequest(request, httpContext, out var parsedNodeId, out var audienceId);
             if (requestError is not null)
                 return requestError;
 
@@ -47,15 +47,15 @@ internal static class MarkdownDownloadEndpoint
 
             var rootNodeId = new NodeId(parsedNodeId);
             var readContext = contextResult.Value!.ReadContext;
-            var requestedRole = new AudienceId(roleId);
+            var requestedAudience = new AudienceId(audienceId);
             var nodeResult = await navigationService
-                .GetNodeAsync(rootNodeId, readContext, requestedRole, httpContext.RequestAborted)
+                .GetNodeAsync(rootNodeId, readContext, requestedAudience, httpContext.RequestAborted)
                 .ConfigureAwait(false);
             if (!nodeResult.IsSuccess)
                 return Problem(httpContext, nodeResult.Error!);
 
             var exportResult = await markdownExportService
-                .ExportTreeAsync(rootNodeId, readContext, requestedRole, httpContext.RequestAborted)
+                .ExportTreeAsync(rootNodeId, readContext, requestedAudience, httpContext.RequestAborted)
                 .ConfigureAwait(false);
             if (!exportResult.IsSuccess)
                 return Problem(httpContext, exportResult.Error!);
@@ -64,7 +64,7 @@ internal static class MarkdownDownloadEndpoint
             return Results.File(
                 Encoding.UTF8.GetBytes(exportResult.Value!),
                 MarkdownMediaType,
-                CreateFileName(nodeResult.Value!.Node!.Title, roleId, parsedNodeId));
+                CreateFileName(nodeResult.Value!.Node!.Title, audienceId, parsedNodeId));
         }
         catch (OperationCanceledException) when (httpContext.RequestAborted.IsCancellationRequested)
         {
@@ -88,9 +88,9 @@ internal static class MarkdownDownloadEndpoint
         MarkdownDownloadRequest request,
         HttpContext httpContext,
         out Guid parsedNodeId,
-        out string roleId)
+        out string audienceId)
     {
-        roleId = request.RoleId ?? string.Empty;
+        audienceId = request.AudienceId ?? string.Empty;
         if (!Guid.TryParseExact(request.NodeId, "D", out parsedNodeId))
         {
             return Problem(
@@ -100,12 +100,12 @@ internal static class MarkdownDownloadEndpoint
                 "Die Node-ID für den Markdown-Export ist ungültig.");
         }
 
-        return string.IsNullOrWhiteSpace(roleId)
+        return string.IsNullOrWhiteSpace(audienceId)
             ? Problem(
                 httpContext,
                 Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest,
                 AudienceMutationErrorCodes.AudienceIdRequired,
-                "Für den Markdown-Export muss eine Rolle ausgewählt sein.")
+                "Für den Markdown-Export muss eine Zielgruppe ausgewählt sein.")
             : null;
     }
 
@@ -150,16 +150,16 @@ internal static class MarkdownDownloadEndpoint
         _ => Microsoft.AspNetCore.Http.StatusCodes.Status500InternalServerError
     };
 
-    private static string CreateFileName(string title, string roleId, Guid nodeId)
+    private static string CreateFileName(string title, string audienceId, Guid nodeId)
     {
         var titlePart = SanitizeFileNamePart(title);
-        var rolePart = SanitizeFileNamePart(roleId);
+        var audiencePart = SanitizeFileNamePart(audienceId);
         var baseName = string.IsNullOrEmpty(titlePart)
             ? nodeId.ToString("D")
             : titlePart;
 
-        if (!string.IsNullOrEmpty(rolePart))
-            baseName = $"{baseName}-{rolePart}";
+        if (!string.IsNullOrEmpty(audiencePart))
+            baseName = $"{baseName}-{audiencePart}";
 
         return $"{baseName[..Math.Min(baseName.Length, MaximumFileNameBaseLength)]}.md";
     }

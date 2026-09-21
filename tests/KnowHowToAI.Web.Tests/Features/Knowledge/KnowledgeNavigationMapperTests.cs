@@ -32,8 +32,8 @@ public sealed class KnowledgeNavigationMapperTests
     {
         var nodeId = new NodeId(Guid.NewGuid());
         var parentNodeId = new NodeId(Guid.NewGuid());
-        var requestedRoleId = new AudienceId("developer");
-        var resolvedRoleId = new AudienceId("architect");
+        var requestedAudienceId = new AudienceId("developer");
+        var resolvedAudienceId = new AudienceId("architect");
         var contentRevisionId = new ContentRevisionId(Guid.NewGuid());
         var snapshotId = new SnapshotId(10);
 
@@ -49,7 +49,7 @@ public sealed class KnowledgeNavigationMapperTests
         var content = new NodeContent(
             snapshotId,
             nodeId,
-            resolvedRoleId,
+            resolvedAudienceId,
             contentRevisionId,
             ContentMode.Independent,
             "# Systemarchitektur\nInhalt...",
@@ -57,8 +57,8 @@ public sealed class KnowledgeNavigationMapperTests
 
         var nodeWithContent = new NodeWithContent(
             node,
-            requestedRoleId,
-            resolvedRoleId,
+            requestedAudienceId,
+            resolvedAudienceId,
             Availability.Explicit,
             FallbackUsed: false,
             content,
@@ -72,8 +72,8 @@ public sealed class KnowledgeNavigationMapperTests
         Assert.Equal("Architektur-Übersicht", vm.Title);
         Assert.Equal("Wichtigste Systembausteine", vm.Description);
         Assert.Equal(1, vm.SortOrder);
-        Assert.Equal(requestedRoleId.Value, vm.RequestedRoleId);
-        Assert.Equal(resolvedRoleId.Value, vm.ResolvedRoleId);
+        Assert.Equal(requestedAudienceId.Value, vm.RequestedAudienceId);
+        Assert.Equal(resolvedAudienceId.Value, vm.ResolvedAudienceId);
         Assert.False(vm.FallbackUsed);
         Assert.Equal("Explicit", vm.Availability);
         Assert.Equal("Current", vm.Freshness);
@@ -88,7 +88,7 @@ public sealed class KnowledgeNavigationMapperTests
     {
         var parentId = new NodeId(Guid.NewGuid());
         var childId = new NodeId(Guid.NewGuid());
-        var resolvedRoleId = new AudienceId("architect");
+        var resolvedAudienceId = new AudienceId("architect");
 
         var summary = new ChildNodeSummary(
             childId,
@@ -98,7 +98,7 @@ public sealed class KnowledgeNavigationMapperTests
             ChildCount: 3,
             ContentSizeBytes: 1024,
             Availability.Fallback,
-            resolvedRoleId,
+            resolvedAudienceId,
             Freshness.Stale);
 
         var page = new ChildrenPage(
@@ -118,7 +118,7 @@ public sealed class KnowledgeNavigationMapperTests
         Assert.Equal(3, item.ChildCount);
         Assert.Equal(1024, item.ContentSizeBytes);
         Assert.Equal("Fallback", item.Availability);
-        Assert.Equal(resolvedRoleId.Value, item.ResolvedRoleId);
+        Assert.Equal(resolvedAudienceId.Value, item.ResolvedAudienceId);
         Assert.Equal("Stale", item.Freshness);
     }
 

@@ -58,7 +58,7 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
         workspaceState.SetContext(
             new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, TransactionId.Value.ToString("D"), ChangeVersion: 0),
             new ReadContext(TransactionId: TransactionId));
-        workspaceState.SetRole("Developer");
+        workspaceState.SetAudience("Developer");
         workspaceState.SetChangeVersion(0);
 
         var repository = new InMemoryNodeMutationRepository(
@@ -113,7 +113,7 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
         workspaceState.SetContext(
             new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, TransactionId.Value.ToString("D"), ChangeVersion: 0),
             new ReadContext(TransactionId: TransactionId));
-        workspaceState.SetRole("Developer");
+        workspaceState.SetAudience("Developer");
         workspaceState.SetChangeVersion(0);
         var repository = new InMemoryNodeMutationRepository(
             new WorkingNodeMutationState(SnapshotId, nodes, Array.Empty<NodeContent>(), Array.Empty<ContentDependency>(), nodes.Select(node => node.NodeId).ToArray()));

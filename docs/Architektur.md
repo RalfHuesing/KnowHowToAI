@@ -144,16 +144,16 @@ fokussierbar und per `aria-labelledby` mit seiner Überschrift
 verknüpft. Alle Animationen respektieren `prefers-reduced-motion`.)
 sowie `Web.State` (flüchtiger Circuit-Zustand: `ToastState` der globalen
 Toastregion, `WorkspaceState` als Circuit-Cache für ausgewählten Node,
-Rolle, Lese-Kontext, `BaseSnapshotId` und `ChangeVersion` sowie `WebReadContextResolver`
+Zielgruppe, Lese-Kontext, `BaseSnapshotId` und `ChangeVersion` sowie `WebReadContextResolver`
 zur Validierung und Auflösung von `transactionId`, `snapshotId` und
 `releaseId` über `ITransactionRepository` und `IReleaseRepository` auf Core-`ReadContext` und `KnowledgeContextViewModel`) und
-die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Roles`,
+die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Audiences`,
 `Search`, `History`, `Dashboard`, `Transactions`).
 
 Die Web-Lesegrenze entkoppelt Razor-Komponenten vollständig von Domain-Typen:
 Komponenten rufen Application Services direkt in-process per Dependency
 Injection auf (keine REST-Schicht). Die Ergebnisse werden über statische
-Mapper (`KnowledgeNavigationMapper`, `RoleMapper`, `SearchMapper`,
+Mapper (`KnowledgeNavigationMapper`, `AudienceMapper`, `SearchMapper`,
 `HistoryMapper`) in unveränderliche UI-ViewModels überführt. Fehlercodes,
 Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
 erhalten; Domain-Typen erscheinen nicht im Rendering. Das transportneutrale
@@ -193,7 +193,7 @@ ViewModels und übergeben bei Navigation den jeweiligen `snapshotId`- oder
 `releaseId`-Queryparameter an den bestehenden Web-Read-Context-Resolver. Working
 Transactions erscheinen dort bewusst nicht. Zwei ausgewählte committed Snapshots
 werden im `SnapshotDiffPanel` als strukturierter, cursor-paginierter Netto-Diff
-dargestellt; die UI zeigt die Kategorien Rollen, Rollenauflösungen, Nodes,
+dargestellt; die UI zeigt die Kategorien Zielgruppen, Zielgruppenauflösungen, Nodes,
 Contents und Dependencies mit fachlichen Schlüsseln sowie Vorher-/Nachher-Werten.
 Ein Link aus der Node-Detailansicht setzt den optionalen `nodeId`-Filter;
 dieser begrenzt den Vergleich auf die fachlich zugehörigen Node-, Content- und
@@ -217,18 +217,18 @@ damit der Benutzer die geprüften Änderungen manuell erneut anwendet. Die
 Web-Grenze kopiert, merged oder rebased dabei keine Änderungen und verwirft die
 konfliktbehaftete Transaction nicht implizit.
 
-`Web.Features.Roles` stellt unter `/roles` die Rollenpflege bereit. `RolesPage` löst
+`Web.Features.Audiences` stellt unter `/audiences` die Zielgruppenpflege bereit. `AudiencesPage` löst
 ausschließlich den Read-Kontext über den gemeinsamen `WebReadContextResolver` auf,
 spiegelt `PageRegionState` und `WorkspaceState` und reicht `ReadContext` sowie die
-aktuelle `ChangeVersion` an den zustandsbehafteten `RoleEditor` weiter. `RoleEditor`
-lädt die Rollenliste einschließlich opaker Paging-Fortsetzung über
+aktuelle `ChangeVersion` an den zustandsbehafteten `AudienceEditor` weiter. `AudienceEditor`
+lädt die Zielgruppenliste einschließlich opaker Paging-Fortsetzung über
 `NavigationService`, hält Formular- und Löschdialogzustand und ruft für Erstellen,
 Umbenennen und Löschen ausschließlich `AudienceMutationService` auf. Die drei Aktionen
 sind nur bei einer offenen Working Transaction sichtbar und aktiv; erfolgreiche
 Antworten werden lokal aus dem Mutationsergebnis projiziert. Über ein schmales
 `EventCallback<long>` meldet der Editor die neue `ChangeVersion` an die Page, die
 damit `WorkspaceState` aktualisiert und den Kontext als dirty markiert.
-`RoleInUse`, `RoleNameRequired`, `RoleNotFound` und `ChangeVersionConflict` werden
+`AudienceInUse`, `AudienceNameRequired`, `AudienceNotFound` und `ChangeVersionConflict` werden
 mit ihrem stabilen Fehlercode und den strukturierten Details am Editor-Formular
 angezeigt; ein Fehler lässt Eingaben und Working-Zustand unverändert. Current-,
 Snapshot-, Release- und abgeschlossene Transaction-Kontexte bleiben schreibgeschützt.
@@ -262,7 +262,7 @@ erforderlich, weil der Adapter über reine Aufrufe hinaus Lifecyclezustand und
 idempotente Fehlpfade besitzt. Der Editor reduziert Browser- und Office-Paste
 lokal auf erlaubte Absätze, Formatierungen, Links, Listen, Tabellen, Code und
 Blockquotes. Unsichere Links, Headings, unbekannte Elemente sowie Bilder werden
-verworfen; jede Reduktion bleibt als `role=status` sichtbar und wird als
+verworfen; jede Reduktion bleibt als `role="status"` sichtbar und wird als
 ungespeicherte Änderung markiert. Die Clipboard-Verarbeitung arbeitet
 ausschließlich auf den gelieferten Strings, lädt keine Bildquelle und ersetzt
 den vollständigen Editorwert bei einer serverseitigen Ablehnung nicht.
@@ -331,15 +331,15 @@ Off-Path-Teilbäume gehören ausdrücklich nicht zur Rekonstruktion und bleiben 
 Zehn-Seiten-Eviction unterworfen.
 
 Die Read-only Node-Detailansicht (`NodeDetails`) zeigt Titel, Beschreibung, Position,
-Zielgruppe (inklusive Fallback-Kennzeichnung mit Pfeil und aufgelöster Rolle), Verfügbarkeit,
+Zielgruppe (inklusive Fallback-Kennzeichnung mit Pfeil und aufgelöster Zielgruppe), Verfügbarkeit,
 Freshness-Status, Inhaltsmodus (`Independent` vs. `Derived`), optionale Revisions-ID
 sowie bei wirksam aufgelöstem abgeleitetem Inhalt (`Derived`) dessen direkt
 gespeicherte Quellrevisionen (`SourceRevisions`). `NavigationService.GetNodeAsync`
-liefert dafür je direkter Dependency Source-Node, Source-Rolle, gespeicherte
+liefert dafür je direkter Dependency Source-Node, Source-Zielgruppe, gespeicherte
 Source-Revision und deren aktuell ausgewertete Freshness; die Liste ist keine
 transitive Provenienzauflistung. Die featurelokale `NodeDetailsPane` kapselt
 Laden, Fehler- und NotFound-Zustand, Markdown-Download-URL sowie Darstellung;
-`KnowledgePage` bleibt für Route, Query, Rollenwahl und sichtbaren Page-Zustand
+`KnowledgePage` bleibt für Route, Query, Zielgruppenwahl und sichtbaren Page-Zustand
 zuständig. Die Pane und MCP mappen dasselbe transportneutrale Ergebnis, auch wenn
 der wirksame Derived Content aus einer Fallback-Zielgruppe stammt.
 Im aktiven Transaction-Kontext ergänzt `NodeMetadataEditor` diese Ansicht um
@@ -372,11 +372,11 @@ File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine
 Bearbeitungscontrols). Bei fehlendem Inhalt wird ein expliziter Hinweis angezeigt;
 Lade- und Fehlerzustände nutzen `LoadingState`, `InlineAlert` bzw. `NotFoundState`.
 Für den ausgewählten Knoten bietet die Ansicht außerdem einen Markdown-Teilbaumdownload.
-Der schmale Browserendpunkt `GET /downloads/markdown` erhält `nodeId`, `roleId` und
+Der schmale Browserendpunkt `GET /downloads/markdown` erhält `nodeId`, `AudienceId` und
 höchstens einen Read-Context-Selektor, löst diesen über `WebReadContextResolver` auf
 und delegiert an `MarkdownExportService`. Erfolgreiche Antworten sind UTF-8-Markdown
 als Attachment mit `Cache-Control: no-store`; der Dateiname besteht aus bereinigtem
-Node-Titel und Rolle. Fehler werden als RFC-9457-`ProblemDetails` mit stabilem
+Node-Titel und Zielgruppe. Fehler werden als RFC-9457-`ProblemDetails` mit stabilem
 Fehlercode und Correlation-ID ausgeliefert, niemals als Teil-Datei. Bekannte
 fachliche Fehlercodes werden explizit auf `400`, `404` oder `409` abgebildet;
 unbekannte Codes und unerwartete Ausnahmen liefern neutral `500` mit einem
@@ -395,7 +395,7 @@ vorherigen Request ab; verspätete Ergebnisse werden nicht gerendert. Die ergän
 `NavigationService`, sodass Razor weiterhin nur Search-ViewModels und keine
 Domain-Typen rendert.
 
-`KnowledgeFilter` hält die Auswahl von aufgelöster Rolle, Availability,
+`KnowledgeFilter` hält die Auswahl von aufgelöster Zielgruppe, Availability,
 Freshness und Findings ausschließlich featurelokal. Werte innerhalb einer
 Facette werden als Oder, verschiedene Facetten als Und an `SearchService`
 übergeben. Ein Filterwechsel verwirft Trefferseite und Cursor; der Tree bleibt
@@ -452,7 +452,7 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   weil die erweiterte Blazor-Navigation den Hash-Link sonst abfängt, ohne
   den Fokus zu verschieben –, `header`, `nav` mit zugänglichem Namen
   `Hauptnavigation` mit den vier bestehenden Zielen Start (`/`), Suche
-  (`/search`), Transactions (`/transactions`) und Zielgruppen (`/roles`), `nav`
+  (`/search`), Transactions (`/transactions`) und Zielgruppen (`/audiences`), `nav`
   `Breadcrumbs`, der Seitenaktionsbereich und optional `aside` `Kontext`.
   Die vier Ziele erscheinen als ruhig gruppierte Linkflächen; der aktive
   Route-Kontext wird ausschließlich visuell über den bestehenden `NavLink`-
@@ -465,13 +465,13 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   `KnowledgeContextViewModel` (immutable `record` unter
   `Web/Components/Layout/Context`) für die globale Wissenskontextleiste: Art des
   Lese-Kontexts (`Current`, `Snapshot`, `Transaction`, `Release`), optionale
-  ID/Bezeichnung, optionale Rolle, `IsDirty` und optionale `BaseSnapshotId`. Bei
+  ID/Bezeichnung, optionale Zielgruppe, `IsDirty` und optionale `BaseSnapshotId`. Bei
   den M4-Strukturformularen ist `WorkspaceState.IsDirty` die zentrale flüchtige
   Quelle; `KnowledgePage` projiziert ihn in diesen Slot-Vertrag. Die Komponente
   `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
   Kopfbereich nahe der Wortmarke – als Text und Status ohne Selektor, Links
   oder Mutation; sie spiegelt `IsDirty` als `data-ktai-dirty`-Attribut ihres
-  Wurzelelements; eine fehlende Zielgruppe erscheint neutral als „Keine Rolle
+  Wurzelelements; eine fehlende Zielgruppe erscheint neutral als „Keine Zielgruppe
   ausgewählt“, der Dirty-Zustand nur bei Bedarf als „Ungespeicherte
   Änderungen“ mit Icon plus Text und bei Transactions der Base-Snapshot als
   eigenes Meta-Item. Nicht gelieferte Angaben erscheinen nicht;
@@ -489,7 +489,7 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   Das featurekonkrete `ContextSelectionForm` hält den unpersistierten
   Auswahlentwurf, validiert und bildet die kanonische Ziel-URL. Die beiden
   schmalen UI-Grenzen `IContextSelectionCatalog` und
-  `IContextSelectionRoleCatalog` übersetzen Application-Ergebnisse in
+  `IContextSelectionAudienceCatalog` übersetzen Application-Ergebnisse in
   darstellbare Auswahlwerte; dadurch kennt weder Dialoghost noch Formular
   Release-, Dashboard- oder `NavigationService` direkt.
 - Ab 1280 CSS-Pixeln (vom schmalen Modul `MainLayout.razor.js` über

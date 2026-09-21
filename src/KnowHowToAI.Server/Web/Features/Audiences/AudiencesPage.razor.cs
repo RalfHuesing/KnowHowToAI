@@ -4,13 +4,13 @@ using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
 
-namespace KnowHowToAI.Server.Web.Features.Roles;
+namespace KnowHowToAI.Server.Web.Features.Audiences;
 
 /// <summary>
-/// Löst den explizit gewählten Rollen-Lesekontext auf und synchronisiert ihn
+/// Löst den explizit gewählten Zielgruppen-Lesekontext auf und synchronisiert ihn
 /// mit dem flüchtigen Seiten- und Workspace-Zustand.
 /// </summary>
-public sealed partial class RolesPage : ComponentBase
+public sealed partial class AudiencesPage : ComponentBase
 {
     [Inject]
     private IWebReadContextResolver ReadContextResolver { get; set; } = default!;
@@ -50,7 +50,7 @@ public sealed partial class RolesPage : ComponentBase
 
         if (!resolution.IsSuccess)
         {
-            _contextErrorMessage = RoleMapper.ToErrorMessage(resolution.Error!);
+            _contextErrorMessage = AudienceMapper.ToErrorMessage(resolution.Error!);
             PageRegions.SetKnowledgeContext(new KnowledgeContextViewModel(
                 KnowledgeReadContextKind.Current,
                 DisplayName: "Ungültiger Kontext"));

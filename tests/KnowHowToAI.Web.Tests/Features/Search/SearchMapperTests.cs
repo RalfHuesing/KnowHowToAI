@@ -11,7 +11,7 @@ public sealed class SearchMapperTests
     public void ToSearchHitViewModel_MapsAllProperties()
     {
         var nodeId = new NodeId(Guid.NewGuid());
-        var resolvedRoleId = new AudienceId("architect");
+        var resolvedAudienceId = new AudienceId("architect");
 
         var hit = new SearchHit(
             nodeId,
@@ -20,7 +20,7 @@ public sealed class SearchMapperTests
             "...gefundener **Text**...",
             "Content",
             Availability.Explicit,
-            resolvedRoleId,
+            resolvedAudienceId,
             Freshness.Current,
             SortOrder: 3,
             Findings: ["StaleDerivedContent"]);
@@ -33,7 +33,7 @@ public sealed class SearchMapperTests
         Assert.Equal("...gefundener **Text**...", vm.Snippet);
         Assert.Equal("Content", vm.HitField);
         Assert.Equal("Explicit", vm.Availability);
-        Assert.Equal(resolvedRoleId.Value, vm.ResolvedRoleId);
+        Assert.Equal(resolvedAudienceId.Value, vm.ResolvedAudienceId);
         Assert.Equal("Current", vm.Freshness);
         Assert.Equal(3, vm.SortOrder);
         Assert.Equal(["Schnittstellen"], vm.Breadcrumb);

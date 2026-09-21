@@ -5,20 +5,20 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
-using KnowHowToAI.Server.Web.Features.Roles;
+using KnowHowToAI.Server.Web.Features.Audiences;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace KnowHowToAI.Web.Tests.Features.Roles;
+namespace KnowHowToAI.Web.Tests.Features.Audiences;
 
 [Trait("Category", "Unit")]
-public sealed class RolesPageTests : BunitContext
+public sealed class AudiencesPageTests : BunitContext
 {
     private static readonly TransactionId TransactionId = new(Guid.Parse("d6b6c44b-1f9c-4ef1-a8b8-bf3c1d8e2f44"));
 
     [Fact]
-    public void CurrentContext_RendersRolesReadOnly()
+    public void CurrentContext_RendersAudiencesReadOnly()
     {
         var navigation = CreateNavigationService(out _);
         AddPageServices(navigation, new WebReadContextResolution(
@@ -26,12 +26,12 @@ public sealed class RolesPageTests : BunitContext
             new KnowledgeContextViewModel(KnowledgeReadContextKind.Current),
             null));
 
-        var cut = Render<RolesPage>();
+        var cut = Render<AudiencesPage>();
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Rollen können nur in einer offenen Working Transaction", cut.Markup);
-            Assert.DoesNotContain("role-create-form", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("Zielgruppen können nur in einer offenen Working Transaction", cut.Markup);
+            Assert.DoesNotContain("audience-create-form", cut.Markup, StringComparison.Ordinal);
         });
     }
 
@@ -47,9 +47,9 @@ public sealed class RolesPageTests : BunitContext
                 ChangeVersion: 0),
             0));
 
-        var cut = Render<RolesPage>();
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindComponents<RoleEditor>()));
-        var editor = cut.FindComponent<RoleEditor>();
+        var cut = Render<AudiencesPage>();
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindComponents<AudienceEditor>()));
+        var editor = cut.FindComponent<AudienceEditor>();
 
         await cut.InvokeAsync(() => editor.Instance.MutationSucceeded.InvokeAsync(1));
 
@@ -70,7 +70,7 @@ public sealed class RolesPageTests : BunitContext
             ChangeVersion: 0,
             DateTimeOffset.UtcNow,
             null,
-            "Rollen-Test",
+            "Zielgruppen-Test",
             "Test",
             "Web",
             null);

@@ -4,7 +4,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 
 /// <summary>
 /// Read-only Detailansicht eines ausgewählten Knotens.
-/// Zeigt Titel, Description, Position, Rolle, aufgelösten Content,
+/// Zeigt Titel, Description, Position, Zielgruppe, aufgelösten Content,
 /// Fallback/Provenienz, Revision und Freshness ohne Bearbeitungscontrols.
 /// </summary>
 public sealed partial class NodeDetails

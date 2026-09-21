@@ -19,7 +19,7 @@
     padding: 0 var(--ktai-space-2);
 }
 
-.context-selector-dialog__roles {
+.context-selector-dialog__audiences {
     display: flex;
     flex-direction: column;
     gap: var(--ktai-space-2);
@@ -27,7 +27,7 @@
     overflow-y: auto;
 }
 
-.context-selector-dialog__role-option {
+.context-selector-dialog__audience-option {
     display: flex;
     align-items: flex-start;
     gap: var(--ktai-space-2);
@@ -38,17 +38,17 @@
     transition: background-color 0.15s ease-in-out;
 }
 
-.context-selector-dialog__role-option:hover {
+.context-selector-dialog__audience-option:hover {
     background-color: var(--ktai-color-surface-subtle);
 }
 
-.context-selector-dialog__role-name {
+.context-selector-dialog__audience-name {
     font-weight: 500;
     font-size: var(--ktai-font-size-sm);
     color: var(--ktai-color-text);
 }
 
-.context-selector-dialog__role-desc {
+.context-selector-dialog__audience-desc {
     display: block;
     font-size: var(--ktai-font-size-xs);
     color: var(--ktai-color-text-secondary);

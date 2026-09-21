@@ -39,25 +39,25 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     public event Action? Changed;
 
     internal ReadContext CurrentReadContext { get; private set; } = new();
-    internal string? CurrentRoleId { get; private set; }
+    internal string? CurrentAudienceId { get; private set; }
     internal Guid? VisualRootNodeId { get; private set; }
     internal int LoadedPageCount => _cache.LoadedPageCount;
     internal int KnownNodeCount => _knownNodes.Count;
 
-    bool IKnowledgeTreeWorkspace.HasContext(ReadContext readContext, string roleId) =>
-        CurrentReadContext == readContext && CurrentRoleId == roleId;
+    bool IKnowledgeTreeWorkspace.HasContext(ReadContext readContext, string audienceId) =>
+        CurrentReadContext == readContext && CurrentAudienceId == audienceId;
 
-    public async Task InitializeAsync(ReadContext context, string roleId, CancellationToken cancellationToken = default)
+    public async Task InitializeAsync(ReadContext context, string audienceId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentException.ThrowIfNullOrWhiteSpace(roleId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(audienceId);
         ThrowIfDisposed();
 
         var generation = Interlocked.Increment(ref _contextGeneration);
         _requestCoordinator.CancelAll();
 
         CurrentReadContext = context;
-        CurrentRoleId = roleId;
+        CurrentAudienceId = audienceId;
         SelectedNodeId = null;
         VisualRootNodeId = null;
         RootNode = null;
@@ -70,7 +70,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         Changed?.Invoke();
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_requestCoordinator.GlobalToken, cancellationToken);
-        await LoadRootAsync(context, roleId, generation, linkedCts.Token).ConfigureAwait(false);
+        await LoadRootAsync(context, audienceId, generation, linkedCts.Token).ConfigureAwait(false);
     }
 
     public async Task ExpandNodeAsync(Guid nodeId, CancellationToken cancellationToken = default)
@@ -186,7 +186,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         var loader = new KnowledgeTreePathLoader(_navigationService, callbacks);
         try
         {
-            var result = await loader.EnsurePathLoadedAsync(nodeId, CurrentReadContext, CurrentRoleId, cancellationToken).ConfigureAwait(false);
+            var result = await loader.EnsurePathLoadedAsync(nodeId, CurrentReadContext, CurrentAudienceId, cancellationToken).ConfigureAwait(false);
             if (!result.IsSuccess)
             {
                 if (result.FailedNodeId.HasValue && FindNode(result.FailedNodeId.Value) is { } failedNode)
@@ -275,7 +275,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 
     private async Task LoadRootAsync(
         ReadContext context,
-        string roleId,
+        string audienceId,
         int generation,
         CancellationToken cancellationToken)
     {
@@ -283,7 +283,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         {
             var result = await _navigationService.GetRootAsync(
                 context,
-                new AudienceId(roleId),
+                new AudienceId(audienceId),
                 cancellationToken).ConfigureAwait(false);
 
             if (generation != _contextGeneration)
@@ -356,7 +356,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
             var query = new ListChildrenQuery(
                 new NodeId(nodeId),
                 CurrentReadContext,
-                new AudienceId(CurrentRoleId ?? string.Empty),
+                new AudienceId(CurrentAudienceId ?? string.Empty),
                 Limit: PageLimit,
                 Cursor: cursor);
 

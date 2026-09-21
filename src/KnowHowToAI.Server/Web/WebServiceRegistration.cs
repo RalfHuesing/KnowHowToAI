@@ -22,7 +22,7 @@ internal static class WebServiceRegistration
         // die Region selbst hostet das Layout.
         services.AddScoped<ToastState>();
 
-        // Flüchtiger Circuit-State für den Arbeitskontext (Node, Rolle, Lese-Kontext).
+        // Flüchtiger Circuit-State für den Arbeitskontext (Node, Zielgruppe, Lese-Kontext).
         services.AddScoped<WorkspaceState>();
 
         // Löst URL-Query-Parameter auf Core-ReadContext und KnowledgeContextViewModel auf.
@@ -38,19 +38,19 @@ internal static class WebServiceRegistration
             serviceProvider.GetRequiredService<KnowledgeTreeState>());
         services.AddScoped<TreeMoveCoordinator>();
 
-        // Persistiert die letzte Rollenauswahl im Browser-LocalStorage.
-        services.AddScoped<IRoleStorageService, BrowserRoleStorageService>();
+        // Persistiert die letzte Zielgruppenauswahl im Browser-LocalStorage.
+        services.AddScoped<IAudienceStorageService, BrowserAudienceStorageService>();
 
-        // Flüchtiger Circuit-State für den globalen Rollen- und Lesekontext-Selektor.
+        // Flüchtiger Circuit-State für den globalen Zielgruppen- und Lesekontext-Selektor.
         services.AddScoped<ContextSelectorState>();
 
-        // UI-Grenzen für Auswahlwerte und kontextabhängige Rollen im Selektor.
+        // UI-Grenzen für Auswahlwerte und kontextabhängige Zielgruppen im Selektor.
         services.AddScoped<ContextSelectionCatalog>();
         services.AddScoped<IContextSelectionCatalog>(serviceProvider =>
             serviceProvider.GetRequiredService<ContextSelectionCatalog>());
-        services.AddScoped<ContextSelectionRoleCatalog>();
-        services.AddScoped<IContextSelectionRoleCatalog>(serviceProvider =>
-            serviceProvider.GetRequiredService<ContextSelectionRoleCatalog>());
+        services.AddScoped<ContextSelectionAudienceCatalog>();
+        services.AddScoped<IContextSelectionAudienceCatalog>(serviceProvider =>
+            serviceProvider.GetRequiredService<ContextSelectionAudienceCatalog>());
 
         return services;
     }

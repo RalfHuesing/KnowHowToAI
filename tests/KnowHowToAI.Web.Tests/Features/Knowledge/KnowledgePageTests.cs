@@ -26,7 +26,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgePageTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly AudienceId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultAudienceId = new("Developer");
 
     public KnowledgePageTests() =>
         JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js").Mode = JSRuntimeMode.Loose;
@@ -116,13 +116,13 @@ public sealed class KnowledgePageTests : BunitContext
         var workingSnapshotId = new SnapshotId(3);
         var fallbackSnapshotId = new SnapshotId(4);
         var transactionId = new TransactionId(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
-        var defaultRoleId = new AudienceId("Default");
+        var defaultAudienceId = new AudienceId("Default");
         var harness = new NavigationTestHarness(DefaultSnapshotId);
 
         harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Independent", null, 0, false));
         harness.AddContent(new NodeContent(DefaultSnapshotId, rootId, new AudienceId("Developer"), new ContentRevisionId(Guid.NewGuid()), ContentMode.Independent, "Independent content", false));
-        harness.AddAudience(new Audience(DefaultSnapshotId, defaultRoleId, "Default", null, false));
-        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, DefaultRoleId, DefaultRoleId, 1));
+        harness.AddAudience(new Audience(DefaultSnapshotId, defaultAudienceId, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, DefaultAudienceId, DefaultAudienceId, 1));
 
         harness.AddHistoricalSnapshot(new Snapshot(historicalSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
         AddDerivedScenario(harness, historicalSnapshotId, rootId, sourceId, new AudienceId("Developer"), sourceIsCurrent: true);
@@ -132,10 +132,10 @@ public sealed class KnowledgePageTests : BunitContext
         AddDerivedScenario(harness, workingSnapshotId, rootId, sourceId, new AudienceId("Developer"), sourceIsCurrent: false);
 
         harness.AddHistoricalSnapshot(new Snapshot(fallbackSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-        harness.AddAudience(new Audience(fallbackSnapshotId, defaultRoleId, "Default", null, false));
-        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, defaultRoleId, defaultRoleId, 1));
-        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, new AudienceId("Developer"), defaultRoleId, 2));
-        AddDerivedScenario(harness, fallbackSnapshotId, rootId, sourceId, defaultRoleId, sourceIsCurrent: true);
+        harness.AddAudience(new Audience(fallbackSnapshotId, defaultAudienceId, "Default", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, defaultAudienceId, defaultAudienceId, 1));
+        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, new AudienceId("Developer"), defaultAudienceId, 2));
+        AddDerivedScenario(harness, fallbackSnapshotId, rootId, sourceId, defaultAudienceId, sourceIsCurrent: true);
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         Services.AddWebPageStates()
@@ -149,10 +149,10 @@ public sealed class KnowledgePageTests : BunitContext
 
         var query = scenario switch
         {
-            "snapshot" => $"?snapshotId={historicalSnapshotId.Value}&roleId=Developer",
-            "working" => $"?transactionId={transactionId.Value:D}&roleId=Developer",
-            "fallback" => $"?snapshotId={fallbackSnapshotId.Value}&roleId=Developer",
-            _ => "?roleId=Developer"
+            "snapshot" => $"?snapshotId={historicalSnapshotId.Value}&audienceId=Developer",
+            "working" => $"?transactionId={transactionId.Value:D}&audienceId=Developer",
+            "fallback" => $"?snapshotId={fallbackSnapshotId.Value}&audienceId=Developer",
+            _ => "?audienceId=Developer"
         };
         Services.GetRequiredService<NavigationManager>().NavigateTo($"/knowledge/{rootId.Value:D}{query}");
 
@@ -170,15 +170,15 @@ public sealed class KnowledgePageTests : BunitContext
         SnapshotId snapshotId,
         NodeId rootId,
         NodeId sourceId,
-        AudienceId contentRoleId,
+        AudienceId contentAudienceId,
         bool sourceIsCurrent)
     {
         var storedRevision = new ContentRevisionId(Guid.NewGuid());
         var currentRevision = sourceIsCurrent ? storedRevision : new ContentRevisionId(Guid.NewGuid());
         harness.AddNode(new Node(snapshotId, rootId, null, "Derived", null, 0, false));
         harness.AddNode(new Node(snapshotId, sourceId, rootId, "Source", null, 1, false));
-        harness.AddContent(new NodeContent(snapshotId, rootId, contentRoleId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
-        harness.AddContent(new NodeContent(snapshotId, sourceId, contentRoleId, currentRevision, ContentMode.Independent, "Source content", false));
-        harness.AddDependency(new ContentDependency(snapshotId, rootId, contentRoleId, sourceId, contentRoleId, storedRevision));
+        harness.AddContent(new NodeContent(snapshotId, rootId, contentAudienceId, new ContentRevisionId(Guid.NewGuid()), ContentMode.Derived, "Derived content", false));
+        harness.AddContent(new NodeContent(snapshotId, sourceId, contentAudienceId, currentRevision, ContentMode.Independent, "Source content", false));
+        harness.AddDependency(new ContentDependency(snapshotId, rootId, contentAudienceId, sourceId, contentAudienceId, storedRevision));
     }
 }

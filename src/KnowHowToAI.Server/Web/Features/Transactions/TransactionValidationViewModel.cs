@@ -17,12 +17,12 @@ public sealed record TransactionValidationIssueViewModel(
     string Code,
     string Message,
     Guid? NodeId,
-    string? RoleId);
+    string? audienceId);
 
 /// <summary>Ein nicht mehr aktueller abgeleiteter Inhalt.</summary>
 public sealed record TransactionValidationStaleContentViewModel(
     Guid NodeId,
-    string RoleId,
+    string AudienceId,
     Guid ContentRevisionId);
 
 /// <summary>Eine durch Qualitätswarnungen abgeleitete Strukturpflegeempfehlung.</summary>

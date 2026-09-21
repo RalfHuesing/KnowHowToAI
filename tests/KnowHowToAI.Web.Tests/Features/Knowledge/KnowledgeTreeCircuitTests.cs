@@ -13,7 +13,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class KnowledgeTreeCircuitTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
-    private static readonly AudienceId DefaultRoleId = new("Developer");
+    private static readonly AudienceId DefaultAudienceId = new("Developer");
 
     [Fact]
     public async Task Paging_101Children_PageNextAndPreviousReplacePageAndPreserveHistory()
@@ -31,7 +31,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         // Seite 1: 100 Einträge, NextCursor vorhanden
@@ -82,7 +82,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value);
 
         Assert.Equal(101, treeState.KnownNodeCount);
@@ -147,7 +147,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         // Root expandieren (1 geladene Seite)
         await treeState.ExpandNodeAsync(rootId.Value);
@@ -185,7 +185,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         Assert.True(subtree1Node.IsExpanded);
         Assert.NotNull(treeState.FindNode(subChildIds[0].Value));
 
-        // Statusmeldung für role=status wurde gesetzt
+        // Statusmeldung für role="status" wurde gesetzt
         Assert.NotNull(treeState.StatusMessage);
         Assert.Contains("Subtree 2", treeState.StatusMessage);
         Assert.Contains("geschlossen", treeState.StatusMessage);
@@ -210,7 +210,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
 
         // Expandiere Level 0 bis 9 (10 geladene Seiten)
         for (var i = 0; i < 10; i++)
@@ -276,7 +276,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         Assert.Equal(1, treeState.KnownNodeCount); // Nur Root
 
         await treeState.ExpandNodeAsync(rootId.Value);
@@ -383,7 +383,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         var service = new NavigationService(customRepos, policy);
         using var treeState = new KnowledgeTreeState(service);
 
-        await treeState.InitializeAsync(new ReadContext(), DefaultRoleId.Value);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         await treeState.ExpandNodeAsync(rootId.Value); // callCount = 1 (Root), callCount = 2 (Children)
 
         Assert.Equal(100, treeState.RootNode!.Children.Count);
@@ -468,14 +468,14 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         using var treeState = new KnowledgeTreeState(service);
 
         // 1. Kontext: Snapshot 1 initialisieren
-        await treeState.InitializeAsync(new ReadContext(SnapshotId: DefaultSnapshotId), DefaultRoleId.Value); // callCount = 1
+        await treeState.InitializeAsync(new ReadContext(SnapshotId: DefaultSnapshotId), DefaultAudienceId.Value); // callCount = 1
 
         // 2. Expand auf Root 1 starten (verzögert)
         var expandTask = treeState.ExpandNodeAsync(root1Id.Value); // callCount = 2
         await call1Started.Task;
 
         // 3. Kontextwechsel: Snapshot 2 initialisieren
-        await treeState.InitializeAsync(new ReadContext(SnapshotId: snapshotId2), DefaultRoleId.Value); // callCount = 3
+        await treeState.InitializeAsync(new ReadContext(SnapshotId: snapshotId2), DefaultAudienceId.Value); // callCount = 3
 
         Assert.Equal("Root Snap 2", treeState.RootNode!.Title);
         Assert.Equal(0, treeState.LoadedPageCount);
