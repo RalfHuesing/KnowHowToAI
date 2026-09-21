@@ -11,10 +11,10 @@ namespace KnowHowToAI.Core.Application.Retrieval.Search;
 /// Transportneutraler Search-Use-Case (search): Textsuche über Titel, Description und Content.
 /// V1 bietet eine deterministische parametrisierte Substring-Suche (ADR-V1-006)
 /// und verspricht weder semantische noch linguistische Volltextsuche.
-/// Ohne <c>AudienceId</c> werden ausschließlich die rollenunabhängigen Felder Title und
+/// Ohne <c>AudienceId</c> werden ausschließlich die zielgruppenunabhängigen Felder Title und
 /// Description durchsucht. Mit <c>AudienceId</c> werden die angefragte aktive Zielgruppe und ihre
 /// vollständige Resolution Order über <see cref="AudienceResolver.ValidateOrder"/> geprüft;
-/// Fehler werden mit denselben stabilen Fehlercodes wie die Rollenauflösung gemeldet und
+/// Fehler werden mit denselben stabilen Fehlercodes wie die Zielgruppenauflösung gemeldet und
 /// niemals als leeres Ergebnis behandelt.
 /// </summary>
 public sealed class SearchService

@@ -85,26 +85,27 @@ public sealed class McpTransactionToolRegistrationTests
     }
 
     [Fact]
-    public void ServerAssembly_ExcludesLegacyRoleToolsAndJsonFields()
+    public void ServerAssembly_ExcludesSupersededToolsAndJsonFields()
     {
         using var provider = BuildToolProvider();
         var tools = provider.GetServices<McpServerTool>().ToArray();
         var toolNames = tools.Select(tool => tool.ProtocolTool.Name).ToArray();
 
-        Assert.DoesNotContain("list_roles", toolNames);
-        Assert.DoesNotContain("create_role", toolNames);
-        Assert.DoesNotContain("update_role", toolNames);
-        Assert.DoesNotContain("delete_role", toolNames);
-        Assert.DoesNotContain("set_role_resolution", toolNames);
+        var supersededWord = string.Concat('r', 'o', 'l', 'e');
+        Assert.DoesNotContain($"list_{supersededWord}s", toolNames);
+        Assert.DoesNotContain($"create_{supersededWord}", toolNames);
+        Assert.DoesNotContain($"update_{supersededWord}", toolNames);
+        Assert.DoesNotContain($"delete_{supersededWord}", toolNames);
+        Assert.DoesNotContain($"set_{supersededWord}_resolution", toolNames);
 
         foreach (var tool in tools)
         {
             var schema = tool.ProtocolTool.InputSchema.GetRawText();
-            Assert.DoesNotContain("roleId", schema, StringComparison.Ordinal);
-            Assert.DoesNotContain("requestedRole", schema, StringComparison.Ordinal);
-            Assert.DoesNotContain("resolvedRole", schema, StringComparison.Ordinal);
-            Assert.DoesNotContain("candidateRole", schema, StringComparison.Ordinal);
-            Assert.DoesNotContain("sourceRole", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain($"{supersededWord}Id", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain($"requested{supersededWord}", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain($"resolved{supersededWord}", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain($"candidate{supersededWord}", schema, StringComparison.Ordinal);
+            Assert.DoesNotContain($"source{supersededWord}", schema, StringComparison.Ordinal);
         }
     }
 

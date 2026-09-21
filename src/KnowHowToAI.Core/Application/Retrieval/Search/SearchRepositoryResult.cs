@@ -9,7 +9,7 @@ namespace KnowHowToAI.Core.Application.Retrieval.Search;
 /// als komfortabler, indexierbarer Zugriff auf <see cref="Hits"/>.
 /// Bei Suche mit <c>AudienceId</c> enthalten <c>Audiences</c> und <c>Resolutions</c> den Zielgruppen- und
 /// Resolution-Order-Stand desselben konsistenten SQL-Lesezeitpunkts; die Search-Validierung
-/// braucht sie, um dieselben Fehlercodes wie die Rollenauflösung zu liefern.
+/// braucht sie, um dieselben Fehlercodes wie die Zielgruppenauflösung zu liefern.
 /// </summary>
 public sealed record SearchRepositoryResult(
     IReadOnlyList<SearchHit> Hits,

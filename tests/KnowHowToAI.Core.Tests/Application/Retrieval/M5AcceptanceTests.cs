@@ -105,7 +105,7 @@ public sealed class M5AcceptanceTests
         Assert.Equal("Child 1 Text V1.", updatedContent.Before!.ContentMd);
         Assert.Equal("Child 1 Text V2 Aktualisiert.", updatedContent.After!.ContentMd);
 
-        // Rollenänderung
+        // Zielgruppenänderung
         Assert.Contains(diff.Audiences, r => r.Kind == DiffChangeKind.Added && r.After!.AudienceId == AudienceConsultant);
     }
 

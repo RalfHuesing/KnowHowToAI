@@ -5,7 +5,7 @@
  * optionaler Kontextbereich nebeneinander; in kompakten Breiten werden sie
  * über die beschrifteten Kopfbuttons ein- und ausgeklappt und erscheinen als
  * überlagernde Panels. Keine fixierten Höhen für normalen Inhalt: die
- * Seite und die Arbeitsfläche scrollen im Dokument. Elemente, die die
+ * Seite und die Arbeitsfläche nutzen den Bildlauf im Dokument. Elemente, die die
  * untergeordneten Layoutkomponenten rendern, werden über ::deep adressiert.
  */
 
@@ -154,7 +154,7 @@
 
 /*
  * Kompakte Breite: eine Spalte; die Seitenbereiche liegen als überlagernde
- * Panels unterhalb des Kopfs und scrollen notfalls in ihrem eigenen Bereich,
+ * Panels unterhalb des Kopfs und nutzen notfalls in ihrem eigenen Bereich den Bildlauf,
  * ohne den Seiteninhalt zu einer Scrollfalle zu machen.
  */
 .shell-root--compact {

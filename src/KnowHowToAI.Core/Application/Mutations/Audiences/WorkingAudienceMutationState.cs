@@ -5,7 +5,7 @@ using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.Core.Application.Mutations.Audiences;
 
-/// <summary>Vollständige, konsistente Sicht für eine Rollenmutation.</summary>
+/// <summary>Vollständige, konsistente Sicht für eine Zielgruppenmutation.</summary>
 public sealed record WorkingAudienceMutationState(
     SnapshotId SnapshotId,
     IReadOnlyList<Audience> Audiences,

@@ -21,12 +21,12 @@ sie nicht interaktiv aus.
 |---|---|---|
 | 100 % | 1280 CSS-Pixel | Kopf, Navigation, Arbeitsfläche nebeneinander; kein horizontaler Scrollbalken |
 | 200 % | 640 CSS-Pixel | Inhalt reflowt einspaltig; kein horizontaler Scrollbalken bei normalem Content; alle Texte und Aktionen erreichbar |
-| 400 % | 320 CSS-Pixel | wie 200 %; fachlich zweidimensionale Flächen scrollen nur in ihrem eigenen Bereich |
+| 400 % | 320 CSS-Pixel | wie 200 %; fachlich zweidimensionale Flächen nutzen nur in ihrem eigenen Bereich den Bildlauf |
 
 Bei jeder Stufe prüfen:
 
 1. Es erscheint kein ungewollter horizontaler Seiten-Scrollbalken bei
-   normalem Inhalt; zweidimensionale Flächen scrollen nur in sich selbst.
+   normalem Inhalt; zweidimensionale Flächen nutzen nur in sich selbst den Bildlauf.
 2. Alle Texte und Aktionen bleiben sichtbar und bedienbar; nichts wird
    abgeschnitten oder überdeckt.
 3. Der Zoom-/Reflow-Nachweis ist keine Smartphonefreigabe; die Shell

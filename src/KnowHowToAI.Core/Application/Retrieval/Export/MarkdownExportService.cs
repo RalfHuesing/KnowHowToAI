@@ -14,7 +14,7 @@ namespace KnowHowToAI.Core.Application.Retrieval.Export;
 /// Transportneutraler Export-Use-Case (export_tree): wandelt einen Teilbaum in Markdown um.
 /// Überschriften entstehen ausschließlich aus der Node-Hierarchie; ContentMd darf keine enthalten.
 /// Ausgewählter Root wird H1, Nachfahren erhalten relative Heading-Level.
-/// Rollenauflösung und Freshness pro Node; Node ohne Content wird nur bei exportiertem Nachfahren aufgenommen.
+/// Zielgruppenauflösung und Freshness pro Node; Node ohne Content wird nur bei exportiertem Nachfahren aufgenommen.
 /// </summary>
 public sealed class MarkdownExportService
 {

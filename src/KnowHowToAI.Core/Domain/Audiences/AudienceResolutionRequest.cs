@@ -4,7 +4,7 @@ using KnowHowToAI.Core.Domain.Content;
 namespace KnowHowToAI.Core.Domain.Audiences;
 
 /// <summary>
-/// Der vollständige, auf einen Snapshot und eine Node begrenzte Eingabekontext der Rollenauflösung.
+/// Der vollständige, auf einen Snapshot und eine Node begrenzte Eingabekontext der Zielgruppenauflösung.
 /// </summary>
 public sealed record AudienceResolutionRequest(
     SnapshotId SnapshotId,

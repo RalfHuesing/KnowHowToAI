@@ -62,23 +62,23 @@ unverändert.
 
 ## M1.5 – Repositoryabschluss
 
-- [ ] **M1.5 abschließen**
-  - [ ] [M1.5-T1 – Restterminologie beseitigen und Gesamtnachweis führen](tasks/M1.5-T1.md)
+- [x] **M1.5 abschließen**
+  - [x] [M1.5-T1 – Restterminologie beseitigen und Gesamtnachweis führen](tasks/M1.5-T1.md)
 
 ## Milestone-Abnahme
 
-- [ ] Neu aufgebaute Entwicklungs-/Testschemas, C#-Fachmodell und sämtliche
+- [x] Neu aufgebaute Entwicklungs-/Testschemas, C#-Fachmodell und sämtliche
       fachlichen Bezeichner verwenden `Audience`; Snapshot-Semantik und Verhalten
       sind erhalten.
-- [ ] Ausschließlich die neuen MCP-Tools und JSON-Felder sind registriert; alte
+- [x] Ausschließlich die neuen MCP-Tools und JSON-Felder sind registriert; alte
       Toolnamen und Felder sind nicht mehr verfügbar.
-- [ ] Ausschließlich `/audiences`, `audienceId` und der neue Browserzustand werden
+- [x] Ausschließlich `/audiences`, `audienceId` und der neue Browserzustand werden
       verwendet; die deutsche UI spricht durchgängig von „Zielgruppe“.
-- [ ] Ist-Dokumentation, Regeln und alle weiterhin ausführbaren Roadmaps führen
+- [x] Ist-Dokumentation, Regeln und alle weiterhin ausführbaren Roadmaps führen
       keinen Agenten zurück zur alten Terminologie.
-- [ ] Die Terminologiesuche enthält nur die in M1.0 einzeln erlaubten Standards-,
+- [x] Die Terminologiesuche enthält nur die in M1.0 einzeln erlaubten Standards-,
       Migrations- und Entscheidungsnachweise; keine pauschale Ausnahme bleibt.
-- [ ] Build, Solution-Linter, FastTests und IntegrationTests einschließlich
+- [x] Build, Solution-Linter, FastTests und IntegrationTests einschließlich
       BrowserTests sind gemäß Abschlussbudget grün.
 
 ## Audit

@@ -13,7 +13,7 @@ public sealed record ResolvedContentMetadata(
     int ContentLength);
 
 /// <summary>
-/// Transparenter Ausgang einer Rollenauflösung; fehlende Konfiguration ist kein impliziter Fallback.
+/// Transparenter Ausgang einer Zielgruppenauflösung; fehlende Konfiguration ist kein impliziter Fallback.
 /// </summary>
 public sealed record AudienceResolutionResult(
     AudienceId RequestedAudience,

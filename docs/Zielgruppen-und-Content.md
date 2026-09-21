@@ -26,7 +26,7 @@ mit `expectedChangeVersion` und `actualChangeVersion` geliefert; Working
 Snapshot und ChangeVersion bleiben unverändert. Erfolgreiche Mutationen liefern
 die neue ChangeVersion bis zu MCP und Web zurück.
 
-## Wissenszielgruppe ist keine Berechtigungsrolle
+## Wissenszielgruppe ist keine Berechtigung
 
 Eine Zielgruppe beschreibt: *Für welche Zielgruppe ist dieser Inhalt geschrieben?*
 Sie beschreibt **nicht**: *Wer darf diesen Inhalt lesen oder ändern?* Authentifizierung,

@@ -129,7 +129,7 @@ Klare Startempfehlung:
 - **Microsoft Playwright .NET mit xUnit v3** ausschließlich headless gegen die aktuelle Google-Chrome-Stable-Version für reale Browserabläufe, SignalR/Reconnect, JS-lastige Fremdkomponenten, Downloads und Accessibility-Smokes.
 - **Vitest** als Startkandidat für schnelle Unit-Tests, sobald eigenes JavaScript mehr als dünnes, durch Komponenten- oder Browsertests ausreichend belegtes JS-Interop enthält. Ohne solche Logik wird keine JS-Testtoolchain vorsorglich eingeführt.
 - Browser-E2E bleibt klein; fachliche Varianten gehören in Core-/Komponententests.
-- Playwright verwendet web-first Assertions und Rollen-/Label-/Test-ID-Locators; keine festen Wartezeiten und keine sichtbaren Browserstarts durch Implementierungsagenten.
+- Playwright verwendet web-first Assertions und ARIA-/Label-/Test-ID-Locators; keine festen Wartezeiten und keine sichtbaren Browserstarts durch Implementierungsagenten.
 
 Quellen:
 

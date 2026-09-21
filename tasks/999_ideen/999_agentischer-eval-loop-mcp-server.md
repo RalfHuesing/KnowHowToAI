@@ -113,9 +113,9 @@ Drei Ausprägungen, von denen zwei verworfen wurden:
 - Bauaufwand minimal: Eval-Task-Dateien, Journal-Konvention, einmal
   `hermes mcp add`. Keine neue Infrastruktur, keine API-Key-Verwaltung im
   Harness, keine zweite Schnittstelle am Server.
-- Rollentrennung fällt nebenbei ab: Eval-Agent (liest/ruft auf, schreibt nur
+- Aufgabentrennung fällt nebenbei ab: Eval-Agent (liest/ruft auf, schreibt nur
   Journal) ≠ Writer (fixt, hat keine MCP-Tools) ≠ Orchestrator (verifiziert).
-  Das bestehende Sequenzialitätsmodell bleibt intakt — es kommt eine Rolle
+  Das bestehende Sequenzialitätsmodell bleibt intakt — es kommt eine Aufgabe
   *neben* den Writer hinzu, kein zweiter Writer.
 - Der Exploration-Harness bleibt unersetzt: Er ist weiter das Messinstrument
   für Bytegrößen/Contract-Befunde und der schnellste Contract-Explorer beim

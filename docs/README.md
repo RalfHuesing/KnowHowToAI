@@ -23,7 +23,7 @@ Entscheidungsgeschichte liegt in der Git-Historie.
 
 | Dokument | Inhalt |
 |---|---|
-| [Intention](Intention.md) | Zweck, Ziele, Arbeitsabläufe, Rollenverteilung Agent/Server, Drift-Prinzip |
+| [Intention](Intention.md) | Zweck, Ziele, Arbeitsabläufe, Aufgabenverteilung Agent/Server, Drift-Prinzip |
 | [Wissenshierarchie](Wissenshierarchie.md) | Nodes, globale Hierarchie, Titel-/Content-Trennung, Heading-Verbot, Markdown, Refactoring |
 | [Zielgruppen und Content](Zielgruppen-und-Content.md) | Zielgruppenmodell, Resolution Orders, Content-Revisions, Dependencies, Freshness, Drift |
 | [Transaktionen und Historie](Transaktionen-und-Historie.md) | Transactions, Working Snapshots, Commit/Discard, Konkurrenz, Releases, Diffs |

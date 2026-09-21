@@ -162,7 +162,7 @@ public sealed class ResponsiveShellSmokeTests
         var surfaceMetrics = await ReadSurfaceScrollMetricsAsync(surface);
         Assert.True(
             surfaceMetrics.ScrollWidth > surfaceMetrics.ClientWidth,
-            "Die zweidimensionale Testfläche kann horizontal nicht in ihrem eigenen Bereich scrollen.");
+            "Die zweidimensionale Testfläche kann horizontal nicht in ihrem eigenen Bereich den Bildlauf nutzen.");
         await surface.FocusAsync();
         await page.Keyboard.PressAsync("ArrowRight");
         var scrollLeft = await surface.EvaluateAsync<double>("element => element.scrollLeft");

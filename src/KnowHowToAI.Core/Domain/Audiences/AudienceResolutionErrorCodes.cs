@@ -1,7 +1,7 @@
 namespace KnowHowToAI.Core.Domain.Audiences;
 
 /// <summary>
-/// Stabile Fehlercodes und Details für die Rollenauflösung.
+/// Stabile Fehlercodes und Details für die Zielgruppenauflösung.
 /// </summary>
 public static class AudienceResolutionErrorCodes
 {

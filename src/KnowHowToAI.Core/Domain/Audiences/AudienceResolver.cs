@@ -139,7 +139,7 @@ public static class AudienceResolver
             if (candidate.Priority <= 0)
                 return CreateError(
                     AudienceResolutionErrorCodes.InvalidPriority,
-                    "Die Priorität eines Rollenkandidaten muss positiv sein.",
+                    "Die Priorität eines Zielgruppenkandidaten muss positiv sein.",
                     AudienceResolutionErrorCodes.PriorityDetail,
                     candidate.Priority.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
@@ -161,14 +161,14 @@ public static class AudienceResolver
             if (audience is null)
                 return CreateError(
                     AudienceResolutionErrorCodes.CandidateAudienceNotFound,
-                    "Ein konfigurierter Rollenkandidat ist im Snapshot nicht vorhanden.",
+                    "Ein konfigurierter Zielgruppenkandidat ist im Snapshot nicht vorhanden.",
                     AudienceResolutionErrorCodes.CandidateAudienceIdDetail,
                     candidate.CandidateAudienceId.ToString());
 
             if (audience.IsDeleted)
                 return CreateError(
                     AudienceResolutionErrorCodes.CandidateAudienceDeleted,
-                    "Ein konfigurierter Rollenkandidat ist gelöscht.",
+                    "Ein konfigurierter Zielgruppenkandidat ist gelöscht.",
                     AudienceResolutionErrorCodes.CandidateAudienceIdDetail,
                     candidate.CandidateAudienceId.ToString());
         }

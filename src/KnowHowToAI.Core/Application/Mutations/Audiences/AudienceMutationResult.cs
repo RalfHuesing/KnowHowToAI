@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Domain.Audiences;
 
 namespace KnowHowToAI.Core.Application.Mutations.Audiences;
 
-/// <summary>Ergebnis einer Rollenmutation mit dem danach gültigen Working-Stand.</summary>
+/// <summary>Ergebnis einer Zielgruppenmutation mit dem danach gültigen Working-Stand.</summary>
 public sealed record AudienceMutationResult(Audience Audience, SnapshotId SnapshotId, long ChangeVersion)
 {
     public AudienceId AudienceId => Audience.AudienceId;
@@ -15,7 +15,7 @@ public sealed record AudienceMutationResult(Audience Audience, SnapshotId Snapsh
     public bool IsDeleted => Audience.IsDeleted;
 }
 
-/// <summary>Transportneutrale Eingabe für eine Rollenänderung.</summary>
+/// <summary>Transportneutrale Eingabe für eine Zielgruppenänderung.</summary>
 public sealed record UpdateAudienceMutationRequest(
     AudienceId AudienceId,
     string Name,

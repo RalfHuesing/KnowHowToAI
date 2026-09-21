@@ -5,7 +5,7 @@ diese Datei. `<name>` ist der Eval-Name (kebab-case, Ralf gibt ihn an oder ergib
 aus dem Auftrag). Kein anderes Vorgehen — dieses Dokument ist die verbindliche
 Anweisung für den gesamten Ablauf.
 
-## Rollen
+## Aufgabenverteilung
 
 - **Orchestrator (du):** bereitet den Lauf vor, startet das Skript, analysiert das
   Ergebnis, berichtet. Schreibt ausschließlich in das Eval-Verzeichnis und liest sonst

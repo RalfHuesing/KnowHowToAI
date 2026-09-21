@@ -115,7 +115,7 @@ Blocks werden nicht als Dokumentüberschriften interpretiert.
 Node-Content nutzt normales Markdown: Absätze, Listen, Tabellen, Links,
 Inline-Code, Code-Blöcke, Hervorhebungen, Blockquotes. Nicht erlaubt sind
 Markdown-Headings, HTML-Headings und persistiertes Front Matter für
-Systemmetadaten. Systemmetadaten (`NodeId`, `RequestedRole`, `ResolvedRole`,
+Systemmetadaten. Systemmetadaten (`NodeId`, `RequestedAudience`, `ResolvedAudience`,
 `SnapshotId`, `ContentRevisionId`, `Freshness`, …) sind Bestandteil der
 strukturierten MCP-Antwort, nie des Contents. Falls eine Ausgabeform Front Matter
 braucht, wird sie dynamisch erzeugt und nicht gespeichert.

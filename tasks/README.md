@@ -131,7 +131,7 @@ mindestens:
 9. **Abschlussnachweis:** geänderte Dateien, relevante Befehle/Ergebnisse,
    aktualisierte Roadmap-Checkbox und Commit.
 
-## Rollen und Ablauf
+## Aufgaben und Ablauf
 
 - **Planer:** untersucht Ist-Stand und Ziele, schneidet Milestones und
   Leaf-Tasks, dokumentiert Entscheidungen und Checklisten.

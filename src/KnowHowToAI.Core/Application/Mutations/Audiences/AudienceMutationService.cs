@@ -242,7 +242,7 @@ public sealed class AudienceMutationService(IAudienceMutationRepository reposito
             });
     }
 
-    private static DomainError AudienceNameRequiredError() => new(AudienceMutationErrorCodes.AudienceNameRequired, "Der Rollenname darf nicht leer oder nur Whitespace sein.");
+    private static DomainError AudienceNameRequiredError() => new(AudienceMutationErrorCodes.AudienceNameRequired, "Der Zielgruppenname darf nicht leer oder nur Whitespace sein.");
 
     private static DomainError AudienceInUseError(AudienceId audienceId) => new(
         AudienceMutationErrorCodes.AudienceInUse,

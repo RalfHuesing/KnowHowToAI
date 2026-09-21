@@ -25,8 +25,8 @@ public sealed class MarkdownDownloadEndpointTests
     private static readonly SnapshotId HistoricalSnapshotId = new(2);
     private static readonly NodeId RootNodeId = new(Guid.Parse("40000000-0000-0000-0000-000000000000"));
     private static readonly NodeId ChildNodeId = new(Guid.Parse("40000000-0000-0000-0000-000000000001"));
-    private static readonly AudienceId DeveloperRoleId = new("Developer");
-    private static readonly AudienceId EndUserRoleId = new("EndUser");
+    private static readonly AudienceId DeveloperAudienceId = new("Developer");
+    private static readonly AudienceId EndUserAudienceId = new("EndUser");
     private const string TechnicalErrorCode = "MarkdownDownloadTechnicalError";
     private const string InternalFailureDetail = "Interne Details dürfen nicht in der Antwort erscheinen.";
 
@@ -34,8 +34,8 @@ public sealed class MarkdownDownloadEndpointTests
     public async Task DownloadMarkdown_ExportsRequestedSubtreeWithFallbackAndAttachmentHeaders()
     {
         var harness = new NavigationTestHarness(CurrentSnapshotId);
-        harness.AddAudience(new Audience(CurrentSnapshotId, EndUserRoleId, "Endanwender", null, false));
-        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, EndUserRoleId, DeveloperRoleId, 1));
+        harness.AddAudience(new Audience(CurrentSnapshotId, EndUserAudienceId, "Endanwender", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(CurrentSnapshotId, EndUserAudienceId, DeveloperAudienceId, 1));
         harness.AddNode(new Node(CurrentSnapshotId, RootNodeId, null, "Wissensbasis", null, 0, false));
         harness.AddNode(new Node(CurrentSnapshotId, ChildNodeId, RootNodeId, "Teilbaum:/--", null, 1, false));
         harness.AddContent(Content(CurrentSnapshotId, ChildNodeId, "Fallback-Inhalt"));
@@ -43,7 +43,7 @@ public sealed class MarkdownDownloadEndpointTests
         await using var host = await StartWithHarnessAsync(harness);
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={ChildNodeId}&roleId={EndUserRoleId.Value}");
+            $"{host.Address}/downloads/markdown?nodeId={ChildNodeId}&audienceId={EndUserAudienceId.Value}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/markdown", response.Content.Headers.ContentType!.MediaType);
@@ -74,7 +74,7 @@ public sealed class MarkdownDownloadEndpointTests
         await using var host = await StartWithHarnessAsync(harness);
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&roleId={DeveloperRoleId.Value}&snapshotId={HistoricalSnapshotId.Value}");
+            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&audienceId={DeveloperAudienceId.Value}&snapshotId={HistoricalSnapshotId.Value}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("Historisch-Developer.md", response.Content.Headers.ContentDisposition!.ToString(), StringComparison.Ordinal);
@@ -92,7 +92,7 @@ public sealed class MarkdownDownloadEndpointTests
         await using var host = await StartWithHarnessAsync(harness);
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&roleId={DeveloperRoleId.Value}");
+            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&audienceId={DeveloperAudienceId.Value}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var markdown = await response.Content.ReadAsStringAsync();
@@ -109,7 +109,7 @@ public sealed class MarkdownDownloadEndpointTests
         await using var host = await StartWithHarnessAsync(harness);
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={unknownNodeId:D}&roleId={DeveloperRoleId.Value}");
+            $"{host.Address}/downloads/markdown?nodeId={unknownNodeId:D}&audienceId={DeveloperAudienceId.Value}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType!.MediaType);
@@ -126,7 +126,7 @@ public sealed class MarkdownDownloadEndpointTests
 
         await using var host = await StartWithHarnessAsync(harness);
         using var client = new HttpClient();
-        using var response = await client.GetAsync($"{host.Address}/downloads/markdown?nodeId=ungültig&roleId={DeveloperRoleId.Value}");
+        using var response = await client.GetAsync($"{host.Address}/downloads/markdown?nodeId=ungültig&audienceId={DeveloperAudienceId.Value}");
 
         await AssertProblemAsync(response, HttpStatusCode.BadRequest, NavigationErrorCodes.InvalidNodeId);
     }
@@ -142,7 +142,7 @@ public sealed class MarkdownDownloadEndpointTests
         await using var host = await StartWithHarnessAsync(harness, readContextResolver: resolver);
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&roleId={DeveloperRoleId.Value}&transactionId={Guid.NewGuid():D}");
+            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&audienceId={DeveloperAudienceId.Value}&transactionId={Guid.NewGuid():D}");
 
         await AssertProblemAsync(response, HttpStatusCode.Conflict, ReadContextErrorCodes.TransactionClosed);
     }
@@ -156,7 +156,7 @@ public sealed class MarkdownDownloadEndpointTests
         await using var host = await StartWithHarnessAsync(harness, readContextResolver: resolver);
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&roleId={DeveloperRoleId.Value}");
+            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&audienceId={DeveloperAudienceId.Value}");
 
         await AssertTechnicalProblemAsync(response);
     }
@@ -171,7 +171,7 @@ public sealed class MarkdownDownloadEndpointTests
             navigationService: new NavigationService(CreateThrowingRepositories(), new RetrievalPolicy()));
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&roleId={DeveloperRoleId.Value}");
+            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&audienceId={DeveloperAudienceId.Value}");
 
         await AssertTechnicalProblemAsync(response);
     }
@@ -187,7 +187,7 @@ public sealed class MarkdownDownloadEndpointTests
             markdownExportService: new MarkdownExportService(CreateThrowingRepositories()));
         using var client = new HttpClient();
         using var response = await client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&roleId={DeveloperRoleId.Value}");
+            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&audienceId={DeveloperAudienceId.Value}");
 
         await AssertTechnicalProblemAsync(response);
     }
@@ -205,7 +205,7 @@ public sealed class MarkdownDownloadEndpointTests
         using var client = new HttpClient();
         using var cancellation = new CancellationTokenSource();
         var requestTask = client.GetAsync(
-            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&roleId={DeveloperRoleId.Value}",
+            $"{host.Address}/downloads/markdown?nodeId={RootNodeId}&audienceId={DeveloperAudienceId.Value}",
             cancellation.Token);
 
         await cancellationRepository.RequestStarted.Task;
@@ -315,7 +315,7 @@ public sealed class MarkdownDownloadEndpointTests
     private static NodeContent Content(SnapshotId snapshotId, NodeId nodeId, string markdown) => new(
         snapshotId,
         nodeId,
-        DeveloperRoleId,
+        DeveloperAudienceId,
         new ContentRevisionId(Guid.NewGuid()),
         ContentMode.Independent,
         markdown,

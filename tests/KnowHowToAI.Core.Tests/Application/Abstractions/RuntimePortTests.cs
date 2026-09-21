@@ -7,7 +7,7 @@ namespace KnowHowToAI.Core.Tests.Application.Abstractions;
 public sealed class RuntimePortTests
 {
     [Fact]
-    public void RuntimePorts_CanProvideControlledTimeAndIdentifiers()
+    public void RuntimePorts_CanProvideDeterministicTimeAndIdentifiers()
     {
         var expectedTime = new DateTimeOffset(2026, 9, 15, 10, 30, 0, TimeSpan.Zero);
         IClock clock = new FixedClock(expectedTime);

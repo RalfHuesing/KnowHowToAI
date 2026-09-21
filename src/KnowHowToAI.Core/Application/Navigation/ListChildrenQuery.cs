@@ -4,7 +4,7 @@ namespace KnowHowToAI.Core.Application.Navigation;
 
 /// <summary>
 /// Abfrage-Parameter für <see cref="NavigationService.ListChildrenAsync"/>.
-/// Kapselt Node-ID, Read-Kontext, Rollenfilter und Paging-Optionen.
+/// Kapselt Node-ID, Read-Kontext, Zielgruppenfilter und Paging-Optionen.
 /// </summary>
 public sealed record ListChildrenQuery(
     NodeId? ParentNodeId,

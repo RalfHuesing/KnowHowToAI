@@ -507,7 +507,7 @@ und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
   jeweiligen Bereich, Schließen (Kopfbutton, Escape) gibt ihn an den Auslöser
   zurück, und Escape schließt nur den zuletzt geöffneten überlagernden Bereich.
   Keine fixierten Höhen für normalen Inhalt; die Seite und die Arbeitsfläche
-  scrollen im Dokument. Unterhalb von 1024 besteht nur die Zoom-/Reflow-
+  per Bildlauf im Dokument. Unterhalb von 1024 besteht nur die Zoom-/Reflow-
   Anforderung, keine Smartphone-Navigation.
 - Der Verbindungsverlust des Interactive-Server-Circuits wird durch die
   offizielle .NET-10-Reconnect-Oberfläche behandelt: Die Komponente

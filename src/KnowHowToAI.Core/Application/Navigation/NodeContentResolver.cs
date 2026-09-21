@@ -30,7 +30,7 @@ public sealed record NodeContentResolutionRequest(
 }
 
 /// <summary>
-/// Löst den Node-Content entlang der konfigurierten Rollenreihenfolge auf und
+/// Löst den Node-Content entlang der konfigurierten Zielgruppenreihenfolge auf und
 /// berechnet die transitive Freshness des aufgelösten Inhalts.
 /// Fehler des AudienceResolvers werden als DomainError weitergegeben.
 /// </summary>

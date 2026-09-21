@@ -41,7 +41,7 @@ MCP-/Domain-API zu ändern.
 Provenienz + ContentRevision + Stale-Erkennung
 ```
 
-und nicht permanente automatische Synchronisation aller Rollen. Reale
+und nicht permanente automatische Synchronisation aller Zielgruppen. Reale
 Entwicklungsarbeit ist iterativ und vorübergehend inkonsistent; das System
 kontrolliert den Drift, statt ihn künstlich vollständig verhindern zu wollen
 ([Intention](Intention.md)).
@@ -57,7 +57,7 @@ Formulierung liegen beim Agenten (Trennung im Detail:
 | ID | Entscheidung |
 |---|---|
 | ADR-V1-001 | Höchstens ein persistierter Root; leerer Initialzustand erlaubt (`get_root` liefert `availability = None`) |
-| ADR-V1-002 | Rollenpflege transaktional über Application/MCP; keine direkten SQL-Änderungen an committed Snapshots |
+| ADR-V1-002 | Zielgruppenpflege transaktional über Application/MCP; keine direkten SQL-Änderungen an committed Snapshots |
 | ADR-V1-003 | Transitive Freshness; Dependency-Zyklen verboten |
 | ADR-V1-004 | Minimale Release- und Historienfunktionen in V1 (`get_snapshot`, `list_releases`, `compare_snapshots`, `get_transaction_changes`, `create_release`) |
 | ADR-V1-005 | 4-KiB-Default als konfigurierbares Soft-Limit; Überschriften bleiben harte Fehler |
@@ -76,11 +76,11 @@ Folgendes ist aktuell nicht implementiert:
 - grafische Administration / Zielgruppen-Administrationsoberfläche
 - Benutzerverwaltung, Berechtigungs-/ACL-System, Mandantenmodell innerhalb einer
   Instanz
-- rollenspezifische Hierarchien oder Präsentations-Views
+- zielgruppenspezifische Hierarchien oder Präsentations-Views
 - automatisches Merge oder Rebase konkurrierender Transactions
 - Copy-on-write-Snapshots
 - Vektordatenbank, zwingende Embeddings, semantische Suche
-- automatische permanente Rollensynchronisation, automatisches Refactoring
+- automatische permanente Zielgruppensynchronisation, automatisches Refactoring
   während normaler Writes
 - komplexes Unified-Diff-Patching, lokale Temp-Datei-Workflows
 - Git als notwendiger Storage, LLM-Logik innerhalb des MCP-Servers
@@ -94,7 +94,7 @@ nicht unnötig verhindert werden:
 
 - **Weitere Transporte**: REST API als allgemeine HTTP-Fassade; der MCP-Transport
   (Streamable HTTP) ist festgelegt.
-- **Admin-Oberfläche**: Verwaltung von Rollen, Resolution Orders, Releases,
+- **Admin-Oberfläche**: Verwaltung von Zielgruppen, Resolution Orders, Releases,
   Snapshots, Transactions und Knowledge-Struktur; nicht versionierte Validator-
   und Betriebsparameter bleiben auch dann Anwendungskonfiguration.
 - **Präsentations-Views**: unterschiedliche Hierarchie- oder Navigationsdarstellungen

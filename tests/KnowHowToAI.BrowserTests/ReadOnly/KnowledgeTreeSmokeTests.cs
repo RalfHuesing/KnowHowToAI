@@ -79,7 +79,7 @@ public sealed class KnowledgeTreeSmokeTests
         var currentBreadcrumb = page.Locator("span[aria-current='page']");
         await Assertions.Expect(currentBreadcrumb).ToBeVisibleAsync();
 
-        // Tastaturnavigation im realen Browser prüfen und sicherstellen, dass kein Fenster-Scrollen stattfand
+        // Tastaturnavigation im realen Browser prüfen und sicherstellen, dass kein Fenster-Bildlauf stattfand
         await page.Keyboard.PressAsync("ArrowUp");
         await page.Keyboard.PressAsync("ArrowDown");
         var scrollY = await page.EvaluateAsync<double>("() => window.scrollY");

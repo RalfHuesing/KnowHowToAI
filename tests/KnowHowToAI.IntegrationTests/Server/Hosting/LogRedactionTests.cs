@@ -53,11 +53,11 @@ public sealed class LogRedactionTests
         var collected = CollectRenderedEvents();
         var logger = CreateEnrichingLogger(collected);
 
-        logger.Information("Transaktion {TransactionId} für Rolle {AudienceId}", "tx-1", "role-7");
+        logger.Information("Transaktion {TransactionId} für Zielgruppe {AudienceId}", "tx-1", "audience-7");
 
         var rendered = collected.Events[0].Rendered;
         Assert.Contains("tx-1", rendered);
-        Assert.Contains("role-7", rendered);
+        Assert.Contains("audience-7", rendered);
         Assert.DoesNotContain(SecretRedactionEnricher.RedactedValue, rendered);
     }
 

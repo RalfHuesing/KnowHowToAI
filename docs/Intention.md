@@ -2,7 +2,7 @@
 
 ## Zweck
 
-KnowHowToAI ist eine **hierarchische, versionierte und rollenabhängige
+KnowHowToAI ist eine **hierarchische, versionierte und zielgruppenabhängige
 Wissensbasis für Agenten und Menschen**. Das System unterstützt einen
 KMU-Arbeitsalltag, in dem beispielsweise Consultant, Entwickler und Endanwender
 mit demselben fachlichen Wissen arbeiten:
@@ -41,7 +41,7 @@ Beziehungen liegen im relationalen Datenmodell
 Alle Lese- und Schreibvorgänge laufen direkt über die
 [MCP-API](McpApi.md); es gibt keinen Workflow über lokale temporäre Dateien.
 
-## Rollenverteilung zwischen Agent und Server
+## Aufgabenverteilung zwischen Agent und Server
 
 Der MCP-Server ist deterministisch und fachlich konservativ. Diese Trennung ist
 beabsichtigt:
@@ -60,7 +60,7 @@ Der **Server** entscheidet:
 - welcher Snapshot gelesen wird,
 - ob die Hierarchie gültig ist,
 - ob Markdown-Headings verboten sind,
-- ob eine Rollenauflösung gültig ist,
+- ob eine Zielgruppenauflösung gültig ist,
 - ob Dependencies gültig sind,
 - ob ein Commit kollidiert,
 - wie Daten persistiert und versioniert werden.
@@ -71,7 +71,7 @@ Aufteilen und Zusammenführen übernimmt der Agent.
 
 ## Drift-Prinzip
 
-Das System verhindert Drift zwischen Rolleninhalten während laufender Arbeit nicht
+Das System verhindert Drift zwischen Zielgruppeninhalten während laufender Arbeit nicht
 vollständig. Stattdessen gilt:
 
 > Drift darf temporär entstehen, aber er darf nicht unbemerkt bleiben.

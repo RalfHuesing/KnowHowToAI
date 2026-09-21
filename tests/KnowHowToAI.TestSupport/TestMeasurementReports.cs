@@ -6,7 +6,7 @@ namespace KnowHowToAI.TestSupport;
 /// Schreibt persistente Mess- und Abnahmeartefakte (bewusst nicht disposable:
 /// die Berichte dokumentieren Messwerte über den Testlauf hinaus) als
 /// formatiertes JSON nach <c>temp/&lt;dateiname&gt;</c> im Repository und
-/// liefert den Pfad zur Kontrolle im Test.
+/// liefert den Pfad zur Überprüfung im Test.
 /// </summary>
 public static class TestMeasurementReports
 {

@@ -32,7 +32,7 @@ Verletzungen gemeldet werden, stehen im [Katalog der MCP-API](McpApi.md).
 14. Audience Resolution Orders sind frei konfigurierbar, deterministisch und nicht
     rekursiv; eine Zielgruppe kommt innerhalb einer Order nicht mehrfach vor.
 15. Fehlender Zielgruppen-Content darf per Fallback aufgelöst werden.
-16. `requestedRole` und `resolvedRole` werden immer transparent zurückgegeben.
+16. `requestedAudience` und `resolvedAudience` werden immer transparent zurückgegeben.
 17. Identischer Content wird nicht unnötig pro Zielgruppe dupliziert.
 18. Eigener Zielgruppen-Content ist `Independent` oder `Derived`.
 19. Derived Content speichert explizite Source-Revisions.
