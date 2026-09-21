@@ -1,149 +1,51 @@
 ---
-description: Harte Guardrails für Razor-, HTML-, CSS- und Layoutänderungen mit routeübergreifendem Nachweis.
+description: Harte Guardrails gegen lokale HTML-/CSS-/Layoutoptimierung ohne systemweiten Nachweis.
 globs: "**/*.{razor,css,html,scss}"
 alwaysApply: false
 ---
 
 # Web-UI-, HTML- und CSS-Guardrails
 
-Diese Regel gilt für jede Änderung an Razor-Markup, HTML, CSS/SCSS, Layout-
-Primitiven oder gemeinsam verwendeten UI-Klassen. Sie ergänzt die verbindlichen
-Produktziele in [Bedienkonzept und UI](../../tasks/webfrontend/konzept/02-bedienkonzept-und-ui.md),
-die Zielstruktur in [Projektstruktur und Codekonventionen](../../tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md),
-das [Layout- und Aktionssystem](../../tasks/ui-ux-refactoring/konzept/04-layout-und-aktionssystem.md),
-die [Testregeln](TestRichtlinien.mdc) und die [manuelle UI-Abnahme](../../docs/Manuelle-UI-Abnahme.md).
-Sie definiert operative Guardrails; sie erfindet keine neue Designentscheidung.
+Diese Regel triggert die vorhandene HTML-/CSS-/Accessibility-Kompetenz. Details
+stehen im [Bedienkonzept](../../tasks/webfrontend/konzept/02-bedienkonzept-und-ui.md),
+in der [Projektstruktur](../../tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md),
+den [Testregeln](TestRichtlinien.mdc) und der
+[manuellen UI-Abnahme](../../docs/Manuelle-UI-Abnahme.md).
 
-## Vor jeder layoutrelevanten Änderung
+## Vor dem Edit
 
-- Beschreibe vor dem Edit den visuellen Vertrag: vollständige betroffene Routentabelle,
-  Referenzseite, betroffene Zustände (mindestens Loading, Empty, Error, Not-found,
-  Conflict und Dirty, soweit die Route sie besitzt), Viewports und begründete Ausnahmen.
-  Die Routentabelle aus dem Strukturkonzept ist bei einer systemweiten Aussage vollständig
-  zu berücksichtigen; keine Route oder State-Variante darf still entfallen.
-- Die Begriffe `systemweit`, `alle` und `konsistent` sind nur zulässig, wenn die Matrix
-  alle betroffenen routable Pages und ihre wesentlichen Zustände enthält. Ein bewusster
-  Slice-Ausschluss begrenzt die Aussage ausdrücklich und nennt die offene Folgearbeit.
-- Lege für jede betroffene Dimension den Owner fest: `Shell-Inset -> Page-Root ->
-  Feature-Section -> Prosa-Measure`. Prüfe danach die Referenzseite und mindestens eine
-  repräsentative Seite mit abweichendem Inhalt gemeinsam; eine Einzelroute ist kein
-  Nachweis für einen systemweiten Vertrag.
+- Bei `alle`, `systemweit`, `gemeinsam` oder `konsistent`: vollständige betroffene
+  Routentabelle mit relevanten Zuständen, Referenzseite und Ausnahmen festlegen.
+  Ausgeschlossene Routen begrenzen die Aussage und bleiben explizite Folgearbeit.
+- Layout-Ownership bestimmen: `Shell-Inset -> Page-Root -> Feature-Section ->
+  Prosa-Measure`. Jede Dimension (Inset, Breite, Abstand) hat genau einen Owner.
+- Bestehende Tokens, Basisprimitive und gemeinsame Komponenten zuerst prüfen und
+  wiederverwenden; keine lokale Parallelvariante ohne eigene Verantwortung.
 
-## Raum- und Ownership-Vertrag
+## Harte Grenzen
 
-- Jede Dimension hat genau einen Owner. Der `Shell-Inset` definiert den globalen
-  Innenabstand; der `Page-Root` nimmt die verfügbare innere Breite ein; die
-  `Feature-Section` gruppiert Fachinhalte; `Prosa-Measure` begrenzt nur Prosa,
-  Beschreibungen und vergleichbaren Fließtext.
-- Kein doppeltes Padding, Margin oder Gutter an benachbarten Ebenen. Ein Kind darf den
-  vom Owner bereitgestellten Raum nicht nochmals als Shell-Inset simulieren.
-- Der routable `Page-Root` verwendet kein route-lokales `max-width` und kein
-  `margin-inline: auto`. Eine begründete Ausnahme muss im Änderungsnachweis stehen und
-  per Computed-Style-/Bounding-Box-Test belegt werden.
-- „Volle Breite“ bedeutet gleiche sichtbare linke und rechte Innenkante im gemeinsamen
-  Rahmen, nicht lediglich `width: 100%`. Prüfe deshalb die gerenderten Innenkanten,
-  nicht nur CSS-Quelltext oder Breitenwerte.
-- `Prosa-Measure` darf Navigation, Baum, Tabellen, Diff, Formulare oder Aktionsflächen
-  nicht auf eine Textbreite begrenzen. Verwende für diese Flächen den Page-Root- bzw.
-  Feature-Section-Raum und lasse den bestehenden Layoutvertrag maßgeblich sein.
-- Keine negativen Margins, `transform`-Versätze, viewportfixierten Breiten oder
-  Overflow-Tricks als Reparatur für falsche Ownership. Ursache und Owner korrigieren.
+- Routable Page-Roots nutzen den gemeinsamen vollen Innenraum: kein lokales
+  `max-width`, `margin-inline: auto` oder zusätzliches Shell-Padding ohne
+  begründete und getestete Ausnahme. `width: 100%` allein beweist keine gleichen
+  sichtbaren Innenkanten.
+- Hauptseiten nutzen denselben Page-Header-/`h1`-Vertrag. Genau ein semantisches
+  `h1`; keine User-Agent-Defaults, lokalen Schriftwerte oder falschen Heading-
+  Ebenen für Optik ohne begründete und getestete Ausnahme.
+- Globale CSS-Dateien enthalten nur Reset, Tokens und frameworkweite Basisklassen;
+  Feature-CSS bleibt scoped. Keine `!important`-, Spezifitäts-, Negativ-Margin-,
+  Transform- oder Overflow-Reparatur für falsche Ownership/Cascade.
+- Prosa darf begrenzt werden; Navigation, Baum, Tabellen, Diff, Formulare und
+  Aktionsflächen nicht. Semantik, zugängliche Namen, Fokus, Reflow und bestehende
+  Funktionen bleiben erhalten.
 
-## Seitenkopf und semantische Hierarchie
+## Nachweis vor Abschluss
 
-- Alle Hauptseiten verwenden den gemeinsamen Page-Header-/`h1`-Vertrag: gleiche
-  Struktur, Token, Schriftwerte, Zeilenhöhe, Abstände und Ausrichtung; Seitentitel und
-  optionale Beschreibung/Aktionen unterscheiden nur den fachlichen Inhalt.
-- Pro Hauptinhalt gibt es genau ein semantisches `h1`. `h2` bis `h6` bilden die echte
-  Inhaltsstruktur; die Hierarchie wird nicht für optische Größen missbraucht.
-- User-Agent-Defaults und lokale `h1`-Schriftwerte sind nicht zulässig. Abweichungen
-  benötigen eine dokumentierte Begründung, zentrale Token oder Basisklasse und einen
-  routeübergreifenden Computed-Style-Nachweis.
-- Überschriften werden nicht durch `<div>`, CSS-Pseudoinhalt oder dekorative Texte
-  ersetzt. Für Optik sind Klassen/Primitiven zuständig, nicht falsche Heading-Ebenen.
-
-## Tokens, Klassen und Cascade
-
-- Zuerst vorhandene Design-Tokens, Basisprimitive und gemeinsame Klassen verwenden.
-  Rohe Farben, Abstände, Radien, Schatten, Schriftwerte und lokale Sondervarianten sind
-  nur mit begründeter Ausnahme zulässig; keine parallelen Token-Synonyme anlegen.
-- Globales CSS (`wwwroot/css/app.css`) enthält nur Reset, globale Tokens und bewusst
-  frameworkweite Basisklassen. Feature- und Komponentenregeln bleiben in der vorgesehenen
-  Scoped-CSS-Datei; neue globale Selektoren benötigen eine nachgewiesene globale
-  Verantwortung.
-- Blazor-CSS-Isolation ist eine echte Cascade-Grenze: Prüfe gerenderte Isolation,
-  Selector-Spezifität, Reihenfolge und `::deep`-Einsatz im echten DOM. Vermute nicht,
-  dass ein isolierter Parent beliebige Child-Komponenten stylt, oder dass eine globale
-  Regel eine isolierte Regel überschreibt.
-- Bevorzuge niedrige, vorhersehbare Spezifität (Klassen vor IDs und langen
-  Elementketten). Kein `!important` zur Reparatur von Ownership-, Isolation- oder
-  Reihenfolgefehlern; eine Ausnahme muss Ursache, Scope und Nachweis dokumentieren.
-- Pro visuelle Eigenschaft gibt es im selben Scope eine kanonische Regel. Widersprüchliche
-  lokale Overrides, Duplikate und „letzter Selektor gewinnt“-Reparaturen sind zu entfernen.
-
-## HTML und Barrierefreiheit
-
-- Semantisches HTML und native Controls verwenden: `a` navigiert, `button` löst eine
-  Aktion aus, Formulare nutzen Labels und passende Eingabetypen. Keine klickbaren
-  `div`/`span`, Button-Hacks oder Icon-only-Aktionen ohne zugänglichen Namen.
-- ARIA ergänzt fehlende native Semantik, ersetzt sie nicht. Bestehende Tastatur-, Fokus-,
-  Kontrast-, Status- und Fehlerverträge bleiben erhalten; Änderungen an Markup dürfen
-  bestehende Funktions- und Accessibility-Assertions nicht abschwächen.
-- Detaillierte WCAG-/Testanforderungen werden nicht dupliziert, sondern aus dem
-  Bedienkonzept, `TestRichtlinien.mdc` und `docs/Manuelle-UI-Abnahme.md` übernommen.
-
-## Responsive, Zoom und Reflow
-
-- Die bestehenden Ziele gelten: vollständige Desktopdarstellung ab 1280 CSS-Pixeln,
-  verdichtete Funktion bei 1024 und Reflow-/Zoom-Nachweis bei 200 %/400 %. Daraus wird
-  kein zusätzliches Smartphoneproduktziel abgeleitet.
-- Für normale Inhalte sind abgeschnittene, überlappende, unerreichbare oder nur durch
-  Seiten-Scroll sichtbare Inhalte Fehler. Zweidimensionaler Bildlauf ist ausschließlich
-  für fachlich zweidimensionale Flächen und nur innerhalb deren eigenem Bereich zulässig.
-- Responsive Regeln erhalten Inhalt, Reihenfolge, primäre Aktion und Semantik. Keine
-  breakpointabhängige Duplikation derselben Aktion oder ein verstecktes Desktoplayout
-  ohne gleichwertigen zugänglichen Pfad.
-
-## Nachweise vor Abschluss
-
-- Der Test belegt den behaupteten Vertrag routeübergreifend mit festen Viewports. Für
-  Layoutverträge prüft er mindestens Computed Styles, Bounding Boxes/Innenkanten und
-  Overflow; sichtbarer Text allein ist kein Layoutnachweis.
-- Verwende den bestehenden Chrome-/Playwright-Testkanal und beobachtbare Zustände gemäß
-  [TestRichtlinien](TestRichtlinien.mdc). Screenshots sind ergänzende Diagnose- und
-  Abnahmeartefakte: alle betroffenen Routen und Zustände gemeinsam betrachten, nicht
-  einzelne Bilder isoliert akzeptieren.
-- Visuelle Baselines niemals blind aktualisieren. Bei einer absichtlichen Änderung sind
-  Ursache, Referenz, betroffene Matrix und neue gemeinsame Sichtprüfung festzuhalten.
-- Bestehende Funktions-, Komponenten-, Browser- und Accessibility-Assertions bleiben
-  erhalten. Ein Layoutfix, der nur durch gelockerte Assertions grün wird, ist nicht grün.
-
-## Harte Abschlusscheckliste
-
-- [ ] Routentabelle, Zustände, Referenzseite, Viewports und Ausnahmen sind vollständig;
-      keine offene Route wird als fertig behauptet.
-- [ ] Ownership `Shell-Inset -> Page-Root -> Feature-Section -> Prosa-Measure` ist je
-      Dimension eindeutig; kein doppeltes Padding und kein unberechtigtes Page-Root-
-      `max-width`/`margin-inline: auto`.
-- [ ] Gemeinsamer Header-/`h1`-Vertrag, Tokens, CSS-Scope und Cascade sind nachgewiesen;
-      keine UA-Defaults, lokalen Sonderwerte oder `!important`-Reparaturen ohne Ausnahme.
-- [ ] Semantik, Tastatur-/Fokusvertrag, Reflow, Overflow und erreichbare Aktionen bleiben
-      intakt; bestehende Assertions sind unverändert grün.
-- [ ] Cross-Route-Nachweis und gemeinsame Sichtprüfung liegen vor. Erst dann darf der
-      Slice als abgeschlossen bezeichnet werden.
-
-## Primärquellen
-
-- [W3C/WAI WCAG 2.2 – Understanding](https://www.w3.org/WAI/WCAG22/Understanding/) und
-  [G141: Überschriften strukturieren](https://www.w3.org/WAI/WCAG22/Techniques/general/G141.html)
-  für Reflow, Semantik und Heading-Struktur.
-- [MDN: CSS Cascade/Spezifität](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity)
-  für vorhersehbare Cascade-Entscheidungen.
-- [Microsoft: Blazor CSS isolation](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/css-isolation)
-  für die Isolation/Cascade-Grenze.
-- [Playwright .NET: Screenshots](https://playwright.dev/dotnet/docs/screenshots) und
-  [Web-First Assertions](https://playwright.dev/dotnet/docs/api/class-playwrightassertions)
-  für ergänzende visuelle Artefakte und beobachtbare Nachweise.
-
-Routenmatrix und Ownership sind Projektprozess-Guardrails; sie sind keine Behauptung,
-dass W3C, MDN, Microsoft oder Playwright diese konkrete Prozessform vorschreiben.
+- Behauptete Layoutverträge routeübergreifend im echten Browser prüfen: feste
+  Viewports gemäß Projektvorgaben, Computed Styles, Bounding Boxes/Innenkanten,
+  Overflow, Umbruch und erreichbare Aktionen.
+- Screenshots aller betroffenen Routen/Zustände in einem Lauf gemeinsam visuell
+  prüfen; sie ergänzen Assertions und ersetzen sie nicht. Baselines nie blind
+  aktualisieren.
+- Ein grüner Einzelroute-/Sichtbarkeitstest belegt keine systemweite Konsistenz.
+  Kein Slice ist fertig, solange eine behauptete Route, ein relevanter Zustand
+  oder eine dokumentierte Ausnahme im Nachweis fehlt.
