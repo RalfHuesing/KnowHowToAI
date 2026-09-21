@@ -42,16 +42,16 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await page.GetByTestId("tx-open-knowledge-link").ClickAsync();
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
 
-            var roleSelector = page.GetByTestId("context-selector-dialog");
-            await Assertions.Expect(roleSelector).ToBeVisibleAsync();
-            var roleOption = roleSelector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio);
-            await roleOption.CheckAsync();
-            await Assertions.Expect(roleOption).ToBeCheckedAsync();
-            var applyButton = roleSelector.GetByTestId("selector-apply-button");
+            var audienceSelector = page.GetByTestId("context-selector-dialog");
+            await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
+            var audienceOption = audienceSelector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio);
+            await audienceOption.CheckAsync();
+            await Assertions.Expect(audienceOption).ToBeCheckedAsync();
+            var applyButton = audienceSelector.GetByTestId("selector-apply-button");
             await Assertions.Expect(applyButton).ToBeEnabledAsync();
             await applyButton.ClickAsync();
-            await Assertions.Expect(roleSelector).ToBeHiddenAsync();
-            await Assertions.Expect(page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("[?&]roleId=Default(?:&|$)"));
+            await Assertions.Expect(audienceSelector).ToBeHiddenAsync();
+            await Assertions.Expect(page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("[?&]audienceId=Default(?:&|$)"));
 
             var root = page.GetByRole(AriaRole.Treeitem).First;
             await Assertions.Expect(root).ToBeVisibleAsync();

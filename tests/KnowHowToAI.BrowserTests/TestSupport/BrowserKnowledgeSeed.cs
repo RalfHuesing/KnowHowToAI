@@ -11,11 +11,11 @@ internal static class BrowserKnowledgeSeed
 {
     internal const string ExportNodeTitle = "Browser-Export-Teilbaum";
 
-    private const string DefaultRoleId = "Default";
-    private const string ReaderRoleId = "BrowserDownloadReader";
+    private const string DefaultAudienceId = "Default";
+    private const string ReaderAudienceId = "BrowserDownloadAudience";
     private const string HistorySourceTitle = "Browser-History-Quelle";
     private const string HistoryDerivedTitle = "Browser-History-Diff-Knoten";
-    private const string HistoryRoleId = "BrowserHistoryDiffRole";
+    private const string HistoryAudienceId = "BrowserHistoryDiffAudience";
     private const string HistoryReleaseName = "Browser History Release";
     private const int HistoryPagingSnapshotCount = 20;
     private const string ExportContent = "Browser-Testinhalt für den Markdown-Download.";
@@ -42,16 +42,16 @@ internal static class BrowserKnowledgeSeed
                     TransportMode = HttpTransportMode.StreamableHttp
                 }));
 
-            var roles = await CallAsync(client, "list_roles");
-            var hasDefaultRole = ContainsRole(roles, DefaultRoleId);
-            var hasReaderRole = ContainsRole(roles, ReaderRoleId);
-            var rootNodeId = hasDefaultRole
+            var audiences = await CallAsync(client, "list_audiences");
+            var hasDefaultAudience = ContainsAudience(audiences, DefaultAudienceId);
+            var hasReaderAudience = ContainsAudience(audiences, ReaderAudienceId);
+            var rootNodeId = hasDefaultAudience
                 ? TryGetDataString(
-                    await CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = DefaultRoleId }),
+                    await CallAsync(client, "get_root", new Dictionary<string, object?> { ["audienceId"] = DefaultAudienceId }),
                     "nodeId")
                 : null;
 
-            if (hasReaderRole && rootNodeId is not null
+            if (hasReaderAudience && rootNodeId is not null
                 && await ContainsExportNodeAsync(client, rootNodeId))
             {
                 if (includeHistoryEvidence)
@@ -68,31 +68,7 @@ internal static class BrowserKnowledgeSeed
             var transactionId = RequireDataString(transaction, "transactionId", "begin_transaction");
             try
             {
-                if (!hasDefaultRole)
-                {
-                    await RequireSuccessAsync(client, "create_role", new Dictionary<string, object?>
-                    {
-                        ["transactionId"] = transactionId,
-                        ["name"] = DefaultRoleId,
-                        ["description"] = "Browser-Testrolle"
-                    });
-                }
-
-                if (!hasReaderRole)
-                {
-                    await RequireSuccessAsync(client, "create_role", new Dictionary<string, object?>
-                    {
-                        ["transactionId"] = transactionId,
-                        ["name"] = ReaderRoleId,
-                        ["description"] = "Browser-Testrolle mit Fallback"
-                    });
-                    await RequireSuccessAsync(client, "set_role_resolution", new Dictionary<string, object?>
-                    {
-                        ["transactionId"] = transactionId,
-                        ["roleId"] = ReaderRoleId,
-                        ["candidateRoleIds"] = new[] { ReaderRoleId, DefaultRoleId }
-                    });
-                }
+                await EnsureWorkflowAudiencesAsync(client, transactionId, hasDefaultAudience, hasReaderAudience);
 
                 if (rootNodeId is null)
                 {
@@ -101,7 +77,7 @@ internal static class BrowserKnowledgeSeed
                         ["transactionId"] = transactionId,
                         ["title"] = "Browser-Testwissen",
                         ["contentMd"] = "Wurzelinhalt der Browser-Testdaten.",
-                        ["roleId"] = DefaultRoleId
+                        ["audienceId"] = DefaultAudienceId
                     });
                     rootNodeId = RequireDataString(rootNode, "nodeId", "create_node");
                 }
@@ -112,7 +88,7 @@ internal static class BrowserKnowledgeSeed
                     ["title"] = ExportNodeTitle,
                     ["parentNodeId"] = rootNodeId,
                     ["contentMd"] = ExportContent,
-                    ["roleId"] = DefaultRoleId
+                    ["audienceId"] = DefaultAudienceId
                 });
                 await RequireSuccessAsync(client, "commit_transaction", new Dictionary<string, object?>
                 {
@@ -137,6 +113,45 @@ internal static class BrowserKnowledgeSeed
         }
     }
 
+    private static async Task EnsureWorkflowAudiencesAsync(
+        McpClient client,
+        string transactionId,
+        bool hasDefaultAudience,
+        bool hasReaderAudience)
+    {
+        var transactionChangeVersion = 0L;
+        if (!hasDefaultAudience)
+        {
+            var createdDefaultAudience = await RequireSuccessAsync(client, "create_audience", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["name"] = DefaultAudienceId,
+                ["expectedChangeVersion"] = transactionChangeVersion,
+                ["description"] = "Browser-Testzielgruppe"
+            });
+            transactionChangeVersion = TryGetDataLong(createdDefaultAudience, "changeVersion") ?? transactionChangeVersion + 1;
+        }
+
+        if (!hasReaderAudience)
+        {
+            var createdReaderAudience = await RequireSuccessAsync(client, "create_audience", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["name"] = ReaderAudienceId,
+                ["expectedChangeVersion"] = transactionChangeVersion,
+                ["description"] = "Browser-Testzielgruppe mit Fallback"
+            });
+            transactionChangeVersion = TryGetDataLong(createdReaderAudience, "changeVersion") ?? transactionChangeVersion + 1;
+            await RequireSuccessAsync(client, "set_audience_resolution", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["audienceId"] = ReaderAudienceId,
+                ["candidateAudienceIds"] = new[] { ReaderAudienceId, DefaultAudienceId },
+                ["expectedChangeVersion"] = transactionChangeVersion
+            });
+        }
+    }
+
     private static async Task EnsureHistoryEvidenceAsync(McpClient client, string rootNodeId)
     {
         if (await ContainsChildAsync(client, rootNodeId, HistoryDerivedTitle))
@@ -157,7 +172,7 @@ internal static class BrowserKnowledgeSeed
                 ["title"] = HistorySourceTitle,
                 ["parentNodeId"] = rootNodeId,
                 ["contentMd"] = "Quelle für den Browser-History-Diff.",
-                ["roleId"] = DefaultRoleId
+                ["audienceId"] = DefaultAudienceId
             });
             var sourceNodeId = RequireDataString(source, "nodeId", "create_node");
             var sourceRevisionId = RequireDataString(source, "contentRevisionId", "create_node");
@@ -177,32 +192,21 @@ internal static class BrowserKnowledgeSeed
             var diffTransactionId = RequireDataString(diffTransaction, "transactionId", "begin_transaction");
             try
             {
-                await RequireSuccessAsync(client, "create_role", new Dictionary<string, object?>
-                {
-                    ["transactionId"] = diffTransactionId,
-                    ["name"] = HistoryRoleId,
-                    ["description"] = "Rolle für den Browser-History-Diff"
-                });
-                await RequireSuccessAsync(client, "set_role_resolution", new Dictionary<string, object?>
-                {
-                    ["transactionId"] = diffTransactionId,
-                    ["roleId"] = HistoryRoleId,
-                    ["candidateRoleIds"] = new[] { HistoryRoleId, DefaultRoleId }
-                });
+                await EnsureHistoryAudienceAsync(client, diffTransactionId);
                 await RequireSuccessAsync(client, "create_node", new Dictionary<string, object?>
                 {
                     ["transactionId"] = diffTransactionId,
                     ["title"] = HistoryDerivedTitle,
                     ["parentNodeId"] = rootNodeId,
                     ["contentMd"] = "Abgeleiteter Browser-History-Inhalt.",
-                    ["roleId"] = DefaultRoleId,
+                    ["audienceId"] = DefaultAudienceId,
                     ["contentMode"] = "Derived",
                     ["sources"] = new[]
                     {
                         new Dictionary<string, string>
                         {
                             ["nodeId"] = sourceNodeId,
-                            ["roleId"] = DefaultRoleId,
+                            ["audienceId"] = DefaultAudienceId,
                             ["contentRevisionId"] = sourceRevisionId
                         }
                     }
@@ -238,6 +242,25 @@ internal static class BrowserKnowledgeSeed
             await DiscardAsync(client, baseTransactionId);
             throw;
         }
+    }
+
+    private static async Task EnsureHistoryAudienceAsync(McpClient client, string transactionId)
+    {
+        var createdAudience = await RequireSuccessAsync(client, "create_audience", new Dictionary<string, object?>
+        {
+            ["transactionId"] = transactionId,
+            ["name"] = HistoryAudienceId,
+            ["expectedChangeVersion"] = 0L,
+            ["description"] = "Zielgruppe für den Browser-History-Diff"
+        });
+        var changeVersion = TryGetDataLong(createdAudience, "changeVersion") ?? 1L;
+        await RequireSuccessAsync(client, "set_audience_resolution", new Dictionary<string, object?>
+        {
+            ["transactionId"] = transactionId,
+            ["audienceId"] = HistoryAudienceId,
+            ["candidateAudienceIds"] = new[] { HistoryAudienceId, DefaultAudienceId },
+            ["expectedChangeVersion"] = changeVersion
+        });
     }
 
     private static Task CreateHistoryReleaseAsync(McpClient client, string targetSnapshotId) =>
@@ -288,7 +311,7 @@ internal static class BrowserKnowledgeSeed
     {
         var children = await CallAsync(client, "list_children", new Dictionary<string, object?>
         {
-            ["roleId"] = DefaultRoleId,
+            ["audienceId"] = DefaultAudienceId,
             ["parentNodeId"] = rootNodeId,
             ["limit"] = 100
         });
@@ -302,27 +325,51 @@ internal static class BrowserKnowledgeSeed
             ["transactionId"] = transactionId
         });
 
-    private static bool ContainsRole(JsonElement roles, string roleId) =>
-        roles.GetProperty("data").GetProperty("items").EnumerateArray()
-            .Any(item => string.Equals(item.GetProperty("roleId").GetString(), roleId, StringComparison.Ordinal));
+    private static bool ContainsAudience(JsonElement audiences, string audienceId) =>
+        audiences.GetProperty("data").GetProperty("items").EnumerateArray()
+            .Any(item => string.Equals(item.GetProperty("audienceId").GetString(), audienceId, StringComparison.Ordinal));
 
-    private static async Task RequireSuccessAsync(
+    private static async Task<JsonElement> RequireSuccessAsync(
         McpClient client,
         string toolName,
-        Dictionary<string, object?> arguments) =>
-        EnsureSuccess(await CallAsync(client, toolName, arguments), toolName);
+        Dictionary<string, object?> arguments)
+    {
+        var response = await CallRawAsync(client, toolName, arguments);
+        if (!IsSuccess(response)
+            && string.Equals(response.GetProperty("code").GetString(), "ChangeVersionConflict", StringComparison.Ordinal)
+            && arguments.ContainsKey("expectedChangeVersion")
+            && TryGetDetailsLong(response, "actualChangeVersion", out var actualChangeVersion))
+        {
+            arguments["expectedChangeVersion"] = actualChangeVersion;
+            response = await CallRawAsync(client, toolName, arguments);
+        }
+
+        EnsureSuccess(response, toolName);
+        return response;
+    }
 
     private static async Task<JsonElement> CallAsync(
         McpClient client,
         string toolName,
         Dictionary<string, object?>? arguments = null)
     {
-        var result = await client.CallToolAsync(toolName, arguments);
-        using var document = JsonDocument.Parse(result.Content.Single().ToString()!);
-        var response = document.RootElement.Clone();
+        var response = await CallRawAsync(client, toolName, arguments);
         EnsureSuccess(response, toolName);
         return response;
     }
+
+    private static async Task<JsonElement> CallRawAsync(
+        McpClient client,
+        string toolName,
+        Dictionary<string, object?>? arguments = null)
+    {
+        var result = await client.CallToolAsync(toolName, arguments);
+        using var document = JsonDocument.Parse(result.Content.Single().ToString()!);
+        return document.RootElement.Clone();
+    }
+
+    private static bool IsSuccess(JsonElement response) =>
+        string.Equals(response.GetProperty("code").GetString(), "Success", StringComparison.Ordinal);
 
     private static void EnsureSuccess(JsonElement response, string toolName)
     {
@@ -344,4 +391,21 @@ internal static class BrowserKnowledgeSeed
         && data.TryGetProperty(propertyName, out var value)
             ? value.GetString()
             : null;
+
+    private static long? TryGetDataLong(JsonElement response, string propertyName) =>
+        response.TryGetProperty("data", out var data)
+        && data.ValueKind == JsonValueKind.Object
+        && data.TryGetProperty(propertyName, out var value)
+        && value.TryGetInt64(out var parsed)
+            ? parsed
+            : null;
+
+    private static bool TryGetDetailsLong(JsonElement response, string propertyName, out long value)
+    {
+        value = 0;
+        return response.TryGetProperty("details", out var details)
+        && details.ValueKind == JsonValueKind.Object
+        && details.TryGetProperty(propertyName, out var raw)
+        && long.TryParse(raw.GetString(), out value);
+    }
 }

@@ -36,12 +36,12 @@ public sealed class RootNodeInitializationSmokeTests
             await page.GetByTestId("tx-open-knowledge-link").ClickAsync();
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
 
-            var roleSelector = page.GetByTestId("context-selector-dialog");
-            await Assertions.Expect(roleSelector).ToBeVisibleAsync();
-            var roleOption = roleSelector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio);
-            await roleOption.CheckAsync();
-            await roleSelector.GetByTestId("selector-apply-button").ClickAsync();
-            await Assertions.Expect(roleSelector).ToBeHiddenAsync();
+            var audienceSelector = page.GetByTestId("context-selector-dialog");
+            await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
+            var audienceOption = audienceSelector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio);
+            await audienceOption.CheckAsync();
+            await audienceSelector.GetByTestId("selector-apply-button").ClickAsync();
+            await Assertions.Expect(audienceSelector).ToBeHiddenAsync();
 
             await page.GetByRole(AriaRole.Treeitem).First.Locator(".tree-node-title").ClickAsync();
             await Assertions.Expect(page.GetByTestId("delete-node")).ToBeVisibleAsync();

@@ -11,8 +11,9 @@ public sealed class SnapshotConflictSmokeTests
     [Fact]
     public async Task SnapshotConflict_ShowsComparison_StartsManualReapply_AndAllowsDiscard()
     {
-        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         await using var host = await PublishedServerHost.StartAsync();
+        await BrowserKnowledgeSeed.EnsureWorkflowAsync(host.Address);
+        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
@@ -38,7 +39,7 @@ public sealed class SnapshotConflictSmokeTests
 
             var uiTitle = $"UI-Konflikt-Änderung-{Guid.NewGuid():N}";
             var uiDescription = "Explizite Working-Änderung aus der Browseroberfläche.";
-            var uiNodeId = await CreateUiChildAsync(page, uiTitle, uiDescription, mustSelectRole: true);
+            var uiNodeId = await CreateUiChildAsync(page, uiTitle, uiDescription, mustSelectAudience: true);
 
             var changesBeforeConflict = await ReadTransactionChangesAsync(host.Address, conflictingTransactionId.Value);
             Assert.Equal("Open", changesBeforeConflict.State);
@@ -115,11 +116,11 @@ public sealed class SnapshotConflictSmokeTests
         IPage page,
         string title,
         string description,
-        bool mustSelectRole)
+        bool mustSelectAudience)
     {
         await page.GetByTestId("tx-open-knowledge-link").ClickAsync();
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-        await SelectDefaultRoleIfRequiredAsync(page, mustSelectRole);
+        await SelectDefaultAudienceIfRequiredAsync(page, mustSelectAudience);
         await Assertions.Expect(page.GetByRole(AriaRole.Treeitem).First).ToBeVisibleAsync(new() { Timeout = 15_000 });
         await page.GetByRole(AriaRole.Treeitem).First.ClickAsync();
         await page.GetByTestId("create-child-node").ClickAsync();
@@ -163,7 +164,7 @@ public sealed class SnapshotConflictSmokeTests
         IPage page,
         string title,
         string description)
-        => CreateUiChildAsync(page, title, description, mustSelectRole: false);
+        => CreateUiChildAsync(page, title, description, mustSelectAudience: false);
 
     private static async Task CommitReapplyAsync(IPage page, string address, Guid reapplyTransactionId)
     {
@@ -179,7 +180,7 @@ public sealed class SnapshotConflictSmokeTests
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
     }
 
-    private static async Task SelectDefaultRoleIfRequiredAsync(IPage page, bool mustSelect = false)
+    private static async Task SelectDefaultAudienceIfRequiredAsync(IPage page, bool mustSelect = false)
     {
         var selector = page.GetByTestId("context-selector-dialog");
         if (!mustSelect && (await selector.CountAsync() == 0 || !await selector.IsVisibleAsync()))
@@ -188,8 +189,8 @@ public sealed class SnapshotConflictSmokeTests
         if (mustSelect)
             await Assertions.Expect(selector).ToBeVisibleAsync(new() { Timeout = 15_000 });
 
-        var roleOption = selector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio);
-        await roleOption.CheckAsync();
+        var audienceOption = selector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio);
+        await audienceOption.CheckAsync();
         await selector.GetByTestId("selector-apply-button").ClickAsync();
         await Assertions.Expect(selector).ToBeHiddenAsync(new() { Timeout = 15_000 });
     }
@@ -216,7 +217,7 @@ public sealed class SnapshotConflictSmokeTests
             }));
         var root = await CallSuccessAsync(client, "get_root", new Dictionary<string, object?>
         {
-            ["roleId"] = "Default"
+            ["audienceId"] = "Default"
         });
         var rootNodeId = root.GetProperty("data").GetProperty("nodeId").GetString()
             ?? throw new InvalidOperationException("Der MCP-Read des Root-Nodes lieferte keine Node-ID.");
@@ -264,12 +265,12 @@ public sealed class SnapshotConflictSmokeTests
             }));
         var root = await CallSuccessAsync(client, "get_root", new Dictionary<string, object?>
         {
-            ["roleId"] = "Default"
+            ["audienceId"] = "Default"
         });
         var rootNodeId = root.GetProperty("data").GetProperty("nodeId").GetString()!;
         var children = await CallSuccessAsync(client, "list_children", new Dictionary<string, object?>
         {
-            ["roleId"] = "Default",
+            ["audienceId"] = "Default",
             ["parentNodeId"] = rootNodeId,
             ["limit"] = 100
         });
@@ -291,7 +292,7 @@ public sealed class SnapshotConflictSmokeTests
         var arguments = new Dictionary<string, object?>
         {
             ["nodeId"] = nodeId.ToString("D"),
-            ["roleId"] = "Default"
+            ["audienceId"] = "Default"
         };
         if (transactionId is not null)
             arguments["transactionId"] = transactionId.Value.ToString("D");
@@ -372,7 +373,9 @@ public sealed class SnapshotConflictSmokeTests
         Dictionary<string, object?> arguments)
     {
         var result = await client.CallToolAsync(toolName, arguments);
-        using var document = JsonDocument.Parse(result.Content.Single().ToString()!);
+        var payload = result.Content.FirstOrDefault()?.ToString()
+            ?? throw new InvalidOperationException($"MCP-Tool '{toolName}' lieferte keine Antwort.");
+        using var document = JsonDocument.Parse(payload);
         return document.RootElement.Clone();
     }
 

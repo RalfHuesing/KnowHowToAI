@@ -1,13 +1,13 @@
 using KnowHowToAI.BrowserTests.TestSupport;
 using Microsoft.Playwright;
 
-namespace KnowHowToAI.BrowserTests.Roles;
+namespace KnowHowToAI.BrowserTests.Audiences;
 
 [Trait("Category", "Integration")]
-public sealed class RoleAdministrationSmokeTests
+public sealed class AudienceAdministrationSmokeTests
 {
     [Fact]
-    public async Task RoleAdministration_CreateRenameAndDelete_StaysInWorkingTransaction()
+    public async Task AudienceAdministration_CreateRenameAndDelete_StaysInWorkingTransaction()
     {
         using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         await using var host = await PublishedServerHost.StartAsync();
@@ -26,42 +26,42 @@ public sealed class RoleAdministrationSmokeTests
                 Timeout = 30_000
             });
             await CircuitProbe.WaitForInteractivityAsync(page);
-            await page.GetByTestId("tx-purpose-input").FillAsync("Rollenverwaltung Smoke");
+            await page.GetByTestId("tx-purpose-input").FillAsync("Zielgruppenverwaltung Smoke");
             await page.GetByTestId("begin-transaction-button").ClickAsync();
             await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
             transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
 
-            await page.GetByTestId("tx-open-roles-link").ClickAsync();
+            await page.GetByTestId("tx-open-audiences-link").ClickAsync();
             await CircuitProbe.WaitForInteractivityAsync(page);
 
-            await Assertions.Expect(page.GetByTestId("roles-page")).ToBeVisibleAsync();
-            await Assertions.Expect(page.GetByTestId("roles-readonly")).ToBeHiddenAsync();
-            await page.GetByTestId("role-create-name").FillAsync("SmokeRole");
-            await page.GetByTestId("role-create-description").FillAsync("Rolle für den Browser-Smoke");
-            await page.GetByTestId("role-create-submit").ClickAsync();
-            await Assertions.Expect(page.GetByTestId("role-item-SmokeRole")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("audiences-page")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("audiences-readonly")).ToBeHiddenAsync();
+            await page.GetByTestId("audience-create-name").FillAsync("SmokeAudience");
+            await page.GetByTestId("audience-create-description").FillAsync("Zielgruppe für den Browser-Smoke");
+            await page.GetByTestId("audience-create-submit").ClickAsync();
+            await Assertions.Expect(page.GetByTestId("audience-item-SmokeAudience")).ToBeVisibleAsync();
 
             await page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
             await CircuitProbe.WaitForInteractivityAsync(page);
-            await Assertions.Expect(page.GetByTestId("role-item-SmokeRole")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("audience-item-SmokeAudience")).ToBeVisibleAsync();
 
             var reconnectDialog = page.Locator("#components-reconnect-modal");
             await page.Context.SetOfflineAsync(true);
             await Assertions.Expect(reconnectDialog).ToHaveAttributeAsync("open", "", new() { Timeout = 60_000 });
             await page.Context.SetOfflineAsync(false);
             await Assertions.Expect(reconnectDialog).ToBeHiddenAsync(new() { Timeout = 30_000 });
-            await Assertions.Expect(page.GetByTestId("role-item-SmokeRole")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("audience-item-SmokeAudience")).ToBeVisibleAsync();
 
-            await page.GetByTestId("role-edit-SmokeRole").ClickAsync();
-            await page.GetByTestId("role-edit-name-SmokeRole").FillAsync("Umbenannte Smoke-Rolle");
-            await page.GetByTestId("role-save-SmokeRole").ClickAsync();
-            await Assertions.Expect(page.GetByText("Umbenannte Smoke-Rolle", new() { Exact = true })).ToBeVisibleAsync();
+            await page.GetByTestId("audience-edit-SmokeAudience").ClickAsync();
+            await page.GetByTestId("audience-edit-name-SmokeAudience").FillAsync("Umbenannte Smoke-Zielgruppe");
+            await page.GetByTestId("audience-save-SmokeAudience").ClickAsync();
+            await Assertions.Expect(page.GetByText("Umbenannte Smoke-Zielgruppe", new() { Exact = true })).ToBeVisibleAsync();
 
-            await page.GetByTestId("role-delete-SmokeRole").ClickAsync();
-            var deleteConfirmation = page.GetByTestId("role-delete-confirmation");
+            await page.GetByTestId("audience-delete-SmokeAudience").ClickAsync();
+            var deleteConfirmation = page.GetByTestId("audience-delete-confirmation");
             await Assertions.Expect(deleteConfirmation).ToBeVisibleAsync();
-            await page.GetByTestId("role-delete-confirm").ClickAsync();
-            await Assertions.Expect(page.GetByTestId("role-item-SmokeRole")).ToBeHiddenAsync();
+            await page.GetByTestId("audience-delete-confirm").ClickAsync();
+            await Assertions.Expect(page.GetByTestId("audience-item-SmokeAudience")).ToBeHiddenAsync();
         }
         finally
         {

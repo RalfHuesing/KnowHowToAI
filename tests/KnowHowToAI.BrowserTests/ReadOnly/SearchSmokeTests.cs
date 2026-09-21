@@ -17,7 +17,7 @@ public sealed class SearchSmokeTests
     }
 
     [Fact]
-    public async Task Search_FiltersFallbackContentFromTheSelectedRoleAndContext()
+    public async Task Search_FiltersFallbackContentFromTheSelectedAudienceAndContext()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync();
@@ -32,11 +32,11 @@ public sealed class SearchSmokeTests
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
         await CircuitProbe.WaitForInteractivityAsync(page);
 
-        var roleSelector = page.GetByTestId("context-selector-dialog");
-        await Assertions.Expect(roleSelector).ToBeVisibleAsync();
-        await roleSelector.GetByTestId("role-option-BrowserDownloadReader").GetByRole(AriaRole.Radio).CheckAsync();
-        await roleSelector.GetByTestId("selector-apply-button").ClickAsync();
-        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/search\?roleId=BrowserDownloadReader"));
+        var audienceSelector = page.GetByTestId("context-selector-dialog");
+        await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
+        await audienceSelector.GetByTestId("audience-option-BrowserDownloadAudience").GetByRole(AriaRole.Radio).CheckAsync();
+        await audienceSelector.GetByTestId("selector-apply-button").ClickAsync();
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/search\?audienceId=BrowserDownloadAudience"));
 
         await Assertions.Expect(page.GetByTestId("search-page")).ToBeVisibleAsync();
         await page.GetByTestId("search-text").FillAsync("Markdown-Download");

@@ -42,8 +42,8 @@ public sealed class HistorySmokeTests
         Assert.NotEqual(baseSnapshot.SnapshotId, targetSnapshot.SnapshotId);
 
         var diffList = page.GetByTestId("snapshot-diff-list");
-        await Assertions.Expect(diffList).ToContainTextAsync("Rolle");
-        await Assertions.Expect(diffList).ToContainTextAsync("Rollenauflösung");
+        await Assertions.Expect(diffList).ToContainTextAsync("Zielgruppe");
+        await Assertions.Expect(diffList).ToContainTextAsync("Zielgruppenauflösung");
         await Assertions.Expect(diffList).ToContainTextAsync("Knoten");
         await Assertions.Expect(page.GetByTestId("snapshot-diff-next")).ToBeVisibleAsync();
 
@@ -59,7 +59,7 @@ public sealed class HistorySmokeTests
         await page.GotoAsync($"{_host.Address}/history?baseSnapshotId={baseSnapshot.SnapshotId}&targetSnapshotId={targetSnapshot.SnapshotId}&nodeId={nodeId}");
         await CircuitProbe.WaitForInteractivityAsync(page);
         await Assertions.Expect(page.GetByTestId("snapshot-diff-summary")).ToContainTextAsync("gefiltert auf Knoten");
-        Assert.Empty(await page.Locator("[data-testid^='snapshot-diff-entry-Role-'], [data-testid^='snapshot-diff-entry-RoleResolution-']").AllAsync());
+        Assert.Empty(await page.Locator("[data-testid^='snapshot-diff-entry-Audience-'], [data-testid^='snapshot-diff-entry-AudienceResolution-']").AllAsync());
 
         await page.GotoAsync($"{_host.Address}/history?baseSnapshotId={baseSnapshot.SnapshotId}&targetSnapshotId={targetSnapshot.SnapshotId}&nodeId=00000000-0000-0000-0000-000000000099");
         await CircuitProbe.WaitForInteractivityAsync(page);

@@ -18,7 +18,7 @@ public sealed class MarkdownDownloadSmokeTests
     }
 
     [Fact]
-    public async Task KnowledgeNode_OffersMarkdownDownloadFromTheSelectedRoleAndContext()
+    public async Task KnowledgeNode_OffersMarkdownDownloadFromTheSelectedAudienceAndContext()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync();
@@ -33,11 +33,11 @@ public sealed class MarkdownDownloadSmokeTests
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
         await CircuitProbe.WaitForInteractivityAsync(page);
 
-        var roleSelector = page.GetByTestId("context-selector-dialog");
-        await Assertions.Expect(roleSelector).ToBeVisibleAsync();
-        await roleSelector.GetByTestId("role-option-BrowserDownloadReader").GetByRole(AriaRole.Radio).CheckAsync();
-        await roleSelector.GetByTestId("selector-apply-button").ClickAsync();
-        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"roleId=BrowserDownloadReader"));
+        var audienceSelector = page.GetByTestId("context-selector-dialog");
+        await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
+        await audienceSelector.GetByTestId("audience-option-BrowserDownloadAudience").GetByRole(AriaRole.Radio).CheckAsync();
+        await audienceSelector.GetByTestId("selector-apply-button").ClickAsync();
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"audienceId=BrowserDownloadAudience"));
 
         var tree = page.GetByTestId("knowledge-tree");
         await Assertions.Expect(tree).ToBeVisibleAsync();
@@ -63,7 +63,7 @@ public sealed class MarkdownDownloadSmokeTests
         Assert.Equal("text/markdown; charset=utf-8", downloadResponse.Headers["content-type"]);
         Assert.Contains("attachment", downloadResponse.Headers["content-disposition"], StringComparison.OrdinalIgnoreCase);
         Assert.Equal("no-store", downloadResponse.Headers["cache-control"]);
-        Assert.Equal("Browser-Export-Teilbaum-BrowserDownloadReader.md", download.SuggestedFilename);
+        Assert.Equal("Browser-Export-Teilbaum-BrowserDownloadAudience.md", download.SuggestedFilename);
         await using var content = await download.CreateReadStreamAsync();
         using var reader = new StreamReader(content, Encoding.UTF8);
         Assert.Equal(

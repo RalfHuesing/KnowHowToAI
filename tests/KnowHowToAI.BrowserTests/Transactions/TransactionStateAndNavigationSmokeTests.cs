@@ -128,7 +128,7 @@ public sealed class TransactionStateAndNavigationSmokeTests
             var address = host.Address;
             await host.DisposeAsync();
             host = null;
-            host = await PublishedServerHost.StartAsync(address);
+            host = await PublishedServerHost.StartWithoutDatabaseCleanupAsync(address);
 
             // Seite nach Neustart neu laden
             await page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.DOMContentLoaded });

@@ -45,7 +45,7 @@ public sealed class UiAuditScreenshotTests
             await CaptureSearchAsync(page, host.Address, viewport, outputDirectory, captures);
             await CaptureHistoryAsync(page, host.Address, viewport, outputDirectory, captures);
             await CaptureTransactionsAndWorkingKnowledgeAsync(page, host.Address, viewport, outputDirectory, captures);
-            await CaptureRolesAsync(page, host.Address, viewport, outputDirectory, captures);
+            await CaptureAudiencesAsync(page, host.Address, viewport, outputDirectory, captures);
         }
 
         Assert.Equal(20, captures.Count);
@@ -89,11 +89,11 @@ public sealed class UiAuditScreenshotTests
         await GotoAsync(page, address, "/knowledge");
         var selector = page.GetByTestId("context-selector-dialog");
         await Assertions.Expect(selector).ToBeVisibleAsync();
-        await CaptureAsync(page, "02_knowledge_role-selection", viewport, output, captures);
-        await selector.GetByTestId("role-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
+        await CaptureAsync(page, "02_knowledge_audience-selection", viewport, output, captures);
+        await selector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
         await selector.GetByTestId("selector-apply-button").ClickAsync();
         await Assertions.Expect(selector).ToHaveCountAsync(0);
-        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge\?roleId=Default"));
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge\?audienceId=Default"));
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("knowledge-tree")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Treeitem).First.GetByText("Browser-Testwissen", new() { Exact = true })).ToBeVisibleAsync();
@@ -127,7 +127,7 @@ public sealed class UiAuditScreenshotTests
         await Assertions.Expect(nodeDetailsTitle).ToBeInViewportAsync();
         await CaptureAsync(page, "04_knowledge_node-detail", viewport, output, captures);
 
-        await GotoAsync(page, address, "/knowledge?roleId=BrowserDownloadReader");
+        await GotoAsync(page, address, "/knowledge?audienceId=BrowserDownloadAudience");
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
         var fallbackRoot = page.GetByRole(AriaRole.Treeitem).First;
         await fallbackRoot.Locator("button.tree-toggle-btn").ClickAsync();
@@ -141,7 +141,7 @@ public sealed class UiAuditScreenshotTests
 
     private static async Task CaptureSearchAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
     {
-        await GotoAsync(page, address, "/search?roleId=Default");
+        await GotoAsync(page, address, "/search?audienceId=Default");
         await Assertions.Expect(page.GetByTestId("search-page")).ToBeVisibleAsync();
         await CaptureAsync(page, "06_search_empty", viewport, output, captures);
         await page.GetByTestId("search-text").FillAsync("Markdown-Download");
@@ -162,7 +162,7 @@ public sealed class UiAuditScreenshotTests
 
     private static async Task CaptureHistoryAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
     {
-        await GotoAsync(page, address, "/history?roleId=Default");
+        await GotoAsync(page, address, "/history?audienceId=Default");
         await Assertions.Expect(page.GetByTestId("history-page")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("snapshot-list")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("history-comparison-context")).ToBeVisibleAsync();
@@ -244,7 +244,7 @@ public sealed class UiAuditScreenshotTests
             await CaptureAsync(page, "14_transaction_discard-dialog", viewport, output, captures);
             await page.GetByRole(AriaRole.Button, new() { Name = "Abbrechen", Exact = true }).ClickAsync();
 
-            await GotoAsync(page, address, $"/knowledge?roleId=Default&transactionId={transactionId:D}");
+            await GotoAsync(page, address, $"/knowledge?audienceId=Default&transactionId={transactionId:D}");
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
             if (await page.GetByTestId("node-metadata-editor").CountAsync() == 0)
             {
@@ -287,35 +287,35 @@ public sealed class UiAuditScreenshotTests
         }
     }
 
-    private static async Task CaptureRolesAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
+    private static async Task CaptureAudiencesAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
     {
-        await GotoAsync(page, address, "/roles?roleId=Default");
-        await Assertions.Expect(page.GetByTestId("roles-page")).ToBeVisibleAsync();
-        await Assertions.Expect(page.GetByTestId("roles-readonly")).ToBeVisibleAsync();
-        await CaptureAsync(page, "18_roles_readonly", viewport, output, captures);
+        await GotoAsync(page, address, "/audiences?audienceId=Default");
+        await Assertions.Expect(page.GetByTestId("audiences-page")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("audiences-readonly")).ToBeVisibleAsync();
+        await CaptureAsync(page, "18_audiences_readonly", viewport, output, captures);
 
         await GotoAsync(page, address, "/transactions");
-        await page.GetByTestId("tx-purpose-input").FillAsync("UI Audit Roles Transaction");
+        await page.GetByTestId("tx-purpose-input").FillAsync("UI Audit Audiences Transaction");
         await page.GetByTestId("begin-transaction-button").ClickAsync();
         await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync();
         var transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
         try
         {
-            await GotoAsync(page, address, $"/roles?roleId=Default&transactionId={transactionId:D}");
-            await Assertions.Expect(page.GetByTestId("roles-list")).ToBeVisibleAsync();
-            await CaptureAsync(page, "19_roles_working", viewport, output, captures);
-            var delete = page.GetByTestId("role-delete-BrowserDownloadReader");
+            await GotoAsync(page, address, $"/audiences?audienceId=Default&transactionId={transactionId:D}");
+            await Assertions.Expect(page.GetByTestId("audiences-list")).ToBeVisibleAsync();
+            await CaptureAsync(page, "19_audiences_working", viewport, output, captures);
+            var delete = page.GetByTestId("audience-delete-BrowserDownloadAudience");
             await Assertions.Expect(delete).ToBeVisibleAsync();
             await delete.ClickAsync();
-            var confirmation = page.GetByTestId("role-delete-confirmation");
+            var confirmation = page.GetByTestId("audience-delete-confirmation");
             await Assertions.Expect(confirmation).ToBeVisibleAsync();
-            await Assertions.Expect(confirmation.GetByRole(AriaRole.Heading, new() { Name = "Rolle „BrowserDownloadReader“ löschen?", Exact = true })).ToBeVisibleAsync();
-            var confirmButton = confirmation.GetByTestId("role-delete-confirm");
+            await Assertions.Expect(confirmation.GetByRole(AriaRole.Heading, new() { Name = "Zielgruppe „BrowserDownloadAudience“ löschen?", Exact = true })).ToBeVisibleAsync();
+            var confirmButton = confirmation.GetByTestId("audience-delete-confirm");
             await Assertions.Expect(confirmButton).ToBeVisibleAsync();
             await confirmation.ScrollIntoViewIfNeededAsync();
             await confirmButton.FocusAsync();
             await Assertions.Expect(confirmButton).ToBeFocusedAsync();
-            await CaptureAsync(page, "20_roles_delete-dialog", viewport, output, captures);
+            await CaptureAsync(page, "20_audiences_delete-dialog", viewport, output, captures);
         }
         finally
         {

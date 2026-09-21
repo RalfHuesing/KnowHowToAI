@@ -187,7 +187,7 @@ geprüft.
   dedizierte Datenbank vor der Betriebsbereitschaft selbst. Die gemeinsame
   Workflow-Fixture ergänzt anschließend ausschließlich über den realen
   MCP-Transport einen deterministischen Bestand mit `Default`,
-  `BrowserDownloadReader`, exportierbarem Teilbaum, Historienständen und Release.
+  `BrowserDownloadAudience`, exportierbarem Teilbaum, Historienständen und Release.
   Diese Seedoperation und Browser-Smokes, die eine Working Transaction öffnen,
   teilen einen schmalen Prozess-Gate; die erzeugte Transaction wird im `finally`
   über `discard_transaction` auf dem echten MCP-Produktpfad verworfen.
@@ -201,6 +201,10 @@ geprüft.
   die vier SQL-Systemdatenbanken, nicht konfigurierte Ziele und Datenbank-/Schema-
   Erzeugung oder -Löschung werden durch den gemeinsamen Guard ausgeschlossen.
   Identische Browserziele werden dedupliziert.
+  Ein bewusst ausgeführter Host-Neustart innerhalb desselben Browserflows kann
+  den Cleanup gezielt überspringen, damit offene Working Transactions über den
+  veröffentlichten Hostprozess hinweg erhalten bleiben; der Neustart verwendet
+  weiterhin ausschließlich das bereits gewählte Browser-Testziel.
 - Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
   die Shell bei 1280 × 720 und 1024 × 720 gegen die versionierten PNG-Baselines
   unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`. Im regulären

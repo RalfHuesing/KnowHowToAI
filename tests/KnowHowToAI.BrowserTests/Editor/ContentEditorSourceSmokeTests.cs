@@ -34,11 +34,11 @@ public sealed class ContentEditorSourceSmokeTests
         var transactionId = BrowserMcpAssertions.RequiredString(transaction, "transactionId");
         try
         {
-            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
+            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["audienceId"] = "Default" });
             var nodeId = BrowserMcpAssertions.RequiredString(root, "nodeId");
             await using var page = await browser.NewPageAsync();
             await page.GotoAsync(
-                $"{_fixture.Host.Address}/knowledge/{nodeId}?roleId=Default&transactionId={transactionId}",
+                $"{_fixture.Host.Address}/knowledge/{nodeId}?audienceId=Default&transactionId={transactionId}",
                 new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 30_000 });
             await CircuitProbe.WaitForInteractivityAsync(page);
 
@@ -59,7 +59,7 @@ public sealed class ContentEditorSourceSmokeTests
             var readback = await BrowserMcpAssertions.CallAsync(client, "get_node", new Dictionary<string, object?>
             {
                 ["nodeId"] = nodeId,
-                ["roleId"] = "Default",
+                ["audienceId"] = "Default",
                 ["transactionId"] = transactionId
             });
             var saved = readback.GetProperty("data").GetProperty("content").GetString();

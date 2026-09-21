@@ -31,7 +31,7 @@ public sealed class ContentEditorPasteSmokeTests
         var transactionId = BrowserMcpAssertions.RequiredString(transaction, "transactionId");
         try
         {
-            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
+            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["audienceId"] = "Default" });
             var rootNodeId = BrowserMcpAssertions.RequiredString(root, "nodeId");
             await using var page = await browser.NewPageAsync();
             var externalRequestObserved = false;
@@ -41,7 +41,7 @@ public sealed class ContentEditorPasteSmokeTests
                 return route.AbortAsync();
             });
             await page.GotoAsync(
-                $"{_fixture.Host.Address}/knowledge/{rootNodeId}?roleId=Default&transactionId={transactionId}",
+                $"{_fixture.Host.Address}/knowledge/{rootNodeId}?audienceId=Default&transactionId={transactionId}",
                 new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 30_000 });
             await CircuitProbe.WaitForInteractivityAsync(page);
             var editor = page.GetByTestId("content-editor");
@@ -95,7 +95,7 @@ public sealed class ContentEditorPasteSmokeTests
         var transactionId = BrowserMcpAssertions.RequiredString(transaction, "transactionId");
         try
         {
-            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["roleId"] = "Default" });
+            var root = await BrowserMcpAssertions.CallAsync(client, "get_root", new Dictionary<string, object?> { ["audienceId"] = "Default" });
             var rootNodeId = BrowserMcpAssertions.RequiredString(root, "nodeId");
             var created = await BrowserMcpAssertions.CallAsync(client, "create_node", new Dictionary<string, object?>
             {
@@ -103,10 +103,10 @@ public sealed class ContentEditorPasteSmokeTests
                 ["title"] = "Golden-Master Browser Roundtrip",
                 ["parentNodeId"] = rootNodeId,
                 ["contentMd"] = markdown,
-                ["roleId"] = "Default"
+                ["audienceId"] = "Default"
             });
             var nodeId = BrowserMcpAssertions.RequiredString(created, "nodeId");
-            var url = $"{_fixture.Host.Address}/knowledge/{nodeId}?roleId=Default&transactionId={transactionId}";
+            var url = $"{_fixture.Host.Address}/knowledge/{nodeId}?audienceId=Default&transactionId={transactionId}";
             await using var page = await browser.NewPageAsync();
 
             for (var cycle = 1; cycle <= 5; cycle++)
@@ -132,7 +132,7 @@ public sealed class ContentEditorPasteSmokeTests
                 var readback = await BrowserMcpAssertions.CallAsync(client, "get_node", new Dictionary<string, object?>
                 {
                     ["nodeId"] = nodeId,
-                    ["roleId"] = "Default",
+                    ["audienceId"] = "Default",
                     ["transactionId"] = transactionId
                 });
                 var actualMarkdown = readback.GetProperty("data").GetProperty("content").GetString();

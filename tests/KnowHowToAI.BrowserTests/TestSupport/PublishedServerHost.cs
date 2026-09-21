@@ -41,9 +41,13 @@ public sealed class PublishedServerHost : IAsyncDisposable
     public static Task<PublishedServerHost> StartAsync(string? address = null) =>
         StartAsync(BrowserTestDatabaseKind.Workflow, address);
 
+    internal static Task<PublishedServerHost> StartWithoutDatabaseCleanupAsync(string address) =>
+        StartAsync(BrowserTestDatabaseKind.Workflow, address, cleanDatabase: false);
+
     internal static async Task<PublishedServerHost> StartAsync(
         BrowserTestDatabaseKind databaseKind,
-        string? address = null)
+        string? address = null,
+        bool cleanDatabase = true)
     {
         ChromeStablePreflight.EnsureIsInstalled();
         var repositoryRoot = TestRepositoryRoot.Resolve();
@@ -59,11 +63,11 @@ public sealed class PublishedServerHost : IAsyncDisposable
                 BrowserTestDatabaseKind.VisualShell => visualDatabaseSettings,
                 _ => throw new ArgumentOutOfRangeException(nameof(databaseKind), databaseKind, "Unbekannter Browser-Testdatenbanktyp.")
             };
-            var productSettings = BrowserTestDatabaseSettings.LoadProduct(repositoryRoot);
-            SqlCleanupTargetGuard.ValidateAndDedupe(
-                productSettings.CleanupTarget,
-                [workflowDatabaseSettings.CleanupTarget, visualDatabaseSettings.CleanupTarget]);
-            await BrowserTestDatabaseCleaner.CleanSchemaAsync(databaseSettings).ConfigureAwait(false);
+            // Die Browser-Suite liest die Produktsektion DatabaseConnection nicht.
+            // Sie bereinigt ausschließlich die explizit gewählte, präfixgeschützte
+            // Workflow- oder Visual-Testdatenbank.
+            if (cleanDatabase)
+                await BrowserTestDatabaseCleaner.CleanSchemaAsync(databaseSettings).ConfigureAwait(false);
             var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);
             // Explizite Adresse für Tests, die denselben Circuit-Origin erneut
