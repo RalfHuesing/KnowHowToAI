@@ -34,8 +34,8 @@ Entscheidungsgate zwischen den Leaves entfällt.
   - Ergebnis: DRY-Basis und featureweise Adoption außerhalb `AudiencesPage`;
     der abgeschlossene M1.5-T7-Grid-Nachweis bleibt Regression.
 
-- [ ] **M2.2 – Mutation-URL und Auswahl**
-  - [ ] [M2.2-T1 – Node-Mutationen mit synchroner URL-/Selection-Führung](tasks/M2.2-T1.md)
+- [x] **M2.2 – Mutation-URL und Auswahl**
+  - [x] [M2.2-T1 – Node-Mutationen mit synchroner URL-/Selection-Führung](tasks/M2.2-T1.md)
   - Ergebnis: Create child, Create root, Update und Delete behandeln stabile
     `NodeId`, sichtbare Selection, Breadcrumb, Detail und URL als einen Zustand.
 

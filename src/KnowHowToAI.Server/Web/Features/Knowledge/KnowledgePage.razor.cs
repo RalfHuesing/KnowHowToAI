@@ -218,6 +218,7 @@ public sealed partial class KnowledgePage : IDisposable
         var selectedNodeId = mutation.Node.IsDeleted ? mutation.Node.ParentNodeId?.Value : mutation.Node.NodeId.Value;
         await TreeWorkspace.SelectNodeAsync(selectedNodeId, CancellationToken.None);
         WorkspaceState.SetNode(selectedNodeId);
+        NavigateToSelection(selectedNodeId);
     }
 
     private async Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult mutation)
@@ -255,9 +256,15 @@ public sealed partial class KnowledgePage : IDisposable
 
     private void NavigateToNode(Guid nodeId)
     {
+        NavigateToSelection(nodeId);
+    }
+
+    private void NavigateToSelection(Guid? nodeId)
+    {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = uri.Query;
-        NavigationManager.NavigateTo($"/knowledge/{nodeId}{query}");
+        var path = nodeId.HasValue ? $"/knowledge/{nodeId.Value:D}" : "/knowledge";
+        NavigationManager.NavigateTo($"{path}{query}");
     }
 
     public void Dispose()

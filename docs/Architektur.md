@@ -321,6 +321,11 @@ erscheinen innerhalb des jeweiligen Teilbaums. `Breadcrumbs` bildet den hierarch
 Pfad bis zum aktuellen Knoten ab (`aria-current="page"` auf dem letzten Element) und
 erlaubt direkte Rücknavigation zu übergeordneten Ebenen. Die Auswahl eines Knotens
 aktualisiert die Route `/knowledge/{NodeId}` unter Erhalt bestehender Query-Parameter.
+Nach einer erfolgreichen Node-Mutation projiziert `KnowledgePage` das
+Mutationsergebnis in `KnowledgeTreeState`, `WorkspaceState`, Breadcrumb/Detail
+und dieselbe Route: Create child/root und Update wählen den Ergebnis-Node, Delete
+den aktiven Parent oder die bestehende Root-Route als Fallback. Der vorhandene
+ReadContext-Selektor und `audienceId` werden dabei unverändert weitergeführt.
 Beim Neuladen oder direkten Einstieg ermittelt der `KnowledgeTreePathLoader` die
 Ancestor-Kette metadata-first über `NavigationService.GetNodeAsync` und lädt danach
 für jedes Segment die opaken 100er-Childseiten des Parents, bis das Segment sichtbar
