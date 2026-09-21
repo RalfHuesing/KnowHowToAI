@@ -128,6 +128,12 @@ public sealed class TransactionPageTests : BunitContext
             workflowMarkup.IndexOf("data-testid=\"transaction-validation-step\"", StringComparison.Ordinal)
             < workflowMarkup.IndexOf("data-testid=\"transaction-completion-step\"", StringComparison.Ordinal));
 
+        var pageMarkup = cut.Find("[data-testid='transaction-page']").OuterHtml;
+        Assert.True(
+            pageMarkup.IndexOf("data-testid=\"transaction-next-steps\"", StringComparison.Ordinal)
+            < pageMarkup.IndexOf("data-testid=\"transaction-workflow\"", StringComparison.Ordinal));
+        Assert.Contains("Arbeitskopie", cut.Find("[data-testid='transaction-next-steps']").TextContent);
+
         var technicalDetails = cut.Find("[data-testid='tx-technical-details']");
         Assert.False(technicalDetails.HasAttribute("open"));
         Assert.Contains(transaction.TransactionId.Value.ToString("D"), technicalDetails.TextContent);
@@ -145,6 +151,37 @@ public sealed class TransactionPageTests : BunitContext
         Assert.Contains("btn-primary", navigationActions[0].GetAttribute("class"));
         Assert.Contains("btn-secondary", navigationActions[1].GetAttribute("class"));
         Assert.Contains("btn-secondary", navigationActions[2].GetAttribute("class"));
+    }
+
+    [Fact]
+    public void TransactionPage_ClosedTransaction_KeepsWorkingTreeLinkAndDisablesCompletion()
+    {
+        var transactionId = new TransactionId(Guid.Parse("00000000-0000-0000-0000-000000000301"));
+        var transaction = new KnowledgeTransaction(
+            transactionId,
+            new SnapshotId(1),
+            new SnapshotId(2),
+            TransactionState.Committed,
+            ChangeVersion: 4,
+            CreatedAtUtc: Now.AddHours(-1),
+            CommittedAtUtc: Now,
+            Purpose: "Abgeschlossene Arbeitskopie",
+            Actor: "Alice",
+            Client: "Web UI",
+            CommitMessage: "Fertig");
+        _harness.AddTransaction(transaction);
+        _workspaceState.SetAudience("Architekt");
+
+        var cut = Render<TransactionPage>(parameters => parameters
+            .Add(p => p.TransactionId, transactionId.Value));
+
+        Assert.Equal(
+            $"/knowledge?transactionId={transactionId.Value}&audienceId=Architekt",
+            cut.Find("[data-testid='tx-open-knowledge-link']").GetAttribute("href"));
+        Assert.Single(cut.FindAll("[data-testid='transaction-completion-unavailable']"));
+        Assert.All(
+            cut.Find("[data-testid='transaction-page-actions']").QuerySelectorAll("button"),
+            button => Assert.True(button.HasAttribute("disabled")));
     }
 
     [Fact]

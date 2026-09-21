@@ -39,8 +39,8 @@ Entscheidungsgate zwischen den Leaves entfällt.
   - Ergebnis: Create child, Create root, Update und Delete behandeln stabile
     `NodeId`, sichtbare Selection, Breadcrumb, Detail und URL als einen Zustand.
 
-- [ ] **M2.3 – Transaction-zu-Bearbeitung-Führung**
-  - [ ] [M2.3-T1 – Bestehenden Wissensbaum-Einstieg im Transaction-Detail führen](tasks/M2.3-T1.md)
+- [x] **M2.3 – Transaction-zu-Bearbeitung-Führung**
+  - [x] [M2.3-T1 – Bestehenden Wissensbaum-Einstieg im Transaction-Detail führen](tasks/M2.3-T1.md)
   - Ergebnis: Der vorhandene Weg `Im Wissensbaum öffnen` ist im Transaction-
     Detail sichtbar und führt in die Working-Ansicht; er erzeugt keinen zweiten
     Read-only-Einstieg.

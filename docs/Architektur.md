@@ -203,7 +203,9 @@ Operation.
 `Web.Features.Transactions` stellt unter `/transactions` die offenen
 Transactions und unter `/transactions/{transactionId}` ihren Arbeitsbereich
 bereit. Die Detailseite ruft `TransactionService` und `HistoryService` direkt
-in-process auf und zeigt Validierung sowie cursor-paginierten Netto-Diff. Commit
+in-process auf und führt im ersten Weiterarbeiten-Abschnitt den vorhandenen
+Working-Einstieg `Im Wissensbaum öffnen`; Zielgruppenpflege und Übersicht bleiben
+sekundäre Folgewege. Sie zeigt außerdem Validierung sowie cursor-paginierten Netto-Diff. Commit
 und Discard werden jeweils über einen expliziten nativen Bestätigungsdialog
 ausgelöst; der Commitdialog übergibt eine optionale Commit-Nachricht. Während
 einer Abschlussanfrage sind beide Aktionen gesperrt. Ein abweichender lokaler
