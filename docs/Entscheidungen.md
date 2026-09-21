@@ -73,7 +73,6 @@ Diff-Paging) stehen mit ihren Begründungen in [Retrieval](Retrieval.md).
 Folgendes ist aktuell nicht implementiert:
 
 - REST-API
-- grafische Administration / Zielgruppen-Administrationsoberfläche
 - Benutzerverwaltung, Berechtigungs-/ACL-System, Mandantenmodell innerhalb einer
   Instanz
 - zielgruppenspezifische Hierarchien oder Präsentations-Views
@@ -94,9 +93,10 @@ nicht unnötig verhindert werden:
 
 - **Weitere Transporte**: REST API als allgemeine HTTP-Fassade; der MCP-Transport
   (Streamable HTTP) ist festgelegt.
-- **Admin-Oberfläche**: Verwaltung von Zielgruppen, Resolution Orders, Releases,
-  Snapshots, Transactions und Knowledge-Struktur; nicht versionierte Validator-
-  und Betriebsparameter bleiben auch dann Anwendungskonfiguration.
+- **Erweiterte Admin-Oberfläche**: Über die [implementierte Zielgruppenpflege](Architektur.md#projekte-und-namespaces)
+  hinaus Verwaltung von Resolution Orders, Releases, Snapshots, Transactions und
+  Knowledge-Struktur; nicht versionierte Validator- und Betriebsparameter bleiben
+  auch dann Anwendungskonfiguration.
 - **Präsentations-Views**: unterschiedliche Hierarchie- oder Navigationsdarstellungen
   für Zielgruppen auf Basis derselben canonical NodeIds.
 - **Semantic Search**: Embeddings, Vektorsuche, Hybrid Search.
