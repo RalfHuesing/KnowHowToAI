@@ -37,12 +37,12 @@ public sealed class StatusBannerTests : BunitContext
     [InlineData(AlertKind.Erfolg, "status")]
     [InlineData(AlertKind.Warnung, "status")]
     public void AnnouncesErrorsImmediatelyAndAllOtherLevelsPolitely(
-        AlertKind kind, string expectedAudience)
+        AlertKind kind, string expectedAriaRole)
     {
         var cut = Render<StatusBanner>(parameters => parameters
             .Add(banner => banner.Kind, kind)
             .Add(banner => banner.Message, "Die Verbindung zur Datenbank ist derzeit eingeschränkt."));
 
-        Assert.Equal(expectedAudience, cut.Find(".status-banner").GetAttribute("role"));
+        Assert.Equal(expectedAriaRole, cut.Find(".status-banner").GetAttribute("role"));
     }
 }
