@@ -99,7 +99,7 @@ Sie definiert operative Guardrails; sie erfindet keine neue Designentscheidung.
   kein zusätzliches Smartphoneproduktziel abgeleitet.
 - Für normale Inhalte sind abgeschnittene, überlappende, unerreichbare oder nur durch
   Seiten-Scroll sichtbare Inhalte Fehler. Zweidimensionaler Bildlauf ist ausschließlich
-  für fachlich zweidimensionäre Flächen und nur innerhalb deren eigenem Bereich zulässig.
+  für fachlich zweidimensionale Flächen und nur innerhalb deren eigenem Bereich zulässig.
 - Responsive Regeln erhalten Inhalt, Reihenfolge, primäre Aktion und Semantik. Keine
   breakpointabhängige Duplikation derselben Aktion oder ein verstecktes Desktoplayout
   ohne gleichwertigen zugänglichen Pfad.
