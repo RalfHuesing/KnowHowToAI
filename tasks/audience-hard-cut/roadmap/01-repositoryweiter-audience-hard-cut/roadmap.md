@@ -40,9 +40,9 @@ unverändert.
 
 ## M1.1 – Fachkern und Persistenz
 
-- [ ] **M1.1 abschließen**
+- [x] **M1.1 abschließen**
   - [x] [M1.1-T1 – Domain und Application auf Audience umstellen](tasks/M1.1-T1.md)
-  - [ ] [M1.1-T2 – SQL-Schema und Persistence auf Audience umstellen](tasks/M1.1-T2.md)
+  - [x] [M1.1-T2 – SQL-Schema und Persistence auf Audience umstellen](tasks/M1.1-T2.md)
 
 ## M1.2 – MCP-Hard-Cut
 

@@ -31,6 +31,16 @@ public sealed class BrowserTestDatabaseSettingsTests
     }
 
     [Fact]
+    public void BrowserCleanupSectionsCannotResolveTheProductDatabaseSection()
+    {
+        Assert.NotEqual("DatabaseConnection", BrowserTestDatabaseSettings.WorkflowSectionName);
+        Assert.NotEqual("DatabaseConnection", BrowserTestDatabaseSettings.VisualShellSectionName);
+        Assert.NotEqual(
+            BrowserTestDatabaseSettings.WorkflowSectionName,
+            BrowserTestDatabaseSettings.VisualShellSectionName);
+    }
+
+    [Fact]
     public void FromConfiguration_RejectsMissingSqlUserWithoutExposingConfiguredPassword()
     {
         const string password = "browser-test-secret";

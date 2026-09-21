@@ -10,7 +10,7 @@ namespace KnowHowToAI.IntegrationTests.TestSupport;
 /// </summary>
 internal sealed record SqlIntegrationTestSettings
 {
-    private const string SectionName = "DatabaseConnection";
+    internal const string SectionName = "BrowserTestDatabaseConnection";
 
     public required string Server { get; init; }
     public required string Database { get; init; }

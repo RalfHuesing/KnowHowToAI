@@ -6,12 +6,12 @@ namespace KnowHowToAI.IntegrationTests.TestSupport;
 public sealed class SqlIntegrationTestSettingsTests
 {
     [Fact]
-    public void Load_BindsDatabaseConnectionAndResolvesComputerName()
+    public void Load_BindsBrowserTestDatabaseConnectionAndResolvesComputerName()
     {
         var settings = SqlIntegrationTestSettings.Load();
 
         Assert.Equal($"{Environment.MachineName}\\MSSQLSERVER2022", settings.Server);
-        Assert.Equal("KnowHowToAi", settings.Database);
+        Assert.Equal("KnowHowToAi_BrowserTests", settings.Database);
         Assert.Equal("KnowHowToAi", settings.UserName);
         Assert.False(settings.UseWindowsAuthentication);
     }
@@ -32,7 +32,14 @@ public sealed class SqlIntegrationTestSettingsTests
         var connectionString = SqlIntegrationTestSettings.Load().CreateDatabaseConnectionString();
         var builder = new SqlConnectionStringBuilder(connectionString);
 
-        Assert.Equal("KnowHowToAi", builder.InitialCatalog);
+        Assert.Equal("KnowHowToAi_BrowserTests", builder.InitialCatalog);
         Assert.True(builder.TrustServerCertificate);
+    }
+
+    [Fact]
+    public void ManualDatabaseIntegrationCannotUseTheProductDatabaseSection()
+    {
+        Assert.Equal("BrowserTestDatabaseConnection", SqlIntegrationTestSettings.SectionName);
+        Assert.NotEqual("DatabaseConnection", SqlIntegrationTestSettings.SectionName);
     }
 }

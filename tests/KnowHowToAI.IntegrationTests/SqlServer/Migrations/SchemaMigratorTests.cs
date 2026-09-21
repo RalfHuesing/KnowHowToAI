@@ -8,7 +8,8 @@ namespace KnowHowToAI.IntegrationTests.SqlServer.Migrations;
 
 /// <summary>
 /// Integrationsnachweise für M1.3 (Migration Runner) und M1.5 (Integrationsnachweise)
-/// gegen einen echten SQL Server mit der Appsettings-Sektion <c>DatabaseConnection</c>.
+/// gegen einen echten SQL Server mit der Appsettings-Sektion
+/// <c>BrowserTestDatabaseConnection</c>.
 /// </summary>
 [Trait("Category", "ManualDatabaseIntegration")]
 [Collection("ManualDatabaseIntegration")]
@@ -52,7 +53,10 @@ public sealed class SqlSchemaMigratorTests
     [Fact]
     public async Task ExistingAudienceDatabase_IsMigratedAndSeeded()
     {
-        await using var db = await SqlTestDatabase.ConnectAsync();
+        await using var db = await SqlTestDatabase.ConnectFreshAsync();
+        var (migrator, catalog) = BuildMigrator(db);
+
+        Assert.Equal(catalog.Scripts.Count, await migrator.MigrateAsync());
 
         await AssertJournalHasEntriesAsync(db, expectedCount: 4);
         await AssertExpectedSchemaAsync(db);

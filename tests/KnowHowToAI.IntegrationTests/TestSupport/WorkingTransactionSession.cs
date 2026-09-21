@@ -42,6 +42,8 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     public TransactionId TransactionId => Transaction.TransactionId;
 
+    public long ChangeVersion => ExpectedChangeVersion;
+
     private NodeMutationApplicationService Nodes { get; }
 
     private ContentMutationApplicationService Contents { get; }

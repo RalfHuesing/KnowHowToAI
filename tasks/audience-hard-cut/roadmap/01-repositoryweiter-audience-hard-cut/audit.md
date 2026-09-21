@@ -18,8 +18,12 @@ Architekturrefaktorierungen.
 - [ ] Es gibt keine Alias-Typen, Compatibility Views, doppelte MCP-Tools,
       JSON-Doppelfelder, Route-Redirects oder Browserzustandsmigrationen.
 - [ ] Die direkt korrigierte SQL-Baseline erzeugt nach read-only bestätigtem
-      Leerstand ein reines Audience-Schema; kein Reset-/Cleanup-Aufruf,
-      Forward-Migrations- oder Aliasrest existiert.
+      Leerstand ein reines Audience-Schema; kein Reset-/Forward-Migrations- oder
+      Aliasrest existiert. Der finale Repositorybestand enthält keinen Cleanup-
+      Pfad für `DatabaseConnection`; der kontrollierte, präfixbegrenzte
+      Tabellen-/Objekt-Cleanup ist ausschließlich in der Testinfrastruktur für
+      `BrowserTestDatabaseConnection` und `BrowserVisualTestDatabaseConnection`
+      erreichbar.
 - [ ] Sichtbare deutsche Texte verwenden „Zielgruppe“; Accessibility-Semantik
       und rollenbasierte Playwright-Locators sind nicht beschädigt.
 - [ ] Ist-Dokumentation, Regeln und ausführbare Roadmaps stimmen mit dem

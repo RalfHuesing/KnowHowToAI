@@ -57,6 +57,7 @@ public sealed class PublishedServerHost : IAsyncDisposable
                 BrowserTestDatabaseKind.VisualShell => BrowserTestDatabaseSettings.LoadVisualShell(repositoryRoot),
                 _ => throw new ArgumentOutOfRangeException(nameof(databaseKind), databaseKind, "Unbekannter Browser-Testdatenbanktyp.")
             };
+            await BrowserTestDatabaseCleaner.CleanSchemaAsync(databaseSettings).ConfigureAwait(false);
             var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);
             // Explizite Adresse für Tests, die denselben Circuit-Origin erneut

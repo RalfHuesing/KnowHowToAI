@@ -339,7 +339,7 @@ public sealed class SqlRetrievalRepositoryTests
             database, transactionId, new SequentialIdentifierGenerator(), "Repo-Test");
         await session.CreateAudienceAsync("Ghost", null);
         await session.SetResolutionAsync(new AudienceId("Default"), new AudienceId("Ghost"));
-        await TombstoneAudienceAsync(database, transactionId, new AudienceId("Ghost"));
+        await TombstoneAudienceAsync(database, transactionId, new AudienceId("Ghost"), session.ChangeVersion);
 
         var service = CreateSearchService(database);
         var result = await service.SearchAsync(
@@ -437,7 +437,11 @@ public sealed class SqlRetrievalRepositoryTests
         return (committed.WorkingSnapshotId, value);
     }
 
-    private static async Task TombstoneAudienceAsync(SqlTestDatabase database, TransactionId transactionId, AudienceId audienceId)
+    private static async Task TombstoneAudienceAsync(
+        SqlTestDatabase database,
+        TransactionId transactionId,
+        AudienceId audienceId,
+        long expectedChangeVersion)
     {
         var repository = new SqlAudienceMutationRepository(
             database.ConnectionFactory, new SqlStoragePolicy { CommandTimeoutSeconds = 30 });
@@ -447,7 +451,7 @@ public sealed class SqlRetrievalRepositoryTests
             var audiences = state.Audiences.Select(candidate => candidate.AudienceId == audienceId ? deleted : candidate).ToArray();
             return Result<WorkingAudienceMutationDecision<Audience>>.Success(
                 new WorkingAudienceMutationDecision<Audience>(deleted, state with { Audiences = audiences }));
-        }, 0);
+        }, expectedChangeVersion);
         Assert.True(result.IsSuccess);
     }
 }

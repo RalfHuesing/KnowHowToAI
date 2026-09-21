@@ -81,13 +81,19 @@ Vorhaben lokalisiert keine gespeicherten Nutzdaten.
 ## SQL- und Datenbankentscheidung
 
 Die drei konfigurierten KnowHowToAI-Entwicklungs-/Testdatenbanken wurden vom
-Benutzer bereits manuell geleert. Dieser Zustand ist als gegeben zu behandeln;
-kein Agent darf Tabellen, Schemas, Datenbanken oder sonstige Datenbankobjekte
-löschen oder einen Reset-/Cleanup-Schritt ausführen. Deshalb wird die
-Greenfield-Baseline direkt korrigiert:
+Benutzer bereits manuell geleert. Dieser Zustand war die Voraussetzung für den
+Greenfield-Neuaufbau. Die Produktverbindung `DatabaseConnection` bleibt für
+Testinfrastruktur vollständig unangetastet: sie darf weder gelesen noch als
+Cleanup-Ziel verwendet werden. Ausschließlich die beiden exakt konfigurierten
+Browser-Testverbindungen dürfen in der Testinfrastruktur einen kontrollierten,
+präfixbegrenzten Tabellen-/Objekt-Cleanup durchführen (`BrowserTestDatabaseConnection`
+für ManualDatabaseIntegration und `BrowserVisualTestDatabaseConnection` für
+Visual-/Browserabläufe). Datenbanken oder Schemas werden dabei nie erzeugt oder
+gelöscht; Systemdatenbanken und nicht konfigurierte Ziele sind ausgeschlossen.
+Die Greenfield-Baseline wird direkt korrigiert:
 
-- `0002_create_audiences.sql` definiert
-  definiert ausschließlich Audience-Tabellen, -Spalten, -Constraints und
+- `0002_create_audiences.sql` definiert ausschließlich Audience-Tabellen,
+  -Spalten, -Constraints und
   -Indizes.
 - `0003_create_nodes_and_content.sql` verwendet ausschließlich Audience-Spalten
   und -Fremdschlüssel.
@@ -95,19 +101,19 @@ Greenfield-Baseline direkt korrigiert:
   Resolution Order.
 - Es entsteht kein `0005`, keine Datenmigration und keine Kompatibilitätsbrücke.
 
-Der zuständige Umsetzungsslice ermittelt vor jedem Neuaufbau ausschließlich
-read-only die drei
-konfigurierten Zielverbindungen `DatabaseConnection`,
-`BrowserTestDatabaseConnection` und `BrowserVisualTestDatabaseConnection`,
-protokolliert ausschließlich Server und Datenbankname ohne Credentials und
-verifiziert, dass jede Zieldatenbank eine ausdrücklich konfigurierte
-KnowHowToAI-Entwicklungs-/Testdatenbank ist, dedupliziert identische Ziele,
-schließt Systemdatenbanken aus und bestätigt, dass keine `KnowHowToAI_`-Tabellen
-oder Journaleinträge vorhanden sind. Nur wenn alle Ziele leer sind, baut er das
-Schema über den normalen Migration Runner neu auf und prüft den Seed. Die
-Datenbanken und vorhandenen Objekte werden nicht angelegt oder gelöscht.
-Unklare, nicht erreichbare oder
-abweichend benannte Ziele führen zum Stopp statt zu einer geratenen Löschung.
+Der zuständige Umsetzungsslice ermittelt vor jedem Neuaufbau read-only die drei
+konfigurierten Zielverbindungen, protokolliert ausschließlich Server und
+Datenbankname ohne Credentials, dedupliziert identische Kombinationen, schließt
+Systemdatenbanken aus und bestätigt die konfigurierten Ziele. Für den
+Greenfield-Neuaufbau wurde der manuell hergestellte Leerstand read-only belegt;
+danach lief der normale Migration Runner mit Seedprüfung. Die historischen
+`DROP TABLE IF EXISTS`-Anweisungen des einmaligen alten Reset-Harnesses werden
+transparent dokumentiert und vom Benutzer als No-op akzeptiert, weil das
+vorherige Inventar 0 `KnowHowToAI_`-Tabellen und 0 Journal belegte. Im finalen
+Repository ist dieser alte Pfad entfernt; der verbleibende Test-Cleanup ist
+ausschließlich auf die beiden Browser-Testverbindungen und das Präfix begrenzt.
+Unklare, nicht erreichbare oder abweichend benannte Ziele führen zum Stopp statt
+zu einer geratenen Bereinigung.
 
 ## Bedeutung des Terminologie-Gates
 

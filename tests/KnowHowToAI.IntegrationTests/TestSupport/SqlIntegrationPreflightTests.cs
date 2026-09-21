@@ -2,21 +2,21 @@ namespace KnowHowToAI.IntegrationTests.TestSupport;
 
 /// <summary>
 /// Belegt vor den eigentlichen SQL-Tests, dass die manuell bereitgestellte Datenbank
-/// mit der dokumentierten App-Konfiguration erreichbar ist.
+/// mit der dokumentierten Browser-Test-App-Konfiguration erreichbar ist.
 /// </summary>
 [Trait("Category", "Integration")]
 public sealed class SqlIntegrationPreflightTests
 {
     [Fact]
-    public async Task DatabaseConnection_ConnectsToTheManuallyProvisionedDatabase()
+    public async Task BrowserTestDatabaseConnection_ConnectsToTheManuallyProvisionedDatabase()
     {
         await using var database = await SqlTestDatabase.ConnectAsync();
 
-        Assert.Equal("KnowHowToAi", database.DatabaseName);
+        Assert.Equal("KnowHowToAi_BrowserTests", database.DatabaseName);
     }
 
     [Fact]
-    public async Task DatabaseConnection_TargetsSqlServer2019OrLater()
+    public async Task BrowserTestDatabaseConnection_TargetsSqlServer2019OrLater()
     {
         await using var database = await SqlTestDatabase.ConnectAsync();
 

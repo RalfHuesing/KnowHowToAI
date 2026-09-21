@@ -151,11 +151,16 @@ Callback-Weitergabe und der idempotente Dispose-Adapter bei jedem FastTest-Gate
 geprüft.
 
 - Integrationstests mit echtem SQL Server (Kategorie `ManualDatabaseIntegration`)
-  laufen gegen die manuell bereitgestellte, konfigurierte Datenbank; der Harness
-  erzeugt oder entfernt keine Datenbanken. Fehlende SQL-Voraussetzungen sind ein
-  klarer Preflight-Fehler, kein grüner Skip. Das Integrationsskript führt diesen
-  Preflight ausschließlich für den expliziten `ManualDatabaseIntegration`-Lauf
-  aus, damit ein Browser-Gate nicht von dieser Datenbank abhängt.
+  binden ausschließlich `BrowserTestDatabaseConnection`. Vor jedem Teststart und
+  beim Ende einer frischen Testverbindung bereinigt der Testharness ausschließlich
+  `dbo`-Tabellen, Trigger und Fremdschlüssel mit `KnowHowToAI_`-Präfix in genau
+  dieser Browser-Testdatenbank. `DatabaseConnection` wird von dieser Suite weder
+  gelesen noch bereinigt; ein gemeinsamer Fallback ist ausgeschlossen. Der
+  Harness erzeugt oder entfernt niemals Datenbanken oder Schemas. Fehlende SQL-
+  Voraussetzungen sind ein klarer Preflight-Fehler, kein grüner Skip. Das
+  Integrationsskript führt diesen Preflight ausschließlich für den expliziten
+  `ManualDatabaseIntegration`-Lauf aus, damit ein Browser-Gate nicht von der
+  Produktdatenbank abhängt.
 - Der Browser-Shell-Smoke verlangt Google Chrome Stable (installierte aktuelle
   Version) im headless `chrome`-Channel. Eine fehlende Installation ist ein
   Preflight-Fehler; Chromium oder ein anderer Browser ist kein Fallback. Der
@@ -185,10 +190,12 @@ geprüft.
   Read-only-Smokes bleiben parallel ausführbar.
 - Visuelle Shell-Baselines verwenden ausschließlich
   `BrowserVisualTestDatabaseConnection` mit einem eigenen Host und dem stabilen,
-  minimalen Read-only-Bestand. Workflow-Smokes beschreiben diese Datenbank nie.
-  Kein Browser-Seed betrifft `DatabaseConnection`, erzeugt oder entfernt eine
-  Datenbank. Die `ManualDatabaseIntegration`-Suite validiert den vom Benutzer
-  bereitgestellten Zustand ausschließlich read-only und löscht keine Objekte.
+  minimalen Bestand. Workflow-Smokes beschreiben diese Datenbank nie. Ihr
+  Testhost darf vor dem Start ebenfalls ausschließlich `dbo`-Objekte mit
+  `KnowHowToAI_`-Präfix in diesem exakt konfigurierten Ziel bereinigen.
+  `DatabaseConnection` bleibt für alle Testharness-Cleanup-Pfade unerreichbar;
+  Systemdatenbanken, nicht konfigurierte Ziele und Datenbank-/Schema-Erzeugung
+  oder -Löschung sind ausgeschlossen. Identische Browserziele werden dedupliziert.
 - Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
   die Shell bei 1280 × 720 und 1024 × 720 gegen die versionierten PNG-Baselines
   unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`. Im regulären
