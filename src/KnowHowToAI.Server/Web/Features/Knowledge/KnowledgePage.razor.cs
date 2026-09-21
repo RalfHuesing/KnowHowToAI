@@ -264,7 +264,11 @@ public sealed partial class KnowledgePage : IDisposable
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = uri.Query;
         var path = nodeId.HasValue ? $"/knowledge/{nodeId.Value:D}" : "/knowledge";
-        NavigationManager.NavigateTo($"{path}{query}");
+        var target = $"{path}{query}";
+        if (string.Equals(uri.PathAndQuery, target, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        NavigationManager.NavigateTo(target);
     }
 
     public void Dispose()
