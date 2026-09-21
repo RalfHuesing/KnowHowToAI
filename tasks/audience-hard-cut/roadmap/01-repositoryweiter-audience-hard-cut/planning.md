@@ -89,7 +89,10 @@ Browser-Testverbindungen dürfen in der Testinfrastruktur einen kontrollierten,
 präfixbegrenzten Tabellen-/Objekt-Cleanup durchführen (`BrowserTestDatabaseConnection`
 für ManualDatabaseIntegration und `BrowserVisualTestDatabaseConnection` für
 Visual-/Browserabläufe). Datenbanken oder Schemas werden dabei nie erzeugt oder
-gelöscht; Systemdatenbanken und nicht konfigurierte Ziele sind ausgeschlossen.
+gelöscht; der gemeinsame Testsupport normalisiert alle Server-/Datenbankziele,
+weist Identität mit `DatabaseConnection` sowie `master`, `model`, `msdb` und
+`tempdb` fail-fast ab und dedupliziert identische Browserziele. Nicht
+konfigurierte Ziele sind ausgeschlossen.
 Die Greenfield-Baseline wird direkt korrigiert:
 
 - `0002_create_audiences.sql` definiert ausschließlich Audience-Tabellen,

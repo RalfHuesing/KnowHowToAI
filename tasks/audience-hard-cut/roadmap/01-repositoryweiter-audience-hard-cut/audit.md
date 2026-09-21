@@ -23,7 +23,9 @@ Architekturrefaktorierungen.
       Pfad für `DatabaseConnection`; der kontrollierte, präfixbegrenzte
       Tabellen-/Objekt-Cleanup ist ausschließlich in der Testinfrastruktur für
       `BrowserTestDatabaseConnection` und `BrowserVisualTestDatabaseConnection`
-      erreichbar.
+      erreichbar. Der gemeinsame Guard normalisiert die Ziele, dedupliziert
+      Browserkombinationen und weist Produktidentität sowie Systemdatenbanken
+      fail-fast ab.
 - [ ] Sichtbare deutsche Texte verwenden „Zielgruppe“; Accessibility-Semantik
       und rollenbasierte Playwright-Locators sind nicht beschädigt.
 - [ ] Ist-Dokumentation, Regeln und ausführbare Roadmaps stimmen mit dem

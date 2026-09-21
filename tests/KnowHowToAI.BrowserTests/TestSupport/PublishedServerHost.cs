@@ -51,12 +51,18 @@ public sealed class PublishedServerHost : IAsyncDisposable
 
         try
         {
+            var workflowDatabaseSettings = BrowserTestDatabaseSettings.LoadWorkflow(repositoryRoot);
+            var visualDatabaseSettings = BrowserTestDatabaseSettings.LoadVisualShell(repositoryRoot);
             var databaseSettings = databaseKind switch
             {
-                BrowserTestDatabaseKind.Workflow => BrowserTestDatabaseSettings.LoadWorkflow(repositoryRoot),
-                BrowserTestDatabaseKind.VisualShell => BrowserTestDatabaseSettings.LoadVisualShell(repositoryRoot),
+                BrowserTestDatabaseKind.Workflow => workflowDatabaseSettings,
+                BrowserTestDatabaseKind.VisualShell => visualDatabaseSettings,
                 _ => throw new ArgumentOutOfRangeException(nameof(databaseKind), databaseKind, "Unbekannter Browser-Testdatenbanktyp.")
             };
+            var productSettings = BrowserTestDatabaseSettings.LoadProduct(repositoryRoot);
+            SqlCleanupTargetGuard.ValidateAndDedupe(
+                productSettings.CleanupTarget,
+                [workflowDatabaseSettings.CleanupTarget, visualDatabaseSettings.CleanupTarget]);
             await BrowserTestDatabaseCleaner.CleanSchemaAsync(databaseSettings).ConfigureAwait(false);
             var publishDirectory = testDirectory.FilePath("publish");
             await PublishServerAsync(repositoryRoot, publishDirectory);

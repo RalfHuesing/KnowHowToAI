@@ -155,8 +155,12 @@ geprüft.
   beim Ende einer frischen Testverbindung bereinigt der Testharness ausschließlich
   `dbo`-Tabellen, Trigger und Fremdschlüssel mit `KnowHowToAI_`-Präfix in genau
   dieser Browser-Testdatenbank. `DatabaseConnection` wird von dieser Suite weder
-  gelesen noch bereinigt; ein gemeinsamer Fallback ist ausgeschlossen. Der
-  Harness erzeugt oder entfernt niemals Datenbanken oder Schemas. Fehlende SQL-
+  als Cleanup-Ziel verwendet noch bereinigt; vor jedem Cleanup werden die
+  aufgelösten Produkt-, Workflow- und Visualziele ohne Credentials normalisiert
+  verglichen. Identität mit der Produktverbindung sowie `master`, `model`, `msdb`
+  und `tempdb` werden fail-fast abgewiesen; identische Browserziele werden
+  dedupliziert. Ein gemeinsamer Fallback ist ausgeschlossen. Der Harness erzeugt
+  oder entfernt niemals Datenbanken oder Schemas. Fehlende SQL-
   Voraussetzungen sind ein klarer Preflight-Fehler, kein grüner Skip. Das
   Integrationsskript führt diesen Preflight ausschließlich für den expliziten
   `ManualDatabaseIntegration`-Lauf aus, damit ein Browser-Gate nicht von der
@@ -194,8 +198,9 @@ geprüft.
   Testhost darf vor dem Start ebenfalls ausschließlich `dbo`-Objekte mit
   `KnowHowToAI_`-Präfix in diesem exakt konfigurierten Ziel bereinigen.
   `DatabaseConnection` bleibt für alle Testharness-Cleanup-Pfade unerreichbar;
-  Systemdatenbanken, nicht konfigurierte Ziele und Datenbank-/Schema-Erzeugung
-  oder -Löschung sind ausgeschlossen. Identische Browserziele werden dedupliziert.
+  die vier SQL-Systemdatenbanken, nicht konfigurierte Ziele und Datenbank-/Schema-
+  Erzeugung oder -Löschung werden durch den gemeinsamen Guard ausgeschlossen.
+  Identische Browserziele werden dedupliziert.
 - Visuelle Shell-Baselines: Die Smoke-Klasse `VisualShellSmokeTests` vergleicht
   die Shell bei 1280 × 720 und 1024 × 720 gegen die versionierten PNG-Baselines
   unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`. Im regulären

@@ -1,6 +1,7 @@
 using KnowHowToAI.Storage.SqlServer.Configuration;
 using KnowHowToAI.Storage.SqlServer.Connections;
 using KnowHowToAI.Storage.SqlServer.Migrations;
+using KnowHowToAI.TestSupport;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -19,13 +20,15 @@ public sealed class SqlTestDatabase : IAsyncDisposable
     private bool _cleanupOnDispose;
     public string DatabaseName { get; }
     public string ConnectionString { get; }
+    internal SqlCleanupTarget CleanupTarget { get; }
     internal SqlConnectionFactory ConnectionFactory { get; }
     public SqlStorageConnectionString StorageConnectionString { get; }
 
-    private SqlTestDatabase(string databaseName, string connectionString)
+    private SqlTestDatabase(string databaseName, string connectionString, SqlCleanupTarget cleanupTarget)
     {
         DatabaseName = databaseName;
         ConnectionString = connectionString;
+        CleanupTarget = cleanupTarget;
         StorageConnectionString = new SqlStorageConnectionString { Value = connectionString };
         ConnectionFactory = new SqlConnectionFactory(StorageConnectionString);
     }
@@ -51,7 +54,7 @@ public sealed class SqlTestDatabase : IAsyncDisposable
                 "Die Datenbank muss manuell bereitgestellt sein und die konfigurierte Anmeldung zulassen.");
         }
 
-        return new SqlTestDatabase(settings.Database, connectionString);
+        return new SqlTestDatabase(settings.Database, connectionString, settings.CleanupTarget);
     }
 
     /// <summary>
@@ -65,6 +68,11 @@ public sealed class SqlTestDatabase : IAsyncDisposable
         var database = await ConnectAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            var productTarget = SqlIntegrationTestSettings.LoadProduct().CleanupTarget;
+            var visualTarget = SqlIntegrationTestSettings.LoadVisual().CleanupTarget;
+            SqlCleanupTargetGuard.ValidateAndDedupe(
+                productTarget,
+                [database.CleanupTarget, visualTarget]);
             await database.CleanupBrowserSchemaAsync(cancellationToken).ConfigureAwait(false);
             database._cleanupOnDispose = true;
             return database;
