@@ -10,7 +10,7 @@ using KnowHowToAI.TestSupport;
 namespace KnowHowToAI.Core.Tests.Application.Mutations.Nodes;
 
 [Trait("Category", "Unit")]
-public sealed class NodeDeletionPreviewServiceTests
+public sealed class NodeDeletionApplicationServiceTests
 {
     private static readonly TransactionId TransactionId = new(Guid.Parse("e7e29121-4607-40bd-a2c2-19d6b38503cc"));
     private static readonly SnapshotId SnapshotId = new(42);
@@ -35,7 +35,7 @@ public sealed class NodeDeletionPreviewServiceTests
             Dependency(GrandchildNodeId, ChildNodeId),
             Dependency(RootNodeId, ChildNodeId)
         ]);
-        var service = new NodeDeletionPreviewService(new InMemoryWorkingSnapshotReadRepository(store));
+        var service = CreateService(store);
 
         var result = await service.PreviewAsync(TransactionId, ChildNodeId);
 
@@ -54,7 +54,7 @@ public sealed class NodeDeletionPreviewServiceTests
     {
         var store = CreateOpenStore();
         store.Nodes.Add(Node(ChildNodeId) with { IsDeleted = true });
-        var service = new NodeDeletionPreviewService(new InMemoryWorkingSnapshotReadRepository(store));
+        var service = CreateService(store);
 
         var result = await service.PreviewAsync(TransactionId, ChildNodeId);
 
@@ -67,7 +67,7 @@ public sealed class NodeDeletionPreviewServiceTests
     {
         var store = CreateOpenStore();
         store.Nodes.Add(Node(RootNodeId));
-        var service = new NodeDeletionPreviewService(new InMemoryWorkingSnapshotReadRepository(store));
+        var service = CreateService(store);
 
         var result = await service.PreviewAsync(TransactionId, RootNodeId);
 
@@ -94,6 +94,13 @@ public sealed class NodeDeletionPreviewServiceTests
             null);
         return store;
     }
+
+    private static NodeDeletionApplicationService CreateService(InMemoryKnowledgeStore store) =>
+        new(
+            new InMemoryWorkingSnapshotReadRepository(store),
+            new InMemoryNodeMutationRepository(new WorkingNodeMutationState(SnapshotId, [], [], [], [])),
+            new NodeMutationService(new FixedIdentifierGenerator()),
+            TestPolicies.DefaultValidation);
 
     private static Node Node(NodeId nodeId, NodeId? parentNodeId = null) =>
         new(SnapshotId, nodeId, parentNodeId, "Node", null, 0, IsDeleted: false);

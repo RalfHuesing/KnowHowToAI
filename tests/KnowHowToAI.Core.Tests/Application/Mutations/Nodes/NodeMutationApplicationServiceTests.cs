@@ -84,7 +84,7 @@ public sealed class NodeMutationApplicationServiceTests
         var repository = new InMemoryNodeMutationRepository(State(
             [Node(RootNodeId), Node(FirstChildNodeId, RootNodeId), Node(GrandchildNodeId, FirstChildNodeId)],
             [childContent, grandchildContent]));
-        var service = CreateService(repository, SecondChildNodeId);
+        var service = CreateDeletionService(repository, SecondChildNodeId);
 
         var rejected = await service.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: false);
 
@@ -193,7 +193,7 @@ public sealed class NodeMutationApplicationServiceTests
             ? TransactionTestErrors.NotFound(TransactionId)
             : TransactionTestErrors.Closed(TransactionId);
         var repository = new InMemoryNodeMutationRepository(State(Node(RootNodeId), Node(FirstChildNodeId, RootNodeId))) { Rejection = rejection };
-        var service = CreateService(repository, SecondChildNodeId);
+        var service = CreateDeletionService(repository, SecondChildNodeId);
 
         var result = await service.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: false);
 
@@ -432,7 +432,8 @@ public sealed class NodeMutationApplicationServiceTests
         var first = await service.UpdateAsync(
             TransactionId,
             new UpdateNodeRequest(FirstChildNodeId, "Von anderem Client", null, ExpectedChangeVersion: 0));
-        var stale = await service.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: false, expectedChangeVersion: 0);
+        var deletionService = CreateDeletionService(repository, SecondChildNodeId);
+        var stale = await deletionService.DeleteAsync(TransactionId, FirstChildNodeId, deleteSubtree: false, expectedChangeVersion: 0);
 
         Assert.True(first.IsSuccess);
         Assert.False(stale.IsSuccess);
@@ -445,6 +446,21 @@ public sealed class NodeMutationApplicationServiceTests
         InMemoryNodeMutationRepository repository,
         NodeId generatedNodeId) =>
         new(
+            repository,
+            new NodeMutationService(new FixedIdentifierGenerator { FixedNodeId = generatedNodeId }),
+            new ValidationPolicy
+            {
+                ContentSizeWarningBytes = 4096,
+                ChildCountWarning = 2,
+                HierarchyDepthWarning = 8,
+                PossibleEmbeddedHeadingWarning = true
+            });
+
+    private static NodeDeletionApplicationService CreateDeletionService(
+        InMemoryNodeMutationRepository repository,
+        NodeId generatedNodeId) =>
+        new(
+            new InMemoryWorkingSnapshotReadRepository(new InMemoryKnowledgeStore()),
             repository,
             new NodeMutationService(new FixedIdentifierGenerator { FixedNodeId = generatedNodeId }),
             new ValidationPolicy

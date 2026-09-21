@@ -96,7 +96,7 @@ internal static class ServiceRegistration
         services.AddSingleton<ContentRevisionService>();
         services.AddSingleton<ContentMutationService>();
         services.AddSingleton<NodeMutationApplicationService>();
-        services.AddSingleton<NodeDeletionPreviewService>();
+        services.AddSingleton<NodeDeletionApplicationService>();
         services.AddSingleton<ContentMutationApplicationService>();
         services.AddSingleton<AudienceMutationService>();
         services.AddSingleton(serviceProvider =>

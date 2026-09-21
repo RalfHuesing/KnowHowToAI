@@ -16,21 +16,24 @@ namespace KnowHowToAI.Server.Mcp.Tools.Mutations;
 
 /// <summary>
 /// Dünne MCP-Handler der globalen Strukturänderungen: ausschließlich Mapping und
-/// Delegation an den transportneutralen <see cref="NodeMutationApplicationService"/>;
-/// der kombinierte create_node-Aufruf delegiert zusätzlich an den
+/// Delegation an die transportneutralen Node-Application-Services; der kombinierte
+/// create_node-Aufruf delegiert zusätzlich an den
 /// <see cref="ContentMutationApplicationService"/>.
 /// </summary>
 [McpServerToolType]
 internal sealed class NodeMutationTools
 {
     private readonly NodeMutationApplicationService _nodeMutationService;
+    private readonly NodeDeletionApplicationService _nodeDeletionService;
     private readonly ContentMutationApplicationService _contentMutationService;
 
     public NodeMutationTools(
         NodeMutationApplicationService nodeMutationService,
+        NodeDeletionApplicationService nodeDeletionService,
         ContentMutationApplicationService contentMutationService)
     {
         _nodeMutationService = nodeMutationService ?? throw new ArgumentNullException(nameof(nodeMutationService));
+        _nodeDeletionService = nodeDeletionService ?? throw new ArgumentNullException(nameof(nodeDeletionService));
         _contentMutationService = contentMutationService ?? throw new ArgumentNullException(nameof(contentMutationService));
     }
 
@@ -287,7 +290,7 @@ internal sealed class NodeMutationTools
         if (!parsedTransactionId.IsSuccess || !parsedNodeId.IsSuccess)
             return Failure(parsedTransactionId.Error, parsedNodeId.Error);
 
-        return McpMutationMapper.ToEnvelope(await _nodeMutationService
+        return McpMutationMapper.ToEnvelope(await _nodeDeletionService
             .DeleteAsync(parsedTransactionId.Value, parsedNodeId.Value!.Value, deleteSubtree, expectedChangeVersion, cancellationToken)
             .ConfigureAwait(false));
     }

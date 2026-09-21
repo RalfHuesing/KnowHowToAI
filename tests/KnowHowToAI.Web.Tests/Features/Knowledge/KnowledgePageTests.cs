@@ -144,7 +144,11 @@ public sealed class KnowledgePageTests : BunitContext
             new InMemoryNodeMutationRepository(new WorkingNodeMutationState(workingSnapshotId, [], [], [], [])),
             new NodeMutationService(new GuidIdentifierGenerator()),
             TestPolicies.DefaultValidation));
-        Services.AddSingleton(new NodeDeletionPreviewService(harness.CreateRepositories().WorkingSnapshots!));
+        Services.AddSingleton(new NodeDeletionApplicationService(
+            harness.CreateRepositories().WorkingSnapshots!,
+            new InMemoryNodeMutationRepository(new WorkingNodeMutationState(workingSnapshotId, [], [], [], [])),
+            new NodeMutationService(new GuidIdentifierGenerator()),
+            TestPolicies.DefaultValidation));
         JSInterop.SetupAppDialog();
 
         var query = scenario switch

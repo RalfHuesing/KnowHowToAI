@@ -102,7 +102,11 @@ public sealed class NodeDeletionEditorTests : BunitContext
             new AudienceId("Developer"),
             new ContentRevisionId(Guid.Parse("20000000-0000-0000-0000-000000000004"))));
         Services.AddSingleton<IWorkingSnapshotReadRepository>(new InMemoryWorkingSnapshotReadRepository(store));
-        Services.AddSingleton<NodeDeletionPreviewService>();
+        Services.AddSingleton(new NodeDeletionApplicationService(
+            new InMemoryWorkingSnapshotReadRepository(store),
+            repository,
+            new NodeMutationService(new FixedIdentifierGenerator()),
+            TestPolicies.DefaultValidation));
         return repository;
     }
 

@@ -81,7 +81,11 @@ public sealed class NodeDetailsPaneTests : BunitContext
         Services.AddSingleton(new WorkspaceState());
         Services.AddSingleton(TestNodeMutations.CreateService(
             new InMemoryNodeMutationRepository(new WorkingNodeMutationState(workingSnapshotId, [], [], [], []))));
-        Services.AddSingleton(new NodeDeletionPreviewService(harness.CreateRepositories().WorkingSnapshots!));
+        Services.AddSingleton(new NodeDeletionApplicationService(
+            harness.CreateRepositories().WorkingSnapshots!,
+            new InMemoryNodeMutationRepository(new WorkingNodeMutationState(workingSnapshotId, [], [], [], [])),
+            new NodeMutationService(new FixedIdentifierGenerator()),
+            TestPolicies.DefaultValidation));
         JSInterop.SetupAppDialog();
 
         var cut = Render<NodeDetailsPane>(parameters => parameters

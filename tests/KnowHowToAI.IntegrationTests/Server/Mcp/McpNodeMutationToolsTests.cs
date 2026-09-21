@@ -384,6 +384,17 @@ public sealed class McpNodeMutationToolsTests
                     HierarchyDepthWarning = 8,
                     PossibleEmbeddedHeadingWarning = true
             }),
+            new NodeDeletionApplicationService(
+                new InMemoryWorkingSnapshotReadRepository(new InMemoryKnowledgeStore()),
+                repository,
+                new NodeMutationService(new FixedIdentifierGenerator()),
+                new ValidationPolicy
+                {
+                    ContentSizeWarningBytes = 4096,
+                    ChildCountWarning = 2,
+                    HierarchyDepthWarning = 8,
+                    PossibleEmbeddedHeadingWarning = true
+                }),
             new ContentMutationApplicationService(
                 contents,
                 new ContentMutationService(new ContentRevisionService(new RevisionIdentifierGenerator())),

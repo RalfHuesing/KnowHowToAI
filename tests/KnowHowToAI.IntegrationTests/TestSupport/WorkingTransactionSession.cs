@@ -29,11 +29,13 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
     private WorkingTransactionSession(
         KnowledgeTransaction transaction,
         NodeMutationApplicationService nodes,
+        NodeDeletionApplicationService deletions,
         ContentMutationApplicationService contents,
         AudienceMutationService audiences)
     {
         Transaction = transaction;
         Nodes = nodes;
+        Deletions = deletions;
         Contents = contents;
         Audiences = audiences;
     }
@@ -45,6 +47,8 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
     public long ChangeVersion => ExpectedChangeVersion;
 
     private NodeMutationApplicationService Nodes { get; }
+
+    private NodeDeletionApplicationService Deletions { get; }
 
     private ContentMutationApplicationService Contents { get; }
 
@@ -76,6 +80,11 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
                 new SqlNodeMutationRepository(database.ConnectionFactory, policy),
                 new NodeMutationService(identifierGenerator),
                 validationPolicy),
+            new NodeDeletionApplicationService(
+                new SqlWorkingSnapshotReadRepository(database.ConnectionFactory, policy),
+                new SqlNodeMutationRepository(database.ConnectionFactory, policy),
+                new NodeMutationService(identifierGenerator),
+                validationPolicy),
             new ContentMutationApplicationService(
                 new SqlContentMutationRepository(database.ConnectionFactory, policy),
                 new ContentMutationService(new ContentRevisionService(identifierGenerator)),
@@ -97,7 +106,7 @@ public sealed class WorkingTransactionSession : IAsyncDisposable
 
     public async Task<Node> DeleteNodeSubtreeAsync(NodeId nodeId)
     {
-        var result = await Nodes.DeleteAsync(TransactionId, nodeId, deleteSubtree: true).ConfigureAwait(false);
+        var result = await Deletions.DeleteAsync(TransactionId, nodeId, deleteSubtree: true).ConfigureAwait(false);
         var value = Require(result);
         ExpectedChangeVersion = value.ChangeVersion;
         return value.Node;

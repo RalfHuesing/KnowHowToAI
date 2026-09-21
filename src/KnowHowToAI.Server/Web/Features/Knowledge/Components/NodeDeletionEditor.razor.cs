@@ -10,10 +10,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
 public sealed partial class NodeDeletionEditor
 {
     [Inject]
-    private NodeDeletionPreviewService PreviewService { get; set; } = default!;
-
-    [Inject]
-    private NodeMutationApplicationService NodeMutationService { get; set; } = default!;
+    private NodeDeletionApplicationService NodeDeletionService { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public NodeDetailsViewModel Node { get; set; } = default!;
@@ -39,7 +36,7 @@ public sealed partial class NodeDeletionEditor
     {
         _isLoading = true;
         _errorMessage = null;
-        var result = await PreviewService.PreviewAsync(TransactionId, new NodeId(Node.NodeId));
+        var result = await NodeDeletionService.PreviewAsync(TransactionId, new NodeId(Node.NodeId));
         _isLoading = false;
 
         if (!result.IsSuccess)
@@ -66,7 +63,7 @@ public sealed partial class NodeDeletionEditor
             return;
 
         _errorMessage = null;
-        var result = await NodeMutationService.DeleteAsync(
+        var result = await NodeDeletionService.DeleteAsync(
             TransactionId,
             _preview.NodeId,
             _deleteSubtree,

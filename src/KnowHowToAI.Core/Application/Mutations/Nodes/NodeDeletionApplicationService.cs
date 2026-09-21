@@ -1,20 +1,28 @@
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
 
 namespace KnowHowToAI.Core.Application.Mutations.Nodes;
 
-/// <summary>Lädt den aktuellen Working-Stand für eine kontrollierte globale Node-Löschung.</summary>
-public sealed class NodeDeletionPreviewService(IWorkingSnapshotReadRepository repository)
+/// <summary>Orchestriert Vorschau und Ausführung einer globalen Node-Löschung.</summary>
+public sealed class NodeDeletionApplicationService(
+    IWorkingSnapshotReadRepository previewRepository,
+    INodeMutationRepository repository,
+    NodeMutationService mutationService,
+    ValidationPolicy validationPolicy)
 {
-    private readonly IWorkingSnapshotReadRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly IWorkingSnapshotReadRepository _previewRepository = previewRepository ?? throw new ArgumentNullException(nameof(previewRepository));
+    private readonly INodeMutationRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    private readonly NodeMutationService _mutationService = mutationService ?? throw new ArgumentNullException(nameof(mutationService));
+    private readonly NodeMutationResultFactory _resultFactory = new(validationPolicy);
 
     public async Task<Result<NodeDeletionPreview>> PreviewAsync(
         TransactionId transactionId,
         NodeId nodeId,
         CancellationToken cancellationToken = default)
     {
-        var stateResult = await _repository.ReadOpenWorkingAsync(transactionId, cancellationToken).ConfigureAwait(false);
+        var stateResult = await _previewRepository.ReadOpenWorkingAsync(transactionId, cancellationToken).ConfigureAwait(false);
         if (!stateResult.IsSuccess)
             return Result<NodeDeletionPreview>.Failure(stateResult.Error!);
 
@@ -47,6 +55,50 @@ public sealed class NodeDeletionPreviewService(IWorkingSnapshotReadRepository re
             removedDependencyCount,
             retainedSourceDependencyCount,
             state.ChangeVersion));
+    }
+
+    public async Task<Result<NodeMutationResult>> DeleteAsync(
+        TransactionId transactionId,
+        NodeId nodeId,
+        bool deleteSubtree,
+        long? expectedChangeVersion = null,
+        CancellationToken cancellationToken = default)
+    {
+        var executionResult = await _repository.ExecuteAsync(
+            transactionId,
+            state => CreateDeletionDecision(state, nodeId, deleteSubtree),
+            cancellationToken: cancellationToken,
+            expectedChangeVersion: expectedChangeVersion).ConfigureAwait(false);
+        if (!executionResult.IsSuccess)
+            return Result<NodeMutationResult>.Failure(executionResult.Error!);
+
+        var execution = executionResult.Value!;
+        return _resultFactory.Create(execution.Value, nodeId, execution);
+    }
+
+    private Result<WorkingNodeMutationDecision<NodeDeletionResult>> CreateDeletionDecision(
+        WorkingNodeMutationState state,
+        NodeId nodeId,
+        bool deleteSubtree)
+    {
+        var mutationResult = _mutationService.Delete(
+            state.Nodes,
+            state.Contents,
+            state.Dependencies,
+            new DeleteNodeCommand(nodeId, deleteSubtree));
+        if (!mutationResult.IsSuccess)
+            return Result<WorkingNodeMutationDecision<NodeDeletionResult>>.Failure(mutationResult.Error!);
+
+        var mutation = mutationResult.Value!;
+        return Result<WorkingNodeMutationDecision<NodeDeletionResult>>.Success(
+            new WorkingNodeMutationDecision<NodeDeletionResult>(
+                mutation,
+                state with
+                {
+                    Nodes = mutation.Nodes,
+                    Contents = mutation.Contents,
+                    Dependencies = mutation.Dependencies
+                }));
     }
 
     private static ISet<NodeId> FindActiveSubtreeNodeIds(IEnumerable<Node> nodes, NodeId rootNodeId)
