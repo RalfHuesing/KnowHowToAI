@@ -1,6 +1,6 @@
 # Bedienkonzept UI/UX-Refactoring
 
-**Version:** 1.0 · **Stand:** 2026-09-20 · **Status:** verbindliches Konzept für das Vorhaben
+**Version:** 1.1 · **Stand:** 2026-09-21 · **Status:** verbindliches Konzept; M2 ready/freigegeben
 
 Dieses Verzeichnis ist die verbindliche Ziel- und Entscheidungsgrundlage für das UI/UX-Refactoring. Es beschreibt weder einen bereits implementierten Produktstand noch neue Fachfunktionen. Der belegte Ist-Zustand bleibt in [`docs/`](../../../docs/README.md); die historische Umsetzungsgeschichte bleibt in [M1](../roadmap/01-ist-audit-und-erste-iteration/roadmap.md) und der Git-Historie.
 
@@ -25,7 +25,7 @@ Dieses Verzeichnis ist die verbindliche Ziel- und Entscheidungsgrundlage für da
 
 ## Gültiger Planungsstand
 
-M1.0–M1.5 sind abgeschlossen. M2 berücksichtigt den abgeschlossenen Ein-Karten-Grid-Nachweis aus M1.5-T7 als Regression und legt keinen Duplikat-Leaf an. M2 startet mit drei sicheren Korrekturslices und endet vor weiteren IA-/Terminologieentscheidungen an einem manuellen Entscheidungsgate.
+M1.0–M1.5 sind abgeschlossen. M2 berücksichtigt den abgeschlossenen Ein-Karten-Grid-Nachweis aus M1.5-T7 als Regression und legt keinen Duplikat-Leaf an. M2 ist nach den Nutzerentscheidungen vollständig definiert und freigegeben: zuerst der node-lokale Einstieg `Bearbeiten` mit expliziter Auswahl oder Start einer Arbeitskopie, danach Layoutbasis, Mutation-URL-Synchronisation und sichtbare Transaction-Führung. Ein manueller Zwischenstopp für IA, Terminologie oder Bearbeitungseinstieg ist nicht erforderlich. Nicht zu M2 gehörende künftige Produktentscheidungen bleiben ausdrücklich außerhalb des M2-Scopes und blockieren die autonome Abarbeitung nicht.
 
 Die erste M2-Etappe ist ausdrücklich keine Gesamtneugestaltung: Sie liefert einen gemeinsamen Vollbreiten-Seitenrahmen mit lesbarer Prosa-Messung und einer Action-Group-Basis, korrigiert Mutation-Selection/URL-Synchronisation red-test-first und führt vom Transaktionsdetail sichtbar in den Bearbeitungsfluss. Featureweise Migration wird an 1280, 1920, 2560 und Responsive belegt; `AudiencesPage` bleibt außerhalb dieses Slices.
 

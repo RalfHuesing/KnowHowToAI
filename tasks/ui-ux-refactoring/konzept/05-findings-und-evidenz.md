@@ -46,7 +46,7 @@ Screenshots und Manifeste sind temporär und nicht zu committen; versioniert wer
 
 ## Priorisierte Befunde für M2
 
-1. **P0/P1 – Read-only Node → Bearbeitung nicht auffindbar:** Befund 04/05 und aktueller Code zeigen Inhalt, History und Download, aber keine prominente Bearbeitungsaffordance. Die technische Transaktionseröffnung und der Einstieg „Im Wissensbaum öffnen“ sind nicht als zusammenhängender Weg geführt.
+1. **P0/P1 – Read-only Node → Bearbeitung nicht auffindbar:** Befund 04/05 und aktueller Code zeigen Inhalt, History und Download, aber keine prominente Bearbeitungsaffordance. Die technische Transaktionseröffnung und der Einstieg „Im Wissensbaum öffnen“ sind nicht als zusammenhängender Weg geführt. M2 adressiert dies zuerst mit dem freigegebenen node-lokalen `Bearbeiten`-Einstieg; der Befund gilt bis zur Umsetzung als offen.
 2. **P1 – Transaction-Detail verliert Arbeitsfluss:** `TransactionPage` besitzt `Im Wissensbaum öffnen`, `Zielgruppen pflegen` und `Zur Übersicht`; der erste Weg ist nach Commit-/Diff-Inhalt nicht prominent genug in der Bearbeitungsreise. M2.3-T1 führt ausschließlich diesen bestehenden Weg sichtbarer.
 3. **P1 – Mutation-URL/Selection-Drift:** `KnowledgePage.HandleNodeMutationSucceededAsync` aktualisiert `TreeWorkspace` und `WorkspaceState`, navigiert aber nicht auf die neue/Parent-URL. Create child/root/update/delete können damit sichtbare Auswahl und URL entkoppeln. M2.2-T1 ist red-test-first.
 4. **P1 – Systemrahmen:** Vollbreiten-Seitenrahmen, Prosa-Measure und Action-Group sind nicht als gemeinsame Basisfeatureweise standardisiert. M2.1-T1 schafft nur diese Primitive und migriert kontrolliert.

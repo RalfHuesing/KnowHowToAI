@@ -28,6 +28,13 @@ Bei 1280 CSS-Pixeln ist die Desktop-Funktion vollständig sichtbar; 1920 und 256
 
 Globale Aktionen ändern den Kontext oder die Sicht (`Zielgruppe/ReadContext wählen`, Shell-Navigation). Lokale Aktionen ändern Node, Content oder Transaction. Eine globale Aktion darf nicht die lokale Hauptaktion verdrängen.
 
+Im Read-only-Detail eines Explicit+Independent-Wissenseintrags ist `Bearbeiten`
+die lokale primäre Aktion. Der kleine Auswahl-/Startdialog führt entweder in
+eine ausdrücklich gewählte kompatible Arbeitskopie oder startet eine neue;
+danach bleibt derselbe Wissenseintrag mit derselben Zielgruppe aktiv. Fallback,
+`None` und `Derived` zeigen stattdessen ihren fachlichen Zustand und keine
+irreführende Editieraktion; die zugehörigen Contentfunktionen sind M5.4.
+
 ## PageActions-Slot
 
 `PageActions` ist eine vorhandene, derzeit ungenutzte Layoutregion. **Verbindlich:** Sie bleibt ein Slot für echte seitenweite Aktionen mit Bezug zur ganzen Seite. Es gibt keine Action Registry. Ein Feature adoptiert den Slot nur, wenn die Aktion nicht zu einem einzelnen Node, Formular oder Editor gehört; der Aufruf und die Entscheidung bleiben featurelokal.

@@ -15,9 +15,11 @@ Die Reisen beschreiben das erwartete Bedienmodell mit bestehenden Funktionen. Si
 
 ## Konkreten Eintrag bearbeiten
 
-Aus einer konkreten Read-only-Node ist der Übergang zur Bearbeitung der kritischste bestehende Nutzungspfad. **M2 macht ihn sichtbar, ohne eine neue fachliche Bearbeitungslogik vorwegzunehmen:** Transaktion beginnen oder fortsetzen → `/knowledge?transactionId=...&audienceId=...` → Auswahl einer konkreten Node → lokaler Abschnitt „Struktur“ beziehungsweise „Inhalt bearbeiten“.
+Aus einer konkreten Read-only-Node ist der Übergang zur Bearbeitung der kritischste bestehende Nutzungspfad. **M2 führt ihn node-lokal und sichtbar:** `Wissenseintrag lesen → Bearbeiten → kompatible Arbeitskopie wählen oder Neue Arbeitskopie beginnen → derselbe Wissenseintrag und dieselbe Zielgruppe im Working-Editor`. Die Auswahl ist nie still; ein historischer Snapshot oder Release bleibt read-only.
 
-Der aktuelle Code bietet den Working-Arbeitsplatz innerhalb derselben Knowledge-Seite (`NodeDetailsPane`), aber in Read-only fehlt im sichtbaren Node-Detail ein auffindbarer Einstieg. Ob ein node-lokaler Einstieg direkt eine neue Transaction beginnt oder zuerst zur bestehenden Transaction-Übersicht führt, ist offen (siehe [Entscheidungsregister](06-entscheidungsregister.md)).
+Der Working-Arbeitsplatz bleibt innerhalb derselben Knowledge-Seite (`NodeDetailsPane`). Route, Query und bestehende Transaction-/Editorverträge bleiben maßgeblich. Für Explicit+Independent führt die Aktion direkt in den vorhandenen Editor. Fallback, `None` und `Derived` werden verständlich als nicht direkt bearbeitbare Zustände geführt; die neuen Contentaktionen dafür bleiben [M5.4-T1](../../webfrontend/roadmap/05-zielgruppen-content-und-rich-text/tasks/M5.4-T1.md) und [M5.4-T2](../../webfrontend/roadmap/05-zielgruppen-content-und-rich-text/tasks/M5.4-T2.md).
+
+Die vollständige Zustandsmatrix sowie die verbindlichen URL- und Terminologieverträge stehen im ausführbaren [M2.0-T1-Leaf](../roadmap/02-systemrahmen-und-navigationsfluss/tasks/M2.0-T1.md).
 
 ## Node/Root anlegen
 
@@ -28,7 +30,7 @@ Der aktuelle Code bietet den Working-Arbeitsplatz innerhalb derselben Knowledge-
 
 ## Content bearbeiten
 
-Im Working-Kontext führt „Inhalt bearbeiten“ denselben Content in WYSIWYG und Markdown-Quelle. `Dirty` bedeutet ungespeicherte Editor-Eingabe; `Speichern` schreibt in die aktive Transaction und aktualisiert `ChangeVersion`. Fallback bleibt read-only. Eigenen Content anlegen, Fallback als Ausgangstext übernehmen und explizit leer speichern sind M5.4-T1; Derived/Freshness folgt M5.4-T2.
+Im Working-Kontext führt „Inhalt bearbeiten“ denselben Content in WYSIWYG und Markdown-Quelle. `Dirty` bedeutet ungespeicherte Editor-Eingabe; `Speichern` schreibt in die aktive Transaction und aktualisiert `ChangeVersion`. M2 öffnet diesen vorhandenen Editor aus dem node-lokalen Einstieg für Explicit+Independent. Fallback bleibt read-only. Eigenen Content anlegen, Fallback als Ausgangstext übernehmen und explizit leer speichern sind M5.4-T1; Derived/Freshness folgt M5.4-T2.
 
 ## Validieren, Commit, Discard
 
@@ -38,7 +40,7 @@ Nach erfolgreichem Commit/Discard führt der vorhandene Weg zurück zu Current K
 
 ### Offene Darstellungsoption: geführter Abschluss
 
-Der seltene, lineare und folgenreiche Abschluss kann nach dem M2-Gate als Assistent beziehungsweise Stepper innerhalb derselben Transaction-Route bewertet werden: `Validieren → Änderungen prüfen → Commit-Nachricht → Bestätigen`. Zurück, Weiter und Abbrechen führen dabei ausschließlich durch die Darstellung; Validierungs-, Commit-, Discard-, Conflict- und Dirty-Verträge bleiben unverändert. Mehrere neue Einzelseiten oder ein Assistent für alltägliche Aufgaben wie Suche und Content-Bearbeitung sind nicht vorweggenommen. Die Entscheidung steht als UX-011 im [Entscheidungsregister](06-entscheidungsregister.md).
+Der seltene, lineare und folgenreiche Abschluss kann außerhalb M2 als Assistent beziehungsweise Stepper innerhalb derselben Transaction-Route bewertet werden: `Validieren → Änderungen prüfen → Commit-Nachricht → Bestätigen`. Zurück, Weiter und Abbrechen führen dabei ausschließlich durch die Darstellung; Validierungs-, Commit-, Discard-, Conflict- und Dirty-Verträge bleiben unverändert. Mehrere neue Einzelseiten oder ein Assistent für alltägliche Aufgaben wie Suche und Content-Bearbeitung sind nicht vorweggenommen. Die Entscheidung steht als UX-011 im [Entscheidungsregister](06-entscheidungsregister.md).
 
 ## History
 

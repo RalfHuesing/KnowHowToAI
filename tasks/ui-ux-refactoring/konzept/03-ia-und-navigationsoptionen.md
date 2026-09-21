@@ -1,6 +1,6 @@
 # Informationsarchitektur und Navigationsoptionen
 
-**Version:** 1.0 · **Status:** Optionen dokumentiert, Entscheidung offen
+**Version:** 1.1 · **Status:** Hybrid für M2 verbindlich entschieden
 
 ## Bestehende Informationsarchitektur
 
@@ -22,11 +22,20 @@ Dashboard, Knowledge, Search, History, Transactions und Audiences bleiben die pr
 
 **Risiken:** mehr Navigation und Kontextverlust, doppelte Einstiege, schwieriger Erhalt der `NodeId`-/ReadContext-Parität, Gefahr neuer Routen ohne fachlichen Mehrwert.
 
-## Empfehlung: Hybrid, Entscheidung nach M2-Gate offen
+## Festlegung: Hybrid ohne neue Routen
 
-M2 adoptiert einen Hybrid: bestehende Fachrouten bleiben stabil; gemeinsame Layoutprimitive, sichtbare Übergänge und klar gruppierte lokale Abschnitte reduzieren Dichte. Ein eigener Task darf eine neue Route oder einen neuen Task-Seitenschnitt erst nach dem Entscheidungsgate anlegen.
+M2 adoptiert verbindlich den Hybrid: bestehende Fachrouten bleiben stabil;
+gemeinsame Layoutprimitive, der node-lokale Einstieg und klar gruppierte lokale
+Abschnitte reduzieren Dichte. Der Bearbeitungseinstieg bleibt auf der
+Knowledge-Seite und öffnet nach expliziter Auswahl oder Start einer
+Arbeitskopie den vorhandenen Editor derselben Node. Neue Routen oder ein neuer
+Task-Seitenschnitt gehören nicht zu M2.
 
-**Empfehlung:** Für Support/Consultants zuerst den bestehenden Knowledge-Arbeitsplatz und Transaction-Detailfluss schärfen. Eine node-lokale Bearbeitungsaffordance soll sichtbar werden; ob sie transaction-first oder node-lokal startet, bleibt fachlich offen.
+Für Support/Consultants schärft M2 zuerst den bestehenden Knowledge-
+Arbeitsplatz und Transaction-Detailfluss. Die node-lokale
+Bearbeitungsaffordance und ihre Arbeitskopienauswahl sind mit UX-001 verbindlich
+gesetzt; eine neue Route oder ein separater Task-Seitenschnitt ist nicht Teil
+dieser Etappe.
 
 ## Navigation und Aktionen
 

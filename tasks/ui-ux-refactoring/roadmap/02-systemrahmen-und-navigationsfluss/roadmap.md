@@ -1,49 +1,66 @@
 # M2 – Systemrahmen und Navigationsfluss
 
-## Ziel
+## Ziel und Status
 
-M2 etabliert eine gemeinsame Layoutbasis und schließt die zwei belegten Handlungsbrüche zwischen fachlicher Auswahl, sichtbarer Arbeitsfläche und URL. Bestehende Routen, Funktionen, ReadContexts, NodeIds und Fachverträge bleiben unverändert. Die Etappe endet mit einem manuellen Entscheidungsgate für IA, Terminologie und den node-lokalen Bearbeitungseinstieg.
+**Status: ready / freigegeben.** M2 repariert zuerst die Nutzerführung vom
+Read-only-Wissenseintrag in den vorhandenen Editor und harmonisiert danach
+Layout, Mutation-Zustand und Transaction-Fortsetzung. Bestehende Routen,
+Funktionen, ReadContexts, NodeIds und Fachverträge bleiben erhalten. Die
+Reihenfolge ist verbindlich und vollständig autonom ausführbar; ein manuelles
+Entscheidungsgate zwischen den Leaves entfällt.
 
-## Status und Abhängigkeiten
+## Voraussetzungen und Grenzen
 
-- **Status:** geplant, noch nicht zur Ausführung freigegeben; `planning.md` ist das M2-Planungsgate.
-- **Voraussetzungen:** M1.5-T0–T7 abgeschlossen; der T7-Nachweis wird nicht dupliziert.
-- **Nicht im Scope:** `AudiencesPage`, Zielgruppenverwaltung, neue Fachfunktionen, Fallback-/erster Content (M5.4-T1), Commit-Reihenfolge und neue Routen.
-- **Leitplanken:** [M2-Konzept](../../konzept/README.md), [Layout-/Aktionssystem](../../konzept/04-layout-und-aktionssystem.md), [Nutzerreisen](../../konzept/02-nutzerreisen-und-zustandsfluesse.md), [Findings](../../konzept/05-findings-und-evidenz.md).
+- M1.5-T0–T7 ist abgeschlossen; M1.5-T7 wird nur als Regression verwendet.
+- `AudiencesPage` und Zielgruppenverwaltung bleiben außerhalb.
+- Fallback-/None-/Independent-/Derived-Contentfunktionen bleiben M5.4; M2
+  erklärt diese Zustände und dupliziert keine Contentmutation.
+- Es gibt keine neue Route, keinen zweiten fachlichen Einstieg, keine Action
+  Registry, keinen Stepper und keine Änderung der Commit-/Discard-Reihenfolge.
+- Die ausführbare Zustands-, URL- und Terminologiematrix steht in
+  [M2-Planung](planning.md) und vollständig in [M2.0-T1](tasks/M2.0-T1.md).
 
-## Arbeitspakete und Leaves
+## Arbeitspakete
 
-### M2.1 – Gemeinsame Layoutbasis
+- [ ] **M2.0 – Node-lokalen Bearbeitungseinstieg**
+  - [ ] [M2.0-T1 – Node-lokalen Bearbeitungseinstieg führen](tasks/M2.0-T1.md)
+  - Ergebnis: `Bearbeiten` ist bei Explicit+Independent sichtbar; ein kleiner
+    Dialog führt über eine ausdrückliche Arbeitskopienwahl oder einen neuen
+    Start zum Editor derselben Node und Zielgruppe. Fallback, None, Derived und
+    historische Kontexte bleiben ehrlich geführt.
 
-- [ ] [M2.1-T1 – Vollbreiten-Seitenrahmen, Prosa-Measure und Action-Group](tasks/M2.1-T1.md)
+- [ ] **M2.1 – Gemeinsame Layoutbasis**
+  - [ ] [M2.1-T1 – Vollbreiten-Seitenrahmen, Prosa-Measure und Action-Group](tasks/M2.1-T1.md)
+  - Ergebnis: DRY-Basis und featureweise Adoption außerhalb `AudiencesPage`;
+    der abgeschlossene M1.5-T7-Grid-Nachweis bleibt Regression.
 
-Ergebnis: DRY `page-frame`/`readable`/`action-group`-Basis und featureweise Adoption außerhalb `AudiencesPage`; Nachweise bei 1280, 1920, 2560 und Responsive. M1.5-T7 wird nur als abgeschlossener Regressionsnachweis berücksichtigt.
+- [ ] **M2.2 – Mutation-URL und Auswahl**
+  - [ ] [M2.2-T1 – Node-Mutationen mit synchroner URL-/Selection-Führung](tasks/M2.2-T1.md)
+  - Ergebnis: Create child, Create root, Update und Delete behandeln stabile
+    `NodeId`, sichtbare Selection, Breadcrumb, Detail und URL als einen Zustand.
 
-### M2.2 – Mutation-URL und Auswahl
+- [ ] **M2.3 – Transaction-zu-Bearbeitung-Führung**
+  - [ ] [M2.3-T1 – Bestehenden Wissensbaum-Einstieg im Transaction-Detail führen](tasks/M2.3-T1.md)
+  - Ergebnis: Der vorhandene Weg `Im Wissensbaum öffnen` ist im Transaction-
+    Detail sichtbar und führt in die Working-Ansicht; er erzeugt keinen zweiten
+    Read-only-Einstieg.
 
-- [ ] [M2.2-T1 – Node-Mutationen mit synchroner URL-/Selection-Führung](tasks/M2.2-T1.md)
-
-Ergebnis: Create child, Create root, Update und Delete behandeln stabile `NodeId`, sichtbare Selection und URL konsistent; Red-Test-first.
-
-### M2.3 – Transaction-zu-Bearbeitung-Führung
-
-- [ ] [M2.3-T1 – Bestehenden Wissensbaum-Einstieg im Transaction-Detail führen](tasks/M2.3-T1.md)
-
-Ergebnis: Der vorhandene Weg `Im Wissensbaum öffnen` ist im Bearbeitungsfluss des Transaction-Details sichtbar und priorisiert, ohne neue Aktion oder Route.
-
-## Entscheidungsgate nach den ersten Leaves
-
-Nach M2.1–M2.3 wird ein manueller Gate durchgeführt. Erst danach werden IA-Variante, Terminologie, node-lokaler Bearbeitungseinstieg, Icon/Text-Auflösung, PageActions-Kandidaten und gegebenenfalls Pflichtzielgruppenführung als weitere Arbeit freigegeben. Die Entscheidung steht in [M2-Planung](planning.md) und verlinkt das [Entscheidungsregister](../../konzept/06-entscheidungsregister.md); sie wird nicht in einem Leaf vorweggenommen.
+- [ ] **M2-Audit – autonomer Abschlussaudit**
+  - Nur lesen: Ziel, Invarianten, Links, Nachweise und Scopegrenzen prüfen.
+    Bei Findings höchstens eine Korrekturrunde; keine eigenständige
+    Produkt- oder Feature-Erweiterung.
 
 ## Milestone-Abnahme
 
-- [ ] Seitenrahmen und Basisaktionen sind ohne Funktionsverlust featureweise adoptiert; `AudiencesPage` bleibt unangetastet.
-- [ ] Prosa hat eine begrenzte Lesemessung, Seitenrahmen und fachliche Arbeitsflächen nutzen die verfügbare Breite.
-- [ ] Node-Mutationen aktualisieren sichtbare Auswahl und URL als einen nachvollziehbaren Zustand.
-- [ ] Transaction-Detail führt über den vorhandenen Link sichtbar zurück in den Working-Wissensbaum.
-- [ ] Nachweise belegen 1280/1920/2560 und Responsive; keine neue Route, kein M5.4-Verhalten, kein T7-Duplikat.
-
-## Audit
-
-- [ ] Begrenzter Audit gegen Ziel, Invarianten, Links und Nachweise
-- Ergebnis: offen; Entscheidungsgate nach den drei Leaves erforderlich
+- [ ] Der node-lokale Weg `Wissenseintrag → Bearbeiten → Arbeitskopie wählen/
+  beginnen → gleicher Editor` ist für Explicit+Independent belegt.
+- [ ] Fallback, None, Derived sowie historische Snapshot-/Release-Kontexte
+  zeigen keinen irreführenden Editiereinstieg und keine Sackgasse innerhalb der
+  bestehenden Wege.
+- [ ] Seitenrahmen, Prosa-Measure und Action-Groups sind featureweise belegt;
+  1280, 1920, 2560 und Responsive sind nachgewiesen.
+- [ ] Create root/child, Update und Delete synchronisieren URL und Auswahl;
+  ReadContext, `audienceId` und `NodeId` bleiben erhalten.
+- [ ] Transaction-Detail führt sichtbar in den vorhandenen Working-
+  Wissensbaum; kein zweiter fachlicher Einstieg wurde eingeführt.
+- [ ] Der Audit ist abgeschlossen; maximal eine Korrekturrunde wurde genutzt.

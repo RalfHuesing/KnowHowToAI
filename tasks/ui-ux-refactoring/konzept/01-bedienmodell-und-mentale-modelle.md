@@ -30,6 +30,22 @@ Eine Transaction ist eine sichtbare Arbeitskopie eines Snapshots. Alle Node-, Zi
 
 `Speichern` schreibt eine einzelne Node-, Zielgruppen- oder Contentänderung in die Working Transaction und aktualisiert die sichtbare `ChangeVersion`. `Commit` prüft und veröffentlicht die gesamte Arbeitskopie als Current Snapshot; `Discard` verwirft sie vollständig. Ein Editor-Dirty-State ist lokale unpersistierte Eingabe vor `Speichern`; er darf nicht mit uncommitted Working-Änderungen oder globalem Discard vermischt werden.
 
+### Bearbeiten beginnt am Wissenseintrag
+
+Ein gelesener Wissenseintrag führt seine lokale Hauptaktion sichtbar als
+`Bearbeiten`, sofern eigener expliziter Independent-Content vorhanden ist. Die
+Aktion öffnet einen kleinen Auswahl-/Startdialog für eine kompatible offene
+Arbeitskopie oder den ausdrücklichen Start einer neuen Arbeitskopie. Danach
+öffnet derselbe `NodeId` mit derselben Zielgruppe direkt im vorhandenen
+Working-Editor. Nutzer müssen weder `Node`, `Transaction` noch eine
+Transaktionsübersicht kennen, um den Einstieg zu finden; diese technischen
+Begriffe bleiben progressive Details.
+
+Fallback, `None` und `Derived` werden fachlich erklärt und bleiben in M2 an
+ihren bestehenden Read-only-/Working-Grenzen. Neue Contentaktionen gehören zu
+M5.4 und werden nicht durch eine irreführende `Bearbeiten`-Affordance
+vorweggenommen.
+
 ## Gestaltungsfolgen
 
 - **Eine primäre Aktion je Abschnitt:** Ein sichtbarer Arbeitsabschnitt führt genau eine bevorzugte nächste Handlung. Sekundäre Wege bleiben sichtbar, aber leiser.
