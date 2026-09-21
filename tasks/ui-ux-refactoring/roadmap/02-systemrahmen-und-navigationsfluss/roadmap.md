@@ -2,7 +2,7 @@
 
 ## Ziel und Status
 
-**Status: Korrekturrunde erforderlich.** M2 repariert zuerst die Nutzerführung vom
+**Status: abgeschlossen / bestanden.** M2 repariert zuerst die Nutzerführung vom
 Read-only-Wissenseintrag in den vorhandenen Editor und harmonisiert danach
 Layout, Mutation-Zustand und Transaction-Fortsetzung. Bestehende Routen,
 Funktionen, ReadContexts, NodeIds und Fachverträge bleiben erhalten. Die
@@ -53,9 +53,9 @@ Entscheidungsgate zwischen den Leaves entfällt.
 
 ## Milestone-Abnahme
 
-- [ ] Der node-lokale Weg `Wissenseintrag → Bearbeiten → Arbeitskopie wählen/
+- [x] Der node-lokale Weg `Wissenseintrag → Bearbeiten → Arbeitskopie wählen/
   beginnen → gleicher Editor` ist für Explicit+Independent belegt.
-- [ ] Fallback, None, Derived sowie historische Snapshot-/Release-Kontexte
+- [x] Fallback, None, Derived sowie historische Snapshot-/Release-Kontexte
   zeigen keinen irreführenden Editiereinstieg und keine Sackgasse innerhalb der
   bestehenden Wege.
 - [x] Seitenrahmen, Prosa-Measure und Action-Groups sind featureweise belegt;

@@ -349,6 +349,19 @@ Laden, Fehler- und NotFound-Zustand, Markdown-Download-URL sowie Darstellung;
 `KnowledgePage` bleibt für Route, Query, Zielgruppenwahl und sichtbaren Page-Zustand
 zuständig. Die Pane und MCP mappen dasselbe transportneutrale Ergebnis, auch wenn
 der wirksame Derived Content aus einer Fallback-Zielgruppe stammt.
+Im Current-Read-only-Kontext führt die Pane bei explizitem, eigenständigem Inhalt
+über die sichtbare Aktion `Bearbeiten` in einen kleinen Auswahl-/Startdialog.
+Eine offene Arbeitskopie muss ausdrücklich gewählt werden; alternativ beginnt die
+Pane auf Basis von Current eine neue Arbeitskopie. Erst nach erfolgreicher
+Kompatibilitätsprüfung navigiert sie mit derselben `NodeId` und Zielgruppe in den
+vorhandenen Working-Editor. Der bestehende Einstieg bleibt dabei die
+`/knowledge/{NodeId}`-Route mit genau einem ReadContext-Selektor und
+`audienceId`; für den Working-Einstieg ist das sinngemäß `transactionId` statt
+`snapshotId`/`releaseId` im Query enthalten. Fallback-, None- und Derived-
+Auflösungen sowie historische Snapshot-/Release-Kontexte bleiben read-only und
+bieten keine Bearbeiten-Affordanz. Begin-Fehler lassen den Dialog offen; ein
+Current-Race verschweigt oder verwirft die erzeugte Arbeitskopie nicht, sondern
+verweist auf ihre bestehenden Arbeitskopie-/Transaktionsdetails.
 Im aktiven Transaction-Kontext ergänzt `NodeMetadataEditor` diese Ansicht um
 explizite Formulare für Titel, Beschreibung und eine Child-Node unter dem
 ausgewählten Parent. Die Komponente ruft ausschließlich

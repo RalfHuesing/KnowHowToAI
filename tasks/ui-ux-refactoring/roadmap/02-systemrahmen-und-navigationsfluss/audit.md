@@ -87,3 +87,30 @@ Die beiden offenen Befunde erfordern genau eine gezielte Korrekturrunde gemäß
 `03-orchestrierte-umsetzung.md`. Bis deren Nachweise und die fehlende
 Ist-Dokumentation ergänzt und erneut geprüft sind, wird M2 nicht als
 abgeschlossen markiert.
+
+## Korrekturrunde (einmalig, 2026-09-21)
+
+Die einzige zulässige Korrekturrunde ergänzte ausschließlich Nachweise und die
+normativ zuständige Ist-Dokumentation; Produktionscode blieb unverändert.
+
+- F-01 ist aufgelöst: `NodeDetailsPaneTests` belegen Begin-Fehler (Dialog bleibt
+  offen, keine Navigation), erfolgreichen Begin (derselbe `NodeId`-/Audience-
+  Query), Current-Race (Arbeitskopie bleibt mit bestehendem Detail-Link sichtbar)
+  sowie die fehlende Affordanz für Fallback, None, Derived und historische
+  Snapshot-Kontexte. Der neue Headless-Chrome-Workflow
+  `KnowledgeNode_EditBeginsWorkingCopyAndReachesSameEditorInBrowser` betätigt
+  `Bearbeiten`, startet ausdrücklich eine Arbeitskopie und erreicht den
+  vorhandenen Editor mit unverändertem Node und `Default`-Zielgruppe.
+- F-02 ist aufgelöst: `docs/Architektur.md` dokumentiert nun den
+  Current-Read-only → Arbeitskopie → Editor-Einstieg, den bestehenden
+  Route-/Query-Vertrag und die Read-only-Grenzen für Fallback, None, Derived
+  und historische Snapshot-/Release-Kontexte einschließlich Begin-Fehler und
+  Current-Race.
+
+Gezielte Nachweise: bUnit `NodeDetailsPaneTests` 10/10 grün; der neue
+Headless-Chrome-Workflow 1/1 grün. Die vollständigen Abschlussgates und der
+atomare Korrektur-Commit sind im Abschlussnachweis des Leaf-Tasks vermerkt.
+
+**Korrekturentscheidung: bestanden.** F-01 und F-02 sind vollständig aufgelöst;
+M2 ist abgeschlossen. Die Audit-Checkbox bleibt als bereits durchgeführt
+geschlossen.

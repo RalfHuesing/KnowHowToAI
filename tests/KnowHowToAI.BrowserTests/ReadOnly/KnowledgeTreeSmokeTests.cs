@@ -95,4 +95,58 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
         await Assertions.Expect(currentBreadcrumb).ToBeVisibleAsync();
     }
+
+    [Fact]
+    public async Task KnowledgeNode_EditBeginsWorkingCopyAndReachesSameEditorInBrowser()
+    {
+        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
+        await using var browser = await ChromeBrowser.LaunchAsync();
+        var page = await browser.NewPageAsync();
+        Guid? transactionId = null;
+
+        try
+        {
+            var response = await page.GotoAsync($"{_host.Address}/knowledge", new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+                Timeout = 30_000
+            });
+            Assert.NotNull(response);
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
+            await CircuitProbe.WaitForInteractivityAsync(page);
+
+            var audienceSelector = page.GetByTestId("context-selector-dialog");
+            await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
+            await audienceSelector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
+            await audienceSelector.GetByTestId("selector-apply-button").ClickAsync();
+            await Assertions.Expect(audienceSelector).ToHaveCountAsync(0);
+
+            var rootItem = page.GetByRole(AriaRole.Treeitem).First;
+            await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
+            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle, Exact = true });
+            await Assertions.Expect(exportNode).ToBeVisibleAsync();
+            await exportNode.ClickAsync();
+            await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge/[0-9a-fA-F-]+"));
+            var currentNodePath = new Uri(page.Url).AbsolutePath;
+            await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
+
+            await page.GetByTestId("node-details-edit").ClickAsync();
+            var editDialog = page.GetByTestId("node-edit-dialog");
+            await Assertions.Expect(editDialog).ToBeVisibleAsync();
+            await editDialog.GetByTestId("node-edit-begin-working-copy").ClickAsync();
+
+            await Assertions.Expect(page).ToHaveURLAsync(new Regex($"{Regex.Escape(currentNodePath)}\\?transactionId=[0-9a-fA-F-]+&audienceId=Default"));
+            var transactionMatch = Regex.Match(new Uri(page.Url).Query, @"transactionId=([0-9a-fA-F-]+)");
+            Assert.True(transactionMatch.Success);
+            Assert.True(Guid.TryParse(transactionMatch.Groups[1].Value, out var parsedTransactionId));
+            transactionId = parsedTransactionId;
+            await Assertions.Expect(page.GetByTestId("content-editor")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
+        }
+        finally
+        {
+            if (transactionId is not null)
+                await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId.Value);
+        }
+    }
 }
