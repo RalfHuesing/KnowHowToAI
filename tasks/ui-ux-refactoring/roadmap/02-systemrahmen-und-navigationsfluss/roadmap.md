@@ -2,7 +2,7 @@
 
 ## Ziel und Status
 
-**Status: ready / freigegeben.** M2 repariert zuerst die Nutzerführung vom
+**Status: Korrekturrunde erforderlich.** M2 repariert zuerst die Nutzerführung vom
 Read-only-Wissenseintrag in den vorhandenen Editor und harmonisiert danach
 Layout, Mutation-Zustand und Transaction-Fortsetzung. Bestehende Routen,
 Funktionen, ReadContexts, NodeIds und Fachverträge bleiben erhalten. Die
@@ -45,10 +45,11 @@ Entscheidungsgate zwischen den Leaves entfällt.
     Detail sichtbar und führt in die Working-Ansicht; er erzeugt keinen zweiten
     Read-only-Einstieg.
 
-- [ ] **M2-Audit – autonomer Abschlussaudit**
+- [x] **M2-Audit – autonomer Abschlussaudit**
   - Nur lesen: Ziel, Invarianten, Links, Nachweise und Scopegrenzen prüfen.
     Bei Findings höchstens eine Korrekturrunde; keine eigenständige
     Produkt- oder Feature-Erweiterung.
+  - Ergebnis: Korrekturrunde erforderlich; siehe [Audit](audit.md).
 
 ## Milestone-Abnahme
 
@@ -57,10 +58,10 @@ Entscheidungsgate zwischen den Leaves entfällt.
 - [ ] Fallback, None, Derived sowie historische Snapshot-/Release-Kontexte
   zeigen keinen irreführenden Editiereinstieg und keine Sackgasse innerhalb der
   bestehenden Wege.
-- [ ] Seitenrahmen, Prosa-Measure und Action-Groups sind featureweise belegt;
+- [x] Seitenrahmen, Prosa-Measure und Action-Groups sind featureweise belegt;
   1280, 1920, 2560 und Responsive sind nachgewiesen.
-- [ ] Create root/child, Update und Delete synchronisieren URL und Auswahl;
+- [x] Create root/child, Update und Delete synchronisieren URL und Auswahl;
   ReadContext, `audienceId` und `NodeId` bleiben erhalten.
-- [ ] Transaction-Detail führt sichtbar in den vorhandenen Working-
+- [x] Transaction-Detail führt sichtbar in den vorhandenen Working-
   Wissensbaum; kein zweiter fachlicher Einstieg wurde eingeführt.
-- [ ] Der Audit ist abgeschlossen; maximal eine Korrekturrunde wurde genutzt.
+- [x] Der Audit ist abgeschlossen; maximal eine Korrekturrunde wurde genutzt.
