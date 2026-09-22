@@ -6,6 +6,8 @@ alwaysApply: false
 
 # AiNetLinter MCP-First Workflow (C# Semantik)
 
+Die projektweite Regelkonfiguration liegt im Repository-Root in `ainetlinter-rules.json`. Sie ist von `ainetlinter.project.json` zu unterscheiden; diese Datei ist derzeit nicht vorhanden und wird durch die Regelkonfiguration nicht ersetzt.
+
 Bei C#-Aufgaben (Code-Erkundung, Symbole, Methoden, Aufrufer, Hierarchien, Impact, Linter) **immer pro-aktiv** die semantischen MCP-Tools des für das aktuelle Projekt konfigurierten AiNetLinter-Servers anstelle manueller Textsuch-Kaskaden (`rg` + seitenweises Dateilesen) verwenden. Sie liefern präzisen AST-Kontext in 1 Turn.
 
 ## Werkzeug-Wahl & Fallback
