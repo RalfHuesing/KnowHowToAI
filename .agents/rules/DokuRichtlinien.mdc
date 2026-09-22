@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Doku-Richtlinien
 
-- `docs/` beschreibt ausschließlich den Ist-Zustand des Systems. Einstieg, Verbindlichkeit und Lese-Matrix je Aufgabe stehen in `docs/README.md`. Ein Konzept-, Status- oder Roadmap-Dokument existiert nicht; die Entwicklungs- und Entscheidungsgeschichte liegt in der Git-Historie.
+- `docs/` beschreibt ausschließlich den Ist-Zustand des Systems. Einstieg, Verbindlichkeit und Lese-Matrix je Aufgabe stehen in `docs/README.md`. Konzepte und Roadmaps können als Soll-Planung unter `tasks/` liegen; der dreistufige Planungs- und Ausführungsablauf steht im [Agent-Workflow-Kit](../agent-workflow/README.md). Solche Planungsartefakte sind keine Ist-Dokumentation.
 - Jede Änderung an Verhalten, MCP-Verträgen, Fehler-/Warncodes, Datenmodell, Konfiguration, Architektur oder Projektstruktur wird im selben Commit wie der Code in das zuständige Dokument eingearbeitet. Ein grüner Code-Stand mit veralteter Doku ist kein abgeschlossener Slice.
 - Nur implementiertes, belegbares Verhalten dokumentieren. Beschreibungen vor dem Commit gegen den aktuellen Code prüfen.
 - Normative Aussagen stehen an genau einer Stelle; andere Dokumente verlinken darauf, statt sie zu kopieren. Neue Aussagen gehören in das fachlich zuständige Dokument; ein neues Dokument entsteht nur bei einer klar neuen Verantwortungsgrenze.

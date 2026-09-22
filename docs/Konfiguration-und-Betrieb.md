@@ -177,9 +177,8 @@ geprüft.
   `pwsh -NoProfile -File scripts/test-integration.ps1 -Filter 'FullyQualifiedName~SmokeTests'`
   beziehungsweise
   `dotnet test tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj`.
-  Die Abhängigkeits- und Befehlsregeln stehen im Strukturkonzept unter
-  „Feste Testabhängigkeiten und Befehle“
-  (`tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md`).
+  Die allgemeinen Regeln zu Testebenen und Ausführung stehen in den
+  [Testregeln](../.agents/rules/TestRichtlinien.mdc).
 - Die funktionalen Browser-Smokes verwenden ausschließlich die manuell
   bereitgestellte `BrowserTestDatabaseConnection` (`KnowHowToAi_BrowserTests`)
   und starten die veröffentlichte Server-EXE mit
