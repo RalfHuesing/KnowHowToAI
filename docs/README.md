@@ -32,6 +32,7 @@ Entscheidungsgeschichte liegt in der Git-Historie.
 | [Datenmodell](Datenmodell.md) | SQL-Tabellen, Snapshot-Schlüssel, Transaction-Metadaten, Migrationen |
 | [Architektur](Architektur.md) | Stack, Schichten, Transportgrenzen, Projektstruktur, Deployment |
 | [Konfiguration und Betrieb](Konfiguration-und-Betrieb.md) | Konfigurationsschlüssel, Protokollierung, Build, Tests, Linter |
+| [Web-UI-Gesamtbild](WebUi.md) | Istbild von Shell, Wissenskontext, Seitennetz, Routen und UI-Verantwortungsgrenzen |
 | [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md) | manuelle Checkliste für Browserzoom, Reflow und Tastaturnavigation der Anwendungsshell |
 | [Invarianten](Invarianten.md) | verbindliche Regeln des Gesamtsystems |
 | [Entscheidungen](Entscheidungen.md) | Architekturentscheidungen, bewusste V1-Grenzen, spätere Erweiterungen |
@@ -50,6 +51,7 @@ sowie [Invarianten](Invarianten.md) zu lesen, dazu das fachlich betroffene Dokum
 | MCP-Tools, Schemas, Fehlercodes | [MCP-API](McpApi.md) sowie die vom Tool berührten Fachdokumente |
 | SQL-Schema, Repositories, Migrationen | [Datenmodell](Datenmodell.md), [Architektur](Architektur.md) |
 | Projektsetup, Konfiguration, Transport, Betrieb | [Architektur](Architektur.md), [Konfiguration und Betrieb](Konfiguration-und-Betrieb.md) |
+| Web-UI, Layout, UX, seitenübergreifende UI-Änderung | [Web-UI-Gesamtbild](WebUi.md), [Architektur](Architektur.md), [manuelle UI-Abnahme](Manuelle-UI-Abnahme.md), [Web-UI-Guardrails](../.agents/rules/WebUiHtmlCss.mdc) |
 | Begründungen, V1-Grenzen, Erweiterungsplanung | [Entscheidungen](Entscheidungen.md) |
 
 Ein Agent darf sich nicht allein auf Suchtreffer oder einzeln extrahierte Absätze

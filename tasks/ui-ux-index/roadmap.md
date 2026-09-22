@@ -12,7 +12,7 @@
   repräsentativen Komponenten- und Browser-Smokes unter
   `tests/KnowHowToAI.Web.Tests/` und `tests/KnowHowToAI.BrowserTests/`
 
-- [ ] **UI-Istbild dokumentieren und verbindlich verankern**
+- [x] **UI-Istbild dokumentieren und verbindlich verankern**
   - Intention: `docs/WebUi.md` gibt Agenten ein kompaktes, am Code belegtes
     Gesamtbild von Shell, Kontext, Seitennetz, Hauptbereichen und
     Verantwortungsgrenzen, ohne Implementierungsdetails zu duplizieren.
@@ -73,6 +73,16 @@
       erforderlich.
     - Die Checkbox wird erst nach erfüllter Abnahme geschlossen; Ergebnis,
       Abschlussnachweis und Checkbox werden gemeinsam atomar committet.
+
+  - **Abschlussnachweis (2026-09-22):** `docs/WebUi.md` dokumentiert Shell,
+    Kontext, Seitennetz, acht aktuelle `@page`-Routen auf sieben Komponenten,
+    Seitensteckbriefe sowie Zustands-/Verantwortungsgrenzen mit direkten Razor-
+    und Testreferenzen. `docs/Architektur.md` verweist für das sichtbare UI-
+    Gesamtbild auf diese Quelle und behält technische Schichtungs- und
+    Implementierungsgrenzen. `docs/README.md` und
+    `.agents/rules/WebUiHtmlCss.mdc` verankern Auffindbarkeit und Pflegepflicht.
+    Routen-/Linkinventar und `git diff --check` sind grün; Build, Tests und
+    Browserlauf wurden gemäß Scope nicht ausgeführt.
 
 - [ ] **Begrenzten Abschlussaudit durchführen**
   - Intention: Ein unabhängiger, rein lesender Audit bestätigt, dass das

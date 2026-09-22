@@ -12,6 +12,11 @@ in der [Projektstruktur](../../tasks/webfrontend/konzept/08-projektstruktur-und-
 den [Testregeln](TestRichtlinien.mdc) und der
 [manuellen UI-Abnahme](../../docs/Manuelle-UI-Abnahme.md).
 
+Vor seitenübergreifenden UI-, Layout- oder UX-Änderungen ist das
+[Web-UI-Gesamtbild](../../docs/WebUi.md) zu lesen. Ändert der Slice den dort
+dokumentierten Ist-Zustand, wird `docs/WebUi.md` im selben Slice aktualisiert;
+die Regel enthält keine kopierte UI-Beschreibung.
+
 ## Vor dem Edit
 
 - Bei `alle`, `systemweit`, `gemeinsam` oder `konsistent`: vollständige betroffene

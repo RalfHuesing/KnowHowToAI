@@ -180,61 +180,18 @@ wird über `@Assets` mit der Static-Web-Assets-Fingerabdruckroute aufgelöst.
 Diese delegiert die einzelne Mutation unverändert an den featurelokalen
 `TreeMoveCoordinator`; sie enthält keine Geschäftslogik.
 
-`Web.Features.History` stellt unter `/history` getrennte paginierte Listen für
-committed Snapshots und Releases bereit. Snapshot-Zeilen zeigen neben Zeit und
-Basis die metadata-first gelesene erzeugende Transaction einschließlich Actor,
-Client, Purpose und Commit-Nachricht, soweit der Stand nicht der initiale
-Snapshot ist. `HistoryPage` hält ausschließlich Query-Parameter und die Auswahl
-der Vergleichssnapshots. Die featurelokalen Komponenten `SnapshotList`,
-`SnapshotDiffPanel` und `ReleasePanel` besitzen jeweils ihren passenden
-in-process-Servicezugriff und kommunizieren Auswahl sowie Snapshotseite über
-immutable Parameter und `EventCallback`s. Sie verwenden ausschließlich History-
-ViewModels und übergeben bei Navigation den jeweiligen `snapshotId`- oder
-`releaseId`-Queryparameter an den bestehenden Web-Read-Context-Resolver. Working
-Transactions erscheinen dort bewusst nicht. Zwei ausgewählte committed Snapshots
-werden im `SnapshotDiffPanel` als strukturierter, cursor-paginierter Netto-Diff
-dargestellt; die UI zeigt die Kategorien Zielgruppen, Zielgruppenauflösungen, Nodes,
-Contents und Dependencies mit fachlichen Schlüsseln sowie Vorher-/Nachher-Werten.
-Ein Link aus der Node-Detailansicht setzt den optionalen `nodeId`-Filter;
-dieser begrenzt den Vergleich auf die fachlich zugehörigen Node-, Content- und
-Dependency-Änderungen. Die Web-Grenze bietet dabei keine Merge- oder Reapply-
-Operation.
-
-`Web.Features.Transactions` stellt unter `/transactions` die offenen
-Transactions und unter `/transactions/{transactionId}` ihren Arbeitsbereich
-bereit. Die Detailseite ruft `TransactionService` und `HistoryService` direkt
-in-process auf und führt im ersten Weiterarbeiten-Abschnitt den vorhandenen
-Working-Einstieg `Im Wissensbaum öffnen`; Zielgruppenpflege und Übersicht bleiben
-sekundäre Folgewege. Sie zeigt außerdem Validierung sowie cursor-paginierten Netto-Diff. Commit
-und Discard werden jeweils über einen expliziten nativen Bestätigungsdialog
-ausgelöst; der Commitdialog übergibt eine optionale Commit-Nachricht. Während
-einer Abschlussanfrage sind beide Aktionen gesperrt. Ein abweichender lokaler
-`ChangeVersion`-Stand, ein geschlossener Status oder ein fachlich abgelehnter
-Commit bleibt als verständlicher Seitenfehler im Working Context sichtbar.
-
-Bei `SnapshotConflict` zeigt dieselbe Detailseite die vom Fehlervertrag gelieferten
-Base- und Current-Snapshot-IDs und bindet den schreibgeschützten Snapshot-Diff ein.
-Sie kann anschließend eine leere Transaction auf dem Current Snapshot starten,
-damit der Benutzer die geprüften Änderungen manuell erneut anwendet. Die
-Web-Grenze kopiert, merged oder rebased dabei keine Änderungen und verwirft die
-konfliktbehaftete Transaction nicht implizit.
-
-`Web.Features.Audiences` stellt unter `/audiences` die Zielgruppenpflege bereit. `AudiencesPage` löst
-ausschließlich den Read-Kontext über den gemeinsamen `WebReadContextResolver` auf,
-spiegelt `PageRegionState` und `WorkspaceState` und reicht `ReadContext` sowie die
-aktuelle `ChangeVersion` an den zustandsbehafteten `AudienceEditor` weiter. `AudienceEditor`
-lädt die Zielgruppenliste einschließlich opaker Paging-Fortsetzung über
-`NavigationService`, hält Formular- und Löschdialogzustand und ruft für Erstellen,
-Umbenennen und Löschen ausschließlich `AudienceMutationService` auf. Die drei Aktionen
-sind nur bei einer offenen Working Transaction sichtbar und aktiv; erfolgreiche
-Antworten werden lokal aus dem Mutationsergebnis projiziert. Über ein schmales
-`EventCallback<long>` meldet der Editor die neue `ChangeVersion` an die Page, die
-damit `WorkspaceState` aktualisiert und den Kontext als dirty markiert.
-`AudienceInUse`, `AudienceNameRequired`, `AudienceNotFound` und `ChangeVersionConflict` werden
-mit ihrem stabilen Fehlercode und den strukturierten Details am Editor-Formular
-angezeigt; ein Fehler lässt Eingaben und Working-Zustand unverändert. Current-,
-Snapshot-, Release- und abgeschlossene Transaction-Kontexte bleiben schreibgeschützt.
-Die Seite bearbeitet keine Resolution Orders; das ist ein separater Zielgruppen-Leaf.
+Die sichtbare Verantwortungs- und Ablauflandkarte von History, Transactions und
+Audiences steht im [Web-UI-Gesamtbild](WebUi.md). Technisch bleiben die Features
+in-process an ihre Application-Services und ViewModels gebunden: History hält
+Snapshot-/Release-Auswahl und cursor-paginierten Diff, Transactions validieren
+und schließen Working Snapshots mit ChangeVersion-Prüfung, und Audiences reicht
+den aufgelösten `ReadContext` an den featurelokalen Editor. Die Web-Grenze führt
+keinen Merge oder Rebase aus; Details der jeweiligen technischen Grenzen liegen
+in den Feature-Komponenten und den zugehörigen Tests. `HistoryPage` hält nur
+Query-Parameter und Auswahlzustand; `SnapshotList`, `SnapshotDiffPanel` und
+`ReleasePanel` arbeiten mit History-ViewModels. `TransactionPage` bindet
+`TransactionService`/`HistoryService` direkt in-process und `AudiencesPage`
+reicht die `ChangeVersion` über `WorkspaceState` an `AudienceEditor` weiter.
 
 Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
@@ -308,26 +265,16 @@ Baumoperationen; Cache, Navigation und Request-Cancellation bleiben im
 `KnowledgeTreeState`. Damit teilen die beiden Komponenten eine konkrete
 Präsentationsgrenze und können sie mit einem schmalen Test Double prüfen.
 
-Die Benutzeroberfläche der Hierarchienavigation wird durch die routable Page
-`KnowledgePage` (`/knowledge`, `/knowledge/{NodeId:guid}`), den nativen
-`KnowledgeTree` und `Breadcrumbs` gebildet. `KnowledgeTree` setzt die
-WAI-ARIA-Treeview-1.2-Semantik um (`role="tree"`, `role="treeitem"`, `role="group"`,
-`aria-level`, `aria-selected`, `aria-expanded`) und steuert den aktiven Knoten über
-einen roving `tabindex` (`0` auf genau einem sichtbaren Knoten, `-1` auf allen anderen).
-Die Tastaturnavigation unterstützt `ArrowUp`/`ArrowDown` (sichtbare Knoten),
-`ArrowRight` (Expand bzw. erstes Kind), `ArrowLeft` (Collapse bzw. Elternknoten),
-`Home`/`End` (erster/letzter sichtbarer Knoten) sowie `Enter`/`Space` (Auswahl).
-Knoten-Zustände (selektiert, geladen, teilweise geladen, leer, ladend, fehlerhaft) werden
-klar differenziert; Paging-Buttons („Vorherige 100 Einträge“, „Weitere 100 Einträge“)
-erscheinen innerhalb des jeweiligen Teilbaums. `Breadcrumbs` bildet den hierarchischen
-Pfad bis zum aktuellen Knoten ab (`aria-current="page"` auf dem letzten Element) und
-erlaubt direkte Rücknavigation zu übergeordneten Ebenen. Die Auswahl eines Knotens
-aktualisiert die Route `/knowledge/{NodeId}` unter Erhalt bestehender Query-Parameter.
-Nach einer erfolgreichen Node-Mutation projiziert `KnowledgePage` das
-Mutationsergebnis in `KnowledgeTreeState`, `WorkspaceState`, Breadcrumb/Detail
-und dieselbe Route: Create child/root und Update wählen den Ergebnis-Node, Delete
-den aktiven Parent oder die bestehende Root-Route als Fallback. Der vorhandene
-ReadContext-Selektor und `audienceId` werden dabei unverändert weitergeführt.
+Die sichtbare Verantwortungs- und Zustandslandkarte des Wissenscockpits steht im
+[Web-UI-Gesamtbild](WebUi.md). Die technische Implementierungsgrenze bleibt
+aufgeteilt: `KnowledgeTreeState` kapselt Lazy-Loading, opaque Cursor und Cache;
+`KnowledgePage` orchestriert Route, Query, Zielgruppe, `WorkspaceState` und die
+Page-Regionen; `NodeDetailsPane` kapselt Laden, Fehler/NotFound und Export.
+
+Die Treeview-Semantik, fokussierbare Zustände und Mutationsgrenzen sind am Code
+und in den [repräsentativen Web-Tests](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/)
+belegt und werden nicht als zweite Seitenbeschreibung in dieser Architekturdatei
+wiederholt.
 Beim Neuladen oder direkten Einstieg ermittelt der `KnowledgeTreePathLoader` die
 Ancestor-Kette metadata-first über `NavigationService.GetNodeAsync` und lädt danach
 für jedes Segment die opaken 100er-Childseiten des Parents, bis das Segment sichtbar
@@ -337,61 +284,13 @@ Node-/Zweigzustand sichtbar und erzeugt keine unsichtbare Auswahl. Bereits gelad
 Off-Path-Teilbäume gehören ausdrücklich nicht zur Rekonstruktion und bleiben der
 Zehn-Seiten-Eviction unterworfen.
 
-Die Read-only Node-Detailansicht (`NodeDetails`) zeigt Titel, Beschreibung, Position,
-Zielgruppe (inklusive Fallback-Kennzeichnung mit Pfeil und aufgelöster Zielgruppe), Verfügbarkeit,
-Freshness-Status, Inhaltsmodus (`Independent` vs. `Derived`), optionale Revisions-ID
-sowie bei wirksam aufgelöstem abgeleitetem Inhalt (`Derived`) dessen direkt
-gespeicherte Quellrevisionen (`SourceRevisions`). `NavigationService.GetNodeAsync`
-liefert dafür je direkter Dependency Source-Node, Source-Zielgruppe, gespeicherte
-Source-Revision und deren aktuell ausgewertete Freshness; die Liste ist keine
-transitive Provenienzauflistung. Die featurelokale `NodeDetailsPane` kapselt
-Laden, Fehler- und NotFound-Zustand, Markdown-Download-URL sowie Darstellung;
-`KnowledgePage` bleibt für Route, Query, Zielgruppenwahl und sichtbaren Page-Zustand
-zuständig. Die Pane und MCP mappen dasselbe transportneutrale Ergebnis, auch wenn
-der wirksame Derived Content aus einer Fallback-Zielgruppe stammt.
-Im Current-Read-only-Kontext führt die Pane bei explizitem, eigenständigem Inhalt
-über die sichtbare Aktion `Bearbeiten` in einen kleinen Auswahl-/Startdialog.
-Eine offene Arbeitskopie muss ausdrücklich gewählt werden; alternativ beginnt die
-Pane auf Basis von Current eine neue Arbeitskopie. Erst nach erfolgreicher
-Kompatibilitätsprüfung navigiert sie mit derselben `NodeId` und Zielgruppe in den
-vorhandenen Working-Editor. Der bestehende Einstieg bleibt dabei die
-`/knowledge/{NodeId}`-Route mit genau einem ReadContext-Selektor und
-`audienceId`; für den Working-Einstieg ist das sinngemäß `transactionId` statt
-`snapshotId`/`releaseId` im Query enthalten. Fallback-, None- und Derived-
-Auflösungen sowie historische Snapshot-/Release-Kontexte bleiben read-only und
-bieten keine Bearbeiten-Affordanz. Begin-Fehler lassen den Dialog offen; ein
-Current-Race verschweigt oder verwirft die erzeugte Arbeitskopie nicht, sondern
-verweist auf ihre bestehenden Arbeitskopie-/Transaktionsdetails.
-Im aktiven Transaction-Kontext ergänzt `NodeMetadataEditor` diese Ansicht um
-explizite Formulare für Titel, Beschreibung und eine Child-Node unter dem
-ausgewählten Parent. Die Komponente ruft ausschließlich
-`NodeMutationApplicationService` auf, übergibt die gelesene `ChangeVersion` und
-initialisiert nach einer bestätigten Mutation Tree, Auswahl und Details aus dem
-Working Snapshot neu. Bei `ChangeVersionConflict` bleibt der Formzustand sichtbar
-und der serverseitige Fehler wird am Formular angezeigt; Korrekturen erfolgen
-bewusst oder durch Discard, ohne globalen Undo-Stack.
-Ist der vollständig geladene Working Tree leer, zeigt `KnowledgePage` stattdessen
-den `RootNodeEditor`; ohne offene Transaction oder bei Lade- beziehungsweise
-Fehlerzustand bleibt diese Aktion unsichtbar. Der Editor erfasst Titel und
-optionale Beschreibung, ruft `NodeMutationApplicationService.CreateAsync` mit
-`ParentNodeId = null` und der gelesenen `ChangeVersion` auf und lädt nach einer
-bestätigten Anlage den Tree neu; der neue Root wird unmittelbar ausgewählt und
-seine Details angezeigt.
-`NodeDeletionEditor` lädt vor jeder globalen Löschung den Working-Stand erneut
-über `NodeDeletionPreviewService` und zeigt Ziel, Root-Auswirkung, direkten und
-vollständigen Teilbaum, explizite Inhalte sowie entfernte oder als Provenienz
-erhaltene Dependencies. Children verlangen die explizite Teilbaumwahl; erst die
-anschließende destruktive Bestätigung ruft `NodeMutationApplicationService` mit
-der Vorschau-`ChangeVersion` auf. Bei `ChangeVersionConflict` bleibt die
-Löschung aus und die UI fordert eine neue Löschprüfung an. Nach Erfolg lädt
-`KnowledgePage` den Tree neu und selektiert den Parent oder bei einer Root-Löschung
-keine Node.
-Der Inhaltsbereich rendert Markdown sicher über `SafeMarkdownRenderer` (gemäß O-020:
-kein Raw-HTML-Rendering via `DisableHtml`, Neutralisierung von JavaScript-, Data- und
-File-Links sowie externen Bild-URLs zur Vermeidung von Netzwerk-Requests; keine
-Bearbeitungscontrols). Bei fehlendem Inhalt wird ein expliziter Hinweis angezeigt;
-Lade- und Fehlerzustände nutzen `LoadingState`, `InlineAlert` bzw. `NotFoundState`.
-Für den ausgewählten Knoten bietet die Ansicht außerdem einen Markdown-Teilbaumdownload.
+`NodeDetails` und `NodeDetailsPane` mappen die Navigationsergebnisse in UI-
+ViewModels; die Pane kapselt Laden, NotFound, Fehler und die Export-URL. Im
+Working-Kontext delegieren die Editor-Komponenten Node-/Content-Mutationen mit
+`ChangeVersion` an die Application-Grenzen und laden Tree, Auswahl und Details
+nach Erfolg neu. Read-only- und Dirty-State-Verantwortung sowie die sichtbaren
+Übergänge sind im [Web-UI-Gesamtbild](WebUi.md) und am Code belegt.
+
 Der schmale Browserendpunkt `GET /downloads/markdown` erhält `nodeId`, `AudienceId` und
 höchstens einen Read-Context-Selektor, löst diesen über `WebReadContextResolver` auf
 und delegiert an `MarkdownExportService`. Erfolgreiche Antworten sind UTF-8-Markdown
@@ -403,165 +302,27 @@ unbekannte Codes und unerwartete Ausnahmen liefern neutral `500` mit einem
 endpunktspezifischen technischen Fehlercode. Ein Request-Abbruch wird nicht als
 Serverfehler protokolliert.
 
-Die routable Seite `SearchPage` (`/search`) verwendet mit der globalen Zielgruppe und dem
-aus Query-Parametern aufgelösten Lesekontext direkt den transportneutralen
-`SearchService`. `SearchForm` hält nur den unpersistierten Suchtext;
-`SearchResults` rendert genau eine Trefferseite mit Snippet, hierarchischem Breadcrumb
-und Navigation zur kanonischen `/knowledge/{NodeId}`-Route unter Erhalt der
-Kontext-Query. Der featurelokale Cursor wird unverändert an den Use Case
-zurückgegeben und nie dekodiert. Ein neuer Suchauftrag oder Kontextwechsel bricht den
-vorherigen Request ab; verspätete Ergebnisse werden nicht gerendert. Die ergänzende
-`SearchBreadcrumbLoader`-Grenze liest Pfadtitel einzeln über den bestehenden
-`NavigationService`, sodass Razor weiterhin nur Search-ViewModels und keine
-Domain-Typen rendert.
+`SearchPage` delegiert Suche, Filter, opaque Cursor und Breadcrumb-Ladevorgänge
+an die zuständigen Application-/Navigation-Services. Der Request wird bei neuer
+Suche oder Kontextwechsel abgebrochen; Razor rendert ausschließlich Search-
+ViewModels. Die sichtbare Seitenverantwortung und der Übergang zum Knowledge-
+Kontext sind im [Web-UI-Gesamtbild](WebUi.md) beschrieben.
 
-`KnowledgeFilter` hält die Auswahl von aufgelöster Zielgruppe, Availability,
-Freshness und Findings ausschließlich featurelokal. Werte innerhalb einer
-Facette werden als Oder, verschiedene Facetten als Und an `SearchService`
-übergeben. Ein Filterwechsel verwirft Trefferseite und Cursor; der Tree bleibt
-unverändert. Die Navigation eines Treffers lädt dessen Pfad über den bestehenden
-Tree-Workspace und setzt den Fokus auf das ausgewählte Treeitem.
+Gemeinsame Feedback-, Dialog- und Toast-Komponenten bleiben rein darstellende
+UI-Grenzen; ihre routeübergreifende Ownership und Zustandsverwendung stehen im
+[Web-UI-Gesamtbild](WebUi.md). Application-Aufrufe und fachliche Entscheidungen
+liegen in den Feature-Seiten bzw. Services, nicht in diesen Shared-Komponenten.
 
-Die Warnungs-, Bestätigungs- und Änderungszustände teilen sich den
-wiederverwendeten Vertrag `AlertKind` (`Info`, `Erfolg`, `Warnung`,
-`Fehler`) und rendern Inhalt und Farbe über die zentrale
-`AppStatus`-Darstellung, sodass nie nur Farbe die Bedeutung trägt:
-`InlineAlert` bleibt beim auslösenden Inhalt und kündigt Fehler sofort
-(`role="alert"`), alle übrigen Stufen höflich (`role="status"`) an.
-`StatusBanner` gilt für die gesamte Seite statt für einen einzelnen
-Inhalt, verwendet dieselbe Ankündigungsregel und markiert die Stufe
-zusätzlich über eine farbige Kante. `WorkingIndicator` zeigt eine
-laufende Änderung am Ort des Geschehens als Text plus Icon
-(`role="status"`, Animation ruht bei `prefers-reduced-motion`) und
-rendert im Ruhezustand nichts; der ungespeicherte Zustand bleibt in der
-zentralen `AppStatus`-Darstellung, blockierende Läufe im `BusyOverlay`.
-`ConfirmationDialog` baut auf dem `AppDialog`-Wrapper auf: Titel, kurze
-Auswirkung (über `aria-describedby` mit der primären Aktion verknüpft),
-primäre Aktion und „Abbrechen“. „Abbrechen“ ist das erste Element und
-erhält deshalb beim Öffnen den Fokus; Fokusfalle und Fokusrückgabe
-übernimmt die Dialogisolation, Escape entspricht „Abbrechen“. Eine
-destruktive Aktion ist zusätzlich zur Beschriftung durch Fehlerfarbe und
-Warnicon eindeutig; eine Texteingabe zur Bestätigung gibt es nicht.
-Während eines Requests läuft der Bestätigungs-Callback höchstens einmal
-und sind beide Aktionen deaktiviert; der programmatische Abschluss nach
-bestätigter Aktion löst keinen Abbruch aus.
-
-Die einzige globale `ToastRegion` hostet `MainLayout` genau einmal und
-liest den flüchtigen Circuit-Zustand `ToastState` (unter `Web/State`,
-scoped pro Circuit): Sie bestätigt ausschließlich nichtkritische
-abgeschlossene Aktionen, kündigt neue Meldungen über die dauerhaft
-vorhandene höfliche Live-Region (`aria-live="polite"`) an und verschiebt
-den Fokus nie. Meldungen laufen nicht zeitgesteuert ab; sie bleiben mit
-Icon plus Text bis zum Schließen durch den Benutzer sichtbar und werden
-mit dem Ende des Circuits verworfen. Kritische Informationen erscheinen
-zusätzlich oder ausschließlich im Seitenzustand über `InlineAlert` oder
-`StatusBanner` und nie nur in der Toastregion.
-
-Das
-Verzeichnis
-`Web/Components/Layout` gliedert seine Bausteine in `Shell` (Hauptlayout
-und Reconnect-Oberfläche), `Context` (Wissenskontext und -auswahl) und
-`PageRegions` (Breadcrumbs, Aktionen, Navigation und Seitenbereichs-Slot):
-
-- `MainLayout` zeichnet den Kopf mit der Produktbezeichnung als reine
-  Textwortmarke ohne Logo-Asset, das Sprungziel, genau ein
-  `main`-Landmark für den Seiteninhalt, optional eingerückte
-  Seitenbereiche und die einzige globale Toastregion. Landmarks:
-  Sprunglink „Zum Hauptinhalt springen“ als
-  erstes Element – seine Aktivierung legt den Fokus auf das `main`-Landmark,
-  weil die erweiterte Blazor-Navigation den Hash-Link sonst abfängt, ohne
-  den Fokus zu verschieben –, `header`, `nav` mit zugänglichem Namen
-  `Hauptnavigation` mit den vier bestehenden Zielen Start (`/`), Suche
-  (`/search`), Transactions (`/transactions`) und Zielgruppen (`/audiences`), `nav`
-  `Breadcrumbs`, der Seitenaktionsbereich und optional `aside` `Kontext`.
-  Die vier Ziele erscheinen als ruhig gruppierte Linkflächen; der aktive
-  Route-Kontext wird ausschließlich visuell über den bestehenden `NavLink`-
-  Status markiert. Die Navigation führt keine zusätzliche Berechtigungs- oder
-  Fachauswahl ein.
-- Fachseiten hängen Breadcrumbs, Aktionen und Kontext ohne eigenes
-  Seitenraster über den scoped Slot `PageRegionState` ein; leere Bereiche
-  belegen keinen Platz und erhalten keine Dummytexte.
-- Fachseiten liefern über denselben Slot den Vertrag
-  `KnowledgeContextViewModel` (immutable `record` unter
-  `Web/Components/Layout/Context`) für die globale Wissenskontextleiste: Art des
-  Lese-Kontexts (`Current`, `Snapshot`, `Transaction`, `Release`), optionale
-  ID/Bezeichnung, optionale Zielgruppe, `IsDirty` und optionale `BaseSnapshotId`. Bei
-  den M4-Strukturformularen ist `WorkspaceState.IsDirty` die zentrale flüchtige
-  Quelle; `KnowledgePage` projiziert ihn in diesen Slot-Vertrag. Die Komponente
-  `KnowledgeContextBar` rendert daraus genau eine globale Kontextleiste im
-  Kopfbereich nahe der Wortmarke – als Text und Status ohne Selektor, Links
-  oder Mutation; sie spiegelt `IsDirty` als `data-ktai-dirty`-Attribut ihres
-  Wurzelelements; eine fehlende Zielgruppe erscheint neutral als „Keine Zielgruppe
-  ausgewählt“, der Dirty-Zustand nur bei Bedarf als „Ungespeicherte
-  Änderungen“ mit Icon plus Text und bei Transactions der Base-Snapshot als
-  eigenes Meta-Item. Nicht gelieferte Angaben erscheinen nicht;
-  die Dashboard-Seite mappt den tatsächlichen Seitenkontext Current ohne
-  Zielgruppe und ohne `IsDirty`. Domain-Typen und der `WorkspaceState` bleiben
-  bewusst nicht Teil des Markup-Vertrags.
-- `NavigationProtection` schützt den zentralen ungespeicherten Formularzustand
-  (`WorkspaceState.IsDirty`, im Slot als `IsDirty` gespiegelt) über
-  `NavigationLock` und einen `ConfirmationDialog` bei interner Blazor-Navigation
-  sowie über das native `beforeunload`-Ereignis bei externer Navigation; `MainLayout`
-  bindet die abgegrenzte Shell-Komponente ein;
-  bereits in einer Transaction persistierte Änderungen verbleiben in der Datenbank
-  und sind per URL rekonstruierbar.
-- `ContextSelectorDialog` hostet ausschließlich den nativen Dialog-Lifecycle.
-  Das featurekonkrete `ContextSelectionForm` hält den unpersistierten
-  Auswahlentwurf, validiert und bildet die kanonische Ziel-URL. Die beiden
-  schmalen UI-Grenzen `IContextSelectionCatalog` und
-  `IContextSelectionAudienceCatalog` übersetzen Application-Ergebnisse in
-  darstellbare Auswahlwerte; dadurch kennt weder Dialoghost noch Formular
-  Release-, Dashboard- oder `NavigationService` direkt.
-- Ab 1280 CSS-Pixeln (vom schmalen Modul `MainLayout.razor.js` über
-  `matchMedia` gemeldet) stehen Navigation, Arbeitsfläche und optionaler
-  Kontextbereich nebeneinander; die Arbeitsfläche nutzt
-  `minmax(0, 1fr)`, um nicht unter `min-width`-Defaults zu überlaufen.
-- Die Navigation startet im Desktop offen. Ein dauerhaft sichtbarer
-  Drei-Linien-Menübutton oben links in der App-Leiste steuert sie in allen
-  Breiten über den zugänglichen Zustandsnamen sowie `aria-expanded` und
-  `aria-controls`; beim Desktop-Schließen gibt die Navigation ihre Spalte an
-  die Arbeitsfläche frei.
-- In kompakten Breiten steuert derselbe zugänglich benannte Kopfbutton die
-  Navigation als überlagerndes Panel unterhalb des Kopfs; der Kontextbereich
-  besitzt bei Bedarf einen eigenen Kopfbutton. Öffnen setzt den Fokus auf den
-  jeweiligen Bereich, Schließen (Kopfbutton, Escape) gibt ihn an den Auslöser
-  zurück, und Escape schließt nur den zuletzt geöffneten überlagernden Bereich.
-  Keine fixierten Höhen für normalen Inhalt; die Seite und die Arbeitsfläche
-  per Bildlauf im Dokument. Unterhalb von 1024 besteht nur die Zoom-/Reflow-
-  Anforderung, keine Smartphone-Navigation.
-- Der Verbindungsverlust des Interactive-Server-Circuits wird durch die
-  offizielle .NET-10-Reconnect-Oberfläche behandelt: Die Komponente
-  `ReconnectModal` (unter `Web/Components/Layout/Shell`, aus `App.razor`
-  eingebunden) stellt das Markup mit der ID `components-reconnect-modal`
-  bereit, auf die die Blazor-Runtime die Klassen `components-reconnect-*`
-  setzt und das Ereignis `components-reconnect-state-changed` sendet; das
-  schmale Modul `ReconnectModal.razor.js` passt ausschließlich Darstellung,
-  Fokus und Texte an. Die Verbindungslogik bleibt im Framework
-  (`Blazor.reconnect`/`Blazor.resumeCircuit`) mit dessen begrenztem
-  Retryplan (höchstens 30 Versuche, exponential ansteigende Abstände); es
-  gibt keine eigene SignalR-Verbindung und keine unbegrenzte Retryschleife.
-  Der modale Dialog blockiert sämtliche Interaktion hinter einem
-  halbtransparenten Hintergrund, der die letzte Ansicht sichtbar hält. Der
-  Zustand wird als Text plus Icon über eine höfliche Live-Region
-  angekündigt: „Verbindung wird wiederhergestellt …“ während der
-  Wiederherstellung (mit Countdown bis zum nächsten Versuch), „Verbindung
-  getrennt“ mit „Erneut versuchen“ nach vorläufigem Fehlschlag sowie „Sitzung
-  nicht mehr verfügbar“ mit „Seite neu laden“ bei abgelehntem/abgelaufenem
-  Circuit; Escape schließt den Dialog nicht. Beim Öffnen liegt der Fokus
-  deterministisch auf dem Dialog, in den Handlungsstates auf der sicheren
-  nächsten Aktion. Ein erfolgreicher Reconnect schließt den Dialog ohne
-  fachlichen Erfolgshinweis. Ein Reload warnt nur bei tatsächlich ungespeicherten
-  Änderungen: `beforeunload` liest das Attribut `data-ktai-dirty` der
-  Kontextleiste zum Ereigniszeitpunkt; fehlt das Element, gilt die Seite als
-  nicht dirty; es existiert kein `window`-Flag mehr. `NodeMetadataEditor` (für
-  Edit und Child-Create), `RootNodeEditor` (für Root-Create) und der
-  `ContentEditor` setzen den wertbasierten Zustand nur bei tatsächlich
-  abweichenden Eingaben, räumen ihn bei erfolgreichem Save, Cancel und Dispose
-  und erhalten ihn bei fehlgeschlagenem Save; beim Content-Save wird der
-  kanonische Markdown erst über `readMarkdown` gelesen und die Mutation mit
-  `expectedChangeVersion` ausgeführt. Eine serverseitige Ablehnung überschreibt
-  den Editorwert nicht, und eine persistierte Transaction gilt nie als
-  ungespeichert.
+Die sichtbare Shell-, Kontext- und Seitenregionen-Verantwortung steht im
+[Web-UI-Gesamtbild](WebUi.md). `Web/Components/Layout` bleibt technisch in
+`Shell`, `Context` und `PageRegions` getrennt; `PageRegionState` ist die
+rendererfreie Slot-Grenze. `ContextSelectionForm`, `WorkspaceState` und
+`NavigationProtection` bleiben featureübergreifende Adapter für URL-Kontext und
+flüchtigen Circuit-State. Reconnect-Interop bleibt auf `App.razor` und das
+frameworkseitige Circuit-Verhalten begrenzt. Layout-, Fokus- und Reflow-Nachweise
+stehen in [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md) und der
+[Web-UI-Regel](../.agents/rules/WebUiHtmlCss.mdc); diese Datei wiederholt keine
+sichtbare Shellbeschreibung.
 `wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
 Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
 Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie
