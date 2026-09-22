@@ -8,7 +8,7 @@ beginnen, wenn die Abnahme des vorherigen Punkts belegt ist. Die Ist-Doku unter
 `docs/` bleibt nach der Umsetzung die einzige verbindliche Beschreibung des
 implementierten Zustands.
 
-- [ ] **Gemeinsame Seitenbasis und Layout-Ownership implementieren**
+- [x] **Gemeinsame Seitenbasis und Layout-Ownership implementieren**
   - **Intention:** Einen einzigen ausführbaren Vertrag für routable Page-Root,
     Seitenkopf und Inhaltsbereich schaffen und Shell-/Feature-Verantwortung
     technisch erzwingen.

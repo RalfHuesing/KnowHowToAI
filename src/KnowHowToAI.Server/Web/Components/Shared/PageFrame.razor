@@ -1,0 +1,29 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared
+
+<section class="page-frame page-frame--shared @Class" @attributes="AdditionalAttributes">
+    <header class="page-frame__header">
+        <div class="page-frame__heading">
+            <h1 class="page-frame__title">@Title</h1>
+            @if (Badges is not null)
+            {
+                <div class="page-frame__badges" aria-label="Status">
+                    @Badges
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <p class="page-frame__description">@Description</p>
+            }
+        </div>
+        @if (Actions is not null)
+        {
+            <div class="page-frame__actions action-group">
+                @Actions
+            </div>
+        }
+    </header>
+
+    <div class="page-frame__content">
+        @ChildContent
+    </div>
+</section>
