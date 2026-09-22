@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 

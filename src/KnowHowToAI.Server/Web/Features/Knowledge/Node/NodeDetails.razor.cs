@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 /// <summary>
 /// Read-only Detailansicht eines ausgewählten Knotens.
@@ -23,6 +23,9 @@ public sealed partial class NodeDetails
 
     [Parameter]
     public bool NodeNotFound { get; set; }
+
+    [Parameter]
+    public bool ShowTitle { get; set; } = true;
 
     [Parameter]
     public bool ShowContent { get; set; } = true;

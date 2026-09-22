@@ -1,4 +1,4 @@
-@namespace KnowHowToAI.Server.Web.Features.Knowledge
+@namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
 @using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using KnowHowToAI.Server.Web.Components.Shared.States
@@ -26,7 +26,10 @@ else if (ViewModel is not null)
     <article class="node-details" data-testid="node-details" aria-label="@ViewModel.Title">
         <header class="node-details-header">
             <div class="node-details-heading-row">
-                <h2 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h2>
+                @if (ShowTitle)
+                {
+                    <h1 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h1>
+                }
                 <span class="node-details-context node-details-context--@(IsWorking ? "working" : "readonly")"
                       data-testid="node-details-context">
                     @(IsWorking ? "Arbeitskopie" : "Nur lesen")
@@ -38,6 +41,17 @@ else if (ViewModel is not null)
                 <p class="node-details-description readable" data-testid="node-details-description">@ViewModel.Description</p>
             }
         </header>
+
+        <section class="node-content-context node-content-context--audience"
+                 aria-label="Ausgewählte Zielgruppe" data-testid="node-details-audience-context">
+            <p>
+                Zielgruppe: <strong data-testid="node-details-requested-audience">@ViewModel.RequestedAudienceId</strong>
+                @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
+                {
+                    <span> · Inhalt aus <strong data-testid="node-details-resolved-audience">@ViewModel.ResolvedAudienceId</strong></span>
+                }
+            </p>
+        </section>
 
         @if (ViewModel.FallbackUsed)
         {
@@ -164,28 +178,28 @@ else if (ViewModel is not null)
                 </div>
             </dl>
 
-            @if (ViewModel.SourceRevisions.Count > 0)
-            {
-                <section class="node-details-provenance" aria-label="Quellrevisionen" data-testid="node-details-provenance">
-                    <h2 class="node-section-heading">Quellrevisionen (Derived)</h2>
-                    <ul class="node-provenance-list">
-                        @foreach (var rev in ViewModel.SourceRevisions)
-                        {
-                            <li class="node-provenance-item" data-testid="node-provenance-item">
-                                <span class="node-provenance-source">
-                                    Knoten <code>@rev.SourceNodeId.ToString("N")[..8]…</code>
-                                    Zielgruppe <strong>@rev.SourceAudienceId</strong>
-                                    Revision <code>@rev.SourceContentRevisionId.ToString("N")[..8]…</code>
-                                    <span class="node-meta-badge node-meta-badge--@rev.Freshness.ToLowerInvariant()"
-                                          data-testid="node-provenance-freshness">
-                                        Quelle: @MapFreshnessLabel(rev.Freshness)
-                                    </span>
-                                </span>
-                            </li>
-                        }
-                    </ul>
-                </section>
-            }
         </details>
+
+        @if (ViewModel.SourceRevisions.Count > 0)
+        {
+            <section class="node-details-provenance" aria-label="Herkunft des Inhalts" data-testid="node-details-provenance">
+                <h2 class="node-section-heading">Herkunft des Inhalts</h2>
+                <ul class="node-provenance-list">
+                    @foreach (var revision in ViewModel.SourceRevisions)
+                    {
+                        <li class="node-provenance-item" data-testid="node-provenance-item">
+                            <span class="node-provenance-source">
+                                Knoten <code>@revision.SourceNodeId.ToString("N")[..8]…</code>,
+                                Zielgruppe <strong>@revision.SourceAudienceId</strong>,
+                                Revision <code>@revision.SourceContentRevisionId.ToString("N")[..8]…</code>
+                                <span class="node-meta-badge node-meta-badge--@revision.Freshness.ToLowerInvariant()" data-testid="node-provenance-freshness">
+                                    Quelle: @MapFreshnessLabel(revision.Freshness)
+                                </span>
+                            </span>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
     </article>
 }

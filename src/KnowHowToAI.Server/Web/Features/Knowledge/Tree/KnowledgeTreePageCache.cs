@@ -1,4 +1,4 @@
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Ergebnis einer LRU-Cache-Eviction.

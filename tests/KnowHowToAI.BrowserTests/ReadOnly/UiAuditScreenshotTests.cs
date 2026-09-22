@@ -87,6 +87,7 @@ public sealed class UiAuditScreenshotTests
 
     private static async Task CaptureKnowledgeAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
     {
+        await page.EvaluateAsync("() => localStorage.clear()");
         await GotoAsync(page, address, "/knowledge");
         var selector = page.GetByTestId("context-selector-dialog");
         await Assertions.Expect(selector).ToBeVisibleAsync();
@@ -116,7 +117,7 @@ public sealed class UiAuditScreenshotTests
         var primaryNavigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
         var shellMain = page.Locator("#shell-main");
         var nodeDetails = page.GetByTestId("node-details");
-        var nodeDetailsTitle = page.GetByTestId("node-details-title");
+        var nodeDetailsTitle = page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 });
         await Assertions.Expect(shell).ToBeVisibleAsync();
         await Assertions.Expect(shellHeader).ToBeVisibleAsync();
         await Assertions.Expect(primaryNavigation).ToBeVisibleAsync();
@@ -247,40 +248,25 @@ public sealed class UiAuditScreenshotTests
 
             await GotoAsync(page, address, $"/knowledge?audienceId=Default&transactionId={transactionId:D}");
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
-            if (await page.GetByTestId("node-metadata-editor").CountAsync() == 0)
-            {
-                var workingRoot = page.GetByRole(AriaRole.Treeitem).First;
-                await workingRoot.ClickAsync();
-            }
-            await Assertions.Expect(page.GetByTestId("node-metadata-editor")).ToBeVisibleAsync();
-            await CaptureAsync(page, "15_working-knowledge-structure", viewport, output, captures);
+            var workingRoot = page.GetByRole(AriaRole.Treeitem).First;
+            await workingRoot.ClickAsync();
+            await Assertions.Expect(page.GetByTestId("node-details-section")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("node-details-edit")).ToHaveCountAsync(0);
+            await CaptureAsync(page, "15_working-knowledge-root-read-only", viewport, output, captures);
 
+            await GotoAsync(page, address, "/knowledge?audienceId=Default");
+            var root = page.GetByRole(AriaRole.Treeitem).First;
+            await root.ClickAsync();
+            await Assertions.Expect(page.GetByTestId("node-details-section")).ToBeVisibleAsync();
+            await CaptureAsync(page, "16_knowledge-root-document", viewport, output, captures);
+
+            await root.Locator("button.tree-toggle-btn").ClickAsync();
             var child = page.Locator(".tree-node-title").Filter(new LocatorFilterOptions { HasText = BrowserKnowledgeSeed.ExportNodeTitle });
-            if (await child.CountAsync() == 0)
-            {
-                var workingRoot = page.GetByRole(AriaRole.Treeitem).First;
-                await workingRoot.Locator("button.tree-toggle-btn").ClickAsync();
-            }
             await Assertions.Expect(child).ToBeVisibleAsync();
             await child.ClickAsync();
-            var editor = page.GetByTestId("content-editor");
-            await Assertions.Expect(editor).ToBeVisibleAsync();
-            await Assertions.Expect(editor.GetByRole(AriaRole.Status)).ToContainTextAsync("Gespeichert", new() { Timeout = 15_000 });
-            await Assertions.Expect(editor.Locator(".ProseMirror")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-            await editor.GetByTestId("content-editor-mode-source").ClickAsync(new() { Timeout = 15_000 });
-            var source = editor.GetByTestId("content-editor-source");
-            await Assertions.Expect(source).ToBeVisibleAsync(new() { Timeout = 15_000 });
-            await source.FillAsync("UI-Audit-WYSIWYG\n\n**ungespeichert**");
-            await editor.GetByTestId("content-editor-mode-wysiwyg").ClickAsync(new() { Timeout = 15_000 });
-            await Assertions.Expect(editor.Locator(".ProseMirror")).ToBeVisibleAsync();
-            await Assertions.Expect(editor.GetByRole(AriaRole.Status)).ToContainTextAsync("Ungespeicherte Änderungen");
-            await CaptureAsync(page, "16_content-editor-wysiwyg-dirty", viewport, output, captures);
-
-            await editor.GetByTestId("content-editor-mode-source").ClickAsync(new() { Timeout = 15_000 });
-            source = editor.GetByTestId("content-editor-source");
-            await Assertions.Expect(source).ToBeVisibleAsync();
-            await source.FillAsync("UI-Audit-Quelle\n\n**ungespeichert**");
-            await CaptureAsync(page, "17_content-editor-markdown-source-dirty", viewport, output, captures);
+            await Assertions.Expect(page.GetByTestId("node-details-section")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("node-details-edit")).ToHaveCountAsync(0);
+            await CaptureAsync(page, "17_knowledge-selected-node-read-only", viewport, output, captures);
         }
         finally
         {

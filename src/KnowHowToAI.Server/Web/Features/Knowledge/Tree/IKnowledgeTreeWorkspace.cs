@@ -1,6 +1,6 @@
 using KnowHowToAI.Core.Application.Navigation;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Schmale Präsentationsgrenze zwischen Wissensseite, Baum und dem internen

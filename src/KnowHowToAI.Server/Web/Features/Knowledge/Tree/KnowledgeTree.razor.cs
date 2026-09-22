@@ -4,7 +4,7 @@ using Microsoft.JSInterop;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Nativer Blazor-Wissensbaum mit seitenbegrenztem Paging,
@@ -12,7 +12,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// </summary>
 public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
 {
-    private const string ModuleAssetPath = "Web/Features/Knowledge/KnowledgeTree.razor.js";
+    private const string ModuleAssetPath = "Web/Features/Knowledge/Tree/KnowledgeTree.razor.js";
 
     [Inject]
     public IKnowledgeTreeWorkspace TreeWorkspace { get; set; } = default!;

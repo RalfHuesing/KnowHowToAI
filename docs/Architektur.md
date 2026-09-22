@@ -288,8 +288,11 @@ Präsentationsgrenze und können sie mit einem schmalen Test Double prüfen.
 Die sichtbare Verantwortungs- und Zustandslandkarte des Wissenscockpits steht im
 [Web-UI-Gesamtbild](WebUi.md). Die technische Implementierungsgrenze bleibt
 aufgeteilt: `KnowledgeTreeState` kapselt Lazy-Loading, opaque Cursor und Cache;
-`KnowledgePage` orchestriert Route, Query, Zielgruppe, `WorkspaceState` und die
-Page-Regionen; `NodeDetailsPane` kapselt Laden, Fehler/NotFound und Export.
+`KnowledgePage` orchestriert Current-/Transaktionsroute, Zielgruppe,
+`WorkspaceState` und Page-Regionen; `NodeDocument` kapselt den lesenden
+Dokumentfluss. Der wiederverwendte `NodeDocumentLoader` lädt ViewModel,
+Fehler/NotFound und Export-URL für die Dokumentansicht und die weiterhin
+eigenständig verfügbaren Bearbeitungs-Pane.
 
 Die Treeview-Semantik, fokussierbare Zustände und Mutationsgrenzen sind am Code
 und in den [repräsentativen Web-Tests](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/)
@@ -304,8 +307,10 @@ Node-/Zweigzustand sichtbar und erzeugt keine unsichtbare Auswahl. Bereits gelad
 Off-Path-Teilbäume gehören ausdrücklich nicht zur Rekonstruktion und bleiben der
 Zehn-Seiten-Eviction unterworfen.
 
-`NodeDetails` und `NodeDetailsPane` mappen die Navigationsergebnisse in UI-
-ViewModels; die Pane kapselt Laden, NotFound, Fehler und die Export-URL. Im
+`NodeDocument` und `NodeDetailsPane` nutzen denselben `NodeDocumentLoader` für
+Navigationsergebnisse, UI-ViewModel, NotFound, Fehler und Export-URL. Die neue
+Knowledge-Route rendert nur `NodeDocument`; `NodeDetailsPane` und die Editor-
+Komponenten bleiben für ihre geplanten Mutationsslices erhalten. Im
 Working-Kontext delegieren die Editor-Komponenten Node-/Content-Mutationen mit
 `ChangeVersion` an die Application-Grenzen und laden Tree, Auswahl und Details
 nach Erfolg neu. Read-only- und Dirty-State-Verantwortung sowie die sichtbaren

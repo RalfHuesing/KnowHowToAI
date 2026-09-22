@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.WebUtilities;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Navigation;
@@ -10,7 +9,7 @@ using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 /// <summary>Lädt und zeigt die Details des aus der Route ausgewählten Knotens.</summary>
 public sealed partial class NodeDetailsPane
@@ -90,28 +89,20 @@ public sealed partial class NodeDetailsPane
 
         _loadedRequest = request;
         Clear();
-        if (NodeId is not { } nodeId || ReadContext is null || string.IsNullOrWhiteSpace(AudienceId))
+        if (NodeId is null || ReadContext is null || string.IsNullOrWhiteSpace(AudienceId))
             return;
 
         _isLoading = true;
-        var result = await NavigationService.GetNodeAsync(
-            new NodeId(nodeId),
-            ReadContext,
-            new AudienceId(AudienceId),
-            CancellationToken.None);
+        var result = await NodeDocumentLoader.LoadAsync(
+            NavigationService,
+            new NodeDocumentRequest(
+                new NodeReadRequest(NodeId, ReadContext, AudienceId, ChangeVersion),
+                new MarkdownExportContext(QueryTransactionId, QuerySnapshotId, QueryReleaseId)));
         _isLoading = false;
-
-        if (!result.IsSuccess)
-        {
-            if (string.Equals(result.Error!.Code, "NodeNotFound", StringComparison.Ordinal))
-                _nodeNotFound = true;
-            else
-                _errorMessage = result.Error.Message;
-            return;
-        }
-
-        _viewModel = KnowledgeNavigationMapper.ToNodeDetailsViewModel(result.Value, ChangeVersion);
-        _markdownDownloadUrl = CreateMarkdownDownloadUrl(nodeId, AudienceId);
+        _viewModel = result.ViewModel;
+        _markdownDownloadUrl = result.MarkdownDownloadUrl;
+        _nodeNotFound = result.IsNotFound;
+        _errorMessage = result.ErrorMessage;
     }
 
     private async Task HandleMutationSucceededAsync(NodeMutationResult mutation)
@@ -289,20 +280,6 @@ public sealed partial class NodeDetailsPane
 
     private Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult mutation) =>
         OnContentMutationSucceeded.InvokeAsync(mutation);
-
-    private string CreateMarkdownDownloadUrl(Guid nodeId, string audienceId)
-    {
-        var query = new Dictionary<string, string?>
-        {
-            ["nodeId"] = nodeId.ToString("D"),
-            ["audienceId"] = AudienceId,
-            ["transactionId"] = QueryTransactionId,
-            ["snapshotId"] = QuerySnapshotId,
-            ["releaseId"] = QueryReleaseId
-        };
-
-        return QueryHelpers.AddQueryString("/downloads/markdown", query);
-    }
 
     private void Clear()
     {

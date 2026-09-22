@@ -1,7 +1,7 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Bündelt Rückruffunktionen für den Wissensbaum-Pfad-Lader.

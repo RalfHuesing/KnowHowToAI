@@ -1,22 +1,14 @@
 using KnowHowToAI.Core.Application.Navigation;
-using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 using KnowHowToAI.Server.Web.State;
-using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Core.Application.Mutations.Content;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge;
 
-/// <summary>
-/// Routable Wissenscockpit-Seite (/knowledge und /knowledge/{NodeId:guid}).
-/// Rekonstruiert den Arbeitskontext aus Route und Query und orchestriert
-/// Tree, Breadcrumbs, Workspace-State und Node-Detailansicht.
-/// Setzt O-008 verbindlich um: keine stille Standardzielgruppe; wenn kein Eintrag
-/// in Query oder localStorage vorhanden ist, erscheint der modale Pflichtauswahl-Selektor.
-/// </summary>
+/// <summary>Setzt URL, Zielgruppe, Wissensbaum und Node-Dokument zusammen.</summary>
 public sealed partial class KnowledgePage : IDisposable
 {
     [Inject]
@@ -49,12 +41,6 @@ public sealed partial class KnowledgePage : IDisposable
     [SupplyParameterFromQuery(Name = "transactionId")]
     private string? QueryTransactionId { get; set; }
 
-    [SupplyParameterFromQuery(Name = "snapshotId")]
-    private string? QuerySnapshotId { get; set; }
-
-    [SupplyParameterFromQuery(Name = "releaseId")]
-    private string? QueryReleaseId { get; set; }
-
     [SupplyParameterFromQuery(Name = "audienceId")]
     private string? QueryAudienceId { get; set; }
 
@@ -63,6 +49,8 @@ public sealed partial class KnowledgePage : IDisposable
     private bool _isAwaitingAudienceSelection;
     private bool _isDisposed;
 
+    private string CurrentPageTitle => TreeWorkspace.Breadcrumbs.LastOrDefault()?.Title ?? "Wissensbasis";
+
     protected override async Task OnParametersSetAsync()
     {
         _errorMessage = null;
@@ -70,75 +58,89 @@ public sealed partial class KnowledgePage : IDisposable
         _isAwaitingAudienceSelection = false;
 
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-
-        var contextResolution = await ReadContextResolver.ResolveAsync(
+        var resolution = await ReadContextResolver.ResolveAsync(
             QueryTransactionId,
-            QuerySnapshotId,
-            QueryReleaseId,
+            null,
+            null,
             CancellationToken.None);
 
-        if (!contextResolution.IsSuccess)
+        if (!resolution.IsSuccess)
         {
             WorkspaceState.Reset();
-            _errorMessage = contextResolution.Error!.Message;
+            _errorMessage = resolution.Error!.Message;
             PageRegions.SetKnowledgeContext(new KnowledgeContextViewModel(
                 KnowledgeReadContextKind.Current,
                 DisplayName: "Ungültiger Kontext"));
             return;
         }
 
-        var readContext = contextResolution.Value!.ReadContext;
-        var contextVm = contextResolution.Value.ContextViewModel;
-        WorkspaceState.SetLoadedSnapshotId(contextResolution.Value.LoadedSnapshotId);
-
-        var audiencesResult = await AudienceCatalog.LoadAsync(readContext, CancellationToken.None);
-        if (!audiencesResult.IsSuccess)
+        var context = resolution.Value!;
+        WorkspaceState.SetLoadedSnapshotId(context.LoadedSnapshotId);
+        var audiences = await AudienceCatalog.LoadAsync(context.ReadContext, CancellationToken.None);
+        if (!audiences.IsSuccess)
         {
-            _errorMessage = audiencesResult.ErrorMessage!;
-            PageRegions.SetKnowledgeContext(contextVm with
+            _errorMessage = audiences.ErrorMessage!;
+            PageRegions.SetKnowledgeContext(context.ContextViewModel with
             {
-                DisplayName = contextVm.DisplayName ?? "Fehlerhafter Kontext"
+                DisplayName = context.ContextViewModel.DisplayName ?? "Fehlerhafter Kontext"
             });
             return;
         }
 
-        var availableAudiences = audiencesResult.Audiences;
-        if (availableAudiences.Count == 0)
+        if (audiences.Audiences.Count == 0)
         {
-            ApplyEmptyAudiencesState(contextVm, readContext);
+            ApplyEmptyAudiencesState(context.ContextViewModel, context.ReadContext);
             return;
         }
 
-        var audienceId = await ResolveEffectiveAudienceAsync(availableAudiences, QueryAudienceId, uri);
+        var audienceId = await ResolveEffectiveAudienceAsync(audiences.Audiences, QueryAudienceId, uri);
+        if (_errorMessage is not null)
+        {
+            PageRegions.SetKnowledgeContext(context.ContextViewModel with { AudienceName = null });
+            return;
+        }
 
-        if (string.IsNullOrWhiteSpace(audienceId))
+        if (audienceId is null)
         {
             _isAwaitingAudienceSelection = true;
-            PageRegions.SetKnowledgeContext(contextVm with { AudienceName = null });
-            ContextSelector.Open(ContextSelectorMode.MandatoryAudience, readContext, null);
+            PageRegions.SetKnowledgeContext(context.ContextViewModel with { AudienceName = null });
+            ContextSelector.Open(ContextSelectorMode.MandatoryAudience, context.ReadContext, null);
             return;
         }
 
-        await ApplySelectedAudienceAndInitializeAsync(contextVm, readContext, availableAudiences, audienceId, contextResolution.Value!.ChangeVersion);
+        await ApplySelectedAudienceAndInitializeAsync(
+            context.ContextViewModel,
+            context.ReadContext,
+            audiences.Audiences,
+            audienceId,
+            context.ChangeVersion);
     }
 
     protected override void OnInitialized() => WorkspaceState.Changed += HandleWorkspaceChanged;
 
     private void HandleWorkspaceChanged()
     {
-        if (PageRegions.KnowledgeContext is not null
-            && PageRegions.KnowledgeContext != WorkspaceState.CurrentContext)
+        if (_isDisposed)
+            return;
+
+        _ = InvokeAsync(() =>
         {
-            PageRegions.SetKnowledgeContext(WorkspaceState.CurrentContext);
-        }
+            if (PageRegions.KnowledgeContext is not null
+                && PageRegions.KnowledgeContext != WorkspaceState.CurrentContext)
+            {
+                PageRegions.SetKnowledgeContext(WorkspaceState.CurrentContext);
+            }
+
+            StateHasChanged();
+        });
     }
 
-    private void ApplyEmptyAudiencesState(KnowledgeContextViewModel contextVm, ReadContext readContext)
+    private void ApplyEmptyAudiencesState(KnowledgeContextViewModel context, ReadContext readContext)
     {
         _hasNoAudiences = true;
-        var emptyAudiencesContextVm = contextVm with { AudienceName = null };
-        PageRegions.SetKnowledgeContext(emptyAudiencesContextVm);
-        WorkspaceState.SetContext(emptyAudiencesContextVm, readContext);
+        var emptyContext = context with { AudienceName = null };
+        PageRegions.SetKnowledgeContext(emptyContext);
+        WorkspaceState.SetContext(emptyContext, readContext);
         WorkspaceState.SetAudience(null);
     }
 
@@ -149,7 +151,7 @@ public sealed partial class KnowledgePage : IDisposable
     {
         if (!string.IsNullOrWhiteSpace(queryAudienceId))
         {
-            if (availableAudiences.Any(r => r.Id == queryAudienceId))
+            if (availableAudiences.Any(audience => audience.Id == queryAudienceId))
             {
                 await AudienceStorage.SetLastAudienceIdAsync(queryAudienceId);
                 return queryAudienceId;
@@ -160,40 +162,45 @@ public sealed partial class KnowledgePage : IDisposable
         }
 
         var lastAudienceId = await AudienceStorage.GetLastAudienceIdAsync();
-        if (!string.IsNullOrWhiteSpace(lastAudienceId) && availableAudiences.Any(r => r.Id == lastAudienceId))
+        if (!string.IsNullOrWhiteSpace(lastAudienceId)
+            && availableAudiences.Any(audience => audience.Id == lastAudienceId))
         {
             UpdateUrlWithAudience(uri, lastAudienceId);
             return lastAudienceId;
+        }
+
+        if (availableAudiences.Count == 1)
+        {
+            var onlyAudienceId = availableAudiences[0].Id;
+            await AudienceStorage.SetLastAudienceIdAsync(onlyAudienceId);
+            UpdateUrlWithAudience(uri, onlyAudienceId);
+            return onlyAudienceId;
         }
 
         return null;
     }
 
     private async Task ApplySelectedAudienceAndInitializeAsync(
-        KnowledgeContextViewModel contextVm,
+        KnowledgeContextViewModel context,
         ReadContext readContext,
         IReadOnlyList<ContextSelectionAudienceOptionViewModel> availableAudiences,
         string audienceId,
         long? changeVersion)
     {
-        var matchedAudience = availableAudiences.First(r => r.Id == audienceId);
-        var effectiveContextVm = contextVm with { AudienceName = matchedAudience.Name, ChangeVersion = changeVersion };
-        PageRegions.SetKnowledgeContext(effectiveContextVm);
-
-        WorkspaceState.SetContext(effectiveContextVm, readContext);
+        var selectedAudience = availableAudiences.First(audience => audience.Id == audienceId);
+        var currentContext = context with
+        {
+            AudienceName = selectedAudience.Name,
+            ChangeVersion = changeVersion
+        };
+        PageRegions.SetKnowledgeContext(currentContext);
+        WorkspaceState.SetContext(currentContext, readContext);
         WorkspaceState.SetChangeVersion(changeVersion);
         WorkspaceState.SetAudience(audienceId);
 
         if (!TreeWorkspace.HasContext(readContext, audienceId))
-        {
             await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
-        }
 
-        await ApplyNodeSelectionAsync(readContext, audienceId);
-    }
-
-    private async Task ApplyNodeSelectionAsync(ReadContext readContext, string audienceId)
-    {
         if (NodeId.HasValue)
         {
             await TreeWorkspace.SelectNodeAsync(NodeId.Value, CancellationToken.None);
@@ -206,71 +213,27 @@ public sealed partial class KnowledgePage : IDisposable
         }
     }
 
-    private async Task HandleNodeMutationSucceededAsync(NodeMutationResult mutation)
-    {
-        if (WorkspaceState.CurrentAudienceId is not { } audienceId || !WorkspaceState.ActiveTransactionId.HasValue)
-            return;
-
-        WorkspaceState.SetChangeVersion(mutation.ChangeVersion);
-        var updatedContext = WorkspaceState.CurrentContext with { ChangeVersion = mutation.ChangeVersion };
-        WorkspaceState.SetContext(updatedContext, WorkspaceState.CurrentReadContext);
-        PageRegions.SetKnowledgeContext(updatedContext);
-
-        await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, audienceId, CancellationToken.None);
-        var selectedNodeId = mutation.Node.IsDeleted ? mutation.Node.ParentNodeId?.Value : mutation.Node.NodeId.Value;
-        await TreeWorkspace.SelectNodeAsync(selectedNodeId, CancellationToken.None);
-        WorkspaceState.SetNode(selectedNodeId);
-        NavigateToSelection(selectedNodeId);
-    }
-
-    private async Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult mutation)
-    {
-        WorkspaceState.SetChangeVersion(mutation.ChangeVersion);
-        var updatedContext = WorkspaceState.CurrentContext with { ChangeVersion = mutation.ChangeVersion };
-        WorkspaceState.SetContext(updatedContext, WorkspaceState.CurrentReadContext);
-        PageRegions.SetKnowledgeContext(updatedContext);
-
-        if (WorkspaceState.CurrentAudienceId is { } audienceId)
-        {
-            await TreeWorkspace.InitializeAsync(WorkspaceState.CurrentReadContext, audienceId, CancellationToken.None);
-            await TreeWorkspace.SelectNodeAsync(NodeId, CancellationToken.None);
-        }
-    }
-
     private void UpdateUrlWithAudience(Uri currentUri, string audienceId)
     {
         var query = QueryHelpers.ParseQuery(currentUri.Query);
         if (query.TryGetValue("audienceId", out var existing) && existing == audienceId)
-        {
             return;
-        }
 
-        var dict = new Dictionary<string, string?>();
-        foreach (var kvp in query)
-        {
-            dict[kvp.Key] = kvp.Value[0];
-        }
-        dict["audienceId"] = audienceId;
-
-        var newUrl = QueryHelpers.AddQueryString(currentUri.AbsolutePath, dict);
+        var values = query.ToDictionary(pair => pair.Key, pair => (string?)pair.Value[0]);
+        values["audienceId"] = audienceId;
+        var newUrl = QueryHelpers.AddQueryString(currentUri.AbsolutePath, values);
         NavigationManager.NavigateTo(newUrl);
     }
 
-    private void NavigateToNode(Guid nodeId)
-    {
-        NavigateToSelection(nodeId);
-    }
+    private void NavigateToNode(Guid nodeId) => NavigateToSelection(nodeId);
 
     private void NavigateToSelection(Guid? nodeId)
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var query = uri.Query;
         var path = nodeId.HasValue ? $"/knowledge/{nodeId.Value:D}" : "/knowledge";
-        var target = $"{path}{query}";
-        if (string.Equals(uri.PathAndQuery, target, StringComparison.OrdinalIgnoreCase))
-            return;
-
-        NavigationManager.NavigateTo(target);
+        var target = $"{path}{uri.Query}";
+        if (!string.Equals(uri.PathAndQuery, target, StringComparison.OrdinalIgnoreCase))
+            NavigationManager.NavigateTo(target);
     }
 
     public void Dispose()

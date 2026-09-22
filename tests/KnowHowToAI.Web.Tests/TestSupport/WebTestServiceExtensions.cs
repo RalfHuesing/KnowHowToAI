@@ -8,6 +8,7 @@ using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.TestSupport;
 

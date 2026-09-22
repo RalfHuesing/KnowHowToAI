@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Koordiniert asynchrone Knoten-Lade-Requests für den Wissensbaum.

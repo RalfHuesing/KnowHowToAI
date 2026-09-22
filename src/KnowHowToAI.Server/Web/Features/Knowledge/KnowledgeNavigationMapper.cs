@@ -1,6 +1,8 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge;
 

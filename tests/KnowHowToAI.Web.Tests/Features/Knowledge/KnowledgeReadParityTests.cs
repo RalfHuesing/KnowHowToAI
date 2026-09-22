@@ -20,6 +20,8 @@ using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -84,7 +86,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
 
         var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, RootId.Value));
 
-        Assert.Equal(mcp.Title, cut.Find("[data-testid='node-details-title']").TextContent.Trim());
+        Assert.Equal(mcp.Title, cut.Find("h1").TextContent.Trim());
         Assert.Contains(mcp.Description!, cut.Find("[data-testid='node-details-description']").TextContent, StringComparison.Ordinal);
         Assert.Contains(mcp.RequestedAudienceId, cut.Find("[data-testid='node-details-Audience']").TextContent, StringComparison.Ordinal);
         Assert.Contains(mcp.Content!, cut.Find("[data-testid='node-details-content']").TextContent, StringComparison.Ordinal);

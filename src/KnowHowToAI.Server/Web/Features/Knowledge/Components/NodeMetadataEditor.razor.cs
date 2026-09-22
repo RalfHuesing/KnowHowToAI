@@ -3,6 +3,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
 

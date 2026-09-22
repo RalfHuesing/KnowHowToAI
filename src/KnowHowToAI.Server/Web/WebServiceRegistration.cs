@@ -4,6 +4,7 @@ using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Workflow;
 using Microsoft.Extensions.DependencyInjection;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Server.Web;
 

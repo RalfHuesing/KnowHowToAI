@@ -2,6 +2,8 @@ using Bunit;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Application.Transactions;
+using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Versioning;
@@ -15,6 +17,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -53,6 +56,7 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         _harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
         _harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+        _harness.AddAudience(new Audience(DefaultSnapshotId, new AudienceId("Architect"), "Architect", null, false));
 
         // Historischen Snapshot mit eigenem Root anlegen
         _harness.AddHistoricalSnapshot(new Snapshot(
@@ -88,17 +92,16 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     }
 
     [Fact]
-    public void ContextSwitch_ToHistoricalSnapshot_ResolvesSnapshotContext()
+    public void SnapshotQuery_DoesNotOverrideTheCurrentKnowledgeRoute()
     {
         var navMan = Services.GetRequiredService<NavigationManager>();
         navMan.NavigateTo($"/knowledge?snapshotId={HistoricalSnapshotId.Value}&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
-        Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
-        Assert.Equal(KnowledgeReadContextKind.Snapshot, _workspaceState.CurrentContext.ReadContext);
+        Assert.Null(_workspaceState.CurrentReadContext.SnapshotId);
+        Assert.Equal(KnowledgeReadContextKind.Current, _workspaceState.CurrentContext.ReadContext);
         Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
-        Assert.Equal(HistoricalSnapshotId.Value, _workspaceState.LoadedSnapshotId);
         Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
     }
 
@@ -136,10 +139,25 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     }
 
     [Fact]
-    public void HistoricalNode_MapsNodeAudienceAndReadContextToMarkdownDownload()
+    public void WorkingNode_MapsAudienceAndTransactionToMarkdownDownload()
     {
+        var transactionId = new TransactionId(Guid.NewGuid());
+        var workingSnapshotId = new SnapshotId(DefaultSnapshotId.Value + 1);
+        _harness.SetTransaction(new KnowledgeTransaction(
+            transactionId,
+            DefaultSnapshotId,
+            workingSnapshotId,
+            TransactionState.Open,
+            4,
+            DateTimeOffset.UtcNow,
+            null,
+            "Working",
+            "Test",
+            "Web UI",
+            null));
+        _harness.AddNode(new Node(workingSnapshotId, _historicalRootId, null, "Working Root", null, 0, false));
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo($"/knowledge/{_historicalRootId.Value:D}?snapshotId={HistoricalSnapshotId.Value}&audienceId=Developer");
+        navMan.NavigateTo($"/knowledge/{_historicalRootId.Value:D}?transactionId={transactionId.Value:D}&audienceId=Developer");
 
         var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, _historicalRootId.Value));
 
@@ -147,11 +165,11 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         var query = QueryHelpers.ParseQuery(downloadUrl.Query);
         Assert.Equal(_historicalRootId.Value.ToString("D"), query["nodeId"]);
         Assert.Equal("Developer", query["audienceId"]);
-        Assert.Equal(HistoricalSnapshotId.Value.ToString(), query["snapshotId"]);
+        Assert.Equal(transactionId.Value.ToString("D"), query["transactionId"]);
     }
 
     [Fact]
-    public void ContextSwitch_ToRelease_ResolvesReleaseContext()
+    public void ReleaseQuery_DoesNotOverrideTheCurrentKnowledgeRoute()
     {
         var releaseId = new ReleaseId(1);
         _releaseRepo.Add(new Release(releaseId, HistoricalSnapshotId, "v1.0.0", "Release 1", DateTimeOffset.UtcNow));
@@ -161,37 +179,47 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
 
         var cut = Render<KnowledgePage>();
 
-        Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
-        Assert.Equal(KnowledgeReadContextKind.Release, _workspaceState.CurrentContext.ReadContext);
-        Assert.Equal("v1.0.0", _workspaceState.CurrentContext.DisplayName);
+        Assert.Null(_workspaceState.CurrentReadContext.SnapshotId);
+        Assert.Equal(KnowledgeReadContextKind.Current, _workspaceState.CurrentContext.ReadContext);
     }
 
     [Fact]
-    public void NonExistentSnapshot_ShowsErrorAndDoesNotFallBackToCurrent()
+    public void UnknownSnapshotQuery_DoesNotChangeTheCurrentKnowledgeRead()
     {
         var navMan = Services.GetRequiredService<NavigationManager>();
         navMan.NavigateTo("/knowledge?snapshotId=99999&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
-        var error = cut.Find("[data-testid='knowledge-error']");
-        Assert.NotNull(error);
-        Assert.Contains("Snapshot", error.TextContent);
-        // Kein stiller Fallback auf Current
-        Assert.NotEqual(DefaultSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
+        Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
+        Assert.Empty(cut.FindAll("[data-testid='knowledge-error']"));
+        Assert.Null(_workspaceState.CurrentReadContext.SnapshotId);
     }
 
     [Fact]
-    public void MultipleContextParameters_ShowsMutualExclusionError()
+    public void TransactionQuery_IsTheSupportedKnowledgeReadContext()
     {
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo("/knowledge?snapshotId=1&releaseId=2&audienceId=Developer");
+        var transactionId = new TransactionId(Guid.NewGuid());
+        var workingSnapshotId = new SnapshotId(DefaultSnapshotId.Value + 1);
+        _harness.SetTransaction(new KnowledgeTransaction(
+            transactionId,
+            DefaultSnapshotId,
+            workingSnapshotId,
+            TransactionState.Open,
+            4,
+            DateTimeOffset.UtcNow,
+            null,
+            "Working",
+            "Test",
+            "Web UI",
+            null));
+        navMan.NavigateTo($"/knowledge?snapshotId=1&transactionId={transactionId.Value:D}&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
-        var error = cut.Find("[data-testid='knowledge-error']");
-        Assert.NotNull(error);
-        Assert.Contains("höchstens einer der Parameter", error.TextContent);
+        Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
+        Assert.Equal(transactionId, _workspaceState.CurrentReadContext.TransactionId);
     }
 
     [Fact]
@@ -206,6 +234,25 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         Assert.True(_contextSelector.IsOpen);
         Assert.Equal(ContextSelectorMode.MandatoryAudience, _contextSelector.Mode);
         Assert.Null(_workspaceState.CurrentAudienceId);
+    }
+
+    [Fact]
+    public void SingleAvailableAudience_IsSelectedAndWrittenToTheKnowledgeUrl()
+    {
+        _harness.ClearAudiences(DefaultSnapshotId);
+        var developer = new AudienceId("Developer");
+        _harness.AddAudience(new Audience(DefaultSnapshotId, developer, "Developer", null, false));
+        _harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, developer, developer, 1));
+        _audienceStorage.LastAudienceId = null;
+        var navigationManager = Services.GetRequiredService<NavigationManager>();
+        navigationManager.NavigateTo("/knowledge");
+
+        var cut = Render<KnowledgePage>();
+
+        Assert.False(_contextSelector.IsOpen);
+        Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
+        Assert.Contains("audienceId=Developer", navigationManager.Uri, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Developer", cut.Find("[data-testid='knowledge-audience-context'] strong").TextContent.Trim());
     }
 
     [Fact]
@@ -277,19 +324,33 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
     public void Reconnect_PreservesContextAndAudience()
     {
         _audienceStorage.LastAudienceId = "Developer";
+        var transactionId = new TransactionId(Guid.NewGuid());
+        var workingSnapshotId = new SnapshotId(DefaultSnapshotId.Value + 1);
+        _harness.SetTransaction(new KnowledgeTransaction(
+            transactionId,
+            DefaultSnapshotId,
+            workingSnapshotId,
+            TransactionState.Open,
+            4,
+            DateTimeOffset.UtcNow,
+            null,
+            "Working",
+            "Test",
+            "Web UI",
+            null));
         var navMan = Services.GetRequiredService<NavigationManager>();
-        navMan.NavigateTo($"/knowledge?snapshotId={HistoricalSnapshotId.Value}&audienceId=Developer");
+        navMan.NavigateTo($"/knowledge?transactionId={transactionId.Value:D}&audienceId=Developer");
 
         var cut = Render<KnowledgePage>();
 
         Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
-        Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
+        Assert.Equal(transactionId, _workspaceState.CurrentReadContext.TransactionId);
 
         // Zweite Komponente mit denselben Services rendern (simuliert Reconnect / neuen Circuit)
         var reconnectCut = Render<KnowledgePage>();
 
         Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
-        Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
+        Assert.Equal(transactionId, _workspaceState.CurrentReadContext.TransactionId);
         Assert.NotNull(reconnectCut.Find("[data-testid='knowledge-page']"));
     }
 }

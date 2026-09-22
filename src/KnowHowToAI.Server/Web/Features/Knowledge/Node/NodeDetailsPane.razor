@@ -1,6 +1,7 @@
-@namespace KnowHowToAI.Server.Web.Features.Knowledge.Components
+@namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
 @using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Features.Content
+@using KnowHowToAI.Server.Web.Features.Knowledge.Components
 
 <div class="node-details-pane" data-testid="node-details-section">
     <NodeDetails ViewModel="@_viewModel"
@@ -123,7 +124,7 @@
 
                 <div class="node-edit-dialog__new-action action-group">
                     <button type="button" class="btn btn-secondary" disabled="@_isBeginningWorkingCopy"
-                            data-testid="node-edit-begin-working-copy" @onclick="BeginWorkingCopyAsync">
+                            data-testid="node-edit-begin-working-copy" @onclick="() => BeginWorkingCopyAsync()">
                         @(_isBeginningWorkingCopy ? "Neue Arbeitskopie wird begonnen…" : "Neue Arbeitskopie beginnen")
                     </button>
                 </div>
@@ -131,3 +132,5 @@
         </dialog>
     }
 </div>
+
+

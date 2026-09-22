@@ -10,6 +10,8 @@ namespace KnowHowToAI.BrowserTests.TestSupport;
 internal static class BrowserKnowledgeSeed
 {
     internal const string ExportNodeTitle = "Browser-Export-Teilbaum";
+    internal const string DeepNavigationBranchTitle = "Browser-Tiefer-Navigationszweig";
+    internal const string DeepNavigationNodeTitle = "Browser-Tiefes-Dokument";
 
     private const string DefaultAudienceId = "Default";
     private const string ReaderAudienceId = "BrowserDownloadAudience";
@@ -57,6 +59,8 @@ internal static class BrowserKnowledgeSeed
                 if (includeHistoryEvidence)
                     await EnsureHistoryEvidenceAsync(client, rootNodeId);
 
+                await EnsureDeepNavigationEvidenceAsync(client, rootNodeId);
+
                 return;
             }
 
@@ -97,6 +101,7 @@ internal static class BrowserKnowledgeSeed
                 });
                 if (includeHistoryEvidence)
                     await EnsureHistoryEvidenceAsync(client, rootNodeId);
+                await EnsureDeepNavigationEvidenceAsync(client, rootNodeId);
             }
             catch
             {
@@ -306,6 +311,63 @@ internal static class BrowserKnowledgeSeed
 
     private static async Task<bool> ContainsExportNodeAsync(McpClient client, string rootNodeId)
         => await ContainsChildAsync(client, rootNodeId, ExportNodeTitle);
+
+    private static async Task EnsureDeepNavigationEvidenceAsync(McpClient client, string rootNodeId)
+    {
+        var exportNodeId = await FindChildIdAsync(client, rootNodeId, ExportNodeTitle);
+        if (exportNodeId is null || await ContainsChildAsync(client, exportNodeId, DeepNavigationBranchTitle))
+            return;
+
+        var transaction = await CallAsync(client, "begin_transaction", new Dictionary<string, object?>
+        {
+            ["purpose"] = "Browser-Testbestand für tiefe Wissensnavigation",
+            ["client"] = "KnowHowToAI.BrowserTests"
+        });
+        var transactionId = RequireDataString(transaction, "transactionId", "begin_transaction");
+        try
+        {
+            var branch = await RequireSuccessAsync(client, "create_node", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["title"] = DeepNavigationBranchTitle,
+                ["parentNodeId"] = exportNodeId,
+                ["contentMd"] = "Zwischenebene für den Direktaufruf-Test.",
+                ["audienceId"] = DefaultAudienceId
+            });
+            var branchId = RequireDataString(branch, "nodeId", "create_node");
+            await RequireSuccessAsync(client, "create_node", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["title"] = DeepNavigationNodeTitle,
+                ["parentNodeId"] = branchId,
+                ["contentMd"] = "Tiefer Dokumentinhalt für den Browser-Direktaufruf.",
+                ["audienceId"] = DefaultAudienceId
+            });
+            await RequireSuccessAsync(client, "commit_transaction", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["commitMessage"] = "Browser-Testbestand für tiefe Wissensnavigation"
+            });
+        }
+        catch
+        {
+            await DiscardAsync(client, transactionId);
+            throw;
+        }
+    }
+
+    private static async Task<string?> FindChildIdAsync(McpClient client, string rootNodeId, string title)
+    {
+        var children = await CallAsync(client, "list_children", new Dictionary<string, object?>
+        {
+            ["audienceId"] = DefaultAudienceId,
+            ["parentNodeId"] = rootNodeId,
+            ["limit"] = 100
+        });
+        var child = children.GetProperty("data").GetProperty("items").EnumerateArray()
+            .FirstOrDefault(item => string.Equals(item.GetProperty("title").GetString(), title, StringComparison.Ordinal));
+        return child.ValueKind is JsonValueKind.Undefined ? null : child.GetProperty("nodeId").GetString();
+    }
 
     private static async Task<bool> ContainsChildAsync(McpClient client, string rootNodeId, string title)
     {

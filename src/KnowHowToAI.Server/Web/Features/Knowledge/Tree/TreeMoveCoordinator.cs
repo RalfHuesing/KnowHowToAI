@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>Führt Tree-Moves gegen den Working Snapshot aus und lädt Ablehnungen serverseitig neu.</summary>
 public sealed class TreeMoveCoordinator(

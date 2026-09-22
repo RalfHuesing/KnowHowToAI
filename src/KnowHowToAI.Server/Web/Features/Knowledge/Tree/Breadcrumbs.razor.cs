@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Hierarchische Breadcrumbs-Navigation für den ausgewählten Wissenspfad.

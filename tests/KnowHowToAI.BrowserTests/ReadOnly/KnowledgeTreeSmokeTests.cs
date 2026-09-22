@@ -22,7 +22,7 @@ public sealed class KnowledgeTreeSmokeTests
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync();
 
-        // 1. Dashboard öffnen und Interaktivität sicherstellen
+        // 1. Einstieg öffnet den Wissensarbeitsplatz direkt.
         var response = await page.GotoAsync(_host.Address, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
@@ -34,12 +34,7 @@ public sealed class KnowledgeTreeSmokeTests
 
         await CircuitProbe.WaitForInteractivityAsync(page);
 
-        // 2. Über Link zum Wissensbaum navigieren
-        var knowledgeLink = page.GetByTestId("link-knowledge");
-        await Assertions.Expect(knowledgeLink).ToBeVisibleAsync();
-        await knowledgeLink.ClickAsync();
-
-        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge"));
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge$"));
 
 // Ohne ausgewählte Zielgruppe verlangt die Shell eine explizite Auswahl.
             var audienceSelector = page.GetByTestId("context-selector-dialog");
@@ -97,56 +92,63 @@ public sealed class KnowledgeTreeSmokeTests
     }
 
     [Fact]
-    public async Task KnowledgeNode_EditBeginsWorkingCopyAndReachesSameEditorInBrowser()
+    public async Task KnowledgeNode_DirectDeepUrlAndReloadRestoreTheSelectedPathReadOnly()
     {
-        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync();
-        Guid? transactionId = null;
-
-        try
+        var response = await page.GotoAsync($"{_host.Address}/knowledge", new PageGotoOptions
         {
-            var response = await page.GotoAsync($"{_host.Address}/knowledge", new PageGotoOptions
-            {
-                WaitUntil = WaitUntilState.DOMContentLoaded,
-                Timeout = 30_000
-            });
-            Assert.NotNull(response);
-            Assert.Equal((int)HttpStatusCode.OK, response.Status);
-            await CircuitProbe.WaitForInteractivityAsync(page);
+            WaitUntil = WaitUntilState.DOMContentLoaded,
+            Timeout = 30_000
+        });
+        Assert.NotNull(response);
+        Assert.Equal((int)HttpStatusCode.OK, response.Status);
+        await CircuitProbe.WaitForInteractivityAsync(page);
 
-            var audienceSelector = page.GetByTestId("context-selector-dialog");
-            await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
-            await audienceSelector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
-            await audienceSelector.GetByTestId("selector-apply-button").ClickAsync();
-            await Assertions.Expect(audienceSelector).ToHaveCountAsync(0);
+        var audienceSelector = page.GetByTestId("context-selector-dialog");
+        await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
+        await audienceSelector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio).CheckAsync();
+        await audienceSelector.GetByTestId("selector-apply-button").ClickAsync();
+        await Assertions.Expect(audienceSelector).ToHaveCountAsync(0);
 
-            var rootItem = page.GetByRole(AriaRole.Treeitem).First;
-            await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
-            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle, Exact = true });
-            await Assertions.Expect(exportNode).ToBeVisibleAsync();
-            await exportNode.ClickAsync();
-            await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge/[0-9a-fA-F-]+"));
-            var currentNodePath = new Uri(page.Url).AbsolutePath;
-            await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
+        var rootItem = page.GetByRole(AriaRole.Treeitem).First;
+        await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
+        var exportItem = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle });
+        await Assertions.Expect(exportItem).ToBeVisibleAsync();
+        await exportItem.Locator("button.tree-toggle-btn").ClickAsync();
 
-            await page.GetByTestId("node-details-edit").ClickAsync();
-            var editDialog = page.GetByTestId("node-edit-dialog");
-            await Assertions.Expect(editDialog).ToBeVisibleAsync();
-            await editDialog.GetByTestId("node-edit-begin-working-copy").ClickAsync();
+        var branch = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationBranchTitle });
+        await Assertions.Expect(branch).ToBeVisibleAsync();
+        await branch.Locator("button.tree-toggle-btn").ClickAsync();
+        var deepNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
+        await Assertions.Expect(deepNode).ToBeVisibleAsync();
+        await deepNode.ClickAsync();
 
-            await Assertions.Expect(page).ToHaveURLAsync(new Regex($"{Regex.Escape(currentNodePath)}\\?transactionId=[0-9a-fA-F-]+&audienceId=Default"));
-            var transactionMatch = Regex.Match(new Uri(page.Url).Query, @"transactionId=([0-9a-fA-F-]+)");
-            Assert.True(transactionMatch.Success);
-            Assert.True(Guid.TryParse(transactionMatch.Groups[1].Value, out var parsedTransactionId));
-            transactionId = parsedTransactionId;
-            await Assertions.Expect(page.GetByTestId("content-editor")).ToBeVisibleAsync();
-            await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
-        }
-        finally
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge/[0-9a-fA-F-]+\?audienceId=Default"));
+        var selectedUrl = page.Url;
+        await page.GotoAsync(selectedUrl, new PageGotoOptions
         {
-            if (transactionId is not null)
-                await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId.Value);
-        }
+            WaitUntil = WaitUntilState.DOMContentLoaded,
+            Timeout = 30_000
+        });
+        await CircuitProbe.WaitForInteractivityAsync(page);
+
+        await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
+            .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
+        await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToContainTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
+        await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToContainTextAsync(BrowserKnowledgeSeed.DeepNavigationBranchTitle);
+        await Assertions.Expect(page.GetByTestId("node-details-section")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("node-details-edit")).ToHaveCountAsync(0);
+        await Assertions.Expect(page.GetByTestId("node-details-requested-audience")).ToHaveTextAsync("Default");
+
+        await page.ReloadAsync(new PageReloadOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded,
+            Timeout = 30_000
+        });
+        await CircuitProbe.WaitForInteractivityAsync(page);
+        await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
+            .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
+        await Assertions.Expect(page.GetByTestId("node-details-edit")).ToHaveCountAsync(0);
     }
 }

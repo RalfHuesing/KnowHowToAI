@@ -4,7 +4,7 @@ using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.AspNetCore.Components;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 /// <summary>
 /// Rendert Markdown-Text zu sicherem HTML gemäß O-020:

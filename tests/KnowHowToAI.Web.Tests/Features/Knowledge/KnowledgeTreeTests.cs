@@ -14,6 +14,7 @@ using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 

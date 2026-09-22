@@ -19,6 +19,7 @@ using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -27,6 +28,7 @@ public sealed class KnowledgePageTests : BunitContext
 {
     private static readonly SnapshotId DefaultSnapshotId = new(1);
     private static readonly AudienceId DefaultAudienceId = new("Developer");
+
 
     public KnowledgePageTests() =>
         JSInterop.SetupModule("./Web/Features/Content/ContentEditor.razor.js").Mode = JSRuntimeMode.Loose;
@@ -45,7 +47,7 @@ public sealed class KnowledgePageTests : BunitContext
         var cut = Render<KnowledgePage>();
 
         Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
-        Assert.Equal("Wissensbasis", cut.Find("h1").TextContent.Trim());
+        Assert.Equal("Root", cut.Find("h1").TextContent.Trim());
         Assert.Single(cut.FindAll("h1"));
         Assert.NotNull(cut.Find("[data-testid='breadcrumbs']"));
         Assert.NotNull(cut.Find("[data-testid='knowledge-tree']"));
@@ -61,26 +63,27 @@ public sealed class KnowledgePageTests : BunitContext
 
         var childId = new NodeId(Guid.NewGuid());
         harness.AddNode(new Node(DefaultSnapshotId, childId, rootId, "Child", null, 1, false));
+        var deepNodeId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, deepNodeId, childId, "Deep Node", null, 1, false));
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         Services.AddWebPageStates()
             .AddKnowledgePageServices(service, transactionRepository: harness.CreateRepositories().Transactions);
 
         var cut = Render<KnowledgePage>(parameters => parameters
-            .Add(p => p.NodeId, childId.Value));
+            .Add(p => p.NodeId, deepNodeId.Value));
 
-        Assert.Equal("Wissensbasis", cut.Find("h1").TextContent.Trim());
+        Assert.Equal("Deep Node", cut.Find("h1").TextContent.Trim());
         Assert.Single(cut.FindAll("h1"));
-        var nodeTitle = cut.Find("[data-testid='node-details-title']");
-        Assert.Equal("H2", nodeTitle.NodeName, ignoreCase: true);
-        Assert.Equal("Child", nodeTitle.TextContent.Trim());
+        Assert.Empty(cut.FindAll("[data-testid='node-details-title']"));
         Assert.NotNull(cut.Find("[data-testid='node-details-section']"));
         var selectedIdElement = cut.Find("[data-testid='node-details-node-id']");
-        Assert.Contains(childId.Value.ToString(), selectedIdElement.TextContent);
+        Assert.Contains(deepNodeId.Value.ToString(), selectedIdElement.TextContent);
 
-        // Breadcrumbs enthalten Root und Child
+        // Der direkte Deep-Link lädt und markiert den gesamten sichtbaren Ancestor-Pfad.
         var breadcrumbCurrent = cut.Find("[aria-current='page']");
-        Assert.Equal("Child", breadcrumbCurrent.TextContent.Trim());
+        Assert.Equal("Deep Node", breadcrumbCurrent.TextContent.Trim());
+        Assert.Equal(3, cut.FindAll(".breadcrumb-item").Count);
     }
 
     [Fact]
@@ -105,12 +108,47 @@ public sealed class KnowledgePageTests : BunitContext
         Assert.Contains($"/knowledge/{rootId.Value}", navMan.Uri);
     }
 
+    [Fact]
+    public void KnowledgePage_CurrentRead_ShowsRequestedAndFallbackAudience()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var nodeId = new NodeId(Guid.NewGuid());
+        var developer = new AudienceId("Developer");
+        var architect = new AudienceId("Architect");
+        harness.ClearAudiences(DefaultSnapshotId);
+        harness.AddNode(new Node(DefaultSnapshotId, nodeId, null, "Fallback node", null, 0, false));
+        harness.AddAudience(new Audience(DefaultSnapshotId, developer, "Developer", null, false));
+        harness.AddAudience(new Audience(DefaultSnapshotId, architect, "Architect", null, false));
+        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, developer, architect, 1));
+        harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, architect, architect, 1));
+        harness.AddContent(new NodeContent(
+            DefaultSnapshotId,
+            nodeId,
+            architect,
+            new ContentRevisionId(Guid.NewGuid()),
+            ContentMode.Independent,
+            "Architect content",
+            false));
+
+        var navigationService = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
+        Services.AddSingleton<IAudienceStorageService>(new InMemoryAudienceStorageService("Developer"));
+        Services.AddWebPageStates()
+            .AddKnowledgePageServices(navigationService, transactionRepository: harness.CreateRepositories().Transactions);
+        Services.GetRequiredService<NavigationManager>().NavigateTo(
+            $"/knowledge/{nodeId.Value:D}?audienceId=Developer");
+
+        var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, nodeId.Value));
+
+        Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
+        Assert.Equal("Architect", cut.Find("[data-testid='node-details-resolved-audience']").TextContent.Trim());
+        Assert.Contains("Fallback-Zielgruppe", cut.Find("[data-testid='node-content-fallback-context']").TextContent);
+        Assert.Equal("Architect content", cut.Find("[data-testid='node-content-markdown']").TextContent.Trim());
+    }
+
     [Theory]
     [InlineData("current", "Eigener Inhalt", "Independent", 0, null)]
-    [InlineData("snapshot", "Eigener Inhalt", "Derived", 1, "Quelle: Aktuell")]
     [InlineData("working", "Eigener Inhalt", "Derived", 1, "Quelle: Veraltet")]
-    [InlineData("fallback", "Fallback", "Derived", 1, "Quelle: Aktuell")]
-    public void KnowledgePage_RoutedRead_RendersResolvedProvenanceForEveryReadContext(
+    public void KnowledgePage_RoutedRead_RendersResolvedProvenanceForCurrentAndWorkingContexts(
         string scenario,
         string availability,
         string contentMode,
@@ -119,9 +157,7 @@ public sealed class KnowledgePageTests : BunitContext
     {
         var rootId = new NodeId(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
         var sourceId = new NodeId(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
-        var historicalSnapshotId = new SnapshotId(2);
         var workingSnapshotId = new SnapshotId(3);
-        var fallbackSnapshotId = new SnapshotId(4);
         var transactionId = new TransactionId(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"));
         var defaultAudienceId = new AudienceId("Default");
         var harness = new NavigationTestHarness(DefaultSnapshotId);
@@ -131,18 +167,9 @@ public sealed class KnowledgePageTests : BunitContext
         harness.AddAudience(new Audience(DefaultSnapshotId, defaultAudienceId, "Default", null, false));
         harness.AddAudienceResolution(new AudienceResolution(DefaultSnapshotId, DefaultAudienceId, DefaultAudienceId, 1));
 
-        harness.AddHistoricalSnapshot(new Snapshot(historicalSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-        AddDerivedScenario(harness, historicalSnapshotId, rootId, sourceId, new AudienceId("Developer"), sourceIsCurrent: true);
-
         var transaction = new KnowledgeTransaction(transactionId, DefaultSnapshotId, workingSnapshotId, TransactionState.Open, 7, DateTimeOffset.UtcNow, null, null, null, null, null);
         harness.SetTransaction(transaction);
         AddDerivedScenario(harness, workingSnapshotId, rootId, sourceId, new AudienceId("Developer"), sourceIsCurrent: false);
-
-        harness.AddHistoricalSnapshot(new Snapshot(fallbackSnapshotId, DefaultSnapshotId, SnapshotState.Committed, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
-        harness.AddAudience(new Audience(fallbackSnapshotId, defaultAudienceId, "Default", null, false));
-        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, defaultAudienceId, defaultAudienceId, 1));
-        harness.AddAudienceResolution(new AudienceResolution(fallbackSnapshotId, new AudienceId("Developer"), defaultAudienceId, 2));
-        AddDerivedScenario(harness, fallbackSnapshotId, rootId, sourceId, defaultAudienceId, sourceIsCurrent: true);
 
         var service = harness.CreateService(defaultPageSize: 100, maximumPageSize: 100);
         Services.AddWebPageStates()
@@ -160,9 +187,7 @@ public sealed class KnowledgePageTests : BunitContext
 
         var query = scenario switch
         {
-            "snapshot" => $"?snapshotId={historicalSnapshotId.Value}&audienceId=Developer",
             "working" => $"?transactionId={transactionId.Value:D}&audienceId=Developer",
-            "fallback" => $"?snapshotId={fallbackSnapshotId.Value}&audienceId=Developer",
             _ => "?audienceId=Developer"
         };
         Services.GetRequiredService<NavigationManager>().NavigateTo($"/knowledge/{rootId.Value:D}{query}");

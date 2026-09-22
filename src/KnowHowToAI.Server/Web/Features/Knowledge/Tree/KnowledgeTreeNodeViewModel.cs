@@ -3,7 +3,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Validation;
 using KnowHowToAI.Core.Domain.Versioning;
 
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// UI-ViewModel für einen Knoten im nativen Wissensbaum.

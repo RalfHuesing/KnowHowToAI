@@ -1,6 +1,7 @@
 using Bunit;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using Microsoft.AspNetCore.Components;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 

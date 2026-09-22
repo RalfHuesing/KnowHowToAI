@@ -6,6 +6,7 @@ using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -40,12 +41,15 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         Assert.True(treeState.RootNode.HasNextPage);
         Assert.False(treeState.RootNode.HasPreviousPage);
         Assert.Equal("Child 001", treeState.RootNode.Children[0].Title);
+        var firstPageNodeIds = treeState.RootNode.Children.Select(child => child.NodeId).ToHashSet();
+        Assert.Equal(firstPageNodeIds.Count, treeState.RootNode.Children.Select(child => child.NodeId).Distinct().Count());
 
         // Weiter blättern -> Seite 2: genau 1 Eintrag (ersetzt die 100 Einträge!)
         await treeState.PageNextAsync(rootId.Value);
 
         Assert.Single(treeState.RootNode.Children);
         Assert.Equal("Child 101", treeState.RootNode.Children[0].Title);
+        Assert.DoesNotContain(treeState.RootNode.Children[0].NodeId, firstPageNodeIds);
         Assert.Null(treeState.RootNode.NextCursor);
         Assert.False(treeState.RootNode.HasNextPage);
         Assert.True(treeState.RootNode.HasPreviousPage);
@@ -56,6 +60,7 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
 
         Assert.Equal(100, treeState.RootNode.Children.Count);
         Assert.Equal("Child 001", treeState.RootNode.Children[0].Title);
+        Assert.True(firstPageNodeIds.SetEquals(treeState.RootNode.Children.Select(child => child.NodeId)));
         Assert.NotNull(treeState.RootNode.NextCursor);
         Assert.True(treeState.RootNode.HasNextPage);
         Assert.False(treeState.RootNode.HasPreviousPage);

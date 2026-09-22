@@ -1,5 +1,6 @@
 using Bunit;
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 

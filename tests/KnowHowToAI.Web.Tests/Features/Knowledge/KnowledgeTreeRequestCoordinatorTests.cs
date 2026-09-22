@@ -1,4 +1,5 @@
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 

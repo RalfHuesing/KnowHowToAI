@@ -4,6 +4,7 @@ using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 

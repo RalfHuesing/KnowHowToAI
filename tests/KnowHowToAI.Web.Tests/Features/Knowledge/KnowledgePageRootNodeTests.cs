@@ -34,13 +34,15 @@ public sealed class KnowledgePageRootNodeTests : BunitContext
     }
 
     [Fact]
-    public void KnowledgePage_EmptyWorkingTree_OffersRootCreation()
+    public void KnowledgePage_EmptyWorkingTree_ExplainsThatRootCreationIsNotAvailableInTheReadRoute()
     {
         var cut = RenderEmptyKnowledgePage(activeTransaction: true);
 
         Assert.NotNull(cut.Find("[data-testid='tree-empty']"));
-        Assert.NotNull(cut.Find("[data-testid='root-node-editor']"));
-        Assert.NotNull(cut.Find("[data-testid='create-root-node']"));
+        Assert.NotNull(cut.Find("[data-testid='knowledge-empty-root']"));
+        var createAction = cut.Find("[data-testid='knowledge-create-root']");
+        Assert.True(createAction.HasAttribute("disabled"));
+        Assert.Empty(cut.FindAll("[data-testid='root-node-editor']"));
     }
 
     private IRenderedComponent<KnowledgePage> RenderEmptyKnowledgePage(bool activeTransaction)

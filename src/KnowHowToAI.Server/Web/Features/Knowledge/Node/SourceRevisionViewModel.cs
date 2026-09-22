@@ -1,4 +1,4 @@
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 /// <summary>
 /// Unveränderliches UI-Datenmodell für eine Quellrevision eines Derived Contents.

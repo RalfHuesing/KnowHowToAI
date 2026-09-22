@@ -1,4 +1,4 @@
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Unveränderliches UI-Datenmodell für eine paginierte Kind-Knoten-Seite.

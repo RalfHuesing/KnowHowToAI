@@ -30,7 +30,7 @@ App.razor
 |---|---|
 | Shell | [`MainLayout.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor) besitzt Landmarks, Header, kompakten Workspace, globalen Toast-Host und Navigation Protection. |
 | Hauptnavigation | [`PrimaryNavigation.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Navigation/PrimaryNavigation.razor) zeigt ausschließlich Wissen und Entwürfe. [`ActiveDraftLink`](../src/KnowHowToAI.Server/Web/Components/Layout/Navigation/ActiveDraftLink.razor) führt zum ausgewählten Entwurf. |
-| Wissenskontext | Der Selektor unter [`KnowledgePage`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) zeigt Zielgruppen- und Lesekontext direkt am Wissensarbeitsplatz. Die alte globale Kontextleiste und das Kontextpanel sind nicht Teil der Shell. |
+| Wissenskontext | Der Zielgruppenselektor unter [`KnowledgePage`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) zeigt Zielgruppe und Lesekontext direkt am Wissensarbeitsplatz. `/knowledge` liest Current oder eine explizite `transactionId`; Snapshots und Releases haben eigene Historie-/Release-Flächen. |
 | Seitenregionen | [`PageRegionState.cs`](../src/KnowHowToAI.Server/Web/Components/Layout/PageRegions/PageRegionState.cs) nimmt Breadcrumbs, Aktionen und noch von Altseiten verwendete Kontextverträge auf. Die Shell rendert Breadcrumbs und Aktionen innerhalb von `main`; Kontextverträge werden nicht global angezeigt. Leere Slots belegen keinen Platz. |
 | Arbeitsfläche | [`MainLayout.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor) besitzt genau ein `main#shell-main`; Routable Pages rendern darin ihren Page-Root und ihre Feature-Sections. |
 | Gemeinsame Seitenbasis | [`PageFrame.razor`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor) rendert für jede fachliche Routable Page genau einen `section.page-frame--shared` mit `header`, `h1` und Inhaltsbereich. `Title` ist erforderlich; `Description`, `Badges`, `Actions`, `ChildContent`, `Class` und zusätzliche Attribute sind optionale Parameter. |
@@ -44,9 +44,9 @@ als äußeren Page-Root: `/knowledge`, `/knowledge/{NodeId:guid}`, `/search`,
 `/drafts/{TransactionId:guid}`, `/audiences` und `/history`. Auch Lade-, Leer-,
 Fehler-, Auswahl- und Working-Zustände bleiben
 innerhalb dieses Roots. Die `Title`-Parameter werden dadurch immer als genau
-ein semantisches `h1` ausgegeben. Auf beiden Knowledge-Routen bleibt
-`Wissensbasis` das stabile `h1`; der ausgewählte Node wird im Detailbereich als
-`h2` dargestellt. Die Transaction-Detailseite setzt ihren konkreten Zweck
+ein semantisches `h1` ausgegeben. Auf beiden Knowledge-Routen zeigt das `h1`
+den ausgewählten Node-Titel und fällt ohne Auswahl auf `Wissensbasis` zurück;
+die Dokumentansicht fügt keine zweite Überschrift erster Ebene hinzu. Die Transaction-Detailseite setzt ihren konkreten Zweck
 dynamisch über `TransactionPageTitle`.
 
 Die Shell besitzt weiterhin den verfügbaren Arbeitsraum und ihren Inset.
@@ -77,8 +77,8 @@ renderer-/Circuit-Grenzen stehen in [Architektur](Architektur.md).
 ## 3. Seitennetz und Kernabläufe
 
 ```text
-/ ── /knowledge ── Wissensbaum ── Node-Details ── Historie/Export
-       │                 └─ Working-Transaction: Nodes/Content/Zielgruppen
+/ ── /knowledge ── gepagter Wissensbaum ── lesendes Node-Dokument ── Historie/Export
+       │                 └─ Transaktionsarbeitsplatz: Nodes/Content/Zielgruppen
        │                                              └─ Validieren → Commit/Verwerfen
        ├─ Suche ── Treffer ── Wissensbaum (Kontext-Query bleibt erhalten)
        ├─ Transactions ── Transaction-Arbeitsbereich ── Wissensbaum/Zielgruppen
@@ -115,8 +115,8 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
 | Route | Kontext/Parameter und Hauptaufgabe | Routable Page / repräsentativer Test |
 |---|---|---|
 | `/` | Ersetzt die URL ohne Zusatzparameter durch `/knowledge`. | [`KnowledgeRedirect.razor`](../src/KnowHowToAI.Server/Web/Components/Navigation/KnowledgeRedirect.razor) · [`DashboardSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/DashboardSmokeTests.cs) |
-| `/knowledge` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId` plus `audienceId`; Baum ohne feste Node-Auswahl, Details/Editor je Zustand. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgePageContextSelectorTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/KnowledgePageContextSelectorTests.cs) |
-| `/knowledge/{NodeId:guid}` | Wie `/knowledge`, zusätzlich GUID-Auswahl des Knotens; Baum, Breadcrumbs und Knotendetails fokussieren diesen Node. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgeTreeSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeTreeSmokeTests.cs) |
+| `/knowledge` | Current oder explizite `transactionId` plus `audienceId`; lazy gepagter Baum, kein ausgewähltes Dokument und keine Mutationsbedienelemente. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgePageContextSelectorTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/KnowledgePageContextSelectorTests.cs) |
+| `/knowledge/{NodeId:guid}` | Wie `/knowledge`, zusätzlich GUID-Auswahl des Knotens; Tree-Pfad, Breadcrumbs und lesendes Dokument rekonstruieren die tiefe Auswahl direkt und nach Reload. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgeTreeSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeTreeSmokeTests.cs) |
 | `/search` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId` plus `audienceId`; Suche, Filter, paginierte Treffer und Übergang in Knowledge. | [`SearchPage.razor`](../src/KnowHowToAI.Server/Web/Features/Search/SearchPage.razor) · [`SearchSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/SearchSmokeTests.cs) |
 | `/transactions` | Kein Page-Query-Kontext; Working Transaction beginnen oder offene Transactions aufnehmen und in Details/Arbeitskontext weitergehen. | [`TransactionsPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionsPage.razor) · [`TransactionsPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionsPageTests.cs) |
 | `/transactions/{TransactionId:guid}` | GUID identifiziert die Working Transaction; weiter in Knowledge/Zielgruppen, validieren, committen oder verwerfen. | [`TransactionPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionPage.razor) · [`TransactionPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionPageTests.cs) |

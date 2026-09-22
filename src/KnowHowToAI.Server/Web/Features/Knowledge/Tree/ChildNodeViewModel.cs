@@ -1,4 +1,4 @@
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>
 /// Unveränderliches UI-Datenmodell für einen Kind-Knoten im Wissensbaum oder in Listen.

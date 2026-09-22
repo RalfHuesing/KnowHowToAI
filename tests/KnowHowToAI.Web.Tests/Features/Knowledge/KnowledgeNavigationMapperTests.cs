@@ -4,6 +4,8 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 

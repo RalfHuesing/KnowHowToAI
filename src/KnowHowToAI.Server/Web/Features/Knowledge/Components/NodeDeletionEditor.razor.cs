@@ -3,6 +3,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using Microsoft.AspNetCore.Components;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
 

@@ -1,4 +1,4 @@
-namespace KnowHowToAI.Server.Web.Features.Knowledge;
+namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
 /// <summary>Beschreibt eine vom nativen Baum angeforderte, serverbestätigte Verschiebung.</summary>
 public sealed record TreeMoveRequest(
