@@ -124,7 +124,7 @@ implementierten Zustands.
     Browser-/Strukturtests sind Bestandteil des Commits; Auditbilder bleiben
     temporär und werden nicht versioniert.
 
-- [ ] **Audit**
+- [x] **Audit**
   - **Intention:** Das fertig umgesetzte Vorhaben als Ganzes gegen Konzept,
     Nicht-Ziele, Invarianten und Nachweise freigeben.
   - **Scope:** Nur lesen und prüfen: Roadmap-Checkboxen, geänderte UI-/Test-/Doku-
@@ -138,3 +138,12 @@ implementierten Zustands.
   - **Abnahme:** Alle vorherigen Checkboxen und deren Abnahmen sind belegt; der
     Audit bestätigt Konzepttreue, keine ungeklärte Abweichung und vollständige
     Dokumentation des implementierten Zustands.
+  - **Nachweis (2026-09-22):** Das Finding zur lokalen Page-Root-CSS-Ownership
+    ist mit `e64e275` behoben: alle sieben Feature-Rootregeln wurden entfernt;
+    `PageFrame` ist alleiniger Owner von Root, Flex-Richtung und Rhythmus.
+    Der routeübergreifende CSSOM-Test und die PageFrame-Smokes sind mit 4/4
+    grün, der Vollbuild über `scripts/build.ps1` ist grün, und der aktivierte
+    UiAudit-Lauf erzeugte 20 Aufnahmen unter
+    `temp/ui-audit/2026-09-22_10-46-27/`; die manuelle Stichprobe zeigte keine
+    durch die Korrektur verursachte Layout-, Fokus- oder Funktionsregression.
+    `git diff --check` ist sauber; Auditbilder bleiben temporär.
