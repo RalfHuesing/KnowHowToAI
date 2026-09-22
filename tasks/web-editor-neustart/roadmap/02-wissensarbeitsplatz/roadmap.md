@@ -8,7 +8,7 @@ bearbeiten. Strukturänderungen gehen in denselben sichtbaren Entwurf.
 
 ## Reihenfolge
 
-- [ ] [M2.1-T1 – Baum und Dokumentansicht](tasks/M2.1-T1.md)
+- [x] [M2.1-T1 – Baum und Dokumentansicht](tasks/M2.1-T1.md)
 - [ ] [M2.2-T1 – Direkte Node- und Content-Bearbeitung](tasks/M2.2-T1.md)
 - [ ] [M2.3-T1 – Node-Anlage und Baumbewegung](tasks/M2.3-T1.md)
 
