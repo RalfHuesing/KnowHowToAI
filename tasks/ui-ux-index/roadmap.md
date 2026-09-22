@@ -84,7 +84,7 @@
     Routen-/Linkinventar und `git diff --check` sind grün; Build, Tests und
     Browserlauf wurden gemäß Scope nicht ausgeführt.
 
-- [ ] **Begrenzten Abschlussaudit durchführen**
+- [x] **Begrenzten Abschlussaudit durchführen**
   - Intention: Ein unabhängiger, rein lesender Audit bestätigt, dass das
     UI-Gesamtbild vollständig, knapp, belegbar und widerspruchsfrei verankert ist.
   - Scope: Ergebnis gegen `Konzept.md`, Doku-Richtlinien, den aktuellen
@@ -104,3 +104,11 @@
       erneut begrenzt geprüft oder an den Nutzer eskaliert.
     - Die Checkbox wird erst nach bestandenem Audit geschlossen; Ergebnis und
       Checkbox werden gemeinsam atomar committet.
+
+  - **Audit-Ergebnis:** `bestanden nach einmaliger Korrekturrunde`. Geprüft und
+    korrigiert wurden in `docs/WebUi.md` die Ownership von `main#shell-main`
+    (MainLayout besitzt es, Routable Pages rendern darin ihren Page-Root), der
+    aktuelle Audience-Mutations-/Dirty-State gegen `AudiencesPage` und
+    `AudiencesPageTests` sowie die Release-Metadatenanlage über
+    `ReleasePanel`/`CreateReleaseDialog` und `HistoryPageTests`. Betroffene
+    Links lösen auf; `git diff --check` ist grün. Keine weiteren Befunde.

@@ -21,7 +21,7 @@ App.razor
 │  ├─ optional: ContextPanel
 │  └─ Workspace
 │     ├─ optional: BreadcrumbRegion + PageActions
-│     ├─ main#shell-main (genau eine Routable Page)
+│     ├─ main#shell-main (eine Routable Page wird darin gerendert)
 │     └─ ToastRegion (global, nichtkritische Abschlussmeldungen)
 │  + ContextSelectorDialog + NavigationProtection
 └─ ReconnectModal (Framework-Circuitzustand)
@@ -33,7 +33,7 @@ App.razor
 | Hauptnavigation | [`PrimaryNavigation.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/PageRegions/PrimaryNavigation.razor) zeigt Start, Suche, Transactions und Zielgruppen. Historie ist routbar, aber kein Hauptnavigationsziel. |
 | Wissenskontext | [`KnowledgeContextBar.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Context/KnowledgeContextBar.razor) zeigt `Current`, `Snapshot`, `Transaction` oder `Release`, optionale Bezeichnung/Zielgruppe, Working-Metadaten und bei Bedarf Dirty. Sie mutiert den Kontext nicht. |
 | Seitenregionen | [`PageRegionState.cs`](../src/KnowHowToAI.Server/Web/Components/Layout/PageRegions/PageRegionState.cs) nimmt Breadcrumbs, Aktionen, optionalen Kontextbereich und den Kontextvertrag einer Fachseite auf. Leere Slots belegen keinen Platz. |
-| Arbeitsfläche | Jede Routable Page besitzt `main#shell-main`; ihre Page-Root- und Feature-Sections liegen in der jeweiligen `Web/Features/*`-Komponente. |
+| Arbeitsfläche | [`MainLayout.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor) besitzt genau ein `main#shell-main`; Routable Pages rendern darin ihren Page-Root und ihre Feature-Sections. |
 | Feedback/Dialoge | Kritische oder fachliche Zustände bleiben an der auslösenden Seite (`InlineAlert`, `StatusBanner`, Lade-/Leer-/Fehlerzustände). Bestätigungen nutzen den gemeinsamen Dialog; nichtkritische abgeschlossene Aktionen nutzen die einzige `ToastRegion`. |
 
 Responsive Anordnung, Semantik, Fokus, Reflow und Layout-Ownership sind in den
@@ -50,7 +50,7 @@ Start/Dashboard ── Wissensbaum ── Node-Details ── Historie/Export
        │                                              └─ Validieren → Commit/Verwerfen
        ├─ Suche ── Treffer ── Wissensbaum (Kontext-Query bleibt erhalten)
        ├─ Transactions ── Transaction-Arbeitsbereich ── Wissensbaum/Zielgruppen
-       └─ Historie ── Snapshot/Release ── Wissensbaum als Read-Kontext
+       └─ Historie ── Snapshot/Diff, Release-Metadaten ── Wissensbaum als Read-Kontext
 ```
 
 - Ein Read-Kontext ist entweder Current oder genau einer der URL-Selektoren
@@ -67,8 +67,10 @@ Start/Dashboard ── Wissensbaum ── Node-Details ── Historie/Export
   [`NavigationProtection.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/NavigationProtection.razor)
   geschützt.
 - Suchtreffer und Dashboard-/Historienlinks öffnen den kanonischen Knowledge-
-  Einstieg und erhalten den relevanten Kontext. Historie bleibt read-only; sie
-  bietet keinen Merge- oder Reapply-Ablauf.
+  Einstieg und erhalten den relevanten Kontext. Snapshot-/Diff-Ansichten der
+  Historie bleiben read-only; der Release-Bereich kann Release-Metadaten für
+  committed Snapshots anlegen. Einen Merge- oder Reapply-Ablauf bietet die
+  Historie nicht.
 
 ## 4. Routenindex
 
@@ -84,7 +86,7 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
 | `/transactions` | Kein Page-Query-Kontext; Working Transaction beginnen oder offene Transactions aufnehmen und in Details/Arbeitskontext weitergehen. | [`TransactionsPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionsPage.razor) · [`TransactionsPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionsPageTests.cs) |
 | `/transactions/{TransactionId:guid}` | GUID identifiziert die Working Transaction; weiter in Knowledge/Zielgruppen, validieren, committen oder verwerfen. | [`TransactionPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionPage.razor) · [`TransactionPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionPageTests.cs) |
 | `/audiences` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId`; Zielgruppen anzeigen, im offenen Working-Kontext pflegen, sonst read-only. | [`AudiencesPage.razor`](../src/KnowHowToAI.Server/Web/Features/Audiences/AudiencesPage.razor) · [`AudiencesPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Audiences/AudiencesPageTests.cs) |
-| `/history` | `audienceId` sowie optional `baseSnapshotId`, `targetSnapshotId`, `nodeId`; Snapshots vergleichen, Releases anzeigen und in einen historischen Knowledge-Kontext wechseln. | [`HistoryPage.razor`](../src/KnowHowToAI.Server/Web/Features/History/HistoryPage.razor) · [`HistorySmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/HistorySmokeTests.cs) |
+| `/history` | `audienceId` sowie optional `baseSnapshotId`, `targetSnapshotId`, `nodeId`; Snapshots vergleichen, Release-Metadaten für einen committed Snapshot anlegen, Releases anzeigen und in einen historischen Knowledge-Kontext wechseln. | [`HistoryPage.razor`](../src/KnowHowToAI.Server/Web/Features/History/HistoryPage.razor) · [`HistoryPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/History/HistoryPageTests.cs) |
 
 ## 5. Seitensteckbriefe
 
@@ -170,14 +172,19 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
 
 ### Historie und Releases
 
-- Intention: unveränderliche Snapshots vergleichen und Releases einsehen.
+- Intention: unveränderliche Snapshots vergleichen sowie Release-Metadaten für
+  committed Snapshots einsehen und anlegen.
 - Hauptbereiche: Abgrenzung zu Working Transactions, Snapshot-Auswahl,
-  cursor-paginierter Diff und Release-Panel.
-- Primäre Aktionen: Ausgang/Ziel wählen, optional Node filtern und Snapshot oder
-  Release im Knowledge-Read-Kontext öffnen.
+  cursor-paginierter Diff, Release-Panel und `CreateReleaseDialog`.
+- Primäre Aktionen: Ausgang/Ziel wählen, optional Node filtern, Snapshot- oder
+  Diff-Ansicht read-only öffnen, Release-Metadaten für einen committed Snapshot
+  anlegen und Snapshot/Release im Knowledge-Read-Kontext öffnen.
 - Zustände: ungültige Query-IDs, noch nicht gewählte Vergleichsstände, leere
-  Historie und geladener/fehlerhafter Diff.
+  Historie, geladener/fehlerhafter Diff sowie Release-Anlage mit Validierungs-,
+  Namenskonflikt- oder Qualitätsbefund-Ergebnis.
 - Code/Test: [`HistoryPage.razor`](../src/KnowHowToAI.Server/Web/Features/History/HistoryPage.razor),
+  [`ReleasePanel.razor`](../src/KnowHowToAI.Server/Web/Features/History/ReleasePanel.razor),
+  [`CreateReleaseDialog.razor`](../src/KnowHowToAI.Server/Web/Features/History/CreateReleaseDialog.razor),
   [`HistoryPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/History/HistoryPageTests.cs).
 
 ## 6. Gemeinsame Verträge und Detailquellen
@@ -188,8 +195,11 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
   Dirty ist [`WorkspaceState.cs`](../src/KnowHowToAI.Server/Web/State/WorkspaceState.cs).
 - **Dirty und Navigation:** Editor-Komponenten ändern den zentralen Zustand;
   [`NavigationProtection.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/NavigationProtection.razor)
-  schützt interne und externe Navigation. Persistierte Transaction-Änderungen
-  sind kein Browser-Dirty-State.
+  schützt interne und externe Navigation. Eine erfolgreich abgeschlossene
+  Audience-Mutation im Working Snapshot setzt aktuell weiterhin
+  `WorkspaceState.IsDirty`; dadurch greift die NavigationProtection auch nach
+  dieser fachlichen Persistierung. Der Dirty-State wird beim Kontextwechsel
+  zurückgesetzt und bezeichnet den noch nicht committeten Working-Kontext.
 - **Feedback und Dialoge:** Zustandssemantik liegt bei
   [`Shared/Feedback`](../src/KnowHowToAI.Server/Web/Components/Shared/Feedback),
   blockierende Bereiche bei [`Shared/States`](../src/KnowHowToAI.Server/Web/Components/Shared/States)
