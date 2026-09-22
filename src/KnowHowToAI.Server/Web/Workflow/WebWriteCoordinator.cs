@@ -23,6 +23,12 @@ public sealed record WebWriteCoordinatorResult<T>(
 /// </summary>
 public sealed class WebWriteCoordinator
 {
+    private sealed record TransactionSelection(
+        TransactionId? TransactionId,
+        long? ChangeVersion,
+        bool StartedTransaction,
+        DomainError? Error);
+
     private const string Client = "Web UI";
     private const string Purpose = "Wissenspflege";
 
@@ -57,91 +63,101 @@ public sealed class WebWriteCoordinator
         ArgumentNullException.ThrowIfNull(getChangeVersion);
 
         if (_workspaceState.ActiveTransactionId is { } activeTransactionId)
-            return await RunMutationAsync(activeTransactionId, _workspaceState.CurrentChangeVersion, false).ConfigureAwait(false);
-
-        if (_workspaceState.CurrentReadContext.SnapshotId.HasValue
-            || _workspaceState.CurrentContext.ReadContext != KnowledgeReadContextKind.Current)
         {
-            return new WebWriteCoordinatorResult<T>(
-                null,
-                Result<T>.Failure(new DomainError(
-                    ReadContextErrorCodes.InvalidReadContext,
-                    "Ein erster Web-Write kann nur vom Current Snapshot aus begonnen werden.")),
-                false);
+            return await RunMutationAsync(
+                activeTransactionId,
+                _workspaceState.CurrentChangeVersion,
+                false,
+                mutation,
+                getChangeVersion,
+                cancellationToken).ConfigureAwait(false);
         }
 
-        TransactionId selectedTransactionId;
-        long? expectedChangeVersion;
-        var startedTransaction = false;
+        if (!CanBeginFromCurrent())
+        {
+            return Failure<T>(new DomainError(
+                ReadContextErrorCodes.InvalidReadContext,
+                "Ein erster Web-Write kann nur vom Current Snapshot aus begonnen werden."));
+        }
+
+        var selection = await SelectTransactionAsync(loadedCurrentSnapshotId, cancellationToken).ConfigureAwait(false);
+        if (selection.Error is { } error)
+            return new WebWriteCoordinatorResult<T>(selection.TransactionId, Result<T>.Failure(error), selection.StartedTransaction);
+
+        return await RunMutationAsync(
+            selection.TransactionId!.Value,
+            selection.ChangeVersion,
+            selection.StartedTransaction,
+            mutation,
+            getChangeVersion,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private bool CanBeginFromCurrent() =>
+        !_workspaceState.CurrentReadContext.SnapshotId.HasValue
+        && _workspaceState.CurrentContext.ReadContext == KnowledgeReadContextKind.Current;
+
+    private async Task<TransactionSelection> SelectTransactionAsync(
+        long? loadedCurrentSnapshotId,
+        CancellationToken cancellationToken)
+    {
         await _beginGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (_workspaceState.ActiveTransactionId is { } transactionId)
+                return new TransactionSelection(transactionId, _workspaceState.CurrentChangeVersion, false, null);
+
+            var currentSnapshot = await _snapshotRepository.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+            if (loadedCurrentSnapshotId is null || currentSnapshot.SnapshotId.Value != loadedCurrentSnapshotId.Value)
             {
-                selectedTransactionId = transactionId;
-                expectedChangeVersion = _workspaceState.CurrentChangeVersion;
+                return new TransactionSelection(
+                    null,
+                    null,
+                    false,
+                    CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, currentSnapshot.SnapshotId.Value));
             }
-            else
-            {
-                var currentSnapshot = await _snapshotRepository.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
-                if (loadedCurrentSnapshotId is null || currentSnapshot.SnapshotId.Value != loadedCurrentSnapshotId.Value)
-                {
-                    return new WebWriteCoordinatorResult<T>(
-                        null,
-                        Result<T>.Failure(CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, currentSnapshot.SnapshotId.Value)),
-                        false);
-                }
 
-                var beginResult = await _transactionService.BeginAsync(
-                    new BeginTransactionOptions(
-                        Purpose,
-                        _currentUserService.GetCurrentUserName(),
-                        Client),
-                    cancellationToken).ConfigureAwait(false);
+            var beginResult = await _transactionService.BeginAsync(
+                new BeginTransactionOptions(Purpose, _currentUserService.GetCurrentUserName(), Client),
+                cancellationToken).ConfigureAwait(false);
 
-                var transaction = beginResult.Value!;
-                selectedTransactionId = transaction.TransactionId;
-                expectedChangeVersion = transaction.ChangeVersion;
-                startedTransaction = true;
-                ApplyTransactionToWorkspace(transaction);
-                SelectDraftInUrl(transaction.TransactionId);
+            var transaction = beginResult.Value!;
+            ApplyTransactionToWorkspace(transaction);
+            SelectDraftInUrl(transaction.TransactionId);
 
-                if (transaction.BaseSnapshotId.Value != loadedCurrentSnapshotId.Value)
-                {
-                    return new WebWriteCoordinatorResult<T>(
-                        selectedTransactionId,
-                        Result<T>.Failure(CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, transaction.BaseSnapshotId.Value)),
-                        true);
-                }
-            }
+            var conflict = transaction.BaseSnapshotId.Value != loadedCurrentSnapshotId.Value
+                ? CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, transaction.BaseSnapshotId.Value)
+                : null;
+            return new TransactionSelection(transaction.TransactionId, transaction.ChangeVersion, true, conflict);
         }
         finally
         {
             _beginGate.Release();
         }
-
-        return await RunMutationAsync(selectedTransactionId, expectedChangeVersion, startedTransaction).ConfigureAwait(false);
-
-        async Task<WebWriteCoordinatorResult<T>> RunMutationAsync(
-            TransactionId transactionId,
-            long? expectedChangeVersion,
-            bool startedTransaction)
-        {
-            var result = await mutation(transactionId, expectedChangeVersion, cancellationToken).ConfigureAwait(false);
-            if (result.IsSuccess)
-            {
-                if (result.Value is { } value && getChangeVersion(value) is { } changeVersion)
-                {
-                    _workspaceState.SetChangeVersion(changeVersion);
-                    _workspaceState.SetContext(
-                        _workspaceState.CurrentContext with { ChangeVersion = changeVersion },
-                        _workspaceState.CurrentReadContext);
-                }
-            }
-
-            return new WebWriteCoordinatorResult<T>(transactionId, result, startedTransaction);
-        }
     }
+
+    private async Task<WebWriteCoordinatorResult<T>> RunMutationAsync<T>(
+        TransactionId transactionId,
+        long? expectedChangeVersion,
+        bool startedTransaction,
+        Func<TransactionId, long?, CancellationToken, Task<Result<T>>> mutation,
+        Func<T, long?> getChangeVersion,
+        CancellationToken cancellationToken)
+    {
+        var result = await mutation(transactionId, expectedChangeVersion, cancellationToken).ConfigureAwait(false);
+        if (result.IsSuccess && result.Value is { } value && getChangeVersion(value) is { } changeVersion)
+        {
+            _workspaceState.SetChangeVersion(changeVersion);
+            _workspaceState.SetContext(
+                _workspaceState.CurrentContext with { ChangeVersion = changeVersion },
+                _workspaceState.CurrentReadContext);
+        }
+
+        return new WebWriteCoordinatorResult<T>(transactionId, result, startedTransaction);
+    }
+
+    private static WebWriteCoordinatorResult<T> Failure<T>(DomainError error) =>
+        new(null, Result<T>.Failure(error), false);
 
     private void ApplyTransactionToWorkspace(KnowledgeTransaction transaction)
     {
@@ -152,7 +168,7 @@ public sealed class WebWriteCoordinator
             DisplayName = Purpose,
             BaseSnapshotId = transaction.BaseSnapshotId.Value,
             ChangeVersion = transaction.ChangeVersion,
-            IsDirty = _workspaceState.IsDirty
+            IsDirty = _workspaceState.CurrentContext.IsDirty
         };
         _workspaceState.SetContext(context, new ReadContext(TransactionId: transaction.TransactionId));
         _workspaceState.SetChangeVersion(transaction.ChangeVersion);

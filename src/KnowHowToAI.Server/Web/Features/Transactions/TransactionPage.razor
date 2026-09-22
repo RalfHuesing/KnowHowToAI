@@ -58,88 +58,9 @@
             </div>
             <TransactionValidation Transaction="@_transaction" />
 
-            <section class="transaction-completion" aria-labelledby="transaction-completion-heading" data-testid="transaction-completion">
-                <div class="transaction-workflow__step" data-testid="transaction-completion-step">
-                    <span class="transaction-workflow__step-number" aria-hidden="true">2</span>
-                    <div>
-                        <h2 id="transaction-completion-heading">Transaction abschließen</h2>
-                        <p>Committen Sie die geprüften Änderungen oder verwerfen Sie sie vollständig.</p>
-                    </div>
-                </div>
-                <p class="transaction-completion__hint readable">Commit ist nicht rückgängig zu machen. Verwerfen lässt den aktuellen Snapshot unverändert.</p>
-                <div class="transaction-page__actions action-group" data-testid="transaction-page-actions">
-                    @if (!string.IsNullOrWhiteSpace(_completionError))
-                    {
-                        <div class="transaction-page__completion-error" role="alert" data-testid="transaction-completion-error">
-                            <InlineAlert Kind="AlertKind.Fehler" Message="@_completionError" />
-                        </div>
-                    }
-                    @if (_transaction.State != TransactionState.Open)
-                    {
-                        <p role="status" data-testid="transaction-completion-unavailable">
-                            Diese Transaction ist bereits abgeschlossen und kann nicht erneut committed oder verworfen werden.
-                        </p>
-                    }
-                    <button type="button" class="btn btn-primary" @onclick="OpenCommitDialogAsync"
-                            disabled="@(!CanCommit)" data-testid="commit-transaction-button">
-                        Commit
-                    </button>
-                    <button type="button" class="btn btn-secondary" @onclick="OpenDiscardDialogAsync"
-                            disabled="@(!CanDiscard)" data-testid="discard-transaction-button">
-                        Verwerfen
-                    </button>
-                </div>
-            </section>
+            <TransactionCompletionPanel @key="_transaction.TransactionId" Transaction="@_transaction" />
         </section>
 
         <TransactionDiff Transaction="@_transaction" />
-
-        @if (_snapshotConflict is not null)
-        {
-            <section class="snapshot-conflict" aria-labelledby="snapshot-conflict-heading" data-testid="snapshot-conflict">
-                <h2 id="snapshot-conflict-heading">Commit-Konflikt auflösen</h2>
-                <div role="alert" data-testid="snapshot-conflict-explanation">
-                    <InlineAlert Kind="AlertKind.Fehler" Message="Der Commit wurde nicht ausgeführt. Ihre Änderungen wurden nicht übernommen." />
-                    <p>
-                        Diese Transaction basiert auf Base-Snapshot @_snapshotConflict.BaseSnapshotId.
-                        Der Current Snapshot @_snapshotConflict.CurrentSnapshotId ist inzwischen maßgeblich.
-                    </p>
-                    <p>
-                        Vergleichen Sie die Snapshots und starten Sie anschließend eine neue Transaction.
-                        Änderungen werden nicht automatisch zusammengeführt oder kopiert.
-                    </p>
-                </div>
-
-                <SnapshotDiffPanel BaseSnapshotId="@_snapshotConflict.BaseSnapshotId"
-                                   TargetSnapshotId="@_snapshotConflict.CurrentSnapshotId" />
-
-                <div class="snapshot-conflict__actions action-group">
-                    <button type="button" class="btn btn-primary" @onclick="StartManualReapplyAsync"
-                            disabled="@(!CanStartManualReapply)" data-testid="snapshot-conflict-start-reapply">
-                        @(_isStartingManualReapply ? "Neue Transaction wird gestartet..." : "Neue Transaction für manuelles Reapply beginnen")
-                    </button>
-                    <p class="snapshot-conflict__hint">
-                        Die konfliktbehaftete Transaction bleibt erhalten, bis Sie sie ausdrücklich verwerfen.
-                    </p>
-                </div>
-            </section>
-        }
-
     }
 </PageFrame>
-
-<ConfirmationDialog @ref="_commitDialog"
-                    Title="Transaction committen"
-                    Message="Der Working Snapshot wird zum neuen Current Snapshot. Dieser Schritt kann nicht rückgängig gemacht werden."
-                    ConfirmText="Commit ausführen"
-                    InputLabel="Commit-Nachricht (optional)"
-                    OnConfirmWithInput="CommitAsync"
-                    OnCancel="DismissDialogAsync" />
-
-<ConfirmationDialog @ref="_discardDialog"
-                    Title="Transaction verwerfen"
-                    Message="Alle Änderungen im Working Snapshot werden verworfen. Der aktuelle Snapshot bleibt unverändert."
-                    ConfirmText="Transaction verwerfen"
-                    IsDestructive="true"
-                    OnConfirm="DiscardAsync"
-                    OnCancel="DismissDialogAsync" />

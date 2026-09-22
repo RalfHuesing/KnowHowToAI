@@ -92,7 +92,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         // Nach Bestätigung wird zur Ziel-URL navigiert und IsDirty ist false
         Assert.EndsWith("/search", navManager.Uri, StringComparison.Ordinal);
-        Assert.False(workspaceState.IsDirty);
+        Assert.False(workspaceState.CurrentContext.IsDirty);
         Assert.False(pageRegions.KnowledgeContext?.IsDirty);
     }
 
@@ -126,7 +126,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         // Benutzer bleibt auf der Seite, IsDirty bleibt true
         Assert.Equal(initialUri, navManager.Uri);
-        Assert.True(workspaceState.IsDirty);
+        Assert.True(workspaceState.CurrentContext.IsDirty);
         Assert.True(pageRegions.KnowledgeContext?.IsDirty);
     }
 

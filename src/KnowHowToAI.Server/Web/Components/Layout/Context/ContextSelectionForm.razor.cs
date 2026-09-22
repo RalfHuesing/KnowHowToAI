@@ -137,14 +137,14 @@ public sealed partial class ContextSelectionForm : ComponentBase, IDisposable
         if (_errorMessage is not null)
             return;
 
-        if (WorkspaceState.IsDirty && !_isConfirmingDirtySwitch)
+        if (WorkspaceState.CurrentContext.IsDirty && !_isConfirmingDirtySwitch)
         {
             _isConfirmingDirtySwitch = true;
             _errorMessage = "Sie haben ungespeicherte Änderungen. Wenn Sie den Kontext wechseln, gehen diese verloren. Klicken Sie erneut auf 'Übernehmen', um trotzdem zu wechseln.";
             return;
         }
 
-        if (WorkspaceState.IsDirty)
+        if (WorkspaceState.CurrentContext.IsDirty)
         {
             WorkspaceState.SetDirty(false);
         }

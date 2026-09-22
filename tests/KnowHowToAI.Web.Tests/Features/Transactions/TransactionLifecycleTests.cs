@@ -65,14 +65,14 @@ public sealed class TransactionLifecycleTests : BunitContext
 
         var cut = RenderPage();
 
-        cut.Find("[data-testid='commit-transaction-button']").Click();
+        CompletionPanel(cut).Find("[data-testid='commit-transaction-button']").Click();
         var dialog = CommitDialog(cut);
         dialog.Find("textarea").Change("Bereinigt");
         dialog.Find(".confirmation-dialog__button--primary").Click();
 
         Assert.Equal(1, _repository.CommitCount);
         Assert.Equal("Bereinigt", _repository.CommitRequest?.CommitMessage);
-        Assert.False(_workspaceState.HasActiveTransaction);
+        Assert.False(_workspaceState.ActiveTransactionId.HasValue);
         Assert.Equal(KnowHowToAI.Server.Web.Components.Layout.Context.KnowledgeReadContextKind.Current, _workspaceState.CurrentContext.ReadContext);
         Assert.Single(_toastState.Entries);
         Assert.Contains("committed", _toastState.Entries[0].Message, StringComparison.Ordinal);
@@ -93,7 +93,7 @@ public sealed class TransactionLifecycleTests : BunitContext
         ConfirmCommit(cut);
 
         Assert.Equal(1, _repository.CommitCount);
-        Assert.True(_workspaceState.HasActiveTransaction);
+        Assert.True(_workspaceState.ActiveTransactionId.HasValue);
         Assert.Contains("HeadingNotAllowed", cut.Find("[data-testid='transaction-completion-error']").TextContent);
         Assert.Empty(_toastState.Entries);
     }
@@ -122,12 +122,12 @@ public sealed class TransactionLifecycleTests : BunitContext
         ConfirmCommit(cut);
 
         Assert.Equal(1, _repository.CommitCount);
-        Assert.True(_workspaceState.HasActiveTransaction);
+        Assert.True(_workspaceState.ActiveTransactionId.HasValue);
         Assert.Contains("Base-Snapshot 1", cut.Find("[data-testid='snapshot-conflict-explanation']").TextContent);
         Assert.Contains("Current Snapshot 3", cut.Find("[data-testid='snapshot-conflict-explanation']").TextContent);
         Assert.Single(cut.FindAll("[data-testid='snapshot-diff']"));
 
-        cut.Find("[data-testid='snapshot-conflict-start-reapply']").Click();
+        cut.FindComponent<TransactionConflictResolution>().Find("[data-testid='snapshot-conflict-start-reapply']").Click();
 
         Assert.Equal(1, _repository.BeginCount);
         Assert.Equal("Lebenszyklus", _repository.BeginRequest?.Purpose);
@@ -145,7 +145,7 @@ public sealed class TransactionLifecycleTests : BunitContext
         _repository.CommitTask = completion.Task;
         var cut = RenderPage();
 
-        cut.Find("[data-testid='commit-transaction-button']").Click();
+        CompletionPanel(cut).Find("[data-testid='commit-transaction-button']").Click();
         var confirm = CommitDialog(cut).Find(".confirmation-dialog__button--primary");
         confirm.Click();
         confirm.Click();
@@ -154,7 +154,7 @@ public sealed class TransactionLifecycleTests : BunitContext
         Assert.True(cut.Find("[data-testid='discard-transaction-button']").HasAttribute("disabled"));
 
         completion.SetResult(_repository.CommitResult);
-        cut.WaitForAssertion(() => Assert.False(_workspaceState.HasActiveTransaction));
+        cut.WaitForAssertion(() => Assert.False(_workspaceState.ActiveTransactionId.HasValue));
     }
 
     [Fact]
@@ -163,11 +163,11 @@ public sealed class TransactionLifecycleTests : BunitContext
         _repository.DiscardResult = Result<KnowledgeTransaction>.Success(DiscardedTransaction());
         var cut = RenderPage();
 
-        cut.Find("[data-testid='discard-transaction-button']").Click();
+        CompletionPanel(cut).Find("[data-testid='discard-transaction-button']").Click();
         DiscardDialog(cut).Find(".confirmation-dialog__button--destructive").Click();
 
         Assert.Equal(1, _repository.DiscardCount);
-        Assert.False(_workspaceState.HasActiveTransaction);
+        Assert.False(_workspaceState.ActiveTransactionId.HasValue);
         Assert.Single(_toastState.Entries);
         Assert.Contains("verworfen", _toastState.Entries[0].Message, StringComparison.Ordinal);
         Assert.EndsWith("/knowledge", BrowserNavigation.Uri, StringComparison.Ordinal);
@@ -179,7 +179,7 @@ public sealed class TransactionLifecycleTests : BunitContext
         var cut = RenderPage();
         _workspaceState.SetChangeVersion(OpenTransaction().ChangeVersion + 1);
 
-        cut.Find("[data-testid='commit-transaction-button']").Click();
+        CompletionPanel(cut).Find("[data-testid='commit-transaction-button']").Click();
 
         Assert.Equal(0, _repository.CommitCount);
         Assert.Contains("zwischenzeitlich geändert", cut.Find("[data-testid='transaction-completion-error']").TextContent);
@@ -201,6 +201,9 @@ public sealed class TransactionLifecycleTests : BunitContext
         Render<TransactionPage>(parameters => parameters.Add(page => page.TransactionId, _repository.Transaction.TransactionId.Value));
 
     private NavigationManager BrowserNavigation => Services.GetRequiredService<NavigationManager>();
+
+    private static IRenderedComponent<TransactionCompletionPanel> CompletionPanel(IRenderedComponent<TransactionPage> cut) =>
+        cut.FindComponent<TransactionCompletionPanel>();
 
     private static void ConfirmCommit(IRenderedComponent<TransactionPage> cut) =>
         CommitDialog(cut).Find(".confirmation-dialog__button--primary").Click();

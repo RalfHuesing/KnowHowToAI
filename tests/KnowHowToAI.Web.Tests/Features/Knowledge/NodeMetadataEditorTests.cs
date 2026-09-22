@@ -45,14 +45,14 @@ public sealed class NodeMetadataEditorTests : BunitContext
             .Add(component => component.OnMutationSucceeded, EventCallback.Factory.Create<NodeMutationResult>(this, result => persisted = result)));
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='edit-node-metadata']").Click());
-        Assert.False(Services.GetRequiredService<WorkspaceState>().IsDirty);
+        Assert.False(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
         await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Aktualisierter Titel"));
-        Assert.True(Services.GetRequiredService<WorkspaceState>().IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
         await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-description']").Change("Neue Beschreibung"));
         await cut.InvokeAsync(() => cut.Find("[data-testid='save-node-metadata']").Click());
 
         Assert.NotNull(persisted);
-        Assert.False(Services.GetRequiredService<WorkspaceState>().IsDirty);
+        Assert.False(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
         Assert.Equal("Aktualisierter Titel", repository.State.Nodes.Single().Title);
         Assert.Equal("Neue Beschreibung", repository.State.Nodes.Single().Description);
         Assert.Equal(1, persisted.ChangeVersion);
@@ -71,11 +71,11 @@ public sealed class NodeMetadataEditorTests : BunitContext
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='create-child-node']").Click());
         await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Child"));
-        Assert.True(Services.GetRequiredService<WorkspaceState>().IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
         await cut.InvokeAsync(() => cut.Find("[data-testid='save-node-metadata']").Click());
 
         Assert.NotNull(persisted);
-        Assert.False(Services.GetRequiredService<WorkspaceState>().IsDirty);
+        Assert.False(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
         var child = Assert.Single(repository.State.Nodes.Where(node => node.NodeId == ChildNodeId));
         Assert.Equal(RootNodeId, child.ParentNodeId);
         Assert.Equal(ChildNodeId, persisted.Node.NodeId);
@@ -97,7 +97,7 @@ public sealed class NodeMetadataEditorTests : BunitContext
         await cut.InvokeAsync(() => cut.Find("[data-testid='save-node-metadata']").Click());
 
         Assert.Contains(TransactionValidationErrorCodes.ChangeVersionConflict, cut.Markup);
-        Assert.True(Services.GetRequiredService<WorkspaceState>().IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
         Assert.Equal("Anderer Client", repository.State.Nodes.Single().Title);
     }
 
@@ -112,16 +112,16 @@ public sealed class NodeMetadataEditorTests : BunitContext
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='edit-node-metadata']").Click());
         await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Geänderter Titel"));
-        Assert.True(workspaceState.IsDirty);
+        Assert.True(workspaceState.CurrentContext.IsDirty);
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Root"));
-        Assert.False(workspaceState.IsDirty);
+        Assert.False(workspaceState.CurrentContext.IsDirty);
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-description']").Change("Entwurf"));
-        Assert.True(workspaceState.IsDirty);
+        Assert.True(workspaceState.CurrentContext.IsDirty);
         await cut.InvokeAsync(() => cut.Find("button[type='button']").Click());
 
-        Assert.False(workspaceState.IsDirty);
+        Assert.False(workspaceState.CurrentContext.IsDirty);
         Assert.Single(cut.FindAll("[data-testid='edit-node-metadata']"));
     }
 
@@ -136,11 +136,11 @@ public sealed class NodeMetadataEditorTests : BunitContext
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='edit-node-metadata']").Click());
         await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Entwurf"));
-        Assert.True(workspaceState.IsDirty);
+        Assert.True(workspaceState.CurrentContext.IsDirty);
 
         cut.Instance.Dispose();
 
-        Assert.False(workspaceState.IsDirty);
+        Assert.False(workspaceState.CurrentContext.IsDirty);
     }
 
     private InMemoryNodeMutationRepository AddService(WorkingNodeMutationState state)

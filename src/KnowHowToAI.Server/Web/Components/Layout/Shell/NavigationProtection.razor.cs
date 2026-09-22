@@ -24,7 +24,7 @@ public sealed partial class NavigationProtection : ComponentBase
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
-    private bool IsDirty => WorkspaceState?.IsDirty == true;
+    private bool IsDirty => WorkspaceState?.CurrentContext.IsDirty == true;
 
     private async Task HandleBeforeInternalNavigation(LocationChangingContext context)
     {

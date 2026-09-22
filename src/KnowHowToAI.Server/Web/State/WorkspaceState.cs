@@ -24,11 +24,7 @@ public sealed class WorkspaceState
 
     public ReadContext CurrentReadContext { get; private set; } = new();
 
-    public bool HasActiveTransaction => CurrentReadContext.TransactionId.HasValue;
-
     public TransactionId? ActiveTransactionId => CurrentReadContext.TransactionId;
-
-    public bool IsDirty => CurrentContext.IsDirty;
 
     public event Action? Changed;
 

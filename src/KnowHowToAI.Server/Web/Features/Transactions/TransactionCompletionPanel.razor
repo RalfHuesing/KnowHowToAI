@@ -1,0 +1,63 @@
+@using KnowHowToAI.Core.Domain.Versioning
+@using KnowHowToAI.Core.Domain.Common
+@using KnowHowToAI.Server.Web.Components.Shared.Dialogs
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+<section class="transaction-completion" aria-labelledby="transaction-completion-heading" data-testid="transaction-completion">
+    <div class="transaction-workflow__step" data-testid="transaction-completion-step">
+        <span class="transaction-workflow__step-number" aria-hidden="true">2</span>
+        <div>
+            <h2 id="transaction-completion-heading">Transaction abschließen</h2>
+            <p>Committen Sie die geprüften Änderungen oder verwerfen Sie sie vollständig.</p>
+        </div>
+    </div>
+    <p class="transaction-completion__hint readable">Commit ist nicht rückgängig zu machen. Verwerfen lässt den aktuellen Snapshot unverändert.</p>
+    <div class="transaction-page__actions action-group" data-testid="transaction-page-actions">
+        @if (!string.IsNullOrWhiteSpace(_completionError))
+        {
+            <div class="transaction-page__completion-error" role="alert" data-testid="transaction-completion-error">
+                <InlineAlert Kind="AlertKind.Fehler" Message="@_completionError" />
+            </div>
+        }
+        @if (Transaction.State != TransactionState.Open)
+        {
+            <p role="status" data-testid="transaction-completion-unavailable">
+                Diese Transaction ist bereits abgeschlossen und kann nicht erneut committed oder verworfen werden.
+            </p>
+        }
+        <button type="button" class="btn btn-primary" @onclick="OpenCommitDialogAsync"
+                disabled="@(!CanCommit)" data-testid="commit-transaction-button">
+            Commit
+        </button>
+        <button type="button" class="btn btn-secondary" @onclick="OpenDiscardDialogAsync"
+                disabled="@(!CanDiscard)" data-testid="discard-transaction-button">
+            Verwerfen
+        </button>
+    </div>
+</section>
+
+@if (_snapshotConflict is not null)
+{
+    <TransactionConflictResolution BaseSnapshotId="@_snapshotConflict.BaseSnapshotId"
+                                   CurrentSnapshotId="@_snapshotConflict.CurrentSnapshotId"
+                                   CanStartManualReapply="@CanStartManualReapply"
+                                   IsStartingManualReapply="@_isStartingManualReapply"
+                                   OnStartManualReapply="StartManualReapplyAsync" />
+}
+
+<ConfirmationDialog @ref="_commitDialog"
+                    Title="Transaction committen"
+                    Message="Der Working Snapshot wird zum neuen Current Snapshot. Dieser Schritt kann nicht rückgängig gemacht werden."
+                    ConfirmText="Commit ausführen"
+                    InputLabel="Commit-Nachricht (optional)"
+                    OnConfirmWithInput="CommitAsync"
+                    OnCancel="DismissDialogAsync" />
+
+<ConfirmationDialog @ref="_discardDialog"
+                    Title="Transaction verwerfen"
+                    Message="Alle Änderungen im Working Snapshot werden verworfen. Der aktuelle Snapshot bleibt unverändert."
+                    ConfirmText="Transaction verwerfen"
+                    IsDestructive="true"
+                    OnConfirm="DiscardAsync"
+                    OnCancel="DismissDialogAsync" />

@@ -10,7 +10,7 @@
     {
         <div class="content-editor__actions">
             <span class="content-editor__status" role="status" aria-live="polite">
-                @(_isSaving ? "Wird gespeichert…" : _pasteWasReduced ? "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert." : WorkspaceState.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
+                @(_isSaving ? "Wird gespeichert…" : _pasteWasReduced ? "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert." : WorkspaceState.CurrentContext.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
             </span>
             <button type="button"
                     class="btn btn-primary"

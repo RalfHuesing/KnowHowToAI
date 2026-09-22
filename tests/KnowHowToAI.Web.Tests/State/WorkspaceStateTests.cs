@@ -134,7 +134,7 @@ public sealed class WorkspaceStateTests
         state.Changed += () => changeCount++;
 
         state.SetDirty(true);
-        Assert.True(state.IsDirty);
+        Assert.True(state.CurrentContext.IsDirty);
         Assert.Equal(1, changeCount);
 
         // Gleicher Wert darf kein neues Event auslösen
@@ -142,7 +142,7 @@ public sealed class WorkspaceStateTests
         Assert.Equal(1, changeCount);
 
         state.SetDirty(false);
-        Assert.False(state.IsDirty);
+        Assert.False(state.CurrentContext.IsDirty);
         Assert.Equal(2, changeCount);
     }
 
@@ -152,7 +152,7 @@ public sealed class WorkspaceStateTests
         var state = new WorkspaceState();
         var txId = new TransactionId(Guid.NewGuid());
 
-        Assert.False(state.HasActiveTransaction);
+        Assert.False(state.ActiveTransactionId.HasValue);
         Assert.Null(state.ActiveTransactionId);
         Assert.Null(state.CurrentContext.BaseSnapshotId);
 
@@ -163,7 +163,7 @@ public sealed class WorkspaceStateTests
 
         state.SetContext(contextVm, new ReadContext(TransactionId: txId));
 
-        Assert.True(state.HasActiveTransaction);
+        Assert.True(state.ActiveTransactionId.HasValue);
         Assert.Equal(txId, state.ActiveTransactionId);
         Assert.Equal(42L, state.CurrentContext.BaseSnapshotId);
     }

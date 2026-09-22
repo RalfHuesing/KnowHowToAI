@@ -45,7 +45,7 @@ public sealed class WebWriteCoordinatorTests
         Assert.Equal(result.TransactionId, fixture.Workspace.ActiveTransactionId);
         Assert.Contains($"transactionId={FixedTransactionId.Value:D}", fixture.NavigationManager.Uri);
         Assert.Equal(1, fixture.Workspace.CurrentChangeVersion);
-        Assert.False(fixture.Workspace.IsDirty);
+        Assert.False(fixture.Workspace.CurrentContext.IsDirty);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public sealed class WebWriteCoordinatorTests
         Assert.False(mutationCalled);
         Assert.Equal(0, fixture.TransactionRepository.BeginCalls);
         Assert.Null(result.TransactionId);
-        Assert.False(fixture.Workspace.HasActiveTransaction);
+        Assert.False(fixture.Workspace.ActiveTransactionId.HasValue);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public sealed class WebWriteCoordinatorTests
         Assert.True(result.StartedTransaction);
         Assert.Equal(FixedTransactionId, result.TransactionId);
         Assert.Equal(result.TransactionId, fixture.Workspace.ActiveTransactionId);
-        Assert.True(fixture.Workspace.IsDirty);
+        Assert.True(fixture.Workspace.CurrentContext.IsDirty);
         Assert.Equal(1, fixture.TransactionRepository.BeginCalls);
     }
 

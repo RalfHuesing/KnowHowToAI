@@ -1,0 +1,47 @@
+.transaction-completion {
+    border: 1px solid var(--ktai-color-border-light);
+    border-radius: var(--ktai-radius-md);
+    margin-top: var(--ktai-space-6);
+    padding: var(--ktai-space-5) var(--ktai-space-6);
+}
+
+.transaction-completion h2 {
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-lg);
+    margin: 0;
+}
+
+.transaction-completion .transaction-workflow__step p {
+    color: var(--ktai-color-text-secondary);
+    margin-top: var(--ktai-space-1);
+}
+
+.transaction-workflow__step {
+    align-items: flex-start;
+    display: flex;
+    gap: var(--ktai-space-3);
+    margin-top: 0;
+}
+
+.transaction-workflow__step-number {
+    align-items: center;
+    background: var(--ktai-color-primary);
+    border-radius: var(--ktai-radius-full);
+    color: var(--ktai-color-primary-contrast);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: var(--ktai-font-size-sm);
+    font-weight: 700;
+    height: 1.75rem;
+    justify-content: center;
+    width: 1.75rem;
+}
+
+.transaction-completion__hint {
+    color: var(--ktai-color-text-secondary);
+    margin: var(--ktai-space-1) 0 0;
+}
+
+.transaction-page__actions {
+    margin-top: var(--ktai-space-4);
+}

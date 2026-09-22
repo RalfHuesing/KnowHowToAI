@@ -60,7 +60,7 @@ public sealed class AudiencesPageTests : BunitContext
 
         var workspace = Services.GetRequiredService<WorkspaceState>();
         Assert.Equal(1, workspace.CurrentChangeVersion);
-        Assert.True(workspace.IsDirty);
+        Assert.True(workspace.CurrentContext.IsDirty);
         Assert.Equal(1, Services.GetRequiredService<PageRegionState>().KnowledgeContext!.ChangeVersion);
     }
 

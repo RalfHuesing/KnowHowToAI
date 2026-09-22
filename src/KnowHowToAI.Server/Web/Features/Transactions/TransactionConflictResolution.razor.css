@@ -1,0 +1,17 @@
+.snapshot-conflict {
+    display: grid;
+    gap: var(--ktai-space-4);
+    margin-top: var(--ktai-space-6);
+    padding: var(--ktai-space-5);
+    border: 1px solid var(--ktai-color-danger);
+    border-radius: var(--ktai-radius-md);
+}
+
+.snapshot-conflict__actions {
+    align-items: center;
+}
+
+.snapshot-conflict__hint {
+    margin: 0;
+    color: var(--ktai-color-text-muted);
+}

@@ -28,7 +28,7 @@
         <div class="knowledge-layout">
             <aside class="knowledge-sidebar" aria-label="Wissensnavigation" data-testid="knowledge-sidebar">
                 <KnowledgeTree OnNodeSelected="NavigateToNode"
-                               CanMove="WorkspaceState.HasActiveTransaction"
+                               CanMove="WorkspaceState.ActiveTransactionId.HasValue"
                                MoveTransactionId="QueryTransactionId"
                                MoveSnapshotId="QuerySnapshotId"
                                MoveReleaseId="QueryReleaseId"
@@ -52,7 +52,7 @@
                 else if (TreeWorkspace.VisualRootNode is null
                          && !TreeWorkspace.IsLoading
                          && string.IsNullOrEmpty(TreeWorkspace.RootError)
-                         && WorkspaceState.HasActiveTransaction)
+                         && WorkspaceState.ActiveTransactionId.HasValue)
                 {
                     <RootNodeEditor TransactionId="@WorkspaceState.ActiveTransactionId"
                                     ExpectedChangeVersion="@WorkspaceState.CurrentChangeVersion"

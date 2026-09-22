@@ -45,7 +45,7 @@ public sealed class ContentEditorTests : BunitContext
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
         Assert.NotNull(mutation);
-        Assert.False(workspace.IsDirty);
+        Assert.False(workspace.CurrentContext.IsDirty);
         Assert.Equal("Neuer Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
         Assert.Equal(1, mutation.ChangeVersion);
     }
@@ -85,7 +85,7 @@ public sealed class ContentEditorTests : BunitContext
         workspace.SetDirty(true);
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
-        Assert.True(workspace.IsDirty);
+        Assert.True(workspace.CurrentContext.IsDirty);
         Assert.Contains("ChangeVersionConflict", cut.Markup, StringComparison.Ordinal);
         Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
     }
@@ -108,7 +108,7 @@ public sealed class ContentEditorTests : BunitContext
         workspace.SetDirty(true);
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
-        Assert.True(workspace.IsDirty);
+        Assert.True(workspace.CurrentContext.IsDirty);
         Assert.Contains("RawHtmlNotAllowed", cut.Markup, StringComparison.Ordinal);
         Assert.Equal(1, module.Invocations["mount"].Count);
         Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
@@ -164,9 +164,9 @@ public sealed class ContentEditorTests : BunitContext
         workspace.SetDirty(true);
         cut.Render(parameters => parameters.Add(editor => editor.Markdown, "Reconnect"));
 
-        Assert.True(workspace.IsDirty);
+        Assert.True(workspace.CurrentContext.IsDirty);
         await cut.Instance.DisposeAsync();
-        Assert.False(workspace.IsDirty);
+        Assert.False(workspace.CurrentContext.IsDirty);
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public sealed class ContentEditorTests : BunitContext
         var source = cut.Find("[data-testid='content-editor-source']");
         Assert.Equal("**WYSIWYG**\n\n- Eintrag", source.GetAttribute("value"));
         source.Input("[Link](https://example.test)\n\nUnicode: ä");
-        Assert.True(workspace.IsDirty);
+        Assert.True(workspace.CurrentContext.IsDirty);
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-wysiwyg']").Click());
         cut.WaitForAssertion(() => Assert.Equal(2, module.Invocations["mount"].Count));
@@ -215,7 +215,7 @@ public sealed class ContentEditorTests : BunitContext
         cut.Find("[data-testid='content-editor-source']").Input(rejected);
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
-        Assert.True(workspace.IsDirty);
+        Assert.True(workspace.CurrentContext.IsDirty);
         Assert.Equal(rejected, cut.Find("[data-testid='content-editor-source']").GetAttribute("value"));
         Assert.Contains("RawHtmlNotAllowed", cut.Markup, StringComparison.Ordinal);
         Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
