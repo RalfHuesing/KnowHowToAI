@@ -90,7 +90,7 @@ implementierten Zustands.
     Overflow und Reflow. Kein Nachweis beschränkt sich auf eine einzelne Route
     oder einen einzelnen Sichtbarkeitszustand.
 
-- [ ] **Ist-Dokumentation und gemeinsamer UI-Audit abschließen**
+- [x] **Ist-Dokumentation und gemeinsamer UI-Audit abschließen**
   - **Intention:** Die implementierte Ownership und Nutzung dauerhaft auffindbar
     machen und den vollständigen visuellen Zustand routeübergreifend gegen Drift
     prüfen.
@@ -110,6 +110,19 @@ implementierten Zustands.
     implementierten Stand; der Audit deckt die vollständige Routenmatrix und
     repräsentative Zustände ab, ist visuell geprüft und ohne ungeklärte
     Ownership-, Semantik- oder Overflow-Abweichung abgeschlossen.
+  - **Nachweis (2026-09-22):** [`docs/WebUi.md`](../../docs/WebUi.md) und
+    [`docs/Architektur.md`](../../docs/Architektur.md) dokumentieren den
+    implementierten `PageFrame`-/Headervertrag, die CSS-Ownership, alle acht
+    Routenvarianten und die Testgrenzen. Der aktivierte Lauf von
+    [`capture-ui-audit.ps1`](../../scripts/capture-ui-audit.ps1) erzeugte das
+    Manifest und 20 Aufnahmen unter
+    `temp/ui-audit/2026-09-22_10-27-17/`; der gemeinsame lokale Bildaudit
+    zeigte keine unerklärte Ownership-, Semantik- oder Overflow-Abweichung.
+    Der erste Lauf deckte einen zu breiten Dialog-Selektor im Fixture auf; die
+    eng begrenzte Korrektur auf den geöffneten Dialog wurde anschließend im
+    vollständigen Lauf grün bestätigt. `git diff --check` und die betroffenen
+    Browser-/Strukturtests sind Bestandteil des Commits; Auditbilder bleiben
+    temporär und werden nicht versioniert.
 
 - [ ] **Audit**
   - **Intention:** Das fertig umgesetzte Vorhaben als Ganzes gegen Konzept,

@@ -125,7 +125,15 @@ zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 `Web/Components/Shared/Dialogs` (nativer Dialog-Wrapper `AppDialog` mit
 schmaler JS-Isolation in `AppDialog.razor.js` und `ConfirmationDialog`),
 `Web/Components/Shared/Feedback` (Status-, Warn- und Toastdarstellungen)
-und `Web/Components/Shared/States` (wiederverwendbare Lade-, Leer- und
+und `Web/Components/Shared` enthält außerdem `PageFrame`, die ausführbare
+Seitenbasis für alle acht routbaren Feature-Varianten. Die Komponente rendert
+einen Page-Root mit Header, genau einem `h1`, optionaler Beschreibung, Badges
+und Aktionen sowie dem Feature-Inhalt; sie enthält keine Application-Aufrufe
+und keine Featurelogik. `PageFrame.razor.css` ist der einzige Owner der
+komponentennahen Root-/Header-Gestaltung. Das zentrale `wwwroot/css/base/layout.css`
+stellt nur das neutrale `.page-frame`-Breitenprimitive und frameworkweite
+Arbeitsflächenhilfen bereit, Feature-CSS bleibt auf fachliche Innenlayouts
+begrenzt. `Web/Components/Shared/States` (wiederverwendbare Lade-, Leer- und
 Fehlerzustände). `AppStatus` zeigt jeden Zustand als Icon plus Text;
 `LoadingState`, `BusyOverlay`, `EmptyState`, `NotFoundState` und
 `TechnicalErrorState`: rein darstellende Komponenten nur mit
@@ -377,6 +385,11 @@ Tabelle, Inlinehinweis, Toast) und besitzt keine Route im Produkt. Das Fixture
 den Light-Theme-Screenshot; der Test führt vor dem Chrome-Start den Chrome-Stable-Preflight
 aus `KnowHowToAI.TestSupport` aus und schlägt deshalb ohne installiertes Chrome mit
 einer klaren deutschen Fehlermeldung fehl.
+Der isolierte Seitenbasisvertrag liegt in
+`Components/Shared/PageFrameTests.cs`; der routeübergreifende Browservertrag in
+`KnowHowToAI.BrowserTests/ReadOnly/PageFrameSmokeTests.cs` prüft für die acht
+Routenvarianten genau ein `h1`, das sole-`main`-Landmark, Shell-Innenkanten,
+Computed Styles, Reflow-Breiten, Navigation offen/geschlossen und Overflow.
 `KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
 kein Produktionsprojekt. Der Serverstart erfolgt einmal pro Testkollektion über
@@ -425,6 +438,13 @@ Aktivierung aber übersprungen und startet dabei keinen Host oder Browser;
 volatile Werte werden vor der Aufnahme maskiert und jede Aufnahme folgt auf
 Web-first-Verhaltensassertionen. Die temporären Artefakte sind keine
 visuellen Baselines.
+Der gemeinsame Lauf umfasst derzeit 20 semantisch benannte Aufnahmen: die
+Dashboard-Route, beide Knowledge-Routen mit Zielgruppenwahl, Root, Node-Detail,
+Fallback und Working-Editor, Search leer/mit Treffer, History Liste/Diff,
+Transactions Übersicht/offen/Detail/Commit-/Discard-Dialog sowie Audiences
+read-only/working/Löschdialog. Das Manifest dokumentiert Route, Zustand,
+Viewport und Browser; die PNGs werden nach dem Lauf gemeinsam manuell auf
+unerklärten Drift geprüft und bleiben unter `temp/` außerhalb des Commits.
 
 `KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die
 Repository-Root-Ermittlung (`TestRepositoryRoot`), Wegwerf-Verzeichnisse unter

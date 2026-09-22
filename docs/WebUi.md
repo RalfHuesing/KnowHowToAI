@@ -34,7 +34,39 @@ App.razor
 | Wissenskontext | [`KnowledgeContextBar.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Context/KnowledgeContextBar.razor) zeigt `Current`, `Snapshot`, `Transaction` oder `Release`, optionale Bezeichnung/Zielgruppe, Working-Metadaten und bei Bedarf Dirty. Sie mutiert den Kontext nicht. |
 | Seitenregionen | [`PageRegionState.cs`](../src/KnowHowToAI.Server/Web/Components/Layout/PageRegions/PageRegionState.cs) nimmt Breadcrumbs, Aktionen, optionalen Kontextbereich und den Kontextvertrag einer Fachseite auf. Leere Slots belegen keinen Platz. |
 | Arbeitsfläche | [`MainLayout.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor) besitzt genau ein `main#shell-main`; Routable Pages rendern darin ihren Page-Root und ihre Feature-Sections. |
+| Gemeinsame Seitenbasis | [`PageFrame.razor`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor) rendert für jede routable Page genau einen `section.page-frame--shared` mit `header`, `h1` und Inhaltsbereich. `Title` ist erforderlich; `Description`, `Badges`, `Actions`, `ChildContent`, `Class` und zusätzliche Attribute sind optionale Parameter. |
 | Feedback/Dialoge | Kritische oder fachliche Zustände bleiben an der auslösenden Seite (`InlineAlert`, `StatusBanner`, Lade-/Leer-/Fehlerzustände). Bestätigungen nutzen den gemeinsamen Dialog; nichtkritische abgeschlossene Aktionen nutzen die einzige `ToastRegion`. |
+
+### Gemeinsamer Seitenbasis-/Headervertrag
+
+Alle acht routbaren Page-Varianten verwenden [`PageFrame`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor)
+als äußeren Page-Root: `/`, `/knowledge`, `/knowledge/{NodeId:guid}`, `/search`,
+`/transactions`, `/transactions/{TransactionId:guid}`, `/audiences` und
+`/history`. Auch Lade-, Leer-, Fehler-, Auswahl- und Working-Zustände bleiben
+innerhalb dieses Roots. Die `Title`-Parameter werden dadurch immer als genau
+ein semantisches `h1` ausgegeben. Auf beiden Knowledge-Routen bleibt
+`Wissensbasis` das stabile `h1`; der ausgewählte Node wird im Detailbereich als
+`h2` dargestellt. Die Transaction-Detailseite setzt ihren konkreten Zweck
+dynamisch über `TransactionPageTitle`.
+
+Die Shell besitzt weiterhin den verfügbaren Arbeitsraum und ihren Inset.
+`PageFrame` nutzt diesen Raum mit `width: 100%`, `min-width: 0` und ohne eigenes
+Shell-Padding, Zentrierung oder seitenweites `max-width`. Die einzige zulässige
+gemeinsame Prosa-Begrenzung ist die Beschreibung im Header (`70ch`). Die
+komponentennahe Header-/Abstands-/Umbruchgestaltung gehört ausschließlich
+[`PageFrame.razor.css`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor.css);
+das zentrale [`layout.css`](../src/KnowHowToAI.Server/wwwroot/css/base/layout.css)
+liefert nur das neutrale `.page-frame`-Primitive sowie `.readable` und
+`.action-group`. Feature-scoped CSS besitzt ausschließlich fachliche
+Innenlayouts und überschreibt den gemeinsamen Root-/Header-/`h1`-Vertrag nicht.
+
+Die strukturellen Grenzen sind bewusst eng: `main#shell-main` bleibt das einzige
+`main`-Landmark, der Page-Root erzeugt kein weiteres `main`, und der Inhalt
+bleibt im normalen Dokument scrollbar. Computed Styles, Innenkanten,
+Heading-Anzahl und horizontaler Overflow werden routeübergreifend im
+[`PageFrameSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/PageFrameSmokeTests.cs)
+geprüft; der isolierte Parameter-/Semantikvertrag steht in
+[`PageFrameTests.cs`](../tests/KnowHowToAI.Web.Tests/Components/Shared/PageFrameTests.cs).
 
 Responsive Anordnung, Semantik, Fokus, Reflow und Layout-Ownership sind in den
 [Web-UI-Guardrails](../.agents/rules/WebUiHtmlCss.mdc) und der
