@@ -1,6 +1,6 @@
 # M1-Audit – Arbeits- und Seitenfundament
 
-Datum: 2026-09-23  
+Datum: 2026-09-23
 Ergebnis: bestanden, keine Findings.
 
 ## Geprüfter Umfang

@@ -6,7 +6,7 @@ Abschluss. `docs/` wird nur mit implementiertem Ist-Verhalten geändert.
 Eine alte Web-Route darf während des Umbaus vorübergehend bestehen, im
 Endzustand nicht. Der Nutzer startet Schritt 3 gesondert.
 
-- [ ] [M1 – Arbeits- und Seitenfundament](roadmap/01-fundament/roadmap.md):
+- [x] [M1 – Arbeits- und Seitenfundament](roadmap/01-fundament/roadmap.md):
   Planungsregeln konsistent, Entwurfs-Schreibweg und gemeinsame Shell samt
   echten Entwurfsrouten verfügbar; Milestone-Audit bestanden.
 - [ ] [M2 – Wissensarbeitsplatz](roadmap/02-wissensarbeitsplatz/roadmap.md):
