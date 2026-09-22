@@ -50,6 +50,73 @@ public sealed class PageFrameSmokeTests
     }
 
     [Fact]
+    public async Task FeaturePageRootsUsePageFrameForSharedRhythmAndContainNoRootOverrides()
+    {
+        await using var browser = await ChromeBrowser.LaunchAsync();
+        await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+        });
+
+        string[]? expectedSharedStyles = null;
+        foreach (var route in Routes)
+        {
+            await GotoAsync(page, route.Path);
+
+            var frame = page.Locator($"[data-testid='{route.TestId}'].page-frame");
+            await Assertions.Expect(frame).ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+            var sharedStyles = await frame.EvaluateAsync<string[]>(
+                """element => { const style = getComputedStyle(element); return [style.display, style.flexDirection, style.gap]; }""");
+            Assert.Equal("flex", sharedStyles[0]);
+            Assert.Equal("column", sharedStyles[1]);
+            Assert.NotEqual("normal", sharedStyles[2]);
+
+            expectedSharedStyles ??= sharedStyles;
+            Assert.Equal(expectedSharedStyles, sharedStyles);
+
+            var rootOverrides = await page.EvaluateAsync<string[]>(
+                """
+                rootClass => {
+                    const sharedRootProperties = new Set([
+                        'display', 'flex-direction', 'gap', 'box-sizing', 'width', 'min-width', 'max-width',
+                        'height', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+                        'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left'
+                    ]);
+                    const exactRootSelector = selector => {
+                        const rootToken = `.${rootClass}`;
+                        if (!selector.startsWith(rootToken))
+                            return false;
+                        return selector.slice(rootToken.length).replace(/\[[^\]]+\]/g, '').trim() === '';
+                    };
+                    const violations = [];
+                    const visit = rules => {
+                        for (const rule of rules) {
+                            if (rule.cssRules)
+                                visit(rule.cssRules);
+                            if (typeof rule.selectorText !== 'string')
+                                continue;
+                            const selectors = rule.selectorText.split(',').map(selector => selector.trim());
+                            if (!selectors.some(exactRootSelector))
+                                continue;
+                            const declarations = Array.from(rule.style)
+                                .filter(property => sharedRootProperties.has(property));
+                            if (declarations.length > 0)
+                                violations.push(`${rule.selectorText}: ${declarations.join(', ')}`);
+                        }
+                    };
+                    for (const sheet of document.styleSheets) {
+                        try { visit(sheet.cssRules); } catch { }
+                    }
+                    return violations;
+                }
+                """, route.RootClass);
+
+            Assert.Empty(rootOverrides);
+        }
+    }
+
+    [Fact]
     public async Task FeaturePagesKeepContentAndActionsReachableAtReflowWidths()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
@@ -119,7 +186,7 @@ public sealed class PageFrameSmokeTests
         await AssertPageContractAsync(
             page,
             page.GetByTestId("knowledge-page"),
-            new RouteSpec("Wissensbasis ausgewählter Node", "/knowledge/{NodeId:guid}", "knowledge-page"),
+            new RouteSpec("Wissensbasis ausgewählter Node", "/knowledge/{NodeId:guid}", "knowledge-page", "knowledge-page"),
             1280);
         await Assertions.Expect(page.GetByTestId("node-details-title")).ToContainTextAsync("Browser-");
 
@@ -137,7 +204,7 @@ public sealed class PageFrameSmokeTests
             await AssertPageContractAsync(
                 page,
                 page.GetByTestId("transaction-page"),
-                new RouteSpec("Transaction offen", $"/transactions/{transactionId:D}", "transaction-page"),
+                new RouteSpec("Transaction offen", $"/transactions/{transactionId:D}", "transaction-page", "transaction-page"),
                 1280);
         }
         finally
@@ -256,15 +323,15 @@ public sealed class PageFrameSmokeTests
 
     private static readonly RouteSpec[] Routes =
     [
-        new("Startseite", "/", "dashboard-page"),
-        new("Wissensbasis ohne Auswahl", "/knowledge?audienceId=Default", "knowledge-page"),
-        new("Wissensbasis nicht gefundener Node", "/knowledge/00000000-0000-0000-0000-000000000000?audienceId=Default", "knowledge-page"),
-        new("Suche", "/search?audienceId=Default", "search-page"),
-        new("Transactions", "/transactions", "transactions-page"),
-        new("Transaction nicht gefunden", "/transactions/00000000-0000-0000-0000-000000000000", "transaction-page"),
-        new("Zielgruppen", "/audiences?audienceId=Default", "audiences-page"),
-        new("Historie", "/history?audienceId=Default", "history-page")
+        new("Startseite", "/", "dashboard-page", "dashboard-page"),
+        new("Wissensbasis ohne Auswahl", "/knowledge?audienceId=Default", "knowledge-page", "knowledge-page"),
+        new("Wissensbasis nicht gefundener Node", "/knowledge/00000000-0000-0000-0000-000000000000?audienceId=Default", "knowledge-page", "knowledge-page"),
+        new("Suche", "/search?audienceId=Default", "search-page", "search-page"),
+        new("Transactions", "/transactions", "transactions-page", "transactions-page"),
+        new("Transaction nicht gefunden", "/transactions/00000000-0000-0000-0000-000000000000", "transaction-page", "transaction-page"),
+        new("Zielgruppen", "/audiences?audienceId=Default", "audiences-page", "audiences-page"),
+        new("Historie", "/history?audienceId=Default", "history-page", "history-page")
     ];
 
-    private sealed record RouteSpec(string Name, string Path, string TestId);
+    private sealed record RouteSpec(string Name, string Path, string TestId, string RootClass);
 }

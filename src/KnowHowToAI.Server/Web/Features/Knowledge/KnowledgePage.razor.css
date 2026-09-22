@@ -1,11 +1,3 @@
-.knowledge-page {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    gap: var(--ktai-space-3);
-}
-
 .knowledge-layout {
     display: grid;
     grid-template-columns: 340px 1fr;
