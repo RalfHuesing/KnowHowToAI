@@ -121,6 +121,29 @@ unter derselben Working-Transaction-Sperre. Das Validierungsergebnis trägt dies
 gelesene Version als Provenienz; eine bekannte neuere lokale Workspace-Version
 markiert die Befunde als stale und löst keine automatische Neulesung aus.
 
+## Web-Schreibweg und Arbeits-URL
+
+Die Weboberfläche beginnt eine Transaction erst beim ersten persistierenden
+Write. Der gemeinsame `WebWriteCoordinator` prüft davor, ob der Current Snapshot
+noch dem beim Laden gemerkten Stand entspricht. Bei einem abweichenden Stand
+wird die Mutation nicht aufgerufen. Begin und nachfolgende Writes verwenden die
+Application-`TransactionService` und die bestehenden Mutations-Use-Cases; Actor
+kommt aus `ICurrentUserService`, `Client` ist `Web UI` und `Purpose` ist
+`Wissenspflege`. Gleichzeitige erste Writes desselben Circuit-Arbeitsbereichs
+teilen die begonnene Transaction. Weitere Writes setzen deren `TransactionId`
+und zuletzt bekannte `ChangeVersion` fort.
+
+Nach erfolgreichem Begin wird die `TransactionId` in der Wissens-URL als
+`transactionId` eingetragen. `audienceId` und `transactionId` aus der URL
+bestimmen die beim Reload wiederhergestellte Auswahl; fehlt `transactionId`,
+wird Current gelesen. Die zuletzt verwendete Zielgruppe aus dem Browser wird
+nur herangezogen, wenn die URL keine `audienceId` enthält. Ist auch dort keine
+verfügbare Auswahl vorhanden, bleibt die Zielgruppe ungewählt und wird sichtbar
+zur Auswahl angeboten. Der Circuit-`WorkspaceState` spiegelt Snapshot-,
+Transaction-, Zielgruppen- und Dirty-Zustand nur flüchtig. Schlägt eine Mutation
+nach erfolgreichem Begin fehl, bleibt die `TransactionId` in der URL und im
+Koordinator-Ergebnis verfügbar; die UI kann den offenen Entwurf weiterführen.
+
 ## Löschsemantik
 
 Historische Wissensstände werden nicht zerstört:

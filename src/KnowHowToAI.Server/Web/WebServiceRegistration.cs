@@ -2,6 +2,7 @@ using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Workflow;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Server.Web;
@@ -24,6 +25,9 @@ internal static class WebServiceRegistration
 
         // Flüchtiger Circuit-State für den Arbeitskontext (Node, Zielgruppe, Lese-Kontext).
         services.AddScoped<WorkspaceState>();
+
+        // Gemeinsame Begin-/Resume-Koordination für persistente Web-Writes.
+        services.AddScoped<WebWriteCoordinator>();
 
         // Löst URL-Query-Parameter auf Core-ReadContext und KnowledgeContextViewModel auf.
         services.AddScoped<WebReadContextResolver>();
