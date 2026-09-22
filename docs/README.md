@@ -1,9 +1,12 @@
 # KnowHowToAI – Dokumentation
 
 Diese Dokumentation beschreibt den Ist-Zustand von KnowHowToAI. Sie ist die
-einzige verbindliche fachliche und technische Quelle. Ein separates Konzept- oder
-Roadmap-Dokument existiert bewusst nicht; die Entwicklungs- und
-Entscheidungsgeschichte liegt in der Git-Historie.
+verbindliche fachliche und technische Quelle für implementiertes Verhalten.
+Konzepte und Roadmaps unter `tasks/` beschreiben das geplante Soll-Delta und
+ersetzen diese Ist-Dokumentation nicht. Das Planungs- und Ausführungspattern
+steht in [tasks/README.md](../tasks/README.md); für den Web-Editor-Neustart sind
+[Konzept](../tasks/web-editor-neustart/Konzept.md) und
+[Roadmap](../tasks/web-editor-neustart/roadmap.md) dessen aktuelle Projektartefakte.
 
 ## Verbindlichkeit und Vorrang
 

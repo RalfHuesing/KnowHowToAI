@@ -16,6 +16,7 @@ public sealed class WorkspaceStateTests
         Assert.Null(state.CurrentNodeId);
         Assert.Null(state.CurrentAudienceId);
         Assert.Null(state.CurrentChangeVersion);
+        Assert.Null(state.LoadedSnapshotId);
         Assert.Equal(KnowledgeReadContextKind.Current, state.CurrentContext.ReadContext);
         Assert.Null(state.CurrentReadContext.SnapshotId);
         Assert.Null(state.CurrentReadContext.TransactionId);
@@ -106,6 +107,7 @@ public sealed class WorkspaceStateTests
         state.SetNode(Guid.NewGuid());
         state.SetAudience("architect");
         state.SetChangeVersion(10L);
+        state.SetLoadedSnapshotId(42L);
         state.SetContext(
             new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, ContextId: "tx-1"),
             new ReadContext(TransactionId: new TransactionId(Guid.NewGuid())));
@@ -118,6 +120,7 @@ public sealed class WorkspaceStateTests
         Assert.Null(state.CurrentNodeId);
         Assert.Null(state.CurrentAudienceId);
         Assert.Null(state.CurrentChangeVersion);
+        Assert.Null(state.LoadedSnapshotId);
         Assert.Equal(KnowledgeReadContextKind.Current, state.CurrentContext.ReadContext);
         Assert.Null(state.CurrentReadContext.TransactionId);
         Assert.Equal(1, changeCount);

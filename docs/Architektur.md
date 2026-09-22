@@ -152,11 +152,21 @@ fokussierbar und per `aria-labelledby` mit seiner Überschrift
 verknüpft. Alle Animationen respektieren `prefers-reduced-motion`.)
 sowie `Web.State` (flüchtiger Circuit-Zustand: `ToastState` der globalen
 Toastregion, `WorkspaceState` als Circuit-Cache für ausgewählten Node,
-Zielgruppe, Lese-Kontext, `BaseSnapshotId` und `ChangeVersion` sowie `WebReadContextResolver`
-zur Validierung und Auflösung von `transactionId`, `snapshotId` und
-`releaseId` über `ITransactionRepository` und `IReleaseRepository` auf Core-`ReadContext` und `KnowledgeContextViewModel`) und
+Zielgruppe, Lese-Kontext, den geladenen Snapshot, `BaseSnapshotId` und
+`ChangeVersion` sowie `WebReadContextResolver` zur Validierung der
+URL-Selektoren und Auflösung von `transactionId` über `ITransactionRepository`
+und `releaseId` über `IReleaseRepository`. Für Current liest er die Snapshot-
+Kennung über `ISnapshotRepository`; alle erfolgreichen Auflösungen liefern
+Core-`ReadContext`, `KnowledgeContextViewModel` und die Kennung des geladenen
+Snapshots) und
 die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Audiences`,
 `Search`, `History`, `Dashboard`, `Transactions`).
+
+`Web.Workflow.WebWriteCoordinator` ist scoped pro Circuit und koordiniert den
+ersten Web-Write sowie weitere Writes über `TransactionService` und vorhandene
+Mutations-Use-Cases. Er schreibt die begonnene `transactionId` in die
+Wissens-URL; `WorkspaceState` spiegelt den dort ausgewählten Kontext und besitzt
+keine fachliche Autorität.
 
 Die Web-Lesegrenze entkoppelt Razor-Komponenten vollständig von Domain-Typen:
 Komponenten rufen Application Services direkt in-process per Dependency

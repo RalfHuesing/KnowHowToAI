@@ -104,6 +104,7 @@ public sealed class WebReadContextResolverTests
         Assert.Equal("Neue Feature-Dokumentation", result.Value.ContextViewModel.DisplayName);
         Assert.Equal(10L, result.Value.ContextViewModel.BaseSnapshotId);
         Assert.Equal(3L, result.Value.ChangeVersion);
+        Assert.Equal(10L, result.Value.LoadedSnapshotId);
     }
 
     [Fact]

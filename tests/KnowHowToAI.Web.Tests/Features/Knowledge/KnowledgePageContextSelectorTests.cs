@@ -1,5 +1,6 @@
 using Bunit;
 using KnowHowToAI.Core.Application.Abstractions.Persistence;
+using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
@@ -68,7 +69,10 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         _workspaceState = new WorkspaceState();
         _pageRegions = new PageRegionState();
         _releaseRepo = new InMemoryReleaseRepository();
-        _contextResolver = new WebReadContextResolver(_releaseRepo, _harness.CreateRepositories().Transactions);
+        _contextResolver = new WebReadContextResolver(
+            _releaseRepo,
+            _harness.CreateRepositories().Transactions,
+            _harness.CreateRepositories().Snapshots);
         _audienceStorage = new InMemoryAudienceStorageService("Developer");
         _contextSelector = new ContextSelectorState();
 
@@ -94,6 +98,40 @@ public sealed class KnowledgePageContextSelectorTests : BunitContext
         Assert.Equal(HistoricalSnapshotId, _workspaceState.CurrentReadContext.SnapshotId);
         Assert.Equal(KnowledgeReadContextKind.Snapshot, _workspaceState.CurrentContext.ReadContext);
         Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
+        Assert.Equal(HistoricalSnapshotId.Value, _workspaceState.LoadedSnapshotId);
+        Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
+    }
+
+    [Fact]
+    public void Reload_WithExplicitDraftInNodeUrl_RestoresThatDraft()
+    {
+        var transactionId = new TransactionId(Guid.Parse("efdf88ae-9b6f-4dcc-92fd-2a7d507fb4ef"));
+        _harness.SetTransaction(new KnowledgeTransaction(
+            transactionId,
+            DefaultSnapshotId,
+            new SnapshotId(DefaultSnapshotId.Value + 1),
+            TransactionState.Open,
+            3,
+            DateTimeOffset.UnixEpoch,
+            null,
+            "Wissenspflege",
+            "System",
+            "Web UI",
+            null));
+        Services.AddSingleton(new NodeMutationApplicationService(
+            new InMemoryNodeMutationRepository(new WorkingNodeMutationState(
+                new SnapshotId(DefaultSnapshotId.Value + 1), [], [], [], [])),
+            new NodeMutationService(new FixedIdentifierGenerator()),
+            TestPolicies.DefaultValidation));
+        var navigationManager = Services.GetRequiredService<NavigationManager>();
+        navigationManager.NavigateTo($"/knowledge?audienceId=Developer&transactionId={transactionId.Value:D}");
+
+        var cut = Render<KnowledgePage>();
+
+        Assert.Equal(transactionId, _workspaceState.ActiveTransactionId);
+        Assert.Equal(DefaultSnapshotId.Value, _workspaceState.LoadedSnapshotId);
+        Assert.Equal("Developer", _workspaceState.CurrentAudienceId);
+        Assert.Equal(KnowledgeReadContextKind.Transaction, _workspaceState.CurrentContext.ReadContext);
         Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
     }
 

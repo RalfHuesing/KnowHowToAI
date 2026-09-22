@@ -79,6 +79,7 @@ public sealed partial class KnowledgePage : IDisposable
 
         if (!contextResolution.IsSuccess)
         {
+            WorkspaceState.Reset();
             _errorMessage = contextResolution.Error!.Message;
             PageRegions.SetKnowledgeContext(new KnowledgeContextViewModel(
                 KnowledgeReadContextKind.Current,
@@ -88,6 +89,7 @@ public sealed partial class KnowledgePage : IDisposable
 
         var readContext = contextResolution.Value!.ReadContext;
         var contextVm = contextResolution.Value.ContextViewModel;
+        WorkspaceState.SetLoadedSnapshotId(contextResolution.Value.LoadedSnapshotId);
 
         var audiencesResult = await AudienceCatalog.LoadAsync(readContext, CancellationToken.None);
         if (!audiencesResult.IsSuccess)
@@ -124,10 +126,10 @@ public sealed partial class KnowledgePage : IDisposable
 
     private void HandleWorkspaceChanged()
     {
-        if (PageRegions.KnowledgeContext is { } context
-            && context.IsDirty != WorkspaceState.IsDirty)
+        if (PageRegions.KnowledgeContext is not null
+            && PageRegions.KnowledgeContext != WorkspaceState.CurrentContext)
         {
-            PageRegions.SetKnowledgeContext(context with { IsDirty = WorkspaceState.IsDirty });
+            PageRegions.SetKnowledgeContext(WorkspaceState.CurrentContext);
         }
     }
 

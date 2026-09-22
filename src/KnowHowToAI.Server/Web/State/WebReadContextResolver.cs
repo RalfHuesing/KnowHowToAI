@@ -16,7 +16,8 @@ namespace KnowHowToAI.Server.Web.State;
 public sealed record WebReadContextResolution(
     ReadContext ReadContext,
     KnowledgeContextViewModel ContextViewModel,
-    long? ChangeVersion = null);
+    long? ChangeVersion = null,
+    long? LoadedSnapshotId = null);
 
 /// <summary>
 /// Löst URL-Query-Parameter (transactionId, snapshotId, releaseId) an der Web-Grenze
@@ -28,13 +29,16 @@ public sealed class WebReadContextResolver : IWebReadContextResolver
 {
     private readonly IReleaseRepository _releaseRepository;
     private readonly ITransactionRepository _transactionRepository;
+    private readonly ISnapshotRepository? _snapshotRepository;
 
     public WebReadContextResolver(
         IReleaseRepository releaseRepository,
-        ITransactionRepository transactionRepository)
+        ITransactionRepository transactionRepository,
+        ISnapshotRepository? snapshotRepository = null)
     {
         _releaseRepository = releaseRepository ?? throw new ArgumentNullException(nameof(releaseRepository));
         _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
+        _snapshotRepository = snapshotRepository;
     }
 
     public async Task<Result<WebReadContextResolution>> ResolveAsync(
@@ -56,9 +60,14 @@ public sealed class WebReadContextResolver : IWebReadContextResolver
         if (!string.IsNullOrWhiteSpace(releaseIdRaw))
             return await ResolveReleaseAsync(releaseIdRaw, cancellationToken).ConfigureAwait(false);
 
+        long? currentSnapshotId = _snapshotRepository is null
+            ? null
+            : (await _snapshotRepository.GetCurrentAsync(cancellationToken).ConfigureAwait(false)).SnapshotId.Value;
+
         return Result<WebReadContextResolution>.Success(new WebReadContextResolution(
             new ReadContext(),
-            new KnowledgeContextViewModel(KnowledgeReadContextKind.Current)));
+            new KnowledgeContextViewModel(KnowledgeReadContextKind.Current),
+            LoadedSnapshotId: currentSnapshotId));
     }
 
     private static Result<bool> ValidateMutualExclusion(string? txRaw, string? snapRaw, string? relRaw)
@@ -126,7 +135,8 @@ public sealed class WebReadContextResolver : IWebReadContextResolver
         return Result<WebReadContextResolution>.Success(new WebReadContextResolution(
             readContext,
             contextVm,
-            transaction.ChangeVersion));
+            transaction.ChangeVersion,
+            transaction.BaseSnapshotId.Value));
     }
 
     private static Result<WebReadContextResolution> ResolveSnapshot(string snapshotIdRaw)
@@ -145,7 +155,10 @@ public sealed class WebReadContextResolver : IWebReadContextResolver
             KnowledgeReadContextKind.Snapshot,
             ContextId: snapId.Value.ToString(CultureInfo.InvariantCulture),
             DisplayName: $"Snapshot {snapId.Value}");
-        return Result<WebReadContextResolution>.Success(new WebReadContextResolution(readContext, contextVm));
+        return Result<WebReadContextResolution>.Success(new WebReadContextResolution(
+            readContext,
+            contextVm,
+            LoadedSnapshotId: snapId.Value));
     }
 
     private async Task<Result<WebReadContextResolution>> ResolveReleaseAsync(string releaseIdRaw, CancellationToken cancellationToken)
@@ -173,6 +186,9 @@ public sealed class WebReadContextResolver : IWebReadContextResolver
             KnowledgeReadContextKind.Release,
             ContextId: release.ReleaseId.Value.ToString(CultureInfo.InvariantCulture),
             DisplayName: release.Name);
-        return Result<WebReadContextResolution>.Success(new WebReadContextResolution(readContext, contextVm));
+        return Result<WebReadContextResolution>.Success(new WebReadContextResolution(
+            readContext,
+            contextVm,
+            LoadedSnapshotId: release.SnapshotId.Value));
     }
 }

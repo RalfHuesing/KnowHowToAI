@@ -20,7 +20,7 @@ Hierarchische, versionierte und zielgruppenabhängige Wissensbasis für Agenten 
 ## Modell- und Delegationsstrategie
 
 - Der Hauptchat läuft grundsätzlich mit Sol Max. Der Hauptagent verantwortet Benutzerintention, Planung, Produkt- und Architekturentscheidungen, Taskzuschnitt, Integration und die abschließende Kommunikation.
-- Substantielle, klar abgrenzbare Repository-Arbeit wird standardmäßig an Subagenten mit `gpt-5.6-luna` und Reasoning `high` delegiert. Dazu zählen insbesondere umfangreiche Exploration, Audit-Zuarbeit, ausführungsreife Leaf-Tasks, mechanische Änderungen sowie deren risikogerechte Prüfung.
+- Substantielle, klar abgrenzbare Repository-Arbeit wird standardmäßig an Subagenten mit `gpt-6-luna` und Reasoning `high` delegiert. Dazu zählen insbesondere umfangreiche Exploration, Audit-Zuarbeit, ausführungsreife Leaf-Tasks, mechanische Änderungen sowie deren risikogerechte Prüfung.
 - Nicht delegiert werden reine Gesprächs- und Entscheidungsfragen sowie kleine lokale Aktionen, wenn Agentenstart, Kontextübergabe und erneute Überprüfung voraussichtlich mehr Aufwand verursachen als die direkte Ausführung.
 - Standardmäßig arbeitet genau ein schreibender Subagent pro Slice. Parallele Agenten sind auf unabhängige, vorwiegend lesende Analysen oder ausdrücklich disjunkte Schreibbereiche beschränkt; Builds, Tests und Commits im gemeinsamen Worktree laufen seriell.
 - Subagenten erhalten kurze, informationsdichte Aufträge mit Ziel, Scope, Nicht-Zielen, maßgeblichen Referenzpfaden, Abnahmekriterien und Prüfauftrag. Bestehende Regeln und Pläne werden verlinkt statt in Prompts kopiert; es wird nur der erforderliche Gesprächskontext weitergegeben.

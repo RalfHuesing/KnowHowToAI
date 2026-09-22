@@ -6,10 +6,11 @@ alwaysApply: false
 
 # Web-UI-, HTML- und CSS-Guardrails
 
-Diese Regel triggert die vorhandene HTML-/CSS-/Accessibility-Kompetenz. Details
-stehen im [Bedienkonzept](../../tasks/webfrontend/konzept/02-bedienkonzept-und-ui.md),
-in der [Projektstruktur](../../tasks/webfrontend/konzept/08-projektstruktur-und-codekonventionen.md),
-den [Testregeln](TestRichtlinien.mdc) und der
+Diese Regel triggert die vorhandene HTML-/CSS-/Accessibility-Kompetenz. Die
+Soll-Verträge für Oberfläche und Struktur des Neustarts stehen im
+[Web-Editor-Konzept](../../tasks/web-editor-neustart/Konzept.md). Der Ablauf
+für Planung und Umsetzung steht im [Agent-Workflow-Kit](../agent-workflow/README.md);
+Nachweise richten sich nach den [Testregeln](TestRichtlinien.mdc) und der
 [manuellen UI-Abnahme](../../docs/Manuelle-UI-Abnahme.md).
 
 Vor seitenübergreifenden UI-, Layout- oder UX-Änderungen ist das
