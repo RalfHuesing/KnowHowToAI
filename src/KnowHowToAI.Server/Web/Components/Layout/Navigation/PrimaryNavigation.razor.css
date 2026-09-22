@@ -3,7 +3,7 @@
 .shell-panel--navigation {
     grid-column: 1;
     grid-row: 2;
-    width: 17.5rem;
+    width: 14rem;
     padding: var(--ktai-space-6) var(--ktai-space-4);
     background-color: var(--ktai-color-surface-subtle);
     border-right: 1px solid var(--ktai-color-border);

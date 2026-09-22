@@ -335,7 +335,7 @@ liegen in den Feature-Seiten bzw. Services, nicht in diesen Shared-Komponenten.
 
 Die sichtbare Shell-, Kontext- und Seitenregionen-Verantwortung steht im
 [Web-UI-Gesamtbild](WebUi.md). `Web/Components/Layout` bleibt technisch in
-`Shell`, `Context` und `PageRegions` getrennt; `PageRegionState` ist die
+`Shell`, `Context`, `Navigation` und `PageRegions` getrennt; `PageRegionState` ist die
 rendererfreie Slot-Grenze. `ContextSelectionForm`, `WorkspaceState` und
 `NavigationProtection` bleiben featureübergreifende Adapter für URL-Kontext und
 flüchtigen Circuit-State. Reconnect-Interop bleibt auf `App.razor` und das
@@ -450,8 +450,9 @@ Aktivierung aber übersprungen und startet dabei keinen Host oder Browser;
 volatile Werte werden vor der Aufnahme maskiert und jede Aufnahme folgt auf
 Web-first-Verhaltensassertionen. Die temporären Artefakte sind keine
 visuellen Baselines.
-Der gemeinsame Lauf umfasst derzeit 22 semantisch benannte Aufnahmen: die
-Dashboard-Route, beide Knowledge-Routen mit Zielgruppenwahl, Root, Node-Detail,
+Der gemeinsame Lauf umfasst derzeit 22 semantisch benannte Aufnahmen: den
+Knowledge-Einstieg mit ausgewählter Zielgruppe, beide Knowledge-Routen mit
+Zielgruppenwahl, Root, Node-Detail,
 Fallback und Working-Editor, Search leer/mit Treffer, History Liste/Diff,
 Transactions Übersicht/offen/Detail/Commit-/Discard-Dialog,
 Entwurfsübersicht/Entwurfsdetail sowie Audiences read-only/working/Löschdialog.

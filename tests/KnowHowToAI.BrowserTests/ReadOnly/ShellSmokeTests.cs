@@ -32,12 +32,9 @@ public sealed class ShellSmokeTests
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
         Assert.Contains("text/html", response.Headers["content-type"], StringComparison.OrdinalIgnoreCase);
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
-        await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync("Shell bereit");
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
-        await Assertions.Expect(page.GetByTestId("interaction-status"))
-            .ToHaveTextAsync("Interaktivität ist verfügbar.");
+        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("shell-root")).ToHaveAttributeAsync("data-ktai-interactive", "true");
         await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "false");
 
         Assert.NotEmpty(observedRequests);

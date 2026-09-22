@@ -41,8 +41,9 @@ Navigation als Drawer/Overlay.
 
 ## Kurze Tastaturschritte (in jeder Zoomstufe gleich)
 
-Ausgangspunkt ist jeweils der Seitengrundzustand nach dem Laden von `/`
-(Startseite der Shell):
+Ausgangspunkt ist jeweils der Grundzustand von `/knowledge?audienceId=Default`
+nach Auswahl der verfügbaren Zielgruppe. Die Weiterleitung von `/` nach
+`/knowledge` wird separat durch `DashboardSmokeTests` belegt.
 
 1. Tab – der Skip-Link „Zum Hauptinhalt springen“ erhält den Fokus und wird
    sichtbar; der Fokusring bleibt während der gesamten Folge sichtbar.
@@ -51,7 +52,7 @@ Ausgangspunkt ist jeweils der Seitengrundzustand nach dem Laden von `/`
    der Fokus erreicht den Kopfbutton „Navigation einblenden“.
 4. Enter – der Navigationsbereich öffnet sich; der Fokus liegt auf dem
    Navigationsbereich.
-5. Tab – der Start-Link; die Reihenfolge ist logisch und ohne Tabfalle.
+5. Tab – der Wissen-Link; die Reihenfolge ist logisch und ohne Tabfalle.
 6. Escape – der Bereich schließt sich; der Fokus kehrt zum Auslöser zurück.
 7. Den Dialog- und Toast-Tastaturvertrag mit dem jeweils ersten echten
    Verbraucher prüfen (Öffnen, Fokusfalle, Escape entspricht Abbrechen,

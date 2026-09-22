@@ -44,7 +44,7 @@ public sealed class VisualShellSmokeTests
             ReducedMotion = ReducedMotion.Reduce
         });
 
-        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address + "/knowledge?audienceId=Default", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -52,17 +52,8 @@ public sealed class VisualShellSmokeTests
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
-        // Verhaltensassertionen vor der visuellen Aufnahme: Zuerst die
-        // Circuit-Interaktivität belegen, denn beim Verbinden setzt die Seite
-        // ihren Status zurück und rendert „Shell wird initialisiert.“ erneut;
-        // erst danach ist der Shell-Status stabil.
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
-        await Assertions.Expect(page.GetByTestId("interaction-status"))
-            .ToHaveTextAsync("Interaktivität ist verfügbar.");
-
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
-        await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync("Shell bereit");
+        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Main)).ToHaveCountAsync(1);
 
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });

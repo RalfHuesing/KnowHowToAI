@@ -1,0 +1,14 @@
+@namespace KnowHowToAI.Server.Web.Components.Layout.Navigation
+
+<nav id="shell-navigation" aria-label="Hauptnavigation" tabindex="-1" @ref="_navigationElement"
+     class="shell-panel shell-panel--navigation"
+     @onkeydown="HandleKeydown">
+    <ul class="shell-nav-list">
+        <li>
+            <NavLink class="shell-nav-link" href="/knowledge" data-testid="link-knowledge">Wissen</NavLink>
+        </li>
+        <li>
+            <NavLink class="shell-nav-link" href="/drafts" data-testid="link-drafts">Entwürfe</NavLink>
+        </li>
+    </ul>
+</nav>

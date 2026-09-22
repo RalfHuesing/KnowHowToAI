@@ -323,7 +323,6 @@ public sealed class PageFrameSmokeTests
 
     private static readonly RouteSpec[] Routes =
     [
-        new("Startseite", "/", "dashboard-page", "dashboard-page"),
         new("Wissensbasis ohne Auswahl", "/knowledge?audienceId=Default", "knowledge-page", "knowledge-page"),
         new("Wissensbasis nicht gefundener Node", "/knowledge/00000000-0000-0000-0000-000000000000?audienceId=Default", "knowledge-page", "knowledge-page"),
         new("Suche", "/search?audienceId=Default", "search-page", "search-page"),

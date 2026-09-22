@@ -16,31 +16,30 @@ Komponentenkatalog.
 App.razor
 ├─ Routes → Router → MainLayout
 │  ├─ Skip-Link, Header/Wortmarke, Navigationstoggle
-│  ├─ KnowledgeContextBar (fachlicher Lese-/Arbeitskontext)
-│  ├─ PrimaryNavigation
-│  ├─ optional: ContextPanel
+│  ├─ PrimaryNavigation (Wissen, Entwürfe)
+│  ├─ ActiveDraftLink (falls ein Entwurf ausgewählt ist)
 │  └─ Workspace
-│     ├─ optional: BreadcrumbRegion + PageActions
-│     ├─ main#shell-main (eine Routable Page wird darin gerendert)
+│     ├─ main#shell-main (Breadcrumbs, Aktionen und genau eine Routable Page)
 │     └─ ToastRegion (global, nichtkritische Abschlussmeldungen)
-│  + ContextSelectorDialog + NavigationProtection
+│  + NavigationProtection
+│  KnowledgePage ── ContextSelectorDialog (lokale Auswahl am Arbeitsort)
 └─ ReconnectModal (Framework-Circuitzustand)
 ```
 
 | Bereich | Ownership und Grenze |
 |---|---|
-| Shell | [`MainLayout.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor) besitzt Landmarks, Header, Workspace, globalen Toast-Host, Kontextauswahl und Navigation Protection. |
-| Hauptnavigation | [`PrimaryNavigation.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/PageRegions/PrimaryNavigation.razor) zeigt Start, Suche, Transactions und Zielgruppen. Historie ist routbar, aber kein Hauptnavigationsziel. |
-| Wissenskontext | [`KnowledgeContextBar.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Context/KnowledgeContextBar.razor) zeigt `Current`, `Snapshot`, `Transaction` oder `Release`, optionale Bezeichnung/Zielgruppe, Working-Metadaten und bei Bedarf Dirty. Sie mutiert den Kontext nicht. |
-| Seitenregionen | [`PageRegionState.cs`](../src/KnowHowToAI.Server/Web/Components/Layout/PageRegions/PageRegionState.cs) nimmt Breadcrumbs, Aktionen, optionalen Kontextbereich und den Kontextvertrag einer Fachseite auf. Leere Slots belegen keinen Platz. |
+| Shell | [`MainLayout.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor) besitzt Landmarks, Header, kompakten Workspace, globalen Toast-Host und Navigation Protection. |
+| Hauptnavigation | [`PrimaryNavigation.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Navigation/PrimaryNavigation.razor) zeigt ausschließlich Wissen und Entwürfe. [`ActiveDraftLink`](../src/KnowHowToAI.Server/Web/Components/Layout/Navigation/ActiveDraftLink.razor) führt zum ausgewählten Entwurf. |
+| Wissenskontext | Der Selektor unter [`KnowledgePage`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) zeigt Zielgruppen- und Lesekontext direkt am Wissensarbeitsplatz. Die alte globale Kontextleiste und das Kontextpanel sind nicht Teil der Shell. |
+| Seitenregionen | [`PageRegionState.cs`](../src/KnowHowToAI.Server/Web/Components/Layout/PageRegions/PageRegionState.cs) nimmt Breadcrumbs, Aktionen und noch von Altseiten verwendete Kontextverträge auf. Die Shell rendert Breadcrumbs und Aktionen innerhalb von `main`; Kontextverträge werden nicht global angezeigt. Leere Slots belegen keinen Platz. |
 | Arbeitsfläche | [`MainLayout.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor) besitzt genau ein `main#shell-main`; Routable Pages rendern darin ihren Page-Root und ihre Feature-Sections. |
-| Gemeinsame Seitenbasis | [`PageFrame.razor`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor) rendert für jede routable Page genau einen `section.page-frame--shared` mit `header`, `h1` und Inhaltsbereich. `Title` ist erforderlich; `Description`, `Badges`, `Actions`, `ChildContent`, `Class` und zusätzliche Attribute sind optionale Parameter. |
+| Gemeinsame Seitenbasis | [`PageFrame.razor`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor) rendert für jede fachliche Routable Page genau einen `section.page-frame--shared` mit `header`, `h1` und Inhaltsbereich. `Title` ist erforderlich; `Description`, `Badges`, `Actions`, `ChildContent`, `Class` und zusätzliche Attribute sind optionale Parameter. |
 | Feedback/Dialoge | Kritische oder fachliche Zustände bleiben an der auslösenden Seite (`InlineAlert`, `StatusBanner`, Lade-/Leer-/Fehlerzustände). Bestätigungen nutzen den gemeinsamen Dialog; nichtkritische abgeschlossene Aktionen nutzen die einzige `ToastRegion`. |
 
 ### Gemeinsamer Seitenbasis-/Headervertrag
 
-Alle zehn routbaren Page-Varianten verwenden [`PageFrame`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor)
-als äußeren Page-Root: `/`, `/knowledge`, `/knowledge/{NodeId:guid}`, `/search`,
+Die neun fachlichen Routable Pages verwenden [`PageFrame`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor)
+als äußeren Page-Root: `/knowledge`, `/knowledge/{NodeId:guid}`, `/search`,
 `/transactions`, `/transactions/{TransactionId:guid}`, `/drafts`,
 `/drafts/{TransactionId:guid}`, `/audiences` und `/history`. Auch Lade-, Leer-,
 Fehler-, Auswahl- und Working-Zustände bleiben
@@ -78,7 +77,7 @@ renderer-/Circuit-Grenzen stehen in [Architektur](Architektur.md).
 ## 3. Seitennetz und Kernabläufe
 
 ```text
-Start/Dashboard ── Wissensbaum ── Node-Details ── Historie/Export
+/ ── /knowledge ── Wissensbaum ── Node-Details ── Historie/Export
        │                 └─ Working-Transaction: Nodes/Content/Zielgruppen
        │                                              └─ Validieren → Commit/Verwerfen
        ├─ Suche ── Treffer ── Wissensbaum (Kontext-Query bleibt erhalten)
@@ -89,8 +88,8 @@ Start/Dashboard ── Wissensbaum ── Node-Details ── Historie/Export
 
 - Ein Read-Kontext ist entweder Current oder genau einer der URL-Selektoren
   `transactionId`, `snapshotId`, `releaseId`. [`WebReadContextResolver`](../src/KnowHowToAI.Server/Web/State/WebReadContextResolver.cs)
-  validiert und rekonstruiert ihn; die Seiten geben ihn über die globale
-  Kontextleiste sichtbar weiter.
+  validiert und rekonstruiert ihn; die Knowledge-Seite zeigt ihre Auswahl am
+  Arbeitsort.
 - Knowledge und Search wählen eine Zielgruppe explizit über `audienceId` oder
   den gespeicherten letzten Wert. Fehlt sie trotz vorhandener Zielgruppen,
   öffnet der Kontextselektor; bei keinen Zielgruppen bleibt ein erklärter
@@ -99,8 +98,10 @@ Start/Dashboard ── Wissensbaum ── Node-Details ── Historie/Export
   Kontext und `ChangeVersion` aktuell; Commit/Verwerfen führt zurück zum Current-
   Kontext. Ungespeicherte Formularänderungen werden über
   [`NavigationProtection.razor`](../src/KnowHowToAI.Server/Web/Components/Layout/Shell/NavigationProtection.razor)
-  geschützt.
-- Suchtreffer und Dashboard-/Historienlinks öffnen den kanonischen Knowledge-
+  geschützt. Der Shell-Root stellt den Dirty-Wert aus `WorkspaceState` auch
+  dem `beforeunload`-Handler zur Verfügung; der gespeicherte Entwurf selbst
+  gilt nicht als ungespeicherte Eingabe.
+- Suchtreffer und Historienlinks öffnen den kanonischen Knowledge-
   Einstieg und erhalten den relevanten Kontext. Snapshot-/Diff-Ansichten der
   Historie bleiben read-only; der Release-Bereich kann Release-Metadaten für
   committed Snapshots anlegen. Einen Merge- oder Reapply-Ablauf bietet die
@@ -113,7 +114,7 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
 
 | Route | Kontext/Parameter und Hauptaufgabe | Routable Page / repräsentativer Test |
 |---|---|---|
-| `/` | Current; Dashboard für Current Snapshot/Release, offene Transactions, Qualität und letzte Node-Änderungen. | [`DashboardPage.razor`](../src/KnowHowToAI.Server/Web/Features/Dashboard/DashboardPage.razor) · [`DashboardPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Dashboard/DashboardPageTests.cs) |
+| `/` | Ersetzt die URL ohne Zusatzparameter durch `/knowledge`. | [`KnowledgeRedirect.razor`](../src/KnowHowToAI.Server/Web/Components/Navigation/KnowledgeRedirect.razor) · [`DashboardSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/DashboardSmokeTests.cs) |
 | `/knowledge` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId` plus `audienceId`; Baum ohne feste Node-Auswahl, Details/Editor je Zustand. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgePageContextSelectorTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/KnowledgePageContextSelectorTests.cs) |
 | `/knowledge/{NodeId:guid}` | Wie `/knowledge`, zusätzlich GUID-Auswahl des Knotens; Baum, Breadcrumbs und Knotendetails fokussieren diesen Node. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgeTreeSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeTreeSmokeTests.cs) |
 | `/search` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId` plus `audienceId`; Suche, Filter, paginierte Treffer und Übergang in Knowledge. | [`SearchPage.razor`](../src/KnowHowToAI.Server/Web/Features/Search/SearchPage.razor) · [`SearchSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/SearchSmokeTests.cs) |
@@ -126,18 +127,11 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
 
 ## 5. Seitensteckbriefe
 
-### Dashboard
+### Dashboard (ohne Route)
 
-- Intention: schneller Einstieg in den Current-Wissensstand und seine offenen
-  Arbeits-/Qualitätssignale.
-- Hauptbereiche: Snapshot/Release, offene Transactions, Qualitätsübersicht,
-  letzte Node-Änderungen; jeder Bereich kann seinen eigenen technischen Fehler
-  anzeigen.
-- Primäre Aktionen: Wissensbaum, Historie, Transaction-Details und betroffene
-  Nodes öffnen; die Interaktivitätsprüfung ist ein Shell-Smoke-Anker.
-- Zustände: initiales Laden, bereichsweise Fehler mit Retry, geladene Übersicht.
-- Code/Test: [`DashboardPage.razor`](../src/KnowHowToAI.Server/Web/Features/Dashboard/DashboardPage.razor),
-  [`DashboardSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/DashboardSmokeTests.cs).
+Die frühere Dashboard-Komponente und ihre Präsentationsbausteine verbleiben bis
+zum Hard Cut im Quellbaum, sind aber nicht mehr routbar. `/` führt direkt zum
+Wissensarbeitsplatz. Die Browserabnahme für `/` prüft diese Weiterleitung.
 
 ### Wissenscockpit (beide Knowledge-Routen)
 

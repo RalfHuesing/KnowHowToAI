@@ -1,20 +1,11 @@
-/*
- * Komponentenlokale Shell-Gestaltung; alle Werte kommen aus den globalen
- * Tokens in wwwroot/css/app.css. In Desktopbreite (ab 1280 CSS-Pixeln, vom
- * zugehörigen Modul gemeldet) stehen Navigation, Arbeitsfläche und
- * optionaler Kontextbereich nebeneinander; in kompakten Breiten werden sie
- * über die beschrifteten Kopfbuttons ein- und ausgeklappt und erscheinen als
- * überlagernde Panels. Keine fixierten Höhen für normalen Inhalt: die
- * Seite und die Arbeitsfläche nutzen den Bildlauf im Dokument. Elemente, die die
- * untergeordneten Layoutkomponenten rendern, werden über ::deep adressiert.
- */
-
+/* Die Shell besitzt Navigation und den gemeinsamen Seiteninnenraum. */
 .shell-root {
     position: relative;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-rows: auto 1fr;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     min-height: 100vh;
+    background-color: var(--ktai-color-page);
     --shell-header-height: 3.5rem;
 }
 
@@ -57,39 +48,32 @@
 .shell-header-brand {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: var(--ktai-space-4);
+    gap: var(--ktai-space-3);
     min-width: 0;
 }
 
 .shell-brand {
     color: var(--ktai-color-text);
     font-weight: 600;
+    text-decoration: none;
 }
 
-.shell-header-actions {
-    display: flex;
-    gap: var(--ktai-space-2);
+.shell-brand:hover {
+    color: var(--ktai-color-primary);
 }
 
 .shell-toggle {
     display: inline-flex;
     align-items: center;
-    gap: var(--ktai-space-2);
-    padding: var(--ktai-space-1) var(--ktai-space-3);
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
     background-color: var(--ktai-color-surface);
     color: var(--ktai-color-text);
     border: 1px solid var(--ktai-color-border);
     border-radius: var(--ktai-radius-sm);
     cursor: pointer;
-}
-
-.shell-navigation-toggle {
-    flex-shrink: 0;
-    width: 2.75rem;
-    height: 2.75rem;
-    justify-content: center;
-    padding: 0;
 }
 
 .shell-toggle-icon {
@@ -99,33 +83,6 @@
     stroke: currentColor;
     stroke-linecap: round;
     stroke-width: 2;
-}
-
-.shell-root ::deep .shell-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ktai-space-2);
-    margin-bottom: var(--ktai-space-2);
-}
-
-.shell-root ::deep .shell-panel-title {
-    margin: 0;
-    color: var(--ktai-color-text);
-    font-size: var(--ktai-font-size-base);
-    font-weight: 600;
-}
-
-.shell-root ::deep .shell-panel-close {
-    padding: var(--ktai-space-1) var(--ktai-space-2);
-    background-color: transparent;
-    border: none;
-    color: var(--ktai-color-text-secondary);
-    cursor: pointer;
-}
-
-.shell-root ::deep .shell-panel-close:hover {
-    color: var(--ktai-color-text);
 }
 
 .shell-workspace {
@@ -141,64 +98,55 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--ktai-space-4);
-    padding: var(--ktai-space-2) var(--ktai-space-6);
-    background-color: var(--ktai-color-surface);
-    border-bottom: 1px solid var(--ktai-color-border);
+    margin-bottom: var(--ktai-space-4);
 }
 
 .shell-main {
     flex: 1;
     min-width: 0;
-    padding: var(--ktai-space-6);
-}
-
-/*
- * Kompakte Breite: eine Spalte; die Seitenbereiche liegen als überlagernde
- * Panels unterhalb des Kopfs und nutzen notfalls in ihrem eigenen Bereich den Bildlauf,
- * ohne den Seiteninhalt zu einer Scrollfalle zu machen.
- */
-.shell-root--compact {
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.shell-root--compact .shell-workspace {
-    grid-column: 1;
-    grid-row: 2;
+    padding: var(--ktai-space-4) var(--ktai-space-6) var(--ktai-space-6);
 }
 
 .shell-root--navigation-closed {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .shell-root--navigation-closed .shell-workspace {
     grid-column: 1;
 }
 
-.shell-root--navigation-closed ::deep .shell-panel--context {
-    grid-column: 2;
+.shell-root--compact {
+    grid-template-columns: minmax(0, 1fr);
 }
 
-.shell-root--compact ::deep .shell-panel--navigation,
-.shell-root--compact ::deep .shell-panel--context {
-    position: fixed;
-    top: var(--shell-header-height);
-    bottom: 0;
-    z-index: 5;
-    width: min(20rem, calc(100% - var(--ktai-space-8)));
-    overflow-y: auto;
-    border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-md);
-    box-shadow: var(--ktai-shadow-surface);
+.shell-root--compact .shell-workspace {
+    grid-column: 1;
 }
 
 .shell-root--compact ::deep .shell-panel--navigation {
+    position: fixed;
+    top: var(--shell-header-height);
+    bottom: 0;
     left: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    z-index: 5;
+    width: min(18rem, calc(100% - var(--ktai-space-8)));
+    overflow-y: auto;
+    border: 1px solid var(--ktai-color-border);
+    border-radius: 0 var(--ktai-radius-md) var(--ktai-radius-md) 0;
+    box-shadow: var(--ktai-shadow-surface);
 }
 
-.shell-root--compact ::deep .shell-panel--context {
-    right: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+@media (max-width: 639px) {
+    .shell-header {
+        gap: var(--ktai-space-2);
+        padding-inline: var(--ktai-space-3);
+    }
+
+    .shell-main {
+        padding: var(--ktai-space-3);
+    }
+
+    .shell-workspace-head {
+        flex-wrap: wrap;
+    }
 }

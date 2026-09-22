@@ -1,0 +1,23 @@
+.active-draft-link {
+    flex: 0 0 auto;
+    padding: var(--ktai-space-2) var(--ktai-space-3);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-sm);
+    color: var(--ktai-color-primary);
+    font-size: var(--ktai-font-size-sm);
+    text-decoration: none;
+}
+
+.active-draft-link:hover {
+    background-color: var(--ktai-color-info-background);
+}
+
+@media (max-width: 479px) {
+    .active-draft-link {
+        max-width: 8.5rem;
+        padding-inline: var(--ktai-space-2);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

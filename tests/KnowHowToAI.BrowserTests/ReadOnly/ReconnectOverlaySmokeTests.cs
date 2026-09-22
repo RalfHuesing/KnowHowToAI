@@ -15,17 +15,14 @@ public sealed class ReconnectOverlaySmokeTests
         {
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
         });
-        await page.GotoAsync(host.Address, new PageGotoOptions
+        await page.GotoAsync(host.Address + "/knowledge?audienceId=Default", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
         });
 
-        // Circuit bereit machen: Interaktivitätsnachweis wie im M1-Smoke.
-        var interactionStatus = page.GetByTestId("interaction-status");
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" }).ClickAsync();
-        await Assertions.Expect(interactionStatus).ToHaveTextAsync("Interaktivität ist verfügbar.");
+        await Assertions.Expect(page.GetByTestId("shell-root")).ToHaveAttributeAsync("data-ktai-interactive", "true");
 
         var reconnectDialog = page.Locator("#components-reconnect-modal");
         await page.Context.SetOfflineAsync(true);
@@ -47,12 +44,9 @@ public sealed class ReconnectOverlaySmokeTests
         await page.Context.SetOfflineAsync(false);
         await Assertions.Expect(reconnectDialog).ToBeHiddenAsync(new() { Timeout = 30_000 });
 
-        // Der Circuit ist derselbe geblieben: der vor dem Abbruch gesetzte
-        // Status steht weiterhin da, ohne dass die Seite neu geladen hätte,
-        // und der M1-Interaktionsnachweis antwortet erneut.
-        await Assertions.Expect(interactionStatus).ToHaveTextAsync(
-            "Interaktivität ist verfügbar.", new() { Timeout = 5_000 });
+        // Der Circuit ist derselbe geblieben und die Shell bleibt interaktiv.
         await CircuitProbe.WaitForInteractivityAsync(page);
+        await Assertions.Expect(page.GetByTestId("shell-root")).ToHaveAttributeAsync("data-ktai-interactive", "true");
 
         // Erfolgreicher Reconnect zeigt keinen fachlichen Erfolgshinweis.
         Assert.Empty(await page.Locator(".toast-region__toast").AllAsync());
@@ -72,11 +66,7 @@ public sealed class ReconnectOverlaySmokeTests
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
         });
-        // "Shell bereit" erscheint bereits im Prerendering; erst der
-        // beobachtbare Interaktionsnachweis belegt, dass ein Circuit
-        // etabliert ist, dessen Verlust die Reconnect-Oberfläche auslöst.
-        await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync(
-            "Shell bereit", new() { Timeout = 15_000 });
+        // Erst der beobachtbare Circuit-Zustand belegt die interaktive Shell.
         await CircuitProbe.WaitForInteractivityAsync(page);
 
         // Hostneustart am selben Loopback-Origin: der Circuit des Browsers
@@ -102,7 +92,7 @@ public sealed class ReconnectOverlaySmokeTests
         Assert.Equal("components-reconnect-reload-button", await page.EvaluateAsync<string?>("document.activeElement?.id"));
 
         await reloadButton.ClickAsync();
-        await Assertions.Expect(page.GetByTestId("shell-status")).ToContainTextAsync(
-            "Shell bereit", new() { Timeout = 30_000 });
+        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" }))
+            .ToBeVisibleAsync(new() { Timeout = 30_000 });
     }
 }

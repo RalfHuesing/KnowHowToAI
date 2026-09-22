@@ -41,7 +41,7 @@ public sealed class ResponsiveShellSmokeTests
             ViewportSize = new ViewportSize { Width = 640, Height = 720 }
         });
 
-        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address + "/knowledge?audienceId=Default", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -66,7 +66,7 @@ public sealed class ResponsiveShellSmokeTests
             ViewportSize = new ViewportSize { Width = 1024, Height = 720 }
         });
 
-        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address + "/knowledge?audienceId=Default", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -74,7 +74,7 @@ public sealed class ResponsiveShellSmokeTests
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })).ToBeVisibleAsync();
 
         // Zuerst auf den stabilen Kompaktzustand warten: der Kopfbutton
         // erscheint erst, wenn der Circuit verbunden ist und das Modul die
@@ -86,15 +86,12 @@ public sealed class ResponsiveShellSmokeTests
         // durch den Fokus sichtbar wird, und springt auf den Hauptinhalt –
         // beobachtbar, ohne feste Wartezeit.
         var skipLink = page.GetByRole(AriaRole.Link, new() { Name = "Zum Hauptinhalt springen" });
-        var startAction = page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" });
         var main = page.Locator("#shell-main");
         await page.Keyboard.PressAsync("Tab");
         await Assertions.Expect(skipLink).ToBeFocusedAsync();
         await Assertions.Expect(skipLink).ToBeVisibleAsync();
         await page.Keyboard.PressAsync("Enter");
         await Assertions.Expect(main).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Tab");
-        await Assertions.Expect(startAction).ToBeFocusedAsync();
 
         // Die Navigation liegt in der kompakten Breite hinter dem
         // beschrifteten Kopfbutton. Der Button bleibt als native
@@ -107,7 +104,7 @@ public sealed class ResponsiveShellSmokeTests
         await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" }))
             .ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Tab");
-        await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Start", Exact = true })).ToBeFocusedAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Wissen", Exact = true })).ToBeFocusedAsync();
 
         await page.Keyboard.PressAsync("Escape");
         await Assertions.Expect(page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" }))
@@ -137,10 +134,9 @@ public sealed class ResponsiveShellSmokeTests
 
         var reachableElements = new (string Beschreibung, ILocator Locator)[]
         {
-            ("Wortmarke", page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })),
-            ("Kontextleiste", page.GetByRole(AriaRole.Group, new() { Name = "Wissenskontext" })),
+            ("Wortmarke", page.GetByRole(AriaRole.Link, new() { Name = "KnowHowToAI" })),
+            ("Seitenüberschrift", page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })),
             ("Navigationskopfbutton", navigationToggle),
-            ("Aktion der Startseite", page.GetByRole(AriaRole.Button, new() { Name = "Interaktivität prüfen" })),
             ("Testfläche", page.Locator("#reflow-surface"))
         };
         foreach (var (beschreibung, locator) in reachableElements)

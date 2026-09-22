@@ -40,7 +40,7 @@ public sealed class UiAuditScreenshotTests
                 ReducedMotion = ReducedMotion.Reduce
             });
 
-            await CaptureDashboardAsync(page, host.Address, viewport, outputDirectory, captures);
+            await CaptureKnowledgeEntryAsync(page, host.Address, viewport, outputDirectory, captures);
             await CaptureKnowledgeAsync(page, host.Address, viewport, outputDirectory, captures);
             await CaptureSearchAsync(page, host.Address, viewport, outputDirectory, captures);
             await CaptureHistoryAsync(page, host.Address, viewport, outputDirectory, captures);
@@ -78,11 +78,11 @@ public sealed class UiAuditScreenshotTests
         return fullPath;
     }
 
-    private static async Task CaptureDashboardAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
+    private static async Task CaptureKnowledgeEntryAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
     {
-        await GotoAsync(page, address, "/");
-        await Assertions.Expect(page.GetByTestId("dashboard-page")).ToBeVisibleAsync();
-        await CaptureAsync(page, "01_dashboard", viewport, output, captures);
+        await GotoAsync(page, address, "/knowledge?audienceId=Default");
+        await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
+        await CaptureAsync(page, "01_knowledge_entry", viewport, output, captures);
     }
 
     private static async Task CaptureKnowledgeAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)

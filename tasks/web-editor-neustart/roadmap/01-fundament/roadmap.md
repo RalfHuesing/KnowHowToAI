@@ -13,7 +13,7 @@ dürfen bis M3 noch technisch erreichbar sein, sind aber keine Zielnavigation.
 - [x] [M1.1-T1 – Regeln und Doku-Grenze](tasks/M1.1-T1.md)
 - [x] [M1.2-T1 – Entwurfs- und URL-Arbeitszustand](tasks/M1.2-T1.md)
 - [x] [M1.3-T1 – Entwurfsübersicht und Abschluss](tasks/M1.3-T1.md)
-- [ ] [M1.4-T1 – Gemeinsame Shell und Navigation](tasks/M1.4-T1.md)
+- [x] [M1.4-T1 – Gemeinsame Shell und Navigation](tasks/M1.4-T1.md)
 
 ## Milestone-Abnahme
 

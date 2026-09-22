@@ -1,17 +1,13 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace KnowHowToAI.Server.Web.Components.Layout.PageRegions;
+namespace KnowHowToAI.Server.Web.Components.Layout.Navigation;
 
 /// <summary>
-/// Linke Navigationspalte der Shell mit dem vorhandenen Start-Link als
-/// einzigem M2-Eintrag; noch nicht implementierte M3+-Routen erscheinen
-/// bewusst nicht. In kompakter Breite erscheint die Navigation als
-/// überlagerndes Panel; Öffnen und Schließen steuert das Hauptlayout, das
-/// dafür den Fokus auf den Bereich setzt und ihn beim Schließen an den
-/// Auslöser zurückgibt. Escape reicht das Hauptlayout über
-/// <see cref="OnEscape"/> weiter, das nur den zuletzt geöffneten Bereich
-/// schließt.
+/// Globale Navigation für Wissen und Entwürfe. In kompakter Breite erscheint
+/// sie als überlagerndes Panel; Öffnen und Schließen steuert das Hauptlayout,
+/// das den Fokus auf den Bereich setzt und ihn beim Schließen an den Auslöser
+/// zurückgibt. Escape wird an das Hauptlayout weitergegeben.
 /// </summary>
 public sealed partial class PrimaryNavigation : ComponentBase
 {

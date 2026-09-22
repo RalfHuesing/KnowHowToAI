@@ -34,7 +34,7 @@ public sealed class LayoutShellSmokeTests
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
         });
 
-        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address + "/knowledge?audienceId=Default", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -43,7 +43,7 @@ public sealed class LayoutShellSmokeTests
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })).ToBeVisibleAsync();
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
         await Assertions.Expect(navigation).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Main)).ToHaveCountAsync(1);
@@ -92,7 +92,7 @@ public sealed class LayoutShellSmokeTests
             ViewportSize = new ViewportSize { Width = 1024, Height = 720 }
         });
 
-        var response = await page.GotoAsync(_host.Address, new PageGotoOptions
+        var response = await page.GotoAsync(_host.Address + "/knowledge?audienceId=Default", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
@@ -115,7 +115,7 @@ public sealed class LayoutShellSmokeTests
         await OpenNavigationAsync(page, navigationToggle);
         await Assertions.Expect(navigation).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Tab");
-        await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Start", Exact = true })).ToBeFocusedAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Wissen", Exact = true })).ToBeFocusedAsync();
         await navigationToggle.ClickAsync();
         await ExpectPanelClosedAsync(page, navigationToggle);
 

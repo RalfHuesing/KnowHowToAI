@@ -1,11 +1,15 @@
 using AngleSharp.Dom;
 using Bunit;
-using KnowHowToAI.Server.Web.Components.Layout.Shell;
+using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
-using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Components.Layout.Shell;
+using KnowHowToAI.Server.Web.Components.Shared;
+using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
-using KnowHowToAI.Web.Tests.TestSupport;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.Components.Layout;
 
@@ -13,215 +17,109 @@ namespace KnowHowToAI.Web.Tests.Components.Layout;
 public sealed class MainLayoutTests : ShellTestContext
 {
     [Fact]
-    public void ShowsTheBrandAsPureTextWordmarkWithoutLogoAsset()
-    {
-        var cut = RenderMainLayout();
-
-        var brand = cut.Find(".shell-brand");
-        Assert.Equal("KnowHowToAI", brand.TextContent);
-        Assert.Equal("span", brand.TagName.ToLowerInvariant());
-        Assert.Empty(cut.FindAll("img"));
-        Assert.Single(cut.FindAll("svg.shell-toggle-icon"));
-        var navigationToggle = cut.Find("button[aria-controls='shell-navigation']");
-        Assert.Empty(navigationToggle.TextContent.Trim());
-        Assert.Equal("Navigation ausblenden", navigationToggle.Attributes["aria-label"]?.Value);
-        Assert.Equal("Navigation ausblenden", navigationToggle.Attributes["title"]?.Value);
-        Assert.Contains("Inhalt", cut.Find("main").TextContent, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void ProvidesSkipLinkHeaderNavAndExactlyOneMainAsNamedLandmarks()
+    public void ProvidesSkipLinkBrandTwoGlobalDestinationsAndExactlyOneMain()
     {
         var cut = RenderMainLayout();
 
         var skipLink = cut.Find("a.shell-skip-link");
         Assert.Equal("#shell-main", skipLink.Attributes["href"]?.Value);
         Assert.Equal("Zum Hauptinhalt springen", skipLink.TextContent);
-        var firstShellChild = Assert.IsAssignableFrom<IElement>(cut.Find(".shell-root").ChildNodes[0]);
-        Assert.Equal("a", firstShellChild.TagName.ToLowerInvariant());
+        Assert.Equal("a", Assert.IsAssignableFrom<IElement>(cut.Find(".shell-root").ChildNodes[0]).TagName.ToLowerInvariant());
+        Assert.Equal("KnowHowToAI", cut.Find("a.shell-brand").TextContent);
 
-        Assert.NotNull(cut.Find("header"));
         var navigation = cut.Find("nav[aria-label='Hauptnavigation']");
-        var startLink = navigation.QuerySelector("a[href='/']");
-        Assert.NotNull(startLink);
-        Assert.Equal("Start", startLink!.TextContent);
+        Assert.Equal(new[] { "/knowledge", "/drafts" },
+            navigation.QuerySelectorAll("a").Select(link => link.GetAttribute("href")));
+        Assert.Equal(new[] { "Wissen", "Entwürfe" },
+            navigation.QuerySelectorAll("a").Select(link => link.TextContent.Trim()));
+        Assert.Empty(cut.FindAll("aside, .knowledge-context, [data-testid='context-selector-dialog']"));
 
-        var mainAreas = cut.FindAll("main");
-        var main = Assert.Single(mainAreas);
+        var main = Assert.Single(cut.FindAll("main"));
         Assert.Equal("shell-main", main.Id);
         Assert.Equal("-1", main.Attributes["tabindex"]?.Value);
-
-        Assert.Empty(cut.FindAll("aside"));
     }
 
     [Fact]
-    public void EmptyRegionsRenderNothingInsteadOfDummyContent()
+    public void HostsTheFeaturePageRootAndItsSingleHeadingInsideTheOnlyMain()
+    {
+        var cut = Render<MainLayout>(parameters => parameters.Add(parameter => parameter.Body, builder =>
+        {
+            builder.OpenComponent<PageFrame>(0);
+            builder.AddAttribute(1, nameof(PageFrame.Title), "Wissensbasis");
+            builder.AddAttribute(2, nameof(PageFrame.ChildContent), (RenderFragment)(content =>
+                content.AddMarkupContent(0, "<p>Arbeitsinhalt</p>")));
+            builder.CloseComponent();
+        }));
+
+        var main = Assert.Single(cut.FindAll("main"));
+        Assert.Equal("shell-main", main.Id);
+        Assert.Equal("Wissensbasis", Assert.Single(main.QuerySelectorAll("h1")).TextContent);
+        Assert.Equal(0, main.QuerySelectorAll("main").Length);
+        Assert.NotNull(main.QuerySelector(".page-frame"));
+    }
+
+    [Fact]
+    public void DesktopNavigationCanBeClosedAndReopened()
     {
         var cut = RenderMainLayout();
+        var toggle = cut.Find("button[aria-controls='shell-navigation']");
 
-        Assert.Empty(cut.FindAll("nav[aria-label='Breadcrumbs']"));
-        Assert.Empty(cut.FindAll(".shell-page-actions"));
-        Assert.Empty(cut.FindAll("aside"));
-        Assert.DoesNotContain("Kontext", cut.Markup, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void WideModeShowsSideRegionsSideBySideWithPersistentNavigationToggle()
-    {
-        var cut = RenderMainLayoutWithAttachPage();
-
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("aside")));
-
-        Assert.Single(cut.FindAll("nav[aria-label='Hauptnavigation']"));
-        Assert.Single(cut.FindAll("nav[aria-label='Breadcrumbs']"));
-        Assert.Single(cut.FindAll(".shell-page-actions"));
-        Assert.Single(cut.FindAll("button[aria-controls='shell-navigation']"));
-    }
-
-    [Fact]
-    public void WideModeNavigationToggleClosesAndReopensNavigation()
-    {
-        var cut = RenderMainLayout();
-
-        var navigationToggle = cut.Find("button[aria-controls='shell-navigation']");
-        Assert.Equal("true", navigationToggle.Attributes["aria-expanded"]?.Value);
+        Assert.Equal("true", toggle.Attributes["aria-expanded"]?.Value);
         Assert.Single(cut.FindAll("nav[aria-label='Hauptnavigation']"));
 
-        navigationToggle.Click();
-
+        toggle.Click();
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
-        Assert.Equal("false", navigationToggle.Attributes["aria-expanded"]?.Value);
+        Assert.Equal("Navigation einblenden", toggle.Attributes["aria-label"]?.Value);
 
-        navigationToggle.Click();
-
+        toggle.Click();
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
-        Assert.Equal("true", navigationToggle.Attributes["aria-expanded"]?.Value);
-        Assert.Equal(4, cut.FindAll("nav[aria-label='Hauptnavigation'] a").Count);
+        Assert.Equal("Navigation ausblenden", toggle.Attributes["aria-label"]?.Value);
     }
 
     [Fact]
-    public void FeaturePagesAttachBreadcrumbsActionsAndContextWithoutKnowingThePageGrid()
+    public async Task CompactNavigationOpensWithFocusAndEscapeReturnsFocusToTheToggle()
     {
-        var cut = RenderMainLayoutWithAttachPage();
+        var cut = RenderMainLayout();
+        await cut.Instance.NotifyCompactModeChangedAsync(isCompact: true);
+        var toggle = cut.Find("button[aria-controls='shell-navigation']");
 
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("aside")));
-
-        Assert.Equal("Start", cut.Find("nav[aria-label='Breadcrumbs']").TextContent.Trim());
-        var actionButton = cut.Find(".shell-page-actions button");
-        Assert.Equal("Testaktion", actionButton.TextContent);
-        Assert.Contains("Kontextinhalt", cut.Find("aside").TextContent, StringComparison.Ordinal);
-        Assert.Contains("Seiteninhalt", cut.Find("main").TextContent, StringComparison.Ordinal);
-
-        actionButton.Click();
-        var attachingPage = cut.FindComponent<RegionAttachingPage>().Instance;
-        Assert.True(attachingPage.WasActionTriggered);
-    }
-
-    [Fact]
-    public void SwitchingTheBodyResetsAttachedRegions()
-    {
-        var cut = RenderMainLayoutWithAttachPage();
-
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("aside")));
-        cut.Render(parameters => parameters.Add(
-            parameter => parameter.Body,
-            "<p>Andere Seite</p>"));
-
-        Assert.Empty(cut.FindAll("nav[aria-label='Breadcrumbs']"));
-        Assert.Empty(cut.FindAll(".shell-page-actions"));
-        Assert.Empty(cut.FindAll("aside"));
-        Assert.Empty(cut.FindAll(".knowledge-context"));
-    }
-
-    [Fact]
-    public void RendersTheKnowledgeContextBarExactlyOnceGloballyNearTheWordmark()
-    {
-        var cut = RenderMainLayoutWithAttachPage();
-
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".knowledge-context")));
-
-        var bar = cut.Find(".shell-header-brand .knowledge-context");
-        Assert.Contains("Current Snapshot", bar.TextContent, StringComparison.Ordinal);
-        Assert.Contains("Keine Zielgruppe ausgewählt", bar.TextContent, StringComparison.Ordinal);
-        Assert.Empty(cut.FindAll(".app-status--ungespeichert"));
-        Assert.Single(cut.FindAll(".knowledge-context"));
-    }
-
-    [Fact]
-    public async Task CompactModeCollapsesRegionsBehindLabeledToggles()
-    {
-        var cut = RenderMainLayoutWithAttachPage();
-        await SwitchToCompactModeAsync(cut);
-
-        cut.WaitForState(() => cut.FindAll("button[aria-controls='shell-navigation']").Count == 1);
-        var navigationToggle = cut.Find("button[aria-controls='shell-navigation']");
-        var contextToggle = cut.Find("button[aria-controls='shell-context']");
-        Assert.Equal("Navigation einblenden", navigationToggle.Attributes["aria-label"]?.Value);
-        Assert.Equal("Navigation einblenden", navigationToggle.Attributes["title"]?.Value);
-        Assert.Equal("false", navigationToggle.Attributes["aria-expanded"]?.Value);
-        Assert.Equal("Kontext einblenden", contextToggle.TextContent.Trim());
-        Assert.Equal("false", contextToggle.Attributes["aria-expanded"]?.Value);
+        Assert.Equal("Navigation einblenden", toggle.Attributes["aria-label"]?.Value);
         Assert.Empty(cut.FindAll("nav[aria-label='Hauptnavigation']"));
-        Assert.Empty(cut.FindAll("aside"));
 
-        navigationToggle.Click();
-        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
-        Assert.Equal("Navigation ausblenden", navigationToggle.Attributes["aria-label"]?.Value);
-        Assert.Equal("Navigation ausblenden", navigationToggle.Attributes["title"]?.Value);
-        Assert.Equal("true", navigationToggle.Attributes["aria-expanded"]?.Value);
-        Assert.Single(cut.FindAll("a[href='/']"));
-
-        navigationToggle.Click();
-        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
-        Assert.Equal("Navigation einblenden", navigationToggle.Attributes["aria-label"]?.Value);
-        Assert.Equal("Navigation einblenden", navigationToggle.Attributes["title"]?.Value);
-
-        contextToggle.Click();
-        cut.WaitForState(() => cut.FindAll("aside").Count == 1);
-        Assert.Equal("Kontext ausblenden", contextToggle.TextContent.Trim());
-
-        contextToggle.Click();
-        cut.WaitForState(() => cut.FindAll("aside").Count == 0);
-        Assert.Equal("Kontext einblenden", contextToggle.TextContent.Trim());
-    }
-
-    [Fact]
-    public async Task OpeningARegionHandsFocusToItsTitleAndClosingReturnsItToTheTrigger()
-    {
-        var cut = RenderMainLayout();
-        await SwitchToCompactModeAsync(cut);
-
-        var navigationToggle = cut.Find("button[aria-controls='shell-navigation']");
-        navigationToggle.Click();
+        toggle.Click();
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
         JSInterop.VerifyFocusAsyncInvoke(calledTimes: 1);
 
-        navigationToggle.Click();
+        cut.Find("nav#shell-navigation").KeyDown("Escape");
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
         JSInterop.VerifyFocusAsyncInvoke(calledTimes: 2);
+        Assert.Equal("Navigation einblenden", toggle.Attributes["aria-label"]?.Value);
     }
 
     [Fact]
-    public async Task EscapeClosesOnlyTheLastOpenedRegion()
+    public void SelectedTransactionIsVisibleAndLinksDirectlyToItsDraftDetail()
+    {
+        var transactionId = new TransactionId(Guid.NewGuid());
+        Services.GetRequiredService<WorkspaceState>().SetContext(
+            new KnowHowToAI.Server.Web.Components.Layout.Context.KnowledgeContextViewModel(
+                KnowHowToAI.Server.Web.Components.Layout.Context.KnowledgeReadContextKind.Current),
+            new ReadContext(TransactionId: transactionId));
+
+        var cut = RenderMainLayout();
+        var link = cut.Find("a[data-testid='active-draft-link']");
+
+        Assert.Equal($"/drafts/{transactionId.Value:D}", link.GetAttribute("href"));
+        Assert.Equal("Aktiven Entwurf öffnen", link.TextContent.Trim());
+    }
+
+    [Fact]
+    public void BreadcrumbAndActionsRemainAvailableWithoutAddingAnotherMain()
     {
         var cut = RenderMainLayoutWithAttachPage();
-        await SwitchToCompactModeAsync(cut);
 
-        cut.Find("button[aria-controls='shell-navigation']").Click();
-        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
-        cut.Find("button[aria-controls='shell-context']").Click();
-        cut.WaitForState(() => cut.FindAll("aside").Count == 1);
-
-        cut.Find("aside#shell-context").KeyDown("Escape");
-        cut.WaitForState(() => cut.FindAll("aside").Count == 0);
-        Assert.Single(cut.FindAll("nav[aria-label='Hauptnavigation']"));
-        Assert.Equal("true", cut.Find("button[aria-controls='shell-navigation']")
-            .Attributes["aria-expanded"]?.Value);
-        Assert.Equal("false", cut.Find("button[aria-controls='shell-context']")
-            .Attributes["aria-expanded"]?.Value);
-
-        cut.Find("nav#shell-navigation").KeyDown("Escape");
-        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
+        Assert.Equal("Start", cut.Find("nav[aria-label='Breadcrumbs']").TextContent.Trim());
+        Assert.Equal("Testaktion", cut.Find(".shell-page-actions button").TextContent.Trim());
+        Assert.Single(cut.FindAll("main"));
         Assert.Empty(cut.FindAll("aside"));
     }
 
@@ -237,29 +135,19 @@ public sealed class MainLayoutTests : ShellTestContext
                 builder.CloseComponent();
             }));
 
-    private static async Task SwitchToCompactModeAsync(IRenderedComponent<MainLayout> cut) =>
-        await cut.Instance.NotifyCompactModeChangedAsync(isCompact: true);
-
     private sealed class RegionAttachingPage : ComponentBase
     {
         [Inject]
         private PageRegionState PageRegions { get; set; } = default!;
 
-        public bool WasActionTriggered { get; private set; }
-
         protected override void OnInitialized()
         {
             PageRegions.SetBreadcrumbs(builder => builder.AddContent(0, "Start"));
-            PageRegions.SetContext(builder => builder.AddContent(0, "Kontextinhalt"));
-            PageRegions.SetKnowledgeContext(
-                new KnowledgeContextViewModel(KnowledgeReadContextKind.Current));
             PageRegions.SetActions(builder =>
             {
                 builder.OpenElement(0, "button");
                 builder.AddAttribute(1, "type", "button");
-                builder.AddAttribute(2, "onclick",
-                    EventCallback.Factory.Create(this, () => WasActionTriggered = true));
-                builder.AddContent(3, "Testaktion");
+                builder.AddContent(2, "Testaktion");
                 builder.CloseElement();
             });
         }

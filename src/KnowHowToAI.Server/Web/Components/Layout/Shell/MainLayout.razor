@@ -3,80 +3,53 @@
 
 <div class="shell-root @(_isCompactMode ? "shell-root--compact" : "") @(!_isCompactMode && !_isNavigationOpen ? "shell-root--navigation-closed" : "")"
      data-testid="shell-root"
-     data-ktai-interactive="@(_isInteractive ? "true" : "false")">
+     data-ktai-interactive="@(_isInteractive ? "true" : "false")"
+     data-ktai-dirty="@(IsDirty ? "true" : "false")">
     <a class="shell-skip-link" href="#shell-main" @onclick="SkipToMainAsync"
        @onclick:preventDefault="true">Zum Hauptinhalt springen</a>
+
     <header class="shell-header">
         <div class="shell-header-brand">
             <button type="button" class="shell-toggle shell-navigation-toggle"
-                    @onclick="@(() => TogglePanelAsync(ShellPanel.Navigation))"
+                    @onclick="ToggleNavigationAsync"
                     @ref="_navigationToggleButton"
-                    aria-label="@(IsOpen(ShellPanel.Navigation) ? "Navigation ausblenden" : "Navigation einblenden")"
-                    title="@(IsOpen(ShellPanel.Navigation) ? "Navigation ausblenden" : "Navigation einblenden")"
-                    aria-expanded="@(IsOpen(ShellPanel.Navigation) ? "true" : "false")"
+                    aria-label="@(_isNavigationOpen ? "Navigation ausblenden" : "Navigation einblenden")"
+                    title="@(_isNavigationOpen ? "Navigation ausblenden" : "Navigation einblenden")"
+                    aria-expanded="@(_isNavigationOpen ? "true" : "false")"
                     aria-controls="shell-navigation">
                 <svg class="shell-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <span class="shell-brand">KnowHowToAI</span>
-            @if (PageRegions.KnowledgeContext is { } knowledgeContext)
-            {
-                <KnowledgeContextBar Context="@knowledgeContext" OnOpenSelector="OpenContextSelector" />
-            }
+            <a class="shell-brand" href="/knowledge">KnowHowToAI</a>
         </div>
-        <div class="shell-header-actions">
-            @if (PageRegions.Context is not null)
-            {
-                <button type="button" class="shell-toggle"
-                        @onclick="@(() => TogglePanelAsync(ShellPanel.Context))"
-                        @ref="_contextToggleButton"
-                        aria-expanded="@(IsOpen(ShellPanel.Context) ? "true" : "false")"
-                        aria-controls="shell-context">
-                    @(IsOpen(ShellPanel.Context) ? "Kontext ausblenden" : "Kontext einblenden")
-                </button>
-            }
-        </div>
+        <ActiveDraftLink />
     </header>
 
-    @if (IsOpen(ShellPanel.Navigation))
+    @if (_isNavigationOpen)
     {
-        <PrimaryNavigation @ref="_primaryNavigation"
-                           OnEscape="@EscapeTopPanelAsync" />
-    }
-    @if (PageRegions.Context is not null && IsOpen(ShellPanel.Context))
-    {
-        <ContextPanel @ref="_contextPanel"
-                      Content="@PageRegions.Context"
-                      OnClose="@(() => ClosePanelAsync(ShellPanel.Context))"
-                      OnEscape="@EscapeTopPanelAsync" />
+        <PrimaryNavigation @ref="_primaryNavigation" OnEscape="CloseNavigationAsync" />
     }
 
     <div class="shell-workspace">
-        @if (PageRegions.Breadcrumbs is not null || PageRegions.Actions is not null)
-        {
-            <div class="shell-workspace-head">
-                @if (PageRegions.Breadcrumbs is not null)
-                {
-                    <BreadcrumbRegion Content="@PageRegions.Breadcrumbs" />
-                }
-                @if (PageRegions.Actions is not null)
-                {
-                    <PageActions Content="@PageRegions.Actions" />
-                }
-            </div>
-        }
         <main id="shell-main" class="shell-main" tabindex="-1" @ref="_mainElement">
+            @if (PageRegions.Breadcrumbs is not null || PageRegions.Actions is not null)
+            {
+                <div class="shell-workspace-head">
+                    @if (PageRegions.Breadcrumbs is not null)
+                    {
+                        <BreadcrumbRegion Content="@PageRegions.Breadcrumbs" />
+                    }
+                    @if (PageRegions.Actions is not null)
+                    {
+                        <PageActions Content="@PageRegions.Actions" />
+                    }
+                </div>
+            }
             @Body
         </main>
     </div>
 
-    @* Einzige globale Toastregion: bestätigt nichtkritische abgeschlossene
-       Aktionen und bleibt im Ruhezustand unsichtbar. *@
     <ToastRegion State="@ToastState" />
-
-    @* Globaler Zielgruppen- und Lesekontext-Selektor *@
-    <ContextSelectorDialog />
-
     <NavigationProtection />
 </div>

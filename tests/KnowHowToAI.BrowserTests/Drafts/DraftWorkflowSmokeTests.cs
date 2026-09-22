@@ -42,6 +42,9 @@ public sealed class DraftWorkflowSmokeTests
             await Assertions.Expect(page.GetByTestId("draft-review")).ToBeVisibleAsync(new() { Timeout = 15_000 });
             await Assertions.Expect(page.GetByTestId("transaction-diff")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("validate-transaction-button")).ToBeVisibleAsync();
+            var selectedDraftLink = page.GetByTestId("active-draft-link");
+            await Assertions.Expect(selectedDraftLink).ToBeVisibleAsync();
+            await Assertions.Expect(selectedDraftLink).ToHaveAttributeAsync("href", $"/drafts/{draftId:D}");
 
             await page.GetByTestId("discard-transaction-button").ClickAsync();
             await page.GetByRole(AriaRole.Button, new() { Name = "Entwurf verwerfen" }).ClickAsync();

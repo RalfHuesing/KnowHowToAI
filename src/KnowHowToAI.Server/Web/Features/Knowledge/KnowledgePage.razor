@@ -2,6 +2,7 @@
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using KnowHowToAI.Server.Web.Components.Shared
 @using KnowHowToAI.Server.Web.Features.Knowledge.Components
+@using KnowHowToAI.Server.Web.Components.Layout.Context
 @page "/knowledge/{NodeId:guid}"
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Knowledge
@@ -67,4 +68,5 @@
             </section>
         </div>
     }
+    <ContextSelectorDialog />
 </PageFrame>
