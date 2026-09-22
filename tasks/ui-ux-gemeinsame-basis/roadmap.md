@@ -69,7 +69,7 @@ implementierten Zustands.
     existiert keine unbegründete Ausnahme. Bestehende Nutzeraktionen und
     Zustandsübergänge funktionieren unverändert.
 
-- [ ] **Struktur- und Layoutnachweise ergänzen**
+- [x] **Struktur- und Layoutnachweise ergänzen**
   - **Intention:** Den gemeinsamen Vertrag gegen lokalen Drift und
     routeübergreifende Layoutregressionen automatisiert absichern.
   - **Scope:** Die in Punkt 1 isoliert geprüfte Basis in den routbaren Pages

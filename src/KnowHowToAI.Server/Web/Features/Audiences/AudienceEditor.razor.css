@@ -59,6 +59,11 @@
     border-radius: var(--ktai-radius-sm);
 }
 
+.audience-item__content {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .audience-item__content h3 {
     margin: 0;
     font-size: var(--ktai-font-size-lg);
