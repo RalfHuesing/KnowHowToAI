@@ -39,10 +39,11 @@ App.razor
 
 ### Gemeinsamer Seitenbasis-/Headervertrag
 
-Alle acht routbaren Page-Varianten verwenden [`PageFrame`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor)
+Alle zehn routbaren Page-Varianten verwenden [`PageFrame`](../src/KnowHowToAI.Server/Web/Components/Shared/PageFrame.razor)
 als äußeren Page-Root: `/`, `/knowledge`, `/knowledge/{NodeId:guid}`, `/search`,
-`/transactions`, `/transactions/{TransactionId:guid}`, `/audiences` und
-`/history`. Auch Lade-, Leer-, Fehler-, Auswahl- und Working-Zustände bleiben
+`/transactions`, `/transactions/{TransactionId:guid}`, `/drafts`,
+`/drafts/{TransactionId:guid}`, `/audiences` und `/history`. Auch Lade-, Leer-,
+Fehler-, Auswahl- und Working-Zustände bleiben
 innerhalb dieses Roots. Die `Title`-Parameter werden dadurch immer als genau
 ein semantisches `h1` ausgegeben. Auf beiden Knowledge-Routen bleibt
 `Wissensbasis` das stabile `h1`; der ausgewählte Node wird im Detailbereich als
@@ -82,6 +83,7 @@ Start/Dashboard ── Wissensbaum ── Node-Details ── Historie/Export
        │                                              └─ Validieren → Commit/Verwerfen
        ├─ Suche ── Treffer ── Wissensbaum (Kontext-Query bleibt erhalten)
        ├─ Transactions ── Transaction-Arbeitsbereich ── Wissensbaum/Zielgruppen
+       ├─ Entwürfe ── Entwurf prüfen ── übernehmen/verwerfen
        └─ Historie ── Snapshot/Diff, Release-Metadaten ── Wissensbaum als Read-Kontext
 ```
 
@@ -117,6 +119,8 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
 | `/search` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId` plus `audienceId`; Suche, Filter, paginierte Treffer und Übergang in Knowledge. | [`SearchPage.razor`](../src/KnowHowToAI.Server/Web/Features/Search/SearchPage.razor) · [`SearchSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/SearchSmokeTests.cs) |
 | `/transactions` | Kein Page-Query-Kontext; Working Transaction beginnen oder offene Transactions aufnehmen und in Details/Arbeitskontext weitergehen. | [`TransactionsPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionsPage.razor) · [`TransactionsPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionsPageTests.cs) |
 | `/transactions/{TransactionId:guid}` | GUID identifiziert die Working Transaction; weiter in Knowledge/Zielgruppen, validieren, committen oder verwerfen. | [`TransactionPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionPage.razor) · [`TransactionPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionPageTests.cs) |
+| `/drafts` | Übersicht aller offenen Entwürfe ohne Besitzbehauptung; bewusste Auswahl zum Fortsetzen oder Prüfen. | [`DraftsPage.razor`](../src/KnowHowToAI.Server/Web/Features/Drafts/DraftsPage.razor) · [`DraftPagesTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Drafts/DraftPagesTests.cs) |
+| `/drafts/{TransactionId:guid}` | Direktaufruf eines Entwurfs mit Netto-Diff, Validierung und Abschlussaktionen. Konflikte erhalten den Entwurf und zeigen Snapshotvergleich und sicheren nächsten Schritt. Abgeschlossene Direktaufrufe zeigen Current. | [`DraftPage.razor`](../src/KnowHowToAI.Server/Web/Features/Drafts/DraftPage.razor) · [`DraftWorkflowSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Drafts/DraftWorkflowSmokeTests.cs) |
 | `/audiences` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId`; Zielgruppen anzeigen, im offenen Working-Kontext pflegen, sonst read-only. | [`AudiencesPage.razor`](../src/KnowHowToAI.Server/Web/Features/Audiences/AudiencesPage.razor) · [`AudiencesPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Audiences/AudiencesPageTests.cs) |
 | `/history` | `audienceId` sowie optional `baseSnapshotId`, `targetSnapshotId`, `nodeId`; Snapshots vergleichen, Release-Metadaten für einen committed Snapshot anlegen, Releases anzeigen und in einen historischen Knowledge-Kontext wechseln. | [`HistoryPage.razor`](../src/KnowHowToAI.Server/Web/Features/History/HistoryPage.razor) · [`HistoryPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/History/HistoryPageTests.cs) |
 
@@ -188,6 +192,17 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
   Transaction, Validierungs-/ChangeVersion-Fehler und SnapshotConflict.
 - Code/Test: [`TransactionPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionPage.razor),
   [`TransactionStateAndNavigationSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Transactions/TransactionStateAndNavigationSmokeTests.cs).
+
+### Entwürfe
+
+- Intention: offene Arbeitsstände nach Reload auffindbar und gezielt prüfbar machen.
+- Hauptbereiche: offene Entwürfe mit Fortsetzen-/Prüfen-Aktionen; Detail mit
+  Netto-Diff, serverseitiger Validierung, Übernahme/Verwerfen und
+  Konfliktvergleich.
+- Zustände: Laden, leere Übersicht, ungültige oder nicht vorhandene ID, offener
+  und abgeschlossener Entwurf. Nur die ID des geöffneten Entwurfs wird an seine
+  Abschlussaktion weitergegeben.
+- Code/Test: [`DraftsPage.razor`](../src/KnowHowToAI.Server/Web/Features/Drafts/DraftsPage.razor), [`DraftPage.razor`](../src/KnowHowToAI.Server/Web/Features/Drafts/DraftPage.razor), [`DraftPagesTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Drafts/DraftPagesTests.cs), [`DraftWorkflowSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Drafts/DraftWorkflowSmokeTests.cs).
 
 ### Zielgruppen
 

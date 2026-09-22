@@ -75,7 +75,7 @@ public sealed class TransactionLifecycleTests : BunitContext
         Assert.False(_workspaceState.ActiveTransactionId.HasValue);
         Assert.Equal(KnowHowToAI.Server.Web.Components.Layout.Context.KnowledgeReadContextKind.Current, _workspaceState.CurrentContext.ReadContext);
         Assert.Single(_toastState.Entries);
-        Assert.Contains("committed", _toastState.Entries[0].Message, StringComparison.Ordinal);
+        Assert.Contains("übernommen", _toastState.Entries[0].Message, StringComparison.Ordinal);
         Assert.EndsWith("/knowledge?audienceId=Architekt", BrowserNavigation.Uri, StringComparison.Ordinal);
     }
 
@@ -123,7 +123,7 @@ public sealed class TransactionLifecycleTests : BunitContext
 
         Assert.Equal(1, _repository.CommitCount);
         Assert.True(_workspaceState.ActiveTransactionId.HasValue);
-        Assert.Contains("Base-Snapshot 1", cut.Find("[data-testid='snapshot-conflict-explanation']").TextContent);
+        Assert.Contains("Basis-Snapshot 1", cut.Find("[data-testid='snapshot-conflict-explanation']").TextContent);
         Assert.Contains("Current Snapshot 3", cut.Find("[data-testid='snapshot-conflict-explanation']").TextContent);
         Assert.Single(cut.FindAll("[data-testid='snapshot-diff']"));
 

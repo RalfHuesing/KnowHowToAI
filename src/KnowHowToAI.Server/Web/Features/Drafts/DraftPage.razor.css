@@ -1,0 +1,38 @@
+.draft-summary {
+    align-items: center;
+    border-bottom: 1px solid var(--ktai-color-border-subtle);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-3);
+    padding-bottom: var(--ktai-space-4);
+}
+
+.draft-summary p {
+    color: var(--ktai-color-text-secondary);
+    margin: 0;
+}
+
+.draft-review {
+    display: grid;
+    gap: var(--ktai-space-5);
+    margin-top: var(--ktai-space-5);
+}
+
+.draft-review > h2,
+.draft-review > p {
+    margin: 0;
+}
+
+.draft-review > h2 {
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-lg);
+}
+
+.draft-review > p {
+    color: var(--ktai-color-text-secondary);
+}
+
+[data-testid="draft-error"] {
+    display: grid;
+    gap: var(--ktai-space-4);
+}

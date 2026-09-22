@@ -46,9 +46,10 @@ public sealed class UiAuditScreenshotTests
             await CaptureHistoryAsync(page, host.Address, viewport, outputDirectory, captures);
             await CaptureTransactionsAndWorkingKnowledgeAsync(page, host.Address, viewport, outputDirectory, captures);
             await CaptureAudiencesAsync(page, host.Address, viewport, outputDirectory, captures);
+            await CaptureDraftsAsync(page, host.Address, viewport, outputDirectory, captures);
         }
 
-        Assert.Equal(20, captures.Count);
+        Assert.Equal(22, captures.Count);
         var manifest = new
         {
             generatedAtUtc = DateTimeOffset.UtcNow,
@@ -235,12 +236,12 @@ public sealed class UiAuditScreenshotTests
             await CaptureAsync(page, "12_transaction_detail", viewport, output, captures);
 
             await page.GetByTestId("commit-transaction-button").ClickAsync();
-            await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Commit ausführen", Exact = true })).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Übernehmen", Exact = true })).ToBeVisibleAsync();
             await CaptureAsync(page, "13_transaction_commit-dialog", viewport, output, captures);
             await page.GetByRole(AriaRole.Button, new() { Name = "Abbrechen", Exact = true }).ClickAsync();
 
             await page.GetByTestId("discard-transaction-button").ClickAsync();
-            await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Transaction verwerfen", Exact = true })).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Entwurf verwerfen", Exact = true })).ToBeVisibleAsync();
             await CaptureAsync(page, "14_transaction_discard-dialog", viewport, output, captures);
             await page.GetByRole(AriaRole.Button, new() { Name = "Abbrechen", Exact = true }).ClickAsync();
 
@@ -280,6 +281,34 @@ public sealed class UiAuditScreenshotTests
             await Assertions.Expect(source).ToBeVisibleAsync();
             await source.FillAsync("UI-Audit-Quelle\n\n**ungespeichert**");
             await CaptureAsync(page, "17_content-editor-markdown-source-dirty", viewport, output, captures);
+        }
+        finally
+        {
+            await BrowserTransactionDiscarder.DiscardAsync(address, transactionId);
+        }
+    }
+
+    private static async Task CaptureDraftsAsync(IPage page, string address, ViewportSpec viewport, string output, List<CaptureRecord> captures)
+    {
+        await GotoAsync(page, address, "/transactions");
+        await page.GetByTestId("tx-purpose-input").FillAsync("UI Audit Draft");
+        await page.GetByTestId("begin-transaction-button").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync();
+        var transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
+        try
+        {
+            await GotoAsync(page, address, "/drafts");
+            await Assertions.Expect(page.GetByTestId($"draft-item-{transactionId:D}")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("drafts-list")).ToBeInViewportAsync();
+            await CaptureAsync(page, "21_drafts_overview", viewport, output, captures);
+
+            await page.GetByTestId($"draft-open-{transactionId:D}").ClickAsync();
+            await Assertions.Expect(page.GetByTestId("draft-review")).ToBeVisibleAsync();
+            await Assertions.Expect(page.Locator("h1")).ToHaveTextAsync("Entwurf: UI Audit Draft");
+            await Assertions.Expect(page.GetByTestId("transaction-diff")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("transaction-validation")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("discard-transaction-button")).ToBeVisibleAsync();
+            await CaptureAsync(page, "22_draft_detail", viewport, output, captures);
         }
         finally
         {

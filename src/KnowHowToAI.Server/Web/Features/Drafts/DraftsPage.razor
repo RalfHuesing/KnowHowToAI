@@ -1,0 +1,46 @@
+@page "/drafts"
+@namespace KnowHowToAI.Server.Web.Features.Drafts
+@using KnowHowToAI.Server.Web.Components.Shared
+
+<PageFrame Title="Entwürfe"
+           Description="Offene Entwürfe der Wissensbasis fortsetzen oder gezielt prüfen."
+           Class="drafts-page"
+           data-testid="drafts-page">
+    @if (_isLoading)
+    {
+        <p role="status" data-testid="drafts-loading">Offene Entwürfe werden geladen …</p>
+    }
+    else if (_drafts.Count == 0)
+    {
+        <p role="status" data-testid="drafts-empty">Es gibt keine offenen Entwürfe.</p>
+    }
+    else
+    {
+        <section class="drafts-list-region" aria-labelledby="drafts-list-heading" data-testid="drafts-list">
+            <h2 id="drafts-list-heading">Offene Entwürfe (@_drafts.Count)</h2>
+            <p>Diese Liste enthält alle offenen Entwürfe. Wählen Sie bewusst, welchen Sie fortsetzen oder prüfen möchten.</p>
+            <ul class="draft-list">
+                @foreach (var draft in _drafts)
+                {
+                    <li data-testid="draft-item-@draft.TransactionId">
+                        <article>
+                            <h3>@(string.IsNullOrWhiteSpace(draft.Purpose) ? "Entwurf ohne Bezeichnung" : draft.Purpose)</h3>
+                            <dl>
+                                <dt>Erstellt</dt>
+                                <dd data-volatile="">@draft.CreatedAtUtc.ToString("g")</dd>
+                                <dt>Akteur</dt>
+                                <dd>@(draft.Actor ?? "Nicht angegeben")</dd>
+                                <dt>Änderungen</dt>
+                                <dd>@draft.ChangeVersion</dd>
+                            </dl>
+                            <div class="action-group">
+                                <a class="btn btn-primary" href="/knowledge?transactionId=@draft.TransactionId" data-testid="draft-resume-@draft.TransactionId">Entwurf fortsetzen</a>
+                                <a class="btn btn-secondary" href="/drafts/@draft.TransactionId" data-testid="draft-open-@draft.TransactionId">Änderungen prüfen</a>
+                            </div>
+                        </article>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+</PageFrame>

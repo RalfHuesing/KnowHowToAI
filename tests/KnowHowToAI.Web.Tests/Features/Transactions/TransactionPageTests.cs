@@ -143,7 +143,7 @@ public sealed class TransactionPageTests : BunitContext
         var completionActions = cut.Find("[data-testid='transaction-page-actions']").QuerySelectorAll("button");
         Assert.Equal(2, completionActions.Length);
         Assert.Contains("btn-primary", completionActions[0].GetAttribute("class"));
-        Assert.Equal("Commit", completionActions[0].TextContent.Trim());
+        Assert.Equal("Änderungen übernehmen", completionActions[0].TextContent.Trim());
         Assert.Contains("btn-secondary", completionActions[1].GetAttribute("class"));
         Assert.Equal("Verwerfen", completionActions[1].TextContent.Trim());
 
@@ -331,7 +331,7 @@ public sealed class TransactionPageTests : BunitContext
         cut.Find("[data-testid='validate-transaction-button']").Click();
 
         var stale = cut.Find("[data-testid='validation-results-stale']");
-        Assert.Contains("ChangeVersion 1", stale.TextContent);
+        Assert.Contains("Änderungsversion 1", stale.TextContent);
     }
 
     [Fact]

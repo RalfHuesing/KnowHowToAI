@@ -126,7 +126,7 @@ zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 schmaler JS-Isolation in `AppDialog.razor.js` und `ConfirmationDialog`),
 `Web/Components/Shared/Feedback` (Status-, Warn- und Toastdarstellungen)
 und `Web/Components/Shared` enthält außerdem `PageFrame`, die ausführbare
-Seitenbasis für alle acht routbaren Feature-Varianten. Die Komponente rendert
+Seitenbasis für alle zehn routbaren Feature-Varianten. Die Komponente rendert
 einen Page-Root mit Header, genau einem `h1`, optionaler Beschreibung, Badges
 und Aktionen sowie dem Feature-Inhalt; sie enthält keine Application-Aufrufe
 und keine Featurelogik. `PageFrame.razor.css` ist der einzige Owner der
@@ -160,7 +160,7 @@ Kennung über `ISnapshotRepository`; alle erfolgreichen Auflösungen liefern
 Core-`ReadContext`, `KnowledgeContextViewModel` und die Kennung des geladenen
 Snapshots) und
 die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Audiences`,
-`Search`, `History`, `Dashboard`, `Transactions`).
+`Search`, `History`, `Dashboard`, `Transactions`, `Drafts`).
 
 `Web.Workflow.WebWriteCoordinator` ist scoped pro Circuit und koordiniert den
 ersten Web-Write sowie weitere Writes über `TransactionService` und vorhandene
@@ -207,9 +207,11 @@ den aufgelösten `ReadContext` an den featurelokalen Editor. Die Web-Grenze füh
 keinen Merge oder Rebase aus; Details der jeweiligen technischen Grenzen liegen
 in den Feature-Komponenten und den zugehörigen Tests. `HistoryPage` hält nur
 Query-Parameter und Auswahlzustand; `SnapshotList`, `SnapshotDiffPanel` und
-`ReleasePanel` arbeiten mit History-ViewModels. `TransactionPage` bindet
-`TransactionService`/`HistoryService` direkt in-process und `AudiencesPage`
-reicht die `ChangeVersion` über `WorkspaceState` an `AudienceEditor` weiter.
+`ReleasePanel` arbeiten mit History-ViewModels. `TransactionPage` und
+`DraftPage` binden `TransactionService`/`HistoryService` direkt in-process;
+`DraftsPage` listet offene Arbeitsstände über `TransactionService`.
+`AudiencesPage` reicht die `ChangeVersion` über `WorkspaceState` an
+`AudienceEditor` weiter.
 
 Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
@@ -397,7 +399,7 @@ aus `KnowHowToAI.TestSupport` aus und schlägt deshalb ohne installiertes Chrome
 einer klaren deutschen Fehlermeldung fehl.
 Der isolierte Seitenbasisvertrag liegt in
 `Components/Shared/PageFrameTests.cs`; der routeübergreifende Browservertrag in
-`KnowHowToAI.BrowserTests/ReadOnly/PageFrameSmokeTests.cs` prüft für die acht
+`KnowHowToAI.BrowserTests/ReadOnly/PageFrameSmokeTests.cs` prüft für die zehn
 Routenvarianten genau ein `h1`, das sole-`main`-Landmark, Shell-Innenkanten,
 Computed Styles, Reflow-Breiten, Navigation offen/geschlossen und Overflow.
 `KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
@@ -435,7 +437,7 @@ Shared-Komponenten), `Features/<Feature>` (echte Feature-Seiten wie Dashboard)
 und `TestSupport/` (Showcase- und Token-Fixture-Tests: `UiBasisShowcase`,
 `DesignTokens`); vollständige Benutzerabläufe entstehen in
 `KnowHowToAI.BrowserTests` unter `ReadOnly/` (Shell, Navigation, Reconnect)
-und den featurebezogenen Ordnern `Transactions/`, `Content/`, `PdfExport/`
+und den featurebezogenen Ordnern `Transactions/`, `Drafts/`, `Content/`, `PdfExport/`
 und `Assets/`, sobald die zuständigen Milestones sie befüllen.
 
 Der Browser-Testlauf `Category=UiAudit` ist ein ausdrücklich aktivierter,
@@ -448,12 +450,12 @@ Aktivierung aber übersprungen und startet dabei keinen Host oder Browser;
 volatile Werte werden vor der Aufnahme maskiert und jede Aufnahme folgt auf
 Web-first-Verhaltensassertionen. Die temporären Artefakte sind keine
 visuellen Baselines.
-Der gemeinsame Lauf umfasst derzeit 20 semantisch benannte Aufnahmen: die
+Der gemeinsame Lauf umfasst derzeit 22 semantisch benannte Aufnahmen: die
 Dashboard-Route, beide Knowledge-Routen mit Zielgruppenwahl, Root, Node-Detail,
 Fallback und Working-Editor, Search leer/mit Treffer, History Liste/Diff,
-Transactions Übersicht/offen/Detail/Commit-/Discard-Dialog sowie Audiences
-read-only/working/Löschdialog. Das Manifest dokumentiert Route, Zustand,
-Viewport und Browser; die PNGs werden nach dem Lauf gemeinsam manuell auf
+Transactions Übersicht/offen/Detail/Commit-/Discard-Dialog,
+Entwurfsübersicht/Entwurfsdetail sowie Audiences read-only/working/Löschdialog.
+Das Manifest dokumentiert Route, Zustand, Viewport und Browser; die PNGs werden nach dem Lauf gemeinsam manuell auf
 unerklärten Drift geprüft und bleiben unter `temp/` außerhalb des Commits.
 
 `KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die

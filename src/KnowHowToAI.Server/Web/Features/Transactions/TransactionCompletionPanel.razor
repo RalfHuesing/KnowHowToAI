@@ -8,11 +8,11 @@
     <div class="transaction-workflow__step" data-testid="transaction-completion-step">
         <span class="transaction-workflow__step-number" aria-hidden="true">2</span>
         <div>
-            <h2 id="transaction-completion-heading">Transaction abschließen</h2>
-            <p>Committen Sie die geprüften Änderungen oder verwerfen Sie sie vollständig.</p>
+            <h2 id="transaction-completion-heading">Entwurf abschließen</h2>
+            <p>Übernehmen Sie die geprüften Änderungen oder verwerfen Sie den Entwurf vollständig.</p>
         </div>
     </div>
-    <p class="transaction-completion__hint readable">Commit ist nicht rückgängig zu machen. Verwerfen lässt den aktuellen Snapshot unverändert.</p>
+    <p class="transaction-completion__hint readable">Die Übernahme lässt sich nicht rückgängig machen. Beim Verwerfen bleibt der aktuelle Snapshot unverändert.</p>
     <div class="transaction-page__actions action-group" data-testid="transaction-page-actions">
         @if (!string.IsNullOrWhiteSpace(_completionError))
         {
@@ -23,12 +23,12 @@
         @if (Transaction.State != TransactionState.Open)
         {
             <p role="status" data-testid="transaction-completion-unavailable">
-                Diese Transaction ist bereits abgeschlossen und kann nicht erneut committed oder verworfen werden.
+                Dieser Entwurf ist bereits abgeschlossen und kann nicht erneut übernommen oder verworfen werden.
             </p>
         }
         <button type="button" class="btn btn-primary" @onclick="OpenCommitDialogAsync"
                 disabled="@(!CanCommit)" data-testid="commit-transaction-button">
-            Commit
+            Änderungen übernehmen
         </button>
         <button type="button" class="btn btn-secondary" @onclick="OpenDiscardDialogAsync"
                 disabled="@(!CanDiscard)" data-testid="discard-transaction-button">
@@ -47,17 +47,17 @@
 }
 
 <ConfirmationDialog @ref="_commitDialog"
-                    Title="Transaction committen"
+                    Title="Änderungen übernehmen"
                     Message="Der Working Snapshot wird zum neuen Current Snapshot. Dieser Schritt kann nicht rückgängig gemacht werden."
-                    ConfirmText="Commit ausführen"
+                    ConfirmText="Übernehmen"
                     InputLabel="Commit-Nachricht (optional)"
                     OnConfirmWithInput="CommitAsync"
                     OnCancel="DismissDialogAsync" />
 
 <ConfirmationDialog @ref="_discardDialog"
-                    Title="Transaction verwerfen"
+                    Title="Entwurf verwerfen"
                     Message="Alle Änderungen im Working Snapshot werden verworfen. Der aktuelle Snapshot bleibt unverändert."
-                    ConfirmText="Transaction verwerfen"
+                    ConfirmText="Entwurf verwerfen"
                     IsDestructive="true"
                     OnConfirm="DiscardAsync"
                     OnCancel="DismissDialogAsync" />

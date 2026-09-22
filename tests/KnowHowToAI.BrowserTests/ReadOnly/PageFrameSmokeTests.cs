@@ -329,6 +329,8 @@ public sealed class PageFrameSmokeTests
         new("Suche", "/search?audienceId=Default", "search-page", "search-page"),
         new("Transactions", "/transactions", "transactions-page", "transactions-page"),
         new("Transaction nicht gefunden", "/transactions/00000000-0000-0000-0000-000000000000", "transaction-page", "transaction-page"),
+        new("Entwürfe", "/drafts", "drafts-page", "drafts-page"),
+        new("Entwurf nicht gefunden", "/drafts/00000000-0000-0000-0000-000000000000", "draft-page", "draft-page"),
         new("Zielgruppen", "/audiences?audienceId=Default", "audiences-page", "audiences-page"),
         new("Historie", "/history?audienceId=Default", "history-page", "history-page")
     ];

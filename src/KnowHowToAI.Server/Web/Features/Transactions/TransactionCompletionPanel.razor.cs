@@ -84,7 +84,7 @@ public sealed partial class TransactionCompletionPanel : ComponentBase
 
         if (result.IsCommitted)
         {
-            await SwitchToCurrentSnapshotAsync(_commitDialog, "Transaction wurde committed.");
+            await SwitchToCurrentSnapshotAsync(_commitDialog, "Änderungen wurden übernommen.");
             return;
         }
 
@@ -110,7 +110,7 @@ public sealed partial class TransactionCompletionPanel : ComponentBase
 
         if (result.IsSuccess)
         {
-            await SwitchToCurrentSnapshotAsync(_discardDialog, "Transaction wurde verworfen.");
+            await SwitchToCurrentSnapshotAsync(_discardDialog, "Entwurf wurde verworfen.");
             return;
         }
 
@@ -139,20 +139,20 @@ public sealed partial class TransactionCompletionPanel : ComponentBase
     {
         if (isCommit && _snapshotConflict is not null)
         {
-            _completionError = "Dieser Commit kann wegen des Snapshot-Konflikts nicht wiederholt werden. Starten Sie eine neue Transaction für das manuelle Reapply.";
+            _completionError = "Die Änderungen können wegen des Snapshot-Konflikts nicht erneut übernommen werden. Starten Sie einen neuen Entwurf für das manuelle Reapply.";
             return false;
         }
 
         if (!CanDiscard)
         {
-            _completionError = "Diese Transaction ist nicht mehr offen. Laden Sie die Seite neu.";
+            _completionError = "Dieser Entwurf ist nicht mehr offen. Laden Sie die Seite neu.";
             return false;
         }
 
         if (WorkspaceState.CurrentChangeVersion is { } changeVersion
             && changeVersion != Transaction.ChangeVersion)
         {
-            _completionError = "Die Transaction wurde zwischenzeitlich geändert. Laden Sie Validierung und Diff neu, bevor Sie sie abschließen.";
+            _completionError = "Der Entwurf wurde zwischenzeitlich geändert. Laden Sie Validierung und Diff neu, bevor Sie ihn abschließen.";
             return false;
         }
 
@@ -183,10 +183,10 @@ public sealed partial class TransactionCompletionPanel : ComponentBase
         if (result.ValidationReport is { IsValid: false } report && report.Errors.Count > 0)
         {
             var error = report.Errors[0];
-            return $"Commit wurde nicht ausgeführt: {error.Code}: {error.Message}";
+            return $"Änderungen wurden nicht übernommen: {error.Code}: {error.Message}";
         }
 
-        return result.Error?.Message ?? "Commit konnte nicht ausgeführt werden.";
+        return result.Error?.Message ?? "Änderungen konnten nicht übernommen werden.";
     }
 
     private static SnapshotConflict? CreateSnapshotConflict(CommitTransactionResult result)

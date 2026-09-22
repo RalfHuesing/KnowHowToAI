@@ -5,8 +5,8 @@
 <section class="transaction-diff" aria-labelledby="transaction-diff-heading" data-testid="transaction-diff">
     <div class="transaction-diff__header">
         <div>
-            <h2 id="transaction-diff-heading">Geplanter Commit</h2>
-            <p>Strukturierter Netto-Diff zwischen Base Snapshot und Working Snapshot.</p>
+            <h2 id="transaction-diff-heading">Änderungen im Entwurf</h2>
+            <p>Strukturierter Netto-Diff zwischen Basis und aktuellem Arbeitsstand.</p>
         </div>
         <button type="button" class="btn btn-secondary" @onclick="RefreshAsync" disabled="@_isLoading" data-testid="transaction-diff-refresh">
             Diff aktualisieren
@@ -26,18 +26,18 @@
     else if (_viewModel is null || _viewModel.Entries.Count == 0)
     {
         <p role="status" data-testid="transaction-diff-empty">
-            Diese Transaction enthält gegenüber dem Base Snapshot keine Änderungen.
+            Dieser Entwurf enthält gegenüber der Basis keine Änderungen.
         </p>
     }
     else
     {
         <p class="transaction-diff__summary" data-testid="transaction-diff-summary">
-            Snapshot @_viewModel.BaseSnapshotId → Working Snapshot @_viewModel.TargetSnapshotId: @_viewModel.TotalCount Änderung(en)
+            Basis @_viewModel.BaseSnapshotId → Arbeitsstand @_viewModel.TargetSnapshotId: @_viewModel.TotalCount Änderung(en)
         </p>
         @if (IsStale)
         {
             <p class="transaction-diff__stale" role="status" data-testid="transaction-diff-stale">
-                Dieser Diff bezieht sich auf ChangeVersion @_loadedChangeVersion. Die Transaction wurde danach geändert; aktualisieren Sie den Diff vor dem Commit.
+                Dieser Diff bezieht sich auf Änderungsversion @_loadedChangeVersion. Der Entwurf wurde danach geändert; aktualisieren Sie den Diff vor der Übernahme.
             </p>
         }
         <ol class="transaction-diff__list" data-testid="transaction-diff-list">

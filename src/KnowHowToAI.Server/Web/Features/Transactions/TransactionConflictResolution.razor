@@ -4,15 +4,15 @@
 @using Microsoft.AspNetCore.Components.Web
 
 <section class="snapshot-conflict" aria-labelledby="snapshot-conflict-heading" data-testid="snapshot-conflict">
-    <h2 id="snapshot-conflict-heading">Commit-Konflikt auflösen</h2>
+    <h2 id="snapshot-conflict-heading">Entwurfskonflikt prüfen</h2>
     <div role="alert" data-testid="snapshot-conflict-explanation">
-        <InlineAlert Kind="AlertKind.Fehler" Message="Der Commit wurde nicht ausgeführt. Ihre Änderungen wurden nicht übernommen." />
+        <InlineAlert Kind="AlertKind.Fehler" Message="Die Änderungen wurden nicht übernommen. Ihr Entwurf bleibt erhalten." />
         <p>
-            Diese Transaction basiert auf Base-Snapshot @BaseSnapshotId.
+            Dieser Entwurf basiert auf Basis-Snapshot @BaseSnapshotId.
             Der Current Snapshot @CurrentSnapshotId ist inzwischen maßgeblich.
         </p>
         <p>
-            Vergleichen Sie die Snapshots und starten Sie anschließend eine neue Transaction.
+            Vergleichen Sie die Snapshots und starten Sie anschließend einen neuen Entwurf.
             Änderungen werden nicht automatisch zusammengeführt oder kopiert.
         </p>
     </div>
@@ -22,10 +22,10 @@
     <div class="snapshot-conflict__actions action-group">
         <button type="button" class="btn btn-primary" @onclick="OnStartManualReapply"
                 disabled="@(!CanStartManualReapply)" data-testid="snapshot-conflict-start-reapply">
-            @(IsStartingManualReapply ? "Neue Transaction wird gestartet..." : "Neue Transaction für manuelles Reapply beginnen")
+            @(IsStartingManualReapply ? "Neuer Entwurf wird gestartet..." : "Neuen Entwurf für manuelles Reapply beginnen")
         </button>
         <p class="snapshot-conflict__hint">
-            Die konfliktbehaftete Transaction bleibt erhalten, bis Sie sie ausdrücklich verwerfen.
+            Der konfliktbehaftete Entwurf bleibt erhalten, bis Sie ihn ausdrücklich verwerfen.
         </p>
     </div>
 </section>

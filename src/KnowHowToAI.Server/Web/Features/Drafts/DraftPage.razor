@@ -1,0 +1,51 @@
+@page "/drafts/{TransactionId:guid}"
+@namespace KnowHowToAI.Server.Web.Features.Drafts
+@using KnowHowToAI.Core.Domain.Common
+@using KnowHowToAI.Server.Web.Components.Shared
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Features.Transactions
+
+<PageFrame Title="@PageTitle" Class="draft-page" data-testid="draft-page">
+    @if (_isLoading)
+    {
+        <p role="status" data-testid="draft-loading">Entwurf wird geladen …</p>
+    }
+    else if (_transaction is null)
+    {
+        <section role="alert" data-testid="draft-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+            <a class="btn btn-secondary" href="/drafts" data-testid="drafts-back">Zur Entwurfsübersicht</a>
+        </section>
+    }
+    else
+    {
+        <header class="draft-summary" data-testid="draft-summary">
+            <p>Entwurf @_transaction.TransactionId.Value.ToString("D")</p>
+            <p>Status: @(_transaction.State == TransactionState.Open ? "Offen" : "Abgeschlossen")</p>
+            @if (_transaction.State == TransactionState.Open)
+            {
+                <a class="btn btn-secondary" href="@WorkingUrl" data-testid="draft-resume">Entwurf fortsetzen</a>
+            }
+            else
+            {
+                <a class="btn btn-secondary" href="/knowledge" data-testid="draft-open-current">Wissensbasis öffnen</a>
+            }
+            <a class="btn btn-secondary" href="/drafts" data-testid="drafts-back">Zur Entwurfsübersicht</a>
+        </header>
+
+        @if (_transaction.State == TransactionState.Open)
+        {
+            <section class="draft-review" aria-labelledby="draft-review-heading" data-testid="draft-review">
+                <h2 id="draft-review-heading">Änderungen prüfen</h2>
+                <p>Prüfen Sie den Diff und die Validierung, bevor Sie diesen Entwurf übernehmen oder verwerfen.</p>
+                <TransactionDiff Transaction="_transaction" />
+                <TransactionValidation Transaction="_transaction" />
+                <TransactionCompletionPanel @key="_transaction.TransactionId" Transaction="_transaction" />
+            </section>
+        }
+        else
+        {
+            <p role="status" data-testid="draft-completed">Dieser Entwurf ist abgeschlossen und nicht mehr bearbeitbar.</p>
+        }
+    }
+</PageFrame>

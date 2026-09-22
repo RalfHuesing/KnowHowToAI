@@ -5,13 +5,13 @@
 <section class="transaction-validation" aria-labelledby="transaction-validation-heading" data-testid="transaction-validation">
     <div class="transaction-validation__header">
         <div>
-            <h2 id="transaction-validation-heading">Validierung vor Commit</h2>
-            <p>Prüft den aktuellen Working Snapshot serverseitig. Fehler müssen vor dem Commit behoben werden.</p>
+            <h2 id="transaction-validation-heading">Entwurf prüfen</h2>
+            <p>Prüft den aktuellen Arbeitsstand serverseitig. Fehler müssen vor der Übernahme behoben werden.</p>
         </div>
         <button type="button" class="btn btn-primary" @onclick="ValidateAsync"
                 disabled="@(Transaction.State != TransactionState.Open || _isValidating)"
                 data-testid="validate-transaction-button">
-            @(_isValidating ? "Validierung läuft..." : "Transaction validieren")
+            @(_isValidating ? "Validierung läuft..." : "Entwurf validieren")
         </button>
     </div>
 
@@ -22,25 +22,25 @@
     else if (_result is null)
     {
         <p class="transaction-validation__notice" role="status" data-testid="validation-pending">
-            Noch nicht validiert. Führen Sie die Validierung aus, bevor Sie committen.
+            Noch nicht validiert. Führen Sie die Validierung aus, bevor Sie die Änderungen übernehmen.
         </p>
     }
     else if (ResultsAreStale)
     {
         <p class="transaction-validation__stale" role="status" data-testid="validation-results-stale">
-            Diese Befunde beziehen sich auf ChangeVersion @_result.ChangeVersion. Die Transaction wurde danach geändert; bitte erneut validieren.
+            Diese Befunde beziehen sich auf Änderungsversion @_result.ChangeVersion. Der Entwurf wurde danach geändert; bitte erneut validieren.
         </p>
     }
     else if (_result.IsValid)
     {
         <p class="transaction-validation__success" role="status" data-testid="validation-valid">
-            Keine blockierenden Fehler gefunden. Warnungen und Strukturhinweise sollten Sie vor dem Commit prüfen.
+            Keine blockierenden Fehler gefunden. Warnungen und Strukturhinweise sollten Sie vor der Übernahme prüfen.
         </p>
     }
     else
     {
         <p class="transaction-validation__error" role="alert" data-testid="validation-invalid">
-            @_result.Errors.Count Fehler blockieren den Commit. Beheben Sie die folgenden Befunde und validieren Sie erneut.
+            @_result.Errors.Count Fehler blockieren die Übernahme. Beheben Sie die folgenden Befunde und validieren Sie erneut.
         </p>
     }
 
@@ -69,7 +69,7 @@
         {
             <section class="transaction-validation__group transaction-validation__group--warning" aria-labelledby="validation-warnings-heading" data-testid="validation-warnings">
                 <h3 id="validation-warnings-heading">Warnungen (@result.Warnings.Count)</h3>
-                <p>Warnungen blockieren keinen Commit, weisen aber auf prüfungsbedürftige Qualität hin.</p>
+                <p>Warnungen blockieren die Übernahme nicht, weisen aber auf prüfungsbedürftige Qualität hin.</p>
                 <ul>
                     @foreach (var finding in result.Warnings)
                     {
