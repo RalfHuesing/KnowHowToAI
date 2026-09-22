@@ -36,7 +36,8 @@ public sealed class DashboardPageTests : Bunit.BunitContext
 
         var cut = Render<DashboardPage>();
 
-        cut.Find("h1").MarkupMatches("<h1>KnowHowToAI</h1>");
+        Assert.Equal("KnowHowToAI", cut.Find("h1").TextContent);
+        Assert.Contains("page-frame__title", cut.Find("h1").GetAttribute("class"), StringComparison.Ordinal);
         cut.Find(".dashboard-badge").MarkupMatches("<span class=\"dashboard-badge\">Wissensdashboard</span>");
 
         var state = Services.GetRequiredService<PageRegionState>();

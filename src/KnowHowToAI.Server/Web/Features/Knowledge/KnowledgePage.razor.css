@@ -6,11 +6,6 @@
     gap: var(--ktai-space-3);
 }
 
-.knowledge-header {
-    border-bottom: 1px solid var(--ktai-color-border);
-    padding-bottom: var(--ktai-space-2);
-}
-
 .knowledge-layout {
     display: grid;
     grid-template-columns: 340px 1fr;

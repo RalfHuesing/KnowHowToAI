@@ -3,23 +3,6 @@
     gap: var(--ktai-space-6);
 }
 
-.transactions-page__header {
-    margin-bottom: var(--ktai-space-8);
-}
-
-.transactions-page__title {
-    font-size: var(--ktai-font-size-2xl);
-    font-weight: 700;
-    color: var(--ktai-color-text);
-    margin: 0 0 var(--ktai-space-2) 0;
-}
-
-.transactions-page__description {
-    font-size: var(--ktai-font-size-base);
-    color: var(--ktai-color-text-secondary);
-    margin: 0;
-}
-
 .transactions-section {
     background: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border-light);

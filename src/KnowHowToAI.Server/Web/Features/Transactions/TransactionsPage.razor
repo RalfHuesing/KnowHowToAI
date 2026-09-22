@@ -1,15 +1,13 @@
 @page "/transactions"
 @namespace KnowHowToAI.Server.Web.Features.Transactions
+@using KnowHowToAI.Server.Web.Components.Shared
 @using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 
-<div class="page-frame transactions-page" data-testid="transactions-page">
-    <div class="transactions-page__header">
-        <h1 class="transactions-page__title">Transactions</h1>
-        <p class="transactions-page__description readable">
-            Verwaltung von Working Transactions für strukturierte Wissensänderungen.
-        </p>
-    </div>
+<PageFrame Title="Transactions"
+           Description="Verwaltung von Working Transactions für strukturierte Wissensänderungen."
+           Class="transactions-page"
+           data-testid="transactions-page">
 
     <section class="transactions-section begin-transaction-card" aria-labelledby="begin-tx-heading" data-testid="begin-transaction-section">
         <h2 id="begin-tx-heading" class="section-title">Neue Transaction beginnen</h2>
@@ -108,4 +106,4 @@
             </div>
         }
     </section>
-</div>
+</PageFrame>

@@ -36,6 +36,8 @@ public sealed class TransactionsPageTests : BunitContext
         var cut = Render<TransactionsPage>();
 
         cut.Find("[data-testid='empty-transactions-message']");
+        Assert.Equal("Transactions", cut.Find("h1").TextContent.Trim());
+        Assert.Single(cut.FindAll("h1"));
         Assert.Equal("Transactions", _pageRegionState.KnowledgeContext?.DisplayName);
         Assert.Equal(KnowledgeReadContextKind.Current, _pageRegionState.KnowledgeContext?.ReadContext);
     }

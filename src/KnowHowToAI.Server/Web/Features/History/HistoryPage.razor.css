@@ -3,15 +3,12 @@
     gap: var(--ktai-space-5);
 }
 
-.history-page__header,
 .history-page__notice,
 ::deep .history-page__section {
     display: grid;
     gap: var(--ktai-space-2);
 }
 
-.history-page__header h1,
-.history-page__header p,
 .history-page__comparison-header h2,
 .history-page__comparison-header p,
 ::deep .snapshot-list__header h3,

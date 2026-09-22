@@ -79,6 +79,8 @@ public sealed class TransactionPageTests : BunitContext
         // Header gerendert
         var header = cut.Find("[data-testid='transaction-header']");
         Assert.NotNull(header);
+        Assert.Equal("Glossar Überarbeitung", cut.Find("h1").TextContent.Trim());
+        Assert.Single(cut.FindAll("h1"));
         Assert.Equal("Glossar Überarbeitung", cut.Find("[data-testid='tx-title']").TextContent.Trim());
         Assert.Equal("Open", cut.Find("[data-testid='tx-state']").TextContent.Trim());
         Assert.Equal("Alice", cut.Find("[data-testid='tx-actor']").TextContent.Trim());

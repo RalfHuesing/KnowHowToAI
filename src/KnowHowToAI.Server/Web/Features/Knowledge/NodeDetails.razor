@@ -26,7 +26,7 @@ else if (ViewModel is not null)
     <article class="node-details" data-testid="node-details" aria-label="@ViewModel.Title">
         <header class="node-details-header">
             <div class="node-details-heading-row">
-                <h1 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h1>
+                <h2 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h2>
                 <span class="node-details-context node-details-context--@(IsWorking ? "working" : "readonly")"
                       data-testid="node-details-context">
                     @(IsWorking ? "Arbeitskopie" : "Nur lesen")

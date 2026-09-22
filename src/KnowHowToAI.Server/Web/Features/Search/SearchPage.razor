@@ -1,15 +1,15 @@
 @page "/search"
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Components.Shared
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Search
 
 <PageTitle>Suche – KnowHowToAI</PageTitle>
 
-<section class="page-frame search-page" data-testid="search-page">
-    <header class="search-page__header">
-        <h1>Wissenssuche</h1>
-        <p class="readable">Durchsucht Titel, Beschreibungen und den für die gewählte Zielgruppe aufgelösten Inhalt.</p>
-    </header>
+<PageFrame Title="Wissenssuche"
+           Description="Durchsucht Titel, Beschreibungen und den für die gewählte Zielgruppe aufgelösten Inhalt."
+           Class="search-page"
+           data-testid="search-page">
 
     @if (!string.IsNullOrWhiteSpace(_contextErrorMessage))
     {
@@ -30,4 +30,4 @@
         <SearchResults Page="@_page" IsSearching="@_isSearching" ErrorMessage="@_searchErrorMessage" HasFilter="@(!_filter.IsEmpty)"
                        OnNext="LoadNextPageAsync" OnNavigate="NavigateToNode" />
     }
-</section>
+</PageFrame>

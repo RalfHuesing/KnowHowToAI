@@ -45,6 +45,8 @@ public sealed class KnowledgePageTests : BunitContext
         var cut = Render<KnowledgePage>();
 
         Assert.NotNull(cut.Find("[data-testid='knowledge-page']"));
+        Assert.Equal("Wissensbasis", cut.Find("h1").TextContent.Trim());
+        Assert.Single(cut.FindAll("h1"));
         Assert.NotNull(cut.Find("[data-testid='breadcrumbs']"));
         Assert.NotNull(cut.Find("[data-testid='knowledge-tree']"));
         Assert.NotNull(cut.Find("[data-testid='empty-selection']"));
@@ -67,6 +69,11 @@ public sealed class KnowledgePageTests : BunitContext
         var cut = Render<KnowledgePage>(parameters => parameters
             .Add(p => p.NodeId, childId.Value));
 
+        Assert.Equal("Wissensbasis", cut.Find("h1").TextContent.Trim());
+        Assert.Single(cut.FindAll("h1"));
+        var nodeTitle = cut.Find("[data-testid='node-details-title']");
+        Assert.Equal("H2", nodeTitle.NodeName, ignoreCase: true);
+        Assert.Equal("Child", nodeTitle.TextContent.Trim());
         Assert.NotNull(cut.Find("[data-testid='node-details-section']"));
         var selectedIdElement = cut.Find("[data-testid='node-details-node-id']");
         Assert.Contains(childId.Value.ToString(), selectedIdElement.TextContent);

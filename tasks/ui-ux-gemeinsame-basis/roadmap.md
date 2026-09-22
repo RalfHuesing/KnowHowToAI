@@ -34,7 +34,7 @@ implementierten Zustands.
     sind in diesem Punkt noch unverändert; die Migration und das Entfernen
     lokaler Parallelregeln sind ausschließlich Gegenstand des nächsten Punkts.
 
-- [ ] **Alle routbaren Seiten und Zustände auf den Vertrag umstellen**
+- [x] **Alle routbaren Seiten und Zustände auf den Vertrag umstellen**
   - **Intention:** Das Konzept ohne Layoutausnahme auf den vollständigen
     implementierten Routenumfang und seine strukturell relevanten Zustände
     anwenden, ohne bestehende Fachfunktionen zu verändern.

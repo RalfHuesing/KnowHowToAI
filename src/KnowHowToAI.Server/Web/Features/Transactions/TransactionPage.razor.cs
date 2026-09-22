@@ -53,6 +53,10 @@ public sealed partial class TransactionPage : ComponentBase
 
     private bool CanStartManualReapply => _snapshotConflict is not null && !_isStartingManualReapply && !_isSubmitting;
 
+    private string TransactionPageTitle => string.IsNullOrWhiteSpace(_transaction?.Purpose)
+        ? "Transaction"
+        : _transaction.Purpose;
+
     private string KnowledgeUrl => string.IsNullOrWhiteSpace(WorkspaceState.CurrentAudienceId)
         ? $"/knowledge?transactionId={TransactionId}"
         : $"/knowledge?transactionId={TransactionId}&audienceId={Uri.EscapeDataString(WorkspaceState.CurrentAudienceId)}";

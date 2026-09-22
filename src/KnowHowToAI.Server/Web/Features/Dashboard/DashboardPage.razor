@@ -1,65 +1,67 @@
 @page "/"
 @using Microsoft.AspNetCore.Components.Web
+@using KnowHowToAI.Server.Web.Components.Shared
 
 <PageTitle>KnowHowToAI</PageTitle>
 
-<div class="page-frame dashboard-page" data-testid="dashboard-page">
-    <header class="dashboard-header">
-        <div class="header-title-group">
-            <h1>KnowHowToAI</h1>
-            <span class="dashboard-badge">Wissensdashboard</span>
-        </div>
+<PageFrame Title="KnowHowToAI" Class="dashboard-page" data-testid="dashboard-page">
+    <Badges>
+        <span class="dashboard-badge">Wissensdashboard</span>
+    </Badges>
+    <Actions>
         <div class="header-probe-group action-group">
             <button type="button" class="probe-button" @onclick="CheckInteractivity">Interaktivität prüfen</button>
             <p data-testid="shell-status" aria-live="polite" class="probe-text">Shell bereit.</p>
             <p data-testid="interaction-status" aria-live="polite" class="probe-text">@_interactionStatus</p>
         </div>
-    </header>
+    </Actions>
 
-    @if (_isLoading)
-    {
-        <div class="loading-state" data-testid="dashboard-loading" role="status">
-            Lade Wissensdashboard...
-        </div>
-    }
-    else
-    {
-        <div class="dashboard-grid">
-            @if (_snapshotError is not null)
-            {
-                <DashboardAreaFailure Area="Snapshot und Release" Error="_snapshotError" Retry="LoadSnapshotAsync" />
-            }
-            else if (_currentSnapshot is not null)
-            {
-                <SnapshotSummary CurrentSnapshot="_currentSnapshot" LatestRelease="_latestRelease" />
-            }
+    <ChildContent>
+        @if (_isLoading)
+        {
+            <div class="loading-state" data-testid="dashboard-loading" role="status">
+                Lade Wissensdashboard...
+            </div>
+        }
+        else
+        {
+            <div class="dashboard-grid">
+                @if (_snapshotError is not null)
+                {
+                    <DashboardAreaFailure Area="Snapshot und Release" Error="_snapshotError" Retry="LoadSnapshotAsync" />
+                }
+                else if (_currentSnapshot is not null)
+                {
+                    <SnapshotSummary CurrentSnapshot="_currentSnapshot" LatestRelease="_latestRelease" />
+                }
 
-            @if (_transactionsError is not null)
-            {
-                <DashboardAreaFailure Area="Offene Transactions" Error="_transactionsError" Retry="LoadTransactionsAsync" />
-            }
-            else if (_openTransactions is not null)
-            {
-                <OpenTransactionList Transactions="_openTransactions" />
-            }
+                @if (_transactionsError is not null)
+                {
+                    <DashboardAreaFailure Area="Offene Transactions" Error="_transactionsError" Retry="LoadTransactionsAsync" />
+                }
+                else if (_openTransactions is not null)
+                {
+                    <OpenTransactionList Transactions="_openTransactions" />
+                }
 
-            @if (_qualityError is not null)
-            {
-                <DashboardAreaFailure Area="Qualitätsübersicht" Error="_qualityError" Retry="LoadQualityAsync" />
-            }
-            else if (_qualitySummary is not null)
-            {
-                <QualitySummary Quality="_qualitySummary" />
-            }
+                @if (_qualityError is not null)
+                {
+                    <DashboardAreaFailure Area="Qualitätsübersicht" Error="_qualityError" Retry="LoadQualityAsync" />
+                }
+                else if (_qualitySummary is not null)
+                {
+                    <QualitySummary Quality="_qualitySummary" />
+                }
 
-            @if (_changesError is not null)
-            {
-                <DashboardAreaFailure Area="Zuletzt geänderte Nodes" Error="_changesError" Retry="LoadChangesAsync" />
-            }
-            else if (_recentChanges is not null)
-            {
-                <RecentChanges Changes="_recentChanges" HasPredecessor="_currentSnapshot?.BaseSnapshotId.HasValue == true" />
-            }
-        </div>
-    }
-</div>
+                @if (_changesError is not null)
+                {
+                    <DashboardAreaFailure Area="Zuletzt geänderte Nodes" Error="_changesError" Retry="LoadChangesAsync" />
+                }
+                else if (_recentChanges is not null)
+                {
+                    <RecentChanges Changes="_recentChanges" HasPredecessor="_currentSnapshot?.BaseSnapshotId.HasValue == true" />
+                }
+            </div>
+        }
+    </ChildContent>
+</PageFrame>

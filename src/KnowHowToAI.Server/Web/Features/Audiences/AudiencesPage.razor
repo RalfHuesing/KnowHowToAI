@@ -1,15 +1,15 @@
 @page "/audiences"
 @namespace KnowHowToAI.Server.Web.Features.Audiences
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Components.Shared
 @using Microsoft.AspNetCore.Components.Web
 
 <PageTitle>Zielgruppen – KnowHowToAI</PageTitle>
 
-<section class="audiences-page" data-testid="audiences-page">
-    <header class="audiences-page__header">
-        <h1>Zielgruppen</h1>
-        <p>Zielgruppen für den versionierten Wissensinhalt. Zielgruppen sind keine Authentifizierungs- oder ACL-Berechtigungen.</p>
-    </header>
+<PageFrame Title="Zielgruppen"
+           Description="Zielgruppen für den versionierten Wissensinhalt. Zielgruppen sind keine Authentifizierungs- oder ACL-Berechtigungen."
+           Class="audiences-page"
+           data-testid="audiences-page">
 
     @if (_isLoading)
     {
@@ -27,4 +27,4 @@
                     ChangeVersion="CurrentChangeVersion"
                     MutationSucceeded="HandleMutationSucceededAsync" />
     }
-</section>
+</PageFrame>

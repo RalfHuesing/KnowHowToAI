@@ -75,6 +75,8 @@ public sealed class SearchPageTests : BunitContext
         ];
 
         var cut = Render<SearchPage>();
+        Assert.Equal("Wissenssuche", cut.Find("h1").TextContent.Trim());
+        Assert.Single(cut.FindAll("h1"));
         var input = cut.Find("[data-testid='search-text']");
         await cut.InvokeAsync(() => input.Change("TODO"));
         await cut.InvokeAsync(() => cut.Find("[data-testid='search-submit']").Click());

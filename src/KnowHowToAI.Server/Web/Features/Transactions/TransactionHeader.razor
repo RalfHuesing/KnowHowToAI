@@ -4,9 +4,9 @@
 <header class="transaction-header" data-testid="transaction-header">
     <div class="transaction-header__main">
         <div class="transaction-header__title-row">
-            <h1 class="transaction-header__title" data-testid="tx-title">
+            <h2 class="transaction-header__title" data-testid="tx-title">
                 @(string.IsNullOrWhiteSpace(Transaction.Purpose) ? "Ohne Zweckangabe" : Transaction.Purpose)
-            </h1>
+            </h2>
             <span class="badge badge-state badge-state--@Transaction.State.ToString().ToLowerInvariant()" data-testid="tx-state">
                 @Transaction.State
             </span>

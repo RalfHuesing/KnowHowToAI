@@ -1,5 +1,6 @@
 @page "/knowledge"
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Components.Shared
 @using KnowHowToAI.Server.Web.Features.Knowledge.Components
 @page "/knowledge/{NodeId:guid}"
 @using Microsoft.AspNetCore.Components.Web
@@ -7,10 +8,8 @@
 
 <PageTitle>Wissensbasis – KnowHowToAI</PageTitle>
 
-<div class="page-frame knowledge-page" data-testid="knowledge-page">
-    <header class="knowledge-header">
-        <Breadcrumbs Items="TreeWorkspace.Breadcrumbs" OnSelectNode="NavigateToNode" />
-    </header>
+<PageFrame Title="Wissensbasis" Class="knowledge-page" data-testid="knowledge-page">
+    <Breadcrumbs Items="TreeWorkspace.Breadcrumbs" OnSelectNode="NavigateToNode" />
 
     @if (_errorMessage is not null)
     {
@@ -36,7 +35,7 @@
                                OnNodeMutationSucceeded="HandleNodeMutationSucceededAsync" />
             </aside>
 
-            <main class="knowledge-content-pane" aria-label="Knotendetails" data-testid="knowledge-content-pane">
+            <section class="knowledge-content-pane" aria-label="Knotendetails" data-testid="knowledge-content-pane">
                 @if (TreeWorkspace.SelectedNodeId is not null)
                 {
                     <NodeDetailsPane NodeId="@TreeWorkspace.SelectedNodeId"
@@ -65,7 +64,7 @@
                         <p>Wählen Sie einen Knoten im Wissensbaum aus, um Details anzuzeigen.</p>
                     </div>
                 }
-            </main>
+            </section>
         </div>
     }
-</div>
+</PageFrame>

@@ -5,30 +5,6 @@
     box-sizing: border-box;
 }
 
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--ktai-space-3);
-    border-bottom: 1px solid var(--ktai-color-border);
-    padding-bottom: var(--ktai-space-4);
-}
-
-.header-title-group {
-    display: flex;
-    align-items: center;
-    gap: var(--ktai-space-3);
-    flex-wrap: wrap;
-}
-
-.dashboard-header h1 {
-    margin: 0;
-    font-size: clamp(1.25rem, 5vw, 1.75rem);
-    font-weight: 600;
-    color: var(--ktai-color-text);
-}
-
 .dashboard-badge {
     background-color: var(--ktai-color-info-background);
     color: var(--ktai-color-info);

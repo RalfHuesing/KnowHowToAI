@@ -31,6 +31,8 @@ public sealed class HistoryPageTests : BunitContext
 
         cut.WaitForAssertion(() =>
         {
+            Assert.Equal("Historie und Releases", cut.Find("h1").TextContent.Trim());
+            Assert.Single(cut.FindAll("h1"));
             Assert.Single(cut.FindAll("[data-testid^='snapshot-select-']"));
             Assert.Single(cut.FindAll("[data-testid^='release-select-']"));
             Assert.Contains("Working Transactions gehören nicht", cut.Find("[data-testid='history-working-separation']").TextContent);

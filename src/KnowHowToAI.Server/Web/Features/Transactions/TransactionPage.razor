@@ -1,12 +1,13 @@
 @page "/transactions/{TransactionId:guid}"
 @namespace KnowHowToAI.Server.Web.Features.Transactions
+@using KnowHowToAI.Server.Web.Components.Shared
 @using KnowHowToAI.Core.Domain.Common
 @using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Components.Shared.Dialogs
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using KnowHowToAI.Server.Web.Features.History
 
-<div class="page-frame transaction-page" data-testid="transaction-page">
+<PageFrame Title="@TransactionPageTitle" Class="transaction-page" data-testid="transaction-page">
     @if (_isLoading)
     {
         <p class="loading-state" role="status">Lade Transaction...</p>
@@ -125,7 +126,7 @@
         }
 
     }
-</div>
+</PageFrame>
 
 <ConfirmationDialog @ref="_commitDialog"
                     Title="Transaction committen"

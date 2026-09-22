@@ -1,19 +1,4 @@
 .audiences-page {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: var(--ktai-space-6);
-}
-
-.audiences-page__header {
-    margin-bottom: var(--ktai-space-6);
-}
-
-.audiences-page__header h1 {
-    margin: 0 0 var(--ktai-space-2);
-    color: var(--ktai-color-text);
-    font-size: var(--ktai-font-size-2xl);
-}
-
-.audiences-page__header p {
-    color: var(--ktai-color-text-secondary);
+    display: grid;
+    gap: var(--ktai-space-6);
 }

@@ -1,15 +1,15 @@
 @page "/history"
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Components.Shared
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.History
 
 <PageTitle>Historie und Releases – KnowHowToAI</PageTitle>
 
-<section class="page-frame history-page" data-testid="history-page">
-    <header class="history-page__header">
-        <h1>Historie und Releases</h1>
-        <p class="readable">Committed Snapshots und Releases sind unveränderliche Wissensstände.</p>
-    </header>
+<PageFrame Title="Historie und Releases"
+           Description="Committed Snapshots und Releases sind unveränderliche Wissensstände."
+           Class="history-page"
+           data-testid="history-page">
 
     <section class="history-page__notice" aria-label="Abgrenzung von Working Transactions" data-testid="history-working-separation">
         <InlineAlert Kind="AlertKind.Info" Message="Working Transactions gehören nicht zur Historie und werden separat im Transaction-Arbeitsbereich bearbeitet." />
@@ -52,4 +52,4 @@
     </section>
 
     <ReleasePanel Snapshots="@_snapshots" AudienceId="@QueryAudienceId" />
-</section>
+</PageFrame>

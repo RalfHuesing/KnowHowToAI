@@ -33,6 +33,8 @@ public sealed class AudiencesPageTests : BunitContext
 
         cut.WaitForAssertion(() =>
         {
+            Assert.Equal("Zielgruppen", cut.Find("h1").TextContent.Trim());
+            Assert.Single(cut.FindAll("h1"));
             Assert.Contains("Zielgruppen können nur in einer offenen Working Transaction", cut.Markup);
             Assert.DoesNotContain("audience-create-form", cut.Markup, StringComparison.Ordinal);
         });
