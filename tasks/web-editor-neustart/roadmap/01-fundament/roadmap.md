@@ -17,12 +17,12 @@ dürfen bis M3 noch technisch erreichbar sein, sind aber keine Zielnavigation.
 
 ## Milestone-Abnahme
 
-- [ ] Ein Direktaufruf der beiden Entwurfsrouten zeigt einen eindeutig
+- [x] Ein Direktaufruf der beiden Entwurfsrouten zeigt einen eindeutig
       ausgewählten Entwurf und erlaubt nur dessen Commit oder Discard.
-- [ ] Wissen und Entwürfe besitzen dieselben Innenkanten und genau ein `main`;
+- [x] Wissen und Entwürfe besitzen dieselben Innenkanten und genau ein `main`;
       die globale Navigation ist kompakt und enthält keine technischen
       Kontextselektoren als Bedingung für einen Edit.
-- [ ] Begrenzter M1-Audit gegen Konzept, Regeln, Diff und Nachweise
+- [x] Begrenzter M1-Audit gegen Konzept, Regeln, Diff und Nachweise
       dokumentiert; keine neue Produktentscheidung im Audit.
 
-Audit-Ergebnis: offen.
+Audit-Ergebnis: bestanden; siehe [Audit](audit.md).
