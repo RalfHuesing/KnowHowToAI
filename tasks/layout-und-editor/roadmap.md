@@ -69,7 +69,7 @@ atomaren deutschen Conventional Commit nur seines Scopes. Builds laufen über
 
 ## 2. Milestone-Abnahme & Audit
 
-- [ ] **P6 – Milestone-Audit**
+- [x] **P6 – Milestone-Audit**
   - **Intention:** Unabhängige Prüfung der Umsetzung gegen Konzept, Guardrails und Abschlussgate.
   - **Scope:** `tasks/layout-und-editor/audit.md` anlegen mit Belegen aus `verify(targetPath, scope: "solution")`, Build- und Test-Ergebnissen, manueller Sichtprüfung bei 1280×800 und 1024×720 sowie Vollständigkeitsnachweis aller Checklisten.
   - **Abnahme:** `verdict=pass`, 0 Verstöße; Audit-Report committed; Roadmap-Checkboxen vollständig geschlossen.
