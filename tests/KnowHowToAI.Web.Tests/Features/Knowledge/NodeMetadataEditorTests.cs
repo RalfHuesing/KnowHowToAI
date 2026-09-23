@@ -126,5 +126,3 @@ public sealed class NodeMetadataEditorTests : BunitContext
             [],
             ChangeVersion: 0);
 }
-
-
