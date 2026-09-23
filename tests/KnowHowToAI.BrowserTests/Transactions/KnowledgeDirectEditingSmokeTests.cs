@@ -39,7 +39,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             var deepNodeId = Guid.Parse((await deepNode.GetAttributeAsync("data-nodeid"))!);
             await deepNode.Locator(".tree-node-title").ClickAsync();
 
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Working-Inhalt für den geteilten Deep-Link.");
             await page.GetByTestId("content-editor-save").ClickAsync();
@@ -102,7 +102,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             var exportNodeId = await exportNode.GetAttributeAsync("data-nodeid");
             Assert.False(string.IsNullOrWhiteSpace(exportNodeId));
             await exportNode.Locator(".tree-node-title").ClickAsync();
-            await page.GetByTestId("tab-Metadata").ClickAsync();
+            await page.GetByRole(AriaRole.Button, new() { Name = "Titel", Exact = true }).ClickAsync();
 
             await page.GetByTestId("node-metadata-title").FillAsync("Direkt bearbeiteter Browser-Knoten");
             await page.GetByTestId("save-node-metadata").ClickAsync();
@@ -119,7 +119,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
                 .ToBeVisibleAsync(new() { Timeout = 15_000 });
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
 
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Direkt bearbeiteter Markdown-Inhalt.");
             await page.GetByTestId("link-drafts").ClickAsync();
@@ -139,7 +139,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             var secondNode = page.GetByText(BrowserKnowledgeSeed.DeepNavigationNodeTitle, new() { Exact = true }).Locator("xpath=..");
             await Assertions.Expect(secondNode).ToBeVisibleAsync();
             await secondNode.Locator(".tree-node-title").ClickAsync();
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Weiterer Inhalt im selben Entwurf.");
             await page.GetByTestId("link-drafts").ClickAsync();
@@ -187,21 +187,23 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await fallback.Locator(".tree-node-title").ClickAsync();
             await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle, Level = 1 })).ToBeVisibleAsync();
 
-            await Assertions.Expect(page.GetByTestId("tab-Read")).ToHaveAttributeAsync("aria-pressed", "true");
+            var tabs = page.GetByTestId("node-details-tabs");
+            await Assertions.Expect(tabs.GetByRole(AriaRole.Button).Nth(0)).ToHaveAttributeAsync("aria-pressed", "true");
+            await Assertions.Expect(tabs.GetByRole(AriaRole.Button)).ToHaveTextAsync(["Lesen", "Bearbeiten", "Titel", "Technische Details"]);
             await Assertions.Expect(page.GetByTestId("node-details-tabs").GetByRole(AriaRole.Button)).ToHaveCountAsync(4);
-            await page.GetByTestId("tab-Metadata").ClickAsync();
+            await tabs.GetByRole(AriaRole.Button, new() { Name = "Titel", Exact = true }).ClickAsync();
             await page.GetByTestId("node-metadata-title").FillAsync("Nicht gespeicherter Metadatentitel");
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            await tabs.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             var proseMirror = page.GetByTestId("content-editor-surface").Locator(".ProseMirror");
             await Assertions.Expect(proseMirror).ToBeFocusedAsync();
             await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Nicht gespeicherter Markdown-Text");
 
-            await page.GetByTestId("tab-Technical").ClickAsync();
-            await page.GetByTestId("tab-Metadata").ClickAsync();
+            await tabs.GetByRole(AriaRole.Button, new() { Name = "Technische Details", Exact = true }).ClickAsync();
+            await tabs.GetByRole(AriaRole.Button, new() { Name = "Titel", Exact = true }).ClickAsync();
             await Assertions.Expect(page.GetByTestId("node-metadata-title")).ToHaveValueAsync("Nicht gespeicherter Metadatentitel");
             await page.GetByRole(AriaRole.Button, new() { Name = "Abbrechen" }).ClickAsync();
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            await tabs.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             var source = page.GetByTestId("content-editor-source");
             await Assertions.Expect(source).ToHaveValueAsync("Nicht gespeicherter Markdown-Text");
             await Assertions.Expect(source).ToBeFocusedAsync();
@@ -215,7 +217,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await page.GetByTestId("content-editor-save").ClickAsync();
             await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"transactionId=[0-9a-fA-F-]{36}"), new() { Timeout = 30_000 });
             transactionId = Guid.Parse(Regex.Match(new Uri(page.Url).Query, @"transactionId=([0-9a-fA-F-]{36})").Groups[1].Value);
-            await page.GetByTestId("tab-Metadata").ClickAsync();
+            await tabs.GetByRole(AriaRole.Button, new() { Name = "Titel", Exact = true }).ClickAsync();
             await page.GetByTestId("node-metadata-title").FillAsync("Gespeicherter Metadatentitel");
             await page.GetByTestId("save-node-metadata").ClickAsync();
             await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Gespeicherter Metadatentitel", Level = 1 })).ToBeVisibleAsync();

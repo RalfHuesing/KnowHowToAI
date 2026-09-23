@@ -169,7 +169,7 @@ bleibt nicht als Übergabe zurück.
 
 ## 4. Routeübergreifende Abnahme
 
-- [ ] **P4 – Browserlayout und Dokumentation abschließen**
+- [x] **P4 – Browserlayout und Dokumentation abschließen**
   - **Intention:** Die behauptete Reiter- und Editorordnung ist in den
     echten Wissensrouten und relevanten Zuständen belegt.
   - **Voraussetzung:** P3 abgeschlossen.
@@ -197,6 +197,29 @@ bleibt nicht als Übergabe zurück.
     `docs/` beschreibt den implementierten Ist-Zustand. Abschlussnachweis
     enthält Testresultate, Screenshot-Verzeichnis, begründete Abweichungen
     und einen atomaren Commit nur für diesen Punkt.
+  - **Abschlussnachweis:** `PageFrameSmokeTests` prüft das ausgewählte
+    Wissensdokument bei 1280 × 800 und 1024 × 720: Reihenfolge von Reitern,
+    Lesebereich und Inhalt; Kontextposition; Seiten-Innenkanten; Computed
+    Styles der Reiter, Editorfläche, Werkzeugleiste und Footer; Umbruch;
+    horizontalen Overflow; sowie Speicherstatus links und erreichbares
+    Speichern rechts. Reiterschaltflächen und Ansichtsauswahl werden über
+    sichtbare Namen bzw. den nativen `select` bedient. Die Browser-Smokes für
+    Baum/Deep-Link, direkten Titel- und Content-Edit, Markdown-Moduswechsel,
+    Paste-Reduktion und Root-Erstellung verwenden die aktuellen Labels und
+    Statusausweise. `UiAuditScreenshotTests` deckt Current-Lesen, Titel,
+    visuellen Editor und Footer, Technische Details, Fallback-Lesen/-Editor,
+    Derived-Lesen/-Editor sowie Working-Lesen/-Editor ohne eigenen Content ab.
+    18 gezielte Screenshots wurden bei 1280 × 800 gemeinsam visuell geprüft;
+    Verzeichnis: `temp/ui-audit/2026-09-23_18-25-26`. Kein abgeschnittener
+    Inhalt, unerklärter Layoutdrift oder horizontaler Überlauf festgestellt.
+    Verifiziert mit dem relevanten Browser-Smoke-Filter (14/14),
+    `PageFrameSmokeTests` nach finaler Assertionsteilung (5/5), aktiviertem
+    UiAudit (1/1), vollständigen FastTests (Vitest 7/7, .NET 1.019/1.019),
+    `pwsh -NoProfile -File scripts/build.ps1` (Exitcode 0),
+    `verify(targetPath)` und `verify(targetPath, scope: "solution")`
+    (beide `pass`, 10.0, 0 Verstöße) sowie `git diff --check`.
+    `docs/WebUi.md` und `docs/Architektur.md` sind mit den Nachweisen
+    abgeglichen. Commit wird mit diesem P4-Slice erstellt.
 
 ## Audit
 

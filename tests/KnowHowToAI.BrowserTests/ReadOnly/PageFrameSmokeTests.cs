@@ -171,12 +171,12 @@ public sealed class PageFrameSmokeTests
         await using var browser = await ChromeBrowser.LaunchAsync();
         await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
-            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+            ViewportSize = new ViewportSize { Width = 1280, Height = 800 }
         });
 
-        foreach (var viewport in new[] { 1280, 1024 })
+        foreach (var (width, height) in new[] { (1280, 800), (1024, 720) })
         {
-            await page.SetViewportSizeAsync(viewport, 720);
+            await page.SetViewportSizeAsync(width, height);
             await GotoAsync(page, "/knowledge?audienceId=Default");
             var rootItem = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
             await rootItem.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
@@ -188,31 +188,106 @@ public sealed class PageFrameSmokeTests
                 page,
                 page.GetByTestId("knowledge-page"),
                 new RouteSpec("Wissensbasis ausgewählter Node", "/knowledge/{NodeId:guid}", "knowledge-page", "knowledge-page"),
-                viewport);
+                width);
             await Assertions.Expect(page.GetByTestId("knowledge-page").Locator("h1")).ToContainTextAsync("Browser-");
             var tabs = page.GetByTestId("node-details-tabs");
-            await Assertions.Expect(tabs.GetByRole(AriaRole.Button)).ToHaveCountAsync(4);
-            var tabBar = await tabs.BoundingBoxAsync()
-                ?? throw new InvalidOperationException($"Knotenreiter besitzen bei {viewport} keine Begrenzungsbox.");
-            Assert.True(tabBar.X >= 0 && tabBar.X + tabBar.Width <= viewport,
-                $"Knotenreiter liegen bei {viewport} außerhalb der erreichbaren Breite.");
+            await AssertTabBarAndContextAsync(page, tabs, width, height);
 
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            var readPanel = page.GetByTestId("node-view-panel-read");
+            var readContent = page.GetByTestId("node-details-content");
+            await AssertFollowsAsync(tabs, readPanel, "Lesebereich", width, height);
+            await AssertFollowsAsync(tabs, readContent, "Leseinhalt", width, height);
+
+            await tabs.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
+            var editorPanel = page.GetByTestId("node-view-panel-editor");
+            await AssertFollowsAsync(tabs, editorPanel, "Editorbereich", width, height);
+            var toolbarRow = editor.Locator(".content-editor__toolbar-row");
+            await Assertions.Expect(toolbarRow).ToBeVisibleAsync();
+            var toolbarStyles = await toolbarRow.EvaluateAsync<string[]>(
+                "element => { const style = getComputedStyle(element); return [style.display, style.flexWrap]; }");
+            Assert.Equal("flex", toolbarStyles[0]);
+            Assert.Equal("wrap", toolbarStyles[1]);
+            var viewMode = editor.GetByTestId("content-editor-view-mode");
+            await Assertions.Expect(viewMode).ToBeVisibleAsync();
+            await Assertions.Expect(viewMode.Locator("option")).ToHaveTextAsync(["Visuell", "Markdown-Quelle"]);
+
             var editorBox = await editor.BoundingBoxAsync()
-                ?? throw new InvalidOperationException($"Der Inhaltseditor besitzt bei {viewport} keine Begrenzungsbox.");
-            Assert.True(editorBox.X >= 0 && editorBox.X + editorBox.Width <= viewport,
-                $"Der Inhaltseditor liegt bei {viewport} außerhalb der erreichbaren Breite.");
+                ?? throw new InvalidOperationException($"Der Inhaltseditor besitzt bei {width}×{height} keine Begrenzungsbox.");
+            Assert.True(editorBox.X >= 0 && editorBox.X + editorBox.Width <= width,
+                $"Der Inhaltseditor liegt bei {width}×{height} außerhalb der erreichbaren Breite.");
+            var surface = editor.GetByTestId("content-editor-surface");
+            var surfaceStyles = await surface.EvaluateAsync<string[]>(
+                "element => { const style = getComputedStyle(element); return [style.borderTopStyle, style.minHeight, style.borderRadius]; }");
+            Assert.NotEqual("none", surfaceStyles[0]);
+            Assert.NotEqual("0px", surfaceStyles[1]);
+            Assert.NotEqual("0px", surfaceStyles[2]);
+
+            var footer = editorPanel.Locator(".tab-panel-layout__footer");
+            var footerStyles = await footer.EvaluateAsync<string[]>(
+                "element => { const style = getComputedStyle(element); return [style.display, style.justifyContent, style.flexWrap]; }");
+            Assert.Equal("flex", footerStyles[0]);
+            Assert.Equal("space-between", footerStyles[1]);
+            Assert.Equal("wrap", footerStyles[2]);
+            var saveStatus = editor.GetByTestId("content-editor-save-status");
+            await Assertions.Expect(saveStatus).ToContainTextAsync("Gespeichert");
             var saveAction = page.GetByTestId("content-editor-save");
             await Assertions.Expect(saveAction).ToBeVisibleAsync();
             await saveAction.ScrollIntoViewIfNeededAsync();
+            var statusBox = await saveStatus.BoundingBoxAsync()
+                ?? throw new InvalidOperationException($"Der Speicherstatus besitzt bei {width}×{height} keine Begrenzungsbox.");
+            Assert.True(statusBox.Y >= 0 && statusBox.Y + statusBox.Height <= height,
+                $"Der Speicherstatus ist bei {width}×{height} nicht im Viewport erreichbar.");
             var saveBox = await saveAction.BoundingBoxAsync()
-                ?? throw new InvalidOperationException($"Die Editor-Speicheraktion ist bei {viewport} nicht erreichbar.");
-            Assert.True(saveBox.X >= 0 && saveBox.X + saveBox.Width <= viewport,
-                $"Die Editor-Speicheraktion liegt bei {viewport} außerhalb der erreichbaren Breite.");
+                ?? throw new InvalidOperationException($"Die Editor-Speicheraktion ist bei {width}×{height} nicht erreichbar.");
+            Assert.True(saveBox.X >= 0 && saveBox.X + saveBox.Width <= width,
+                $"Die Editor-Speicheraktion liegt bei {width}×{height} außerhalb der erreichbaren Breite.");
+            Assert.True(saveBox.Y >= 0 && saveBox.Y + saveBox.Height <= height,
+                $"Die Editor-Speicheraktion ist bei {width}×{height} nicht im Viewport erreichbar.");
+            Assert.True(statusBox.X + statusBox.Width <= saveBox.X,
+                $"Der Speicherstatus steht bei {width}×{height} nicht links vor der Speichern-Aktion.");
+            var viewportMetrics = await page.EvaluateAsync<double[]>(
+                "() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]");
+            Assert.True(viewportMetrics[0] <= viewportMetrics[1],
+                $"Die Wissensroute läuft bei {width}×{height} horizontal über ({viewportMetrics[0]} > {viewportMetrics[1]}).");
         }
 
+    }
+
+    private static async Task AssertTabBarAndContextAsync(IPage page, ILocator tabs, int width, int height)
+    {
+        var buttons = tabs.GetByRole(AriaRole.Button);
+        await Assertions.Expect(buttons).ToHaveTextAsync(["Lesen", "Bearbeiten", "Titel", "Technische Details"]);
+        var tabBar = await tabs.BoundingBoxAsync()
+            ?? throw new InvalidOperationException($"Knotenreiter besitzen bei {width}×{height} keine Begrenzungsbox.");
+        Assert.True(tabBar.X >= 0 && tabBar.X + tabBar.Width <= width,
+            $"Knotenreiter liegen bei {width}×{height} außerhalb der erreichbaren Breite.");
+        var styles = await tabs.EvaluateAsync<string[]>(
+            "element => { const style = getComputedStyle(element); return [style.display, style.flexWrap]; }");
+        Assert.Equal("flex", styles[0]);
+        Assert.Equal("wrap", styles[1]);
+
+        var context = page.GetByTestId("node-details-context");
+        await Assertions.Expect(context).ToHaveTextAsync("Nur lesen");
+        var contextBox = await context.BoundingBoxAsync()
+            ?? throw new InvalidOperationException($"Der Lese-/Arbeitskontext besitzt bei {width}×{height} keine Begrenzungsbox.");
+        Assert.True(contextBox.X >= tabBar.X + tabBar.Width - 1 || contextBox.Y >= tabBar.Y + tabBar.Height - 1,
+            $"Der Lese-/Arbeitskontext steht bei {width}×{height} weder rechts neben noch unter den Reitern.");
+        var contextMargin = await context.Locator("xpath=..")
+            .EvaluateAsync<string>("element => getComputedStyle(element).marginLeft");
+        Assert.True(ParsePixels(contextMargin) > 0,
+            $"Der Kontext wird bei {width}×{height} nicht rechts neben den Reitern ausgerichtet.");
+    }
+
+    private static async Task AssertFollowsAsync(ILocator preceding, ILocator following, string description, int width, int height)
+    {
+        var precedingBox = await preceding.BoundingBoxAsync()
+            ?? throw new InvalidOperationException($"Der vorgelagerte Bereich für {description} besitzt bei {width}×{height} keine Begrenzungsbox.");
+        var followingBox = await following.BoundingBoxAsync()
+            ?? throw new InvalidOperationException($"{description} besitzt bei {width}×{height} keine Begrenzungsbox.");
+        Assert.True(followingBox.Y >= precedingBox.Y + precedingBox.Height - 1,
+            $"{description} beginnt bei {width}×{height} vor oder in der Reiterleiste.");
     }
 
     [Fact]

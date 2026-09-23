@@ -44,7 +44,7 @@ public sealed class ContentEditorPasteSmokeTests
                 $"{_fixture.Host.Address}/knowledge/{rootNodeId}?audienceId=Default&transactionId={transactionId}",
                 new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 30_000 });
             await CircuitProbe.WaitForInteractivityAsync(page);
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("content-editor-surface"))
@@ -61,7 +61,7 @@ public sealed class ContentEditorPasteSmokeTests
                 }
                 """);
 
-            await Assertions.Expect(editor.GetByRole(AriaRole.Status))
+            await Assertions.Expect(editor.GetByTestId("content-editor-paste-warning"))
                 .ToContainTextAsync("reduziert");
             Assert.False(externalRequestObserved);
         }
@@ -118,7 +118,7 @@ public sealed class ContentEditorPasteSmokeTests
                     Timeout = 30_000
                 });
                 await CircuitProbe.WaitForInteractivityAsync(page);
-                await page.GetByTestId("tab-Editor").ClickAsync();
+                await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
                 var editor = page.GetByTestId("content-editor");
                 await Assertions.Expect(editor).ToBeVisibleAsync();
                 await Assertions.Expect(page.GetByTestId("content-editor-surface"))

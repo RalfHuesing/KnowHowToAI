@@ -42,16 +42,17 @@ public sealed class ContentEditorSourceSmokeTests
                 new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 30_000 });
             await CircuitProbe.WaitForInteractivityAsync(page);
 
-            await page.GetByTestId("tab-Editor").ClickAsync();
+            await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
-            await editor.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
+            var viewMode = editor.GetByTestId("content-editor-view-mode");
+            await viewMode.SelectOptionAsync("source");
             var source = editor.GetByTestId("content-editor-source");
             await Assertions.Expect(source).ToBeVisibleAsync();
 
             const string markdown = "Formatierung.\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
             await source.FillAsync(markdown);
-            await editor.GetByTestId("content-editor-view-mode").SelectOptionAsync("visual");
+            await viewMode.SelectOptionAsync("visual");
             await Assertions.Expect(editor.Locator(".ProseMirror")).ToBeVisibleAsync();
             var proseMirror = editor.Locator(".ProseMirror");
             await proseMirror.Locator("p").First.SelectTextAsync();

@@ -143,3 +143,7 @@ automatisierten Verhaltensassertions. HTML-Semantik, Darstellung bei den
 unterstützten Desktopbreiten und Layoutgrenzen folgen den
 [Web-UI-Guardrails](../.agents/rules/WebUiHtmlCss.mdc) und der
 [manuellen UI-Abnahme](Manuelle-UI-Abnahme.md).
+Für die Wissensreiter prüft `PageFrameSmokeTests` zusätzlich 1280 × 800 und
+1024 × 720: Reiter-/Inhaltsreihenfolge, Kontextposition, Footer- und
+Editor-Computed-Styles, Seiten-Innenkanten, Umbruch, horizontalen Overflow
+sowie erreichbaren Status und Speichern-Aktion.

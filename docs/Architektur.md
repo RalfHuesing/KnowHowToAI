@@ -415,6 +415,10 @@ erfordern eine manuelle Diff-Prüfung, eine automatische Baselineaktualisierung
 im regulären Lauf findet nicht statt. Da sein Host ausschließlich den minimalen
 Read-only-Bestand nutzt, können Historien-, Release- und Transaction-Workflows
 die Pixelbaseline nicht verändern.
+Der Wissensreiter-Smoke prüft ergänzend bei 1280 × 800 und 1024 × 720 die
+Reiter-/Inhaltsreihenfolge, Kontextposition, Footer- und Editor-Computed-Styles,
+Seiten-Innenkanten, Umbruch, horizontalen Overflow sowie erreichbaren Status und
+Speichern-Aktion.
 
 Die Testablagen sind nach Prüfgegenstand benannt: Komponententests liegen in `KnowHowToAI.Web.Tests` unter `Components/{Layout,Shared}`, `Features/{Knowledge,Drafts}` und `TestSupport/`. Vollständige Benutzerabläufe entstehen in `KnowHowToAI.BrowserTests` unter `ReadOnly/`, `Transactions/` und `Drafts/`; der geänderte Routenumfang und die Browser-Nachweise stehen im [Web-UI-Gesamtbild](WebUi.md).
 
@@ -428,12 +432,13 @@ Aktivierung aber übersprungen und startet dabei keinen Host oder Browser;
 volatile Werte werden vor der Aufnahme maskiert und jede Aufnahme folgt auf
 Web-first-Verhaltensassertionen. Die temporären Artefakte sind keine
 visuellen Baselines.
-Der gemeinsame Lauf umfasst siebzehn gezielte, semantisch benannte Aufnahmen:
+Der gemeinsame Lauf umfasst achtzehn gezielte, semantisch benannte Aufnahmen:
 Knowledge-Einstieg, Zielgruppenauswahl, Root, Lesen, Metadaten, Editor und
 Editorfläche, technische Details sowie Lesen und Editor für Fallback- und
 Derived-Content. Die Editorflächen und der Abschlussbereich des Entwurfs werden
-als gezielte Viewport-Aufnahmen nach Scrollen separat gezeigt. Der Working-Editor
-mit fehlendem eigenen Fallback-Content, die Entwurfsübersicht und das
+als gezielte Viewport-Aufnahmen nach Scrollen separat gezeigt. Der Working-
+Lese-/Arbeitskontext und der Working-Editor mit fehlendem eigenen Fallback-Content,
+die Entwurfsübersicht und das
 Entwurfsdetail sind ebenfalls enthalten. Jede PNG zeigt den Viewport 1280 × 800;
 es gibt keine schmale Breitenmatrix und keine FullPage-Aufnahme. Das Manifest
 dokumentiert Route, Zustand, Viewport und Browser; die PNGs werden nach dem
