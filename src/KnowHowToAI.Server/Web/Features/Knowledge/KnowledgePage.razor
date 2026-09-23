@@ -4,6 +4,7 @@
 @using KnowHowToAI.Server.Web.Components.Shared
 @using KnowHowToAI.Server.Web.Features.Knowledge.Node
 @using KnowHowToAI.Server.Web.Features.Knowledge.Tree
+@using KnowHowToAI.Server.Web.Features.Knowledge.Components
 @using KnowHowToAI.Server.Web.Components.Layout.Context
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Knowledge
@@ -37,7 +38,9 @@
 
         <div class="knowledge-layout">
             <aside class="knowledge-sidebar" aria-label="Wissensnavigation" data-testid="knowledge-sidebar">
-                <KnowledgeTree OnNodeSelected="NavigateToNode" />
+                <KnowledgeTree OnNodeSelected="NavigateToNode" CanMove="CanManageTree"
+                              OnNodeMutationSucceeded="RefreshKnowledgeTreeAfterMetadataChangeAsync"
+                              MoveTransactionId="@QueryTransactionId" />
             </aside>
 
             <section class="knowledge-content-pane" aria-label="Knotendokument" data-testid="knowledge-content-pane">
@@ -57,11 +60,11 @@
                 {
                     <div class="knowledge-empty-root" data-testid="knowledge-empty-root">
                         <h2>Die Wissensbasis ist noch leer</h2>
-                        <p>Der erste Wissensknoten wird im nächsten Arbeitsschritt direkt hier angelegt.</p>
-                        <button type="button" class="btn btn-primary" disabled aria-disabled="true"
-                                data-testid="knowledge-create-root">
-                            Ersten Node anlegen
-                        </button>
+                        <p>Der erste Wissensknoten wird beim bestätigten Speichern angelegt.</p>
+                        @if (CanManageTree)
+                        {
+                            <RootNodeEditor OnMutationSucceeded="RefreshKnowledgeTreeAfterMetadataChangeAsync" />
+                        }
                     </div>
                 }
                 else

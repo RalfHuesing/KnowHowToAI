@@ -8,11 +8,12 @@
 
 @media (max-width: 768px) {
     .knowledge-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
 .knowledge-sidebar {
+    min-width: 0;
     background-color: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border);
     border-radius: var(--ktai-radius-md);
@@ -23,6 +24,7 @@
 }
 
 .knowledge-content-pane {
+    min-width: 0;
     background-color: var(--ktai-color-surface);
     border: 1px solid var(--ktai-color-border);
     border-radius: var(--ktai-radius-md);

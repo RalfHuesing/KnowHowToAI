@@ -15,7 +15,9 @@ using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Components;
 using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
+using KnowHowToAI.Server.Web.Workflow;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -61,20 +63,24 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
             new ReadContext(TransactionId: TransactionId));
         workspaceState.SetAudience("Developer");
         workspaceState.SetChangeVersion(0);
+        workspaceState.SetLoadedSnapshotId(SnapshotId.Value);
 
         var repository = new InMemoryNodeMutationRepository(
             new WorkingNodeMutationState(SnapshotId, nodes, Array.Empty<NodeContent>(), Array.Empty<ContentDependency>(), nodes.Select(node => node.NodeId).ToArray()));
         var coordinator = new TreeMoveCoordinator(
             new NodeMutationApplicationService(repository, new NodeMutationService(new GuidIdentifierGenerator()), TestPolicies.DefaultValidation),
+            WebWriteTestServices.CreateCoordinator(harness, workspaceState, Services.GetRequiredService<NavigationManager>()),
             workspaceState,
-            new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())),
-            new PageRegionState(),
-            treeState);
+            treeState,
+            new TreeMoveRecovery(workspaceState,
+                new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())),
+                new PageRegionState(),
+                treeState));
 
         var source = treeState.RootNode!.Children[sourceIndex];
         var target = treeState.RootNode.Children[targetIndex];
         var result = await coordinator.MoveAsync(
-            new TreeMoveRequest(source.NodeId, target.NodeId, target.ParentNodeId, target.Summary.SortOrder, position),
+            new TreeMoveRequest(source.NodeId, target.NodeId, position),
             TransactionId.Value.ToString("D"),
             null,
             null);
@@ -86,6 +92,16 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
                 .Where(node => node.ParentNodeId == rootId)
                 .OrderBy(node => node.SortOrder)
             .Select(node => node.Title));
+
+        var unchangedNodes = repository.State.Nodes.ToArray();
+        var invalidMove = await coordinator.MoveAsync(
+            new TreeMoveRequest(source.NodeId, source.NodeId, TreeMovePosition.Parent),
+            TransactionId.Value.ToString("D"),
+            null,
+            null);
+        Assert.False(invalidMove.IsSuccess);
+        Assert.Contains("verschiedene sichtbare Knoten", invalidMove.ErrorMessage, StringComparison.Ordinal);
+        Assert.Equal(unchangedNodes, repository.State.Nodes);
     }
 
     [Theory]
@@ -112,28 +128,44 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
         await treeState.ExpandNodeAsync(rootId.Value);
         var workspaceState = new WorkspaceState();
         workspaceState.SetContext(
-            new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, TransactionId.Value.ToString("D"), ChangeVersion: 0),
-            new ReadContext(TransactionId: TransactionId));
+            new KnowledgeContextViewModel(KnowledgeReadContextKind.Current),
+            new ReadContext());
         workspaceState.SetAudience("Developer");
         workspaceState.SetChangeVersion(0);
+        workspaceState.SetLoadedSnapshotId(SnapshotId.Value);
         var repository = new InMemoryNodeMutationRepository(
             new WorkingNodeMutationState(SnapshotId, nodes, Array.Empty<NodeContent>(), Array.Empty<ContentDependency>(), nodes.Select(node => node.NodeId).ToArray()));
-        var coordinator = new TreeMoveCoordinator(
-            new NodeMutationApplicationService(repository, new NodeMutationService(new GuidIdentifierGenerator()), TestPolicies.DefaultValidation),
-            workspaceState,
-            new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())),
-            new PageRegionState(),
-            treeState);
+        var mutationService = new NodeMutationApplicationService(repository, new NodeMutationService(new GuidIdentifierGenerator()), TestPolicies.DefaultValidation);
         Services.AddWebPageStates(workspaceState: workspaceState).AddKnowledgeTreeWorkspace(treeState);
-        Services.AddSingleton(coordinator);
+        Services.AddSingleton(mutationService);
+        Services.AddSingleton<WebWriteCoordinator>(provider => WebWriteTestServices.CreateCoordinator(
+            harness,
+            workspaceState,
+            provider.GetRequiredService<NavigationManager>()));
+        Services.AddSingleton<TreeMoveCoordinator>(provider => new TreeMoveCoordinator(
+            mutationService,
+            provider.GetRequiredService<WebWriteCoordinator>(),
+            workspaceState,
+            treeState,
+            new TreeMoveRecovery(workspaceState,
+                new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())),
+                new PageRegionState(),
+                treeState)));
 
         var cut = Render<KnowledgeTree>(parameters => parameters.Add(component => component.CanMove, true));
+        await cut.Find($"[data-testid='move-node-{sourceId.Value}']").ClickAsync();
+        Assert.NotNull(cut.Find($"[data-testid='drop-targets-{targetId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='move-before-{targetId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='move-under-{targetId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='move-after-{targetId.Value}']"));
+        await cut.Find($"[data-testid='move-node-{sourceId.Value}']").ClickAsync();
         await cut.InvokeAsync(() => cut.Instance.HandleTreeDropAsync(
             sourceId.Value.ToString(),
             targetId.Value.ToString(),
             position.ToString()));
 
         Assert.DoesNotContain("[data-testid='tree-move-error']", cut.Markup, StringComparison.Ordinal);
+        Assert.NotNull(workspaceState.ActiveTransactionId);
         var moved = Assert.Single(repository.State.Nodes, node => node.NodeId == sourceId);
         if (position == TreeMovePosition.Parent)
         {

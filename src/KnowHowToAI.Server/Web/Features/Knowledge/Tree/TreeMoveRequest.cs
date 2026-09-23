@@ -4,8 +4,6 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 public sealed record TreeMoveRequest(
     Guid SourceNodeId,
     Guid TargetNodeId,
-    Guid? TargetParentNodeId,
-    int TargetSortOrder,
     TreeMovePosition Position);
 
 /// <summary>Die drei fachlich zulässigen Zielpositionen des nativen Wissensbaums.</summary>

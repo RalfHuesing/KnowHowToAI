@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Web
+@using KnowHowToAI.Server.Web.Features.Knowledge.Components
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree
 
 <div class="tree-container" data-testid="knowledge-tree-container">
@@ -129,6 +130,18 @@
                     }
                 </span>
 
+                @if (CanMove)
+                {
+                    <span class="tree-node-actions">
+                        <button type="button" class="tree-action-btn" aria-label="Unterknoten unter @node.Title anlegen"
+                                data-testid="create-child-@node.NodeId" @onclick:stopPropagation="true"
+                                @onclick="() => BeginCreateChild(node.NodeId)">Unterknoten anlegen</button>
+                        <button type="button" class="tree-action-btn" aria-label="@node.Title verschieben"
+                                data-testid="move-node-@node.NodeId" @onclick:stopPropagation="true"
+                                @onclick="() => BeginMove(node.NodeId)">Verschieben</button>
+                    </span>
+                }
+
                 @if (node.IsLoading)
                 {
                     <span class="tree-node-spinner" role="status" aria-label="Wird geladen...">⟳</span>
@@ -139,6 +152,25 @@
                     <span class="tree-node-error" role="alert" data-testid="@($"tree-node-error-{node.NodeId}")">@node.Error</span>
                 }
             </div>
+
+            @if (_creatingChildNodeId == node.NodeId)
+            {
+                <RootNodeEditor ParentNodeId="@node.NodeId" ParentTitle="@node.Title"
+                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
+            }
+
+            @if (CanMove && _movingNodeId.HasValue && _movingNodeId != node.NodeId)
+            {
+                <div class="tree-drop-targets" aria-label="Verschiebeziele für @node.Title" data-testid="drop-targets-@node.NodeId">
+                    <span>Als Ziel verwenden:</span>
+                    <button type="button" class="tree-action-btn" data-testid="move-before-@node.NodeId"
+                            @onclick="() => HandleKeyboardMoveAsync(node, TreeMovePosition.Before)">Davor</button>
+                    <button type="button" class="tree-action-btn" data-testid="move-under-@node.NodeId"
+                            @onclick="() => HandleKeyboardMoveAsync(node, TreeMovePosition.Parent)">Darunter</button>
+                    <button type="button" class="tree-action-btn" data-testid="move-after-@node.NodeId"
+                            @onclick="() => HandleKeyboardMoveAsync(node, TreeMovePosition.After)">Danach</button>
+                </div>
+            }
 
             @if (node.HasChildren && node.IsExpanded)
             {

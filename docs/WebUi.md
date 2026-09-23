@@ -115,8 +115,8 @@ Selektoren sind nur dort aufgeführt, wo die routbare Page sie tatsächlich lies
 | Route | Kontext/Parameter und Hauptaufgabe | Routable Page / repräsentativer Test |
 |---|---|---|
 | `/` | Ersetzt die URL ohne Zusatzparameter durch `/knowledge`. | [`KnowledgeRedirect.razor`](../src/KnowHowToAI.Server/Web/Components/Navigation/KnowledgeRedirect.razor) · [`DashboardSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/DashboardSmokeTests.cs) |
-| `/knowledge` | Current oder explizite `transactionId` plus `audienceId`; lazy gepagter Baum, kein ausgewähltes Dokument und keine Mutationsbedienelemente. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgePageContextSelectorTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/KnowledgePageContextSelectorTests.cs) |
-| `/knowledge/{NodeId:guid}` | Wie `/knowledge`, zusätzlich GUID-Auswahl des Knotens; Tree-Pfad, Breadcrumbs und lesendes Dokument rekonstruieren die tiefe Auswahl direkt und nach Reload. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgeTreeSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeTreeSmokeTests.cs) |
+| `/knowledge` | Current oder explizite `transactionId` plus `audienceId`; lazy gepagter Baum, Root-Anlage bei leerem Baum und eine Einladung zur Dokumentauswahl. Bestätigtes Speichern beginnt bei Current den sichtbaren Entwurf. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgePageContextSelectorTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/KnowledgePageContextSelectorTests.cs) |
+| `/knowledge/{NodeId:guid}` | Wie `/knowledge`, zusätzlich GUID-Auswahl des Knotens; Tree-Pfad, Breadcrumbs und Dokument rekonstruieren die tiefe Auswahl direkt und nach Reload. Titel/Beschreibung lassen sich speichern, Unterknoten anlegen und Nodes per Drag-and-drop oder Tastatur vor, nach und unter ein sichtbares Ziel verschieben. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor) · [`KnowledgeTreeMoveSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Transactions/KnowledgeTreeMoveSmokeTests.cs) |
 | `/search` | Optional genau einer von `transactionId`, `snapshotId`, `releaseId` plus `audienceId`; Suche, Filter, paginierte Treffer und Übergang in Knowledge. | [`SearchPage.razor`](../src/KnowHowToAI.Server/Web/Features/Search/SearchPage.razor) · [`SearchSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/SearchSmokeTests.cs) |
 | `/transactions` | Kein Page-Query-Kontext; Working Transaction beginnen oder offene Transactions aufnehmen und in Details/Arbeitskontext weitergehen. | [`TransactionsPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionsPage.razor) · [`TransactionsPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionsPageTests.cs) |
 | `/transactions/{TransactionId:guid}` | GUID identifiziert die Working Transaction; weiter in Knowledge/Zielgruppen, validieren, committen oder verwerfen. | [`TransactionPage.razor`](../src/KnowHowToAI.Server/Web/Features/Transactions/TransactionPage.razor) · [`TransactionPageTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Transactions/TransactionPageTests.cs) |
@@ -138,12 +138,16 @@ Wissensarbeitsplatz. Die Browserabnahme für `/` prüft diese Weiterleitung.
 - Intention: hierarchisches Lesen und – nur im offenen Working-Kontext –
   Bearbeiten eines Nodes.
 - Hauptbereiche: Breadcrumbs, lazy geladener Wissensbaum, Knotendetails und
-  Markdown-Teilbaumexport; leerer Working Tree bietet Root-Anlage.
+  Markdown-Teilbaumexport. Ein leerer Baum bietet die Root-Anlage; jeder
+  sichtbare Node kann einen Unterknoten erhalten und Titel/Beschreibung können
+  umbenannt werden. Drag-Zonen und dieselben Vor-/Unter-/Nach-Ziele als
+  Tastaturaktionen sind erreichbar und bei schmalem Reflow umbrochen.
 - Primäre Aktionen: Node auswählen/navigieren, Kontext/Zielgruppe wählen und
   im Current-Kontext Titel, Beschreibung oder Independent-Content direkt
   bearbeiten. Der erste ausdrückliche Save beginnt eine Working Transaction,
   synchronisiert sie in URL und Entwurfslink und speichert die Mutation. Weitere
-  Saves schreiben in denselben Entwurf. Fallback und fehlender Content werden
+  Saves, Node-Anlagen und Baumbewegungen schreiben in denselben Entwurf. Der
+  erste Move beginnt den Entwurf erst nach bestätigter Servermutation. Fallback und fehlender Content werden
   erst nach ausdrücklicher Aktion als eigene Independent-Fassung angelegt;
   Derived-Content bleibt schreibgeschützt.
 - Dirty-Eingaben bleiben bis zum ausdrücklichen Speichern erhalten und schützen

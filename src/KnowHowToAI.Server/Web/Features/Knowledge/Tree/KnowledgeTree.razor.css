@@ -65,6 +65,8 @@
     font-size: var(--ktai-font-size-sm);
     transition: background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, outline-color 0.12s ease;
     border-left: 3px solid transparent;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .tree-node:hover {
@@ -132,6 +134,66 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.tree-node-actions,
+.tree-drop-targets {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ktai-space-1);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.tree-drop-targets {
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border-left: 2px solid var(--ktai-color-primary);
+    color: var(--ktai-color-text-secondary);
+    font-size: var(--ktai-font-size-xs);
+}
+
+.tree-action-btn {
+    min-height: 32px;
+    padding: var(--ktai-space-1) var(--ktai-space-2);
+    border: 1px solid var(--ktai-color-border);
+    border-radius: var(--ktai-radius-sm);
+    background: var(--ktai-color-surface);
+    color: var(--ktai-color-text);
+    font-size: var(--ktai-font-size-xs);
+    cursor: pointer;
+    max-width: 100%;
+}
+
+.tree-action-btn:hover,
+.tree-action-btn:focus-visible {
+    border-color: var(--ktai-color-primary);
+    background: var(--ktai-color-info-background);
+}
+
+@media (max-width: 48rem) {
+    .tree-node {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .tree-node-title {
+        flex-basis: calc(100% - 2rem);
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .tree-node-badges,
+    .tree-node-actions {
+        flex-basis: 100%;
+        padding-inline-start: 28px;
+        max-width: 100%;
+    }
+
+    .tree-action-btn {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
 }
 
 .tree-node-badges {

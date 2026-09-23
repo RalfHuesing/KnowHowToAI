@@ -54,6 +54,8 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
     private Guid? _focusedNodeId;
     private Guid? _lastSelectedNodeId;
     private string? _moveErrorMessage;
+    private Guid? _creatingChildNodeId;
+    private Guid? _movingNodeId;
     private bool _isDisposed;
 
     private Guid? EffectiveFocusedNodeId
@@ -143,6 +145,11 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
         if (target is null)
             return;
 
+        await ProcessMoveAsync(sourceId, target, movePosition);
+    }
+
+    private async Task ProcessMoveAsync(Guid sourceId, KnowledgeTreeNodeViewModel target, TreeMovePosition movePosition)
+    {
         _moveErrorMessage = null;
         var treeMoveCoordinator = ServiceProvider.GetService<TreeMoveCoordinator>();
         if (treeMoveCoordinator is null)
@@ -154,14 +161,15 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
         var outcome = await treeMoveCoordinator.MoveAsync(new TreeMoveRequest(
             sourceId,
             target.NodeId,
-            target.ParentNodeId,
-            target.Summary.SortOrder,
             movePosition),
             MoveTransactionId,
             MoveSnapshotId,
             MoveReleaseId);
         if (outcome.IsSuccess)
+        {
+            _focusedNodeId = sourceId;
             await OnNodeMutationSucceeded.InvokeAsync(outcome.Mutation!);
+        }
         else
             _moveErrorMessage = outcome.ErrorMessage;
 
@@ -171,6 +179,33 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
     private void HandleFocus(Guid nodeId)
     {
         _focusedNodeId = nodeId;
+    }
+
+    private void BeginCreateChild(Guid parentNodeId)
+    {
+        _creatingChildNodeId = _creatingChildNodeId == parentNodeId ? null : parentNodeId;
+        _movingNodeId = null;
+    }
+
+    private void BeginMove(Guid sourceNodeId)
+    {
+        _movingNodeId = _movingNodeId == sourceNodeId ? null : sourceNodeId;
+        _creatingChildNodeId = null;
+    }
+
+    private async Task HandleKeyboardMoveAsync(KnowledgeTreeNodeViewModel target, TreeMovePosition position)
+    {
+        if (_movingNodeId is not { } sourceNodeId)
+            return;
+
+        await ProcessMoveAsync(sourceNodeId, target, position);
+        _movingNodeId = null;
+    }
+
+    private async Task HandleNodeMutationSucceededAsync(NodeMutationResult mutation)
+    {
+        _creatingChildNodeId = null;
+        await OnNodeMutationSucceeded.InvokeAsync(mutation);
     }
 
     private async Task HandleToggleExpandAsync(KnowledgeTreeNodeViewModel node)

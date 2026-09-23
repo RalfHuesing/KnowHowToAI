@@ -43,6 +43,7 @@ internal static class WebServiceRegistration
         // Schmale Präsentationsgrenze für Wissensseite und nativen Baum.
         services.AddScoped<IKnowledgeTreeWorkspace>(serviceProvider =>
             serviceProvider.GetRequiredService<KnowledgeTreeState>());
+        services.AddScoped<TreeMoveRecovery>();
         services.AddScoped<TreeMoveCoordinator>();
 
         // Persistiert die letzte Zielgruppenauswahl im Browser-LocalStorage.

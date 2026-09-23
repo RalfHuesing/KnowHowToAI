@@ -74,7 +74,7 @@ public sealed class WebWriteCoordinatorTests
     }
 
     [Fact]
-    public async Task ConcurrentFirstWrites_ShareOneDraft()
+    public async Task ConcurrentFirstWrites_ShareOneDraftAndSerializeChangeVersions()
     {
         var fixture = new Fixture();
         var firstMutationStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -83,8 +83,9 @@ public sealed class WebWriteCoordinatorTests
 
         var firstWrite = fixture.Coordinator.WriteAsync(
             CurrentId.Value,
-            (_, _, _) =>
+            (_, version, _) =>
             {
+                Assert.Equal(0, version);
                 firstMutationStarted.SetResult();
                 return Task.FromResult(Result<WriteValue>.Success(new WriteValue(1)));
             },
@@ -93,8 +94,9 @@ public sealed class WebWriteCoordinatorTests
         await fixture.TransactionRepository.BeginStarted.Task;
         var secondWrite = fixture.Coordinator.WriteAsync(
             CurrentId.Value,
-            (_, _, _) =>
+            (_, version, _) =>
             {
+                Assert.Equal(1, version);
                 secondMutationStarted.SetResult();
                 return Task.FromResult(Result<WriteValue>.Success(new WriteValue(2)));
             },

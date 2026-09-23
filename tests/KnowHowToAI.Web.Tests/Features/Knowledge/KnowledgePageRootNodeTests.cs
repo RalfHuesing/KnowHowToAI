@@ -25,24 +25,22 @@ public sealed class KnowledgePageRootNodeTests : BunitContext
     private static readonly TransactionId TransactionId = new(Guid.Parse("83c97baf-0382-40f1-b386-d1750134349a"));
 
     [Fact]
-    public void KnowledgePage_EmptyTreeWithoutTransaction_DoesNotOfferRootCreation()
+    public void KnowledgePage_EmptyCurrentSnapshot_OffersRootCreation()
     {
         var cut = RenderEmptyKnowledgePage(activeTransaction: false);
 
         Assert.NotNull(cut.Find("[data-testid='tree-empty']"));
-        Assert.Empty(cut.FindAll("[data-testid='root-node-editor']"));
+        Assert.NotNull(cut.Find("[data-testid='root-node-editor']"));
     }
 
     [Fact]
-    public void KnowledgePage_EmptyWorkingTree_ExplainsThatRootCreationIsNotAvailableInTheReadRoute()
+    public void KnowledgePage_EmptyWorkingTree_OffersRootCreationWithinTheExistingDraft()
     {
         var cut = RenderEmptyKnowledgePage(activeTransaction: true);
 
         Assert.NotNull(cut.Find("[data-testid='tree-empty']"));
         Assert.NotNull(cut.Find("[data-testid='knowledge-empty-root']"));
-        var createAction = cut.Find("[data-testid='knowledge-create-root']");
-        Assert.True(createAction.HasAttribute("disabled"));
-        Assert.Empty(cut.FindAll("[data-testid='root-node-editor']"));
+        Assert.NotNull(cut.Find("[data-testid='root-node-editor']"));
     }
 
     private IRenderedComponent<KnowledgePage> RenderEmptyKnowledgePage(bool activeTransaction)

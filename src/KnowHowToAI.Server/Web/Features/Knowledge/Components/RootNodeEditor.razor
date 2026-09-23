@@ -2,11 +2,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Components
 
-@if (TransactionId.HasValue)
-{
-    <section class="root-node-editor" aria-label="Root-Knoten anlegen" data-testid="root-node-editor">
-        <h2 class="node-section-heading">Root-Knoten anlegen</h2>
-        <p class="root-node-editor-hint">Legen Sie den ersten Knoten der Wissensbasis an.</p>
+<section class="root-node-editor" aria-label="Knoten anlegen" data-testid="root-node-editor">
+        <h2 class="node-section-heading">@(ParentNodeId.HasValue ? $"Unterknoten unter {ParentTitle} anlegen" : "Root-Knoten anlegen")</h2>
+        <p class="root-node-editor-hint">@(ParentNodeId.HasValue ? "Legen Sie einen Unterknoten an." : "Legen Sie den ersten Knoten der Wissensbasis an.")</p>
 
         @if (_errorMessage is not null)
         {
@@ -17,21 +15,20 @@
             <div class="root-node-editor-fields">
                 <div>
                     <label for="root-node-title">Titel</label>
-                    <input id="root-node-title" data-testid="root-node-title" @bind="_title" @bind:after="UpdateDirty" maxlength="200" disabled="@_isSubmitting" />
+                    <input id="root-node-title" data-testid="root-node-title" @bind="_title" @bind:event="oninput" @bind:after="UpdateDirty" maxlength="200" disabled="@_isSubmitting" />
                 </div>
                 <div>
                     <label for="root-node-description">Beschreibung</label>
-                    <textarea id="root-node-description" data-testid="root-node-description" @bind="_description" @bind:after="UpdateDirty" maxlength="1000" disabled="@_isSubmitting"></textarea>
+                    <textarea id="root-node-description" data-testid="root-node-description" @bind="_description" @bind:event="oninput" @bind:after="UpdateDirty" maxlength="1000" disabled="@_isSubmitting"></textarea>
                 </div>
             </div>
             <div class="root-node-editor-actions action-group">
                 <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="create-root-node">
-                    @(_isSubmitting ? "Wird angelegt…" : "Root-Knoten anlegen")
+                    @(_isSubmitting ? "Wird angelegt…" : ParentNodeId.HasValue ? "Unterknoten anlegen" : "Root-Knoten anlegen")
                 </button>
                 <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@_isSubmitting" data-testid="cancel-root-node">
                     Abbrechen
                 </button>
             </div>
         </form>
-    </section>
-}
+</section>

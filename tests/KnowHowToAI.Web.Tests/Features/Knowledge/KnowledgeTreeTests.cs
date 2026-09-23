@@ -292,7 +292,7 @@ public sealed class KnowledgeTreeTests : BunitContext
     }
 
     [Fact]
-    public async Task KnowledgeTree_DragAndDrop_RendersPointerNodesWithoutMoveButtons()
+    public async Task KnowledgeTree_DragAndDrop_ExposesKeyboardMoveControlsWithoutNativeDraggable()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -313,7 +313,8 @@ public sealed class KnowledgeTreeTests : BunitContext
         Assert.False(cut.Find($"[data-testid='treeitem-{sourceId.Value}']").HasAttribute("draggable"));
         Assert.False(cut.Find($"[data-testid='treeitem-{targetId.Value}']").HasAttribute("draggable"));
         Assert.Empty(cut.FindAll(".tree-move-source-btn, .tree-move-target, .tree-move-targets"));
-        Assert.DoesNotContain("Verschieben", cut.Markup, StringComparison.Ordinal);
+        Assert.NotEmpty(cut.FindAll($"[data-testid='move-node-{sourceId.Value}']"));
+        Assert.Empty(cut.FindAll($"[data-testid='drop-targets-{targetId.Value}']"));
     }
 
     [Theory]

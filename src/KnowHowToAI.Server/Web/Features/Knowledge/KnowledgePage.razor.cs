@@ -51,6 +51,7 @@ public sealed partial class KnowledgePage : IDisposable
     private bool _isDisposed;
 
     private string CurrentPageTitle => TreeWorkspace.Breadcrumbs.LastOrDefault()?.Title ?? "Wissensbasis";
+    private bool CanManageTree => WorkspaceState.CurrentContext.ReadContext is KnowledgeReadContextKind.Current or KnowledgeReadContextKind.Transaction;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -252,6 +253,7 @@ public sealed partial class KnowledgePage : IDisposable
         await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
         await TreeWorkspace.SelectNodeAsync(nodeId, CancellationToken.None);
         WorkspaceState.SetNode(nodeId);
+        NavigateToSelection(nodeId);
         await InvokeAsync(StateHasChanged);
     }
 

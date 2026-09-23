@@ -37,7 +37,7 @@ public sealed class WebWriteCoordinator
     private readonly ICurrentUserService _currentUserService;
     private readonly WorkspaceState _workspaceState;
     private readonly NavigationManager _navigationManager;
-    private readonly SemaphoreSlim _beginGate = new(1, 1);
+    private readonly SemaphoreSlim _writeGate = new(1, 1);
 
     public WebWriteCoordinator(
         TransactionService transactionService,
@@ -62,35 +62,43 @@ public sealed class WebWriteCoordinator
         ArgumentNullException.ThrowIfNull(mutation);
         ArgumentNullException.ThrowIfNull(getChangeVersion);
 
-        if (_workspaceState.ActiveTransactionId is { } activeTransactionId)
+        await _writeGate.WaitAsync(cancellationToken);
+        try
         {
+            if (_workspaceState.ActiveTransactionId is { } activeTransactionId)
+            {
+                return await RunMutationAsync(
+                    activeTransactionId,
+                    _workspaceState.CurrentChangeVersion,
+                    false,
+                    mutation,
+                    getChangeVersion,
+                    cancellationToken);
+            }
+
+            if (!CanBeginFromCurrent())
+            {
+                return Failure<T>(new DomainError(
+                    ReadContextErrorCodes.InvalidReadContext,
+                    "Ein erster Web-Write kann nur vom Current Snapshot aus begonnen werden."));
+            }
+
+            var selection = await SelectTransactionAsync(loadedCurrentSnapshotId, cancellationToken);
+            if (selection.Error is { } error)
+                return new WebWriteCoordinatorResult<T>(selection.TransactionId, Result<T>.Failure(error), selection.StartedTransaction);
+
             return await RunMutationAsync(
-                activeTransactionId,
-                _workspaceState.CurrentChangeVersion,
-                false,
+                selection.TransactionId!.Value,
+                selection.ChangeVersion,
+                selection.StartedTransaction,
                 mutation,
                 getChangeVersion,
                 cancellationToken);
         }
-
-        if (!CanBeginFromCurrent())
+        finally
         {
-            return Failure<T>(new DomainError(
-                ReadContextErrorCodes.InvalidReadContext,
-                "Ein erster Web-Write kann nur vom Current Snapshot aus begonnen werden."));
+            _writeGate.Release();
         }
-
-        var selection = await SelectTransactionAsync(loadedCurrentSnapshotId, cancellationToken);
-        if (selection.Error is { } error)
-            return new WebWriteCoordinatorResult<T>(selection.TransactionId, Result<T>.Failure(error), selection.StartedTransaction);
-
-        return await RunMutationAsync(
-            selection.TransactionId!.Value,
-            selection.ChangeVersion,
-            selection.StartedTransaction,
-            mutation,
-            getChangeVersion,
-            cancellationToken);
     }
 
     private bool CanBeginFromCurrent() =>
@@ -101,39 +109,31 @@ public sealed class WebWriteCoordinator
         long? loadedCurrentSnapshotId,
         CancellationToken cancellationToken)
     {
-        await _beginGate.WaitAsync(cancellationToken);
-        try
+        if (_workspaceState.ActiveTransactionId is { } transactionId)
+            return new TransactionSelection(transactionId, _workspaceState.CurrentChangeVersion, false, null);
+
+        var currentSnapshot = await _snapshotRepository.GetCurrentAsync(cancellationToken);
+        if (loadedCurrentSnapshotId is null || currentSnapshot.SnapshotId.Value != loadedCurrentSnapshotId.Value)
         {
-            if (_workspaceState.ActiveTransactionId is { } transactionId)
-                return new TransactionSelection(transactionId, _workspaceState.CurrentChangeVersion, false, null);
-
-            var currentSnapshot = await _snapshotRepository.GetCurrentAsync(cancellationToken);
-            if (loadedCurrentSnapshotId is null || currentSnapshot.SnapshotId.Value != loadedCurrentSnapshotId.Value)
-            {
-                return new TransactionSelection(
-                    null,
-                    null,
-                    false,
-                    CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, currentSnapshot.SnapshotId.Value));
-            }
-
-            var beginResult = await _transactionService.BeginAsync(
-                new BeginTransactionOptions(Purpose, _currentUserService.GetCurrentUserName(), Client),
-                cancellationToken);
-
-            var transaction = beginResult.Value!;
-            ApplyTransactionToWorkspace(transaction);
-            SelectDraftInUrl(transaction.TransactionId);
-
-            var conflict = transaction.BaseSnapshotId.Value != loadedCurrentSnapshotId.Value
-                ? CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, transaction.BaseSnapshotId.Value)
-                : null;
-            return new TransactionSelection(transaction.TransactionId, transaction.ChangeVersion, true, conflict);
+            return new TransactionSelection(
+                null,
+                null,
+                false,
+                CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, currentSnapshot.SnapshotId.Value));
         }
-        finally
-        {
-            _beginGate.Release();
-        }
+
+        var beginResult = await _transactionService.BeginAsync(
+            new BeginTransactionOptions(Purpose, _currentUserService.GetCurrentUserName(), Client),
+            cancellationToken);
+
+        var transaction = beginResult.Value!;
+        ApplyTransactionToWorkspace(transaction);
+        SelectDraftInUrl(transaction.TransactionId);
+
+        var conflict = transaction.BaseSnapshotId.Value != loadedCurrentSnapshotId.Value
+            ? CreateCurrentSnapshotConflict(loadedCurrentSnapshotId, transaction.BaseSnapshotId.Value)
+            : null;
+        return new TransactionSelection(transaction.TransactionId, transaction.ChangeVersion, true, conflict);
     }
 
     private async Task<WebWriteCoordinatorResult<T>> RunMutationAsync<T>(
