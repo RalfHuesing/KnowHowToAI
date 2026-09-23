@@ -47,10 +47,10 @@
 
             @if (IsSourceMode)
             {
-                <label class="content-editor__source-label" for="content-editor-source">Markdown-Quelle</label>
                 <textarea id="content-editor-source"
                           class="content-editor__source"
                           data-testid="content-editor-source"
+                          aria-label="Markdown-Quelle"
                           readonly="@IsReadOnly"
                           @ref="_sourceElement"
                           @bind="SourceMarkdown"

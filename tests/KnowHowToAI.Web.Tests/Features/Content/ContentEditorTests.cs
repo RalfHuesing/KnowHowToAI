@@ -220,6 +220,8 @@ public sealed class ContentEditorTests : BunitContext
 
         var source = cut.Find("[data-testid='content-editor-source']");
         Assert.Equal("**WYSIWYG**\n\n- Eintrag", source.GetAttribute("value"));
+        Assert.Equal("Markdown-Quelle", source.GetAttribute("aria-label"));
+        Assert.Empty(cut.FindAll(".content-editor__source-label"));
         source.Input("[Link](https://example.test)\n\nUnicode: ä");
         Assert.True(workspace.IsDirty);
 

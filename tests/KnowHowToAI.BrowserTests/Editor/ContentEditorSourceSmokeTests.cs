@@ -46,16 +46,33 @@ public sealed class ContentEditorSourceSmokeTests
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
             var viewMode = editor.GetByTestId("content-editor-view-mode");
+            var surface = editor.GetByTestId("content-editor-surface");
+            await Assertions.Expect(surface).ToBeVisibleAsync();
+            var surfaceBox = await surface.BoundingBoxAsync();
+            var toolbarRow = editor.Locator(".content-editor__toolbar-row");
+            var visualToolbarBox = await toolbarRow.BoundingBoxAsync();
             var visualBox = await viewMode.BoundingBoxAsync();
             await viewMode.SelectOptionAsync("source");
             var source = editor.GetByTestId("content-editor-source");
             await Assertions.Expect(source).ToBeVisibleAsync();
             var sourceBox = await viewMode.BoundingBoxAsync();
+            await Assertions.Expect(editor.Locator(".content-editor__source-label")).ToHaveCountAsync(0);
+            var sourceTextBox = await source.BoundingBoxAsync();
+            var sourceToolbarBox = await toolbarRow.BoundingBoxAsync();
             Assert.NotNull(visualBox);
             Assert.NotNull(sourceBox);
+            Assert.NotNull(surfaceBox);
+            Assert.NotNull(sourceTextBox);
+            Assert.NotNull(visualToolbarBox);
+            Assert.NotNull(sourceToolbarBox);
             Assert.True(
                 Math.Abs(visualBox.X - sourceBox.X) <= 15,
                 $"content-editor-view-mode springt im Quellmodus nach links (Visuell: {visualBox.X}, Quelle: {sourceBox.X}).");
+            var surfaceOffset = surfaceBox.Y - (visualToolbarBox.Y + visualToolbarBox.Height);
+            var sourceOffset = sourceTextBox.Y - (sourceToolbarBox.Y + sourceToolbarBox.Height);
+            Assert.True(
+                Math.Abs(surfaceOffset - sourceOffset) <= 1.0,
+                $"Abstand der Text-Box zur Toolbar unterscheidet sich (Visuell: {surfaceOffset}, Quelle: {sourceOffset}).");
 
             const string markdown = "Formatierung.\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
             await source.FillAsync(markdown);
