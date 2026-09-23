@@ -103,8 +103,8 @@ public sealed class KnowledgePageTests : BunitContext
         var cut = Render<KnowledgePage>();
 
         // Klick auf Root-Knoten im Baum
-        var rootNode = cut.Find($"div[data-testid='treeitem-{rootId.Value}']");
-        await cut.InvokeAsync(() => rootNode.Click());
+        var tree = cut.FindComponent<KnowledgeTree>();
+        await cut.InvokeAsync(() => tree.Instance.HandleTreeSelectionAsync(rootId.Value.ToString("D")));
 
         Assert.Contains($"/knowledge/{rootId.Value}", navMan.Uri);
     }

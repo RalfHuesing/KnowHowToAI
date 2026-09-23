@@ -12,7 +12,6 @@ using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 
@@ -52,7 +51,7 @@ public sealed class KnowledgeTreeTests : BunitContext
     }
 
     [Fact]
-    public async Task KnowledgeTree_SemanticAudiencesAndRovingTabindex()
+    public async Task KnowledgeTree_UsesNestedListsAndNativeSelectionButtons()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -70,16 +69,14 @@ public sealed class KnowledgeTreeTests : BunitContext
         var cut = Render<KnowledgeTree>();
 
         // Baum-Container
-        var tree = cut.Find("div[role='tree']");
+        var tree = cut.Find("ul[data-testid='knowledge-tree']");
         Assert.Equal("Wissensbaum", tree.GetAttribute("aria-label"));
 
         // Root Node Item
-        var rootItem = cut.Find($"div[data-testid='treeitem-{rootId.Value}']");
-        Assert.Equal("treeitem", rootItem.GetAttribute("role"));
-        Assert.Equal("1", rootItem.GetAttribute("aria-level"));
-        Assert.Equal("false", rootItem.GetAttribute("aria-expanded"));
-        Assert.Equal("false", rootItem.GetAttribute("aria-selected"));
-        Assert.Equal("0", rootItem.GetAttribute("tabindex")); // Roving tabindex aktiv auf Root
+        var rootItem = cut.Find($"button[data-testid='tree-node-{rootId.Value}']");
+        Assert.Equal("button", rootItem.LocalName);
+        Assert.Equal("false", rootItem.GetAttribute("aria-pressed"));
+        Assert.Empty(cut.FindAll("[role='tree'], [role='treeitem'], [tabindex='-1']"));
     }
 
     [Fact]
@@ -107,26 +104,25 @@ public sealed class KnowledgeTreeTests : BunitContext
         await cut.InvokeAsync(() => toggleBtn.Click());
 
         // Kindergruppe gerendert
-        var group = cut.Find("div[role='group']");
+        var group = cut.Find("ul.tree-children-group");
         Assert.NotNull(group);
 
-        var childItem = cut.Find($"div[data-testid='treeitem-{childId.Value}']");
-        Assert.Equal("2", childItem.GetAttribute("aria-level"));
-        Assert.Equal("-1", childItem.GetAttribute("tabindex")); // Kind hat tabindex -1
+        var childItem = cut.Find($"button[data-testid='tree-node-{childId.Value}']");
+        Assert.NotNull(childItem);
 
         // Klick auf Kindknoten selektiert ihn
-        await cut.InvokeAsync(() => childItem.Click());
+        await cut.InvokeAsync(() => cut.Instance.HandleTreeSelectionAsync(childId.Value.ToString()));
         Assert.Equal(childId.Value, selectedId);
-        Assert.Equal("true", cut.Find($"div[data-testid='treeitem-{childId.Value}']").GetAttribute("aria-selected"));
+        Assert.Equal("true", cut.Find($"button[data-testid='tree-node-{childId.Value}']").GetAttribute("aria-pressed"));
 
         // Klick auf Toggle-Button schließt Root wieder
         toggleBtn = cut.Find($"button[data-testid='tree-toggle-{rootId.Value}']");
         await cut.InvokeAsync(() => toggleBtn.Click());
-        Assert.Empty(cut.FindAll("div[role='group']"));
+        Assert.Empty(cut.FindAll("ul.tree-children-group"));
     }
 
     [Fact]
-    public async Task KnowledgeTree_KeyboardNavigation_ArrowsHomeEndAndSelection()
+    public async Task KnowledgeTree_SelectionIsAStandardButtonAction()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -149,31 +145,9 @@ public sealed class KnowledgeTreeTests : BunitContext
         var cut = Render<KnowledgeTree>(parameters => parameters
             .Add(p => p.OnNodeSelected, EventCallback.Factory.Create<Guid>(this, id => selectedId = id)));
 
-        var tree = cut.Find("div[role='tree']");
-
-        // ArrowDown: Fokus wechselt von Root auf Child 1
-        await cut.InvokeAsync(() => tree.KeyDown(new KeyboardEventArgs { Key = "ArrowDown" }));
-        Assert.Equal("0", cut.Find($"div[data-testid='treeitem-{child1Id.Value}']").GetAttribute("tabindex"));
-        Assert.Equal("-1", cut.Find($"div[data-testid='treeitem-{rootId.Value}']").GetAttribute("tabindex"));
-
-        // ArrowDown: Fokus wechselt auf Child 2
-        await cut.InvokeAsync(() => tree.KeyDown(new KeyboardEventArgs { Key = "ArrowDown" }));
-        Assert.Equal("0", cut.Find($"div[data-testid='treeitem-{child2Id.Value}']").GetAttribute("tabindex"));
-
-        // ArrowUp: Fokus wechselt zurück auf Child 1
-        await cut.InvokeAsync(() => tree.KeyDown(new KeyboardEventArgs { Key = "ArrowUp" }));
-        Assert.Equal("0", cut.Find($"div[data-testid='treeitem-{child1Id.Value}']").GetAttribute("tabindex"));
-
-        // Home: Fokus springt auf Root
-        await cut.InvokeAsync(() => tree.KeyDown(new KeyboardEventArgs { Key = "Home" }));
-        Assert.Equal("0", cut.Find($"div[data-testid='treeitem-{rootId.Value}']").GetAttribute("tabindex"));
-
-        // End: Fokus springt auf Child 2
-        await cut.InvokeAsync(() => tree.KeyDown(new KeyboardEventArgs { Key = "End" }));
-        Assert.Equal("0", cut.Find($"div[data-testid='treeitem-{child2Id.Value}']").GetAttribute("tabindex"));
-
-        // Enter: Selektiert Child 2
-        await cut.InvokeAsync(() => tree.KeyDown(new KeyboardEventArgs { Key = "Enter" }));
+        var childSelection = cut.Find($"button[data-testid='tree-node-{child2Id.Value}']");
+        Assert.Equal("button", childSelection.LocalName);
+        await cut.InvokeAsync(() => cut.Instance.HandleTreeSelectionAsync(child2Id.Value.ToString()));
         Assert.Equal(child2Id.Value, selectedId);
     }
 
@@ -292,7 +266,7 @@ public sealed class KnowledgeTreeTests : BunitContext
     }
 
     [Fact]
-    public async Task KnowledgeTree_DragAndDrop_ExposesKeyboardMoveControlsWithoutNativeDraggable()
+    public async Task KnowledgeTree_DragAndDropHasNoSeparateMoveControlsAndKeepsMouseActions()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -310,11 +284,11 @@ public sealed class KnowledgeTreeTests : BunitContext
         var cut = Render<KnowledgeTree>(parameters => parameters
             .Add(component => component.CanMove, true));
 
-        Assert.False(cut.Find($"[data-testid='treeitem-{sourceId.Value}']").HasAttribute("draggable"));
-        Assert.False(cut.Find($"[data-testid='treeitem-{targetId.Value}']").HasAttribute("draggable"));
-        Assert.Empty(cut.FindAll(".tree-move-source-btn, .tree-move-target, .tree-move-targets"));
-        Assert.NotEmpty(cut.FindAll($"[data-testid='move-node-{sourceId.Value}']"));
-        Assert.Empty(cut.FindAll($"[data-testid='drop-targets-{targetId.Value}']"));
+        Assert.Empty(cut.FindAll("[data-testid^='move-node-'], [data-testid^='move-before-'], [data-testid^='move-under-'], [data-testid^='move-after-']"));
+        Assert.Empty(cut.FindAll(".tree-drop-targets"));
+        Assert.NotNull(cut.Find($"button.tree-node-select[data-testid='tree-node-{sourceId.Value}']"));
+        Assert.NotNull(cut.Find($"button[data-testid='tree-toggle-{rootId.Value}']"));
+        Assert.NotNull(cut.Find($"button[data-testid='create-child-{sourceId.Value}']"));
     }
 
     [Theory]
@@ -344,8 +318,8 @@ public sealed class KnowledgeTreeTests : BunitContext
             position.ToString()));
         cut.Render();
 
-        Assert.NotNull(cut.Find($"[data-testid='treeitem-{sourceId.Value}']"));
-        Assert.NotNull(cut.Find($"[data-testid='treeitem-{targetId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='tree-node-{sourceId.Value}']"));
+        Assert.NotNull(cut.Find($"[data-testid='tree-node-{targetId.Value}']"));
         Assert.NotNull(cut.Find("[data-testid='tree-move-error']"));
         Assert.Equal(rootId.Value.ToString(), treeState.FindNode(sourceId.Value)!.ParentNodeId!.Value.ToString());
     }

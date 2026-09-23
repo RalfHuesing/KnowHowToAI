@@ -37,47 +37,29 @@
     }
     else if (TreeWorkspace.VisualRootNode is not null)
     {
-        <div class="knowledge-tree"
-             role="tree"
+        <ul class="knowledge-tree"
              aria-label="Wissensbaum"
              data-testid="knowledge-tree"
-             @ref="_treeElement"
-             @onkeydown="HandleKeyDownAsync">
+             @ref="_treeElement">
             @RenderNode(TreeWorkspace.VisualRootNode)
-        </div>
+        </ul>
     }
 </div>
 
 @code {
     private RenderFragment RenderNode(KnowledgeTreeNodeViewModel node) => __builder =>
     {
-        var isFocused = node.NodeId == EffectiveFocusedNodeId;
-        var ariaExpanded = node.HasChildren ? (node.IsExpanded ? "true" : "false") : null;
         var statusDescriptionId = $"tree-status-{node.NodeId}";
 
-        <div class="tree-node-wrapper" @key="node.NodeId">
-            <div role="treeitem"
-                 id="@($"treeitem-{node.NodeId}")"
-                 class="tree-node @(node.IsSelected ? "is-selected" : "") @(node.IsLoading ? "is-loading" : "")"
-                 tabindex="@(isFocused ? 0 : -1)"
-                 aria-level="@(node.Depth + 1)"
-                 aria-selected="@(node.IsSelected ? "true" : "false")"
-                 aria-expanded="@ariaExpanded"
-                 aria-describedby="@statusDescriptionId"
-                 data-testid="@($"treeitem-{node.NodeId}")"
-                 data-nodeid="@node.NodeId"
-                 @onclick="() => HandleSelectNodeAsync(node.NodeId)"
-                 @onfocus="() => HandleFocus(node.NodeId)"
-                 @ref="_nodeElements[node.NodeId]">
-                
+        <li class="tree-node-wrapper" @key="node.NodeId">
+            <div class="tree-node-row">
                 @if (node.HasChildren)
                 {
                     <button type="button"
                             class="tree-toggle-btn @(node.IsExpanded ? "is-expanded" : "")"
                             aria-label="@(node.IsExpanded ? $"„{node.Title}“ einklappen" : $"„{node.Title}“ aufklappen")"
+                            aria-expanded="@(node.IsExpanded ? "true" : "false")"
                             data-testid="@($"tree-toggle-{node.NodeId}")"
-                            tabindex="-1"
-                            @onclick:stopPropagation="true"
                             @onclick="() => HandleToggleExpandAsync(node)">
                         <span class="toggle-icon" aria-hidden="true">@(node.IsExpanded ? "▼" : "▶")</span>
                     </button>
@@ -87,6 +69,13 @@
                     <span class="tree-toggle-placeholder" aria-hidden="true"></span>
                 }
 
+                <button type="button"
+                 id="@($"tree-node-{node.NodeId}")"
+                 class="tree-node tree-node-select @(node.IsSelected ? "is-selected" : "") @(node.IsLoading ? "is-loading" : "")"
+                 aria-pressed="@(node.IsSelected ? "true" : "false")"
+                 aria-describedby="@statusDescriptionId"
+                 data-testid="@($"tree-node-{node.NodeId}")"
+                 data-nodeid="@node.NodeId">
                 <span class="tree-node-title" data-testid="@($"tree-title-{node.NodeId}")">@node.Title</span>
 
                 <span id="@statusDescriptionId" hidden>
@@ -130,27 +119,25 @@
                     }
                 </span>
 
+                @if (node.IsLoading)
+                {
+                    <span class="tree-node-spinner" role="status" aria-label="Wird geladen...">⟳</span>
+                }
+                @if (!string.IsNullOrEmpty(node.Error))
+                {
+                    <span class="tree-node-error" role="alert" data-testid="@($"tree-node-error-{node.NodeId}")">@node.Error</span>
+                }
+                </button>
+
                 @if (CanMove)
                 {
                     <span class="tree-node-actions">
                         <button type="button" class="tree-action-btn" aria-label="Unterknoten unter @node.Title anlegen"
                                 data-testid="create-child-@node.NodeId" @onclick:stopPropagation="true"
                                 @onclick="() => BeginCreateChild(node.NodeId)">Unterknoten anlegen</button>
-                        <button type="button" class="tree-action-btn" aria-label="@node.Title verschieben"
-                                data-testid="move-node-@node.NodeId" @onclick:stopPropagation="true"
-                                @onclick="() => BeginMove(node.NodeId)">Verschieben</button>
                     </span>
                 }
 
-                @if (node.IsLoading)
-                {
-                    <span class="tree-node-spinner" role="status" aria-label="Wird geladen...">⟳</span>
-                }
-
-                @if (!string.IsNullOrEmpty(node.Error))
-                {
-                    <span class="tree-node-error" role="alert" data-testid="@($"tree-node-error-{node.NodeId}")">@node.Error</span>
-                }
             </div>
 
             @if (_creatingChildNodeId == node.NodeId)
@@ -159,33 +146,19 @@
                                 OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
             }
 
-            @if (CanMove && _movingNodeId.HasValue && _movingNodeId != node.NodeId)
-            {
-                <div class="tree-drop-targets" aria-label="Verschiebeziele für @node.Title" data-testid="drop-targets-@node.NodeId">
-                    <span>Als Ziel verwenden:</span>
-                    <button type="button" class="tree-action-btn" data-testid="move-before-@node.NodeId"
-                            @onclick="() => HandleKeyboardMoveAsync(node, TreeMovePosition.Before)">Davor</button>
-                    <button type="button" class="tree-action-btn" data-testid="move-under-@node.NodeId"
-                            @onclick="() => HandleKeyboardMoveAsync(node, TreeMovePosition.Parent)">Darunter</button>
-                    <button type="button" class="tree-action-btn" data-testid="move-after-@node.NodeId"
-                            @onclick="() => HandleKeyboardMoveAsync(node, TreeMovePosition.After)">Danach</button>
-                </div>
-            }
-
             @if (node.HasChildren && node.IsExpanded)
             {
-                <div role="group" class="tree-children-group" aria-label="@($"Unterknoten von {node.Title}")">
+                <ul class="tree-children-group" aria-label="@($"Unterknoten von {node.Title}")">
                     @if (node.HasPreviousPage)
                     {
-                        <div class="tree-paging-row">
+                        <li class="tree-paging-row">
                             <button type="button"
                                     class="tree-page-btn tree-page-prev"
                                     data-testid="@($"page-prev-{node.NodeId}")"
-                                    tabindex="-1"
                                     @onclick="() => HandlePagePreviousAsync(node.NodeId)">
                                 ◀ Vorherige 100 Einträge
                             </button>
-                        </div>
+                        </li>
                     }
 
                     @foreach (var child in node.Children)
@@ -195,18 +168,17 @@
 
                     @if (node.HasNextPage)
                     {
-                        <div class="tree-paging-row">
+                        <li class="tree-paging-row">
                             <button type="button"
                                     class="tree-page-btn tree-page-next"
                                     data-testid="@($"page-next-{node.NodeId}")"
-                                    tabindex="-1"
                                     @onclick="() => HandlePageNextAsync(node.NodeId)">
                                 Weitere 100 Einträge ▶
                             </button>
-                        </div>
+                        </li>
                     }
-                </div>
+                </ul>
             }
-        </div>
+        </li>
     };
 }

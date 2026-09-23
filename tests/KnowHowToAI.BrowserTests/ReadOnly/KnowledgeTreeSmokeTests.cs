@@ -52,18 +52,18 @@ public sealed class KnowledgeTreeSmokeTests
         var tree = page.GetByTestId("knowledge-tree");
         await Assertions.Expect(tree).ToBeVisibleAsync();
 
-        var rootItem = page.GetByRole(AriaRole.Treeitem).First;
+        var rootItem = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
         await Assertions.Expect(rootItem).ToBeVisibleAsync();
-        await Assertions.Expect(rootItem).ToHaveAttributeAsync("aria-level", "1");
-        await Assertions.Expect(rootItem).ToHaveAttributeAsync("tabindex", "0");
+        await Assertions.Expect(rootItem).ToHaveAttributeAsync("data-nodeid", new Regex("[0-9a-fA-F-]{36}"));
+        await Assertions.Expect(rootItem).ToHaveAttributeAsync("aria-pressed", "false");
 
         // Root expandieren über Toggle-Button
-        var toggleBtn = rootItem.Locator("button.tree-toggle-btn");
+        var toggleBtn = rootItem.Locator("xpath=..").Locator("button.tree-toggle-btn");
         await Assertions.Expect(toggleBtn).ToBeVisibleAsync();
         await toggleBtn.ClickAsync();
 
         // Kindknoten auf Ebene 2 prüfen
-        var childItem = page.Locator("div[role='treeitem'][aria-level='2']").First;
+        var childItem = page.Locator(".knowledge-tree > .tree-node-wrapper > .tree-children-group > .tree-node-wrapper > .tree-node-row > .tree-node-select").First;
         await Assertions.Expect(childItem).ToBeVisibleAsync();
 
         // Klick auf Kindknoten -> URL wird aktualisiert
@@ -111,16 +111,16 @@ public sealed class KnowledgeTreeSmokeTests
         await audienceSelector.GetByTestId("selector-apply-button").ClickAsync();
         await Assertions.Expect(audienceSelector).ToHaveCountAsync(0);
 
-        var rootItem = page.GetByRole(AriaRole.Treeitem).First;
-        await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
-        var exportItem = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
+        var rootItem = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
+        await rootItem.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+        var exportItem = page.GetByText(BrowserKnowledgeSeed.FallbackNodeTitle, new() { Exact = true }).Locator("xpath=..");
         await Assertions.Expect(exportItem).ToBeVisibleAsync();
-        await exportItem.Locator("button.tree-toggle-btn").ClickAsync();
+        await exportItem.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
 
-        var branch = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationBranchTitle });
+        var branch = page.GetByText(BrowserKnowledgeSeed.DeepNavigationBranchTitle, new() { Exact = true }).Locator("xpath=..");
         await Assertions.Expect(branch).ToBeVisibleAsync();
-        await branch.Locator("button.tree-toggle-btn").ClickAsync();
-        var deepNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
+        await branch.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+        var deepNode = page.GetByText(BrowserKnowledgeSeed.DeepNavigationNodeTitle, new() { Exact = true }).Locator("xpath=..");
         await Assertions.Expect(deepNode).ToBeVisibleAsync();
         await deepNode.Locator(".tree-node-title").ClickAsync();
 

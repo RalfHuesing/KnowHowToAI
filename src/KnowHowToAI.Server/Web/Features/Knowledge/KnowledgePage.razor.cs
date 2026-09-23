@@ -246,7 +246,16 @@ public sealed partial class KnowledgePage : IDisposable
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var path = nodeId.HasValue ? $"/knowledge/{nodeId.Value:D}" : "/knowledge";
-        var target = $"{path}{uri.Query}";
+        var query = QueryHelpers.ParseQuery(uri.Query)
+            .ToDictionary(pair => pair.Key, pair => (string?)pair.Value.FirstOrDefault(), StringComparer.OrdinalIgnoreCase);
+        if (WorkspaceState.ActiveTransactionId is { } transactionId)
+        {
+            query.Remove("snapshotId");
+            query.Remove("releaseId");
+            query["transactionId"] = transactionId.Value.ToString("D");
+        }
+
+        var target = QueryHelpers.AddQueryString(path, query);
         if (!string.Equals(uri.PathAndQuery, target, StringComparison.OrdinalIgnoreCase))
             NavigationManager.NavigateTo(target);
     }

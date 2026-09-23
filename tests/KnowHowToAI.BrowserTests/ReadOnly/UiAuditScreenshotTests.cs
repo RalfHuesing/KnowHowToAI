@@ -44,9 +44,9 @@ public sealed class UiAuditScreenshotTests
         await Assertions.Expect(page.GetByTestId("knowledge-tree")).ToBeVisibleAsync();
         await CaptureAsync(page, "03_knowledge_root", output, captures);
 
-        var root = page.GetByRole(AriaRole.Treeitem).First;
-        await root.Locator("button.tree-toggle-btn").ClickAsync();
-        var child = page.Locator("div[role='treeitem'][aria-level='2']").First;
+        var root = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
+        await root.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+        var child = page.Locator(".knowledge-tree > .tree-node-wrapper > .tree-children-group > .tree-node-wrapper > .tree-node-row > .tree-node-select").First;
         await child.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
         await CaptureAsync(page, "04_knowledge_node-detail", output, captures);
@@ -54,9 +54,9 @@ public sealed class UiAuditScreenshotTests
             await CaptureAsync(page, "04_knowledge_node-detail", output, captures, width, 720);
 
         await GotoAsync(page, host.Address, "/knowledge?audienceId=BrowserFallbackAudience");
-        var fallbackRoot = page.GetByRole(AriaRole.Treeitem).First;
-        await fallbackRoot.Locator("button.tree-toggle-btn").ClickAsync();
-        var fallbackNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
+        var fallbackRoot = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
+        await fallbackRoot.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+        var fallbackNode = page.GetByText(BrowserKnowledgeSeed.FallbackNodeTitle, new() { Exact = true }).Locator("xpath=..");
         await Assertions.Expect(fallbackNode).ToBeVisibleAsync();
         await fallbackNode.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details-availability")).ToContainTextAsync("Fallback");

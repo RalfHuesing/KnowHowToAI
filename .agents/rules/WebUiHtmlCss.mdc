@@ -29,6 +29,11 @@ Ist-Beschreibungen wieder eingebaut werden. Native HTML-Bedienung und
 Texteingabe werden nicht absichtlich blockiert. Die bestehende Shell wird
 außerhalb des jeweils beauftragten UI-Slices nicht zurückgebaut.
 
+Der Wissensbaum nutzt verschachtelte Listen und native Auswahl- und
+Aufklappschaltflächen. Verschieben erfolgt ausschließlich per Maus-Drag-and-
+drop vor, nach oder unter einen Zielknoten. Treeview-Rollen, Treeview-
+Tastaturhandler und Roving-Tabindex passen nicht zu diesem Vertrag.
+
 ## Vor dem Edit
 
 - Bei `alle`, `systemweit`, `gemeinsam` oder `konsistent`: vollständige betroffene

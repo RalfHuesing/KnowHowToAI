@@ -148,12 +148,9 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
                 treeState)));
 
         var cut = Render<KnowledgeTree>(parameters => parameters.Add(component => component.CanMove, true));
-        await cut.Find($"[data-testid='move-node-{sourceId.Value}']").ClickAsync();
-        Assert.NotNull(cut.Find($"[data-testid='drop-targets-{targetId.Value}']"));
-        Assert.NotNull(cut.Find($"[data-testid='move-before-{targetId.Value}']"));
-        Assert.NotNull(cut.Find($"[data-testid='move-under-{targetId.Value}']"));
-        Assert.NotNull(cut.Find($"[data-testid='move-after-{targetId.Value}']"));
-        await cut.Find($"[data-testid='move-node-{sourceId.Value}']").ClickAsync();
+        Assert.Empty(cut.FindAll("[data-testid^='move-node-'], [data-testid^='drop-targets-'], [data-testid^='move-before-'], [data-testid^='move-under-'], [data-testid^='move-after-']"));
+        Assert.NotNull(cut.Find($"button[data-testid='tree-node-{sourceId.Value}']"));
+        Assert.NotNull(cut.Find($"button[data-testid='tree-node-{targetId.Value}']"));
         await cut.InvokeAsync(() => cut.Instance.HandleTreeDropAsync(
             sourceId.Value.ToString(),
             targetId.Value.ToString(),

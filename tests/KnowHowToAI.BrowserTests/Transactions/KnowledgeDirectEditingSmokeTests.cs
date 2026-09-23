@@ -27,14 +27,14 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await CircuitProbe.WaitForInteractivityAsync(page);
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
 
-            var root = page.GetByRole(AriaRole.Treeitem).First;
+            var root = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
             var rootTitle = (await root.Locator(".tree-node-title").InnerTextAsync()).Trim();
-            await root.Locator("button.tree-toggle-btn").ClickAsync();
-            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
-            await exportNode.Locator("button.tree-toggle-btn").ClickAsync();
-            var branch = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationBranchTitle });
-            await branch.Locator("button.tree-toggle-btn").ClickAsync();
-            var deepNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
+            await root.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var exportNode = page.GetByText(BrowserKnowledgeSeed.FallbackNodeTitle, new() { Exact = true }).Locator("xpath=..");
+            await exportNode.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var branch = page.GetByText(BrowserKnowledgeSeed.DeepNavigationBranchTitle, new() { Exact = true }).Locator("xpath=..");
+            await branch.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var deepNode = page.GetByText(BrowserKnowledgeSeed.DeepNavigationNodeTitle, new() { Exact = true }).Locator("xpath=..");
             await Assertions.Expect(deepNode).ToBeVisibleAsync();
             var deepNodeId = Guid.Parse((await deepNode.GetAttributeAsync("data-nodeid"))!);
             await deepNode.Locator(".tree-node-title").ClickAsync();
@@ -95,9 +95,9 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await CircuitProbe.WaitForInteractivityAsync(page);
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
 
-            var root = page.GetByRole(AriaRole.Treeitem).First;
-            await root.Locator("button.tree-toggle-btn").ClickAsync();
-            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
+            var root = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
+            await root.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var exportNode = page.GetByText(BrowserKnowledgeSeed.FallbackNodeTitle, new() { Exact = true }).Locator("xpath=..");
             await Assertions.Expect(exportNode).ToBeVisibleAsync();
             var exportNodeId = await exportNode.GetAttributeAsync("data-nodeid");
             Assert.False(string.IsNullOrWhiteSpace(exportNodeId));
@@ -109,7 +109,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await Assertions.Expect(page.GetByRole(AriaRole.Dialog, new() { Name = "Ungespeicherte Änderungen" })).ToBeHiddenAsync();
             await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"transactionId=[0-9a-fA-F-]{36}"), new() { Timeout = 30_000 });
             transactionId = Guid.Parse(Regex.Match(new Uri(page.Url).Query, @"transactionId=([0-9a-fA-F-]{36})").Groups[1].Value);
-            var updatedNode = page.GetByTestId($"treeitem-{exportNodeId}");
+            var updatedNode = page.GetByTestId($"tree-node-{exportNodeId}");
             await Assertions.Expect(updatedNode).ToContainTextAsync("Direkt bearbeiteter Browser-Knoten", new() { Timeout = 15_000 });
             var routeAlerts = await page.GetByRole(AriaRole.Alert).AllTextContentsAsync();
             if (routeAlerts.Count > 0)
@@ -133,11 +133,11 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await page.GetByTestId("content-editor-save").ClickAsync();
             await Assertions.Expect(page.GetByTestId("shell-root")).ToHaveAttributeAsync("data-ktai-dirty", "false");
 
-            await updatedNode.Locator("button.tree-toggle-btn").ClickAsync();
-            var branch = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationBranchTitle });
+            await updatedNode.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var branch = page.GetByText(BrowserKnowledgeSeed.DeepNavigationBranchTitle, new() { Exact = true }).Locator("xpath=..");
             await Assertions.Expect(branch).ToBeVisibleAsync();
-            await branch.Locator("button.tree-toggle-btn").ClickAsync();
-            var secondNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
+            await branch.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var secondNode = page.GetByText(BrowserKnowledgeSeed.DeepNavigationNodeTitle, new() { Exact = true }).Locator("xpath=..");
             await Assertions.Expect(secondNode).ToBeVisibleAsync();
             await secondNode.Locator(".tree-node-title").ClickAsync();
             await page.GetByTestId("node-details-edit").ClickAsync();
@@ -162,8 +162,8 @@ public sealed class KnowledgeDirectEditingSmokeTests
 
     private static async Task AssertDeepWorkingRouteAsync(IPage page, Guid nodeId, string rootTitle)
     {
-        var selectedNode = page.GetByTestId($"treeitem-{nodeId:D}");
-        await Assertions.Expect(selectedNode).ToHaveAttributeAsync("aria-selected", "true");
+        var selectedNode = page.GetByTestId($"tree-node-{nodeId:D}");
+        await Assertions.Expect(selectedNode).ToHaveAttributeAsync("aria-pressed", "true");
         await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
         var breadcrumbs = page.GetByTestId("breadcrumbs");

@@ -38,7 +38,7 @@ public sealed class RootNodeInitializationSmokeTests
             await page.GetByTestId("root-node-title").FillAsync("Erstes Browser-Wissen");
             await page.GetByTestId("root-node-description").FillAsync("Initial über die Weboberfläche angelegt.");
             await page.GetByTestId("create-root-node").ClickAsync();
-            var root = page.GetByRole(AriaRole.Treeitem).First;
+            var root = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
             await Assertions.Expect(root).ToContainTextAsync("Erstes Browser-Wissen");
             var transactionIdValue = new Uri(page.Url).Query
                 .TrimStart('?')
@@ -50,7 +50,7 @@ public sealed class RootNodeInitializationSmokeTests
             Assert.False(string.IsNullOrWhiteSpace(transactionIdValue), page.Url);
             Assert.True(Guid.TryParse(transactionIdValue, out var parsedTransactionId), page.Url);
             transactionId = parsedTransactionId;
-            await Assertions.Expect(root).ToHaveAttributeAsync("aria-selected", "true");
+            await Assertions.Expect(root).ToHaveAttributeAsync("aria-pressed", "true");
             await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Erstes Browser-Wissen", Exact = true, Level = 1 })).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("node-details-description")).ToHaveTextAsync("Initial über die Weboberfläche angelegt.");
 

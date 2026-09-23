@@ -121,8 +121,8 @@ public sealed class SnapshotConflictSmokeTests
             await CircuitProbe.WaitForInteractivityAsync(page);
         }
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-        await Assertions.Expect(page.GetByRole(AriaRole.Treeitem).First).ToBeVisibleAsync(new() { Timeout = 15_000 });
-        var rootItem = page.GetByRole(AriaRole.Treeitem).First;
+        await Assertions.Expect(page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select")).ToBeVisibleAsync(new() { Timeout = 15_000 });
+        var rootItem = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
         var rootNodeId = await rootItem.GetAttributeAsync("data-nodeid")
             ?? throw new InvalidOperationException("Der Root-Knoten besitzt keine Node-ID.");
         await page.GetByTestId($"create-child-{rootNodeId}").ClickAsync();

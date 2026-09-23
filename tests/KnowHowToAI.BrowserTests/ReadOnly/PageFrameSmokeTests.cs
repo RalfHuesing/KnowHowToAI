@@ -180,9 +180,9 @@ public sealed class PageFrameSmokeTests
         {
             await page.SetViewportSizeAsync(viewport, 720);
             await GotoAsync(page, "/knowledge?audienceId=Default");
-            var rootItem = page.GetByRole(AriaRole.Treeitem).First;
-            await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
-            var childItem = page.Locator("div[role='treeitem'][aria-level='2']").First;
+            var rootItem = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
+            await rootItem.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var childItem = page.Locator(".knowledge-tree > .tree-node-wrapper > .tree-children-group > .tree-node-wrapper > .tree-node-row > .tree-node-select").First;
             await Assertions.Expect(childItem).ToBeVisibleAsync();
             await childItem.Locator(".tree-node-title").ClickAsync();
             await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();

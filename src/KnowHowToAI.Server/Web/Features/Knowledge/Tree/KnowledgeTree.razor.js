@@ -1,24 +1,6 @@
-export function initTreeKeyboard(treeElement) {
-    if (!treeElement || treeElement.__treeKeyboard) return;
-
-    const navKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", " "]);
-    const handleKeyDown = event => {
-        if (navKeys.has(event.key)) event.preventDefault();
-    };
-
-    treeElement.addEventListener("keydown", handleKeyDown);
-    treeElement.__treeKeyboard = () => {
-        treeElement.removeEventListener("keydown", handleKeyDown);
-        delete treeElement.__treeKeyboard;
-    };
-}
-
-export function disposeTreeKeyboard(treeElement) {
-    treeElement?.__treeKeyboard?.();
-}
-
 const dropClasses = ["is-drop-before", "is-drop-parent", "is-drop-after"];
 let activeDragBinding = null;
+const suppressedClickDeadlineKey = "__knowledgeTreeSuppressedClickDeadline";
 
 function resolveTreeNode(treeElement, target) {
     const node = target instanceof Element ? target.closest(".tree-node[data-nodeid]") : null;
@@ -43,8 +25,9 @@ function setDropIndicator(node, position) {
     node.classList.add(`is-drop-${position.toLowerCase()}`);
 }
 
-function createDragBinding(treeElement, dotNetReference) {
+function createDragBinding(treeElement, dotNetReference, canMove) {
     let currentDotNetReference = dotNetReference;
+    let canMoveNodes = canMove;
     const state = {
         phase: "idle",
         pointerId: null,
@@ -52,7 +35,18 @@ function createDragBinding(treeElement, dotNetReference) {
         targetNode: null,
         pointerStart: null,
         dropInFlight: null,
-        suppressClick: false
+        suppressClick: false,
+        suppressClickTimer: null
+    };
+
+    const suppressClickForCurrentGesture = () => {
+        state.suppressClick = true;
+        window[suppressedClickDeadlineKey] = Date.now() + 1000;
+        window.clearTimeout(state.suppressClickTimer);
+        state.suppressClickTimer = window.setTimeout(() => {
+            state.suppressClick = false;
+            state.suppressClickTimer = null;
+        }, 1000);
     };
 
     const resetVisualState = () => {
@@ -84,7 +78,7 @@ function createDragBinding(treeElement, dotNetReference) {
         const position = resolveDropPosition(targetNode, clientY);
         cancelPointerCapture();
         resetVisualState();
-        state.suppressClick = true;
+        suppressClickForCurrentGesture();
         state.dropInFlight = currentDotNetReference.invokeMethodAsync(
             "HandleTreeDropAsync",
             sourceNodeId,
@@ -100,12 +94,12 @@ function createDragBinding(treeElement, dotNetReference) {
         }
         finally {
             state.dropInFlight = null;
-            window.setTimeout(() => { state.suppressClick = false; }, 0);
         }
     };
 
     const handlePointerDown = event => {
-        if (!event.isPrimary || event.button !== 0 || state.dropInFlight || event.target.closest("button")) return;
+        if (!canMoveNodes || !event.isPrimary || event.button !== 0 || state.dropInFlight
+            || event.target.closest("button:not(.tree-node-select)")) return;
 
         const sourceNode = resolveTreeNode(treeElement, event.target);
         if (!sourceNode) return;
@@ -124,6 +118,7 @@ function createDragBinding(treeElement, dotNetReference) {
         const deltaY = event.clientY - state.pointerStart.y;
         if (state.phase === "pressed" && Math.hypot(deltaX, deltaY) < 5) return;
 
+        if (state.phase === "pressed") state.suppressClick = true;
         state.phase = "dragging";
         state.sourceNode.classList.add("is-dragging");
         const targetNode = resolveTreeNode(treeElement, document.elementFromPoint(event.clientX, event.clientY));
@@ -143,8 +138,10 @@ function createDragBinding(treeElement, dotNetReference) {
     const handlePointerUp = async event => {
         if (event.pointerId !== state.pointerId) return;
         if (state.phase !== "dragging" || !state.targetNode) {
+            const wasDragging = state.phase === "dragging";
             cancelPointerCapture();
             resetVisualState();
+            if (wasDragging) suppressClickForCurrentGesture();
             return;
         }
 
@@ -154,32 +151,47 @@ function createDragBinding(treeElement, dotNetReference) {
 
     const handlePointerCancel = event => {
         if (event.pointerId === state.pointerId) {
+            const wasDragging = state.phase === "dragging";
             cancelPointerCapture();
             resetVisualState();
+            if (wasDragging) suppressClickForCurrentGesture();
         }
     };
 
     const handleClick = event => {
-        if (!state.suppressClick) return;
-        event.preventDefault();
-        event.stopPropagation();
-        state.suppressClick = false;
+        const selectionButton = event.target instanceof Element
+            ? event.target.closest(".tree-node-select[data-nodeid]")
+            : null;
+        if (!selectionButton || !treeElement.contains(selectionButton)) return;
+
+        if (state.suppressClick || Date.now() <= (window[suppressedClickDeadlineKey] ?? 0)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            state.suppressClick = false;
+            window[suppressedClickDeadlineKey] = 0;
+            window.clearTimeout(state.suppressClickTimer);
+            state.suppressClickTimer = null;
+            return;
+        }
+
+        currentDotNetReference.invokeMethodAsync("HandleTreeSelectionAsync", selectionButton.dataset.nodeid).catch(() => {});
     };
 
     treeElement.addEventListener("pointerdown", handlePointerDown);
     treeElement.addEventListener("pointermove", handlePointerMove);
     treeElement.addEventListener("pointerup", handlePointerUp);
     treeElement.addEventListener("pointercancel", handlePointerCancel);
-    treeElement.addEventListener("click", handleClick, true);
+    window.addEventListener("click", handleClick, true);
 
     const dispose = () => {
+        window.clearTimeout(state.suppressClickTimer);
         cancelPointerCapture();
         resetVisualState();
         treeElement.removeEventListener("pointerdown", handlePointerDown);
         treeElement.removeEventListener("pointermove", handlePointerMove);
         treeElement.removeEventListener("pointerup", handlePointerUp);
         treeElement.removeEventListener("pointercancel", handlePointerCancel);
-        treeElement.removeEventListener("click", handleClick, true);
+        window.removeEventListener("click", handleClick, true);
         delete treeElement.__treeDragAndDrop;
         if (activeDragBinding?.treeElement === treeElement) activeDragBinding = null;
     };
@@ -187,22 +199,23 @@ function createDragBinding(treeElement, dotNetReference) {
     return {
         treeElement,
         dispose,
-        update(reference) {
+        update(reference, canMove) {
             currentDotNetReference = reference;
+            canMoveNodes = canMove;
         }
     };
 }
 
-export function initTreeDragAndDrop(treeElement, dotNetReference) {
+export function initTreeDragAndDrop(treeElement, dotNetReference, canMove) {
     if (!treeElement) return;
 
     if (activeDragBinding?.treeElement !== treeElement) {
         activeDragBinding?.dispose();
-        activeDragBinding = createDragBinding(treeElement, dotNetReference);
+        activeDragBinding = createDragBinding(treeElement, dotNetReference, canMove);
         treeElement.__treeDragAndDrop = activeDragBinding.dispose;
     }
     else {
-        activeDragBinding.update(dotNetReference);
+        activeDragBinding.update(dotNetReference, canMove);
     }
 }
 

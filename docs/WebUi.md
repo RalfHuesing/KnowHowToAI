@@ -54,6 +54,20 @@ Zielgruppe, Current-/Draft-Kontext, geladenen Snapshot und `ChangeVersion`.
 zur Weboberfläche; die gleichnamigen historischen MCP/Core-Funktionen bleiben
 bestehen.
 
+Der Wissensbaum stellt Hierarchien als verschachtelte Listen dar. Eine native
+Schaltfläche wählt jeden Knoten aus; separate Schaltflächen klappen Zweige auf,
+legen Unterknoten an und blättern durch Seiten mit bis zu 100 Einträgen. Im
+schreibbaren Kontext wird ausschließlich per Maus-Drag-and-drop vor, nach oder
+unter einen Zielknoten verschoben. Der Drop-Indikator erscheint ab einer
+5-Pixel-Bewegung; Auswahl- und Aktionsschaltflächen bleiben unterscheidbar.
+Serverseitige Validierung und Bestätigung bestimmen die sichtbare Reihenfolge;
+ein ungültiger oder abgelehnter Drop sortiert den Baum nicht lokal um. Der Baum
+verspricht kein besonderes Tastaturmuster und verwendet deshalb keine
+Treeview-Rollen oder Roving-Tabindex-Steuerung. Native Schaltflächen behalten
+ihre Browser-Fokus- und Aktivierungsfunktionen. Nach einem bestätigten Move
+bleibt die `transactionId` beim Routenwechsel erhalten, damit der aktualisierte
+Baum weiter aus demselben Entwurf gelesen wird.
+
 ## Export- und Featuregrenze
 
 Die Weboberfläche besitzt keinen Markdown-Download-Endpunkt. Markdown-Export
