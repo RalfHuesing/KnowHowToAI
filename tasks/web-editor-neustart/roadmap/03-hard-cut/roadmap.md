@@ -13,12 +13,12 @@ Ist-Dokumentation beschreibt danach die tatsächlich gebaute Oberfläche.
 
 ## Milestone-Abnahme
 
-- [ ] `/` führt nach `/knowledge`; nur `/knowledge[/NodeId]` und
+- [x] `/` führt nach `/knowledge`; nur `/knowledge[/NodeId]` und
       `/drafts[/TransactionId]` sind produktive Web-Seiten. Kein verstecktes
       Dashboard, keine Suche, Historie, Audience-Verwaltung oder Web-Export.
-- [ ] `docs/` und Web-Regeln nennen die implementierten Routen und den
+- [x] `docs/` und Web-Regeln nennen die implementierten Routen und den
       aktuellen Layoutvertrag; MCP-/Core-Tests bleiben grün.
 - [ ] Begrenzter M3-Audit gegen Konzept, Regeln, Diff und Nachweise
       dokumentiert; Parent-Checkboxen erst danach schließen.
 
-Audit-Ergebnis: offen.
+Audit-Ergebnis: automatisierte Kriterien bestanden; menschliches Chrome-Zoom- und Fokuswahrnehmungs-Gate offen.
