@@ -3,13 +3,29 @@
     flex-direction: column;
     gap: var(--ktai-space-4);
     min-width: 0;
+    height: 100%;
+    min-height: 0;
 }
 
 .tab-panel-layout[hidden] {
     display: none;
 }
 
+.tab-panel-layout__primary {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:where([data-testid="node-view-panel-read"], [data-testid="node-view-panel-technical"]) > .tab-panel-layout__primary,
+.tab-panel-layout--scrollable > .tab-panel-layout__primary {
+    overflow-y: auto;
+}
+
 .tab-panel-layout__additional {
+    flex-shrink: 0;
     border-top: 1px solid var(--ktai-color-border-light);
     padding-top: var(--ktai-space-3);
     color: var(--ktai-color-text-secondary);
@@ -21,6 +37,7 @@
     justify-content: space-between;
     gap: var(--ktai-space-4);
     flex-wrap: wrap;
+    flex-shrink: 0;
     min-width: 0;
 }
 

@@ -32,7 +32,7 @@ atomaren deutschen Conventional Commit nur seines Scopes. Builds laufen über
   - **Nicht:** Kein Umbau der Header-Navigation, kein Umbau von Brand, Reconnect-Modal oder Toasts.
   - **Abnahme:** HTML/Body erzeugen keinen Fensterscrollbalken; `PageFrameSmokeTests` prüfen gemeinsame Landmarken und Innenkanten bei 1280×800 und 1024×720; FastTests grün. Atomarer Commit: `refactor: App-Shell und Seitenrahmen auf Viewport-Locked Layout umstellen`.
 
-- [ ] **P3 – Wissensseite und autarken Baum-Scroll ausrichten**
+- [x] **P3 – Wissensseite und autarken Baum-Scroll ausrichten**
   - **Intention:** Wissensbaum und Content-Pane nutzen die volle Resthöhe; der Wissensbaum scrollt bei vielen Knoten autark in sich selbst ohne Magic Numbers.
   - **Scope:**
     - `src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor.css`: `.knowledge-layout` auf `flex: 1; min-height: 0; height: 100%; display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); gap: var(--ktai-space-4);`.
