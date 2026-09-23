@@ -24,7 +24,7 @@ atomaren deutschen Conventional Commit nur seines Scopes. Builds laufen über
   - **Nicht:** Keine Razor-Markup-Eingriffe an bestehenden Formularen; keine lokalen Hilfsklassen in Komponenten.
   - **Abnahme:** Fokus-Styling auf allen genannten Feldern aktiv; `pwsh scripts/build.ps1` Exitcode 0; `verify` pass; FastTests grün. Atomarer Commit: `style: zentrales Fokus- und Eingabefelddesign etablieren`.
 
-- [ ] **P2 – Viewport-Locked Shell und Seitenrahmen-Kaskade umsetzen**
+- [x] **P2 – Viewport-Locked Shell und Seitenrahmen-Kaskade umsetzen**
   - **Intention:** Das Browserfenster scrollt als Ganzes niemals; die App-Shell fixiert sich exakt auf die Viewport-Höhe (`100vh`).
   - **Scope:**
     - `src/KnowHowToAI.Server/Web/Components/Layout/Shell/MainLayout.razor.css`: `.shell-root` auf `height: 100vh; max-height: 100vh; overflow: hidden;`. `.shell-workspace` und `.shell-main` auf `height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;`.
