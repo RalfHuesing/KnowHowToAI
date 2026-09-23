@@ -43,7 +43,7 @@ atomaren deutschen Conventional Commit nur seines Scopes. Builds laufen über
   - **Nicht:** Keine Änderung an der Baum-Hierarchie oder den C#-Logiken von `KnowledgeTree` und `NodeDetailsWorkspace`.
   - **Abnahme:** Großer Baum scrollt sauber vertikal; Leseansicht scrollt bei Überlänge intern; Reiterleiste bleibt oben fixiert; FastTests grün. Atomarer Commit: `refactor: Wissensseite und Baum auf autarke vertikale Resthöhe umstellen`.
 
-- [ ] **P4 – Editor-Workspace, ProseMirror-Korrekturen und dauerhafte Speichern-Leiste**
+- [x] **P4 – Editor-Workspace, ProseMirror-Korrekturen und dauerhafte Speichern-Leiste**
   - **Intention:** Der Inhaltseditor füllt die Resthöhe aus, man tippt in Zeile 1 ohne Zeilenversatz, die innere 2-Zeilen-Outline entfällt, die Ansicht-Auswahl bleibt im Quellmodus rechts, und der Speichern-Footer bleibt dauerhaft am unteren Panelrand sichtbar.
   - **Scope:**
     - `src/KnowHowToAI.Server/Web/Features/Content/ContentEditor.razor.css`:
