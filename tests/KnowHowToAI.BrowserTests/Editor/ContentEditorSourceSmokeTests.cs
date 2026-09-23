@@ -73,6 +73,23 @@ public sealed class ContentEditorSourceSmokeTests
             Assert.True(
                 Math.Abs(surfaceOffset - sourceOffset) <= 1.0,
                 $"Abstand der Text-Box zur Toolbar unterscheidet sich (Visuell: {surfaceOffset}, Quelle: {sourceOffset}).");
+            var contentPane = page.GetByTestId("knowledge-content-pane");
+            var contentPaneBox = await contentPane.BoundingBoxAsync();
+            var saveButton = page.GetByTestId("content-editor-save");
+            var saveBox = await saveButton.BoundingBoxAsync();
+            Assert.NotNull(contentPaneBox);
+            Assert.NotNull(saveBox);
+            var distanceToBottom = (contentPaneBox.Y + contentPaneBox.Height) - (saveBox.Y + saveBox.Height);
+            Assert.True(
+                distanceToBottom <= 32,
+                $"Der Speichern-Button schließt nicht bündig am unteren Rand ab (Abstand zum unteren Rand: {distanceToBottom}px, erwartet <= 32px).");
+
+            Assert.True(
+                surfaceBox.Height >= 180,
+                $"Die visuelle Editor-Surface füllt die Resthöhe nicht aus (Höhe: {surfaceBox.Height}px, erwartet mindestens 180px).");
+            Assert.True(
+                sourceTextBox.Height >= 180,
+                $"Die Quelltext-Box füllt die Resthöhe nicht aus (Höhe: {sourceTextBox.Height}px, erwartet mindestens 180px).");
 
             const string markdown = "Formatierung.\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
             await source.FillAsync(markdown);

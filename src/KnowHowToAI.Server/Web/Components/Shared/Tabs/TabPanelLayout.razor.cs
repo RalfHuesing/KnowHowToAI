@@ -8,6 +8,9 @@ public sealed partial class TabPanelLayout : ComponentBase
     public bool Visible { get; set; } = true;
 
     [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
     public RenderFragment? PrimaryContent { get; set; }
 
     [Parameter]

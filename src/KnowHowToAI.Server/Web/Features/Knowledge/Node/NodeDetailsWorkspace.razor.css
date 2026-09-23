@@ -1,6 +1,7 @@
-.node-view-panel--editor {
+::deep .node-view-panel--editor {
     height: 100%;
     min-height: 0;
+    flex: 1;
 }
 
 ::deep .node-details {

@@ -23,7 +23,7 @@ else if (_nodeNotFound)
 }
 else if (ViewModel is not null)
 {
-    <article class="node-details" data-testid="node-details" aria-label="@ViewModel.Title">
+    <article class="node-details" data-testid="node-details" aria-label="@ViewModel.Title" hidden="@(ActiveView != "Read" && ActiveView != "Technical")">
         <TabPanelLayout Visible="@(ActiveView == "Read")" aria-label="Lesen" data-testid="node-view-panel-read">
             <PrimaryContent>
 
