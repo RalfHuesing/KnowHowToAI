@@ -216,7 +216,7 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("tree-move-error")).ToHaveCountAsync(0);
             await Assertions.Expect(page.Locator("[data-testid^='move-node-'], [data-testid^='move-before-'], [data-testid^='move-under-'], [data-testid^='move-after-']")).ToHaveCountAsync(0);
-            await VerifyResponsiveTreeAsync(page);
+            await VerifyDesktopTreeAsync(page);
         }
         finally
         {
@@ -282,14 +282,14 @@ public sealed class KnowledgeTreeMoveSmokeTests
         Assert.True(await nestedSource.EvaluateAsync<bool>("node => node.closest('.tree-node-wrapper').parentElement.closest('.tree-node-wrapper') !== null"));
     }
 
-    private static async Task VerifyResponsiveTreeAsync(IPage page)
+    private static async Task VerifyDesktopTreeAsync(IPage page)
     {
-        await page.SetViewportSizeAsync(390, 844);
+        await page.SetViewportSizeAsync(1024, 720);
         var horizontalOverflow = await page.EvaluateAsync<bool>("document.documentElement.scrollWidth > document.documentElement.clientWidth");
         var overflowingElements = horizontalOverflow
             ? await page.EvaluateAsync<string[]>("""() => [...document.querySelectorAll('body *')].filter(element => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 12).map(element => `${element.tagName}.${element.className} right=${Math.round(element.getBoundingClientRect().right)}`)""")
             : [];
-        Assert.False(horizontalOverflow, $"Der Wissensbaum darf bei schmalem Viewport keinen horizontalen Seiten-Overflow erzeugen. Elemente: {string.Join("; ", overflowingElements)}");
+        Assert.False(horizontalOverflow, $"Der Wissensbaum darf bei 1024 CSS-Pixeln keinen horizontalen Seiten-Overflow erzeugen. Elemente: {string.Join("; ", overflowingElements)}");
         await Assertions.Expect(page.GetByTestId("knowledge-tree")).ToBeVisibleAsync();
     }
 

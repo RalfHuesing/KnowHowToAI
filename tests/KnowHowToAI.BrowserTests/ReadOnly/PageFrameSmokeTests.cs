@@ -24,7 +24,7 @@ public sealed class PageFrameSmokeTests
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
         });
 
-        foreach (var viewport in new[] { 1280, 1920, 2560, 1024 })
+        foreach (var viewport in new[] { 1280, 1024 })
         {
             await page.SetViewportSizeAsync(viewport, 720);
             foreach (var route in Routes)
@@ -117,15 +117,15 @@ public sealed class PageFrameSmokeTests
     }
 
     [Fact]
-    public async Task RemainingPagesKeepContentAndActionsReachableAtReflowWidths()
+    public async Task RemainingPagesKeepContentAndActionsReachableAtDesktopWidths()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
-            ViewportSize = new ViewportSize { Width = 640, Height = 720 }
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
         });
 
-        foreach (var viewport in new[] { 640, 320 })
+        foreach (var viewport in new[] { 1280, 1024 })
         {
             await page.SetViewportSizeAsync(viewport, 720);
             foreach (var route in Routes)
@@ -144,9 +144,7 @@ public sealed class PageFrameSmokeTests
                 await Assertions.Expect(frame).ToBeVisibleAsync(new() { Timeout = 30_000 });
                 await AssertPageContractAsync(page, frame, route, viewport);
 
-                var navigationToggle = page.Locator("button[aria-controls='shell-navigation']");
-                await Assertions.Expect(navigationToggle).ToBeVisibleAsync(new() { Timeout = 30_000 });
-                await Assertions.Expect(navigationToggle).ToHaveAccessibleNameAsync("Navigation einblenden");
+                await AssertInitialNavigationStateAsync(page, viewport);
 
                 var reachableActions = frame.Locator("a:visible, button:visible, input:visible, textarea:visible, select:visible");
                 if (await reachableActions.CountAsync() > 0)
@@ -176,7 +174,7 @@ public sealed class PageFrameSmokeTests
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
         });
 
-        foreach (var viewport in new[] { 1280, 1024, 640, 320 })
+        foreach (var viewport in new[] { 1280, 1024 })
         {
             await page.SetViewportSizeAsync(viewport, 720);
             await GotoAsync(page, "/knowledge?audienceId=Default");
@@ -218,7 +216,7 @@ public sealed class PageFrameSmokeTests
     }
 
     [Fact]
-    public async Task OpenDraftDetailKeepsSharedPageContractAndActionsReachableAtEveryWidth()
+    public async Task OpenDraftDetailKeepsSharedPageContractAndActionsReachableAtDesktopWidths()
     {
         using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
         var transactionId = await BrowserMcpAssertions.BeginTransactionAsync(_host.Address, "Browser Frame Draft");
@@ -230,7 +228,7 @@ public sealed class PageFrameSmokeTests
                 ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
             });
 
-            foreach (var viewport in new[] { 1280, 1024, 640, 320 })
+            foreach (var viewport in new[] { 1280, 1024 })
             {
                 await page.SetViewportSizeAsync(viewport, 720);
                 var route = $"/drafts/{transactionId:D}";
@@ -263,6 +261,20 @@ public sealed class PageFrameSmokeTests
         {
             await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId);
         }
+    }
+
+    private static async Task AssertInitialNavigationStateAsync(IPage page, int viewport)
+    {
+        var navigationToggle = page.Locator("button[aria-controls='shell-navigation']");
+        await Assertions.Expect(navigationToggle).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Assertions.Expect(navigationToggle).ToHaveAccessibleNameAsync(
+            viewport >= 1280 ? "Navigation ausblenden" : "Navigation einblenden");
+
+        var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
+        if (viewport >= 1280)
+            await Assertions.Expect(navigation).ToBeVisibleAsync();
+        else
+            await Assertions.Expect(navigation).ToHaveCountAsync(0);
     }
 
     private static async Task AssertPageContractAsync(

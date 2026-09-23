@@ -223,8 +223,10 @@ geprüft.
   Testausführung wird der Test zwar entdeckt, ohne Aktivierungsvariable aber
   übersprungen und startet keinen Host oder Browser. Die Standardausgabe liegt unter
   `temp/ui-audit/<yyyy-MM-dd_HH-mm-ss>/`; sie enthält semantisch
-  benannte PNGs für den festen Desktop-Viewport (1280 × 800) sowie
-  ein `manifest.json`. Mit `-OutputRoot <Verzeichnis>` lässt sich bewusst ein
+  siebzehn gezielte, semantisch benannte PNGs für den festen Desktop-Viewport
+  (1280 × 800) sowie ein `manifest.json`. Jede PNG zeigt nur den Viewport;
+  es gibt keine schmale Breitenmatrix und keine FullPage-Aufnahme. Mit
+  `-OutputRoot <Verzeichnis>` lässt sich bewusst ein
   anderer Zielort schreiben. Der Runner nutzt dieselbe Chrome-/Host-/MCP-
   Infrastruktur wie die Browser-Smokes, verwendet die dedizierte
   `BrowserVisualTestDatabaseConnection` mit dem minimalen Visual-Shell-Bestand,

@@ -367,7 +367,8 @@ Der isolierte Seitenbasisvertrag liegt in
 `Components/Shared/PageFrameTests.cs`; der routeübergreifende Browservertrag in
 `KnowHowToAI.BrowserTests/ReadOnly/PageFrameSmokeTests.cs` prüft für die zehn
 Routenvarianten genau ein `h1`, das sole-`main`-Landmark, Shell-Innenkanten,
-Computed Styles, Reflow-Breiten, Navigation offen/geschlossen und Overflow.
+Computed Styles, die Desktop-Viewports 1280 × 720 und 1024 × 720, Navigation
+offen/geschlossen und Overflow.
 `KnowHowToAI.BrowserTests` startet die veröffentlichte Server-EXE als Black Box
 mit Google Chrome Stable im headless Interactive-Server-Smoke; es referenziert
 kein Produktionsprojekt. Der Serverstart erfolgt einmal pro Testkollektion über
@@ -406,7 +407,17 @@ Aktivierung aber übersprungen und startet dabei keinen Host oder Browser;
 volatile Werte werden vor der Aufnahme maskiert und jede Aufnahme folgt auf
 Web-first-Verhaltensassertionen. Die temporären Artefakte sind keine
 visuellen Baselines.
-Der gemeinsame Lauf umfasst sieben semantisch benannte Aufnahmen: Knowledge-Einstieg mit Zielgruppenauswahl, beide Knowledge-Routen, Root, Node-Detail, Fallback und Working-Editor, Entwurfsübersicht sowie Entwurfsdetail. Das Manifest dokumentiert Route, Zustand, Viewport und Browser; die PNGs werden nach dem Lauf gemeinsam manuell auf unerklärten Drift geprüft und bleiben unter `temp/` außerhalb des Commits.
+Der gemeinsame Lauf umfasst siebzehn gezielte, semantisch benannte Aufnahmen:
+Knowledge-Einstieg, Zielgruppenauswahl, Root, Lesen, Metadaten, Editor und
+Editorfläche, technische Details sowie Lesen und Editor für Fallback- und
+Derived-Content. Die Editorflächen und der Abschlussbereich des Entwurfs werden
+als gezielte Viewport-Aufnahmen nach Scrollen separat gezeigt. Der Working-Editor
+mit fehlendem eigenen Fallback-Content, die Entwurfsübersicht und das
+Entwurfsdetail sind ebenfalls enthalten. Jede PNG zeigt den Viewport 1280 × 800;
+es gibt keine schmale Breitenmatrix und keine FullPage-Aufnahme. Das Manifest
+dokumentiert Route, Zustand, Viewport und Browser; die PNGs werden nach dem
+Lauf gemeinsam manuell auf unerklärten Drift geprüft und bleiben unter `temp/`
+außerhalb des Commits.
 
 `KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die
 Repository-Root-Ermittlung (`TestRepositoryRoot`), Wegwerf-Verzeichnisse unter
