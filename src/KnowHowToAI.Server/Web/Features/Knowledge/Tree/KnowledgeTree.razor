@@ -82,42 +82,35 @@
                     Status: @node.Summary.Availability; Aktualität: @node.Summary.Freshness@(node.Summary.Findings is { Count: > 0 } ? "; Warnung vorhanden" : string.Empty)
                 </span>
 
-                <span class="tree-node-badges" aria-hidden="true">
-                    @if (string.Equals(node.Summary.Availability, "Explicit", StringComparison.Ordinal))
-                    {
-                        <span class="tree-node-badge tree-node-badge--explicit" data-testid="@($"tree-badge-explicit-{node.NodeId}")">
-                            <span aria-hidden="true">●</span> Eigener Inhalt
-                        </span>
-                    }
-                    else if (string.Equals(node.Summary.Availability, "Fallback", StringComparison.Ordinal))
-                    {
-                        <span class="tree-node-badge tree-node-badge--fallback" data-testid="@($"tree-badge-fallback-{node.NodeId}")">
-                            <span aria-hidden="true">↪</span> Fallback
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="tree-node-badge tree-node-badge--none" data-testid="@($"tree-badge-none-{node.NodeId}")">
-                            <span aria-hidden="true">○</span> Kein Inhalt
-                        </span>
-                    }
+                @if (string.Equals(node.Summary.Availability, "Fallback", StringComparison.Ordinal)
+                     || string.Equals(node.Summary.Freshness, "Stale", StringComparison.Ordinal)
+                     || node.Summary.Findings is { Count: > 0 })
+                {
+                    <span class="tree-node-badges" aria-hidden="true">
+                        @if (string.Equals(node.Summary.Availability, "Fallback", StringComparison.Ordinal))
+                        {
+                            <span class="tree-node-badge tree-node-badge--fallback" data-testid="@($"tree-badge-fallback-{node.NodeId}")">
+                                <span aria-hidden="true">↪</span> Fallback
+                            </span>
+                        }
 
-                    @if (string.Equals(node.Summary.Freshness, "Stale", StringComparison.Ordinal))
-                    {
-                        <span class="tree-node-badge tree-node-badge--stale" data-testid="@($"tree-badge-stale-{node.NodeId}")">
-                            <span aria-hidden="true">◷</span> Veraltet
-                        </span>
-                    }
+                        @if (string.Equals(node.Summary.Freshness, "Stale", StringComparison.Ordinal))
+                        {
+                            <span class="tree-node-badge tree-node-badge--stale" data-testid="@($"tree-badge-stale-{node.NodeId}")">
+                                <span aria-hidden="true">◷</span> Veraltet
+                            </span>
+                        }
 
-                    @if (node.Summary.Findings is { Count: > 0 })
-                    {
-                        <span class="tree-node-badge tree-node-badge--finding"
-                              title="@string.Join(", ", node.Summary.Findings)"
-                              data-testid="@($"tree-badge-findings-{node.NodeId}")">
-                            <span aria-hidden="true">⚠</span> Warnung
-                        </span>
-                    }
-                </span>
+                        @if (node.Summary.Findings is { Count: > 0 })
+                        {
+                            <span class="tree-node-badge tree-node-badge--finding"
+                                  title="@string.Join(", ", node.Summary.Findings)"
+                                  data-testid="@($"tree-badge-findings-{node.NodeId}")">
+                                <span aria-hidden="true">⚠</span> Warnung
+                            </span>
+                        }
+                    </span>
+                }
 
                 @if (node.IsLoading)
                 {

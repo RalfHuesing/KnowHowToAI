@@ -225,8 +225,8 @@ public sealed class KnowledgeTreeTests : BunitContext
 
         var cut = Render<KnowledgeTree>();
 
-        Assert.NotNull(cut.Find($"[data-testid='tree-badge-none-{rootId.Value}']"));
-        Assert.NotNull(cut.Find($"[data-testid='tree-badge-explicit-{explicitId.Value}']"));
+        Assert.Empty(cut.FindAll($"[data-testid='tree-badge-none-{rootId.Value}']"));
+        Assert.Empty(cut.FindAll($"[data-testid='tree-badge-explicit-{explicitId.Value}']"));
         Assert.NotNull(cut.Find($"[data-testid='tree-badge-fallback-{fallbackId.Value}']"));
         Assert.NotNull(cut.Find($"[data-testid='tree-badge-stale-{staleId.Value}']"));
         Assert.NotNull(cut.Find($"[data-testid='tree-badge-findings-{staleId.Value}']"));

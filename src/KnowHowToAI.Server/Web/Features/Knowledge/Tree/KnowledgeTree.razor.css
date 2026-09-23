@@ -146,7 +146,8 @@
 }
 
 .tree-node-title {
-    flex: 1 1 9rem;
+    flex: 1 1 auto;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -197,6 +198,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: var(--ktai-space-1);
+    margin-inline-start: auto;
 }
 
 .tree-node-badge {
@@ -210,22 +212,11 @@
     white-space: nowrap;
 }
 
-.tree-node-badge--explicit {
-    background-color: var(--ktai-color-success-background);
-    color: var(--ktai-color-success);
-}
-
 .tree-node-badge--fallback,
 .tree-node-badge--stale,
 .tree-node-badge--finding {
     background-color: var(--ktai-color-warning-background);
     color: var(--ktai-color-warning);
-}
-
-.tree-node-badge--none {
-    background-color: var(--ktai-color-surface);
-    border: 1px solid var(--ktai-color-border);
-    color: var(--ktai-color-text-secondary);
 }
 
 .tree-node-spinner {
