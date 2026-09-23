@@ -4,6 +4,7 @@ using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Components.Shared.Tabs;
 using KnowHowToAI.Server.Web.Features.Content;
+using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
@@ -41,6 +42,9 @@ public sealed partial class NodeDetailsWorkspace
     [Parameter]
     public EventCallback<long> OnContentSaved { get; set; }
 
+    [Inject]
+    private WorkspaceState WorkspaceState { get; set; } = default!;
+
     private ContentEditor? _contentEditor;
     private NodeView _activeView = NodeView.Read;
     private (Guid NodeId, string AudienceId)? _identity;
@@ -73,8 +77,18 @@ public sealed partial class NodeDetailsWorkspace
             return;
 
         _identity = identity;
-        _activeView = NodeView.Read;
-        _hasOpenedMetadata = false;
+        var requestedInitialView = WorkspaceState.RequestedInitialView;
+        WorkspaceState.RequestedInitialView = null;
+        if (string.Equals(requestedInitialView, "Metadata", StringComparison.OrdinalIgnoreCase))
+        {
+            _activeView = NodeView.Metadata;
+            _hasOpenedMetadata = true;
+        }
+        else
+        {
+            _activeView = NodeView.Read;
+            _hasOpenedMetadata = false;
+        }
         _hasOpenedEditor = false;
         _createIndependentContent = false;
         _focusEditorOnMount = false;

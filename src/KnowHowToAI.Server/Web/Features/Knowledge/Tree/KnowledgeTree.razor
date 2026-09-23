@@ -1,8 +1,38 @@
 @using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Features.Knowledge.Components
+@using KnowHowToAI.Server.Web.Components.Shared.Dialogs
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree
 
 <div class="tree-container" data-testid="knowledge-tree-container">
+    @if (CanMove && TreeWorkspace.VisualRootNode is not null)
+    {
+        <div class="tree-toolbar" role="toolbar" aria-label="Aktionen für Wissensbaum" data-testid="tree-toolbar">
+            <button type="button"
+                    class="tree-toolbar-btn"
+                    data-testid="tree-toolbar-create-child"
+                    disabled="@(!CanCreateChild || _isMutating)"
+                    @onclick="CreateChildNodeAsync"
+                    title="@CreateChildTitle">
+                + Unterknoten
+            </button>
+            <button type="button"
+                    class="tree-toolbar-btn"
+                    data-testid="tree-toolbar-create-sibling"
+                    disabled="@(!CanCreateSibling || _isMutating)"
+                    @onclick="CreateSiblingNodeAsync"
+                    title="@CreateSiblingTitle">
+                + Gleiche Ebene
+            </button>
+            <button type="button"
+                    class="tree-toolbar-btn tree-toolbar-btn--delete"
+                    data-testid="tree-toolbar-delete"
+                    disabled="@(!CanDelete || _isMutating)"
+                    @onclick="RequestDeleteNode"
+                    title="@DeleteTitle">
+                🗑 Löschen
+            </button>
+        </div>
+    }
     @if (!string.IsNullOrEmpty(TreeWorkspace.StatusMessage))
     {
         <div class="tree-status" role="status" aria-live="polite" data-testid="tree-status">
@@ -43,6 +73,17 @@
              @ref="_treeElement">
             @RenderNode(TreeWorkspace.VisualRootNode)
         </ul>
+    }
+
+    @if (_isDeleteDialogOpen)
+    {
+        <ConfirmationDialog Title="@_deleteDialogTitle"
+                            Message="@_deleteDialogMessage"
+                            ConfirmText="Knoten löschen"
+                            IsDestructive="true"
+                            IsOpen="true"
+                            OnConfirm="ConfirmDeleteNodeAsync"
+                            OnCancel="CancelDelete" />
     }
 </div>
 
@@ -121,23 +162,7 @@
                     <span class="tree-node-error" role="alert" data-testid="@($"tree-node-error-{node.NodeId}")">@node.Error</span>
                 }
                 </button>
-
-                @if (CanMove)
-                {
-                    <span class="tree-node-actions">
-                        <button type="button" class="tree-action-btn" aria-label="Unterknoten unter @node.Title anlegen"
-                                data-testid="create-child-@node.NodeId" @onclick:stopPropagation="true"
-                                @onclick="() => BeginCreateChild(node.NodeId)">Unterknoten anlegen</button>
-                    </span>
-                }
-
             </div>
-
-            @if (_creatingChildNodeId == node.NodeId)
-            {
-                <RootNodeEditor ParentNodeId="@node.NodeId" ParentTitle="@node.Title"
-                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
-            }
 
             @if (node.HasChildren && node.IsExpanded)
             {

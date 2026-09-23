@@ -255,7 +255,7 @@ public sealed partial class KnowledgePage : IDisposable
     private void NavigateToSelection(Guid? nodeId)
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var path = nodeId.HasValue ? $"/knowledge/{nodeId.Value:D}" : "/knowledge";
+        var path = nodeId.HasValue && nodeId.Value != Guid.Empty ? $"/knowledge/{nodeId.Value:D}" : "/knowledge";
         var query = QueryHelpers.ParseQuery(uri.Query)
             .ToDictionary(pair => pair.Key, pair => (string?)pair.Value.FirstOrDefault(), StringComparer.OrdinalIgnoreCase);
         if (WorkspaceState.ActiveTransactionId is { } transactionId)
@@ -278,7 +278,7 @@ public sealed partial class KnowledgePage : IDisposable
             if (WorkspaceState.CurrentAudienceId is not { } audienceId)
                 return;
 
-            var nodeId = NodeId ?? mutation.Node.NodeId.Value;
+            var nodeId = mutation.Node.NodeId.Value;
             var readContext = WorkspaceState.CurrentReadContext;
             await TreeWorkspace.RefreshAsync(readContext, audienceId, CancellationToken.None);
             await TreeWorkspace.SelectNodeAsync(nodeId, CancellationToken.None);

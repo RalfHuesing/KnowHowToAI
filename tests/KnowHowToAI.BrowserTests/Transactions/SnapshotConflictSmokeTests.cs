@@ -123,12 +123,12 @@ public sealed class SnapshotConflictSmokeTests
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
         await Assertions.Expect(page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select")).ToBeVisibleAsync(new() { Timeout = 15_000 });
         var rootItem = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
-        var rootNodeId = await rootItem.GetAttributeAsync("data-nodeid")
-            ?? throw new InvalidOperationException("Der Root-Knoten besitzt keine Node-ID.");
-        await page.GetByTestId($"create-child-{rootNodeId}").ClickAsync();
-        await page.GetByTestId("root-node-title").FillAsync(title);
-        await page.GetByTestId("root-node-description").FillAsync(description);
-        await page.GetByTestId("create-root-node").ClickAsync();
+        await rootItem.ClickAsync();
+        await page.GetByTestId("tree-toolbar-create-child").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("node-metadata-title")).ToBeVisibleAsync();
+        await page.GetByTestId("node-metadata-title").FillAsync(title);
+        await page.GetByTestId("node-metadata-description").FillAsync(description);
+        await page.GetByTestId("save-node-metadata").ClickAsync();
         await Assertions.Expect(page.GetByTestId("knowledge-page").Locator("h1")).ToHaveTextAsync(title);
         return await ReadTreeNodeIdAsync(page, title);
     }

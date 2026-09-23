@@ -25,6 +25,8 @@
             <div>
                 <label for="node-metadata-title">Titel</label>
                 <input id="node-metadata-title" data-testid="node-metadata-title"
+                       @ref="_titleInputElement"
+                       onfocus="this.select()"
                        @bind="_title" @bind:event="oninput" @bind:after="UpdateDirty"
                        maxlength="200" disabled="@_isSubmitting" />
             </div>

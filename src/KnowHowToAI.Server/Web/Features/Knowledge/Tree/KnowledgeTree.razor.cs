@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
+using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Workflow;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
@@ -45,7 +48,10 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
     private Task<IJSObjectReference>? _moduleTask;
     private DotNetObjectReference<KnowledgeTree>? _dragAndDropReference;
     private string? _moveErrorMessage;
-    private Guid? _creatingChildNodeId;
+    private bool _isMutating;
+    private bool _isDeleteDialogOpen;
+    private string _deleteDialogTitle = string.Empty;
+    private string _deleteDialogMessage = string.Empty;
     private bool _isDisposed;
 
     protected override void OnInitialized()
@@ -134,15 +140,218 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
         StateHasChanged();
     }
 
-    private void BeginCreateChild(Guid parentNodeId)
+    internal KnowledgeTreeNodeViewModel? SelectedNode => FindNode(TreeWorkspace.VisualRootNode, TreeWorkspace.SelectedNodeId);
+
+    internal bool CanCreateChild => CanMove && TreeWorkspace.VisualRootNode is not null;
+
+    internal bool CanCreateSibling => CanMove && SelectedNode is { ParentNodeId: not null };
+
+    internal bool CanDelete => CanMove && SelectedNode is not null;
+
+    internal string CreateChildTitle => SelectedNode is not null
+        ? $"Unterknoten unter „{SelectedNode.Title}“ anlegen"
+        : "Unterknoten unter Root anlegen";
+
+    internal string CreateSiblingTitle => SelectedNode is null
+        ? "Kein Knoten für gleiche Ebene ausgewählt"
+        : SelectedNode.ParentNodeId.HasValue
+            ? "Knoten auf gleicher Ebene anlegen"
+            : "Der Root-Knoten kann keine Nachbarn auf gleicher Ebene haben";
+
+    internal string DeleteTitle => SelectedNode is not null
+        ? $"Knoten „{SelectedNode.Title}“ löschen"
+        : "Kein Knoten zum Löschen ausgewählt";
+
+    private static KnowledgeTreeNodeViewModel? FindNode(KnowledgeTreeNodeViewModel? root, Guid? nodeId)
     {
-        _creatingChildNodeId = _creatingChildNodeId == parentNodeId ? null : parentNodeId;
+        if (root is null || !nodeId.HasValue)
+            return null;
+
+        if (root.NodeId == nodeId.Value)
+            return root;
+
+        foreach (var child in root.Children)
+        {
+            var found = FindNode(child, nodeId);
+            if (found is not null)
+                return found;
+        }
+
+        return null;
     }
 
-    private async Task HandleNodeMutationSucceededAsync(NodeMutationResult mutation)
+    internal async Task CreateChildNodeAsync()
     {
-        _creatingChildNodeId = null;
-        await OnNodeMutationSucceeded.InvokeAsync(mutation);
+        if (!CanCreateChild || _isMutating)
+            return;
+
+        var parentId = SelectedNode?.NodeId ?? TreeWorkspace.VisualRootNode?.NodeId;
+        if (!parentId.HasValue)
+            return;
+
+        await CreateNodeUnderParentAsync(parentId.Value);
+    }
+
+    internal async Task CreateSiblingNodeAsync()
+    {
+        if (!CanCreateSibling || _isMutating)
+            return;
+
+        var parentId = SelectedNode?.ParentNodeId;
+        if (!parentId.HasValue)
+            return;
+
+        await CreateNodeUnderParentAsync(parentId.Value);
+    }
+
+    private async Task CreateNodeUnderParentAsync(Guid parentId)
+    {
+        _isMutating = true;
+        _moveErrorMessage = null;
+        try
+        {
+            var nodeMutationService = ServiceProvider.GetService<NodeMutationApplicationService>();
+            var writeCoordinator = ServiceProvider.GetService<WebWriteCoordinator>();
+            var workspaceState = ServiceProvider.GetService<WorkspaceState>();
+            if (nodeMutationService is null || writeCoordinator is null || workspaceState is null)
+            {
+                _moveErrorMessage = "Die Knotenerstellung ist in diesem Kontext nicht verfügbar.";
+                return;
+            }
+
+            var result = await writeCoordinator.WriteAsync(
+                workspaceState.LoadedSnapshotId,
+                (transactionId, changeVersion, cancellationToken) => nodeMutationService.CreateAsync(
+                    transactionId,
+                    new CreateNodeRequest(new NodeId(parentId), "Neuer Eintrag", Description: null, SortOrder: 0),
+                    changeVersion,
+                    cancellationToken),
+                mutation => mutation.ChangeVersion);
+
+            if (!result.Mutation.IsSuccess)
+            {
+                _moveErrorMessage = $"[{result.Mutation.Error!.Code}] {result.Mutation.Error.Message}";
+                return;
+            }
+
+            workspaceState.RequestedInitialView = "Metadata";
+            await TreeWorkspace.ExpandNodeAsync(parentId);
+            await OnNodeMutationSucceeded.InvokeAsync(result.Mutation.Value!);
+        }
+        catch (Exception ex)
+        {
+            _moveErrorMessage = $"[{ex.GetType().Name}] {ex.Message}";
+        }
+        finally
+        {
+            _isMutating = false;
+        }
+    }
+
+    internal void RequestDeleteNode()
+    {
+        if (!CanDelete || _isMutating || SelectedNode is null)
+            return;
+
+        var node = SelectedNode;
+        _deleteDialogTitle = $"Knoten „{node.Title}“ löschen?";
+        if (node.ChildCount > 0)
+        {
+            _deleteDialogMessage = $"Achtung: Der Knoten „{node.Title}“ enthält {node.ChildCount} Unterknoten. Beim Löschen werden dieser Knoten und alle Unterknoten und Inhalte unwiderruflich gelöscht.";
+        }
+        else
+        {
+            _deleteDialogMessage = $"Möchten Sie den Knoten „{node.Title}“ wirklich löschen? Diese Aktion entfernt auch alle Zielgruppeninhalte dieses Knotens.";
+        }
+
+        _isDeleteDialogOpen = true;
+    }
+
+    internal void CancelDelete()
+    {
+        _isDeleteDialogOpen = false;
+    }
+
+    internal async Task ConfirmDeleteNodeAsync()
+    {
+        _isDeleteDialogOpen = false;
+        if (!CanDelete || _isMutating || SelectedNode is null)
+            return;
+
+        var targetNode = SelectedNode;
+        var targetParentId = targetNode.ParentNodeId;
+
+        _isMutating = true;
+        _moveErrorMessage = null;
+        try
+        {
+            var mutationError = await ExecuteNodeDeletionAsync(targetNode.NodeId);
+            if (mutationError is not null)
+            {
+                _moveErrorMessage = mutationError;
+                return;
+            }
+
+            await NavigateAfterNodeDeletionAsync(targetNode.NodeId, targetParentId);
+        }
+        catch (Exception ex)
+        {
+            _moveErrorMessage = $"[{ex.GetType().Name}] {ex.Message}";
+        }
+        finally
+        {
+            _isMutating = false;
+        }
+    }
+
+    private async Task<string?> ExecuteNodeDeletionAsync(Guid nodeId)
+    {
+        var nodeDeletionService = ServiceProvider.GetService<NodeDeletionApplicationService>();
+        var writeCoordinator = ServiceProvider.GetService<WebWriteCoordinator>();
+        var workspaceState = ServiceProvider.GetService<WorkspaceState>();
+        if (nodeDeletionService is null || writeCoordinator is null || workspaceState is null)
+        {
+            return "Die Knotenlöschung ist in diesem Kontext nicht verfügbar.";
+        }
+
+        var result = await writeCoordinator.WriteAsync(
+            workspaceState.LoadedSnapshotId,
+            (transactionId, changeVersion, cancellationToken) => nodeDeletionService.DeleteAsync(
+                transactionId,
+                new NodeId(nodeId),
+                deleteSubtree: true,
+                expectedChangeVersion: changeVersion,
+                cancellationToken: cancellationToken),
+            mutation => mutation.ChangeVersion);
+
+        return result.Mutation.IsSuccess
+            ? null
+            : $"[{result.Mutation.Error!.Code}] {result.Mutation.Error.Message}";
+    }
+
+    private async Task NavigateAfterNodeDeletionAsync(Guid deletedNodeId, Guid? parentId)
+    {
+        var workspaceState = ServiceProvider.GetRequiredService<WorkspaceState>();
+        var fallbackId = parentId ?? (TreeWorkspace.VisualRootNode?.NodeId == deletedNodeId ? null : TreeWorkspace.VisualRootNode?.NodeId);
+
+        if (workspaceState.CurrentAudienceId is { } audienceId)
+        {
+            await TreeWorkspace.RefreshAsync(workspaceState.CurrentReadContext, audienceId, CancellationToken.None);
+        }
+
+        if (fallbackId.HasValue)
+        {
+            await TreeWorkspace.SelectNodeAsync(fallbackId.Value, CancellationToken.None);
+            await OnNodeSelected.InvokeAsync(fallbackId.Value);
+        }
+        else
+        {
+            await TreeWorkspace.SelectNodeAsync(null, CancellationToken.None);
+            if (OnNodeSelected.HasDelegate)
+            {
+                await OnNodeSelected.InvokeAsync(Guid.Empty);
+            }
+        }
     }
 
     private async Task HandleToggleExpandAsync(KnowledgeTreeNodeViewModel node)

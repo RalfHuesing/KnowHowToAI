@@ -39,18 +39,30 @@ public sealed partial class NodeMetadataEditor
     private bool _isSubmitting;
     private bool _isDirty;
     private Guid _boundNodeId;
+    private ElementReference _titleInputElement;
+    private bool _shouldFocusTitle;
 
     protected override void OnParametersSet()
     {
         if (_boundNodeId != Node.NodeId)
         {
             _boundNodeId = Node.NodeId;
+            _shouldFocusTitle = true;
             SetDraft(Node.Title, Node.Description);
             return;
         }
 
         if (!_isDirty)
             SetDraft(Node.Title, Node.Description);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldFocusTitle)
+        {
+            _shouldFocusTitle = false;
+            await _titleInputElement.FocusAsync();
+        }
     }
 
     private async Task SubmitAsync()

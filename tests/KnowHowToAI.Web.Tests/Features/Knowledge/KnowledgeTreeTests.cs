@@ -20,6 +20,11 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 [Trait("Category", "Unit")]
 public sealed class KnowledgeTreeTests : BunitContext
 {
+    public KnowledgeTreeTests()
+    {
+        JSInterop.SetupAppDialog();
+    }
+
     private static readonly SnapshotId DefaultSnapshotId = new(1);
     private static readonly AudienceId DefaultAudienceId = new("Developer");
 
@@ -287,8 +292,46 @@ public sealed class KnowledgeTreeTests : BunitContext
         Assert.Empty(cut.FindAll("[data-testid^='move-node-'], [data-testid^='move-before-'], [data-testid^='move-under-'], [data-testid^='move-after-']"));
         Assert.Empty(cut.FindAll(".tree-drop-targets"));
         Assert.NotNull(cut.Find($"button.tree-node-select[data-testid='tree-node-{sourceId.Value}']"));
-        Assert.NotNull(cut.Find($"button[data-testid='tree-toggle-{rootId.Value}']"));
-        Assert.NotNull(cut.Find($"button[data-testid='create-child-{sourceId.Value}']"));
+        Assert.NotNull(cut.Find("button[data-testid='tree-toolbar-create-child']"));
+        Assert.NotNull(cut.Find("button[data-testid='tree-toolbar-create-sibling']"));
+        Assert.NotNull(cut.Find("button[data-testid='tree-toolbar-delete']"));
+    }
+
+    [Fact]
+    public async Task KnowledgeTree_ToolbarButtons_ReflectNodeSelection()
+    {
+        var harness = new NavigationTestHarness(DefaultSnapshotId);
+        var rootId = new NodeId(Guid.NewGuid());
+        var childId = new NodeId(Guid.NewGuid());
+        harness.AddNode(new Node(DefaultSnapshotId, rootId, null, "Root", null, 0, false));
+        harness.AddNode(new Node(DefaultSnapshotId, childId, rootId, "Kind", null, 0, false));
+
+        var treeState = new KnowledgeTreeState(harness.CreateService(defaultPageSize: 100, maximumPageSize: 100));
+        Services.AddKnowledgeTreeWorkspace(treeState);
+        await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
+
+        await treeState.SelectNodeAsync(rootId.Value);
+        var cut = Render<KnowledgeTree>(parameters => parameters.Add(c => c.CanMove, true));
+
+        var createChild = cut.Find("button[data-testid='tree-toolbar-create-child']");
+        var createSibling = cut.Find("button[data-testid='tree-toolbar-create-sibling']");
+        var deleteBtn = cut.Find("button[data-testid='tree-toolbar-delete']");
+
+        Assert.False(createChild.HasAttribute("disabled"));
+        Assert.True(createSibling.HasAttribute("disabled"));
+        Assert.False(deleteBtn.HasAttribute("disabled"));
+
+        await treeState.ExpandNodeAsync(rootId.Value);
+        await treeState.SelectNodeAsync(childId.Value);
+        cut.Render();
+
+        createChild = cut.Find("button[data-testid='tree-toolbar-create-child']");
+        createSibling = cut.Find("button[data-testid='tree-toolbar-create-sibling']");
+        deleteBtn = cut.Find("button[data-testid='tree-toolbar-delete']");
+
+        Assert.False(createChild.HasAttribute("disabled"));
+        Assert.False(createSibling.HasAttribute("disabled"));
+        Assert.False(deleteBtn.HasAttribute("disabled"));
     }
 
     [Theory]

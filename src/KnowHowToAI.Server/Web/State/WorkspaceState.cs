@@ -12,11 +12,14 @@ namespace KnowHowToAI.Server.Web.State;
 public sealed class WorkspaceState
 {
     public long? CurrentChangeVersion { get; private set; }
+
     public Guid? CurrentNodeId { get; private set; }
 
     public string? CurrentAudienceId { get; private set; }
 
     public long? LoadedSnapshotId { get; private set; }
+
+    public string? RequestedInitialView { get; set; }
 
     public KnowledgeContextViewModel CurrentContext { get; private set; } =
         new(KnowledgeReadContextKind.Current);
@@ -85,6 +88,7 @@ public sealed class WorkspaceState
         CurrentAudienceId = null;
         CurrentChangeVersion = null;
         LoadedSnapshotId = null;
+        RequestedInitialView = null;
         CurrentContext = new KnowledgeContextViewModel(KnowledgeReadContextKind.Current);
         CurrentReadContext = new ReadContext();
         Changed?.Invoke();
