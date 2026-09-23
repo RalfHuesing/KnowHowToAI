@@ -55,12 +55,24 @@ public sealed class ContentEditorSourceSmokeTests
             await viewMode.SelectOptionAsync("visual");
             await Assertions.Expect(editor.Locator(".ProseMirror")).ToBeVisibleAsync();
             var proseMirror = editor.Locator(".ProseMirror");
+            Assert.True(await page.EvaluateAsync<bool>("() => Boolean(document.activeElement?.closest('.ProseMirror'))"));
+            await Assertions.Expect(editor.Locator(".milkdown-link-preview, .milkdown-link-edit")).ToHaveCountAsync(0);
             await proseMirror.Locator("p").First.SelectTextAsync();
             var bold = editor.GetByTestId("content-editor-toolbar").GetByRole(AriaRole.Button, new() { Name = "Fett" });
             await Assertions.Expect(bold).ToHaveAttributeAsync("aria-pressed", "false");
             await bold.ClickAsync();
             await Assertions.Expect(bold).ToHaveAttributeAsync("aria-pressed", "true");
             await Assertions.Expect(proseMirror.Locator("strong")).ToContainTextAsync("Formatierung.");
+            await page.EvaluateAsync("() => { window.prompt = (_, current) => { window.lastLinkPromptValue = current; return current ? 'https://example.test/edited' : 'https://example.test/editor'; }; }");
+            var link = editor.GetByTestId("content-editor-toolbar").GetByRole(AriaRole.Button, new() { Name = "Link" });
+            await link.ClickAsync();
+            await Assertions.Expect(proseMirror.Locator("strong a[href='https://example.test/editor']"))
+                .ToContainTextAsync("Formatierung.");
+            await link.ClickAsync();
+            Assert.Equal("https://example.test/editor", await page.EvaluateAsync<string>("() => window.lastLinkPromptValue"));
+            await Assertions.Expect(proseMirror.Locator("strong a[href='https://example.test/edited']"))
+                .ToContainTextAsync("Formatierung.");
+            await Assertions.Expect(editor.Locator(".milkdown-link-preview, .milkdown-link-edit")).ToHaveCountAsync(0);
             await editor.GetByTestId("content-editor-save").ClickAsync();
             await Assertions.Expect(editor.GetByTestId("content-editor-save-status"))
                 .ToContainTextAsync("Gespeichert", new() { Timeout = 15_000 });
@@ -73,7 +85,7 @@ public sealed class ContentEditorSourceSmokeTests
             });
             var saved = readback.GetProperty("data").GetProperty("content").GetString();
             Assert.NotNull(saved);
-            const string formattedMarkdown = "**Formatierung.**\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
+            const string formattedMarkdown = "**[Formatierung.](https://example.test/edited)**\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
             Assert.Equal(Markdown.ToHtml(formattedMarkdown, MarkdownPipeline), Markdown.ToHtml(saved!, MarkdownPipeline));
         }
         finally

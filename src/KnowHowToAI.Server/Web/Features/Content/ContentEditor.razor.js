@@ -132,6 +132,7 @@ export async function mount(element, markdown, dotNetReference, isReadOnly) {
         features: {
             [Crepe.Feature.Toolbar]: false,
             [Crepe.Feature.TopBar]: false,
+            [Crepe.Feature.LinkTooltip]: false,
             [Crepe.Feature.ImageBlock]: false,
             [Crepe.Feature.Latex]: false,
             [Crepe.Feature.AI]: false,

@@ -207,7 +207,12 @@ dynamisch isoliertes `ContentEditor.razor.js`; dessen einzige Blazor-Aufrufe
 sind `mount`, `readMarkdown`, `focus` und `dispose`. `mount` registriert
 Änderungs-, Fokus- und Auswahl-Callbacks, deaktiviert die kontextuelle Crepe-
 Toolbar, Top-Bar, Headings, Latex, Upload/ImageBlock und AI. Die feste Leiste
-ruft für die fünf vorhandenen Formate dieselben Milkdown-Commands auf und zeigt
+ruft für Fett, Kursiv, Durchstreichen und Inline-Code die vorhandenen
+Milkdown-Commands auf. Die Crepe-Funktion `LinkTooltip` ist deaktiviert, damit
+Crepes kontextuelle Vorschau-/Editierleiste entfällt; die Link-Aktion der festen
+Leiste setzt die bestehende CommonMark-Linkmarkierung direkt auf die Auswahl
+und fragt ihre Adresse nativ ab. Eine bestehende Linkadresse lässt sich dort
+ändern; eine leere Adresse entfernt die Markierung. Alle fünf Aktionen zeigen
 den aktiven Auswahlzustand. Der Editor wird vor
 Nodewechsel oder erneutem Mount disposed; persistiert wird ausschließlich der
 beim expliziten Speichern gelesene kanonische Markdown eines expliziten

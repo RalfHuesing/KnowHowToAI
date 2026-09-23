@@ -126,7 +126,8 @@ bleibt nicht als Übergabe zurück.
     Formatierungsbuttons. Die beschriftete native Ansichtsauswahl in der
     Leiste bietet „Visuell“ und „Markdown-Quelle“ und nutzt die vorhandenen
     Wechselpfade. `ContentEditor.razor.js` und `content-editor.js` binden
-    die vorhandenen Milkdown-Commands an die feste Leiste; die bisherige
+    die vorhandenen Milkdown-Commands und die CommonMark-Linkmarkierung an die
+    feste Leiste; die bisherige
     kontextuelle Crepe-Leiste wird deaktiviert. Direkt unter der
     Textfläche, im normalen Dokumentfluss, stehen der unabhängige
     Speicherstatus links und Speichern rechts; Warnungen/Fehler zur
@@ -148,7 +149,10 @@ bleibt nicht als Übergabe zurück.
   - **Abschlussnachweis:** `ContentEditor` verwendet `TabPanelLayout` mit
     primärem Bereich, getrenntem Feedbackbereich und Footer; im visuellen,
     schreibbaren Modus steht die dauerhafte lokale SVG-/Textleiste für die
-    fünf vorhandenen Milkdown-Formatierungen. Die Formataktionen arbeiten auf
+    fünf vorhandenen Formatierungen. Fett, Kursiv, Durchstreichen und
+    Inline-Code verwenden die vorhandenen Milkdown-Commands; Link setzt die
+    vorhandene CommonMark-Linkmarkierung auf die Auswahl und bearbeitet die
+    Adresse über den nativen Eingabedialog. Die Formataktionen arbeiten auf
     der Editor-Auswahl, halten diese beim Klick und spiegeln den aktiven
     Markierungszustand. Die Crepe-Kontexttoolbar ist deaktiviert. Die native
     Ansichtsauswahl schaltet zwischen „Visuell“ und „Markdown-Quelle“ über die
@@ -219,11 +223,15 @@ bleibt nicht als Übergabe zurück.
     `verify(targetPath)` und `verify(targetPath, scope: "solution")`
     (beide `pass`, 10.0, 0 Verstöße) sowie `git diff --check`.
     `docs/WebUi.md` und `docs/Architektur.md` sind mit den Nachweisen
-    abgeglichen. Commit wird mit diesem P4-Slice erstellt.
+    abgeglichen. Der Audit-Korrekturlauf hat die Screenshots 07 und 15 im
+    Verzeichnis `temp/ui-audit/2026-09-23_18-50-08` bei 1280 × 800 neu
+    aufgenommen und visuell geprüft; beide zeigen den fokussierten Editor ohne
+    Crepe-LinkTooltip-Elemente neben der festen Leiste. Commit wird mit
+    diesem P4-Slice erstellt.
 
 ## Audit
 
-- [ ] Ein begrenzter, lesender Audit prüft nach P1–P4 das Ergebnis gegen
+- [x] Ein begrenzter, lesender Audit prüft nach P1–P4 das Ergebnis gegen
   [Konzept](Konzept.md), Diff, Invarianten,
   Layout-Guardrails, Dokumentation und Nachweise. Befunde werden auf
   konkrete Konzeptverstöße begrenzt. Höchstens eine gezielte

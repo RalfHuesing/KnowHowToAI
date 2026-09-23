@@ -55,8 +55,10 @@ public sealed class UiAuditScreenshotTests
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
         await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
+        await AssertNoCrepeLinkControlsAsync(page);
         await CaptureAsync(page, "06_knowledge_editor", output, captures);
         await page.GetByTestId("content-editor").ScrollIntoViewIfNeededAsync();
+        await AssertNoCrepeLinkControlsAsync(page);
         await CaptureAsync(page, "07_knowledge_editor_workspace", output, captures);
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Technische Details", Exact = true }).ClickAsync();
@@ -74,8 +76,10 @@ public sealed class UiAuditScreenshotTests
         await page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true }).ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-editor-independent-copy")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
+        await AssertNoCrepeLinkControlsAsync(page);
         await CaptureAsync(page, "10_knowledge_fallback-editor", output, captures);
         await page.GetByTestId("content-editor").ScrollIntoViewIfNeededAsync();
+        await AssertNoCrepeLinkControlsAsync(page);
         await CaptureAsync(page, "11_knowledge_fallback-editor-workspace", output, captures);
 
         await GotoAsync(page, host.Address, $"/knowledge?audienceId={Uri.EscapeDataString(BrowserKnowledgeSeed.HistoryAudienceId)}");
@@ -109,6 +113,7 @@ public sealed class UiAuditScreenshotTests
             await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("content-editor-surface").Locator(".ProseMirror")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("content-editor-save-status")).ToContainTextAsync("Gespeichert");
+            await AssertNoCrepeLinkControlsAsync(page);
             await CaptureAsync(page, "15_knowledge_working-missing-own-content-editor", output, captures);
 
             await GotoAsync(page, host.Address, "/drafts");
@@ -169,6 +174,15 @@ public sealed class UiAuditScreenshotTests
         var fileName = $"{scenario}_{viewport}.png";
         await page.ScreenshotAsync(new PageScreenshotOptions { Path = Path.Combine(output, fileName) });
         captures.Add(new CaptureRecord(fileName, scenario, page.Url, viewport, DateTimeOffset.UtcNow));
+    }
+
+    private static async Task AssertNoCrepeLinkControlsAsync(IPage page)
+    {
+        await page.GetByTestId("content-editor").Locator(".ProseMirror").FocusAsync();
+        Assert.True(await page.EvaluateAsync<bool>("() => Boolean(document.activeElement?.closest('.ProseMirror'))"),
+            "Der Sichtnachweis muss den fokussierten visuellen Editor zeigen.");
+        await Assertions.Expect(page.GetByTestId("content-editor").Locator(".milkdown-link-preview, .milkdown-link-edit"))
+            .ToHaveCountAsync(0);
     }
 
     private sealed record CaptureRecord(string FileName, string Scenario, string Route, string Viewport, DateTimeOffset CapturedAtUtc);

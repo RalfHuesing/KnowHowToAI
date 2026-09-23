@@ -80,7 +80,11 @@ Im schreibbaren Editor steht über dem visuellen Text eine dauerhaft sichtbare
 Leiste für Fett, Kursiv, Durchstreichen, Inline-Code und Link. Die Buttons
 verwenden lokale SVGs mit sichtbaren Namen und Tooltip; sie bearbeiten die
 aktuelle Auswahl und spiegeln den aktiven Milkdown-Markierungszustand. Die
-Leiste erscheint weder in der Markdown-Quelle noch bei fehlender Schreibbarkeit.
+Link-Aktion fragt die Adresse nativ ab; bei einer bereits markierten Auswahl
+kann die Adresse geändert oder durch eine leere Eingabe der Link entfernt
+werden. Crepes LinkTooltip ist deaktiviert, damit keine zusätzliche
+kontextuelle Linkleiste neben der festen Werkzeugleiste erscheint. Die Leiste
+erscheint weder in der Markdown-Quelle noch bei fehlender Schreibbarkeit.
 Eine beschriftete native Ansichtsauswahl schaltet zwischen „Visuell“ und
 „Markdown-Quelle“ über denselben Wert und Speicherpfad. Der Crepe-Kontexttoolbar
 ist ausgeschaltet. Unter dem Text stehen der eigenständige Speicherstatus links

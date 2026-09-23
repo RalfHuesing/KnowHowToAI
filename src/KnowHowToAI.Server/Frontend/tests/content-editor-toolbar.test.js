@@ -1,13 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@milkdown/crepe", () => ({ Crepe: class Crepe {} }));
-vi.mock("@milkdown/kit/core", () => ({ commandsCtx: "commandsCtx" }));
-vi.mock("@milkdown/kit/component/link-tooltip", () => ({ toggleLinkCommand: { key: "toggle:link" } }));
+vi.mock("@milkdown/kit/core", () => ({ commandsCtx: "commandsCtx", editorViewCtx: "editorViewCtx" }));
 vi.mock("@milkdown/kit/preset/commonmark", () => ({
     emphasisSchema: { type: () => "schema:italic" },
     inlineCodeSchema: { type: () => "schema:code" },
     isMarkSelectedCommand: { key: "selected" },
-    linkSchema: { type: () => "schema:link" },
+    linkSchema: { type: () => ({ type: "schema:link", create: attrs => ({ type: "schema:link", attrs }) }) },
     strongSchema: { type: () => "schema:bold" },
     toggleEmphasisCommand: { key: "toggle:italic" },
     toggleInlineCodeCommand: { key: "toggle:code" },
@@ -54,13 +53,44 @@ describe("ContentEditor formatting toolbar", () => {
         const editor = { editor: { action: callback => callback(context) } };
         bindFormattingToolbar(editor, toolbar);
 
-        for (const button of toolbar.buttons) {
+        for (const button of toolbar.buttons.filter(button => button.dataset.format !== "link")) {
             toolbar.listeners.get("click")({ target: { closest: () => button } });
         }
 
         expect(calls.filter(([key]) => key.startsWith("toggle:"))).toEqual([
-            ["toggle:bold"], ["toggle:italic"], ["toggle:strikethrough"], ["toggle:code"], ["toggle:link"]
+            ["toggle:bold"], ["toggle:italic"], ["toggle:strikethrough"], ["toggle:code"]
         ]);
+    });
+
+    it("applies the link mark to the selection without opening an editor tooltip", () => {
+        const toolbar = createToolbar();
+        const transaction = { addMark: vi.fn(() => transaction), removeMark: vi.fn(() => transaction) };
+        const state = {
+            selection: { from: 2, to: 8, empty: false },
+            doc: {
+                rangeHasMark: () => false,
+                resolve: () => ({ marks: () => [] })
+            },
+            tr: transaction
+        };
+        const view = { state, dispatch: vi.fn() };
+        const context = {
+            get: key => key === "editorViewCtx" ? view : { call: () => false }
+        };
+        const editor = { editor: { action: callback => callback(context) } };
+        const prompt = vi.fn(() => " https://example.test ");
+        vi.stubGlobal("prompt", prompt);
+        try {
+            bindFormattingToolbar(editor, toolbar);
+            const linkButton = toolbar.buttons.find(button => button.dataset.format === "link");
+            toolbar.listeners.get("click")({ target: { closest: () => linkButton } });
+
+            expect(prompt).toHaveBeenCalledWith("Link-Adresse", "");
+            expect(transaction.addMark).toHaveBeenCalledWith(2, 8, expect.objectContaining({ attrs: { href: "https://example.test" } }));
+            expect(view.dispatch).toHaveBeenCalledWith(transaction);
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 
     it("reflects all five active selection marks and removes toolbar handlers on dispose", () => {

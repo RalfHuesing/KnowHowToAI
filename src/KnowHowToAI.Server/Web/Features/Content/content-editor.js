@@ -1,6 +1,5 @@
 import { Crepe } from "@milkdown/crepe";
-import { commandsCtx } from "@milkdown/kit/core";
-import { toggleLinkCommand } from "@milkdown/kit/component/link-tooltip";
+import { commandsCtx, editorViewCtx } from "@milkdown/kit/core";
 import {
     emphasisSchema,
     inlineCodeSchema,
@@ -21,7 +20,7 @@ const formattingCommands = {
     italic: { schema: emphasisSchema, command: toggleEmphasisCommand },
     strikethrough: { schema: strikethroughSchema, command: toggleStrikethroughCommand },
     code: { schema: inlineCodeSchema, command: toggleInlineCodeCommand },
-    link: { schema: linkSchema, command: toggleLinkCommand }
+    link: { schema: linkSchema }
 };
 
 export function updateFormattingState(toolbar, ctx) {
@@ -46,7 +45,11 @@ export function bindFormattingToolbar(editor, toolbar) {
         if (!formatting) return;
 
         editor.editor.action(ctx => {
-            ctx.get(commandsCtx).call(formatting.command.key);
+            if (button.dataset.format === "link") {
+                applyLinkFormatting(editor, ctx);
+            } else {
+                ctx.get(commandsCtx).call(formatting.command.key);
+            }
             updateFormattingState(toolbar, ctx);
         });
     };
@@ -57,6 +60,26 @@ export function bindFormattingToolbar(editor, toolbar) {
         toolbar.removeEventListener("mousedown", preserveSelection);
         toolbar.removeEventListener("click", applyFormatting);
     };
+}
+
+function applyLinkFormatting(editor, ctx) {
+    const view = ctx.get(editorViewCtx);
+    const { state } = view;
+    const { from, to, empty } = state.selection;
+    if (empty) return;
+
+    const markType = linkSchema.type(ctx);
+    const selectedLink = state.doc.rangeHasMark(from, to, markType)
+        ? state.doc.resolve(from).marks().find(mark => mark.type === markType)
+        : null;
+    const href = globalThis.prompt("Link-Adresse", selectedLink?.attrs.href ?? "");
+    if (href === null) return;
+
+    const normalizedHref = href.trim();
+    const transaction = normalizedHref
+        ? state.tr.addMark(from, to, markType.create({ href: normalizedHref }))
+        : state.tr.removeMark(from, to, markType);
+    view.dispatch(transaction);
 }
 
 export { Crepe };
