@@ -1,0 +1,25 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared.Tabs
+
+<div class="tab-panel-layout" hidden="@(!Visible)">
+    @if (PrimaryContent is not null)
+    {
+        <div class="tab-panel-layout__primary">@PrimaryContent</div>
+    }
+    @if (AdditionalContent is not null)
+    {
+        <div class="tab-panel-layout__additional">@AdditionalContent</div>
+    }
+    @if (Status is not null || Actions is not null)
+    {
+        <div class="tab-panel-layout__footer">
+            @if (Status is not null)
+            {
+                <div class="tab-panel-layout__status">@Status</div>
+            }
+            @if (Actions is not null)
+            {
+                <div class="tab-panel-layout__actions">@Actions</div>
+            }
+        </div>
+    }
+</div>

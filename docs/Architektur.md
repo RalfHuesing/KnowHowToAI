@@ -126,8 +126,10 @@ zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 schmaler JS-Isolation in `AppDialog.razor.js` für `showModal()`, `close()` und
 das native `close`-Ereignis sowie `ConfirmationDialog`),
 `Web/Components/Shared/Feedback` (Status-, Warn- und Toastdarstellungen)
-und `Web/Components/Shared` enthält außerdem `PageFrame`, die ausführbare
-Seitenbasis für alle zehn routbaren Feature-Varianten. Die Komponente rendert
+und `Web/Components/Shared/Tabs` stellt rein darstellende Bausteine für
+Reiterleisten und deren Inhaltsbereiche bereit; die Auswahl bleibt beim
+aufrufenden Bereich. `Web/Components/Shared` enthält außerdem `PageFrame`, die
+ausführbare Seitenbasis für alle zehn routbaren Feature-Varianten. Die Komponente rendert
 einen Page-Root mit Header, genau einem `h1`, optionaler Beschreibung, Badges
 und Aktionen sowie dem Feature-Inhalt; sie enthält keine Application-Aufrufe
 und keine Featurelogik. `PageFrame.razor.css` ist der einzige Owner der

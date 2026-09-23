@@ -1,0 +1,22 @@
+@namespace KnowHowToAI.Server.Web.Components.Shared.Tabs
+
+<div class="tab-layout">
+    <div class="tab-layout__header">
+        <div class="tab-layout__navigation" role="group" aria-label="Ansichten">
+            @foreach (var tab in Tabs)
+            {
+                <button type="button"
+                        class="tab-layout__button"
+                        aria-pressed="@(tab.Key == ActiveKey ? "true" : "false")"
+                        @onclick="() => SelectTabAsync(tab.Key)">
+                    @tab.Label
+                </button>
+            }
+        </div>
+        @if (Context is not null)
+        {
+            <div class="tab-layout__context">@Context</div>
+        }
+    </div>
+    <div class="tab-layout__panels">@Panels</div>
+</div>

@@ -19,7 +19,7 @@ bleibt nicht als Übergabe zurück.
 
 ## 1. Gemeinsame Reiter- und Panelstruktur
 
-- [ ] **P1 – Wiederverwendbare Tab-Komponenten bereitstellen**
+- [x] **P1 – Wiederverwendbare Tab-Komponenten bereitstellen**
   - **Intention:** Die spätere Wissensansicht und weitere Reiterflächen teilen
     dieselbe Layout- und Zustandsdarstellung, ohne fachliche Logik zu teilen.
   - **Scope:** Unter
@@ -44,6 +44,17 @@ bleibt nicht als Übergabe zurück.
     montierten Panelinhalts beim Umschalten. Passender FastTests-Lauf,
     Build und Linter-Incremental-Gate sind grün. Abschlussnachweis nennt
     Dateien, Befehle/Ergebnisse und Commit.
+  - **Abschlussnachweis:** `TabDefinition`, `TabLayout` und `TabPanelLayout`
+    liegen unter `src/KnowHowToAI.Server/Web/Components/Shared/Tabs/`;
+    bUnit-Tests liegen unter
+    `tests/KnowHowToAI.Web.Tests/Components/Shared/Tabs/`. Verifiziert mit
+    `pwsh -NoProfile -File scripts/build.ps1` (Exitcode 0),
+    `verify(targetPath)` (pass, 10.0, 0 Verstöße) und
+    `pwsh -NoProfile -File scripts/test-fast.ps1 -Filter Category=Unit`
+    (Frontend 5/5; FastTests 1.016/1.016). `verify(targetPath, scope: "solution")`
+    meldet 9.1/1 wegen `AIContextFootprint` in der unveränderten
+    `NodeDetailsWorkspace.razor.cs` außerhalb dieses Scopes. Commit:
+    `feat: gemeinsame Reiter- und Panelkomponenten bereitstellen`.
 
 ## 2. Knotenansichten auf die Struktur setzen
 
