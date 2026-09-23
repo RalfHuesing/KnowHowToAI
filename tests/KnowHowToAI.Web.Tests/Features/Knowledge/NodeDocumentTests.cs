@@ -2,6 +2,7 @@ using Bunit;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
+using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Knowledge.Node;
@@ -44,5 +45,96 @@ public sealed class NodeDocumentTests : BunitContext
         Assert.Empty(cut.FindAll("[data-testid='node-details-title']"));
         Assert.Equal("Bearbeiten", cut.Find("[data-testid='node-details-edit']").TextContent.Trim());
         Assert.Empty(cut.FindAll("[data-testid='node-details-markdown-download']"));
+    }
+
+    [Fact]
+    public void DerivedDocument_ShowsSourceNodeTitleWithoutItsIdentifier()
+    {
+        var snapshotId = new SnapshotId(1);
+        var targetNodeId = new NodeId(Guid.NewGuid());
+        var sourceNodeId = new NodeId(Guid.NewGuid());
+        var sourceRevisionId = new ContentRevisionId(Guid.NewGuid());
+        var harness = new NavigationTestHarness(snapshotId);
+        harness.AddNode(new Node(snapshotId, targetNodeId, null, "Abgeleiteter Knoten", null, 0, false));
+        harness.AddNode(new Node(snapshotId, sourceNodeId, targetNodeId, "Lesbarer Quellknoten", null, 0, false));
+        harness.AddContent(new NodeContent(
+            snapshotId,
+            sourceNodeId,
+            new AudienceId("Developer"),
+            sourceRevisionId,
+            ContentMode.Independent,
+            "Quellinhalt",
+            false));
+        harness.AddContent(new NodeContent(
+            snapshotId,
+            targetNodeId,
+            new AudienceId("Developer"),
+            new ContentRevisionId(Guid.NewGuid()),
+            ContentMode.Derived,
+            "Abgeleiteter Inhalt",
+            false));
+        harness.AddDependency(new ContentDependency(
+            snapshotId,
+            targetNodeId,
+            new AudienceId("Developer"),
+            sourceNodeId,
+            new AudienceId("Developer"),
+            sourceRevisionId));
+        Services.AddSingleton(harness.CreateService());
+        Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton<WorkspaceEditState>();
+
+        var cut = Render<NodeDocument>(parameters => parameters
+            .Add(document => document.NodeId, targetNodeId.Value)
+            .Add(document => document.ReadContext, new ReadContext())
+            .Add(document => document.AudienceId, "Developer"));
+
+        var provenance = cut.Find("[data-testid='node-details-provenance']").TextContent;
+        Assert.Contains("Lesbarer Quellknoten", provenance);
+        Assert.Contains("Developer", provenance);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString(), provenance);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString("N")[..8], provenance);
+        Assert.Equal("Abgeleitet", cut.Find("[data-testid='node-details-content-mode']").TextContent.Trim());
+        Assert.Equal("Aktuell", cut.Find("[data-testid='node-details-freshness']").TextContent.Trim());
+    }
+
+    [Fact]
+    public void DerivedDocument_WithUnavailableSource_ShowsExplanationWithoutIdentifier()
+    {
+        var snapshotId = new SnapshotId(1);
+        var targetNodeId = new NodeId(Guid.NewGuid());
+        var sourceNodeId = new NodeId(Guid.NewGuid());
+        var harness = new NavigationTestHarness(snapshotId);
+        harness.AddNode(new Node(snapshotId, targetNodeId, null, "Abgeleiteter Knoten", null, 0, false));
+        harness.AddContent(new NodeContent(
+            snapshotId,
+            targetNodeId,
+            new AudienceId("Developer"),
+            new ContentRevisionId(Guid.NewGuid()),
+            ContentMode.Derived,
+            "Abgeleiteter Inhalt",
+            false));
+        harness.AddDependency(new ContentDependency(
+            snapshotId,
+            targetNodeId,
+            new AudienceId("Developer"),
+            sourceNodeId,
+            new AudienceId("Developer"),
+            new ContentRevisionId(Guid.NewGuid())));
+        Services.AddSingleton(harness.CreateService());
+        Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton<WorkspaceEditState>();
+
+        var cut = Render<NodeDocument>(parameters => parameters
+            .Add(document => document.NodeId, targetNodeId.Value)
+            .Add(document => document.ReadContext, new ReadContext())
+            .Add(document => document.AudienceId, "Developer"));
+
+        var provenance = cut.Find("[data-testid='node-details-provenance']").TextContent;
+        Assert.Contains("Quellknoten nicht verfügbar", provenance);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString(), provenance);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString("N")[..8], provenance);
+        Assert.Equal("Abgeleitet", cut.Find("[data-testid='node-details-content-mode']").TextContent.Trim());
+        Assert.Equal("Veraltet", cut.Find("[data-testid='node-details-freshness']").TextContent.Trim());
     }
 }

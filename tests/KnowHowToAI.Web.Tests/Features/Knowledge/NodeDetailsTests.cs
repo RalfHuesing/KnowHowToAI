@@ -99,8 +99,8 @@ public sealed class NodeDetailsTests : BunitContext
         var freshness = cut.Find("[data-testid='node-details-freshness']");
         Assert.Equal("Aktuell", freshness.TextContent.Trim());
 
-        var nodeId = cut.Find("[data-testid='node-details-node-id']");
-        Assert.Contains(vm.NodeId.ToString(), nodeId.TextContent);
+        Assert.Empty(cut.FindAll("[data-testid='node-details-node-id']"));
+        Assert.DoesNotContain(vm.NodeId.ToString(), cut.Find("[data-testid='node-details']").TextContent);
     }
 
     [Fact]
@@ -201,7 +201,8 @@ public sealed class NodeDetailsTests : BunitContext
             Guid.NewGuid(),
             "Architect",
             Guid.NewGuid(),
-            "Stale");
+            "Stale",
+            "Quellknoten mit Titel");
 
         var vm = MakeViewModel(contentMode: "Derived") with
         {
@@ -215,8 +216,11 @@ public sealed class NodeDetailsTests : BunitContext
 
         var items = cut.FindAll("[data-testid='node-provenance-item']");
         Assert.Single(items);
+        Assert.Contains("Quellknoten mit Titel", items[0].TextContent);
         Assert.Contains("Architect", items[0].TextContent);
         Assert.Equal("Quelle: Veraltet", cut.Find("[data-testid='node-provenance-freshness']").TextContent.Trim());
+        Assert.DoesNotContain(sourceRev.SourceNodeId.ToString(), items[0].TextContent);
+        Assert.DoesNotContain(sourceRev.SourceNodeId.ToString("N")[..8], items[0].TextContent);
     }
 
     [Fact]

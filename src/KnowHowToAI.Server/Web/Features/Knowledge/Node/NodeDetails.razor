@@ -164,10 +164,6 @@ else if (ViewModel is not null)
                     <dt>Position</dt>
                     <dd data-testid="node-details-sort-order">@ViewModel.SortOrder</dd>
                 </div>
-                <div class="node-meta-item">
-                    <dt>Node-ID</dt>
-                    <dd class="node-meta-id" data-testid="node-details-node-id">@ViewModel.NodeId</dd>
-                </div>
             </dl>
 
         </details>
@@ -181,7 +177,7 @@ else if (ViewModel is not null)
                     {
                         <li class="node-provenance-item" data-testid="node-provenance-item">
                             <span class="node-provenance-source">
-                                Knoten <code>@revision.SourceNodeId.ToString("N")[..8]…</code>,
+                                Knoten <strong>@revision.SourceNodeTitle</strong>,
                                 Zielgruppe <strong>@revision.SourceAudienceId</strong>,
                                 Revision <code>@revision.SourceContentRevisionId.ToString("N")[..8]…</code>
                                 <span class="node-meta-badge node-meta-badge--@revision.Freshness.ToLowerInvariant()" data-testid="node-provenance-freshness">

@@ -140,6 +140,7 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(page.GetByTestId("node-details-section")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("node-details-requested-audience")).ToHaveTextAsync("Default");
+        await AssertNodeIdentifierIsNotReadableTextAsync(page);
 
         await page.ReloadAsync(new PageReloadOptions
         {
@@ -150,5 +151,16 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true })).ToBeVisibleAsync();
+        await AssertNodeIdentifierIsNotReadableTextAsync(page);
+    }
+
+    private static async Task AssertNodeIdentifierIsNotReadableTextAsync(IPage page)
+    {
+        var match = Regex.Match(page.Url, @"/knowledge/(?<nodeId>[0-9a-fA-F-]+)");
+        Assert.True(match.Success, "Die unveränderte Node-Route muss eine Node-ID enthalten.");
+        var nodeId = Guid.Parse(match.Groups["nodeId"].Value);
+        var readableText = await page.Locator("body").InnerTextAsync();
+        Assert.DoesNotContain(nodeId.ToString(), readableText, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(nodeId.ToString("N")[..8], readableText, StringComparison.OrdinalIgnoreCase);
     }
 }

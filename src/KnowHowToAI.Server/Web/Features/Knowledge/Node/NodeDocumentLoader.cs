@@ -26,10 +26,57 @@ internal static class NodeDocumentLoader
                 : NodeDocumentLoadResult.Failed(result.Error.Message);
         }
 
+        var viewModel = KnowledgeNavigationMapper.ToNodeDetailsViewModel(result.Value, request.Read.ChangeVersion);
+        if (viewModel is not null && viewModel.SourceRevisions.Count > 0)
+        {
+            var sources = await ResolveSourceNodeTitlesAsync(
+                navigationService,
+                request.Read.ReadContext,
+                viewModel.SourceRevisions);
+            viewModel = viewModel with { SourceRevisions = sources };
+        }
+
         return new NodeDocumentLoadResult(
-            KnowledgeNavigationMapper.ToNodeDetailsViewModel(result.Value, request.Read.ChangeVersion),
+            viewModel,
             IsNotFound: false,
             ErrorMessage: null);
+    }
+
+    private static async Task<IReadOnlyList<SourceRevisionViewModel>> ResolveSourceNodeTitlesAsync(
+        NavigationService navigationService,
+        ReadContext readContext,
+        IReadOnlyList<SourceRevisionViewModel> sourceRevisions)
+    {
+        var titles = new Dictionary<(Guid NodeId, string AudienceId), string>();
+        foreach (var source in sourceRevisions)
+        {
+            var key = (source.SourceNodeId, source.SourceAudienceId);
+            if (titles.ContainsKey(key))
+                continue;
+
+            try
+            {
+                var result = await navigationService.GetNodeAsync(
+                    new NodeId(source.SourceNodeId),
+                    readContext,
+                    new AudienceId(source.SourceAudienceId),
+                    CancellationToken.None);
+                titles[key] = result.IsSuccess && result.Value?.Node is { } node
+                    ? node.Title
+                    : "Quellknoten nicht verfügbar";
+            }
+            catch (Exception)
+            {
+                titles[key] = "Quellknoten nicht verfügbar";
+            }
+        }
+
+        return sourceRevisions
+            .Select(source => source with
+            {
+                SourceNodeTitle = titles[(source.SourceNodeId, source.SourceAudienceId)]
+            })
+            .ToArray();
     }
 }
 

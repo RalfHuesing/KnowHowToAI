@@ -8,8 +8,10 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
 /// <param name="SourceAudienceId">Zielgruppe des Quell-Contents.</param>
 /// <param name="SourceContentRevisionId">Revisions-ID des Quell-Contents zum Zeitpunkt der Abhängigkeit.</param>
 /// <param name="Freshness">Aktueller Freshness-Vergleich für die gespeicherte Quellrevision.</param>
+/// <param name="SourceNodeTitle">Lesbarer Quellknotentitel oder ein Hinweis, wenn der Knoten nicht verfügbar ist.</param>
 public sealed record SourceRevisionViewModel(
     Guid SourceNodeId,
     string SourceAudienceId,
     Guid SourceContentRevisionId,
-    string Freshness);
+    string Freshness,
+    string SourceNodeTitle = "Quellknoten nicht verfügbar");

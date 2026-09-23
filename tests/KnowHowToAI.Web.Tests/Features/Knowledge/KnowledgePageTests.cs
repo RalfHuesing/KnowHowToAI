@@ -13,6 +13,7 @@ using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
@@ -76,8 +77,9 @@ public sealed class KnowledgePageTests : BunitContext
         Assert.Single(cut.FindAll("h1"));
         Assert.Empty(cut.FindAll("[data-testid='node-details-title']"));
         Assert.NotNull(cut.Find("[data-testid='node-details-section']"));
-        var selectedIdElement = cut.Find("[data-testid='node-details-node-id']");
-        Assert.Contains(deepNodeId.Value.ToString(), selectedIdElement.TextContent);
+        Assert.Empty(cut.FindAll("[data-testid='node-details-node-id']"));
+        Assert.NotNull(cut.Find($"[data-nodeid='{deepNodeId.Value:D}']"));
+        Assert.Equal(deepNodeId.Value, cut.FindComponent<NodeDetails>().Instance.ViewModel?.NodeId);
 
         // Der direkte Deep-Link lädt und markiert den gesamten sichtbaren Ancestor-Pfad.
         var breadcrumbCurrent = cut.Find("[aria-current='page']");

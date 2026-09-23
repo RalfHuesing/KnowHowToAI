@@ -59,7 +59,13 @@ bestehen.
 Die Weboberfläche besitzt keinen Markdown-Download-Endpunkt. Markdown-Export
 bleibt über den MCP-Exportvertrag verfügbar. Das lesende Knotendokument zeigt
 Inhalt und Fallback-/Freshness-Informationen; Änderungen erfolgen ausdrücklich
-im Draft-Kontext.
+im Draft-Kontext. Node-Kennungen erscheinen nicht als lesbarer Dokumenttext;
+die bestehende Node-URL und interne Kennungen für Routing und Zuordnung bleiben
+erhalten. Bei Derived Content bezeichnet die Herkunft den Quellknoten mit seinem
+Titel aus demselben ReadContext. Ist dieser dort nicht verfügbar oder schlägt die
+optionale Titelabfrage fehl, zeigt die Oberfläche „Quellknoten nicht verfügbar“;
+das Hauptdokument bleibt lesbar. Zielgruppe und Aktualität bleiben in der
+Dokumentansicht sichtbar.
 
 ## Verbindliche UI-Nachweise
 
