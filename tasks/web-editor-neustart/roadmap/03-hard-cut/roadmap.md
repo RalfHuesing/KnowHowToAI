@@ -8,7 +8,7 @@ Ist-Dokumentation beschreibt danach die tatsächlich gebaute Oberfläche.
 
 ## Reihenfolge
 
-- [ ] [M3.1-T1 – Alte Web-Flächen und Export entfernen](tasks/M3.1-T1.md)
+- [x] [M3.1-T1 – Alte Web-Flächen und Export entfernen](tasks/M3.1-T1.md)
 - [ ] [M3.2-T1 – Routeübergreifende Browser-Abnahme und Ist-Doku](tasks/M3.2-T1.md)
 
 ## Milestone-Abnahme
