@@ -147,8 +147,8 @@ bleibt nicht als Übergabe zurück.
 
 ## Audit
 
-- [ ] Ein begrenzter, lesender Audit prüft nach P1–P4 und dem menschlichen
-  Gate das Ergebnis gegen [Konzept](Konzept.md), Diff, Invarianten,
+- [ ] Ein begrenzter, lesender Audit prüft nach P1–P4 das Ergebnis gegen
+  [Konzept](Konzept.md), Diff, Invarianten,
   Layout-Guardrails, Dokumentation und Nachweise. Befunde werden auf
   konkrete Konzeptverstöße begrenzt. Höchstens eine gezielte
   Korrekturrunde; danach Entscheidung über Abnahme oder neue Planung.
