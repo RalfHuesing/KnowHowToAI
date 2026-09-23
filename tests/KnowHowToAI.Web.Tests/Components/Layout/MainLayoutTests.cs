@@ -110,7 +110,7 @@ public sealed class MainLayoutTests : ShellTestContext
         var link = cut.Find("a[data-testid='active-draft-link']");
 
         Assert.Equal($"/drafts/{transactionId.Value:D}", link.GetAttribute("href"));
-        Assert.Equal("Aktiven Entwurf öffnen", link.TextContent.Trim());
+        Assert.Equal("Entwurf öffnen", link.TextContent.Trim());
     }
 
     [Fact]

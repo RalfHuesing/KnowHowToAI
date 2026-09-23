@@ -43,7 +43,7 @@ Navigation als Drawer/Overlay.
 
 Ausgangspunkt ist jeweils der Grundzustand von `/knowledge?audienceId=Default`
 nach Auswahl der verfügbaren Zielgruppe. Die Weiterleitung von `/` nach
-`/knowledge` wird separat durch `DashboardSmokeTests` belegt.
+`/knowledge` wird separat durch `KnowledgeRedirectSmokeTests` belegt.
 
 1. Tab – der Skip-Link „Zum Hauptinhalt springen“ erhält den Fokus und wird
    sichtbar; der Fokusring bleibt während der gesamten Folge sichtbar.

@@ -1,4 +1,5 @@
 using KnowHowToAI.BrowserTests.TestSupport;
+using ModelContextProtocol.Client;
 using Microsoft.Playwright;
 using System.Text.RegularExpressions;
 
@@ -21,6 +22,125 @@ public sealed class KnowledgeTreeMoveSmokeTests
     [InlineData("After", 0.875)]
     public Task KnowledgeTree_DragAndDrop_PersistsTheConfirmedWorkingTree(string position, double relativeY) =>
         RunMoveAsync(position, relativeY);
+
+    [Fact]
+    public async Task KnowledgeTree_StaleSnapshotDropShowsServerRejectionAndRestoresConfirmedTree()
+    {
+        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
+        await using var browser = await ChromeBrowser.LaunchAsync();
+        await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+        });
+
+        string? externalNodeId = null;
+        try
+        {
+            await page.GotoAsync($"{_host.Address}/knowledge?audienceId=Default", new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded
+            });
+            await CircuitProbe.WaitForInteractivityAsync(page);
+            var root = page.GetByRole(AriaRole.Treeitem).First;
+            var rootId = await root.GetAttributeAsync("data-nodeid")
+                ?? throw new InvalidOperationException("Der Root-Node fehlt.");
+            await root.Locator("button.tree-toggle-btn").ClickAsync();
+            await Assertions.Expect(page.Locator("div[role='treeitem'][aria-level='2']").First).ToBeVisibleAsync();
+            var originalChildren = await ReadVisibleSiblingTitlesAsync(page);
+
+            var externalTitle = $"Browser-Parallel-{Guid.NewGuid():N}";
+            externalNodeId = await CommitExternalChildAsync(rootId, externalTitle);
+            await MoveVisibleSiblingAsync(page, sourceIndex: 0, targetIndex: 1, "After", 0.875);
+
+            var error = page.GetByTestId("tree-move-error");
+            await Assertions.Expect(error).ToBeVisibleAsync();
+            Assert.False(string.IsNullOrWhiteSpace(await error.InnerTextAsync()));
+            await Assertions.Expect(page.GetByTestId("active-draft-link")).ToHaveCountAsync(0);
+            root = page.GetByRole(AriaRole.Treeitem).First;
+            if (await root.GetAttributeAsync("aria-expanded") != "true")
+                await root.Locator("button.tree-toggle-btn").ClickAsync();
+            await Assertions.Expect(page.Locator("div[role='treeitem'][aria-level='2']").First).ToBeVisibleAsync();
+            var restoredChildren = await ReadVisibleSiblingTitlesAsync(page);
+            Assert.Contains(externalTitle, restoredChildren);
+            Assert.Equal(originalChildren, restoredChildren.Where(title => title != externalTitle));
+
+            await page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+            await CircuitProbe.WaitForInteractivityAsync(page);
+            root = page.GetByRole(AriaRole.Treeitem).First;
+            await root.Locator("button.tree-toggle-btn").ClickAsync();
+            await Assertions.Expect(page.GetByRole(AriaRole.Treeitem, new() { Name = externalTitle })).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("active-draft-link")).ToHaveCountAsync(0);
+        }
+        finally
+        {
+            if (externalNodeId is not null)
+                await DeleteCommittedNodeAsync(externalNodeId);
+        }
+    }
+
+    private async Task<string> CommitExternalChildAsync(string parentNodeId, string title)
+    {
+        await using var client = await McpClient.CreateAsync(new HttpClientTransport(
+            new HttpClientTransportOptions
+            {
+                Endpoint = new Uri($"{_host.Address}/mcp"),
+                TransportMode = HttpTransportMode.StreamableHttp
+            }));
+        var begin = await BrowserMcpAssertions.CallAsync(client, "begin_transaction", new Dictionary<string, object?>
+        {
+            ["purpose"] = "Parallele Änderung für den verworfenen Browser-Drop",
+            ["client"] = "KnowHowToAI.BrowserTests"
+        });
+        var transactionId = BrowserMcpAssertions.RequiredString(begin, "transactionId");
+        try
+        {
+            var created = await BrowserMcpAssertions.CallAsync(client, "create_node", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId,
+                ["parentNodeId"] = parentNodeId,
+                ["title"] = title
+            });
+            var nodeId = BrowserMcpAssertions.RequiredString(created, "nodeId");
+            await BrowserMcpAssertions.CallAsync(client, "commit_transaction", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId
+            });
+            return nodeId;
+        }
+        catch
+        {
+            await client.CallToolAsync("discard_transaction", new Dictionary<string, object?>
+            {
+                ["transactionId"] = transactionId
+            });
+            throw;
+        }
+    }
+
+    private async Task DeleteCommittedNodeAsync(string nodeId)
+    {
+        await using var client = await McpClient.CreateAsync(new HttpClientTransport(
+            new HttpClientTransportOptions
+            {
+                Endpoint = new Uri($"{_host.Address}/mcp"),
+                TransportMode = HttpTransportMode.StreamableHttp
+            }));
+        var begin = await BrowserMcpAssertions.CallAsync(client, "begin_transaction", new Dictionary<string, object?>
+        {
+            ["purpose"] = "Browser-Testbereinigung nach verworfenem Drop",
+            ["client"] = "KnowHowToAI.BrowserTests"
+        });
+        var transactionId = BrowserMcpAssertions.RequiredString(begin, "transactionId");
+        await BrowserMcpAssertions.CallAsync(client, "delete_node", new Dictionary<string, object?>
+        {
+            ["transactionId"] = transactionId,
+            ["nodeId"] = nodeId
+        });
+        await BrowserMcpAssertions.CallAsync(client, "commit_transaction", new Dictionary<string, object?>
+        {
+            ["transactionId"] = transactionId
+        });
+    }
 
     private async Task RunMoveAsync(string position, double relativeY)
     {

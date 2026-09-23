@@ -11,6 +11,7 @@ public sealed class UiAuditScreenshotTests
 {
     private const string EnabledVariable = "KNOWHOWTOAI_UI_AUDIT_ENABLED";
     private const string OutputVariable = "KNOWHOWTOAI_UI_AUDIT_OUTPUT_DIR";
+    private static readonly int[] ReviewWidths = [1280, 1024, 640, 320];
 
     [Fact]
     public async Task CaptureUiAuditScreenshotsOnDemand()
@@ -49,11 +50,13 @@ public sealed class UiAuditScreenshotTests
         await child.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
         await CaptureAsync(page, "04_knowledge_node-detail", output, captures);
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "04_knowledge_node-detail", output, captures, width, 720);
 
         await GotoAsync(page, host.Address, "/knowledge?audienceId=BrowserFallbackAudience");
         var fallbackRoot = page.GetByRole(AriaRole.Treeitem).First;
         await fallbackRoot.Locator("button.tree-toggle-btn").ClickAsync();
-        var fallbackNode = page.Locator(".tree-node-title").Filter(new LocatorFilterOptions { HasText = BrowserKnowledgeSeed.FallbackNodeTitle });
+        var fallbackNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
         await Assertions.Expect(fallbackNode).ToBeVisibleAsync();
         await fallbackNode.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details-availability")).ToContainTextAsync("Fallback");
@@ -70,6 +73,8 @@ public sealed class UiAuditScreenshotTests
             await Assertions.Expect(page.GetByTestId("transaction-diff")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("transaction-validation")).ToBeVisibleAsync();
             await CaptureAsync(page, "07_draft_detail", output, captures);
+            foreach (var width in ReviewWidths)
+                await CaptureAsync(page, "07_draft_detail", output, captures, width, 720);
         }
         finally
         {
@@ -107,12 +112,19 @@ public sealed class UiAuditScreenshotTests
         await CircuitProbe.WaitForInteractivityAsync(page);
     }
 
-    private static async Task CaptureAsync(IPage page, string scenario, string output, List<CaptureRecord> captures)
+    private static async Task CaptureAsync(
+        IPage page,
+        string scenario,
+        string output,
+        List<CaptureRecord> captures,
+        int width = 1280,
+        int height = 800)
     {
+        await page.SetViewportSizeAsync(width, height);
         await page.EvaluateAsync("() => document.fonts.ready");
-        var fileName = $"{scenario}_desktop_1280x800.png";
+        var fileName = $"{scenario}_{width}x{height}.png";
         await page.ScreenshotAsync(new PageScreenshotOptions { Path = Path.Combine(output, fileName), FullPage = false });
-        captures.Add(new CaptureRecord(fileName, scenario, page.Url, "desktop", DateTimeOffset.UtcNow));
+        captures.Add(new CaptureRecord(fileName, scenario, page.Url, $"{width}x{height}", DateTimeOffset.UtcNow));
     }
 
     private sealed record CaptureRecord(string FileName, string Scenario, string Route, string Viewport, DateTimeOffset CapturedAtUtc);

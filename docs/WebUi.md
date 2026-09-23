@@ -23,11 +23,11 @@ Gemeinsam verwendete Draft-Komponenten liegen unter
 
 | Route | Verhalten | Nachweis |
 |---|---|---|
-| `/` | Ersetzt die URL durch `/knowledge`. | [`KnowledgeRedirect.razor`](../src/KnowHowToAI.Server/Web/Components/Navigation/KnowledgeRedirect.razor) |
-| `/knowledge` | Liest den Current Snapshot oder bei `transactionId` den offenen Entwurf. `audienceId` wählt die Perspektive; fehlt eine gültige Auswahl bei vorhandenen Zielgruppen, fordert ein Dialog zur Auswahl auf. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor), [`KnowledgeTreeSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeTreeSmokeTests.cs) |
-| `/knowledge/{NodeId:guid}` | Wie `/knowledge`, zusätzlich direkte Knotenauswahl und Wiederherstellung des Pfades. | [`KnowledgeTreeMoveSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Transactions/KnowledgeTreeMoveSmokeTests.cs) |
+| `/` | Ersetzt die URL durch `/knowledge`. | [`KnowledgeRedirect.razor`](../src/KnowHowToAI.Server/Web/Components/Navigation/KnowledgeRedirect.razor), [`KnowledgeRedirectSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeRedirectSmokeTests.cs) |
+| `/knowledge` | Liest den Current Snapshot oder bei `transactionId` den offenen Entwurf. `audienceId` wählt die Perspektive; fehlt eine gültige Auswahl bei vorhandenen Zielgruppen, fordert ein Dialog zur Auswahl auf. | [`KnowledgePage.razor`](../src/KnowHowToAI.Server/Web/Features/Knowledge/KnowledgePage.razor), [`KnowledgeTreeSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeTreeSmokeTests.cs), [`RootNodeInitializationSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Transactions/RootNodeInitializationSmokeTests.cs) |
+| `/knowledge/{NodeId:guid}` | Wie `/knowledge`, zusätzlich direkte Knotenauswahl und Wiederherstellung des Pfades nach Direktaufruf und Reload. | [`KnowledgeTreeSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/ReadOnly/KnowledgeTreeSmokeTests.cs), [`KnowledgeDirectEditingSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Transactions/KnowledgeDirectEditingSmokeTests.cs), [`KnowledgeTreeMoveSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Transactions/KnowledgeTreeMoveSmokeTests.cs) |
 | `/drafts` | Listet offene Entwürfe und ermöglicht den Einstieg in den Arbeitskontext. | [`DraftPage.razor`](../src/KnowHowToAI.Server/Web/Features/Drafts/DraftPage.razor), [`DraftWorkflowSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Drafts/DraftWorkflowSmokeTests.cs) |
-| `/drafts/{TransactionId:guid}` | Prüft einen Entwurf; offene Entwürfe bieten Diff, Validierung, Commit und Discard. Abgeschlossene Entwürfe sind schreibgeschützt. | [`DraftLifecycleTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Drafts/DraftLifecycleTests.cs) |
+| `/drafts/{TransactionId:guid}` | Prüft einen Entwurf; offene Entwürfe bieten Diff, Validierung, Commit und Discard. Abgeschlossene Entwürfe sind schreibgeschützt. | [`DraftWorkflowSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Drafts/DraftWorkflowSmokeTests.cs), [`SnapshotConflictSmokeTests.cs`](../tests/KnowHowToAI.BrowserTests/Transactions/SnapshotConflictSmokeTests.cs), [`DraftLifecycleTests.cs`](../tests/KnowHowToAI.Web.Tests/Features/Drafts/DraftLifecycleTests.cs) |
 
 Alte URLs wie `/dashboard`, `/search`, `/history`, `/audiences` und
 `/transactions[/...]` werden nicht mehr als UI-Seiten angeboten und liefern
@@ -64,7 +64,12 @@ im Draft-Kontext.
 ## Verbindliche UI-Nachweise
 
 Die Routengrenze und MCP-/Asset-Erreichbarkeit stehen in den Hosttests. Die
-verbleibenden Web-Komponenten werden durch FastTests und Browser-Smokes geprüft;
-HTML-Semantik, responsive Reflow und Layoutgrenzen folgen den
+verbleibenden Web-Komponenten werden durch FastTests und Browser-Smokes geprüft.
+`LayoutShellSmokeTests`, `PageFrameSmokeTests` und `ResponsiveShellSmokeTests`
+belegen die gemeinsamen Landmarken, Seiten-Innenkanten, Skip-Link-/Fokusverträge
+und Reflow bei den vereinbarten CSS-Breiten. Die manuelle Abnahme ergänzt echten
+Chrome-Zoom und menschliche Sichtprüfung der Fokuswahrnehmung; diese Punkte
+werden nicht durch automatisierte Browser-Smokes behauptet. HTML-Semantik,
+responsive Reflow und Layoutgrenzen folgen den
 [Web-UI-Guardrails](../.agents/rules/WebUiHtmlCss.mdc) und der
 [manuellen UI-Abnahme](Manuelle-UI-Abnahme.md).

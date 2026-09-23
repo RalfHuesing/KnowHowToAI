@@ -176,20 +176,72 @@ public sealed class PageFrameSmokeTests
             ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
         });
 
-        await GotoAsync(page, "/knowledge?audienceId=Default");
-        var rootItem = page.GetByRole(AriaRole.Treeitem).First;
-        await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
-        var childItem = page.Locator("div[role='treeitem'][aria-level='2']").First;
-        await Assertions.Expect(childItem).ToBeVisibleAsync();
-        await childItem.Locator(".tree-node-title").ClickAsync();
-        await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
-        await AssertPageContractAsync(
-            page,
-            page.GetByTestId("knowledge-page"),
-            new RouteSpec("Wissensbasis ausgewählter Node", "/knowledge/{NodeId:guid}", "knowledge-page", "knowledge-page"),
-            1280);
-        await Assertions.Expect(page.GetByTestId("knowledge-page").Locator("h1")).ToContainTextAsync("Browser-");
+        foreach (var viewport in new[] { 1280, 1024, 640, 320 })
+        {
+            await page.SetViewportSizeAsync(viewport, 720);
+            await GotoAsync(page, "/knowledge?audienceId=Default");
+            var rootItem = page.GetByRole(AriaRole.Treeitem).First;
+            await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
+            var childItem = page.Locator("div[role='treeitem'][aria-level='2']").First;
+            await Assertions.Expect(childItem).ToBeVisibleAsync();
+            await childItem.Locator(".tree-node-title").ClickAsync();
+            await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
+            await AssertPageContractAsync(
+                page,
+                page.GetByTestId("knowledge-page"),
+                new RouteSpec("Wissensbasis ausgewählter Node", "/knowledge/{NodeId:guid}", "knowledge-page", "knowledge-page"),
+                viewport);
+            await Assertions.Expect(page.GetByTestId("knowledge-page").Locator("h1")).ToContainTextAsync("Browser-");
+        }
 
+    }
+
+    [Fact]
+    public async Task OpenDraftDetailKeepsSharedPageContractAndActionsReachableAtEveryWidth()
+    {
+        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
+        var transactionId = await BrowserMcpAssertions.BeginTransactionAsync(_host.Address, "Browser Frame Draft");
+        try
+        {
+            await using var browser = await ChromeBrowser.LaunchAsync();
+            await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
+            {
+                ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+            });
+
+            foreach (var viewport in new[] { 1280, 1024, 640, 320 })
+            {
+                await page.SetViewportSizeAsync(viewport, 720);
+                var route = $"/drafts/{transactionId:D}";
+                await GotoAsync(page, route);
+                var frame = page.GetByTestId("draft-page");
+                await Assertions.Expect(frame).ToBeVisibleAsync();
+                await Assertions.Expect(page.GetByTestId("active-draft-link")).ToHaveTextAsync("Entwurf öffnen");
+                await Assertions.Expect(page.GetByTestId("transaction-diff")).ToBeVisibleAsync();
+                await Assertions.Expect(page.GetByTestId("transaction-validation")).ToBeVisibleAsync();
+                await AssertPageContractAsync(
+                    page,
+                    frame,
+                    new RouteSpec("Offener Entwurf", route, "draft-page", "draft-page"),
+                    viewport);
+
+                foreach (var testId in new[] { "commit-transaction-button", "discard-transaction-button" })
+                {
+                    var action = page.GetByTestId(testId);
+                    await Assertions.Expect(action).ToBeVisibleAsync();
+                    await action.ScrollIntoViewIfNeededAsync();
+                    var actionBox = await action.BoundingBoxAsync()
+                        ?? throw new InvalidOperationException($"{testId} besitzt bei {viewport} keine Begrenzungsbox.");
+                    Assert.True(
+                        actionBox.X >= 0 && actionBox.X + actionBox.Width <= viewport,
+                        $"{testId} liegt bei {viewport} außerhalb der erreichbaren Seitenbreite.");
+                }
+            }
+        }
+        finally
+        {
+            await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId);
+        }
     }
 
     private static async Task AssertPageContractAsync(

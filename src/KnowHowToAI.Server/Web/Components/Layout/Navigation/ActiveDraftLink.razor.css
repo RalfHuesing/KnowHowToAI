@@ -11,13 +11,3 @@
 .active-draft-link:hover {
     background-color: var(--ktai-color-info-background);
 }
-
-@media (max-width: 479px) {
-    .active-draft-link {
-        max-width: 8.5rem;
-        padding-inline: var(--ktai-space-2);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-}

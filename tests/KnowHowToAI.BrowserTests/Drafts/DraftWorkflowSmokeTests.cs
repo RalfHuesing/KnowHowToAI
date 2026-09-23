@@ -33,6 +33,8 @@ public sealed class DraftWorkflowSmokeTests
             await Assertions.Expect(page.GetByTestId("draft-review")).ToBeVisibleAsync(new() { Timeout = 15_000 });
             await Assertions.Expect(page.GetByTestId("transaction-diff")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("validate-transaction-button")).ToBeVisibleAsync();
+            await page.GetByTestId("validate-transaction-button").ClickAsync();
+            await Assertions.Expect(page.GetByTestId("validation-valid")).ToBeVisibleAsync(new() { Timeout = 15_000 });
             var selectedDraftLink = page.GetByTestId("active-draft-link");
             await Assertions.Expect(selectedDraftLink).ToBeVisibleAsync();
             await Assertions.Expect(selectedDraftLink).ToHaveAttributeAsync("href", $"/drafts/{draftId:D}");

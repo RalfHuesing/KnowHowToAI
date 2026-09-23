@@ -4,6 +4,6 @@
 @if (WorkspaceState.ActiveTransactionId is { } transactionId)
 {
     <a class="active-draft-link" href="@($"/drafts/{transactionId.Value:D}")" data-testid="active-draft-link">
-        Aktiven Entwurf öffnen
+        Entwurf öffnen
     </a>
 }
