@@ -178,4 +178,3 @@ public sealed class KnowledgeDirectEditingSmokeTests
         await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
     }
 }
-

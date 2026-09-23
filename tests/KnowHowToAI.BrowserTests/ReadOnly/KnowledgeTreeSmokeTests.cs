@@ -152,4 +152,3 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true })).ToBeVisibleAsync();
     }
 }
-

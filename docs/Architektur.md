@@ -438,7 +438,3 @@ V1 benötigt dadurch keine Mandantenverwaltung innerhalb einer Instanz. Ein
 zentral betriebener SQL Server mit mehreren Serverprozessen mehrerer Nutzer ist
 der vorgesehene Betriebsmodus. Da eine Serverinstanz genau eine Datenbank bedient,
 erhält jede Wissensbasis ihre eigenen Policies über die App-Konfiguration.
-
-
-
-

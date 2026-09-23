@@ -187,4 +187,3 @@ Dokumentation in einer eigenen Transaction mit neuen Source-Revisions
 ([Intention](Intention.md)). Ein normaler Commit oder Release darf stale Derived
 Content enthalten; harte Release-Policies existieren in V1 bewusst nicht
 ([Entscheidungen](Entscheidungen.md)).
-

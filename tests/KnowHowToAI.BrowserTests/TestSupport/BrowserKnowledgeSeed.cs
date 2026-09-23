@@ -471,4 +471,3 @@ internal static class BrowserKnowledgeSeed
         && long.TryParse(raw.GetString(), out value);
     }
 }
-

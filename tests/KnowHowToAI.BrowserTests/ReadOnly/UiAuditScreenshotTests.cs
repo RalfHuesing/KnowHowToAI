@@ -117,5 +117,3 @@ public sealed class UiAuditScreenshotTests
 
     private sealed record CaptureRecord(string FileName, string Scenario, string Route, string Viewport, DateTimeOffset CapturedAtUtc);
 }
-
-
