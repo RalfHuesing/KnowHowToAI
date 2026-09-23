@@ -192,6 +192,8 @@ public sealed partial class KnowledgePage : IDisposable
         await _treeInitializationGate.WaitAsync();
         try
         {
+            var previousReadContextKind = WorkspaceState.CurrentContext.ReadContext;
+            var previousAudienceId = WorkspaceState.CurrentAudienceId;
             changeVersion = KnowledgePageChangeVersion.Resolve(
                 readContext,
                 WorkspaceState.ActiveTransactionId,
@@ -209,7 +211,15 @@ public sealed partial class KnowledgePage : IDisposable
             WorkspaceState.SetAudience(audienceId);
 
             if (!TreeWorkspace.HasContext(readContext, audienceId))
-                await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
+            {
+                var currentToDraft = previousReadContextKind == KnowledgeReadContextKind.Current
+                    && currentContext.ReadContext == KnowledgeReadContextKind.Transaction
+                    && previousAudienceId == audienceId;
+                if (currentToDraft)
+                    await TreeWorkspace.RefreshAsync(readContext, audienceId, CancellationToken.None);
+                else
+                    await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
+            }
 
             if (NodeId.HasValue)
             {
@@ -270,7 +280,7 @@ public sealed partial class KnowledgePage : IDisposable
 
             var nodeId = NodeId ?? mutation.Node.NodeId.Value;
             var readContext = WorkspaceState.CurrentReadContext;
-            await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
+            await TreeWorkspace.RefreshAsync(readContext, audienceId, CancellationToken.None);
             await TreeWorkspace.SelectNodeAsync(nodeId, CancellationToken.None);
             WorkspaceState.SetNode(nodeId);
             NavigateToSelection(nodeId);

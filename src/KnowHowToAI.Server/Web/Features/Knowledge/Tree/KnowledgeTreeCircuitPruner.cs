@@ -27,7 +27,7 @@ internal static class KnowledgeTreeCircuitPruner
             if (context.KnownNodes.Remove(nodeId, out var removedNode))
             {
                 removedNode.Children = Array.Empty<KnowledgeTreeNodeViewModel>();
-                removedNode.IsExpanded = false;
+                removedNode.IsChildrenPageLoaded = false;
                 removedNode.IsSelected = false;
             }
 

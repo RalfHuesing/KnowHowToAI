@@ -28,6 +28,8 @@ public sealed record KnowledgeTreeNodeViewModel
 
     public bool IsExpanded { get; internal set; }
 
+    internal bool IsChildrenPageLoaded { get; set; }
+
     public bool IsLoading { get; internal set; }
 
     public bool IsSelected { get; internal set; }
@@ -72,6 +74,7 @@ public sealed record KnowledgeTreeNodeViewModel
             Depth = 0,
             ChildCount = childCount,
             IsExpanded = false,
+            IsChildrenPageLoaded = false,
             IsLoading = false,
             IsSelected = false
         };
@@ -90,6 +93,7 @@ public sealed record KnowledgeTreeNodeViewModel
             Depth = depth,
             ChildCount = summary.ChildCount,
             IsExpanded = false,
+            IsChildrenPageLoaded = false,
             IsLoading = false,
             IsSelected = false
         };

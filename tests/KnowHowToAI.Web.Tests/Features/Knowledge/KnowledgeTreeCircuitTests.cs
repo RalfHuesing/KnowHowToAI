@@ -179,8 +179,8 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         // Cachegrenze bleibt strikt bei 10
         Assert.Equal(10, treeState.LoadedPageCount);
 
-        // Subtree 2 wurde geschlossen und seine Kinder entfernt (aus Index bereinigt)
-        Assert.False(subtree2Node.IsExpanded);
+        // Die Aufklappabsicht bleibt erhalten, obwohl die Kindseite aus dem Cache entfernt wurde.
+        Assert.True(subtree2Node.IsExpanded);
         Assert.Empty(subtree2Node.Children);
         Assert.Null(treeState.FindNode(subChildIds[1].Value));
 
@@ -193,7 +193,8 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         // Statusmeldung für role="status" wurde gesetzt
         Assert.NotNull(treeState.StatusMessage);
         Assert.Contains("Subtree 2", treeState.StatusMessage);
-        Assert.Contains("geschlossen", treeState.StatusMessage);
+        Assert.Contains("Zwischenspeicher", treeState.StatusMessage);
+
     }
 
     [Fact]

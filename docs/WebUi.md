@@ -68,6 +68,14 @@ ihre Browser-Fokus- und Aktivierungsfunktionen. Nach einem bestätigten Move
 bleibt die `transactionId` beim Routenwechsel erhalten, damit der aktualisierte
 Baum weiter aus demselben Entwurf gelesen wird.
 
+Die flüchtige Aufklappabsicht ist von den geladenen Kindseiten getrennt. Der
+LRU-Cache hält höchstens zehn Elternseiten; bei Verdrängung bleiben Zweige
+geöffnet und zeigen „Unterknoten laden“. Erst diese Aktion lädt genau den
+betroffenen Zweig erneut. Explizites Zuklappen entfernt seine Aufklappabsicht.
+Ein echter Kontextwechsel, Zielgruppenwechsel oder Reload startet frisch;
+Current-zu-Draft, Metadaten-Refresh und Move-Recovery behalten sie bei. Nach
+Refresh werden offene Seiten nicht gesammelt vorgeladen.
+
 ## Export- und Featuregrenze
 
 Die Weboberfläche besitzt keinen Markdown-Download-Endpunkt. Markdown-Export

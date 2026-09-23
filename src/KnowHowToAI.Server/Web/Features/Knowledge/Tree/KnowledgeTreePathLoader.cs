@@ -167,7 +167,7 @@ internal sealed class KnowledgeTreePathLoader
         KnowledgeTreeNodeViewModel parentNode,
         CancellationToken cancellationToken)
     {
-        if (parentNode.IsExpanded || !parentNode.HasChildren)
+        if (!parentNode.HasChildren || (parentNode.IsExpanded && parentNode.IsChildrenPageLoaded))
             return PathLoadResult.Success();
 
         await _callbacks.ExpandNode(parentNode.NodeId, cancellationToken).ConfigureAwait(false);

@@ -97,8 +97,11 @@ public sealed class KnowledgeTreeMoveSmokeTests
             Assert.False(string.IsNullOrWhiteSpace(await error.InnerTextAsync()));
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToHaveCountAsync(0);
             root = RootSelection(page);
-            if (await root.Locator("xpath=..").Locator("button.tree-toggle-btn").GetAttributeAsync("aria-expanded") != "true")
-                await root.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            var rootToggle = root.Locator("xpath=..").Locator("button.tree-toggle-btn");
+            await Assertions.Expect(rootToggle).ToHaveAttributeAsync("aria-expanded", "true");
+            var loadChildren = page.GetByTestId($"tree-load-children-{rootId}");
+            await Assertions.Expect(loadChildren).ToBeVisibleAsync();
+            await loadChildren.ClickAsync();
             await Assertions.Expect(RootChildren(page).First).ToBeVisibleAsync();
             var restoredChildren = await ReadVisibleSiblingTitlesAsync(page);
             Assert.Contains(externalTitle, restoredChildren);
@@ -107,7 +110,9 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
             await CircuitProbe.WaitForInteractivityAsync(page);
             root = RootSelection(page);
-            await root.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+            rootToggle = root.Locator("xpath=..").Locator("button.tree-toggle-btn");
+            await Assertions.Expect(rootToggle).ToHaveAttributeAsync("aria-expanded", "false");
+            await rootToggle.ClickAsync();
             await Assertions.Expect(page.GetByText(externalTitle, new() { Exact = true }).Locator("xpath=..")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToHaveCountAsync(0);
         }
@@ -241,6 +246,7 @@ public sealed class KnowledgeTreeMoveSmokeTests
         await WaitForMoveAsync(page, setup.Source, setup.Target, position);
         await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("tree-move-error")).ToHaveCountAsync(0);
+        await Assertions.Expect(RootSelection(page).Locator("xpath=..").Locator("button.tree-toggle-btn")).ToHaveAttributeAsync("aria-expanded", "true");
         await Assertions.Expect(page.GetByTestId($"tree-node-{setup.Source}")).ToBeVisibleAsync();
         if (position is "Before" or "After")
         {

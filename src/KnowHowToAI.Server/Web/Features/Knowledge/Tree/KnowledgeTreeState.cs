@@ -8,13 +8,14 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 /// Verwaltet Root, geladene Seiten, Auswahl, Paging, LRU-Cache-Eviction (maximal 10 Seiten)
 /// und isolierte Request-Cancellation.
 /// </summary>
-public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
+public sealed partial class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
 {
     internal const int PageLimit = 100;
 
     private readonly NavigationService _navigationService;
     private readonly KnowledgeTreePageCache _cache = new();
     private readonly Dictionary<Guid, KnowledgeTreeNodeViewModel> _knownNodes = new();
+    private readonly HashSet<Guid> _expandedNodeIds = new();
     private readonly KnowledgeTreeRequestCoordinator _requestCoordinator = new();
     private HashSet<Guid>? _activeTargetPath;
 
@@ -47,38 +48,20 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
     bool IKnowledgeTreeWorkspace.HasContext(ReadContext readContext, string audienceId) =>
         CurrentReadContext == readContext && CurrentAudienceId == audienceId;
 
-    public async Task InitializeAsync(ReadContext context, string audienceId, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentException.ThrowIfNullOrWhiteSpace(audienceId);
-        ThrowIfDisposed();
-
-        var generation = Interlocked.Increment(ref _contextGeneration);
-        _requestCoordinator.CancelAll();
-
-        CurrentReadContext = context;
-        CurrentAudienceId = audienceId;
-        SelectedNodeId = null;
-        VisualRootNodeId = null;
-        RootNode = null;
-        RootError = null;
-        StatusMessage = null;
-
-        _cache.Clear();
-        _knownNodes.Clear();
-        IsLoading = true;
-        Changed?.Invoke();
-
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_requestCoordinator.GlobalToken, cancellationToken);
-        await LoadRootAsync(context, audienceId, generation, linkedCts.Token).ConfigureAwait(false);
-    }
-
     public async Task ExpandNodeAsync(Guid nodeId, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
         var node = FindNode(nodeId);
-        if (node is null || !node.HasChildren || (node.IsExpanded && node.Children.Count > 0))
+        if (node is null || !node.HasChildren)
         {
+            return;
+        }
+
+        _expandedNodeIds.Add(nodeId);
+        node.IsExpanded = true;
+        if (node.IsChildrenPageLoaded)
+        {
+            Changed?.Invoke();
             return;
         }
 
@@ -100,6 +83,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         }
 
         _requestCoordinator.CancelRequest(nodeId);
+        _expandedNodeIds.Remove(nodeId);
         node.IsExpanded = false;
         Changed?.Invoke();
     }
@@ -215,6 +199,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         while (parentId.HasValue && _knownNodes.TryGetValue(parentId.Value, out var parentNode))
         {
             parentNode.IsExpanded = true;
+            _expandedNodeIds.Add(parentNode.NodeId);
             parentId = parentNode.ParentNodeId;
         }
     }
@@ -299,6 +284,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
             else if (result.Value?.Node is not null)
             {
                 var rootVm = KnowledgeTreeNodeViewModel.FromRoot(result.Value, childCount: 1);
+                rootVm.IsExpanded = _expandedNodeIds.Contains(rootVm.NodeId);
                 RootNode = rootVm;
                 VisualRootNodeId = rootVm.NodeId;
                 _knownNodes[rootVm.NodeId] = rootVm;
@@ -406,6 +392,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         foreach (var item in page.Items)
         {
             var childVm = KnowledgeTreeNodeViewModel.FromChildSummary(item, node.NodeId, node.Depth + 1);
+            childVm.IsExpanded = _expandedNodeIds.Contains(childVm.NodeId);
             if (childVm.NodeId == SelectedNodeId)
             {
                 childVm.IsSelected = true;
@@ -421,6 +408,7 @@ public sealed class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDisposable
         }
 
         node.Children = childViewModels;
+        node.IsChildrenPageLoaded = true;
         node.NextCursor = page.NextCursor;
         node.HasPreviousPage = _cache.HasPreviousCursor(node.NodeId);
 

@@ -149,6 +149,17 @@
             @if (node.HasChildren && node.IsExpanded)
             {
                 <ul class="tree-children-group" aria-label="@($"Unterknoten von {node.Title}")">
+                    @if (!node.IsChildrenPageLoaded)
+                    {
+                        <li class="tree-paging-row">
+                            <button type="button"
+                                    class="tree-page-btn"
+                                    data-testid="@($"tree-load-children-{node.NodeId}")"
+                                    @onclick="() => TreeWorkspace.ExpandNodeAsync(node.NodeId)">
+                                Unterknoten laden
+                            </button>
+                        </li>
+                    }
                     @if (node.HasPreviousPage)
                     {
                         <li class="tree-paging-row">

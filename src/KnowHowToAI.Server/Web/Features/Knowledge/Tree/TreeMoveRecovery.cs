@@ -44,7 +44,7 @@ public sealed class TreeMoveRecovery(
 
     private async Task ReloadWorkspaceAsync(string audienceId, CancellationToken cancellationToken)
     {
-        await _treeWorkspace.InitializeAsync(_workspaceState.CurrentReadContext, audienceId, cancellationToken).ConfigureAwait(false);
+        await _treeWorkspace.RefreshAsync(_workspaceState.CurrentReadContext, audienceId, cancellationToken).ConfigureAwait(false);
         if (_workspaceState.CurrentNodeId is { } nodeId)
             await _treeWorkspace.SelectNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
     }

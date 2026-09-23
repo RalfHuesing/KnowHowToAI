@@ -25,6 +25,8 @@ public interface IKnowledgeTreeWorkspace
 
     Task InitializeAsync(ReadContext readContext, string audienceId, CancellationToken cancellationToken = default);
 
+    Task RefreshAsync(ReadContext readContext, string audienceId, CancellationToken cancellationToken = default);
+
     Task SelectNodeAsync(Guid? nodeId, CancellationToken cancellationToken = default);
 
     Task ExpandNodeAsync(Guid nodeId, CancellationToken cancellationToken = default);

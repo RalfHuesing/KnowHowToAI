@@ -147,14 +147,14 @@ internal sealed class KnowledgeTreePageCache
             return null;
 
         node.Children = Array.Empty<KnowledgeTreeNodeViewModel>();
-        node.IsExpanded = false;
+        node.IsChildrenPageLoaded = false;
         node.NextCursor = null;
         node.HasPreviousPage = false;
 
         return new EvictionResult(
             node,
             null,
-            $"Der Teilbaum „{node.Title}“ wurde geschlossen, um die Speichergrenze einzuhalten.");
+            $"Die Unterknoten von „{node.Title}“ wurden aus dem Zwischenspeicher entfernt, um die Speichergrenze einzuhalten.");
     }
 
     private EvictionResult? EvictRootNearestPage(
@@ -177,7 +177,7 @@ internal sealed class KnowledgeTreePageCache
         RemovePage(rootNearest.NodeId);
 
         rootNearest.Children = Array.Empty<KnowledgeTreeNodeViewModel>();
-        rootNearest.IsExpanded = false;
+        rootNearest.IsChildrenPageLoaded = false;
         rootNearest.NextCursor = null;
         rootNearest.HasPreviousPage = false;
 
