@@ -2,11 +2,12 @@
 
 <div class="tab-layout">
     <div class="tab-layout__header">
-        <div class="tab-layout__navigation" role="group" aria-label="Ansichten">
+        <div class="tab-layout__navigation" role="group" aria-label="Ansichten" data-testid="node-details-tabs">
             @foreach (var tab in Tabs)
             {
                 <button type="button"
                         class="tab-layout__button"
+                        data-testid="tab-@tab.Key"
                         aria-pressed="@(tab.Key == ActiveKey ? "true" : "false")"
                         @onclick="() => SelectTabAsync(tab.Key)">
                     @tab.Label

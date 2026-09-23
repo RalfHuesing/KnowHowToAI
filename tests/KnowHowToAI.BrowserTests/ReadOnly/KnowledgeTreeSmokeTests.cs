@@ -133,7 +133,7 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToContainTextAsync(BrowserKnowledgeSeed.DeepNavigationBranchTitle);
         await Assertions.Expect(page.GetByTestId("node-details-section")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("node-details-tabs").GetByRole(AriaRole.Button)).ToHaveCountAsync(4);
-        await Assertions.Expect(page.GetByTestId("node-view-read")).ToHaveAttributeAsync("aria-pressed", "true");
+        await Assertions.Expect(page.GetByTestId("tab-Read")).ToHaveAttributeAsync("aria-pressed", "true");
         await Assertions.Expect(page.GetByTestId("node-details-requested-audience")).ToHaveTextAsync("Default");
         await AssertNodeIdentifierIsNotReadableTextAsync(page);
 
@@ -146,7 +146,7 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
         await Assertions.Expect(page.GetByTestId("node-details-tabs").GetByRole(AriaRole.Button)).ToHaveCountAsync(4);
-        await Assertions.Expect(page.GetByTestId("node-view-read")).ToHaveAttributeAsync("aria-pressed", "true");
+        await Assertions.Expect(page.GetByTestId("tab-Read")).ToHaveAttributeAsync("aria-pressed", "true");
         await AssertNodeIdentifierIsNotReadableTextAsync(page);
     }
 

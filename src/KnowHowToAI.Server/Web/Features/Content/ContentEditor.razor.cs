@@ -2,7 +2,6 @@ using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Server.Web.State;
-using KnowHowToAI.Server.Web.Workflow;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -10,7 +9,7 @@ namespace KnowHowToAI.Server.Web.Features.Content;
 
 /// <summary>
 /// Kapselt den Crepe-Editor und hält Markdown als einzige Interop-Nutzlast.
-/// Die Persistenz erfolgt ausschließlich über die explizite Speichern-Aktion.
+/// Lokale Eingaben bleiben bis zur expliziten Speichern-Aktion beim Editor.
 /// </summary>
 public sealed partial class ContentEditor : IAsyncDisposable
 {
@@ -21,13 +20,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private IJSRuntime JSRuntime { get; set; } = default!;
 
     [Inject]
-    private ContentMutationApplicationService ContentMutationService { get; set; } = default!;
-
-    [Inject]
-    private WebWriteCoordinator WebWriteCoordinator { get; set; } = default!;
-
-    [Inject]
-    private WorkspaceState WorkspaceState { get; set; } = default!;
+    private IContentWriteWorkflow ContentWriteWorkflow { get; set; } = default!;
 
     [Inject]
     private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
@@ -43,9 +36,6 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
     [Parameter]
     public bool IsReadOnly { get; set; }
-
-    [Parameter]
-    public TransactionId? TransactionId { get; set; }
 
     [Parameter]
     public long? ExpectedChangeVersion { get; set; }
@@ -271,35 +261,25 @@ public sealed partial class ContentEditor : IAsyncDisposable
             }
 
             _editorMarkdown = markdown;
-            var result = await WebWriteCoordinator.WriteAsync(
-                LoadedCurrentSnapshotId,
-                (transactionId, changeVersion, cancellationToken) =>
-                    ContentMutationService.ReplaceContentAsync(
-                        transactionId,
-                        new ReplaceContentRequest(
-                            new NodeId(NodeId),
-                            new AudienceId(AudienceId),
-                            ContentMode.Independent,
-                            markdown,
-                            [],
-                            changeVersion ?? ExpectedChangeVersion
-                                ?? throw new InvalidOperationException("Die Arbeitskopie enthält keine Änderungsversion.")),
-                        cancellationToken),
-                value => value.ChangeVersion,
-                CancellationToken.None);
+            var result = await ContentWriteWorkflow.SaveAsync(new SaveContentCommand(
+                NodeId,
+                AudienceId,
+                markdown,
+                ExpectedChangeVersion,
+                LoadedCurrentSnapshotId));
 
-            if (!result.Mutation.IsSuccess)
+            if (!result.IsSuccess)
             {
-                _errorMessage = $"[{result.Mutation.Error!.Code}] {result.Mutation.Error.Message}";
-                _warnings = result.Mutation.Warnings;
+                _errorMessage = $"[{result.Error!.Code}] {result.Error.Message}";
+                _warnings = result.Warnings;
                 return;
             }
 
-            _warnings = result.Mutation.Warnings;
+            _warnings = result.Warnings;
             WorkspaceEditState.SetDirty(false, DirtySource);
             _hasLocalEditorValue = false;
             _pasteWasReduced = false;
-            await OnMutationSucceeded.InvokeAsync(result.Mutation.Value!);
+            await OnMutationSucceeded.InvokeAsync(result.Value!);
         }
         catch (Exception exception)
         {

@@ -18,4 +18,7 @@ public sealed partial class TabPanelLayout : ComponentBase
 
     [Parameter]
     public RenderFragment? Actions { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 }

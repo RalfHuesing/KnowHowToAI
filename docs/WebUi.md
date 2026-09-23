@@ -47,13 +47,19 @@ Bei einer konkurrierenden Änderung zeigt der Draft-Review Base-/Current-Stand
 und strukturierten Diff. Ein manuelles Reapply beginnt einen neuen Entwurf; es
 kopiert keine Änderungen automatisch.
 
-Die Wissensseite zeigt bei ausgewähltem Knoten die festen Ansichten „Lesen“,
-„Titel und Beschreibung“, „Editor“ und „Technische Details“. Eine neue Node-
-oder Zielgruppenauswahl beginnt bei „Lesen“; das Seiten-`h1` bleibt in allen
-Ansichten dasselbe. Die Leseansicht zeigt gerenderten Inhalt sowie Fallback-
-und Derived-Einordnung. Metadaten und Content besitzen getrennte Formulare und
+Die Wissensseite zeigt bei ausgewähltem Knoten zuerst die native Reiterleiste
+„Lesen“, „Bearbeiten“, „Titel“ und „Technische Details“. Der Lese- oder
+Arbeitskontext steht rechts neben den Reitern. Eine neue Node- oder
+Zielgruppenauswahl beginnt bei „Lesen“; das einzige Seiten-`h1` gehört dem
+gemeinsamen `PageFrame` und bleibt in allen Ansichten dasselbe. Im Lesepanel
+stehen gerenderter Inhalt und Fallback-/Derived-Hinweise vor der getrennten
+Zielgruppenangabe. Metadaten und Content besitzen getrennte Formulare und
 Speichern-Aktionen. Technische Details enthalten Verfügbarkeit, Aktualität,
-Inhaltsmodus, Position, Revision und – bei Derived Content – Herkunft.
+Inhaltsmodus, Position, Revision und – bei Derived Content – Herkunft; die
+Angaben haben keine zusätzliche aufklappbare Überschrift.
+Im Titelpanel stehen „Abbrechen“ und „Speichern“ in der unteren rechten
+Aktionsgruppe, mit „Speichern“ am rechten Rand. Im Nur-Lese-Kontext zeigt das
+Panel Titel und Beschreibung ohne Mutationsaktionen.
 
 Metadatenformular und Inhaltseditor werden erst beim ersten Öffnen ihrer
 Ansicht montiert. Danach bleiben sie für dieselbe Node und Zielgruppe beim
@@ -64,6 +70,11 @@ fehlender eigener Content eine leere, ausdrücklich zu speichernde Fassung;
 Derived Content bleibt dort schreibgeschützt. Metadaten sind in einem
 schreibbaren Current- oder Draft-Kontext weiterhin unabhängig davon änderbar.
 Beim Wechsel von Node oder Zielgruppe greift der vorhandene Dirty-Schutz.
+Der `ContentEditor` hält Eingabe, Dirty- und Rückmeldungszustand; der explizite
+Speichervorgang übergibt Markdown und gelesene Versionsstände an
+`IContentWriteWorkflow`. `ContentWriteWorkflow` erstellt daraus die
+`ReplaceContentRequest` und führt die Mutation über den gemeinsamen
+Web-Write-Coordinator aus.
 
 `WorkspaceState` hält nur den Circuit-Zustand für ausgewählten Node,
 Zielgruppe, Current-/Draft-Kontext, geladenen Snapshot und `ChangeVersion`.

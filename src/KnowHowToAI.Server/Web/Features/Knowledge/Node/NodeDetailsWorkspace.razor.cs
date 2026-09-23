@@ -2,6 +2,7 @@ using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.Server.Web.Components.Shared.Tabs;
 using KnowHowToAI.Server.Web.Features.Content;
 using Microsoft.AspNetCore.Components;
 
@@ -23,9 +24,6 @@ public sealed partial class NodeDetailsWorkspace
     public bool NodeNotFound { get; set; }
 
     [Parameter]
-    public bool ShowTitle { get; set; } = true;
-
-    [Parameter]
     public bool IsWorking { get; set; }
 
     [Parameter]
@@ -33,9 +31,6 @@ public sealed partial class NodeDetailsWorkspace
 
     [Parameter]
     public long? ChangeVersion { get; set; }
-
-    [Parameter]
-    public TransactionId? TransactionId { get; set; }
 
     [Parameter]
     public long? LoadedCurrentSnapshotId { get; set; }
@@ -55,7 +50,16 @@ public sealed partial class NodeDetailsWorkspace
     private bool _focusEditorOnMount;
     private bool _activateEditorAfterRender;
 
-    private string ActiveViewName => _activeView.ToString();
+    private static readonly IReadOnlyList<TabDefinition> Tabs =
+    [
+        new("Read", "Lesen"),
+        new("Editor", "Bearbeiten"),
+        new("Metadata", "Titel"),
+        new("Technical", "Technische Details")
+    ];
+
+    private string ActiveViewKey => _activeView.ToString();
+    private string ActiveViewName => ActiveViewKey;
 
     private string EditorMarkdown => _createIndependentContent ? string.Empty : ViewModel?.ContentMd ?? string.Empty;
 
@@ -110,15 +114,13 @@ public sealed partial class NodeDetailsWorkspace
         _focusEditorOnMount = !_activateEditorAfterRender;
     }
 
-    private void SelectReadView() => SelectView(NodeView.Read);
+    private Task SelectTabAsync(string key)
+    {
+        if (Enum.TryParse<NodeView>(key, out var view))
+            SelectView(view);
 
-    private void SelectMetadataView() => SelectView(NodeView.Metadata);
-
-    private void SelectEditorView() => SelectView(NodeView.Editor);
-
-    private void SelectTechnicalView() => SelectView(NodeView.Technical);
-
-    private string TabClass(NodeView view) => _activeView == view ? "node-details-tab--active" : string.Empty;
+        return Task.CompletedTask;
+    }
 
     private Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult result) =>
         OnContentSaved.InvokeAsync(result.ChangeVersion);

@@ -42,7 +42,7 @@ public sealed class ContentEditorSourceSmokeTests
                 new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 30_000 });
             await CircuitProbe.WaitForInteractivityAsync(page);
 
-            await page.GetByTestId("node-view-editor").ClickAsync();
+            await page.GetByTestId("tab-Editor").ClickAsync();
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
             await editor.GetByTestId("content-editor-mode-source").ClickAsync();

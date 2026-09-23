@@ -40,7 +40,6 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Alter Inhalt")
-            .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L)
             .Add(editor => editor.OnMutationSucceeded,
                 EventCallback.Factory.Create<ContentMutationUseCaseResult>(this, value => mutation = value)));
@@ -63,7 +62,6 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Inhalt")
-            .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
         var markup = cut.Markup;
@@ -83,7 +81,6 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ungespeicherter Inhalt")
-            .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
         await cut.Instance.NotifyChangedAsync();
@@ -106,7 +103,6 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ausgangswert")
-            .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
         await cut.Instance.NotifyChangedAsync();
@@ -183,7 +179,6 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ausgangswert")
-            .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-source']").Click());
@@ -211,7 +206,6 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ausgangswert")
-            .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-source']").Click());
@@ -248,7 +242,7 @@ public sealed class ContentEditorTests : BunitContext
             writeHarness,
             workspace,
             serviceProvider.GetRequiredService<NavigationManager>()));
-        Services.AddSingleton(new ContentMutationApplicationService(
+        var mutationService = new ContentMutationApplicationService(
             repository,
             new ContentMutationService(new ContentRevisionService(new FixedIdentifierGenerator
             {
@@ -260,7 +254,11 @@ public sealed class ContentEditorTests : BunitContext
                 ChildCountWarning = 25,
                 HierarchyDepthWarning = 8,
                 PossibleEmbeddedHeadingWarning = true
-            }));
+            });
+        Services.AddSingleton(mutationService);
+        Services.AddSingleton<IContentWriteWorkflow>(serviceProvider => new ContentWriteWorkflow(
+            mutationService,
+            serviceProvider.GetRequiredService<WebWriteCoordinator>()));
         return repository;
     }
 

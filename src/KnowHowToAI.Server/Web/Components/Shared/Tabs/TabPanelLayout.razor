@@ -1,6 +1,6 @@
 @namespace KnowHowToAI.Server.Web.Components.Shared.Tabs
 
-<div class="tab-panel-layout" hidden="@(!Visible)">
+<div class="tab-panel-layout" hidden="@(!Visible)" @attributes="AdditionalAttributes">
     @if (PrimaryContent is not null)
     {
         <div class="tab-panel-layout__primary">@PrimaryContent</div>

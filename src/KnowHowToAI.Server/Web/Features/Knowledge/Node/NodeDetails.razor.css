@@ -4,56 +4,6 @@
     gap: var(--ktai-space-4);
 }
 
-/* Header */
-.node-details-header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ktai-space-2);
-    border-bottom: 1px solid var(--ktai-color-border);
-    padding-bottom: var(--ktai-space-4);
-}
-
-.node-details-title {
-    margin: 0;
-    font-size: var(--ktai-font-size-2xl);
-    font-weight: 700;
-    color: var(--ktai-color-text);
-    line-height: 1.25;
-}
-
-.node-details-heading-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ktai-space-3);
-}
-
-.node-details-context {
-    flex: 0 0 auto;
-    padding: var(--ktai-space-1) var(--ktai-space-2);
-    border-radius: var(--ktai-radius-sm);
-    font-size: var(--ktai-font-size-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.node-details-context--working {
-    background: var(--ktai-color-warning-background);
-    color: var(--ktai-color-warning);
-}
-
-.node-details-context--readonly {
-    background: var(--ktai-color-surface-subtle);
-    color: var(--ktai-color-text-secondary);
-}
-
-.node-details-description {
-    margin: 0;
-    font-size: var(--ktai-font-size-sm);
-    color: var(--ktai-color-text-secondary);
-}
-
 /* Metadata */
 .node-section-heading {
     margin: 0 0 var(--ktai-space-3) 0;
@@ -64,35 +14,15 @@
     color: var(--ktai-color-text-secondary);
 }
 
-.node-details-meta {
+.node-meta-list {
     border: 1px solid var(--ktai-color-border);
     border-radius: var(--ktai-radius-sm);
     background: var(--ktai-color-page);
-}
-
-.node-details-meta summary {
-    cursor: pointer;
-    padding: var(--ktai-space-2) var(--ktai-space-3);
-    color: var(--ktai-color-text-secondary);
-    font-size: var(--ktai-font-size-sm);
-    font-weight: 600;
-}
-
-.node-details-meta[open] summary {
-    border-bottom: 1px solid var(--ktai-color-border);
-}
-
-.node-details-meta .node-meta-list,
-.node-details-meta .node-details-provenance {
-    margin: var(--ktai-space-3);
-}
-
-.node-meta-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: var(--ktai-space-3);
     margin: 0;
-    padding: 0;
+    padding: var(--ktai-space-3);
     list-style: none;
 }
 

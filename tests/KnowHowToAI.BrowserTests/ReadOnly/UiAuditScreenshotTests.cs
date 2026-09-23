@@ -50,16 +50,16 @@ public sealed class UiAuditScreenshotTests
         await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
         await CaptureAsync(page, "04_knowledge_read", output, captures);
 
-        await page.GetByTestId("node-view-metadata").ClickAsync();
+        await page.GetByTestId("tab-Metadata").ClickAsync();
         await CaptureAsync(page, "05_knowledge_metadata", output, captures);
 
-        await page.GetByTestId("node-view-editor").ClickAsync();
+        await page.GetByTestId("tab-Editor").ClickAsync();
         await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
         await CaptureAsync(page, "06_knowledge_editor", output, captures);
         await page.GetByTestId("content-editor").ScrollIntoViewIfNeededAsync();
         await CaptureAsync(page, "07_knowledge_editor_workspace", output, captures);
 
-        await page.GetByTestId("node-view-technical").ClickAsync();
+        await page.GetByTestId("tab-Technical").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details-availability")).ToBeVisibleAsync();
         await CaptureAsync(page, "08_knowledge_technical", output, captures);
 
@@ -71,7 +71,7 @@ public sealed class UiAuditScreenshotTests
         await fallbackNode.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-content-fallback-context")).ToBeVisibleAsync();
         await CaptureAsync(page, "09_knowledge_fallback-read", output, captures);
-        await page.GetByTestId("node-view-editor").ClickAsync();
+        await page.GetByTestId("tab-Editor").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-editor-independent-copy")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
         await CaptureAsync(page, "10_knowledge_fallback-editor", output, captures);
@@ -86,7 +86,7 @@ public sealed class UiAuditScreenshotTests
         await derivedNode.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-content-derived-context")).ToBeVisibleAsync();
         await CaptureAsync(page, "12_knowledge_derived-read", output, captures);
-        await page.GetByTestId("node-view-editor").ClickAsync();
+        await page.GetByTestId("tab-Editor").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-editor-derived-readonly")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("content-editor-save")).ToHaveCountAsync(0);
         await CaptureAsync(page, "13_knowledge_derived-editor", output, captures);
@@ -102,7 +102,7 @@ public sealed class UiAuditScreenshotTests
             await workingNode.Locator(".tree-node-title").ClickAsync();
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("node-content-fallback-context")).ToBeVisibleAsync();
-            await page.GetByTestId("node-view-editor").ClickAsync();
+            await page.GetByTestId("tab-Editor").ClickAsync();
             await Assertions.Expect(page.GetByTestId("node-editor-independent-copy")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
             await CaptureAsync(page, "14_knowledge_working-fallback-editor", output, captures);

@@ -209,9 +209,14 @@ Top-Bar, Headings, Latex, Upload/ImageBlock und AI. Der Editor wird vor
 Nodewechsel oder erneutem Mount disposed; persistiert wird ausschließlich der
 beim expliziten Speichern gelesene kanonische Markdown eines expliziten
 `Independent`-Contents in einer Working-Transaction; `Derived`-Content bleibt
-bis M5.4 sichtbar read-only. Der Output wird als
-Static Web Asset veröffentlicht, während `Frontend/node_modules` und
-`wwwroot/generated` nicht versioniert werden. Node/npm werden ausschließlich
+bis M5.4 sichtbar read-only. Der Output wird als Static Web Asset veröffentlicht,
+während `Frontend/node_modules` und `wwwroot/generated` nicht versioniert werden.
+Der `ContentEditor` delegiert explizite Schreibvorgänge an den
+`IContentWriteWorkflow`-Vertrag. `ContentWriteWorkflow` besitzt die
+Content-spezifische Request-Erstellung, ChangeVersion-Auswahl und
+Koordination mit `WebWriteCoordinator`; der Editor behält Eingabe, Dirty-State,
+Fehler-/Warnungsanzeige und den JavaScript-Lebenszyklus.
+Node/npm werden ausschließlich
 beim Build/Publish benötigt; der Server lädt weder zur Laufzeit noch über CDN
 weitere Assets. `scripts/test-fast.ps1` führt die Vitest-Suite vor den
 .NET-FastTests aus; sie prüft die eigene WeakMap-Instanzverwaltung, die
@@ -294,6 +299,14 @@ Working-Kontext delegieren die Editor-Komponenten Node-/Content-Mutationen mit
 `ChangeVersion` an die Application-Grenzen und laden Tree, Auswahl und Details
 nach Erfolg neu. Read-only- und Dirty-State-Verantwortung sowie die sichtbaren
 Übergänge sind im [Web-UI-Gesamtbild](WebUi.md) und am Code belegt.
+
+`NodeDetailsWorkspace` rendert die gemeinsame `TabLayout`-Leiste vor den
+Ansichtspanels und hält deren Auswahl in `NodeView`. Lesen und technische
+Angaben verwenden `TabPanelLayout`; die Metadaten- und Inhaltseditoren werden
+erst bei ihrem ersten Aufruf montiert und bleiben für dieselbe Node und
+Zielgruppe beim Reiterwechsel verborgen erhalten. Der Lese-/Arbeitskontext
+liegt im Kontextbereich der Reiterleiste. Der Seitenkopf und das einzige `h1`
+bleiben im `PageFrame`.
 
 Die Weboberfläche besitzt keinen Markdown-Download-Endpunkt. Core-/MCP-Markdown-Export und MCP-Suche/Historie bleiben eigenständige transportneutrale Application-Verträge. Die Weboberfläche bildet ausschließlich Knowledge- und Draft-Arbeitsabläufe ab; die genaue Routengrenze steht im [Web-UI-Gesamtbild](WebUi.md).
 

@@ -57,13 +57,19 @@ public sealed class KnowledgePageReadOnlyTests : BunitContext
         var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, RootNodeId.Value));
 
         Assert.Equal("Root", cut.Find("h1").TextContent.Trim());
+        Assert.Single(cut.FindAll("h1"));
         Assert.Equal("Root content", cut.Find("[data-testid='node-content-markdown']").TextContent.Trim());
         Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
-        Assert.Equal(4, cut.FindAll("[data-testid^='node-view-']").Count(element => element.TagName == "BUTTON"));
-        Assert.Equal("true", cut.Find("[data-testid='node-view-read']").GetAttribute("aria-pressed"));
+        Assert.Equal(4, cut.FindAll("[data-testid^='tab-']").Count(element => element.TagName == "BUTTON"));
+        Assert.Equal("true", cut.Find("[data-testid='tab-Read']").GetAttribute("aria-pressed"));
+        Assert.Equal(["Lesen", "Bearbeiten", "Titel", "Technische Details"],
+            cut.FindAll("[data-testid^='tab-']").Select(element => element.TextContent.Trim()));
+        Assert.True(cut.Markup.IndexOf("data-testid=\"tab-Read\"", StringComparison.Ordinal)
+            < cut.Markup.IndexOf("data-testid=\"node-view-panel-read\"", StringComparison.Ordinal));
         Assert.Empty(cut.FindAll("[data-testid='node-metadata-editor']"));
         Assert.Empty(cut.FindAll("[data-testid='node-deletion-editor']"));
         Assert.Empty(cut.FindAll("[data-testid='root-node-editor']"));
         Assert.Equal(TransactionId, Services.GetRequiredService<WorkspaceState>().CurrentReadContext.TransactionId);
+        Assert.Equal("Arbeitskopie", cut.Find("[data-testid='node-details-context']").TextContent.Trim());
     }
 }

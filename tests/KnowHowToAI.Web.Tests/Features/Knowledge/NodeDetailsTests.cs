@@ -65,24 +65,14 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
-    public void NodeDetails_WithViewModel_RendersStableTitle()
+    public void NodeDetails_WithViewModel_LeavesPageHeadingToPageFrame()
     {
         var vm = MakeViewModel();
 
         var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
 
-        var title = cut.Find("[data-testid='node-details-title']");
-        Assert.Equal("Test-Knoten", title.TextContent.Trim());
-
-        Assert.Empty(cut.FindAll("[data-testid='node-details-description']"));
-    }
-
-    [Fact]
-    public void NodeDetails_WithViewModel_LabelsReadOnlyContext()
-    {
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, MakeViewModel()));
-
-        Assert.Equal("Nur lesen", cut.Find("[data-testid='node-details-context']").TextContent.Trim());
+        Assert.Empty(cut.FindAll("h1"));
+        Assert.DoesNotContain("node-details-title", cut.Markup);
     }
 
     [Fact]
@@ -99,6 +89,7 @@ public sealed class NodeDetailsTests : BunitContext
 
         var freshness = cut.Find("[data-testid='node-details-freshness']");
         Assert.Equal("Aktuell", freshness.TextContent.Trim());
+        Assert.Empty(cut.FindAll("summary"));
 
         Assert.Empty(cut.FindAll("[data-testid='node-details-node-id']"));
         Assert.DoesNotContain(vm.NodeId.ToString(), cut.Find("[data-testid='node-details']").TextContent);
@@ -124,7 +115,7 @@ public sealed class NodeDetailsTests : BunitContext
             .Add(x => x.ViewModel, vm));
 
         Assert.Contains("Lesbarer Inhalt", cut.Find("[data-testid='node-details-content']").TextContent);
-        Assert.Empty(cut.FindAll("[data-testid='node-details-meta']"));
+        Assert.True(cut.Find("[data-testid='node-view-panel-technical']").HasAttribute("hidden"));
     }
 
     [Fact]
@@ -152,6 +143,8 @@ public sealed class NodeDetailsTests : BunitContext
         Assert.Contains("kein eigener Inhalt hinterlegt", fallbackContext.TextContent);
         Assert.Contains("Fallback-Zielgruppe „Architect“", fallbackContext.TextContent);
         Assert.Contains("Wissenskontext bleiben unverändert", fallbackContext.TextContent);
+        Assert.True(cut.Markup.IndexOf("data-testid=\"node-content-fallback-context\"", StringComparison.Ordinal)
+            < cut.Markup.IndexOf("data-testid=\"node-details-content\"", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -250,6 +243,8 @@ public sealed class NodeDetailsTests : BunitContext
 
         var modeEl = cut.Find("[data-testid='node-details-content-mode']");
         Assert.Equal("Abgeleitet", modeEl.TextContent.Trim());
+        Assert.True(cut.Markup.IndexOf("data-testid=\"node-content-derived-context\"", StringComparison.Ordinal)
+            < cut.Markup.IndexOf("data-testid=\"node-details-content\"", StringComparison.Ordinal));
     }
 
     [Fact]

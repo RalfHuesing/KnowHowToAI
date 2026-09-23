@@ -52,7 +52,7 @@ public sealed class RootNodeInitializationSmokeTests
             transactionId = parsedTransactionId;
             await Assertions.Expect(root).ToHaveAttributeAsync("aria-pressed", "true");
             await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Erstes Browser-Wissen", Exact = true, Level = 1 })).ToBeVisibleAsync();
-            await page.GetByTestId("node-view-metadata").ClickAsync();
+            await page.GetByTestId("tab-Metadata").ClickAsync();
             await Assertions.Expect(page.GetByTestId("node-metadata-description")).ToHaveValueAsync("Initial über die Weboberfläche angelegt.");
 
             await page.GetByTestId("node-metadata-title").FillAsync("Aktualisiertes Browser-Wissen");

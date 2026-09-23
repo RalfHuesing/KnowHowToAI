@@ -1,4 +1,5 @@
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Features.Content;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.Features.Knowledge.Audiences;
@@ -30,6 +31,7 @@ internal static class WebServiceRegistration
 
         // Gemeinsame Begin-/Resume-Koordination für persistente Web-Writes.
         services.AddScoped<WebWriteCoordinator>();
+        services.AddScoped<IContentWriteWorkflow, ContentWriteWorkflow>();
         services.AddScoped<KnowledgePageContextResolver>();
 
         // Flüchtiger Circuit-State und Lazy-Loading-Datenadapter für den Wissensbaum.

@@ -88,7 +88,7 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Assert.Equal(mcp.Title, cut.Find("h1").TextContent.Trim());
         Assert.Contains(mcp.Description!, cut.FindComponent<NodeDetails>().Instance.ViewModel!.Description, StringComparison.Ordinal);
         Assert.Contains(mcp.Content!, cut.Find("[data-testid='node-details-content']").TextContent, StringComparison.Ordinal);
-        await cut.Find("[data-testid='node-view-technical']").ClickAsync();
+        await cut.Find("[data-testid='tab-Technical']").ClickAsync();
         Assert.Contains(mcp.RequestedAudienceId, cut.Find("[data-testid='node-details-Audience']").TextContent, StringComparison.Ordinal);
         var mcpSource = Assert.Single(mcp.SourceRevisions!);
         var provenance = cut.Find("[data-testid='node-provenance-item']").TextContent;

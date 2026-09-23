@@ -43,7 +43,7 @@ public sealed class NodeDocumentTests : BunitContext
         Assert.Equal("Lesbarer Inhalt", cut.Find("[data-testid='node-content-markdown']").TextContent.Trim());
         Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
         Assert.Empty(cut.FindAll("[data-testid='node-details-title']"));
-        Assert.Equal(4, cut.FindAll("[data-testid^='node-view-']").Count(element => element.TagName == "BUTTON"));
+        Assert.Equal(4, cut.FindAll("[data-testid^='tab-']").Count(element => element.TagName == "BUTTON"));
         Assert.Empty(cut.FindAll("[data-testid='node-details-description']"));
         Assert.Empty(cut.FindAll("[data-testid='node-details-markdown-download']"));
     }

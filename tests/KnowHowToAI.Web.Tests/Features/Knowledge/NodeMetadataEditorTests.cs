@@ -34,6 +34,9 @@ public sealed class NodeMetadataEditorTests : BunitContext
             .Add(component => component.OnMutationSucceeded,
                 EventCallback.Factory.Create<NodeMutationResult>(this, result => persisted = result)));
 
+        Assert.Equal(["Abbrechen", "Speichern"],
+            cut.FindAll(".tab-panel-layout__actions button").Select(button => button.TextContent.Trim()));
+
         await cut.Find("[data-testid='node-metadata-title']").InputAsync("Aktualisierter Titel");
         await cut.Find("[data-testid='node-metadata-description']").InputAsync("Neue Beschreibung");
         Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);

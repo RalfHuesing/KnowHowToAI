@@ -5,11 +5,9 @@
                           IsLoading="@_isLoading"
                           ErrorMessage="@_errorMessage"
                           NodeNotFound="@_nodeNotFound"
-                          ShowTitle="@ShowTitle"
                           IsWorking="@TransactionId.HasValue"
                           IsWritableReadContext="@IsWritableReadContext"
                           ChangeVersion="@ChangeVersion"
-                          TransactionId="@TransactionId"
                           LoadedCurrentSnapshotId="@WorkspaceState.LoadedSnapshotId"
                           OnNodeMutationSucceeded="HandleNodeMutationSucceededAsync"
                           OnContentSaved="HandleContentSavedAsync" />

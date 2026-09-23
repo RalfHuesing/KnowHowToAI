@@ -58,7 +58,7 @@ bleibt nicht als Übergabe zurück.
 
 ## 2. Knotenansichten auf die Struktur setzen
 
-- [ ] **P2 – Vier Wissensreiter und einheitliche Inhaltsbereiche**
+- [x] **P2 – Vier Wissensreiter und einheitliche Inhaltsbereiche**
   - **Intention:** Auf beiden Wissensrouten stehen die Reiter vor jedem
     Knoteninhalt, und die häufig genutzte Leseansicht beginnt klar und ruhig.
   - **Voraussetzung:** P1 abgeschlossen.
@@ -89,6 +89,27 @@ bleibt nicht als Übergabe zurück.
     beim Reiterwechsel. Die passenden bestehenden Browserabläufe behalten
     ihre Funktion. Build, Linter-Incremental-Gate und passender FastTests-Lauf
     sind grün; Abschlussnachweis und atomarer Commit liegen vor.
+  - **Abschlussnachweis:** `NodeDetailsWorkspace` verwendet die vier Reiter
+    und behält Startansicht, Auswahlwechsel, Lazy-Mount sowie Dirty-Schutz bei.
+    Für die Content-Schreibverantwortung übergibt `ContentEditor` Eingabe und
+    Versionsstände über `IContentWriteWorkflow`/`SaveContentCommand` an
+    `ContentWriteWorkflow`, das Replace-Request und koordinierte Mutation
+    besitzt. Der `ContentEditor` behält Dirty-, Fokus-, Fehler-/Warnungs- und
+    JS-Lebenszykluszustand. Ein reiner Editor-Wrapper erhöhte den Footprint
+    auf 3004/2500 und wurde zurückgebaut; die getrennte Schreibverantwortung
+    senkte den P2-Zwischenstand von 2961/2500 (Projektbaseline vor P2:
+    2972/2500) auf 1811/2500. Die Schreibgrenze wurde mit den bestehenden
+    Erfolg-/Fehler-, Dirty-, Source-Modus-, Fokus- und Browser-Smokes geprüft;
+    `verify(targetPath)` und `verify(targetPath, scope: "solution")` meldeten
+    beide `pass`, 10.0, 0 Verstöße. Verifiziert mit
+    `pwsh -NoProfile -File scripts/build.ps1` (Exitcode 0), dem fokussierten
+    Web-Testfilter (41/41), den Content-Editor- und Workspace-Tests (16/16),
+    `pwsh -NoProfile -File scripts/test-fast.ps1 -Filter Category=Unit`
+    (Frontend 5/5, FastTests 1.017/1.017),
+    `KnowledgeTreeSmokeTests` + `KnowledgeDirectEditingSmokeTests` (5/5) sowie
+    `ContentEditorSourceSmokeTests` + `KnowledgeDirectEditingSmokeTests`
+    nach der Schreibgrenze (4/4). Die Browserlayout-Abnahme bleibt P4.
+    Dokumentation in `docs/WebUi.md` und `docs/Architektur.md` synchronisiert.
 
 ## 3. Bearbeiten-Ansicht modernisieren
 

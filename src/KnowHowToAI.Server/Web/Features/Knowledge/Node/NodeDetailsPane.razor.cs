@@ -32,9 +32,6 @@ public sealed partial class NodeDetailsPane
     public TransactionId? TransactionId { get; set; }
 
     [Parameter]
-    public bool ShowTitle { get; set; } = true;
-
-    [Parameter]
     public EventCallback<NodeMutationResult> OnMutationSucceeded { get; set; }
 
     private NodeDetailsViewModel? _viewModel;

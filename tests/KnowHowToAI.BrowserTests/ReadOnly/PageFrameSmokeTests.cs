@@ -197,7 +197,7 @@ public sealed class PageFrameSmokeTests
             Assert.True(tabBar.X >= 0 && tabBar.X + tabBar.Width <= viewport,
                 $"Knotenreiter liegen bei {viewport} außerhalb der erreichbaren Breite.");
 
-            await page.GetByTestId("node-view-editor").ClickAsync();
+            await page.GetByTestId("tab-Editor").ClickAsync();
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
             var editorBox = await editor.BoundingBoxAsync()

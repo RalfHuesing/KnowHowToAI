@@ -1,6 +1,7 @@
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using KnowHowToAI.Server.Web.Components.Shared.States
+@using KnowHowToAI.Server.Web.Components.Shared.Tabs
 
 @if (_isLoading)
 {
@@ -23,31 +24,8 @@ else if (_nodeNotFound)
 else if (ViewModel is not null)
 {
     <article class="node-details" data-testid="node-details" aria-label="@ViewModel.Title">
-        <header class="node-details-header">
-            <div class="node-details-heading-row">
-                @if (ShowTitle)
-                {
-                    <h1 class="node-details-title" data-testid="node-details-title">@ViewModel.Title</h1>
-                }
-                <span class="node-details-context node-details-context--@(IsWorking ? "working" : "readonly")"
-                      data-testid="node-details-context">
-                    @(IsWorking ? "Arbeitskopie" : "Nur lesen")
-                </span>
-            </div>
-        </header>
-
-        @if (ActiveView == "Read")
-        {
-            <section class="node-content-context node-content-context--audience"
-                     aria-label="Ausgewählte Zielgruppe" data-testid="node-details-audience-context">
-                <p>
-                    Zielgruppe: <strong data-testid="node-details-requested-audience">@ViewModel.RequestedAudienceId</strong>
-                    @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
-                    {
-                        <span> · Inhalt aus <strong data-testid="node-details-resolved-audience">@ViewModel.ResolvedAudienceId</strong></span>
-                    }
-                </p>
-            </section>
+        <TabPanelLayout Visible="@(ActiveView == "Read")" aria-label="Lesen" data-testid="node-view-panel-read">
+            <PrimaryContent>
 
             @if (ViewModel.FallbackUsed)
             {
@@ -93,12 +71,24 @@ else if (ViewModel is not null)
                     </div>
                 }
             </section>
-        }
-        else if (ActiveView == "Technical")
-        {
-            <details class="node-details-meta" data-testid="node-details-meta" open>
-                <summary>Technische Details</summary>
-                <dl class="node-meta-list">
+            </PrimaryContent>
+            <AdditionalContent>
+                <section class="node-content-context node-content-context--audience"
+                         aria-label="Ausgewählte Zielgruppe" data-testid="node-details-audience-context">
+                    <p>
+                        Zielgruppe: <strong data-testid="node-details-requested-audience">@ViewModel.RequestedAudienceId</strong>
+                        @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
+                        {
+                            <span> · Inhalt aus <strong data-testid="node-details-resolved-audience">@ViewModel.ResolvedAudienceId</strong></span>
+                        }
+                    </p>
+                </section>
+            </AdditionalContent>
+        </TabPanelLayout>
+
+        <TabPanelLayout Visible="@(ActiveView == "Technical")" aria-label="Technische Details" data-testid="node-view-panel-technical">
+            <PrimaryContent>
+                <dl class="node-meta-list" data-testid="node-details-meta">
                     <div class="node-meta-item">
                         <dt>Zielgruppe</dt>
                         <dd data-testid="node-details-Audience">
@@ -138,8 +128,8 @@ else if (ViewModel is not null)
                         </div>
                     }
                 </dl>
-            </details>
-
+            </PrimaryContent>
+            <AdditionalContent>
             @if (ViewModel.SourceRevisions.Count > 0)
             {
                 <section class="node-details-provenance" aria-label="Herkunft des Inhalts" data-testid="node-details-provenance">
@@ -159,6 +149,7 @@ else if (ViewModel is not null)
                     </ul>
                 </section>
             }
-        }
+            </AdditionalContent>
+        </TabPanelLayout>
     </article>
 }

@@ -21,12 +21,6 @@ public sealed partial class NodeDetails
     public bool NodeNotFound { get; set; }
 
     [Parameter]
-    public bool ShowTitle { get; set; } = true;
-
-    [Parameter]
-    public bool IsWorking { get; set; }
-
-    [Parameter]
     public string ActiveView { get; set; } = "Read";
 
     private bool _isLoading;

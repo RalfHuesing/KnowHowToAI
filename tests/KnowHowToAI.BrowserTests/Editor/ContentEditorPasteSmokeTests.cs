@@ -44,7 +44,7 @@ public sealed class ContentEditorPasteSmokeTests
                 $"{_fixture.Host.Address}/knowledge/{rootNodeId}?audienceId=Default&transactionId={transactionId}",
                 new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 30_000 });
             await CircuitProbe.WaitForInteractivityAsync(page);
-            await page.GetByTestId("node-view-editor").ClickAsync();
+            await page.GetByTestId("tab-Editor").ClickAsync();
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("content-editor-surface"))
@@ -118,7 +118,7 @@ public sealed class ContentEditorPasteSmokeTests
                     Timeout = 30_000
                 });
                 await CircuitProbe.WaitForInteractivityAsync(page);
-                await page.GetByTestId("node-view-editor").ClickAsync();
+                await page.GetByTestId("tab-Editor").ClickAsync();
                 var editor = page.GetByTestId("content-editor");
                 await Assertions.Expect(editor).ToBeVisibleAsync();
                 await Assertions.Expect(page.GetByTestId("content-editor-surface"))

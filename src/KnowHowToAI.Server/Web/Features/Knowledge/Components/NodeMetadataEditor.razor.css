@@ -1,6 +1,5 @@
 .node-metadata-editor {
-    border-top: 1px solid var(--ktai-color-border);
-    padding-top: var(--ktai-space-4);
+    min-width: 0;
 }
 
 .node-metadata-fields {
@@ -28,13 +27,6 @@
 .node-metadata-fields textarea {
     min-height: 6rem;
     resize: vertical;
-}
-
-.node-metadata-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ktai-space-2);
-    margin-top: var(--ktai-space-3);
 }
 
 .node-metadata-hint {

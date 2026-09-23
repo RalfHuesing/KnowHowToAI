@@ -1,10 +1,14 @@
 @using KnowHowToAI.Core.Application.Mutations.Nodes
 @using KnowHowToAI.Core.Domain.Common
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using KnowHowToAI.Server.Web.Components.Shared.Tabs
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Components
 
 <section class="node-metadata-editor" aria-label="Node-Titel und Beschreibung" data-testid="node-metadata-editor">
+    <form @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
+    <TabPanelLayout>
+        <PrimaryContent>
     @if (_errorMessage is not null)
     {
         <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
@@ -17,7 +21,6 @@
         </div>
     }
 
-    <form @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
         <div class="node-metadata-fields">
             <div>
                 <label for="node-metadata-title">Titel</label>
@@ -32,13 +35,17 @@
                           maxlength="1000" disabled="@_isSubmitting"></textarea>
             </div>
         </div>
-        <div class="node-metadata-actions action-group">
-            <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="save-node-metadata">
-                @(_isSubmitting ? "Wird gespeichert…" : "Speichern")
-            </button>
-            <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@_isSubmitting">
-                Abbrechen
-            </button>
-        </div>
+        </PrimaryContent>
+        <Actions>
+            <div class="node-metadata-actions action-group">
+                <button type="button" class="btn btn-secondary" @onclick="Cancel" disabled="@_isSubmitting">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-primary" disabled="@_isSubmitting" data-testid="save-node-metadata">
+                    @(_isSubmitting ? "Wird gespeichert…" : "Speichern")
+                </button>
+            </div>
+        </Actions>
+    </TabPanelLayout>
     </form>
 </section>
