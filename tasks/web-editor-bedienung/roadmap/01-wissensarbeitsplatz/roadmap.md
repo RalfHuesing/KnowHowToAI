@@ -28,19 +28,19 @@ Commit. Kein Leaf setzt fremde Checkboxen vorzeitig auf erledigt.
 
 ## Milestone-Abnahme
 
-- [ ] Auf `/knowledge` und `/knowledge/{NodeId}` sind keine Node-GUIDs als
+- [x] Auf `/knowledge` und `/knowledge/{NodeId}` sind keine Node-GUIDs als
       nutzerlesbarer Text sichtbar; die URL und interne IDs funktionieren.
-- [ ] Maus-Drop vor/nach/unter einschließlich Ablehnung und Recovery ist
+- [x] Maus-Drop vor/nach/unter einschließlich Ablehnung und Recovery ist
       belegt. Die sichtbaren Move-Buttons und die spezielle
       Baum-Tastatursteuerung sind entfernt. Geöffnete Zweige bleiben während
       der Ansicht offen, auch nach Move/Cache-Verdrängung; Reload und
       Zielgruppenwechsel starten frisch. Höchstens zehn Elternseiten sind
       geladen.
-- [ ] Die vier Reiter funktionieren für normalen, Fallback-, fehlenden und
+- [x] Die vier Reiter funktionieren für normalen, Fallback-, fehlenden und
       Derived Content. Titel/Beschreibung und Inhalt speichern getrennt;
       Dirty-Eingaben überleben Reiterwechsel. Ein `h1`, Seiten-Innenkanten,
       Reflow und erreichbare Mausaktionen sind nachgewiesen.
-- [ ] `docs/WebUi.md`, betroffene Web-UI-Regeln und Tests beschreiben den
+- [x] `docs/WebUi.md`, betroffene Web-UI-Regeln und Tests beschreiben den
       implementierten Zustand; Build, vollständige FastTests, relevante
       Browser-/Host-Integration und Solution-Linter-Gate sind grün.
 - [ ] Menschliche Chrome-Stable-Sichtprüfung bei echtem 200/400-%-Zoom nach
@@ -48,7 +48,7 @@ Commit. Kein Leaf setzt fremde Checkboxen vorzeitig auf erledigt.
       geänderten Mausabläufe dokumentiert. Dies ist ein manuelles Gate ohne
       `-T` und kein Agentenauftrag; Baum-/Reiter-Tastaturbedienung gehört
       nicht zu dieser Abnahme.
-- [ ] Begrenzter Audit gegen Konzept, Diff, Regeln und Nachweise dokumentiert;
+- [x] Begrenzter Audit gegen Konzept, Diff, Regeln und Nachweise dokumentiert;
       Parent erst nach dem menschlichen Gate schließen.
 
-Audit-Ergebnis: offen.
+Audit-Ergebnis: bestanden; das menschliche Zoom-Gate und der Projekt-Parent bleiben offen. Siehe [Audit](audit.md).
