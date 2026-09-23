@@ -18,14 +18,10 @@ namespace KnowHowToAI.Web.Tests.Components.Layout;
 public sealed class MainLayoutTests : ShellTestContext
 {
     [Fact]
-    public void ProvidesSkipLinkBrandTwoGlobalDestinationsAndExactlyOneMain()
+    public void ProvidesBrandTwoGlobalDestinationsAndExactlyOneMain()
     {
         var cut = RenderMainLayout();
 
-        var skipLink = cut.Find("a.shell-skip-link");
-        Assert.Equal("#shell-main", skipLink.Attributes["href"]?.Value);
-        Assert.Equal("Zum Hauptinhalt springen", skipLink.TextContent);
-        Assert.Equal("a", Assert.IsAssignableFrom<IElement>(cut.Find(".shell-root").ChildNodes[0]).TagName.ToLowerInvariant());
         Assert.Equal("KnowHowToAI", cut.Find("a.shell-brand").TextContent);
 
         var navigation = cut.Find("nav[aria-label='Hauptnavigation']");
@@ -37,7 +33,6 @@ public sealed class MainLayoutTests : ShellTestContext
 
         var main = Assert.Single(cut.FindAll("main"));
         Assert.Equal("shell-main", main.Id);
-        Assert.Equal("-1", main.Attributes["tabindex"]?.Value);
     }
 
     [Fact]
@@ -75,26 +70,6 @@ public sealed class MainLayoutTests : ShellTestContext
         toggle.Click();
         cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
         Assert.Equal("Navigation ausblenden", toggle.Attributes["aria-label"]?.Value);
-    }
-
-    [Fact]
-    public async Task CompactNavigationOpensWithFocusAndEscapeReturnsFocusToTheToggle()
-    {
-        var cut = RenderMainLayout();
-        await cut.Instance.NotifyCompactModeChangedAsync(isCompact: true);
-        var toggle = cut.Find("button[aria-controls='shell-navigation']");
-
-        Assert.Equal("Navigation einblenden", toggle.Attributes["aria-label"]?.Value);
-        Assert.Empty(cut.FindAll("nav[aria-label='Hauptnavigation']"));
-
-        toggle.Click();
-        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 1);
-        JSInterop.VerifyFocusAsyncInvoke(calledTimes: 1);
-
-        cut.Find("nav#shell-navigation").KeyDown("Escape");
-        cut.WaitForState(() => cut.FindAll("nav[aria-label='Hauptnavigation']").Count == 0);
-        JSInterop.VerifyFocusAsyncInvoke(calledTimes: 2);
-        Assert.Equal("Navigation einblenden", toggle.Attributes["aria-label"]?.Value);
     }
 
     [Fact]

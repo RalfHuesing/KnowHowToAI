@@ -1,9 +1,6 @@
 @namespace KnowHowToAI.Server.Web.Components.Shared.Dialogs
 
-@* Bestätigungsdialog auf dem nativen Dialogwrapper: Abbrechen ist das
-   erste Element und erhält deshalb beim Öffnen den Fokus. Der Schutz
-   gegen Doppelaufruf liegt im Code-behind; die Fokusfalle, Escape und die
-   Fokusrückgabe übernimmt die Dialogisolation von AppDialog. *@
+@* Bestätigungsdialog auf dem nativen Dialogwrapper. *@
 <AppDialog @ref="_dialog"
            Title="@Title"
            CssClass="confirmation-app-dialog"

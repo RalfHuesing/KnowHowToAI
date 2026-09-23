@@ -9,29 +9,6 @@
     --shell-header-height: 3.5rem;
 }
 
-.shell-skip-link {
-    position: absolute;
-    top: var(--ktai-space-4);
-    left: var(--ktai-space-4);
-    z-index: 10;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    padding: var(--ktai-space-2) var(--ktai-space-4);
-    background-color: var(--ktai-color-surface);
-    color: var(--ktai-color-primary);
-    border: 1px solid var(--ktai-color-border);
-    border-radius: var(--ktai-radius-md);
-}
-
-.shell-skip-link:focus-visible {
-    width: auto;
-    height: auto;
-    clip-path: none;
-}
-
 .shell-header {
     display: flex;
     align-items: center;

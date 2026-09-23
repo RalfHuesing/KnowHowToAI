@@ -11,7 +11,7 @@ Use-Cases.
 ## Shell und Ownership
 
 `App.razor` stellt die interaktive Server-Circuit-Grenze bereit. `MainLayout`
-besitzt Skip-Link, Header, Navigation, aktiven Entwurfslink, `main#shell-main`,
+besitzt Header, Navigation, aktiven Entwurfslink, `main#shell-main`,
 Dirty-Schutz, Toasts und Reconnect-Zustand. `PageFrame` stellt den gemeinsamen
 Seitenrahmen bereit. Die Wissensseite besitzt Tree, Knotenauswahl, Dokument,
 Zielgruppenauswahl und deren Query-Kontext. `DraftPage` besitzt Review,
@@ -112,9 +112,10 @@ sichtbar.
 
 Die Routengrenze und MCP-/Asset-Erreichbarkeit stehen in den Hosttests. Die
 verbleibenden Web-Komponenten werden durch FastTests und Browser-Smokes geprüft.
-`LayoutShellSmokeTests`, `PageFrameSmokeTests` und `ResponsiveShellSmokeTests`
-belegen die gemeinsamen Landmarken, Seiten-Innenkanten und Layoutzustände bei
-den dokumentierten CSS-Breiten. Die manuelle Abnahme prüft die relevanten
+`LayoutShellSmokeTests` und `PageFrameSmokeTests` belegen die gemeinsamen
+Landmarken, Seiten-Innenkanten und Layoutzustände bei den dokumentierten
+Desktopbreiten 1280 × 720 und 1024 × 720. `LayoutShellSmokeTests` prüft die
+Navigation per Mausklick und langen Seiteninhalt per Mausrad. Die manuelle Abnahme prüft die relevanten
 Desktopansichten mit Maus; sie ersetzt keine automatisierten
 Verhaltensassertions. HTML-Semantik, responsive Darstellung und Layoutgrenzen folgen den
 [Web-UI-Guardrails](../.agents/rules/WebUiHtmlCss.mdc) und der

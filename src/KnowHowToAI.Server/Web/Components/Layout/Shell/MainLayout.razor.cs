@@ -1,5 +1,4 @@
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
-using KnowHowToAI.Server.Web.Components.Layout.Navigation;
 using KnowHowToAI.Server.Web.Components.Shared.Feedback;
 using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
@@ -15,12 +14,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private bool _isCompactMode;
     private bool _isInteractive;
     private bool _isNavigationOpen = true;
-    private bool _pendingNavigationFocus;
-    private bool _pendingToggleFocus;
     private RenderFragment? _renderedBody;
-    private ElementReference _navigationToggleButton;
-    private ElementReference _mainElement;
-    private PrimaryNavigation? _primaryNavigation;
     private DotNetObjectReference<MainLayout>? _selfReference;
     private Task<IJSObjectReference>? _moduleTask;
 
@@ -68,20 +62,6 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
 
-        if (_pendingNavigationFocus)
-        {
-            _pendingNavigationFocus = false;
-            if (_primaryNavigation is not null)
-            {
-                await _primaryNavigation.FocusAsync();
-            }
-        }
-
-        if (_pendingToggleFocus)
-        {
-            _pendingToggleFocus = false;
-            await _navigationToggleButton.FocusAsync();
-        }
     }
 
     [JSInvokable]
@@ -93,8 +73,6 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
         }
 
         _isCompactMode = isCompact;
-        _pendingNavigationFocus = false;
-        _pendingToggleFocus = false;
         _isNavigationOpen = !isCompact;
         await InvokeAsync(StateHasChanged);
     }
@@ -126,8 +104,6 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
 
     private bool IsDirty => WorkspaceEditState.IsDirty;
 
-    private async Task SkipToMainAsync() => await _mainElement.FocusAsync();
-
     private Task ToggleNavigationAsync() => _isNavigationOpen
         ? CloseNavigationAsync()
         : OpenNavigationAsync();
@@ -135,8 +111,6 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private Task OpenNavigationAsync()
     {
         _isNavigationOpen = true;
-        _pendingNavigationFocus = true;
-        _pendingToggleFocus = false;
         StateHasChanged();
         return Task.CompletedTask;
     }
@@ -144,8 +118,6 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private Task CloseNavigationAsync()
     {
         _isNavigationOpen = false;
-        _pendingNavigationFocus = false;
-        _pendingToggleFocus = true;
         StateHasChanged();
         return Task.CompletedTask;
     }

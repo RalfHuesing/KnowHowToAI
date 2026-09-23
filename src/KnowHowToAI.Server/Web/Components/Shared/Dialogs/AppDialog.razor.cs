@@ -4,12 +4,9 @@ using Microsoft.JSInterop;
 namespace KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 
 /// <summary>
-/// Dünner Wrapper um den nativen HTML-Dialog. <c>showModal</c>, Fokusfalle,
-/// Escape über das native Cancel/Close-Ereignis und die Fokusrückgabe liegen in
-/// der isolierten Moduldatei <c>AppDialog.razor.js</c>; diese Komponente hält
-/// dafür keine eigene Zustandsmaschine. Der verwendende Component steuert das
-/// Öffnen über <see cref="OpenAsync"/> und erhält das Schließen über
-/// <see cref="OnClosed"/>.
+/// Dünner Wrapper um den nativen HTML-Dialog. Die isolierte Moduldatei öffnet
+/// und schließt das Dialogelement und leitet dessen natives Close-Ereignis an
+/// <see cref="OnClosed"/> weiter.
 /// </summary>
 public sealed partial class AppDialog : ComponentBase, IAsyncDisposable
 {
@@ -76,24 +73,21 @@ public sealed partial class AppDialog : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_moduleTask is not null)
+        {
+            try
+            {
+                var module = await _moduleTask;
+                await module.InvokeVoidAsync("dispose", _dialogElement);
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Der Circuit ist beendet, bevor das Modul freigegeben werden konnte.
+            }
+        }
+
         _selfReference?.Dispose();
-
-        if (_moduleTask is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var module = await _moduleTask;
-
-            await module.DisposeAsync();
-        }
-        catch (JSDisconnectedException)
-        {
-            // Der Circuit ist beendet, bevor das Modul freigegeben werden konnte;
-            // im Browserprozess werden die Listener mit dem Dialog abgebaut.
-        }
     }
 
     private Task<IJSObjectReference> EnsureModuleAsync() =>

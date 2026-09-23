@@ -6,14 +6,10 @@
      data-testid="shell-root"
      data-ktai-interactive="@(_isInteractive ? "true" : "false")"
      data-ktai-dirty="@(IsDirty ? "true" : "false")">
-    <a class="shell-skip-link" href="#shell-main" @onclick="SkipToMainAsync"
-       @onclick:preventDefault="true">Zum Hauptinhalt springen</a>
-
     <header class="shell-header">
         <div class="shell-header-brand">
             <button type="button" class="shell-toggle shell-navigation-toggle"
                     @onclick="ToggleNavigationAsync"
-                    @ref="_navigationToggleButton"
                     aria-label="@(_isNavigationOpen ? "Navigation ausblenden" : "Navigation einblenden")"
                     title="@(_isNavigationOpen ? "Navigation ausblenden" : "Navigation einblenden")"
                     aria-expanded="@(_isNavigationOpen ? "true" : "false")"
@@ -29,11 +25,11 @@
 
     @if (_isNavigationOpen)
     {
-        <PrimaryNavigation @ref="_primaryNavigation" OnEscape="CloseNavigationAsync" />
+        <PrimaryNavigation />
     }
 
     <div class="shell-workspace">
-        <main id="shell-main" class="shell-main" tabindex="-1" @ref="_mainElement">
+        <main id="shell-main" class="shell-main">
             @if (PageRegions.Breadcrumbs is not null || PageRegions.Actions is not null)
             {
                 <div class="shell-workspace-head">

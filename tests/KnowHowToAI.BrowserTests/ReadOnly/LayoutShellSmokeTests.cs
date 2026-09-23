@@ -7,12 +7,11 @@ namespace KnowHowToAI.BrowserTests.ReadOnly;
 /// <summary>
 /// Layout-Smokes gegen die echte Shell: Desktopbreite 1280 × 720 zeigt
 /// Navigation, Arbeitsfläche und Seitenbereiche nebeneinander ohne
-/// Horizontalüberlauf, auch mit langem Testinhalt, der per Tastatur im
-/// Dokument scrollbar bleibt; der Desktop-Menübutton schließt und öffnet die
-/// Navigation wieder und gibt der Arbeitsfläche die geschlossene Spalte frei.
+/// Horizontalüberlauf, auch mit langem Testinhalt, der per Mausrad scrollbar
+/// bleibt; der Desktop-Menübutton schließt und öffnet die Navigation wieder
+/// und gibt der Arbeitsfläche die geschlossene Spalte frei.
 /// Kompakte Breite 1024 × 720 klappt die Seitenbereiche über beschriftete
-/// Buttons ein und aus, übergibt den Fokus an den Bereich und gibt ihn beim
-/// Schließen an den Auslöser zurück.
+/// Buttons per Mausklick ein und aus.
 /// </summary>
 [Collection("Smoke-Host")]
 [Trait("Category", "Integration")]
@@ -77,14 +76,14 @@ public sealed class LayoutShellSmokeTests
         var metrics = await ReadScrollMetricsAsync(page);
         Assert.True(metrics.ScrollWidth <= metrics.ClientWidth, "Die Arbeitsfläche läuft horizontal über.");
         Assert.True(metrics.ScrollHeight > metrics.ClientHeight, "Der lange Testinhalt ist nicht über die Seite scrollbar.");
-        await page.Locator("#layout-long-content").FocusAsync();
-        await page.Keyboard.PressAsync("ArrowDown");
+        await page.Mouse.WheelAsync(0, 600);
+        await page.WaitForFunctionAsync("() => window.scrollY > 0");
         var scrollY = await page.EvaluateAsync<double>("() => window.scrollY");
-        Assert.True(scrollY > 0, "Die Seite blieb per Tastatur bei langem Inhalt an derselben Position.");
+        Assert.True(scrollY > 0, "Die Seite wurde mit dem Mausrad bei langem Inhalt nicht gescrollt.");
     }
 
     [Fact]
-    public async Task CompactViewportCollapsesSideRegionsWithFocusAndEscapeHandoff()
+    public async Task CompactViewportCollapsesSideRegionsWithMouse()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
@@ -112,36 +111,27 @@ public sealed class LayoutShellSmokeTests
             .ToHaveCountAsync(0);
         await Assertions.Expect(page.GetByRole(AriaRole.Main)).ToHaveCountAsync(1);
 
-        await OpenNavigationAsync(page, navigationToggle);
-        await Assertions.Expect(navigation).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Tab");
-        await Assertions.Expect(page.GetByRole(AriaRole.Link, new() { Name = "Wissen", Exact = true })).ToBeFocusedAsync();
+        await OpenNavigationAsync(navigationToggle, navigation);
         await navigationToggle.ClickAsync();
-        await ExpectPanelClosedAsync(page, navigationToggle);
+        await Assertions.Expect(navigation).ToHaveCountAsync(0);
+        await Assertions.Expect(navigationToggle).ToHaveAttributeAsync("aria-expanded", "false");
 
-        await OpenNavigationAsync(page, navigationToggle);
-        await Assertions.Expect(navigation).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Escape");
-        await ExpectPanelClosedAsync(page, navigationToggle);
+        await OpenNavigationAsync(navigationToggle, navigation);
 
         await AppendLongContentAsync(page);
         var metrics = await ReadScrollMetricsAsync(page);
         Assert.True(metrics.ScrollWidth <= metrics.ClientWidth, "Die kompakte Arbeitsfläche läuft horizontal über.");
         Assert.True(metrics.ScrollHeight > metrics.ClientHeight, "Der lange Testinhalt ist in der kompakten Breite nicht über die Seite scrollbar.");
+        await page.Mouse.WheelAsync(0, 600);
+        await page.WaitForFunctionAsync("() => window.scrollY > 0");
+        var scrollY = await page.EvaluateAsync<double>("() => window.scrollY");
+        Assert.True(scrollY > 0, "Die kompakte Seite wurde mit dem Mausrad bei langem Inhalt nicht gescrollt.");
     }
 
-    private static async Task OpenNavigationAsync(IPage page, ILocator navigationToggle)
+    private static async Task OpenNavigationAsync(ILocator navigationToggle, ILocator navigation)
     {
-        var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
         await navigationToggle.ClickAsync();
         await Assertions.Expect(navigation).ToBeVisibleAsync();
-    }
-
-    private static async Task ExpectPanelClosedAsync(IPage page, ILocator navigationToggle)
-    {
-        await Assertions.Expect(
-            page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" })).ToHaveCountAsync(0);
-        await Assertions.Expect(navigationToggle).ToBeFocusedAsync();
     }
 
     private static async Task AppendLongContentAsync(IPage page) =>
@@ -150,7 +140,6 @@ public sealed class LayoutShellSmokeTests
             () => {
                 const longContent = document.createElement('div');
                 longContent.id = 'layout-long-content';
-                longContent.tabIndex = 0;
                 longContent.textContent = 'Langer Testinhalt. '.repeat(400);
                 document.getElementById('shell-main').appendChild(longContent);
             }

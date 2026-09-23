@@ -101,7 +101,7 @@ public sealed class ConfirmationDialogTests : BunitContext
     }
 
     [Fact]
-    public async Task TreatsEscapeLikeCancelExactlyOnce()
+    public async Task TreatsNativeCloseLikeCancelExactlyOnce()
     {
         var (cut, module, callbacks) = RenderDialog();
         await cut.Instance.OpenAsync();
@@ -173,6 +173,7 @@ public sealed class ConfirmationDialogTests : BunitContext
         module.SetupVoid("initialize", _ => true).SetVoidResult();
         module.SetupVoid("show", _ => true).SetVoidResult();
         module.SetupVoid("close", _ => true).SetVoidResult();
+        module.SetupVoid("dispose", _ => true).SetVoidResult();
 
         var callbacks = new DialogCallbacks(gateConfirm);
 

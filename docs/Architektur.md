@@ -123,7 +123,8 @@ Audience-DTOs und den ausschließlich `list_audiences`, `create_audience`,
 Handlern), `Web.Components` (Shell, Router, Layout,
 zentrale Fehlergrenze und gemeinsam genutzte Bausteine unter
 `Web/Components/Shared/Dialogs` (nativer Dialog-Wrapper `AppDialog` mit
-schmaler JS-Isolation in `AppDialog.razor.js` und `ConfirmationDialog`),
+schmaler JS-Isolation in `AppDialog.razor.js` für `showModal()`, `close()` und
+das native `close`-Ereignis sowie `ConfirmationDialog`),
 `Web/Components/Shared/Feedback` (Status-, Warn- und Toastdarstellungen)
 und `Web/Components/Shared` enthält außerdem `PageFrame`, die ausführbare
 Seitenbasis für alle zehn routbaren Feature-Varianten. Die Komponente rendert
@@ -381,12 +382,10 @@ Der Testhost wartet nach dem Serverstart auf eine
 erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt;
 die Prozessausgabe wird dabei begrenzt und redigiert im Speicher gesammelt und
 ausschließlich für Diagnosen fehlgeschlagener Läufe herangezogen.
-Ein Dialog-Smoke prüft das Dialogverhalten gegen dieselben Serverressourcen
-und dass beim Laden keine Drittanbieter-Origin angefordert wird. Ein
-Layout-Smoke belegt für 1280 × 720 und 1024 × 720 die Landmark-Struktur,
+Layout-Smokes belegen für 1280 × 720 und 1024 × 720 die Landmark-Struktur,
 das Nebeneinander der Spalten beziehungsweise das Ein-/Ausklappen über
-beschriftete Buttons sowie fehlenden Horizontalüberlauf und
-Seiten-Scrollbarkeit mit langem Testinhalt. Ein visueller Smoke nimmt je
+beschriftete Buttons per Mausklick sowie fehlenden Horizontalüberlauf und
+Seiten-Scrollbarkeit mit langem Testinhalt per Mausrad. Ein visueller Smoke nimmt je
 Viewport erst nach den Verhaltensassertionen einen maskierten Light-Theme-
 Screenshot der Shell auf und vergleicht ihn mit der versionierten Baseline
 unter `tests/KnowHowToAI.BrowserTests/TestSupport/Baselines/`; Abweichungen

@@ -5,9 +5,7 @@ namespace KnowHowToAI.Server.Web.Components.Shared.Dialogs;
 /// <summary>
 /// Bestätigungsdialog auf Basis des nativen Dialogwrappers
 /// <see cref="AppDialog"/>: zeigt Titel, kurze Auswirkung, die primäre Aktion
-/// und „Abbrechen“. Beim Öffnen steht der Fokus auf der sicheren Aktion
-/// „Abbrechen“ (erstes Element), Fokusfalle und Fokusrückgabe übernimmt die
-/// Dialogisolation von <see cref="AppDialog"/>; Escape entspricht
+/// und „Abbrechen“. Escape über das native Close-Ereignis entspricht
 /// „Abbrechen“. Eine destruktive Aktion ist optisch und inhaltlich
 /// eindeutig; optionale Eingaben erläutern die bestätigte Aktion, ersetzen aber
 /// niemals deren expliziten Button.
@@ -101,7 +99,7 @@ public sealed partial class ConfirmationDialog : ComponentBase
             return;
         }
 
-        // Escape über das native Close-Ereignis entspricht „Abbrechen“.
+        // Ein natives Schließen entspricht „Abbrechen“.
         await OnCancel.InvokeAsync();
     }
 
@@ -138,8 +136,7 @@ public sealed partial class ConfirmationDialog : ComponentBase
             return;
         }
 
-        // Der Abbruch läuft über die Dialogisolation; das native
-        // Close-Ereignis löst deshalb keinen zweiten Abbruch aus.
+        // Das native Close-Ereignis löst deshalb keinen zweiten Abbruch aus.
         _isCloseWithoutCancel = true;
         await OnCancel.InvokeAsync();
         await CloseAsync();
