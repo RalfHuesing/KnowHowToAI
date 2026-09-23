@@ -14,13 +14,13 @@ bearbeiten. Strukturänderungen gehen in denselben sichtbaren Entwurf.
 
 ## Milestone-Abnahme
 
-- [ ] Aus `/knowledge` führt der Baum ohne vollständiges Vorabladen zu einer
+- [x] Aus `/knowledge` führt der Baum ohne vollständiges Vorabladen zu einer
       tiefen Node; direkte Node-URL und Reload erhalten Auswahl, Zielgruppe
       und Entwurf.
-- [ ] Text, Titel und Beschreibung können am Arbeitsort geändert und im
+- [x] Text, Titel und Beschreibung können am Arbeitsort geändert und im
       selben Entwurf gespeichert werden; Drag-and-drop ändert Parent und
       Reihenfolge nachvollziehbar.
-- [ ] Begrenzter M2-Audit gegen Konzept, Regeln, Diff und Nachweise
+- [x] Begrenzter M2-Audit gegen Konzept, Regeln, Diff und Nachweise
       dokumentiert.
 
-Audit-Ergebnis: offen.
+Audit-Ergebnis: bestanden; Details in [audit.md](audit.md).

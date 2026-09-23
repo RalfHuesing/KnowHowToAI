@@ -9,7 +9,7 @@ Endzustand nicht. Der Nutzer startet Schritt 3 gesondert.
 - [x] [M1 – Arbeits- und Seitenfundament](roadmap/01-fundament/roadmap.md):
   Planungsregeln konsistent, Entwurfs-Schreibweg und gemeinsame Shell samt
   echten Entwurfsrouten verfügbar; Milestone-Audit bestanden.
-- [ ] [M2 – Wissensarbeitsplatz](roadmap/02-wissensarbeitsplatz/roadmap.md):
+- [x] [M2 – Wissensarbeitsplatz](roadmap/02-wissensarbeitsplatz/roadmap.md):
   großer Baum, Node-Dokument, direkte Edits und Strukturaktionen nutzbar;
   Milestone-Audit bestanden.
 - [ ] [M3 – Hard Cut und Gesamtabnahme](roadmap/03-hard-cut/roadmap.md):

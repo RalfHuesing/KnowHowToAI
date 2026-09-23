@@ -8,6 +8,71 @@ namespace KnowHowToAI.BrowserTests.Transactions;
 public sealed class KnowledgeDirectEditingSmokeTests
 {
     [Fact]
+    public async Task DeepNodeUrlRestoresAudienceAndWorkingDraftAfterReload()
+    {
+        await using var host = await PublishedServerHost.StartAsync();
+        await BrowserKnowledgeSeed.EnsureVisualShellAsync(host.Address);
+        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
+        await using var browser = await ChromeBrowser.LaunchAsync();
+        var page = await browser.NewPageAsync();
+        Guid? transactionId = null;
+
+        try
+        {
+            await page.GotoAsync($"{host.Address}/knowledge?audienceId=Default", new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+                Timeout = 30_000
+            });
+            await CircuitProbe.WaitForInteractivityAsync(page);
+            await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
+
+            var root = page.GetByRole(AriaRole.Treeitem).First;
+            var rootTitle = (await root.Locator(".tree-node-title").InnerTextAsync()).Trim();
+            await root.Locator("button.tree-toggle-btn").ClickAsync();
+            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle });
+            await exportNode.Locator("button.tree-toggle-btn").ClickAsync();
+            var branch = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationBranchTitle });
+            await branch.Locator("button.tree-toggle-btn").ClickAsync();
+            var deepNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
+            await Assertions.Expect(deepNode).ToBeVisibleAsync();
+            var deepNodeId = Guid.Parse((await deepNode.GetAttributeAsync("data-nodeid"))!);
+            await deepNode.ClickAsync();
+
+            await page.GetByTestId("node-details-edit").ClickAsync();
+            await page.GetByTestId("content-editor-mode-source").ClickAsync();
+            await page.GetByTestId("content-editor-source").FillAsync("Working-Inhalt für den geteilten Deep-Link.");
+            await page.GetByTestId("content-editor-save").ClickAsync();
+            await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
+            var transactionMatch = Regex.Match(new Uri(page.Url).Query, @"transactionId=([0-9a-fA-F-]{36})");
+            Assert.True(transactionMatch.Success, $"Die URL enthält keine aktive Transaction-ID: {page.Url}");
+            transactionId = Guid.Parse(transactionMatch.Groups[1].Value);
+
+            var deepNodeUrl = $"{host.Address}/knowledge/{deepNodeId:D}?audienceId=Default&transactionId={transactionId.Value:D}";
+            await page.GotoAsync(deepNodeUrl, new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+                Timeout = 30_000
+            });
+            await CircuitProbe.WaitForInteractivityAsync(page);
+            await AssertDeepWorkingRouteAsync(page, deepNodeId, rootTitle);
+
+            await page.ReloadAsync(new PageReloadOptions
+            {
+                WaitUntil = WaitUntilState.DOMContentLoaded,
+                Timeout = 30_000
+            });
+            await CircuitProbe.WaitForInteractivityAsync(page);
+            await AssertDeepWorkingRouteAsync(page, deepNodeId, rootTitle);
+        }
+        finally
+        {
+            if (transactionId is not null)
+                await BrowserTransactionDiscarder.DiscardAsync(host.Address, transactionId.Value);
+        }
+    }
+
+    [Fact]
     public async Task CurrentNodeCanBeEditedDirectlyAndDraftContinuesAcrossNodes()
     {
         await using var host = await PublishedServerHost.StartAsync();
@@ -92,5 +157,23 @@ public sealed class KnowledgeDirectEditingSmokeTests
             if (transactionId is not null)
                 await BrowserTransactionDiscarder.DiscardAsync(host.Address, transactionId.Value);
         }
+    }
+
+    private static async Task AssertDeepWorkingRouteAsync(IPage page, Guid nodeId, string rootTitle)
+    {
+        var selectedNode = page.GetByTestId($"treeitem-{nodeId:D}");
+        await Assertions.Expect(selectedNode).ToHaveAttributeAsync("aria-selected", "true");
+        await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
+            .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
+        var breadcrumbs = page.GetByTestId("breadcrumbs");
+        await Assertions.Expect(breadcrumbs).ToContainTextAsync(rootTitle);
+        await Assertions.Expect(breadcrumbs).ToContainTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
+        await Assertions.Expect(breadcrumbs).ToContainTextAsync(BrowserKnowledgeSeed.DeepNavigationBranchTitle);
+        await Assertions.Expect(breadcrumbs).ToContainTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
+        await Assertions.Expect(page.GetByTestId("node-details-requested-audience")).ToHaveTextAsync("Default");
+        await Assertions.Expect(page.GetByTestId("node-details-context")).ToHaveTextAsync("Arbeitskopie");
+        await Assertions.Expect(page.GetByTestId("node-content-markdown"))
+            .ToContainTextAsync("Working-Inhalt für den geteilten Deep-Link.");
+        await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
     }
 }
