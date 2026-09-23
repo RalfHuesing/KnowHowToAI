@@ -129,7 +129,7 @@ Wissensbereich.
 - Das Muster nutzt die bestehenden Design-Tokens und die gemeinsame
   Seitenbreite. Die Desktopabnahme erfolgt bei 1280 × 800 CSS-Pixeln (oder
   begründet bei 1280 × 720) sowie sekundär bei 1024 × 720. Ansichten unter
-  1024 CSS-Pixeln und 200-/400-%-Zoom sind kein Abnahmegate.
+  1024 CSS-Pixeln und 200-/400-%-Zoom sind keine unterstützten Zielzustände.
 
 ### Inhalt je Reiter
 
@@ -256,4 +256,4 @@ Komponententests unter `tests/KnowHowToAI.Web.Tests/Components/Shared/Tabs/`.
   erreichbaren Aktionen. Gezielte Screenshots geänderter Zustände in der
   jeweils nötigen Desktopgröße ergänzen die Prüfung; keine schmale
   Viewport-Matrix und keine pauschalen FullPage-Screenshots. 200-/400-%-Zoom
-  sowie Ansichten unter 1024 CSS-Pixeln sind kein Abnahmegate.
+  sowie Ansichten unter 1024 CSS-Pixeln sind keine unterstützten Zielzustände.

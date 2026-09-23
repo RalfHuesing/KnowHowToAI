@@ -21,8 +21,9 @@ die Regel enthält keine kopierte UI-Beschreibung.
 Die Web-Bedienung richtet sich an Desktopnutzer mit Maus. Der primäre
 Abnahmezustand ist 1280 × 800 CSS-Pixel; 1280 × 720 ist zulässig, wenn die
 konkrete Umgebung es besser begründet. Der sekundäre Zustand ist 1024 × 720.
-Unter 1024 CSS-Pixeln besteht kein verpflichtendes Freigabegate. 200-/400-%-
-Zoom und 640-/320-/390-Pixel-Ansichten sind ebenfalls kein Abnahmegate. Eine
+Ansichten unter 1024 CSS-Pixeln einschließlich 640/320/390 sowie 200-/400-%-
+Zoom sind keine unterstützten Zielzustände. Ohne ausdrücklichen Auftrag werden
+dafür weder Layoutanpassungen noch Screenshots oder Abnahmetests erstellt. Eine
 besondere Tastatursteuerung oder ein Tastatur-Abnahmenachweis ist kein
 Produktziel.
 Insbesondere dürfen Treeview-Pfeiltasten, Tastaturverschiebung und ein
