@@ -8,10 +8,9 @@ using KnowHowToAI.Core.Domain.Dependencies;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Core.Domain.Versioning;
-using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
-using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,7 +72,7 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
             workspaceState,
             treeState,
             new TreeMoveRecovery(workspaceState,
-                new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())),
+                new KnowledgePageContextResolver(harness.CreateRepositories().Snapshots, harness.CreateRepositories().Transactions),
                 new PageRegionState(),
                 treeState));
 
@@ -81,9 +80,7 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
         var target = treeState.RootNode.Children[targetIndex];
         var result = await coordinator.MoveAsync(
             new TreeMoveRequest(source.NodeId, target.NodeId, position),
-            TransactionId.Value.ToString("D"),
-            null,
-            null);
+            TransactionId.Value.ToString("D"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal(
@@ -96,9 +93,7 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
         var unchangedNodes = repository.State.Nodes.ToArray();
         var invalidMove = await coordinator.MoveAsync(
             new TreeMoveRequest(source.NodeId, source.NodeId, TreeMovePosition.Parent),
-            TransactionId.Value.ToString("D"),
-            null,
-            null);
+            TransactionId.Value.ToString("D"));
         Assert.False(invalidMove.IsSuccess);
         Assert.Contains("verschiedene sichtbare Knoten", invalidMove.ErrorMessage, StringComparison.Ordinal);
         Assert.Equal(unchangedNodes, repository.State.Nodes);
@@ -148,7 +143,7 @@ public sealed class TreeMoveCoordinatorTests : BunitContext
             workspaceState,
             treeState,
             new TreeMoveRecovery(workspaceState,
-                new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore())),
+                new KnowledgePageContextResolver(harness.CreateRepositories().Snapshots, harness.CreateRepositories().Transactions),
                 new PageRegionState(),
                 treeState)));
 

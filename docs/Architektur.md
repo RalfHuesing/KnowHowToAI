@@ -153,14 +153,7 @@ verknüpft. Alle Animationen respektieren `prefers-reduced-motion`.)
 sowie `Web.State` (flüchtiger Circuit-Zustand: `ToastState` der globalen
 Toastregion, `WorkspaceState` als Circuit-Cache für ausgewählten Node,
 Zielgruppe, Lese-Kontext, den geladenen Snapshot, `BaseSnapshotId` und
-`ChangeVersion` sowie `WebReadContextResolver` zur Validierung der
-URL-Selektoren und Auflösung von `transactionId` über `ITransactionRepository`
-und `releaseId` über `IReleaseRepository`. Für Current liest er die Snapshot-
-Kennung über `ISnapshotRepository`; alle erfolgreichen Auflösungen liefern
-Core-`ReadContext`, `KnowledgeContextViewModel` und die Kennung des geladenen
-Snapshots) und
-die Feature-Namespaces unter `Web.Features.*` (`Knowledge`, `Audiences`,
-`Search`, `History`, `Dashboard`, `Transactions`, `Drafts`).
+`ChangeVersion` sowie `KnowledgePageContextResolver` zur Auflösung von Current oder einer offenen `transactionId` über `ISnapshotRepository` und `ITransactionRepository`; er liefert Core-`ReadContext`, `KnowledgeContextViewModel` und die Kennung des geladenen Snapshots. Feature-Namespaces unter `Web.Features.*` sind `Knowledge`, `Drafts` und `Content`; Zielgruppenauswahl gehört zur Knowledge-Seite unter `Knowledge/Audiences`.
 
 `Web.Workflow.WebWriteCoordinator` ist scoped pro Circuit und koordiniert den
 ersten Web-Write sowie weitere Writes über `TransactionService` und vorhandene
@@ -170,11 +163,7 @@ keine fachliche Autorität.
 
 Die Web-Lesegrenze entkoppelt Razor-Komponenten vollständig von Domain-Typen:
 Komponenten rufen Application Services direkt in-process per Dependency
-Injection auf (keine REST-Schicht). Die Ergebnisse werden über statische
-Mapper (`KnowledgeNavigationMapper`, `AudienceMapper`, `SearchMapper`,
-`HistoryMapper`) in unveränderliche UI-ViewModels überführt. Fehlercodes,
-Warnungen, opake Cursors und `ChangeVersion` bleiben dabei vollständig
-erhalten; Domain-Typen erscheinen nicht im Rendering. Das transportneutrale
+Injection auf (keine REST-Schicht). Die Ergebnisse werden in den Knowledge- und Draft-Flächen über featurelokale ViewModels in UI-Zustände überführt. Fehlercodes, Warnungen, opake Cursors und `ChangeVersion` bleiben erhalten; Domain-Typen erscheinen nicht im Rendering. Das transportneutrale
 Validierungsergebnis trägt die beim atomaren Working-Snapshot-Read gelesene
 `ChangeVersion`; die Transaction-Ansicht verwendet diese Version für Findings
 und markiert den Bericht bei einer bekannten neueren Workspace-Version als
@@ -198,20 +187,7 @@ wird über `@Assets` mit der Static-Web-Assets-Fingerabdruckroute aufgelöst.
 Diese delegiert die einzelne Mutation unverändert an den featurelokalen
 `TreeMoveCoordinator`; sie enthält keine Geschäftslogik.
 
-Die sichtbare Verantwortungs- und Ablauflandkarte von History, Transactions und
-Audiences steht im [Web-UI-Gesamtbild](WebUi.md). Technisch bleiben die Features
-in-process an ihre Application-Services und ViewModels gebunden: History hält
-Snapshot-/Release-Auswahl und cursor-paginierten Diff, Transactions validieren
-und schließen Working Snapshots mit ChangeVersion-Prüfung, und Audiences reicht
-den aufgelösten `ReadContext` an den featurelokalen Editor. Die Web-Grenze führt
-keinen Merge oder Rebase aus; Details der jeweiligen technischen Grenzen liegen
-in den Feature-Komponenten und den zugehörigen Tests. `HistoryPage` hält nur
-Query-Parameter und Auswahlzustand; `SnapshotList`, `SnapshotDiffPanel` und
-`ReleasePanel` arbeiten mit History-ViewModels. `TransactionPage` und
-`DraftPage` binden `TransactionService`/`HistoryService` direkt in-process;
-`DraftsPage` listet offene Arbeitsstände über `TransactionService`.
-`AudiencesPage` reicht die `ChangeVersion` über `WorkspaceState` an
-`AudienceEditor` weiter.
+History-, Such- und Zielgruppen-Use-Cases bleiben in Core/Application und MCP verfügbar, werden aber nicht als parallele Web-Seiten angeboten. Die Web-Grenze stellt Knowledge- und Draft-Arbeitsabläufe bereit: `DraftPage` bindet `TransactionService`/`HistoryService` direkt in-process; Zielgruppenauswahl wählt nur die Knowledge-Perspektive. Web-Routen und alte URL-Grenzen sind im [Web-UI-Gesamtbild](WebUi.md) dokumentiert.
 
 Für den Content-Editor liegt die lokale Buildgrenze unter
 `src/KnowHowToAI.Server/Frontend`. `package.json` und das ausschließlich daraus
@@ -308,7 +284,7 @@ Off-Path-Teilbäume gehören ausdrücklich nicht zur Rekonstruktion und bleiben 
 Zehn-Seiten-Eviction unterworfen.
 
 `NodeDocument` und `NodeDetailsPane` nutzen denselben `NodeDocumentLoader` für
-Navigationsergebnisse, UI-ViewModel, NotFound, Fehler und Export-URL. Die neue
+Navigationsergebnisse, UI-ViewModel, NotFound und Fehler. Die neue
 Knowledge-Route rendert nur `NodeDocument`; `NodeDetailsPane` und die Editor-
 Komponenten bleiben für ihre geplanten Mutationsslices erhalten. Im
 Working-Kontext delegieren die Editor-Komponenten Node-/Content-Mutationen mit
@@ -316,22 +292,7 @@ Working-Kontext delegieren die Editor-Komponenten Node-/Content-Mutationen mit
 nach Erfolg neu. Read-only- und Dirty-State-Verantwortung sowie die sichtbaren
 Übergänge sind im [Web-UI-Gesamtbild](WebUi.md) und am Code belegt.
 
-Der schmale Browserendpunkt `GET /downloads/markdown` erhält `nodeId`, `AudienceId` und
-höchstens einen Read-Context-Selektor, löst diesen über `WebReadContextResolver` auf
-und delegiert an `MarkdownExportService`. Erfolgreiche Antworten sind UTF-8-Markdown
-als Attachment mit `Cache-Control: no-store`; der Dateiname besteht aus bereinigtem
-Node-Titel und Zielgruppe. Fehler werden als RFC-9457-`ProblemDetails` mit stabilem
-Fehlercode und Correlation-ID ausgeliefert, niemals als Teil-Datei. Bekannte
-fachliche Fehlercodes werden explizit auf `400`, `404` oder `409` abgebildet;
-unbekannte Codes und unerwartete Ausnahmen liefern neutral `500` mit einem
-endpunktspezifischen technischen Fehlercode. Ein Request-Abbruch wird nicht als
-Serverfehler protokolliert.
-
-`SearchPage` delegiert Suche, Filter, opaque Cursor und Breadcrumb-Ladevorgänge
-an die zuständigen Application-/Navigation-Services. Der Request wird bei neuer
-Suche oder Kontextwechsel abgebrochen; Razor rendert ausschließlich Search-
-ViewModels. Die sichtbare Seitenverantwortung und der Übergang zum Knowledge-
-Kontext sind im [Web-UI-Gesamtbild](WebUi.md) beschrieben.
+Die Weboberfläche besitzt keinen Markdown-Download-Endpunkt. Core-/MCP-Markdown-Export und MCP-Suche/Historie bleiben eigenständige transportneutrale Application-Verträge. Die Weboberfläche bildet ausschließlich Knowledge- und Draft-Arbeitsabläufe ab; die genaue Routengrenze steht im [Web-UI-Gesamtbild](WebUi.md).
 
 Gemeinsame Feedback-, Dialog- und Toast-Komponenten bleiben rein darstellende
 UI-Grenzen; ihre routeübergreifende Ownership und Zustandsverwendung stehen im
@@ -340,8 +301,8 @@ liegen in den Feature-Seiten bzw. Services, nicht in diesen Shared-Komponenten.
 
 Die sichtbare Shell-, Kontext- und Seitenregionen-Verantwortung steht im
 [Web-UI-Gesamtbild](WebUi.md). `Web/Components/Layout` bleibt technisch in
-`Shell`, `Context`, `Navigation` und `PageRegions` getrennt; `PageRegionState` ist die
-rendererfreie Slot-Grenze. `ContextSelectionForm`, `WorkspaceState` und
+`Shell`, `Navigation` und `PageRegions` getrennt; `PageRegionState` ist die
+rendererfreie Slot-Grenze. `ContextSelectorDialog`, `ContextSelectorDialog`, `ContextSelectionForm`, `WorkspaceState` und
 `NavigationProtection` bleiben featureübergreifende Adapter für URL-Kontext und
 flüchtigen Circuit-State. Reconnect-Interop bleibt auf `App.razor` und das
 frameworkseitige Circuit-Verhalten begrenzt. Layout-, Fokus- und Reflow-Nachweise
@@ -436,14 +397,7 @@ im regulären Lauf findet nicht statt. Da sein Host ausschließlich den minimale
 Read-only-Bestand nutzt, können Historien-, Release- und Transaction-Workflows
 die Pixelbaseline nicht verändern.
 
-Die Testablagen sind nach Prüfgegenstand benannt: Komponententests liegen in
-`KnowHowToAI.Web.Tests` unter `Components/{Layout,Shared}` (Layout- und
-Shared-Komponenten), `Features/<Feature>` (echte Feature-Seiten wie Dashboard)
-und `TestSupport/` (Showcase- und Token-Fixture-Tests: `UiBasisShowcase`,
-`DesignTokens`); vollständige Benutzerabläufe entstehen in
-`KnowHowToAI.BrowserTests` unter `ReadOnly/` (Shell, Navigation, Reconnect)
-und den featurebezogenen Ordnern `Transactions/`, `Drafts/`, `Content/`, `PdfExport/`
-und `Assets/`, sobald die zuständigen Milestones sie befüllen.
+Die Testablagen sind nach Prüfgegenstand benannt: Komponententests liegen in `KnowHowToAI.Web.Tests` unter `Components/{Layout,Shared}`, `Features/{Knowledge,Drafts}` und `TestSupport/`. Vollständige Benutzerabläufe entstehen in `KnowHowToAI.BrowserTests` unter `ReadOnly/`, `Transactions/` und `Drafts/`; der geänderte Routenumfang und die Browser-Nachweise stehen im [Web-UI-Gesamtbild](WebUi.md).
 
 Der Browser-Testlauf `Category=UiAudit` ist ein ausdrücklich aktivierter,
 separater Diagnose-Runner. `scripts/capture-ui-audit.ps1` startet ihn gegen
@@ -455,14 +409,7 @@ Aktivierung aber übersprungen und startet dabei keinen Host oder Browser;
 volatile Werte werden vor der Aufnahme maskiert und jede Aufnahme folgt auf
 Web-first-Verhaltensassertionen. Die temporären Artefakte sind keine
 visuellen Baselines.
-Der gemeinsame Lauf umfasst derzeit 22 semantisch benannte Aufnahmen: den
-Knowledge-Einstieg mit ausgewählter Zielgruppe, beide Knowledge-Routen mit
-Zielgruppenwahl, Root, Node-Detail,
-Fallback und Working-Editor, Search leer/mit Treffer, History Liste/Diff,
-Transactions Übersicht/offen/Detail/Commit-/Discard-Dialog,
-Entwurfsübersicht/Entwurfsdetail sowie Audiences read-only/working/Löschdialog.
-Das Manifest dokumentiert Route, Zustand, Viewport und Browser; die PNGs werden nach dem Lauf gemeinsam manuell auf
-unerklärten Drift geprüft und bleiben unter `temp/` außerhalb des Commits.
+Der gemeinsame Lauf umfasst sieben semantisch benannte Aufnahmen: Knowledge-Einstieg mit Zielgruppenauswahl, beide Knowledge-Routen, Root, Node-Detail, Fallback und Working-Editor, Entwurfsübersicht sowie Entwurfsdetail. Das Manifest dokumentiert Route, Zustand, Viewport und Browser; die PNGs werden nach dem Lauf gemeinsam manuell auf unerklärten Drift geprüft und bleiben unter `temp/` außerhalb des Commits.
 
 `KnowHowToAI.TestSupport` bündelt projektübergreifende Testinfrastruktur: die
 Repository-Root-Ermittlung (`TestRepositoryRoot`), Wegwerf-Verzeichnisse unter
@@ -491,3 +438,7 @@ V1 benötigt dadurch keine Mandantenverwaltung innerhalb einer Instanz. Ein
 zentral betriebener SQL Server mit mehreren Serverprozessen mehrerer Nutzer ist
 der vorgesehene Betriebsmodus. Da eine Serverinstanz genau eine Datenbank bedient,
 erhält jede Wissensbasis ihre eigenen Policies über die App-Konfiguration.
+
+
+
+

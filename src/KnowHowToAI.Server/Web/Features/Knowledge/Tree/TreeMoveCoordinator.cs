@@ -22,8 +22,6 @@ public sealed class TreeMoveCoordinator(
     public async Task<TreeMoveOperationResult> MoveAsync(
         TreeMoveRequest request,
         string? transactionId,
-        string? snapshotId,
-        string? releaseId,
         CancellationToken cancellationToken = default)
     {
         var target = FindVisibleNode(_treeWorkspace.VisualRootNode, request.TargetNodeId);
@@ -53,7 +51,7 @@ public sealed class TreeMoveCoordinator(
             return TreeMoveOperationResult.Succeeded(result.Mutation.Value!);
         }
 
-        await _recovery.ReloadAfterRejectionAsync(transactionId, snapshotId, releaseId, cancellationToken).ConfigureAwait(false);
+        await _recovery.ReloadAfterRejectionAsync(transactionId, cancellationToken).ConfigureAwait(false);
         return TreeMoveOperationResult.Rejected($"[{result.Mutation.Error!.Code}] {result.Mutation.Error.Message} Der Wissensbaum wurde vom Server neu geladen.");
     }
 

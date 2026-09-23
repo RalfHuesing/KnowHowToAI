@@ -31,7 +31,6 @@ internal static class WebEndpointRegistration
         endpoints.MapMethods("/api", ReservedHttpMethods, ReturnReservedNotFoundAsync);
         endpoints.MapMethods("/api/{**reservedPath}", ReservedHttpMethods, ReturnReservedNotFoundAsync);
         endpoints.MapMethods("/mcp", NonMcpHttpMethods, ReturnMethodNotAllowedAsync);
-        Endpoints.MarkdownDownloadEndpoint.Map(endpoints);
         endpoints.MapStaticAssets(GetStaticAssetsManifestPath());
         endpoints.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();

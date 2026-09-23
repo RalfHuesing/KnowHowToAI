@@ -1,6 +1,5 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using Microsoft.AspNetCore.WebUtilities;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
@@ -27,26 +26,15 @@ internal static class NodeDocumentLoader
                 : NodeDocumentLoadResult.Failed(result.Error.Message);
         }
 
-        var query = new Dictionary<string, string?>
-        {
-            ["nodeId"] = id.ToString("D"),
-            ["audienceId"] = request.Read.AudienceId,
-            ["transactionId"] = request.ExportContext.TransactionQuery,
-            ["snapshotId"] = request.ExportContext.SnapshotQuery,
-            ["releaseId"] = request.ExportContext.ReleaseQuery
-        };
-
         return new NodeDocumentLoadResult(
             KnowledgeNavigationMapper.ToNodeDetailsViewModel(result.Value, request.Read.ChangeVersion),
-            QueryHelpers.AddQueryString("/downloads/markdown", query),
             IsNotFound: false,
             ErrorMessage: null);
     }
 }
 
 internal sealed record NodeDocumentRequest(
-    NodeReadRequest Read,
-    MarkdownExportContext ExportContext);
+    NodeReadRequest Read);
 
 internal sealed record NodeReadRequest(
     Guid? NodeId,
@@ -54,18 +42,12 @@ internal sealed record NodeReadRequest(
     string? AudienceId,
     long? ChangeVersion);
 
-internal sealed record MarkdownExportContext(
-    string? TransactionQuery,
-    string? SnapshotQuery = null,
-    string? ReleaseQuery = null);
-
 internal sealed record NodeDocumentLoadResult(
     NodeDetailsViewModel? ViewModel,
-    string? MarkdownDownloadUrl,
     bool IsNotFound,
     string? ErrorMessage)
 {
-    public static NodeDocumentLoadResult Empty { get; } = new(null, null, false, null);
-    public static NodeDocumentLoadResult NotFound { get; } = new(null, null, true, null);
-    public static NodeDocumentLoadResult Failed(string errorMessage) => new(null, null, false, errorMessage);
+    public static NodeDocumentLoadResult Empty { get; } = new(null, false, null);
+    public static NodeDocumentLoadResult NotFound { get; } = new(null, true, null);
+    public static NodeDocumentLoadResult Failed(string errorMessage) => new(null, false, errorMessage);
 }

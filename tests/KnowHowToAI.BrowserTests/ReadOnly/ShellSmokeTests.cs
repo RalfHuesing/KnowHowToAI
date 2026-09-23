@@ -33,7 +33,7 @@ public sealed class ShellSmokeTests
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
         Assert.Contains("text/html", response.Headers["content-type"], StringComparison.OrdinalIgnoreCase);
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("main#shell-main h1")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("shell-root")).ToHaveAttributeAsync("data-ktai-interactive", "true");
         await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "false");
 

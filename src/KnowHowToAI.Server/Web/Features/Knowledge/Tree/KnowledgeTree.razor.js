@@ -26,7 +26,7 @@ function resolveTreeNode(treeElement, target) {
 }
 
 function resolveDropPosition(node, clientY) {
-    const bounds = node.getBoundingClientRect();
+    const bounds = node.querySelector(".tree-node-title")?.getBoundingClientRect() ?? node.getBoundingClientRect();
     const relativeY = Math.min(Math.max(clientY - bounds.top, 0), bounds.height);
 
     if (relativeY < bounds.height * 0.25) return "Before";

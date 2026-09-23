@@ -6,19 +6,17 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge.Tree;
 /// <summary>Stellt nach abgelehnten Moves den bestätigten Lesezustand des Baums wieder her.</summary>
 public sealed class TreeMoveRecovery(
     WorkspaceState workspaceState,
-    WebReadContextResolver readContextResolver,
+    KnowledgePageContextResolver readContextResolver,
     PageRegionState pageRegions,
     IKnowledgeTreeWorkspace treeWorkspace)
 {
     private readonly WorkspaceState _workspaceState = workspaceState ?? throw new ArgumentNullException(nameof(workspaceState));
-    private readonly WebReadContextResolver _readContextResolver = readContextResolver ?? throw new ArgumentNullException(nameof(readContextResolver));
+    private readonly KnowledgePageContextResolver _readContextResolver = readContextResolver ?? throw new ArgumentNullException(nameof(readContextResolver));
     private readonly PageRegionState _pageRegions = pageRegions ?? throw new ArgumentNullException(nameof(pageRegions));
     private readonly IKnowledgeTreeWorkspace _treeWorkspace = treeWorkspace ?? throw new ArgumentNullException(nameof(treeWorkspace));
 
     public async Task ReloadAfterRejectionAsync(
         string? transactionId,
-        string? snapshotId,
-        string? releaseId,
         CancellationToken cancellationToken)
     {
         if (_workspaceState.CurrentAudienceId is not { } audienceId)
@@ -32,8 +30,6 @@ public sealed class TreeMoveRecovery(
 
         var contextResolution = await _readContextResolver.ResolveAsync(
             transactionId,
-            snapshotId,
-            releaseId,
             cancellationToken).ConfigureAwait(false);
         if (!contextResolution.IsSuccess)
             return;

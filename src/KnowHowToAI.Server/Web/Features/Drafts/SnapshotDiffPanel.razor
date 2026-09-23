@@ -1,0 +1,88 @@
+@namespace KnowHowToAI.Server.Web.Features.Drafts
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+<section class="snapshot-diff" aria-labelledby="snapshot-diff-heading" data-testid="snapshot-diff">
+    <header class="snapshot-diff__header">
+        <div>
+            <p class="snapshot-diff__eyebrow">Ergebnis</p>
+            <h2 id="snapshot-diff-heading">Snapshot-Diff</h2>
+            <p>Hier sehen Sie die fachlichen Änderungen zwischen Ausgang und Ziel.</p>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div role="alert" data-testid="snapshot-diff-error">
+            <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+        </div>
+    }
+    else if (BaseSnapshotId is null || TargetSnapshotId is null)
+    {
+        <p role="status" data-testid="snapshot-diff-selection-required">Wählen Sie einen Ausgangs- und einen Ziel-Snapshot für den Vergleich.</p>
+    }
+    else if (_isLoading)
+    {
+        <p role="status" class="snapshot-diff__status" data-testid="snapshot-diff-loading">Vergleich von Snapshot @BaseSnapshotId nach Snapshot @TargetSnapshotId wird geladen …</p>
+    }
+    else if (_viewModel is null || _viewModel.Entries.Count == 0)
+    {
+        <div class="snapshot-diff__empty-state" role="status" data-testid="snapshot-diff-empty">
+            <p class="snapshot-diff__summary" data-testid="snapshot-diff-summary">
+                <strong>Snapshot @BaseSnapshotId → Snapshot @TargetSnapshotId</strong>
+                <span>Keine Änderungen im ausgewählten Vergleich.</span>
+            </p>
+            @if (NodeFilterId.HasValue)
+            {
+                @:Für diesen Knoten bestehen zwischen den ausgewählten Snapshots keine Änderungen.
+            }
+            else
+            {
+                @:Zwischen den ausgewählten Snapshots bestehen keine Änderungen.
+            }
+        </div>
+    }
+    else
+    {
+        <p class="snapshot-diff__summary" data-testid="snapshot-diff-summary">
+            <strong>Snapshot @_viewModel.BaseSnapshotId → Snapshot @_viewModel.TargetSnapshotId</strong>
+            <span>@_viewModel.TotalCount Änderung(en)</span>
+            @if (NodeFilterId.HasValue)
+            {
+                <span class="snapshot-diff__filter-context">(gefiltert auf Knoten @NodeFilterId.Value)</span>
+            }
+        </p>
+        <p class="snapshot-diff__status">Vergleichsergebnis für den ausgewählten Ausgangs- und Zielstand.</p>
+        <ol class="snapshot-diff__list" data-testid="snapshot-diff-list">
+            @foreach (var entry in _viewModel.Entries)
+            {
+                <li class="snapshot-diff__entry" data-testid="snapshot-diff-entry-@entry.EntityType-@entry.PrimaryId">
+                    <span class="snapshot-diff__kind snapshot-diff__kind--@entry.Kind.ToLowerInvariant()">@MapKind(entry.Kind)</span>
+                    <div>
+                        <strong>@MapEntityType(entry.EntityType)</strong>
+                        @if (!string.IsNullOrWhiteSpace(entry.Detail))
+                        {
+                            <p class="snapshot-diff__detail">@entry.Detail</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(entry.Before))
+                        {
+                            <p class="snapshot-diff__before"><span>Vorher</span> @entry.Before</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(entry.After))
+                        {
+                            <p class="snapshot-diff__after"><span>Nachher</span> @entry.After</p>
+                        }
+                        <details class="snapshot-diff__technical">
+                            <summary>Technische Details</summary>
+                            <p class="snapshot-diff__ids"><span>Primär-ID</span> @entry.PrimaryId@if (!string.IsNullOrWhiteSpace(entry.SecondaryId)) { <text> · Sekundär-ID @entry.SecondaryId</text> }</p>
+                        </details>
+                    </div>
+                </li>
+            }
+        </ol>
+        @if (!string.IsNullOrEmpty(_viewModel.NextCursor))
+        {
+            <button type="button" class="history-page__next" @onclick="LoadNextPageAsync" data-testid="snapshot-diff-next">Weitere Änderungen</button>
+        }
+    }
+</section>

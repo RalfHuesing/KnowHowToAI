@@ -1,10 +1,9 @@
 using Bunit;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Components.Layout.Shell;
-using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,9 +26,9 @@ public sealed class NavigationProtectionTests : ShellTestContext
             KnowledgeReadContextKind.Current,
             IsDirty: false));
 
-        navManager.NavigateTo("/search");
+        navManager.NavigateTo("/drafts");
 
-        Assert.EndsWith("/search", navManager.Uri, StringComparison.Ordinal);
+        Assert.EndsWith("/drafts", navManager.Uri, StringComparison.Ordinal);
         Assert.Empty(cut.FindAll(".confirmation-dialog"));
     }
 
@@ -54,7 +53,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
         Services.GetRequiredService<WorkspaceEditState>().SetDirty(true);
 
         // Navigation versuchen
-        navManager.NavigateTo("/search");
+        navManager.NavigateTo("/drafts");
 
         // Navigation wurde abgefangen (URL bleibt auf der ursprünglichen Adresse)
         Assert.Equal(initialUri, navManager.Uri);
@@ -105,7 +104,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
         workspaceState.SetContext(contextVm, new ReadContext());
         Services.GetRequiredService<WorkspaceEditState>().SetDirty(true);
 
-        navManager.NavigateTo("/search");
+        navManager.NavigateTo("/drafts");
 
         var dialog = cut.FindComponent<KnowHowToAI.Server.Web.Components.Shared.Dialogs.ConfirmationDialog>();
         await cut.InvokeAsync(async () =>
@@ -114,7 +113,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
         });
 
         // Nach Bestätigung wird zur Ziel-URL navigiert und IsDirty ist false
-        Assert.EndsWith("/search", navManager.Uri, StringComparison.Ordinal);
+        Assert.EndsWith("/drafts", navManager.Uri, StringComparison.Ordinal);
         Assert.False(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         Assert.False(pageRegions.KnowledgeContext?.IsDirty);
     }
@@ -139,7 +138,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
         workspaceState.SetContext(contextVm, new ReadContext());
         Services.GetRequiredService<WorkspaceEditState>().SetDirty(true);
 
-        navManager.NavigateTo("/search");
+        navManager.NavigateTo("/drafts");
 
         var dialog = cut.FindComponent<KnowHowToAI.Server.Web.Components.Shared.Dialogs.ConfirmationDialog>();
         await cut.InvokeAsync(async () =>

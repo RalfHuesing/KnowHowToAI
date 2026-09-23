@@ -1,5 +1,6 @@
 using KnowHowToAI.BrowserTests.TestSupport;
 using Microsoft.Playwright;
+using System.Text.RegularExpressions;
 
 namespace KnowHowToAI.BrowserTests.Transactions;
 
@@ -33,29 +34,16 @@ public sealed class KnowledgeTreeMoveSmokeTests
         Guid? transactionId = null;
         try
         {
-            await page.GotoAsync($"{_host.Address}/transactions", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+            await page.GotoAsync($"{_host.Address}/knowledge?audienceId=Default", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
             await CircuitProbe.WaitForInteractivityAsync(page);
-            await page.GetByTestId("tx-purpose-input").FillAsync("Tree-Move-Browsertest");
-            await page.GetByTestId("begin-transaction-button").ClickAsync();
-            await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync();
-            transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
-            await page.GetByTestId("tx-open-knowledge-link").ClickAsync();
             await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync();
-
-            var audienceSelector = page.GetByTestId("context-selector-dialog");
-            await Assertions.Expect(audienceSelector).ToBeVisibleAsync();
-            var audienceOption = audienceSelector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio);
-            await audienceOption.CheckAsync();
-            await Assertions.Expect(audienceOption).ToBeCheckedAsync();
-            var applyButton = audienceSelector.GetByTestId("selector-apply-button");
-            await Assertions.Expect(applyButton).ToBeEnabledAsync();
-            await applyButton.ClickAsync();
-            await Assertions.Expect(audienceSelector).ToBeHiddenAsync();
-            await Assertions.Expect(page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("[?&]audienceId=Default(?:&|$)"));
 
             var setup = await PrepareTreeAsync(page, position);
             await DragAndDropAsync(page, setup.Source, setup.Target, position, relativeY);
             await AssertFirstMoveAsync(page, setup, position);
+            var transactionMatch = Regex.Match(new Uri(page.Url).Query, @"transactionId=([0-9a-fA-F-]{36})");
+            Assert.True(transactionMatch.Success, $"Der erste bestätigte Baum-Move hat keinen Entwurf aktiviert: {page.Url}");
+            transactionId = Guid.Parse(transactionMatch.Groups[1].Value);
 
             var expectedAfterReload = await ReadVisibleSiblingTitlesAsync(page);
             await ReloadAndVerifyAsync(page, setup, position, expectedAfterReload);
@@ -196,7 +184,7 @@ public sealed class KnowledgeTreeMoveSmokeTests
         var sourceNode = page.GetByTestId($"treeitem-{source}");
         var targetNode = page.GetByTestId($"treeitem-{target}");
         var sourceBox = await sourceNode.Locator(".tree-node-title").BoundingBoxAsync() ?? throw new InvalidOperationException("Quellknoten ist nicht sichtbar.");
-        var targetBox = await targetNode.BoundingBoxAsync() ?? throw new InvalidOperationException("Zielknoten ist nicht sichtbar.");
+        var targetBox = await targetNode.Locator(".tree-node-title").BoundingBoxAsync() ?? throw new InvalidOperationException("Zieltitel ist nicht sichtbar.");
         var sourceX = sourceBox.X + sourceBox.Width / 2;
         var sourceY = sourceBox.Y + sourceBox.Height / 2;
         var targetX = targetBox.X + targetBox.Width / 2;
@@ -212,9 +200,12 @@ public sealed class KnowledgeTreeMoveSmokeTests
         await WaitForMoveAsync(page, source, target, position);
     }
 
-    private static Task WaitForMoveAsync(IPage page, string source, string target, string position) =>
-        page.WaitForFunctionAsync(
-            """
+    private static async Task WaitForMoveAsync(IPage page, string source, string target, string position)
+    {
+        try
+        {
+            await page.WaitForFunctionAsync(
+                """
             ({ source, target, position }) => {
                 const sourceNode = document.querySelector(`[data-nodeid="${source}"]`);
                 const targetNode = document.querySelector(`[data-nodeid="${target}"]`);
@@ -229,8 +220,25 @@ public sealed class KnowledgeTreeMoveSmokeTests
                     : sourceIndex >= 0 && sourceIndex > targetIndex;
             }
             """,
-            new { source, target, position },
-            new PageWaitForFunctionOptions { Timeout = 15_000 });
+                new { source, target, position },
+                new PageWaitForFunctionOptions { Timeout = 15_000 });
+        }
+        catch (TimeoutException exception)
+        {
+            var diagnostic = await page.EvaluateAsync<string>("""
+            () => JSON.stringify({
+                url: location.href,
+                alerts: [...document.querySelectorAll('[role="alert"]')].map(node => node.innerText),
+                nodes: [...document.querySelectorAll('div[role="treeitem"][aria-level="2"]')].map(node => ({
+                    id: node.dataset.nodeid,
+                    title: node.querySelector('.tree-node-title')?.innerText,
+                    classes: node.className
+                }))
+            })
+            """);
+            throw new Xunit.Sdk.XunitException($"Baum-Move {position} wurde nicht übernommen. UI: {diagnostic}{Environment.NewLine}{exception.Message}");
+        }
+    }
 
     private static Task WaitForParentMoveAsync(IPage page, string source, string target) =>
         page.WaitForFunctionAsync(

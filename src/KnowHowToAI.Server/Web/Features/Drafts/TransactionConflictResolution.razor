@@ -1,0 +1,30 @@
+@using KnowHowToAI.Server.Web.Components.Shared
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+@using Microsoft.AspNetCore.Components.Web
+
+<section class="snapshot-conflict" aria-labelledby="snapshot-conflict-heading" data-testid="snapshot-conflict">
+    <h2 id="snapshot-conflict-heading">Entwurfskonflikt prüfen</h2>
+    <div role="alert" data-testid="snapshot-conflict-explanation">
+        <InlineAlert Kind="AlertKind.Fehler" Message="Die Änderungen wurden nicht übernommen. Ihr Entwurf bleibt erhalten." />
+        <p>
+            Dieser Entwurf basiert auf Basis-Snapshot @BaseSnapshotId.
+            Der Current Snapshot @CurrentSnapshotId ist inzwischen maßgeblich.
+        </p>
+        <p>
+            Vergleichen Sie die Snapshots und starten Sie anschließend einen neuen Entwurf.
+            Änderungen werden nicht automatisch zusammengeführt oder kopiert.
+        </p>
+    </div>
+
+    <SnapshotDiffPanel BaseSnapshotId="@BaseSnapshotId" TargetSnapshotId="@CurrentSnapshotId" />
+
+    <div class="snapshot-conflict__actions action-group">
+        <button type="button" class="btn btn-primary" @onclick="OnStartManualReapply"
+                disabled="@(!CanStartManualReapply)" data-testid="snapshot-conflict-start-reapply">
+            @(IsStartingManualReapply ? "Neuer Entwurf wird gestartet..." : "Neuen Entwurf für manuelles Reapply beginnen")
+        </button>
+        <p class="snapshot-conflict__hint">
+            Der konfliktbehaftete Entwurf bleibt erhalten, bis Sie ihn ausdrücklich verwerfen.
+        </p>
+    </div>
+</section>

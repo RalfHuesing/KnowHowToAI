@@ -5,7 +5,8 @@
 @using KnowHowToAI.Server.Web.Features.Knowledge.Node
 @using KnowHowToAI.Server.Web.Features.Knowledge.Tree
 @using KnowHowToAI.Server.Web.Features.Knowledge.Components
-@using KnowHowToAI.Server.Web.Components.Layout.Context
+@using KnowHowToAI.Server.Web.Features.Knowledge.Audiences
+@using KnowHowToAI.Server.Web.State
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Knowledge
 
@@ -51,7 +52,6 @@
                                      AudienceId="@WorkspaceState.CurrentAudienceId"
                                      ChangeVersion="@WorkspaceState.CurrentChangeVersion"
                                      TransactionId="@WorkspaceState.ActiveTransactionId"
-                                     QueryTransactionId="@QueryTransactionId"
                                      OnMutationSucceeded="RefreshKnowledgeTreeAfterMetadataChangeAsync" />
                 }
                 else if (TreeWorkspace.VisualRootNode is null

@@ -36,22 +36,12 @@ public sealed partial class NodeDetailsPane
     public TransactionId? TransactionId { get; set; }
 
     [Parameter]
-    public string? QueryTransactionId { get; set; }
-
-    [Parameter]
-    public string? QuerySnapshotId { get; set; }
-
-    [Parameter]
-    public string? QueryReleaseId { get; set; }
-
-    [Parameter]
     public bool ShowTitle { get; set; } = true;
 
     [Parameter]
     public EventCallback<NodeMutationResult> OnMutationSucceeded { get; set; }
 
     private NodeDetailsViewModel? _viewModel;
-    private string? _markdownDownloadUrl;
     private string? _errorMessage;
     private bool _nodeNotFound;
     private bool _isLoading;
@@ -112,7 +102,6 @@ public sealed partial class NodeDetailsPane
     {
         _errorMessage = null;
         _nodeNotFound = false;
-        _markdownDownloadUrl = null;
         if (preserveEditingDocument)
             return;
 
@@ -137,10 +126,8 @@ public sealed partial class NodeDetailsPane
             var result = await NodeDocumentLoader.LoadAsync(
                 NavigationService,
                 new NodeDocumentRequest(
-                    new NodeReadRequest(request.NodeId, request.ReadContext, request.AudienceId, request.ChangeVersion),
-                    new MarkdownExportContext(QueryTransactionId, QuerySnapshotId, QueryReleaseId)));
+                    new NodeReadRequest(request.NodeId, request.ReadContext, request.AudienceId, request.ChangeVersion)));
             _viewModel = result.ViewModel;
-            _markdownDownloadUrl = result.MarkdownDownloadUrl;
             _nodeNotFound = result.IsNotFound;
             _errorMessage = result.ErrorMessage;
             if (_viewModel is { Availability: "Explicit", ContentMode: "Independent" })

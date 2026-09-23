@@ -1,8 +1,7 @@
-using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
-using KnowHowToAI.Server.Web.Features.Search;
-using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Features.Knowledge.Audiences;
 using KnowHowToAI.Server.Web.Workflow;
 using Microsoft.Extensions.DependencyInjection;
 using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
@@ -31,11 +30,7 @@ internal static class WebServiceRegistration
 
         // Gemeinsame Begin-/Resume-Koordination für persistente Web-Writes.
         services.AddScoped<WebWriteCoordinator>();
-
-        // Löst URL-Query-Parameter auf Core-ReadContext und KnowledgeContextViewModel auf.
-        services.AddScoped<WebReadContextResolver>();
-        services.AddScoped<IWebReadContextResolver>(serviceProvider =>
-            serviceProvider.GetRequiredService<WebReadContextResolver>());
+        services.AddScoped<KnowledgePageContextResolver>();
 
         // Flüchtiger Circuit-State und Lazy-Loading-Datenadapter für den Wissensbaum.
         services.AddScoped<KnowledgeTreeState>();
@@ -52,15 +47,10 @@ internal static class WebServiceRegistration
         // Flüchtiger Circuit-State für den globalen Zielgruppen- und Lesekontext-Selektor.
         services.AddScoped<ContextSelectorState>();
 
-        // UI-Grenzen für Auswahlwerte und kontextabhängige Zielgruppen im Selektor.
-        services.AddScoped<ContextSelectionCatalog>();
-        services.AddScoped<IContextSelectionCatalog>(serviceProvider =>
-            serviceProvider.GetRequiredService<ContextSelectionCatalog>());
+        // Zielgruppen für die Auswahl auf der Wissensseite.
         services.AddScoped<ContextSelectionAudienceCatalog>();
         services.AddScoped<IContextSelectionAudienceCatalog>(serviceProvider =>
             serviceProvider.GetRequiredService<ContextSelectionAudienceCatalog>());
-
-        // Zusammengesetzter Präsentations-Read für Suchtreffer und Breadcrumbs.
 
         return services;
     }

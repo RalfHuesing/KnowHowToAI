@@ -20,16 +20,7 @@ public sealed class DraftWorkflowSmokeTests
         Guid? draftId = null;
         try
         {
-            await page.GotoAsync($"{host.Address}/transactions", new PageGotoOptions
-            {
-                WaitUntil = WaitUntilState.DOMContentLoaded,
-                Timeout = 30_000
-            });
-            await CircuitProbe.WaitForInteractivityAsync(page);
-            await page.GetByTestId("tx-purpose-input").FillAsync("Draft Browser Smoke");
-            await page.GetByTestId("begin-transaction-button").ClickAsync();
-            await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-            draftId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
+            draftId = await BrowserMcpAssertions.BeginTransactionAsync(host.Address, "Draft Browser Smoke");
 
             await page.GotoAsync($"{host.Address}/drafts", new PageGotoOptions
             {

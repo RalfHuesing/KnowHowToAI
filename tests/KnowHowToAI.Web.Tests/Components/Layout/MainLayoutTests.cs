@@ -102,8 +102,8 @@ public sealed class MainLayoutTests : ShellTestContext
     {
         var transactionId = new TransactionId(Guid.NewGuid());
         Services.GetRequiredService<WorkspaceState>().SetContext(
-            new KnowHowToAI.Server.Web.Components.Layout.Context.KnowledgeContextViewModel(
-                KnowHowToAI.Server.Web.Components.Layout.Context.KnowledgeReadContextKind.Current),
+            new KnowHowToAI.Server.Web.State.KnowledgeContextViewModel(
+                KnowHowToAI.Server.Web.State.KnowledgeReadContextKind.Current),
             new ReadContext(TransactionId: transactionId));
 
         var cut = RenderMainLayout();

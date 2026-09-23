@@ -1,0 +1,11 @@
+@namespace KnowHowToAI.Server.Web.Features.Knowledge.Audiences
+@using KnowHowToAI.Server.Web.Components.Shared.Dialogs
+
+@if (State.IsOpen)
+{
+    <AppDialog @ref="_dialog" Title="@DialogTitle" OnClosed="HandleDialogClosedAsync" OnReady="OpenDialogAsync">
+        <div class="context-selector-dialog" data-testid="context-selector-dialog">
+            <ContextSelectionForm />
+        </div>
+    </AppDialog>
+}

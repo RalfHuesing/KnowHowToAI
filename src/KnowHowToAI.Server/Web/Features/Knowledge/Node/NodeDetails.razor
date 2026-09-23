@@ -109,14 +109,6 @@ else if (ViewModel is not null)
                     @EditActionLabel
                 </button>
             }
-            <a href="/history?nodeId=@ViewModel.NodeId" data-testid="node-details-history-link">Änderungshistorie dieses Knotens</a>
-
-            @if (!string.IsNullOrWhiteSpace(MarkdownDownloadUrl))
-            {
-                <a class="node-details-download" href="@MarkdownDownloadUrl" data-testid="node-details-markdown-download">
-                    Teilbaum als Markdown herunterladen
-                </a>
-            }
         </nav>
 
         <details class="node-details-meta" data-testid="node-details-meta">

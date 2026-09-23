@@ -12,10 +12,9 @@ using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Mcp.Contracts;
 using KnowHowToAI.Server.Mcp.Contracts.Navigation;
 using KnowHowToAI.Server.Mcp.Mapping;
-using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
-using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
@@ -425,32 +424,19 @@ public sealed class KnowledgeReadParityTests : BunitContext
         Assert.False(mcpContextResult.IsSuccess);
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, mcpContextResult.Error!.Code);
 
-        var webResolver = new WebReadContextResolver(new InMemoryReleaseRepository(), new InMemoryTransactionRepository(new InMemoryKnowledgeStore()));
-        var webContextResult = await webResolver.ResolveAsync(txRaw, snapRaw, releaseIdRaw: null);
-        Assert.False(webContextResult.IsSuccess);
-        Assert.Equal(ReadContextErrorCodes.InvalidReadContext, webContextResult.Error!.Code);
-
-        // 2. Ungültige UUID für Transaktions-ID
+        var webResolver = new KnowledgePageContextResolver(
+            new InMemorySnapshotRepository(new InMemoryKnowledgeStore { CurrentSnapshotId = new SnapshotId(1) }),
+            new InMemoryTransactionRepository(new InMemoryKnowledgeStore()));
+        // Die Knowledge-Webgrenze akzeptiert nur offene Draft-IDs.
         var invalidTx = "nicht-eine-guid";
         var mcpTxResult = McpReadContextMapper.ToApplicationContext(
             new McpReadContextRequest(TransactionId: invalidTx));
         Assert.False(mcpTxResult.IsSuccess);
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, mcpTxResult.Error!.Code);
 
-        var webTxResult = await webResolver.ResolveAsync(invalidTx, snapshotIdRaw: null, releaseIdRaw: null);
+        var webTxResult = await webResolver.ResolveAsync(invalidTx);
         Assert.False(webTxResult.IsSuccess);
         Assert.Equal(ReadContextErrorCodes.InvalidReadContext, webTxResult.Error!.Code);
-
-        // 3. Ungültige Zahl für Snapshot-ID
-        var invalidSnap = "keine-zahl";
-        var mcpSnapResult = McpReadContextMapper.ToApplicationContext(
-            new McpReadContextRequest(SnapshotId: invalidSnap));
-        Assert.False(mcpSnapResult.IsSuccess);
-        Assert.Equal(ReadContextErrorCodes.InvalidReadContext, mcpSnapResult.Error!.Code);
-
-        var webSnapResult = await webResolver.ResolveAsync(transactionIdRaw: null, invalidSnap, releaseIdRaw: null);
-        Assert.False(webSnapResult.IsSuccess);
-        Assert.Equal(ReadContextErrorCodes.InvalidReadContext, webSnapResult.Error!.Code);
 
         // 4. Nicht gefundener Node liefert in beiden Systemen NodeNotFound
         var notFoundError = new DomainError(NavigationErrorCodes.NodeNotFound, "Node existiert nicht.");

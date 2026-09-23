@@ -30,14 +30,14 @@ public sealed class KnowledgeDirectEditingSmokeTests
             var root = page.GetByRole(AriaRole.Treeitem).First;
             var rootTitle = (await root.Locator(".tree-node-title").InnerTextAsync()).Trim();
             await root.Locator("button.tree-toggle-btn").ClickAsync();
-            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle });
+            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
             await exportNode.Locator("button.tree-toggle-btn").ClickAsync();
             var branch = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationBranchTitle });
             await branch.Locator("button.tree-toggle-btn").ClickAsync();
             var deepNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
             await Assertions.Expect(deepNode).ToBeVisibleAsync();
             var deepNodeId = Guid.Parse((await deepNode.GetAttributeAsync("data-nodeid"))!);
-            await deepNode.ClickAsync();
+            await deepNode.Locator(".tree-node-title").ClickAsync();
 
             await page.GetByTestId("node-details-edit").ClickAsync();
             await page.GetByTestId("content-editor-mode-source").ClickAsync();
@@ -97,11 +97,11 @@ public sealed class KnowledgeDirectEditingSmokeTests
 
             var root = page.GetByRole(AriaRole.Treeitem).First;
             await root.Locator("button.tree-toggle-btn").ClickAsync();
-            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle });
+            var exportNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
             await Assertions.Expect(exportNode).ToBeVisibleAsync();
             var exportNodeId = await exportNode.GetAttributeAsync("data-nodeid");
             Assert.False(string.IsNullOrWhiteSpace(exportNodeId));
-            await exportNode.ClickAsync();
+            await exportNode.Locator(".tree-node-title").ClickAsync();
             await page.GetByTestId("node-details-edit").ClickAsync();
 
             await page.GetByTestId("node-metadata-title").FillAsync("Direkt bearbeiteter Browser-Knoten");
@@ -111,8 +111,9 @@ public sealed class KnowledgeDirectEditingSmokeTests
             transactionId = Guid.Parse(Regex.Match(new Uri(page.Url).Query, @"transactionId=([0-9a-fA-F-]{36})").Groups[1].Value);
             var updatedNode = page.GetByTestId($"treeitem-{exportNodeId}");
             await Assertions.Expect(updatedNode).ToContainTextAsync("Direkt bearbeiteter Browser-Knoten", new() { Timeout = 15_000 });
-            if (await page.GetByRole(AriaRole.Alert).CountAsync() > 0)
-                throw new Xunit.Sdk.XunitException($"Knowledge route failed after draft synchronization: {string.Join(Environment.NewLine, host.Log.Snapshot().TakeLast(30))}");
+            var routeAlerts = await page.GetByRole(AriaRole.Alert).AllTextContentsAsync();
+            if (routeAlerts.Count > 0)
+                throw new Xunit.Sdk.XunitException($"Knowledge route failed after draft synchronization: {string.Join(" | ", routeAlerts)}{Environment.NewLine}{string.Join(Environment.NewLine, host.Log.Snapshot().TakeLast(30))}");
             await Assertions.Expect(page.GetByRole(AriaRole.Main)
                 .GetByRole(AriaRole.Heading, new() { Name = "Direkt bearbeiteter Browser-Knoten", Level = 1 }))
                 .ToBeVisibleAsync(new() { Timeout = 15_000 });
@@ -138,7 +139,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await branch.Locator("button.tree-toggle-btn").ClickAsync();
             var secondNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
             await Assertions.Expect(secondNode).ToBeVisibleAsync();
-            await secondNode.ClickAsync();
+            await secondNode.Locator(".tree-node-title").ClickAsync();
             await page.GetByTestId("node-details-edit").ClickAsync();
             await page.GetByTestId("content-editor-mode-source").ClickAsync();
             await page.GetByTestId("content-editor-source").FillAsync("Weiterer Inhalt im selben Entwurf.");
@@ -167,7 +168,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
         var breadcrumbs = page.GetByTestId("breadcrumbs");
         await Assertions.Expect(breadcrumbs).ToContainTextAsync(rootTitle);
-        await Assertions.Expect(breadcrumbs).ToContainTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
+        await Assertions.Expect(breadcrumbs).ToContainTextAsync(BrowserKnowledgeSeed.FallbackNodeTitle);
         await Assertions.Expect(breadcrumbs).ToContainTextAsync(BrowserKnowledgeSeed.DeepNavigationBranchTitle);
         await Assertions.Expect(breadcrumbs).ToContainTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
         await Assertions.Expect(page.GetByTestId("node-details-requested-audience")).ToHaveTextAsync("Default");
@@ -177,3 +178,4 @@ public sealed class KnowledgeDirectEditingSmokeTests
         await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
     }
 }
+

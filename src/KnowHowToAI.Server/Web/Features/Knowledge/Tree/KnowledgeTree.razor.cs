@@ -41,12 +41,6 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
     [Parameter]
     public string? MoveTransactionId { get; set; }
 
-    [Parameter]
-    public string? MoveSnapshotId { get; set; }
-
-    [Parameter]
-    public string? MoveReleaseId { get; set; }
-
     private readonly Dictionary<Guid, ElementReference> _nodeElements = new();
     private ElementReference _treeElement;
     private Task<IJSObjectReference>? _moduleTask;
@@ -162,9 +156,7 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
             sourceId,
             target.NodeId,
             movePosition),
-            MoveTransactionId,
-            MoveSnapshotId,
-            MoveReleaseId);
+            MoveTransactionId);
         if (outcome.IsSuccess)
         {
             _focusedNodeId = sourceId;

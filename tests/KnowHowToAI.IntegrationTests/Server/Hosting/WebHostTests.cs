@@ -21,6 +21,12 @@ public sealed class WebHostTests
     [InlineData("/api")]
     [InlineData("/api/test")]
     [InlineData("/unbekannt")]
+    [InlineData("/search")]
+    [InlineData("/history")]
+    [InlineData("/audiences")]
+    [InlineData("/transactions")]
+    [InlineData("/transactions/00000000-0000-0000-0000-000000000000")]
+    [InlineData("/downloads/markdown")]
     public async Task UnmappedRoutes_ReturnEmptyNotFoundResponses(string path)
     {
         using var application = CreateApplication("http://127.0.0.1:0");

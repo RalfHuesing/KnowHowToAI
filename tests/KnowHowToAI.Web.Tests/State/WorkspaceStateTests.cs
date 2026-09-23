@@ -1,6 +1,5 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.State;
 
 namespace KnowHowToAI.Web.Tests.State;
@@ -103,12 +102,12 @@ public sealed class WorkspaceStateTests
         var changeCount = 0;
         state.Changed += () => changeCount++;
 
-        var snapId = new SnapshotId(42);
-        var readContext = new ReadContext(SnapshotId: snapId);
+        var transactionId = new TransactionId(Guid.NewGuid());
+        var readContext = new ReadContext(TransactionId: transactionId);
         var contextVm = new KnowledgeContextViewModel(
-            KnowledgeReadContextKind.Snapshot,
-            ContextId: "42",
-            DisplayName: "Snapshot 42");
+            KnowledgeReadContextKind.Transaction,
+            ContextId: transactionId.Value.ToString("D"),
+            DisplayName: "Testentwurf");
 
         state.SetContext(contextVm, readContext);
 

@@ -1,9 +1,9 @@
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Features.Knowledge.Audiences;
+using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
-using KnowHowToAI.Server.Web.State;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -12,6 +12,8 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge;
 /// <summary>Setzt URL, Zielgruppe, Wissensbaum und Node-Dokument zusammen.</summary>
 public sealed partial class KnowledgePage : IDisposable
 {
+    private readonly SemaphoreSlim _treeInitializationGate = new(1, 1);
+
     [Inject]
     private IKnowledgeTreeWorkspace TreeWorkspace { get; set; } = default!;
 
@@ -19,7 +21,7 @@ public sealed partial class KnowledgePage : IDisposable
     private WorkspaceState WorkspaceState { get; set; } = default!;
 
     [Inject]
-    private WebReadContextResolver ReadContextResolver { get; set; } = default!;
+    private KnowledgePageContextResolver ReadContextResolver { get; set; } = default!;
 
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
@@ -62,8 +64,6 @@ public sealed partial class KnowledgePage : IDisposable
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var resolution = await ReadContextResolver.ResolveAsync(
             QueryTransactionId,
-            null,
-            null,
             CancellationToken.None);
 
         if (!resolution.IsSuccess)
@@ -106,7 +106,7 @@ public sealed partial class KnowledgePage : IDisposable
         {
             _isAwaitingAudienceSelection = true;
             PageRegions.SetKnowledgeContext(context.ContextViewModel with { AudienceName = null });
-            ContextSelector.Open(ContextSelectorMode.MandatoryAudience, context.ReadContext, null);
+            ContextSelector.Open(context.ReadContext);
             return;
         }
 
@@ -189,34 +189,42 @@ public sealed partial class KnowledgePage : IDisposable
         string audienceId,
         long? changeVersion)
     {
-        changeVersion = KnowledgePageChangeVersion.Resolve(
-            readContext,
-            WorkspaceState.ActiveTransactionId,
-            WorkspaceState.CurrentChangeVersion,
-            changeVersion);
-        var selectedAudience = availableAudiences.First(audience => audience.Id == audienceId);
-        var currentContext = context with
+        await _treeInitializationGate.WaitAsync();
+        try
         {
-            AudienceName = selectedAudience.Name,
-            ChangeVersion = changeVersion
-        };
-        PageRegions.SetKnowledgeContext(currentContext);
-        WorkspaceState.SetContext(currentContext, readContext);
-        WorkspaceState.SetChangeVersion(changeVersion);
-        WorkspaceState.SetAudience(audienceId);
+            changeVersion = KnowledgePageChangeVersion.Resolve(
+                readContext,
+                WorkspaceState.ActiveTransactionId,
+                WorkspaceState.CurrentChangeVersion,
+                changeVersion);
+            var selectedAudience = availableAudiences.First(audience => audience.Id == audienceId);
+            var currentContext = context with
+            {
+                AudienceName = selectedAudience.Name,
+                ChangeVersion = changeVersion
+            };
+            PageRegions.SetKnowledgeContext(currentContext);
+            WorkspaceState.SetContext(currentContext, readContext);
+            WorkspaceState.SetChangeVersion(changeVersion);
+            WorkspaceState.SetAudience(audienceId);
 
-        if (!TreeWorkspace.HasContext(readContext, audienceId))
-            await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
+            if (!TreeWorkspace.HasContext(readContext, audienceId))
+                await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
 
-        if (NodeId.HasValue)
-        {
-            await TreeWorkspace.SelectNodeAsync(NodeId.Value, CancellationToken.None);
-            WorkspaceState.SetNode(NodeId.Value);
+            if (NodeId.HasValue)
+            {
+                await TreeWorkspace.SelectNodeAsync(NodeId.Value, CancellationToken.None);
+                WorkspaceState.SetNode(NodeId.Value);
+            }
+            else if (TreeWorkspace.SelectedNodeId.HasValue)
+            {
+                await TreeWorkspace.SelectNodeAsync(null, CancellationToken.None);
+                WorkspaceState.SetNode(null);
+            }
         }
-        else if (TreeWorkspace.SelectedNodeId.HasValue)
+        finally
         {
-            await TreeWorkspace.SelectNodeAsync(null, CancellationToken.None);
-            WorkspaceState.SetNode(null);
+            _treeInitializationGate.Release();
         }
     }
 
@@ -245,16 +253,24 @@ public sealed partial class KnowledgePage : IDisposable
 
     private async Task RefreshKnowledgeTreeAfterMetadataChangeAsync(NodeMutationResult mutation)
     {
-        if (WorkspaceState.CurrentAudienceId is not { } audienceId)
-            return;
+        await _treeInitializationGate.WaitAsync();
+        try
+        {
+            if (WorkspaceState.CurrentAudienceId is not { } audienceId)
+                return;
 
-        var nodeId = NodeId ?? mutation.Node.NodeId.Value;
-        var readContext = WorkspaceState.CurrentReadContext;
-        await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
-        await TreeWorkspace.SelectNodeAsync(nodeId, CancellationToken.None);
-        WorkspaceState.SetNode(nodeId);
-        NavigateToSelection(nodeId);
-        await InvokeAsync(StateHasChanged);
+            var nodeId = NodeId ?? mutation.Node.NodeId.Value;
+            var readContext = WorkspaceState.CurrentReadContext;
+            await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
+            await TreeWorkspace.SelectNodeAsync(nodeId, CancellationToken.None);
+            WorkspaceState.SetNode(nodeId);
+            NavigateToSelection(nodeId);
+            await InvokeAsync(StateHasChanged);
+        }
+        finally
+        {
+            _treeInitializationGate.Release();
+        }
     }
 
     public void Dispose()

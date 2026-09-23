@@ -43,6 +43,6 @@ public sealed class NodeDocumentTests : BunitContext
         Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
         Assert.Empty(cut.FindAll("[data-testid='node-details-title']"));
         Assert.Equal("Bearbeiten", cut.Find("[data-testid='node-details-edit']").TextContent.Trim());
-        Assert.Equal($"/downloads/markdown?nodeId={nodeId.Value:D}&audienceId=Developer", cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href"));
+        Assert.Empty(cut.FindAll("[data-testid='node-details-markdown-download']"));
     }
 }

@@ -1,0 +1,58 @@
+@namespace KnowHowToAI.Server.Web.Features.Knowledge.Audiences
+@using Microsoft.AspNetCore.Components.Web
+@using KnowHowToAI.Server.Web.Components.Shared.Feedback
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="context-selector-dialog__error" role="alert" data-testid="selector-error">
+        <InlineAlert Kind="AlertKind.Fehler" Message="@_errorMessage" />
+    </div>
+}
+
+<p class="context-selector-dialog__purpose" data-testid="selector-purpose">
+    Die Auswahl bestimmt, für welche Zielgruppe der Wissensinhalt aufbereitet ist.
+    Nach der Auswahl wird die Wissensbasis in dieser Perspektive geöffnet.
+    Die Zielgruppe ist ein Inhaltskontext, keine Zugriffsberechtigung.
+</p>
+
+<fieldset class="context-selector-dialog__group">
+    <legend class="context-selector-dialog__legend">
+        Zielgruppe auswählen (Pflichtauswahl)
+    </legend>
+    @if (_isLoadingAudiences)
+    {
+        <div class="context-selector-dialog__loading" role="status">Lade Zielgruppen...</div>
+    }
+    else if (_audiences.Count == 0)
+    {
+        <p class="context-selector-dialog__empty" data-testid="empty-audiences-message">
+            Keine Zielgruppen im aktuellen Kontext vorhanden.
+        </p>
+    }
+    else
+    {
+        <div class="context-selector-dialog__audiences" role="radiogroup" aria-label="Verfügbare Zielgruppen">
+            @foreach (var audience in _audiences)
+            {
+                <label class="context-selector-dialog__audience-option" data-testid="audience-option-@audience.Id">
+                    <input type="radio" name="selectedAudience" value="@audience.Id"
+                           checked="@(_selectedAudienceId == audience.Id)"
+                           @onchange="() => SelectAudience(audience.Id)" />
+                    <span class="context-selector-dialog__audience-name">@audience.Name</span>
+                    @if (!string.IsNullOrWhiteSpace(audience.Description))
+                    {
+                        <span class="context-selector-dialog__audience-desc">@audience.Description</span>
+                    }
+                </label>
+            }
+        </div>
+    }
+</fieldset>
+
+<div class="context-selector-dialog__actions">
+    <button type="button" class="context-selector-dialog__button context-selector-dialog__button--primary"
+            disabled="@(_isLoadingAudiences || (_audiences.Count > 0 && string.IsNullOrWhiteSpace(_selectedAudienceId)))"
+            @onclick="ApplyAsync" data-testid="selector-apply-button">
+        Auswählen
+    </button>
+</div>

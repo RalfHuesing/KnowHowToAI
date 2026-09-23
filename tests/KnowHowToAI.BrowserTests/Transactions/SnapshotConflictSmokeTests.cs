@@ -25,21 +25,19 @@ public sealed class SnapshotConflictSmokeTests
         var conflictingTransactionDiscarded = false;
         try
         {
-            await page.GotoAsync($"{host.Address}/transactions", new PageGotoOptions
+            conflictingTransactionId = await BrowserMcpAssertions.BeginTransactionAsync(host.Address, "Konflikt-Reapply-Browsertest");
+            var baseSnapshotId = (await ReadTransactionChangesAsync(host.Address, conflictingTransactionId.Value)).BaseSnapshotId;
+            await page.GotoAsync($"{host.Address}/knowledge?audienceId=Default&transactionId={conflictingTransactionId:D}", new PageGotoOptions
             {
                 WaitUntil = WaitUntilState.DOMContentLoaded,
                 Timeout = 30_000
             });
             await CircuitProbe.WaitForInteractivityAsync(page);
-            await page.GetByTestId("tx-purpose-input").FillAsync("Konflikt-Reapply-Browsertest");
-            await page.GetByTestId("begin-transaction-button").ClickAsync();
-            await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-            conflictingTransactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
-            var baseSnapshotId = await page.GetByTestId("tx-base-snapshot").TextContentAsync();
+            await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
 
             var uiTitle = $"UI-Konflikt-Änderung-{Guid.NewGuid():N}";
             var uiDescription = "Explizite Working-Änderung aus der Browseroberfläche.";
-            var uiNodeId = await CreateUiChildAsync(page, uiTitle, uiDescription, mustSelectAudience: true);
+            var uiNodeId = await CreateUiChildAsync(page, uiTitle, uiDescription);
 
             var changesBeforeConflict = await ReadTransactionChangesAsync(host.Address, conflictingTransactionId.Value);
             Assert.Equal("Open", changesBeforeConflict.State);
@@ -59,7 +57,6 @@ public sealed class SnapshotConflictSmokeTests
             reapplyTransactionId = await TriggerConflictAndStartReapplyAsync(
                 page, host.Address, conflictingTransactionId.Value, baseSnapshotId!, externalCommit.CurrentSnapshotId);
             Assert.NotEqual(conflictingTransactionId, reapplyTransactionId);
-            await Assertions.Expect(page.GetByTestId("transaction-diff-empty")).ToBeVisibleAsync(new() { Timeout = 15_000 });
             var emptyReapplyChanges = await ReadTransactionChangesAsync(host.Address, reapplyTransactionId.Value);
             Assert.Equal("Open", emptyReapplyChanges.State);
             Assert.Equal(externalCommit.CurrentSnapshotId.ToString(), emptyReapplyChanges.BaseSnapshotId);
@@ -115,20 +112,24 @@ public sealed class SnapshotConflictSmokeTests
     private static async Task<Guid> CreateUiChildAsync(
         IPage page,
         string title,
-        string description,
-        bool mustSelectAudience)
+        string description)
     {
-        await page.GetByTestId("tx-open-knowledge-link").ClickAsync();
+        if (!new Uri(page.Url).AbsolutePath.Equals("/knowledge", StringComparison.OrdinalIgnoreCase))
+        {
+            var transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
+            await page.GotoAsync($"{new Uri(page.Url).GetLeftPart(UriPartial.Authority)}/knowledge?audienceId=Default&transactionId={transactionId:D}");
+            await CircuitProbe.WaitForInteractivityAsync(page);
+        }
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-        await SelectDefaultAudienceIfRequiredAsync(page, mustSelectAudience);
         await Assertions.Expect(page.GetByRole(AriaRole.Treeitem).First).ToBeVisibleAsync(new() { Timeout = 15_000 });
-        await page.GetByRole(AriaRole.Treeitem).First.ClickAsync();
-        await page.GetByTestId("create-child-node").ClickAsync();
-        await page.GetByTestId("node-metadata-title").FillAsync(title);
-        await page.GetByTestId("node-metadata-description").FillAsync(description);
-        await page.GetByTestId("save-node-metadata").ClickAsync();
-        await Assertions.Expect(page.GetByTestId("node-details-title")).ToHaveTextAsync(title);
-        await Assertions.Expect(page.GetByTestId("node-details-description")).ToHaveTextAsync(description);
+        var rootItem = page.GetByRole(AriaRole.Treeitem).First;
+        var rootNodeId = await rootItem.GetAttributeAsync("data-nodeid")
+            ?? throw new InvalidOperationException("Der Root-Knoten besitzt keine Node-ID.");
+        await page.GetByTestId($"create-child-{rootNodeId}").ClickAsync();
+        await page.GetByTestId("root-node-title").FillAsync(title);
+        await page.GetByTestId("root-node-description").FillAsync(description);
+        await page.GetByTestId("create-root-node").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("knowledge-page").Locator("h1")).ToHaveTextAsync(title);
         return await ReadTreeNodeIdAsync(page, title);
     }
 
@@ -139,60 +140,49 @@ public sealed class SnapshotConflictSmokeTests
         string baseSnapshotId,
         long currentSnapshotId)
     {
-        await page.GotoAsync($"{address}/transactions/{conflictingTransactionId:D}", new PageGotoOptions
+        await page.GotoAsync($"{address}/drafts/{conflictingTransactionId:D}", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
         });
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
+        await Assertions.Expect(page.GetByTestId("draft-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
         await page.GetByTestId("commit-transaction-button").ClickAsync();
-        await page.GetByRole(AriaRole.Button, new() { Name = "Commit ausführen", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Übernehmen", Exact = true }).ClickAsync();
         await Assertions.Expect(page.GetByTestId("snapshot-conflict")).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("snapshot-conflict-explanation")).ToContainTextAsync(
-            $"Base-Snapshot {baseSnapshotId}");
+            $"Basis-Snapshot {baseSnapshotId}");
         await Assertions.Expect(page.GetByTestId("snapshot-conflict-explanation")).ToContainTextAsync(
             $"Current Snapshot {currentSnapshotId}");
         await Assertions.Expect(page.GetByTestId("snapshot-diff")).ToBeVisibleAsync();
+        var conflictedDraftUrl = page.Url;
         await page.GetByTestId("snapshot-conflict-start-reapply").ClickAsync();
-        await Assertions.Expect(page.GetByTestId("tx-base-snapshot")).ToHaveTextAsync(
-            currentSnapshotId.ToString(), new() { Timeout = 15_000 });
-        return await BrowserTransactionReader.ReadTransactionIdAsync(page);
+        await page.WaitForFunctionAsync("previousUrl => location.href !== previousUrl", conflictedDraftUrl);
+        await Assertions.Expect(page.GetByTestId("draft-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
+        var transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
+        var transactionChanges = await ReadTransactionChangesAsync(address, transactionId);
+        Assert.Equal(currentSnapshotId.ToString(), transactionChanges.BaseSnapshotId);
+        return transactionId;
     }
 
     private static Task<Guid> ReapplyAsync(
         IPage page,
         string title,
         string description)
-        => CreateUiChildAsync(page, title, description, mustSelectAudience: false);
+        => CreateUiChildAsync(page, title, description);
 
     private static async Task CommitReapplyAsync(IPage page, string address, Guid reapplyTransactionId)
     {
-        await page.GotoAsync($"{address}/transactions/{reapplyTransactionId:D}", new PageGotoOptions
+        await page.GotoAsync($"{address}/drafts/{reapplyTransactionId:D}", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded,
             Timeout = 30_000
         });
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
+        await Assertions.Expect(page.GetByTestId("draft-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
         await page.GetByTestId("commit-transaction-button").ClickAsync();
-        await page.GetByRole(AriaRole.Button, new() { Name = "Commit ausführen", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Übernehmen", Exact = true }).ClickAsync();
         await Assertions.Expect(page.GetByTestId("knowledge-page")).ToBeVisibleAsync(new() { Timeout = 15_000 });
-    }
-
-    private static async Task SelectDefaultAudienceIfRequiredAsync(IPage page, bool mustSelect = false)
-    {
-        var selector = page.GetByTestId("context-selector-dialog");
-        if (!mustSelect && (await selector.CountAsync() == 0 || !await selector.IsVisibleAsync()))
-            return;
-
-        if (mustSelect)
-            await Assertions.Expect(selector).ToBeVisibleAsync(new() { Timeout = 15_000 });
-
-        var audienceOption = selector.GetByTestId("audience-option-Default").GetByRole(AriaRole.Radio);
-        await audienceOption.CheckAsync();
-        await selector.GetByTestId("selector-apply-button").ClickAsync();
-        await Assertions.Expect(selector).ToBeHiddenAsync(new() { Timeout = 15_000 });
     }
 
     private static async Task<Guid> ReadTreeNodeIdAsync(IPage page, string title)

@@ -43,7 +43,7 @@ public sealed class LayoutShellSmokeTests
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("main#shell-main h1")).ToBeVisibleAsync();
         var navigation = page.GetByRole(AriaRole.Navigation, new() { Name = "Hauptnavigation" });
         await Assertions.Expect(navigation).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Main)).ToHaveCountAsync(1);

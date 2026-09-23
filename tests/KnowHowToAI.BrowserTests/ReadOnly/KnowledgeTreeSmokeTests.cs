@@ -67,7 +67,7 @@ public sealed class KnowledgeTreeSmokeTests
         await Assertions.Expect(childItem).ToBeVisibleAsync();
 
         // Klick auf Kindknoten -> URL wird aktualisiert
-        await childItem.ClickAsync();
+        await childItem.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge/[0-9a-fA-F-]+"));
 
         // Breadcrumbs zeigen den ausgewählten Knoten als aria-current="page"
@@ -113,7 +113,7 @@ public sealed class KnowledgeTreeSmokeTests
 
         var rootItem = page.GetByRole(AriaRole.Treeitem).First;
         await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
-        var exportItem = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.ExportNodeTitle });
+        var exportItem = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.FallbackNodeTitle });
         await Assertions.Expect(exportItem).ToBeVisibleAsync();
         await exportItem.Locator("button.tree-toggle-btn").ClickAsync();
 
@@ -122,7 +122,7 @@ public sealed class KnowledgeTreeSmokeTests
         await branch.Locator("button.tree-toggle-btn").ClickAsync();
         var deepNode = page.GetByRole(AriaRole.Treeitem, new() { Name = BrowserKnowledgeSeed.DeepNavigationNodeTitle });
         await Assertions.Expect(deepNode).ToBeVisibleAsync();
-        await deepNode.ClickAsync();
+        await deepNode.Locator(".tree-node-title").ClickAsync();
 
         await Assertions.Expect(page).ToHaveURLAsync(new Regex(@"/knowledge/[0-9a-fA-F-]+\?audienceId=Default"));
         var selectedUrl = page.Url;
@@ -135,10 +135,10 @@ public sealed class KnowledgeTreeSmokeTests
 
         await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
-        await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToContainTextAsync(BrowserKnowledgeSeed.ExportNodeTitle);
+        await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToContainTextAsync(BrowserKnowledgeSeed.FallbackNodeTitle);
         await Assertions.Expect(page.GetByTestId("breadcrumbs")).ToContainTextAsync(BrowserKnowledgeSeed.DeepNavigationBranchTitle);
         await Assertions.Expect(page.GetByTestId("node-details-section")).ToBeVisibleAsync();
-        await Assertions.Expect(page.GetByTestId("node-details-edit")).ToHaveCountAsync(0);
+        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByTestId("node-details-requested-audience")).ToHaveTextAsync("Default");
 
         await page.ReloadAsync(new PageReloadOptions
@@ -149,6 +149,7 @@ public sealed class KnowledgeTreeSmokeTests
         await CircuitProbe.WaitForInteractivityAsync(page);
         await Assertions.Expect(page.GetByTestId("knowledge-page").GetByRole(AriaRole.Heading, new() { Level = 1 }))
             .ToHaveTextAsync(BrowserKnowledgeSeed.DeepNavigationNodeTitle);
-        await Assertions.Expect(page.GetByTestId("node-details-edit")).ToHaveCountAsync(0);
+        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "Bearbeiten", Exact = true })).ToBeVisibleAsync();
     }
 }
+

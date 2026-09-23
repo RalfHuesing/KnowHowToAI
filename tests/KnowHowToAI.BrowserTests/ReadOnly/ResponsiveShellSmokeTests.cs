@@ -74,7 +74,7 @@ public sealed class ResponsiveShellSmokeTests
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
         await CircuitProbe.WaitForInteractivityAsync(page);
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("main#shell-main h1")).ToBeVisibleAsync();
 
         // Zuerst auf den stabilen Kompaktzustand warten: der Kopfbutton
         // erscheint erst, wenn der Circuit verbunden ist und das Modul die
@@ -135,7 +135,7 @@ public sealed class ResponsiveShellSmokeTests
         var reachableElements = new (string Beschreibung, ILocator Locator)[]
         {
             ("Wortmarke", page.GetByRole(AriaRole.Link, new() { Name = "KnowHowToAI" })),
-            ("Seitenüberschrift", page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" })),
+            ("Seitenüberschrift", page.Locator("main#shell-main h1")),
             ("Navigationskopfbutton", navigationToggle),
             ("Testfläche", page.Locator("#reflow-surface"))
         };

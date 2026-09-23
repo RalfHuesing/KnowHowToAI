@@ -1,6 +1,7 @@
 using Bunit;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Features.Knowledge.Audiences;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KnowHowToAI.Web.Tests.TestSupport;

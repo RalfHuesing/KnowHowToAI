@@ -25,8 +25,5 @@ public sealed partial class NodeDocument
     public TransactionId? TransactionId { get; set; }
 
     [Parameter]
-    public string? QueryTransactionId { get; set; }
-
-    [Parameter]
     public EventCallback<NodeMutationResult> OnMutationSucceeded { get; set; }
 }

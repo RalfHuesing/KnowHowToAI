@@ -9,18 +9,18 @@ namespace KnowHowToAI.BrowserTests.TestSupport;
 /// </summary>
 internal static class BrowserKnowledgeSeed
 {
-    internal const string ExportNodeTitle = "Browser-Export-Teilbaum";
+    internal const string FallbackNodeTitle = "Browser-Fallback-Teilbaum";
     internal const string DeepNavigationBranchTitle = "Browser-Tiefer-Navigationszweig";
     internal const string DeepNavigationNodeTitle = "Browser-Tiefes-Dokument";
 
     private const string DefaultAudienceId = "Default";
-    private const string ReaderAudienceId = "BrowserDownloadAudience";
+    private const string FallbackAudienceId = "BrowserFallbackAudience";
     private const string HistorySourceTitle = "Browser-History-Quelle";
     private const string HistoryDerivedTitle = "Browser-History-Diff-Knoten";
     private const string HistoryAudienceId = "BrowserHistoryDiffAudience";
     private const string HistoryReleaseName = "Browser History Release";
     private const int HistoryPagingSnapshotCount = 20;
-    private const string ExportContent = "Browser-Testinhalt für den Markdown-Download.";
+    private const string FallbackContent = "Browser-Testinhalt für den Fallback-Nachweis.";
     private static readonly SemaphoreSlim SeedGate = new(1, 1);
 
     public static async Task EnsureWorkflowAsync(string address)
@@ -46,7 +46,7 @@ internal static class BrowserKnowledgeSeed
 
             var audiences = await CallAsync(client, "list_audiences");
             var hasDefaultAudience = ContainsAudience(audiences, DefaultAudienceId);
-            var hasReaderAudience = ContainsAudience(audiences, ReaderAudienceId);
+            var hasReaderAudience = ContainsAudience(audiences, FallbackAudienceId);
             var rootNodeId = hasDefaultAudience
                 ? TryGetDataString(
                     await CallAsync(client, "get_root", new Dictionary<string, object?> { ["audienceId"] = DefaultAudienceId }),
@@ -54,7 +54,7 @@ internal static class BrowserKnowledgeSeed
                 : null;
 
             if (hasReaderAudience && rootNodeId is not null
-                && await ContainsExportNodeAsync(client, rootNodeId))
+                && await ContainsFallbackNodeAsync(client, rootNodeId))
             {
                 if (includeHistoryEvidence)
                     await EnsureHistoryEvidenceAsync(client, rootNodeId);
@@ -66,7 +66,7 @@ internal static class BrowserKnowledgeSeed
 
             var transaction = await CallAsync(client, "begin_transaction", new Dictionary<string, object?>
             {
-                ["purpose"] = "Browser-Testbestand für Markdown-Download",
+                ["purpose"] = "Browser-Testbestand für den Fallback-Nachweis",
                 ["client"] = "KnowHowToAI.BrowserTests"
             });
             var transactionId = RequireDataString(transaction, "transactionId", "begin_transaction");
@@ -89,15 +89,15 @@ internal static class BrowserKnowledgeSeed
                 await RequireSuccessAsync(client, "create_node", new Dictionary<string, object?>
                 {
                     ["transactionId"] = transactionId,
-                    ["title"] = ExportNodeTitle,
+                    ["title"] = FallbackNodeTitle,
                     ["parentNodeId"] = rootNodeId,
-                    ["contentMd"] = ExportContent,
+                    ["contentMd"] = FallbackContent,
                     ["audienceId"] = DefaultAudienceId
                 });
                 await RequireSuccessAsync(client, "commit_transaction", new Dictionary<string, object?>
                 {
                     ["transactionId"] = transactionId,
-                    ["commitMessage"] = "Browser-Testbestand für Markdown-Download"
+                    ["commitMessage"] = "Browser-Testbestand für den Fallback-Nachweis"
                 });
                 if (includeHistoryEvidence)
                     await EnsureHistoryEvidenceAsync(client, rootNodeId);
@@ -142,7 +142,7 @@ internal static class BrowserKnowledgeSeed
             var createdReaderAudience = await RequireSuccessAsync(client, "create_audience", new Dictionary<string, object?>
             {
                 ["transactionId"] = transactionId,
-                ["name"] = ReaderAudienceId,
+                ["name"] = FallbackAudienceId,
                 ["expectedChangeVersion"] = transactionChangeVersion,
                 ["description"] = "Browser-Testzielgruppe mit Fallback"
             });
@@ -150,8 +150,8 @@ internal static class BrowserKnowledgeSeed
             await RequireSuccessAsync(client, "set_audience_resolution", new Dictionary<string, object?>
             {
                 ["transactionId"] = transactionId,
-                ["audienceId"] = ReaderAudienceId,
-                ["candidateAudienceIds"] = new[] { ReaderAudienceId, DefaultAudienceId },
+                ["audienceId"] = FallbackAudienceId,
+                ["candidateAudienceIds"] = new[] { FallbackAudienceId, DefaultAudienceId },
                 ["expectedChangeVersion"] = transactionChangeVersion
             });
         }
@@ -309,12 +309,12 @@ internal static class BrowserKnowledgeSeed
         }
     }
 
-    private static async Task<bool> ContainsExportNodeAsync(McpClient client, string rootNodeId)
-        => await ContainsChildAsync(client, rootNodeId, ExportNodeTitle);
+    private static async Task<bool> ContainsFallbackNodeAsync(McpClient client, string rootNodeId)
+        => await ContainsChildAsync(client, rootNodeId, FallbackNodeTitle);
 
     private static async Task EnsureDeepNavigationEvidenceAsync(McpClient client, string rootNodeId)
     {
-        var exportNodeId = await FindChildIdAsync(client, rootNodeId, ExportNodeTitle);
+        var exportNodeId = await FindChildIdAsync(client, rootNodeId, FallbackNodeTitle);
         if (exportNodeId is null || await ContainsChildAsync(client, exportNodeId, DeepNavigationBranchTitle))
             return;
 
@@ -471,3 +471,4 @@ internal static class BrowserKnowledgeSeed
         && long.TryParse(raw.GetString(), out value);
     }
 }
+

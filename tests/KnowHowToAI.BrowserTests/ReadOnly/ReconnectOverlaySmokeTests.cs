@@ -92,7 +92,7 @@ public sealed class ReconnectOverlaySmokeTests
         Assert.Equal("components-reconnect-reload-button", await page.EvaluateAsync<string?>("document.activeElement?.id"));
 
         await reloadButton.ClickAsync();
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Wissensbasis" }))
+        await Assertions.Expect(page.Locator("main#shell-main h1"))
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
     }
 }

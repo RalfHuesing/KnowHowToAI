@@ -30,7 +30,7 @@ public sealed class DialogKeyboardSmokeTests
         });
         Assert.NotNull(response);
         Assert.Equal((int)HttpStatusCode.OK, response.Status);
-        await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "KnowHowToAI" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("main#shell-main h1")).ToBeVisibleAsync();
 
         // Die Dialogprüfung ersetzt die Shell durch eine Prüfseite, die
         // ausschließlich Ressourcen des real gestarteten Servers lädt

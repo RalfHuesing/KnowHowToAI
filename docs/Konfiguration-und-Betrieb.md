@@ -186,7 +186,7 @@ geprüft.
   dedizierte Datenbank vor der Betriebsbereitschaft selbst. Die gemeinsame
   Workflow-Fixture ergänzt anschließend ausschließlich über den realen
   MCP-Transport einen deterministischen Bestand mit `Default`,
-  `BrowserDownloadAudience`, exportierbarem Teilbaum, Historienständen und Release.
+  `BrowserFallbackAudience`, Fallback-Teilbaum, Historienständen und Release.
   Diese Seedoperation und Browser-Smokes, die eine Working Transaction öffnen,
   teilen einen schmalen Prozess-Gate; die erzeugte Transaction wird im `finally`
   über `discard_transaction` auf dem echten MCP-Produktpfad verworfen. Da auch

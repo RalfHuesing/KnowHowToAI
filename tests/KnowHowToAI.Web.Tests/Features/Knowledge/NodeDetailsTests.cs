@@ -104,29 +104,6 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
-    public void NodeDetails_WithViewModel_LinksToFilteredSnapshotHistory()
-    {
-        var vm = MakeViewModel();
-
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
-
-        Assert.Equal($"/history?nodeId={vm.NodeId}", cut.Find("[data-testid='node-details-history-link']").GetAttribute("href"));
-    }
-
-    [Fact]
-    public void NodeDetails_WithMarkdownDownloadUrl_RendersDownloadLink()
-    {
-        var vm = MakeViewModel();
-        var downloadUrl = $"/downloads/markdown?nodeId={vm.NodeId:D}&audienceId=Developer&snapshotId=7";
-
-        var cut = Render<NodeDetails>(p => p
-            .Add(x => x.ViewModel, vm)
-            .Add(x => x.MarkdownDownloadUrl, downloadUrl));
-
-        Assert.Equal(downloadUrl, cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href"));
-    }
-
-    [Fact]
     public void NodeDetails_WithMarkdownContent_RendersRenderedHtml()
     {
         var vm = MakeViewModel(contentMd: "**fett** und _kursiv_");
@@ -142,8 +119,7 @@ public sealed class NodeDetailsTests : BunitContext
     {
         var vm = MakeViewModel(contentMd: "Lesbarer Inhalt");
         var cut = Render<NodeDetails>(p => p
-            .Add(x => x.ViewModel, vm)
-            .Add(x => x.MarkdownDownloadUrl, "/downloads/markdown"));
+            .Add(x => x.ViewModel, vm));
 
         var article = cut.Find("[data-testid='node-details']");
         var content = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-content");
@@ -153,7 +129,7 @@ public sealed class NodeDetailsTests : BunitContext
         var markup = article.InnerHtml;
         Assert.True(markup.IndexOf(content.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal));
         Assert.True(markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(technicalDetails.OuterHtml, StringComparison.Ordinal));
-        Assert.Equal(2, actions.QuerySelectorAll("a").Length);
+        Assert.Empty(actions.QuerySelectorAll("a"));
     }
 
     [Fact]
@@ -196,8 +172,7 @@ public sealed class NodeDetailsTests : BunitContext
             resolvedAudienceId: "Architect",
             availability: "Fallback");
         var cut = Render<NodeDetails>(p => p
-            .Add(x => x.ViewModel, vm)
-            .Add(x => x.MarkdownDownloadUrl, "/downloads/markdown"));
+            .Add(x => x.ViewModel, vm));
 
         var article = cut.Find("[data-testid='node-details']");
         var fallbackContext = article.Children.First(element => element.GetAttribute("data-testid") == "node-content-fallback-context");
@@ -205,8 +180,7 @@ public sealed class NodeDetailsTests : BunitContext
 
         var markup = article.InnerHtml;
         Assert.True(markup.IndexOf(fallbackContext.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal));
-        Assert.Equal("/history?nodeId=" + vm.NodeId, cut.Find("[data-testid='node-details-history-link']").GetAttribute("href"));
-        Assert.Equal("/downloads/markdown", cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href"));
+        Assert.Empty(actions.QuerySelectorAll("a"));
     }
 
     [Fact]

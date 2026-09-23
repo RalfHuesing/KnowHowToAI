@@ -16,7 +16,7 @@ public sealed class PageFrameSmokeTests
     }
 
     [Fact]
-    public async Task FeaturePagesUseAvailableFrameAndKeepResponsiveContentReachable()
+    public async Task RemainingPagesUseAvailableFrameAndKeepResponsiveContentReachable()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
@@ -50,7 +50,7 @@ public sealed class PageFrameSmokeTests
     }
 
     [Fact]
-    public async Task FeaturePageRootsUsePageFrameForSharedRhythmAndContainNoRootOverrides()
+    public async Task RemainingPageRootsUsePageFrameForSharedRhythmAndContainNoRootOverrides()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
@@ -117,7 +117,7 @@ public sealed class PageFrameSmokeTests
     }
 
     [Fact]
-    public async Task FeaturePagesKeepContentAndActionsReachableAtReflowWidths()
+    public async Task RemainingPagesKeepContentAndActionsReachableAtReflowWidths()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
@@ -168,7 +168,7 @@ public sealed class PageFrameSmokeTests
     }
 
     [Fact]
-    public async Task SelectedKnowledgeNodeAndOpenTransactionKeepTheSamePageContract()
+    public async Task SelectedKnowledgeNodeKeepsTheSamePageContract()
     {
         await using var browser = await ChromeBrowser.LaunchAsync();
         await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
@@ -181,36 +181,15 @@ public sealed class PageFrameSmokeTests
         await rootItem.Locator("button.tree-toggle-btn").ClickAsync();
         var childItem = page.Locator("div[role='treeitem'][aria-level='2']").First;
         await Assertions.Expect(childItem).ToBeVisibleAsync();
-        await childItem.ClickAsync();
+        await childItem.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
         await AssertPageContractAsync(
             page,
             page.GetByTestId("knowledge-page"),
             new RouteSpec("Wissensbasis ausgewählter Node", "/knowledge/{NodeId:guid}", "knowledge-page", "knowledge-page"),
             1280);
-        await Assertions.Expect(page.GetByTestId("node-details-title")).ToContainTextAsync("Browser-");
+        await Assertions.Expect(page.GetByTestId("knowledge-page").Locator("h1")).ToContainTextAsync("Browser-");
 
-        using var writeLease = await BrowserWorkflowDatabaseGate.AcquireAsync();
-        Guid transactionId;
-        await GotoAsync(page, "/transactions");
-        await page.GetByTestId("tx-purpose-input").FillAsync("PageFrame-Vertragsnachweis");
-        await page.GetByTestId("begin-transaction-button").ClickAsync();
-        await Assertions.Expect(page.GetByTestId("transaction-page")).ToBeVisibleAsync();
-        transactionId = await BrowserTransactionReader.ReadTransactionIdAsync(page);
-        try
-        {
-            await GotoAsync(page, $"/transactions/{transactionId:D}");
-            await Assertions.Expect(page.GetByTestId("transaction-diff")).ToBeVisibleAsync();
-            await AssertPageContractAsync(
-                page,
-                page.GetByTestId("transaction-page"),
-                new RouteSpec("Transaction offen", $"/transactions/{transactionId:D}", "transaction-page", "transaction-page"),
-                1280);
-        }
-        finally
-        {
-            await BrowserTransactionDiscarder.DiscardAsync(_host.Address, transactionId);
-        }
     }
 
     private static async Task AssertPageContractAsync(
@@ -325,13 +304,8 @@ public sealed class PageFrameSmokeTests
     [
         new("Wissensbasis ohne Auswahl", "/knowledge?audienceId=Default", "knowledge-page", "knowledge-page"),
         new("Wissensbasis nicht gefundener Node", "/knowledge/00000000-0000-0000-0000-000000000000?audienceId=Default", "knowledge-page", "knowledge-page"),
-        new("Suche", "/search?audienceId=Default", "search-page", "search-page"),
-        new("Transactions", "/transactions", "transactions-page", "transactions-page"),
-        new("Transaction nicht gefunden", "/transactions/00000000-0000-0000-0000-000000000000", "transaction-page", "transaction-page"),
         new("Entwürfe", "/drafts", "drafts-page", "drafts-page"),
-        new("Entwurf nicht gefunden", "/drafts/00000000-0000-0000-0000-000000000000", "draft-page", "draft-page"),
-        new("Zielgruppen", "/audiences?audienceId=Default", "audiences-page", "audiences-page"),
-        new("Historie", "/history?audienceId=Default", "history-page", "history-page")
+        new("Entwurf nicht gefunden", "/drafts/00000000-0000-0000-0000-000000000000", "draft-page", "draft-page")
     ];
 
     private sealed record RouteSpec(string Name, string Path, string TestId, string RootClass);
