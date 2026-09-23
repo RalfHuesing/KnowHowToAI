@@ -59,6 +59,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private (Guid NodeId, string AudienceId, bool IsReadOnly)? _mountedRequest;
     private (Guid NodeId, string AudienceId, bool IsReadOnly)? _parameterIdentity;
     private string _editorMarkdown = string.Empty;
+    private string _savedMarkdown = string.Empty;
     private string _sourceMarkdown = string.Empty;
     private string? _errorMessage;
     private IReadOnlyList<DomainWarning> _warnings = [];
@@ -85,7 +86,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
             _hasLocalEditorValue = true;
             if (!IsReadOnly)
             {
-                WorkspaceEditState.SetDirty(true, DirtySource);
+                WorkspaceEditState.SetDirty(!string.Equals(_sourceMarkdown, _savedMarkdown, StringComparison.Ordinal), DirtySource);
                 _errorMessage = null;
                 _warnings = [];
             }
@@ -101,6 +102,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
             _parameterIdentity = identity;
             WorkspaceEditState.SetDirty(false, DirtySource);
             _editorMarkdown = parameterMarkdown;
+            _savedMarkdown = parameterMarkdown;
             _sourceMarkdown = parameterMarkdown;
             _isSourceMode = false;
             _hasLocalEditorValue = false;
@@ -110,6 +112,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
         else if (!_hasLocalEditorValue && _editorMarkdown != parameterMarkdown)
         {
             _editorMarkdown = parameterMarkdown;
+            _savedMarkdown = parameterMarkdown;
             _sourceMarkdown = parameterMarkdown;
             _mountRequested = true;
         }
@@ -210,12 +213,13 @@ public sealed partial class ContentEditor : IAsyncDisposable
     }
 
     [JSInvokable]
-    public Task NotifyChangedAsync()
+    public Task NotifyChangedAsync(string markdown)
     {
         if (!IsReadOnly)
         {
+            _editorMarkdown = markdown;
             _hasLocalEditorValue = true;
-            WorkspaceEditState.SetDirty(true, DirtySource);
+            WorkspaceEditState.SetDirty(!string.Equals(markdown, _savedMarkdown, StringComparison.Ordinal), DirtySource);
             _errorMessage = null;
             _warnings = [];
         }
@@ -276,6 +280,7 @@ public sealed partial class ContentEditor : IAsyncDisposable
             }
 
             _warnings = result.Warnings;
+            _savedMarkdown = markdown;
             WorkspaceEditState.SetDirty(false, DirtySource);
             _hasLocalEditorValue = false;
             _pasteWasReduced = false;
@@ -331,6 +336,17 @@ public sealed partial class ContentEditor : IAsyncDisposable
         _mountRequested = true;
         _focusEditorAfterMount = true;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ChangeViewModeAsync(ChangeEventArgs args)
+    {
+        if (string.Equals(args.Value?.ToString(), "source", StringComparison.Ordinal))
+        {
+            await ShowSourceAsync();
+            return;
+        }
+
+        await ShowWysiwygAsync();
     }
 
     public async ValueTask DisposeAsync()

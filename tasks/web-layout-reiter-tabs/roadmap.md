@@ -113,7 +113,7 @@ bleibt nicht als Übergabe zurück.
 
 ## 3. Bearbeiten-Ansicht modernisieren
 
-- [ ] **P3 – Sichtbare Formatierung, kompakter Moduswechsel und Footer**
+- [x] **P3 – Sichtbare Formatierung, kompakter Moduswechsel und Footer**
   - **Intention:** Die Bearbeiten-Ansicht bietet die vorhandenen Funktionen
     in einer klaren Reihenfolge: Werkzeuge, Text, Status/Aktion.
   - **Voraussetzung:** P2 abgeschlossen.
@@ -145,6 +145,27 @@ bleibt nicht als Übergabe zurück.
     Reiterwechsel, Fokus und Save. Build, Linter-Incremental-Gate und
     passender FastTests-Lauf sind grün; Abschlussnachweis und atomarer
     Commit liegen vor.
+  - **Abschlussnachweis:** `ContentEditor` verwendet `TabPanelLayout` mit
+    primärem Bereich, getrenntem Feedbackbereich und Footer; im visuellen,
+    schreibbaren Modus steht die dauerhafte lokale SVG-/Textleiste für die
+    fünf vorhandenen Milkdown-Formatierungen. Die Formataktionen arbeiten auf
+    der Editor-Auswahl, halten diese beim Klick und spiegeln den aktiven
+    Markierungszustand. Die Crepe-Kontexttoolbar ist deaktiviert. Die native
+    Ansichtsauswahl schaltet zwischen „Visuell“ und „Markdown-Quelle“ über die
+    bestehenden Werte- und Speicherpfade. Status und Speichern stehen im
+    Footer, Paste-Reduktion, Fehler und Validierungswarnungen separat beim
+    Editor. `markdownUpdated` übergibt den aktuellen Wert; Dirty-State wird
+    gegen den zuletzt erfolgreich gespeicherten Markdown-Wert abgeglichen, so
+    dass ein verspäteter Callback nach dem Speichern den sauberen Zustand
+    nicht erneut setzt. `docs/WebUi.md` und `docs/Architektur.md` beschreiben
+    den implementierten Aufbau.
+    Verifiziert mit `pwsh -NoProfile -File scripts/build.ps1` (Exitcode 0),
+    `verify(targetPath)` und `verify(targetPath, scope: "solution")` (beide
+    pass, 10.0, 0 Verstöße), `pwsh -NoProfile -File scripts/test-fast.ps1
+    -Filter Category=Unit` (Vitest 7/7; .NET-FastTests 1.019/1.019) und
+    `dotnet test tests/KnowHowToAI.BrowserTests/KnowHowToAI.BrowserTests.csproj
+    --filter "FullyQualifiedName~ContentEditorSourceSmokeTests|FullyQualifiedName~KnowledgeDirectEditingSmokeTests"
+    --no-build --no-restore` (4/4). `git diff --check` war sauber.
 
 ## 4. Routeübergreifende Abnahme
 

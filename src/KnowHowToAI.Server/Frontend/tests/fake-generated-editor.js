@@ -14,6 +14,9 @@ export class Crepe {
     constructor(options) {
         this.options = options;
         this.markdown = options.defaultValue;
+        this.editor = {
+            action: callback => callback({ get: () => ({ call: () => false }) })
+        };
         lastEditor = this;
         lifecycle.push(["construct", options]);
     }
@@ -26,7 +29,8 @@ export class Crepe {
     on(register) {
         register({
             markdownUpdated: callback => { this.markdownUpdated = callback; },
-            focus: callback => { this.focused = callback; }
+            focus: callback => { this.focused = callback; },
+            selectionUpdated: callback => { this.selectionUpdated = callback; }
         });
     }
 
@@ -44,4 +48,9 @@ export class Crepe {
     }
 }
 
-export function buildAllowedToolbar() {}
+export function bindFormattingToolbar() {
+    lifecycle.push(["bind-toolbar"]);
+    return () => lifecycle.push(["unbind-toolbar"]);
+}
+
+export function updateFormattingState() {}

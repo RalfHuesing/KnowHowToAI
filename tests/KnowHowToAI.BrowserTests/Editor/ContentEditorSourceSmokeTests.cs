@@ -45,16 +45,23 @@ public sealed class ContentEditorSourceSmokeTests
             await page.GetByTestId("tab-Editor").ClickAsync();
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
-            await editor.GetByTestId("content-editor-mode-source").ClickAsync();
+            await editor.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             var source = editor.GetByTestId("content-editor-source");
             await Assertions.Expect(source).ToBeVisibleAsync();
 
-            const string markdown = "Ein Absatz mit **Formatierung**.\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
+            const string markdown = "Formatierung.\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
             await source.FillAsync(markdown);
-            await editor.GetByTestId("content-editor-mode-wysiwyg").ClickAsync();
+            await editor.GetByTestId("content-editor-view-mode").SelectOptionAsync("visual");
             await Assertions.Expect(editor.Locator(".ProseMirror")).ToBeVisibleAsync();
+            var proseMirror = editor.Locator(".ProseMirror");
+            await proseMirror.Locator("p").First.SelectTextAsync();
+            var bold = editor.GetByTestId("content-editor-toolbar").GetByRole(AriaRole.Button, new() { Name = "Fett" });
+            await Assertions.Expect(bold).ToHaveAttributeAsync("aria-pressed", "false");
+            await bold.ClickAsync();
+            await Assertions.Expect(bold).ToHaveAttributeAsync("aria-pressed", "true");
+            await Assertions.Expect(proseMirror.Locator("strong")).ToContainTextAsync("Formatierung.");
             await editor.GetByTestId("content-editor-save").ClickAsync();
-            await Assertions.Expect(editor.GetByRole(AriaRole.Status))
+            await Assertions.Expect(editor.GetByTestId("content-editor-save-status"))
                 .ToContainTextAsync("Gespeichert", new() { Timeout = 15_000 });
 
             var readback = await BrowserMcpAssertions.CallAsync(client, "get_node", new Dictionary<string, object?>
@@ -65,7 +72,8 @@ public sealed class ContentEditorSourceSmokeTests
             });
             var saved = readback.GetProperty("data").GetProperty("content").GetString();
             Assert.NotNull(saved);
-            Assert.Equal(Markdown.ToHtml(markdown, MarkdownPipeline), Markdown.ToHtml(saved!, MarkdownPipeline));
+            const string formattedMarkdown = "**Formatierung.**\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
+            Assert.Equal(Markdown.ToHtml(formattedMarkdown, MarkdownPipeline), Markdown.ToHtml(saved!, MarkdownPipeline));
         }
         finally
         {

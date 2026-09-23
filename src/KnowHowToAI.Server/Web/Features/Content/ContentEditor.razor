@@ -1,4 +1,5 @@
 @using KnowHowToAI.Core.Domain.Common
+@using KnowHowToAI.Server.Web.Components.Shared.Tabs
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Content
 
@@ -6,72 +7,103 @@
          aria-label="Markdown-Inhalt"
          data-testid="content-editor"
          data-readonly="@IsReadOnly">
-    @if (!IsReadOnly)
-    {
-        <div class="content-editor__actions">
-            <span class="content-editor__status" role="status" aria-live="polite">
-                @(_isSaving ? "Wird gespeichert…" : _pasteWasReduced ? "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert." : WorkspaceEditState.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
-            </span>
-            <button type="button"
-                    class="btn btn-primary"
-                    data-testid="content-editor-save"
-                    disabled="@_isSaving"
-                    @onclick="SaveAsync">
-                Speichern
-            </button>
-        </div>
-    }
+    <TabPanelLayout AdditionalContent="@FeedbackContent" Status="@StatusContent" Actions="@ActionsContent">
+        <PrimaryContent>
+            <div class="content-editor__toolbar-row">
+                @if (!IsReadOnly && !IsSourceMode)
+                {
+                    <div class="content-editor__formatting-toolbar" role="group" aria-label="Textformatierung" data-testid="content-editor-toolbar">
+                        <button type="button" class="content-editor__format-button" data-format="bold" title="Fett" aria-label="Fett" aria-pressed="false">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 4h6a4 4 0 0 1 1.8 7.6A4.5 4.5 0 0 1 13.5 20H7V4Zm3 3v3h3a1.5 1.5 0 0 0 0-3h-3Zm0 6v4h3.5a2 2 0 0 0 0-4H10Z" /></svg>
+                            <span>Fett</span>
+                        </button>
+                        <button type="button" class="content-editor__format-button" data-format="italic" title="Kursiv" aria-label="Kursiv" aria-pressed="false">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 4h10v3h-3.4l-4.2 10H16v3H6v-3h3.4l4.2-10H10V4Z" /></svg>
+                            <span>Kursiv</span>
+                        </button>
+                        <button type="button" class="content-editor__format-button" data-format="strikethrough" title="Durchstreichen" aria-label="Durchstreichen" aria-pressed="false">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 11h16v2H4v-2Zm3-4c0-2 1.8-3.5 5-3.5 2.1 0 3.8.6 5 1.8l-2 2A4.3 4.3 0 0 0 12 6c-1.3 0-2 .4-2 1s.5.8 2 1.3H8.3C6.8 7.8 7 7.3 7 7Zm10 10c0 2.2-1.9 3.5-5.2 3.5-2.3 0-4.2-.6-5.5-1.8l2-2a5 5 0 0 0 3.5 1.2c1.4 0 2.2-.4 2.2-1 0-.5-.5-.8-1.6-1.2h3.7c.6.4.9.8.9 1.3Z" /></svg>
+                            <span>Durchstreichen</span>
+                        </button>
+                        <button type="button" class="content-editor__format-button" data-format="code" title="Inline-Code" aria-label="Inline-Code" aria-pressed="false">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8.7 6-6 6 6 6 2.1-2.1L6.9 12l3.9-3.9L8.7 6Zm6.6 0-2.1 2.1 3.9 3.9-3.9 3.9 2.1 2.1 6-6-6-6Z" /></svg>
+                            <span>Inline-Code</span>
+                        </button>
+                        <button type="button" class="content-editor__format-button" data-format="link" title="Link" aria-label="Link" aria-pressed="false">
+                            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10.6 13.4a1 1 0 0 0 1.4 1.4l4.2-4.2a3 3 0 0 0-4.2-4.2l-2.4 2.4 1.4 1.4 2.4-2.4a1 1 0 1 1 1.4 1.4l-4.2 4.2Zm2.8-2.8a1 1 0 0 0-1.4-1.4l-4.2 4.2a3 3 0 0 0 4.2 4.2l2.4-2.4-1.4-1.4-2.4 2.4a1 1 0 1 1-1.4-1.4l4.2-4.2Z" /></svg>
+                            <span>Link</span>
+                        </button>
+                    </div>
+                }
 
-    <div class="content-editor__mode-switch" role="group" aria-label="Editor-Modus">
-        <span class="content-editor__mode-label">Ansicht:</span>
-        <button type="button"
-                class="btn @(IsSourceMode ? "btn-secondary" : "btn-primary")"
-                data-testid="content-editor-mode-wysiwyg"
-                aria-pressed="@(!IsSourceMode)"
-                disabled="@(!IsSourceMode)"
-                @onclick="ShowWysiwygAsync">
-            WYSIWYG
-        </button>
-        <button type="button"
-                class="btn @(IsSourceMode ? "btn-primary" : "btn-secondary")"
-                data-testid="content-editor-mode-source"
-                aria-pressed="@IsSourceMode"
-                disabled="@IsSourceMode"
-                @onclick="ShowSourceAsync">
-            Markdown-Quelle
-        </button>
-    </div>
+                <label class="content-editor__mode-control" for="content-editor-view-mode">
+                    <span>Ansicht</span>
+                    <select id="content-editor-view-mode" data-testid="content-editor-view-mode" value="@(IsSourceMode ? "source" : "visual")" @onchange="ChangeViewModeAsync">
+                        <option value="visual">Visuell</option>
+                        <option value="source">Markdown-Quelle</option>
+                    </select>
+                </label>
+            </div>
 
-    @if (IsSourceMode)
-    {
-        <label class="content-editor__source-label" for="content-editor-source">Markdown-Quelle</label>
-        <textarea id="content-editor-source"
-                  class="content-editor__source"
-                  data-testid="content-editor-source"
-                  readonly="@IsReadOnly"
-                  @ref="_sourceElement"
-                  @bind="SourceMarkdown"
-                  @bind:event="oninput"></textarea>
-    }
-    else
-    {
-        <div class="content-editor__surface"
-             @ref="_editorElement"
-             data-testid="content-editor-surface"></div>
-    }
+            @if (IsSourceMode)
+            {
+                <label class="content-editor__source-label" for="content-editor-source">Markdown-Quelle</label>
+                <textarea id="content-editor-source"
+                          class="content-editor__source"
+                          data-testid="content-editor-source"
+                          readonly="@IsReadOnly"
+                          @ref="_sourceElement"
+                          @bind="SourceMarkdown"
+                          @bind:event="oninput"></textarea>
+            }
+            else
+            {
+                <div class="content-editor__surface"
+                     @ref="_editorElement"
+                     data-testid="content-editor-surface"></div>
+            }
+        </PrimaryContent>
 
-    @if (_errorMessage is not null)
-    {
-        <div class="content-editor__error" role="alert" data-testid="content-editor-error">
-            @_errorMessage
-        </div>
-    }
-
-    @foreach (var warning in _warnings)
-    {
-        <div class="content-editor__warning" role="status" data-testid="content-editor-warning-@warning.Code">
-            <strong>@warning.Code</strong> @warning.Message
-        </div>
-    }
-
+    </TabPanelLayout>
 </section>
+
+@code {
+    private RenderFragment? FeedbackContent => _errorMessage is null && !_pasteWasReduced && _warnings.Count == 0
+        ? null
+        : @<div>
+              @if (_errorMessage is not null)
+              {
+                  <div class="content-editor__error" role="alert" data-testid="content-editor-error">
+                      @_errorMessage
+                  </div>
+              }
+              @if (_pasteWasReduced)
+              {
+                  <div class="content-editor__warning" role="status" data-testid="content-editor-paste-warning">
+                      Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert.
+                  </div>
+              }
+              @foreach (var warning in _warnings)
+              {
+                  <div class="content-editor__warning" role="status" data-testid="content-editor-warning-@warning.Code">
+                      <strong>@warning.Code</strong> @warning.Message
+                  </div>
+              }
+          </div>;
+
+    private RenderFragment? StatusContent => IsReadOnly
+        ? null
+        : @<span class="content-editor__status" data-testid="content-editor-save-status" role="status" aria-live="polite">
+              @(_isSaving ? "Wird gespeichert…" : WorkspaceEditState.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
+          </span>;
+
+    private RenderFragment? ActionsContent => IsReadOnly
+        ? null
+        : @<button type="button"
+                   class="btn btn-primary"
+                   data-testid="content-editor-save"
+                   disabled="@_isSaving"
+                   @onclick="SaveAsync">
+              Speichern
+          </button>;
+}

@@ -9,15 +9,19 @@ beforeEach(() => {
 describe("ContentEditor JS interop", () => {
     it("mounts, reads and focuses the current instance, then disposes", async () => {
         const focusTarget = { focus: vi.fn() };
-        const element = { querySelector: vi.fn(() => focusTarget) };
+        const toolbar = { addEventListener: vi.fn(), removeEventListener: vi.fn(), querySelectorAll: vi.fn(() => []) };
+        const element = {
+            querySelector: vi.fn(() => focusTarget),
+            closest: vi.fn(() => ({ querySelector: () => toolbar }))
+        };
         const reference = { invokeMethodAsync: vi.fn().mockResolvedValue(undefined) };
 
         await mount(element, "Initial", reference, false);
 
-        expect(lifecycle.map(([name]) => name)).toEqual(["construct", "readonly", "create"]);
+        expect(lifecycle.map(([name]) => name)).toEqual(["construct", "readonly", "bind-toolbar", "create"]);
         expect(lastEditor.options.defaultValue).toBe("Initial");
         expect(lastEditor.options.features).toMatchObject({
-            toolbar: true,
+            toolbar: false,
             "top-bar": false,
             "image-block": false,
             latex: false,
@@ -30,7 +34,7 @@ describe("ContentEditor JS interop", () => {
         expect(focusTarget.focus).toHaveBeenCalledOnce();
 
         await dispose(element);
-        expect(lifecycle.map(([name]) => name)).toEqual(["construct", "readonly", "create", "read", "destroy"]);
+        expect(lifecycle.map(([name]) => name)).toEqual(["construct", "readonly", "bind-toolbar", "create", "read", "unbind-toolbar", "destroy"]);
         expect(readMarkdown(element)).toBe("");
     });
 
@@ -39,9 +43,9 @@ describe("ContentEditor JS interop", () => {
         const reference = { invokeMethodAsync: vi.fn().mockResolvedValue(undefined) };
 
         await mount(element, "Callback", reference, false);
-        lastEditor.markdownUpdated();
+        lastEditor.markdownUpdated({}, "Callback");
         lastEditor.focused();
-        expect(reference.invokeMethodAsync).toHaveBeenNthCalledWith(1, "NotifyChangedAsync");
+        expect(reference.invokeMethodAsync).toHaveBeenNthCalledWith(1, "NotifyChangedAsync", "Callback");
         expect(reference.invokeMethodAsync).toHaveBeenNthCalledWith(2, "NotifyFocusAsync");
 
         await dispose(element);

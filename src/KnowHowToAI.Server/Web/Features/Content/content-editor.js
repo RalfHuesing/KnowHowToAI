@@ -1,5 +1,6 @@
 import { Crepe } from "@milkdown/crepe";
 import { commandsCtx } from "@milkdown/kit/core";
+import { toggleLinkCommand } from "@milkdown/kit/component/link-tooltip";
 import {
     emphasisSchema,
     inlineCodeSchema,
@@ -8,7 +9,6 @@ import {
     strongSchema,
     toggleEmphasisCommand,
     toggleInlineCodeCommand,
-    toggleLinkCommand,
     toggleStrongCommand
 } from "@milkdown/kit/preset/commonmark";
 import {
@@ -16,25 +16,47 @@ import {
     toggleStrikethroughCommand
 } from "@milkdown/kit/preset/gfm";
 
-const addMarkItem = (group, key, label, icon, schema, command) => {
-    group.addItem(key, {
-        icon,
-        label,
-        active: ctx => ctx.get(commandsCtx).call(isMarkSelectedCommand.key, schema.type(ctx)),
-        onRun: ctx => ctx.get(commandsCtx).call(command.key)
-    });
+const formattingCommands = {
+    bold: { schema: strongSchema, command: toggleStrongCommand },
+    italic: { schema: emphasisSchema, command: toggleEmphasisCommand },
+    strikethrough: { schema: strikethroughSchema, command: toggleStrikethroughCommand },
+    code: { schema: inlineCodeSchema, command: toggleInlineCodeCommand },
+    link: { schema: linkSchema, command: toggleLinkCommand }
 };
 
-export function buildAllowedToolbar(builder) {
-    builder.clear();
-    const formatting = builder.addGroup("formatting", "Formatierung");
-    addMarkItem(formatting, "bold", "Fett", "B", strongSchema, toggleStrongCommand);
-    addMarkItem(formatting, "italic", "Kursiv", "I", emphasisSchema, toggleEmphasisCommand);
-    addMarkItem(formatting, "strikethrough", "Durchgestrichen", "S", strikethroughSchema, toggleStrikethroughCommand);
-    addMarkItem(formatting, "code", "Inline-Code", "{}", inlineCodeSchema, toggleInlineCodeCommand);
+export function updateFormattingState(toolbar, ctx) {
+    const commands = ctx.get(commandsCtx);
+    for (const button of toolbar.querySelectorAll("[data-format]")) {
+        const formatting = formattingCommands[button.dataset.format];
+        if (!formatting) continue;
 
-    const links = builder.addGroup("links", "Links");
-    addMarkItem(links, "link", "Link", "↗", linkSchema, toggleLinkCommand);
+        const active = commands.call(isMarkSelectedCommand.key, formatting.schema.type(ctx));
+        button.setAttribute("aria-pressed", String(active));
+        button.classList.toggle("is-active", active);
+    }
+}
+
+export function bindFormattingToolbar(editor, toolbar) {
+    const preserveSelection = event => event.preventDefault();
+    const applyFormatting = event => {
+        const button = event.target.closest?.("button[data-format]");
+        if (!button || !toolbar.contains(button)) return;
+
+        const formatting = formattingCommands[button.dataset.format];
+        if (!formatting) return;
+
+        editor.editor.action(ctx => {
+            ctx.get(commandsCtx).call(formatting.command.key);
+            updateFormattingState(toolbar, ctx);
+        });
+    };
+
+    toolbar.addEventListener("mousedown", preserveSelection);
+    toolbar.addEventListener("click", applyFormatting);
+    return () => {
+        toolbar.removeEventListener("mousedown", preserveSelection);
+        toolbar.removeEventListener("click", applyFormatting);
+    };
 }
 
 export { Crepe };

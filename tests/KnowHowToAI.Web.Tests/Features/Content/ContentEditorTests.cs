@@ -44,8 +44,9 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.OnMutationSucceeded,
                 EventCallback.Factory.Create<ContentMutationUseCaseResult>(this, value => mutation = value)));
 
-        await cut.Instance.NotifyChangedAsync();
+        await cut.Instance.NotifyChangedAsync("Neuer Inhalt");
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
+        await cut.Instance.NotifyChangedAsync("Neuer Inhalt");
 
         Assert.NotNull(mutation);
         Assert.False(workspace.IsDirty);
@@ -54,7 +55,7 @@ public sealed class ContentEditorTests : BunitContext
     }
 
     [Fact]
-    public void SaveAction_IsRenderedBeforeEditorSurface()
+    public void SaveStatusAndAction_FollowEditorSurfaceInPanelFooter()
     {
         ConfigureLooseModule();
         AddServices();
@@ -65,9 +66,43 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
         var markup = cut.Markup;
-        Assert.True(
-            markup.IndexOf("data-testid=\"content-editor-save\"", StringComparison.Ordinal)
-                < markup.IndexOf("data-testid=\"content-editor-surface\"", StringComparison.Ordinal));
+        Assert.True(markup.IndexOf("data-testid=\"content-editor-surface\"", StringComparison.Ordinal)
+            < markup.IndexOf("role=\"status\"", StringComparison.Ordinal));
+        Assert.True(markup.IndexOf("role=\"status\"", StringComparison.Ordinal)
+            < markup.IndexOf("data-testid=\"content-editor-save\"", StringComparison.Ordinal));
+        Assert.Contains("data-testid=\"content-editor-toolbar\"", markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReadOnlyEditorKeepsNativeViewSelectionWithoutFormattingActions()
+    {
+        ConfigureLooseModule();
+        AddServices();
+        var cut = Render<ContentEditor>(parameters => parameters
+            .Add(editor => editor.NodeId, NodeId.Value)
+            .Add(editor => editor.AudienceId, AudienceId.Value)
+            .Add(editor => editor.Markdown, "Inhalt")
+            .Add(editor => editor.IsReadOnly, true));
+
+        Assert.Empty(cut.FindAll("[data-testid='content-editor-toolbar']"));
+        Assert.Equal(2, cut.FindAll("[data-testid='content-editor-view-mode'] option").Count);
+        Assert.Empty(cut.FindAll("[data-testid='content-editor-save']"));
+    }
+
+    [Fact]
+    public async Task PasteReductionWarningDoesNotReplaceTheSaveStatus()
+    {
+        ConfigureLooseModule();
+        AddServices();
+        var cut = Render<ContentEditor>(parameters => parameters
+            .Add(editor => editor.NodeId, NodeId.Value)
+            .Add(editor => editor.AudienceId, AudienceId.Value)
+            .Add(editor => editor.Markdown, "Inhalt"));
+
+        await cut.Instance.NotifyPasteReducedAsync();
+
+        Assert.Equal("Gespeichert", cut.Find(".content-editor__status").TextContent.Trim());
+        Assert.Contains("content-editor-paste-warning", cut.Markup, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -83,7 +118,7 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.Markdown, "Ungespeicherter Inhalt")
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
-        await cut.Instance.NotifyChangedAsync();
+        await cut.Instance.NotifyChangedAsync("Geänderte Fassung");
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
         Assert.True(workspace.IsDirty);
@@ -105,7 +140,7 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.Markdown, "Ausgangswert")
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
-        await cut.Instance.NotifyChangedAsync();
+        await cut.Instance.NotifyChangedAsync(rejectedEditorValue);
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
         Assert.True(workspace.IsDirty);
@@ -161,7 +196,7 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ungespeichert"));
 
-        await cut.Instance.NotifyChangedAsync();
+        await cut.Instance.NotifyChangedAsync("Ungespeicherte Änderung");
         cut.Render(parameters => parameters.Add(editor => editor.Markdown, "Reconnect"));
 
         Assert.True(workspace.IsDirty);
@@ -181,14 +216,14 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.Markdown, "Ausgangswert")
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
-        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-source']").Click());
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-view-mode']").Change("source"));
 
         var source = cut.Find("[data-testid='content-editor-source']");
         Assert.Equal("**WYSIWYG**\n\n- Eintrag", source.GetAttribute("value"));
         source.Input("[Link](https://example.test)\n\nUnicode: ä");
         Assert.True(workspace.IsDirty);
 
-        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-wysiwyg']").Click());
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-view-mode']").Change("visual"));
         cut.WaitForAssertion(() => Assert.Equal(2, module.Invocations["mount"].Count));
         Assert.Equal(
             "[Link](https://example.test)\n\nUnicode: ä",
@@ -208,7 +243,7 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.Markdown, "Ausgangswert")
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
-        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-source']").Click());
+        await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-view-mode']").Change("source"));
         const string rejected = "<h2>Verboten</h2>\n\n![Bild](https://example.test/bild.png)";
         cut.Find("[data-testid='content-editor-source']").Input(rejected);
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());

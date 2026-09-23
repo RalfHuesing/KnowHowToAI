@@ -76,6 +76,17 @@ Speichervorgang übergibt Markdown und gelesene Versionsstände an
 `ReplaceContentRequest` und führt die Mutation über den gemeinsamen
 Web-Write-Coordinator aus.
 
+Im schreibbaren Editor steht über dem visuellen Text eine dauerhaft sichtbare
+Leiste für Fett, Kursiv, Durchstreichen, Inline-Code und Link. Die Buttons
+verwenden lokale SVGs mit sichtbaren Namen und Tooltip; sie bearbeiten die
+aktuelle Auswahl und spiegeln den aktiven Milkdown-Markierungszustand. Die
+Leiste erscheint weder in der Markdown-Quelle noch bei fehlender Schreibbarkeit.
+Eine beschriftete native Ansichtsauswahl schaltet zwischen „Visuell“ und
+„Markdown-Quelle“ über denselben Wert und Speicherpfad. Der Crepe-Kontexttoolbar
+ist ausgeschaltet. Unter dem Text stehen der eigenständige Speicherstatus links
+und „Speichern“ rechts im Dokumentfluss. Paste-Reduktion, Validierungsfehler und
+Warnungen erscheinen separat beim Editor und ersetzen nicht den Speicherstatus.
+
 `WorkspaceState` hält nur den Circuit-Zustand für ausgewählten Node,
 Zielgruppe, Current-/Draft-Kontext, geladenen Snapshot und `ChangeVersion`.
 `KnowledgePageContextResolver` löst ausschließlich Current oder eine offene

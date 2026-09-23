@@ -197,15 +197,18 @@ Für den Content-Editor liegt die lokale Buildgrenze unter
 verwendete `package-lock.json` verwalten `@milkdown/crepe`, den Build-only-
 Compiler `esbuild` sowie den Dev-Testläufer `vitest`;
 `Web/Features/Content/content-editor.js` stellt
-den Crepe-Konstruktor und die begrenzte Toolbar-Konfiguration bereit. `build.mjs`
+den Crepe-Konstruktor, die vorhandenen Milkdown-Formatbefehle und die
+Aktivzustandsabfrage für die feste Editorleiste bereit. `build.mjs`
 löscht den vorherigen Stand und erzeugt deterministisch
 `wwwroot/generated/content-editor/content-editor.js`.
 Der Server bindet diesen Schritt vor jedem MSBuild `Build` und damit auch vor
 `dotnet publish` ein. Der `ContentEditor` lädt sein featurelokales,
 dynamisch isoliertes `ContentEditor.razor.js`; dessen einzige Blazor-Aufrufe
-sind `mount`, `readMarkdown`, `focus` und `dispose`. `mount` registriert nur
-Änderungs-/Fokus-Callbacks, aktiviert die erlaubten Crepe-Formate und deaktiviert
-Top-Bar, Headings, Latex, Upload/ImageBlock und AI. Der Editor wird vor
+sind `mount`, `readMarkdown`, `focus` und `dispose`. `mount` registriert
+Änderungs-, Fokus- und Auswahl-Callbacks, deaktiviert die kontextuelle Crepe-
+Toolbar, Top-Bar, Headings, Latex, Upload/ImageBlock und AI. Die feste Leiste
+ruft für die fünf vorhandenen Formate dieselben Milkdown-Commands auf und zeigt
+den aktiven Auswahlzustand. Der Editor wird vor
 Nodewechsel oder erneutem Mount disposed; persistiert wird ausschließlich der
 beim expliziten Speichern gelesene kanonische Markdown eines expliziten
 `Independent`-Contents in einer Working-Transaction; `Derived`-Content bleibt
@@ -229,12 +232,16 @@ verworfen; jede Reduktion bleibt als `role="status"` sichtbar und wird als
 ungespeicherte Änderung markiert. Die Clipboard-Verarbeitung arbeitet
 ausschließlich auf den gelieferten Strings, lädt keine Bildquelle und ersetzt
 den vollständigen Editorwert bei einer serverseitigen Ablehnung nicht.
-Der Editor bietet zusätzlich einen expliziten Markdown-Quellmodus mit semantisch
-beschrifteter Textarea. WYSIWYG und Quellmodus teilen denselben flüchtigen Wert,
+Der Editor bietet eine beschriftete native Ansichtsauswahl zwischen „Visuell“
+und dem expliziten Markdown-Quellmodus mit semantisch beschrifteter Textarea.
+WYSIWYG und Quellmodus teilen denselben flüchtigen Wert,
 Dirty-State, Save-/ChangeVersion-Pfad und die serverseitige Contentpolicy;
 Quellmoduswechsel remounten den Crepe-Editor nur mit dem unveränderten aktuellen
 Markdown und fokussieren die jeweils aktivierte Ansicht. Eine serverseitige
 Ablehnung lässt den vollständigen Quellwert und den Dirty-State bestehen.
+`TabPanelLayout` ordnet Leiste und Editorfläche im primären Bereich an,
+Warnungen und Fehler separat darunter sowie Speicherstatus links und Speichern
+rechts im normalen Footerfluss.
 Der versionierte Golden Master wird zusätzlich im Browser mit dem gebündelten
 Crepe über fünf aufeinanderfolgende Save-/Remount-Roundtrips geführt; jeder
 Server-Readback wird gegen die Markdig-Semantik der Fixture geprüft.

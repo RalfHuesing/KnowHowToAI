@@ -100,7 +100,7 @@ public sealed class NodeDetailsPaneTests : BunitContext
         cut.Find("[data-testid='tab-Metadata']").Click();
         await cut.Find("[data-testid='node-metadata-title']").InputAsync("Ungespeicherter Titel");
         cut.Find("[data-testid='tab-Editor']").Click();
-        await cut.Find("[data-testid='content-editor-mode-source']").ClickAsync();
+        await cut.Find("[data-testid='content-editor-view-mode']").ChangeAsync("source");
         await cut.Find("[data-testid='content-editor-source']").InputAsync("Ungespeicherter Inhalt");
 
         cut.Find("[data-testid='tab-Technical']").Click();

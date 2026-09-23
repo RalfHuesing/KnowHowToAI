@@ -94,8 +94,8 @@ export function normalizePastedPlainText(text) {
 function setPasteStatus(element, reduced) {
     if (!reduced) return;
     const root = element.closest?.("[data-testid='content-editor']");
-    const status = root?.querySelector?.("[role='status']");
-    if (status) status.textContent = "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert.";
+    const status = root?.querySelector?.("[data-testid='content-editor-paste-warning']");
+    if (status) status.hidden = false;
     element.dispatchEvent?.(new CustomEvent("content-editor-paste-reduced", { bubbles: true }));
 }
 
@@ -125,34 +125,38 @@ function installPasteHandler(element, isReadOnly) {
 }
 
 export async function mount(element, markdown, dotNetReference, isReadOnly) {
-    const { Crepe, buildAllowedToolbar } = await import("/generated/content-editor/content-editor.js");
+    const { Crepe, bindFormattingToolbar, updateFormattingState } = await import("/generated/content-editor/content-editor.js");
     const editor = new Crepe({
         root: element,
         defaultValue: markdown ?? "",
         features: {
-            [Crepe.Feature.Toolbar]: true,
+            [Crepe.Feature.Toolbar]: false,
             [Crepe.Feature.TopBar]: false,
             [Crepe.Feature.ImageBlock]: false,
             [Crepe.Feature.Latex]: false,
             [Crepe.Feature.AI]: false,
             [Crepe.Feature.BlockEdit]: false
         },
-        featureConfigs: {
-            [Crepe.Feature.Toolbar]: {
-                buildToolbar: buildAllowedToolbar
-            }
-        }
     });
 
     editor.setReadonly(isReadOnly === true);
     editor.on(listener => {
-        listener.markdownUpdated(() => dotNetReference.invokeMethodAsync("NotifyChangedAsync").catch(() => {}));
+        listener.markdownUpdated((ctx, markdown) => dotNetReference.invokeMethodAsync("NotifyChangedAsync", markdown ?? "").catch(() => {}));
         listener.focus(() => dotNetReference.invokeMethodAsync("NotifyFocusAsync").catch(() => {}));
+        listener.selectionUpdated(ctx => {
+            const toolbar = element.closest?.("[data-testid='content-editor']")
+                ?.querySelector?.("[data-testid='content-editor-toolbar']");
+            if (toolbar) updateFormattingState(toolbar, ctx);
+        });
     });
     editor.dotNetReference = dotNetReference;
     editor.pasteHandler = installPasteHandler(element, isReadOnly === true);
+    const toolbar = element.closest?.("[data-testid='content-editor']")
+        ?.querySelector?.("[data-testid='content-editor-toolbar']");
+    editor.toolbarHandler = !toolbar || isReadOnly === true ? null : bindFormattingToolbar(editor, toolbar);
     editorInstances.set(element, editor);
     await editor.create();
+    if (toolbar) editor.editor.action(ctx => updateFormattingState(toolbar, ctx));
 }
 
 export function readMarkdown(element) {
@@ -184,5 +188,6 @@ export async function dispose(element) {
         element.removeEventListener("paste", editor.pasteHandler, true);
         delete element.dataset.pastePolicy;
     }
+    editor.toolbarHandler?.();
     await editor.destroy();
 }

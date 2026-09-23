@@ -40,7 +40,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await deepNode.Locator(".tree-node-title").ClickAsync();
 
             await page.GetByTestId("tab-Editor").ClickAsync();
-            await page.GetByTestId("content-editor-mode-source").ClickAsync();
+            await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Working-Inhalt für den geteilten Deep-Link.");
             await page.GetByTestId("content-editor-save").ClickAsync();
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
@@ -120,7 +120,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToBeVisibleAsync();
 
             await page.GetByTestId("tab-Editor").ClickAsync();
-            await page.GetByTestId("content-editor-mode-source").ClickAsync();
+            await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Direkt bearbeiteter Markdown-Inhalt.");
             await page.GetByTestId("link-drafts").ClickAsync();
             var navigationConfirmation = page.GetByRole(AriaRole.Dialog, new() { Name = "Ungespeicherte Änderungen" });
@@ -140,7 +140,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await Assertions.Expect(secondNode).ToBeVisibleAsync();
             await secondNode.Locator(".tree-node-title").ClickAsync();
             await page.GetByTestId("tab-Editor").ClickAsync();
-            await page.GetByTestId("content-editor-mode-source").ClickAsync();
+            await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Weiterer Inhalt im selben Entwurf.");
             await page.GetByTestId("link-drafts").ClickAsync();
 
@@ -194,7 +194,7 @@ public sealed class KnowledgeDirectEditingSmokeTests
             await page.GetByTestId("tab-Editor").ClickAsync();
             var proseMirror = page.GetByTestId("content-editor-surface").Locator(".ProseMirror");
             await Assertions.Expect(proseMirror).ToBeFocusedAsync();
-            await page.GetByTestId("content-editor-mode-source").ClickAsync();
+            await page.GetByTestId("content-editor-view-mode").SelectOptionAsync("source");
             await page.GetByTestId("content-editor-source").FillAsync("Nicht gespeicherter Markdown-Text");
 
             await page.GetByTestId("tab-Technical").ClickAsync();
