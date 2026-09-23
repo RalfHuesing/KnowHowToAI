@@ -65,7 +65,7 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
-    public void NodeDetails_WithViewModel_RendersTitleAndDescription()
+    public void NodeDetails_WithViewModel_RendersStableTitle()
     {
         var vm = MakeViewModel();
 
@@ -74,8 +74,7 @@ public sealed class NodeDetailsTests : BunitContext
         var title = cut.Find("[data-testid='node-details-title']");
         Assert.Equal("Test-Knoten", title.TextContent.Trim());
 
-        var description = cut.Find("[data-testid='node-details-description']");
-        Assert.Equal("Eine Beschreibung", description.TextContent.Trim());
+        Assert.Empty(cut.FindAll("[data-testid='node-details-description']"));
     }
 
     [Fact]
@@ -91,7 +90,9 @@ public sealed class NodeDetailsTests : BunitContext
     {
         var vm = MakeViewModel();
 
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.ActiveView, "Technical"));
 
         var availability = cut.Find("[data-testid='node-details-availability']");
         Assert.Equal("Eigener Inhalt", availability.TextContent.Trim());
@@ -108,28 +109,22 @@ public sealed class NodeDetailsTests : BunitContext
     {
         var vm = MakeViewModel(contentMd: "**fett** und _kursiv_");
 
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm));
 
         var contentDiv = cut.Find("[data-testid='node-content-markdown']");
         Assert.Contains("<strong>fett</strong>", contentDiv.InnerHtml);
     }
 
     [Fact]
-    public void NodeDetails_WithContent_RendersContentBeforeSecondaryActionsAndTechnicalDetails()
+    public void NodeDetails_ReadViewShowsContentWithoutTechnicalDetails()
     {
         var vm = MakeViewModel(contentMd: "Lesbarer Inhalt");
         var cut = Render<NodeDetails>(p => p
             .Add(x => x.ViewModel, vm));
 
-        var article = cut.Find("[data-testid='node-details']");
-        var content = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-content");
-        var actions = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-actions");
-        var technicalDetails = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-meta");
-
-        var markup = article.InnerHtml;
-        Assert.True(markup.IndexOf(content.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal));
-        Assert.True(markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(technicalDetails.OuterHtml, StringComparison.Ordinal));
-        Assert.Empty(actions.QuerySelectorAll("a"));
+        Assert.Contains("Lesbarer Inhalt", cut.Find("[data-testid='node-details-content']").TextContent);
+        Assert.Empty(cut.FindAll("[data-testid='node-details-meta']"));
     }
 
     [Fact]
@@ -153,10 +148,6 @@ public sealed class NodeDetailsTests : BunitContext
 
         var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
 
-        var AudienceElement = cut.Find("[data-testid='node-details-Audience']");
-        Assert.Contains("Architect", AudienceElement.TextContent);
-        Assert.Contains("→", AudienceElement.TextContent);
-
         var fallbackContext = cut.Find("[data-testid='node-content-fallback-context']");
         Assert.Contains("kein eigener Inhalt hinterlegt", fallbackContext.TextContent);
         Assert.Contains("Fallback-Zielgruppe „Architect“", fallbackContext.TextContent);
@@ -164,7 +155,7 @@ public sealed class NodeDetailsTests : BunitContext
     }
 
     [Fact]
-    public void NodeDetails_WithFallback_RendersFallbackContextBeforeSecondaryActions()
+    public void NodeDetails_WithFallback_RendersFallbackContext()
     {
         var vm = MakeViewModel(
             contentMd: "Fallback-Inhalt",
@@ -174,13 +165,7 @@ public sealed class NodeDetailsTests : BunitContext
         var cut = Render<NodeDetails>(p => p
             .Add(x => x.ViewModel, vm));
 
-        var article = cut.Find("[data-testid='node-details']");
-        var fallbackContext = article.Children.First(element => element.GetAttribute("data-testid") == "node-content-fallback-context");
-        var actions = article.Children.First(element => element.GetAttribute("data-testid") == "node-details-actions");
-
-        var markup = article.InnerHtml;
-        Assert.True(markup.IndexOf(fallbackContext.OuterHtml, StringComparison.Ordinal) < markup.IndexOf(actions.OuterHtml, StringComparison.Ordinal));
-        Assert.Empty(actions.QuerySelectorAll("a"));
+        Assert.NotNull(cut.Find("[data-testid='node-content-fallback-context']"));
     }
 
     [Fact]
@@ -188,7 +173,9 @@ public sealed class NodeDetailsTests : BunitContext
     {
         var vm = MakeViewModel(fallbackUsed: false, resolvedAudienceId: "Developer");
 
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.ActiveView, "Technical"));
 
         var AudienceElement = cut.Find("[data-testid='node-details-Audience']");
         Assert.DoesNotContain("→", AudienceElement.TextContent);
@@ -209,7 +196,9 @@ public sealed class NodeDetailsTests : BunitContext
             SourceRevisions = [sourceRev]
         };
 
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.ActiveView, "Technical"));
 
         var provenanceSection = cut.Find("[data-testid='node-details-provenance']");
         Assert.NotNull(provenanceSection);
@@ -228,7 +217,9 @@ public sealed class NodeDetailsTests : BunitContext
     {
         var vm = MakeViewModel(contentMode: "Independent");
 
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.ActiveView, "Technical"));
 
         var provenance = cut.FindAll("[data-testid='node-details-provenance']");
         Assert.Empty(provenance);
@@ -239,7 +230,9 @@ public sealed class NodeDetailsTests : BunitContext
     {
         var vm = MakeViewModel(freshness: "Stale");
 
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.ActiveView, "Technical"));
 
         var freshnessEl = cut.Find("[data-testid='node-details-freshness']");
         Assert.Equal("Veraltet", freshnessEl.TextContent.Trim());
@@ -251,7 +244,9 @@ public sealed class NodeDetailsTests : BunitContext
     {
         var vm = MakeViewModel(contentMode: "Derived");
 
-        var cut = Render<NodeDetails>(p => p.Add(x => x.ViewModel, vm));
+        var cut = Render<NodeDetails>(p => p
+            .Add(x => x.ViewModel, vm)
+            .Add(x => x.ActiveView, "Technical"));
 
         var modeEl = cut.Find("[data-testid='node-details-content-mode']");
         Assert.Equal("Abgeleitet", modeEl.TextContent.Trim());

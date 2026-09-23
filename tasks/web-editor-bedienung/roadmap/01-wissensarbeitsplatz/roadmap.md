@@ -20,7 +20,7 @@ einzubauen. Native Texteingabe und Browserfunktionen werden nicht blockiert.
 - [x] [M1.1-T1 – Sichtbare Node-Kennungen und Herkunft bereinigen](tasks/M1.1-T1.md)
 - [x] [M1.2-T1 – Baum auf Maus-Drag-and-drop ausrichten](tasks/M1.2-T1.md)
 - [x] [M1.3-T1 – Aufklappzustand bei Cache und Moves erhalten](tasks/M1.3-T1.md)
-- [ ] [M1.4-T1 – Vier Node-Reiter und getrennte Speicherung](tasks/M1.4-T1.md)
+- [x] [M1.4-T1 – Vier Node-Reiter und getrennte Speicherung](tasks/M1.4-T1.md)
 - [ ] [M1.5-T1 – Routeübergreifende Browser-Abnahme und Ist-Doku](tasks/M1.5-T1.md)
 
 Jeder Leaf schließt eigene Tests und zwingende Dokumentationsfolgen vor seinem

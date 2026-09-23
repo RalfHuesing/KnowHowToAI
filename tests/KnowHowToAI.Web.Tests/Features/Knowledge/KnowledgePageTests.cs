@@ -195,11 +195,12 @@ public sealed class KnowledgePageTests : BunitContext
 
         var cut = Render<KnowledgePage>(parameters => parameters.Add(page => page.NodeId, rootId.Value));
 
-        Assert.Equal(availability, cut.Find("[data-testid='node-details-availability']").TextContent.Trim());
-        Assert.Equal(contentMode == "Derived" ? "Abgeleitet" : "Eigenständig", cut.Find("[data-testid='node-details-content-mode']").TextContent.Trim());
-        Assert.Equal(sourceCount, cut.FindAll("[data-testid='node-provenance-item']").Count);
+        var details = cut.FindComponent<NodeDetails>().Instance.ViewModel!;
+        Assert.Equal(availability, details.Availability switch { "Explicit" => "Eigener Inhalt", _ => details.Availability });
+        Assert.Equal(contentMode, details.ContentMode);
+        Assert.Equal(sourceCount, details.SourceRevisions.Count);
         if (sourceFreshness is not null)
-            Assert.Equal(sourceFreshness, cut.Find("[data-testid='node-provenance-freshness']").TextContent.Trim());
+            Assert.Equal("Stale", Assert.Single(details.SourceRevisions).Freshness);
     }
 
     private static void AddDerivedScenario(

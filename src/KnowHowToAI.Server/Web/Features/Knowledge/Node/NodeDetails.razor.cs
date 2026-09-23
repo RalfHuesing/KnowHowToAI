@@ -4,8 +4,7 @@ namespace KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 /// <summary>
 /// Read-only Detailansicht eines ausgewählten Knotens.
-/// Zeigt Titel, Description, Position, Zielgruppe, aufgelösten Content,
-/// Fallback/Provenienz, Revision und Freshness ohne Bearbeitungscontrols.
+/// Zeigt den Inhalt einer einzelnen Node-Ansicht und hält deren Titel stabil.
 /// </summary>
 public sealed partial class NodeDetails
 {
@@ -25,19 +24,10 @@ public sealed partial class NodeDetails
     public bool ShowTitle { get; set; } = true;
 
     [Parameter]
-    public bool ShowContent { get; set; } = true;
-
-    [Parameter]
     public bool IsWorking { get; set; }
 
     [Parameter]
-    public bool ShowEditAction { get; set; }
-
-    [Parameter]
-    public string EditActionLabel { get; set; } = "Bearbeiten";
-
-    [Parameter]
-    public EventCallback OnEditRequested { get; set; }
+    public string ActiveView { get; set; } = "Read";
 
     private bool _isLoading;
     private string? _errorMessage;

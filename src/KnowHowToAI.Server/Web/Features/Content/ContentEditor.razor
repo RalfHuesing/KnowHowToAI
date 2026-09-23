@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Components.Web
 @namespace KnowHowToAI.Server.Web.Features.Content
 
-<section class="content-editor @(IsReadOnly ? "content-editor--readonly" : string.Empty)"
+<section class="content-editor @(IsReadOnly ? "content-editor--readonly" : string.Empty) @(IsWorkspaceEditor ? "content-editor--workspace" : string.Empty)"
          aria-label="Markdown-Inhalt"
          data-testid="content-editor"
          data-readonly="@IsReadOnly">

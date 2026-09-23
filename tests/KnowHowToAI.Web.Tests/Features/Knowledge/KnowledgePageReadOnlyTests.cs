@@ -59,7 +59,8 @@ public sealed class KnowledgePageReadOnlyTests : BunitContext
         Assert.Equal("Root", cut.Find("h1").TextContent.Trim());
         Assert.Equal("Root content", cut.Find("[data-testid='node-content-markdown']").TextContent.Trim());
         Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
-        Assert.Single(cut.FindAll("[data-testid='node-details-edit']"));
+        Assert.Equal(4, cut.FindAll("[data-testid^='node-view-']").Count(element => element.TagName == "BUTTON"));
+        Assert.Equal("true", cut.Find("[data-testid='node-view-read']").GetAttribute("aria-pressed"));
         Assert.Empty(cut.FindAll("[data-testid='node-metadata-editor']"));
         Assert.Empty(cut.FindAll("[data-testid='node-deletion-editor']"));
         Assert.Empty(cut.FindAll("[data-testid='root-node-editor']"));

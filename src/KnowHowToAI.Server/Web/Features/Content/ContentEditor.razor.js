@@ -163,6 +163,16 @@ export function focus(element) {
     element?.querySelector(".ProseMirror")?.focus();
 }
 
+export function activate(element) {
+    requestAnimationFrame(() => {
+        const editor = element?.querySelector(".ProseMirror");
+        if (!editor) return;
+        editor.getBoundingClientRect();
+        window.dispatchEvent(new Event("resize"));
+        editor.focus();
+    });
+}
+
 export async function dispose(element) {
     const editor = editorInstances.get(element);
     if (!editor) {

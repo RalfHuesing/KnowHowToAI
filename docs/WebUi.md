@@ -47,6 +47,24 @@ Bei einer konkurrierenden Änderung zeigt der Draft-Review Base-/Current-Stand
 und strukturierten Diff. Ein manuelles Reapply beginnt einen neuen Entwurf; es
 kopiert keine Änderungen automatisch.
 
+Die Wissensseite zeigt bei ausgewähltem Knoten die festen Ansichten „Lesen“,
+„Titel und Beschreibung“, „Editor“ und „Technische Details“. Eine neue Node-
+oder Zielgruppenauswahl beginnt bei „Lesen“; das Seiten-`h1` bleibt in allen
+Ansichten dasselbe. Die Leseansicht zeigt gerenderten Inhalt sowie Fallback-
+und Derived-Einordnung. Metadaten und Content besitzen getrennte Formulare und
+Speichern-Aktionen. Technische Details enthalten Verfügbarkeit, Aktualität,
+Inhaltsmodus, Position, Revision und – bei Derived Content – Herkunft.
+
+Metadatenformular und Inhaltseditor werden erst beim ersten Öffnen ihrer
+Ansicht montiert. Danach bleiben sie für dieselbe Node und Zielgruppe beim
+Ansichtswechsel montiert und verborgen; dadurch bleiben ungespeicherte Werte,
+Validierungsfehler und Warnungen erhalten. Der Editor erhält beim ersten
+Öffnen und beim Wiedereintritt den Fokus. Im Editor öffnet Fallback oder
+fehlender eigener Content eine leere, ausdrücklich zu speichernde Fassung;
+Derived Content bleibt dort schreibgeschützt. Metadaten sind in einem
+schreibbaren Current- oder Draft-Kontext weiterhin unabhängig davon änderbar.
+Beim Wechsel von Node oder Zielgruppe greift der vorhandene Dirty-Schutz.
+
 `WorkspaceState` hält nur den Circuit-Zustand für ausgewählten Node,
 Zielgruppe, Current-/Draft-Kontext, geladenen Snapshot und `ChangeVersion`.
 `KnowledgePageContextResolver` löst ausschließlich Current oder eine offene
@@ -79,15 +97,16 @@ Refresh werden offene Seiten nicht gesammelt vorgeladen.
 ## Export- und Featuregrenze
 
 Die Weboberfläche besitzt keinen Markdown-Download-Endpunkt. Markdown-Export
-bleibt über den MCP-Exportvertrag verfügbar. Das lesende Knotendokument zeigt
-Inhalt und Fallback-/Freshness-Informationen; Änderungen erfolgen ausdrücklich
+bleibt über den MCP-Exportvertrag verfügbar. Die Leseansicht des Knotendokuments
+zeigt gerenderten Inhalt und dessen Fallback-/Derived-Einordnung; Freshness und
+Revision liegen unter „Technische Details“. Änderungen erfolgen ausdrücklich
 im Draft-Kontext. Node-Kennungen erscheinen nicht als lesbarer Dokumenttext;
 die bestehende Node-URL und interne Kennungen für Routing und Zuordnung bleiben
 erhalten. Bei Derived Content bezeichnet die Herkunft den Quellknoten mit seinem
 Titel aus demselben ReadContext. Ist dieser dort nicht verfügbar oder schlägt die
 optionale Titelabfrage fehl, zeigt die Oberfläche „Quellknoten nicht verfügbar“;
-das Hauptdokument bleibt lesbar. Zielgruppe und Aktualität bleiben in der
-Dokumentansicht sichtbar.
+das Hauptdokument bleibt lesbar. Die Zielgruppe bleibt in der Dokumentansicht
+sichtbar.
 
 ## Verbindliche UI-Nachweise
 

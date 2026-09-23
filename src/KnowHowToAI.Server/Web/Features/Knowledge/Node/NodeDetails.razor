@@ -1,5 +1,4 @@
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
-@using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Components.Shared.Feedback
 @using KnowHowToAI.Server.Web.Components.Shared.States
 
@@ -35,56 +34,51 @@ else if (ViewModel is not null)
                     @(IsWorking ? "Arbeitskopie" : "Nur lesen")
                 </span>
             </div>
-
-            @if (!string.IsNullOrWhiteSpace(ViewModel.Description))
-            {
-                <p class="node-details-description readable" data-testid="node-details-description">@ViewModel.Description</p>
-            }
         </header>
 
-        <section class="node-content-context node-content-context--audience"
-                 aria-label="Ausgewählte Zielgruppe" data-testid="node-details-audience-context">
-            <p>
-                Zielgruppe: <strong data-testid="node-details-requested-audience">@ViewModel.RequestedAudienceId</strong>
-                @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
-                {
-                    <span> · Inhalt aus <strong data-testid="node-details-resolved-audience">@ViewModel.ResolvedAudienceId</strong></span>
-                }
-            </p>
-        </section>
-
-        @if (ViewModel.FallbackUsed)
+        @if (ActiveView == "Read")
         {
-            <section class="node-content-context node-content-context--fallback"
-                     aria-label="Einordnung des Inhalts" data-testid="node-content-fallback-context">
-                <p><strong>Inhalt aus Fallback-Zielgruppe</strong></p>
+            <section class="node-content-context node-content-context--audience"
+                     aria-label="Ausgewählte Zielgruppe" data-testid="node-details-audience-context">
                 <p>
-                    Für die angefragte Zielgruppe <strong>@ViewModel.RequestedAudienceId</strong> ist an diesem Knoten kein eigener Inhalt hinterlegt.
-                    Es wird der vorhandene Inhalt
-                    @if (ViewModel.ResolvedAudienceId is not null)
+                    Zielgruppe: <strong data-testid="node-details-requested-audience">@ViewModel.RequestedAudienceId</strong>
+                    @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
                     {
-                        <strong>der Fallback-Zielgruppe „@ViewModel.ResolvedAudienceId“</strong>
+                        <span> · Inhalt aus <strong data-testid="node-details-resolved-audience">@ViewModel.ResolvedAudienceId</strong></span>
                     }
-                    else
-                    {
-                        <strong>einer hinterlegten Fallback-Zielgruppe</strong>
-                    }
-                    angezeigt. Die angefragte Zielgruppe und der Wissenskontext bleiben unverändert.
                 </p>
             </section>
-        }
 
-        @if (ViewModel.ContentMode == "Derived")
-        {
-            <section class="node-content-context node-content-context--derived"
-                     aria-label="Einordnung des Inhalts" data-testid="node-content-derived-context">
-                <p><strong>Abgeleiteter Inhalt</strong></p>
-                <p>Dieser Wissenseintrag ist aus anderen Inhalten abgeleitet und bleibt in diesem Arbeitsweg schreibgeschützt.</p>
-            </section>
-        }
+            @if (ViewModel.FallbackUsed)
+            {
+                <section class="node-content-context node-content-context--fallback"
+                         aria-label="Einordnung des Inhalts" data-testid="node-content-fallback-context">
+                    <p><strong>Inhalt aus Fallback-Zielgruppe</strong></p>
+                    <p>
+                        Für die angefragte Zielgruppe <strong>@ViewModel.RequestedAudienceId</strong> ist an diesem Knoten kein eigener Inhalt hinterlegt.
+                        Es wird der vorhandene Inhalt
+                        @if (ViewModel.ResolvedAudienceId is not null)
+                        {
+                            <strong>der Fallback-Zielgruppe „@ViewModel.ResolvedAudienceId“</strong>
+                        }
+                        else
+                        {
+                            <strong>einer hinterlegten Fallback-Zielgruppe</strong>
+                        }
+                        angezeigt. Die angefragte Zielgruppe und der Wissenskontext bleiben unverändert.
+                    </p>
+                </section>
+            }
 
-        @if (ShowContent)
-        {
+            @if (ViewModel.ContentMode == "Derived")
+            {
+                <section class="node-content-context node-content-context--derived"
+                         aria-label="Einordnung des Inhalts" data-testid="node-content-derived-context">
+                    <p><strong>Abgeleiteter Inhalt</strong></p>
+                    <p>Dieser Wissenseintrag ist aus anderen Inhalten abgeleitet und bleibt im Inhaltseditor schreibgeschützt.</p>
+                </section>
+            }
+
             <section class="node-details-content" aria-label="Inhalt" data-testid="node-details-content">
                 @if (string.IsNullOrWhiteSpace(ViewModel.ContentMd))
                 {
@@ -100,94 +94,71 @@ else if (ViewModel is not null)
                 }
             </section>
         }
-
-        <nav class="node-details-actions action-group" aria-label="Weitere Ansichten" data-testid="node-details-actions">
-            @if (ShowEditAction)
-            {
-                <button type="button" class="btn btn-primary" data-testid="node-details-edit"
-                        @onclick="() => OnEditRequested.InvokeAsync()">
-                    @EditActionLabel
-                </button>
-            }
-        </nav>
-
-        <details class="node-details-meta" data-testid="node-details-meta">
-            <summary>Technische Details</summary>
-            <dl class="node-meta-list">
-                <div class="node-meta-item">
-                    <dt>Zielgruppe</dt>
-                    <dd data-testid="node-details-Audience">
-                        @ViewModel.RequestedAudienceId
-                        @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
-                        {
-                            <span class="node-meta-fallback" title="Inhalt stammt per Fallback aus dieser Zielgruppe">
-                                → @ViewModel.ResolvedAudienceId
-                            </span>
-                        }
-                    </dd>
-                </div>
-                <div class="node-meta-item">
-                    <dt>Verfügbarkeit</dt>
-                    <dd>
-                        <span class="node-meta-badge node-meta-badge--@ViewModel.Availability.ToLowerInvariant()"
-                              data-testid="node-details-availability">
-                            @MapAvailabilityLabel(ViewModel.Availability)
-                        </span>
-                    </dd>
-                </div>
-                <div class="node-meta-item">
-                    <dt>Aktualität</dt>
-                    <dd>
-                        <span class="node-meta-badge node-meta-badge--@ViewModel.Freshness.ToLowerInvariant()"
-                              data-testid="node-details-freshness">
-                            @MapFreshnessLabel(ViewModel.Freshness)
-                        </span>
-                    </dd>
-                </div>
-                @if (ViewModel.ContentMode is not null)
-                {
+        else if (ActiveView == "Technical")
+        {
+            <details class="node-details-meta" data-testid="node-details-meta" open>
+                <summary>Technische Details</summary>
+                <dl class="node-meta-list">
                     <div class="node-meta-item">
-                        <dt>Inhaltsmodus</dt>
-                        <dd data-testid="node-details-content-mode">@MapContentModeLabel(ViewModel.ContentMode)</dd>
-                    </div>
-                }
-                @if (ViewModel.ContentRevisionId.HasValue)
-                {
-                    <div class="node-meta-item">
-                        <dt>Revision</dt>
-                        <dd class="node-meta-revision" data-testid="node-details-revision">
-                            @ViewModel.ContentRevisionId.Value.ToString("N")[..8]…
+                        <dt>Zielgruppe</dt>
+                        <dd data-testid="node-details-Audience">
+                            @ViewModel.RequestedAudienceId
+                            @if (ViewModel.FallbackUsed && ViewModel.ResolvedAudienceId is not null)
+                            {
+                                <span class="node-meta-fallback" title="Inhalt stammt per Fallback aus dieser Zielgruppe">
+                                    → @ViewModel.ResolvedAudienceId
+                                </span>
+                            }
                         </dd>
                     </div>
-                }
-                <div class="node-meta-item">
-                    <dt>Position</dt>
-                    <dd data-testid="node-details-sort-order">@ViewModel.SortOrder</dd>
-                </div>
-            </dl>
-
-        </details>
-
-        @if (ViewModel.SourceRevisions.Count > 0)
-        {
-            <section class="node-details-provenance" aria-label="Herkunft des Inhalts" data-testid="node-details-provenance">
-                <h2 class="node-section-heading">Herkunft des Inhalts</h2>
-                <ul class="node-provenance-list">
-                    @foreach (var revision in ViewModel.SourceRevisions)
+                    <div class="node-meta-item">
+                        <dt>Verfügbarkeit</dt>
+                        <dd><span class="node-meta-badge node-meta-badge--@ViewModel.Availability.ToLowerInvariant()" data-testid="node-details-availability">@MapAvailabilityLabel(ViewModel.Availability)</span></dd>
+                    </div>
+                    <div class="node-meta-item">
+                        <dt>Aktualität</dt>
+                        <dd><span class="node-meta-badge node-meta-badge--@ViewModel.Freshness.ToLowerInvariant()" data-testid="node-details-freshness">@MapFreshnessLabel(ViewModel.Freshness)</span></dd>
+                    </div>
+                    @if (ViewModel.ContentMode is not null)
                     {
-                        <li class="node-provenance-item" data-testid="node-provenance-item">
-                            <span class="node-provenance-source">
-                                Knoten <strong>@revision.SourceNodeTitle</strong>,
-                                Zielgruppe <strong>@revision.SourceAudienceId</strong>,
-                                Revision <code>@revision.SourceContentRevisionId.ToString("N")[..8]…</code>
-                                <span class="node-meta-badge node-meta-badge--@revision.Freshness.ToLowerInvariant()" data-testid="node-provenance-freshness">
-                                    Quelle: @MapFreshnessLabel(revision.Freshness)
-                                </span>
-                            </span>
-                        </li>
+                        <div class="node-meta-item">
+                            <dt>Inhaltsmodus</dt>
+                            <dd data-testid="node-details-content-mode">@MapContentModeLabel(ViewModel.ContentMode)</dd>
+                        </div>
                     }
-                </ul>
-            </section>
+                    <div class="node-meta-item">
+                        <dt>Position</dt>
+                        <dd data-testid="node-details-sort-order">@ViewModel.SortOrder</dd>
+                    </div>
+                    @if (ViewModel.ContentRevisionId.HasValue)
+                    {
+                        <div class="node-meta-item">
+                            <dt>Revision</dt>
+                            <dd class="node-meta-revision" data-testid="node-details-revision">@ViewModel.ContentRevisionId.Value.ToString("N")[..8]…</dd>
+                        </div>
+                    }
+                </dl>
+            </details>
+
+            @if (ViewModel.SourceRevisions.Count > 0)
+            {
+                <section class="node-details-provenance" aria-label="Herkunft des Inhalts" data-testid="node-details-provenance">
+                    <h2 class="node-section-heading">Herkunft des Inhalts</h2>
+                    <ul class="node-provenance-list">
+                        @foreach (var revision in ViewModel.SourceRevisions)
+                        {
+                            <li class="node-provenance-item" data-testid="node-provenance-item">
+                                <span class="node-provenance-source">
+                                    Knoten <strong>@revision.SourceNodeTitle</strong>,
+                                    Zielgruppe <strong>@revision.SourceAudienceId</strong>,
+                                    Revision <code>@revision.SourceContentRevisionId.ToString("N")[..8]…</code>
+                                    <span class="node-meta-badge node-meta-badge--@revision.Freshness.ToLowerInvariant()" data-testid="node-provenance-freshness">Quelle: @MapFreshnessLabel(revision.Freshness)</span>
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
         }
     </article>
 }

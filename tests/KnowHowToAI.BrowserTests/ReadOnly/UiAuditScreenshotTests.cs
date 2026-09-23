@@ -49,9 +49,22 @@ public sealed class UiAuditScreenshotTests
         var child = page.Locator(".knowledge-tree > .tree-node-wrapper > .tree-children-group > .tree-node-wrapper > .tree-node-row > .tree-node-select").First;
         await child.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
-        await CaptureAsync(page, "04_knowledge_node-detail", output, captures);
         foreach (var width in ReviewWidths)
-            await CaptureAsync(page, "04_knowledge_node-detail", output, captures, width, 720);
+            await CaptureAsync(page, "04_knowledge_read", output, captures, width, 720);
+
+        await page.GetByTestId("node-view-metadata").ClickAsync();
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "04_knowledge_metadata", output, captures, width, 720);
+
+        await page.GetByTestId("node-view-editor").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "04_knowledge_editor", output, captures, width, 720);
+
+        await page.GetByTestId("node-view-technical").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("node-details-availability")).ToBeVisibleAsync();
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "04_knowledge_technical", output, captures, width, 720);
 
         await GotoAsync(page, host.Address, "/knowledge?audienceId=BrowserFallbackAudience");
         var fallbackRoot = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
@@ -59,7 +72,7 @@ public sealed class UiAuditScreenshotTests
         var fallbackNode = page.GetByText(BrowserKnowledgeSeed.FallbackNodeTitle, new() { Exact = true }).Locator("xpath=..");
         await Assertions.Expect(fallbackNode).ToBeVisibleAsync();
         await fallbackNode.Locator(".tree-node-title").ClickAsync();
-        await Assertions.Expect(page.GetByTestId("node-details-availability")).ToContainTextAsync("Fallback");
+        await Assertions.Expect(page.GetByTestId("node-content-fallback-context")).ToBeVisibleAsync();
         await CaptureAsync(page, "05_knowledge_fallback-detail", output, captures);
 
         var transactionId = await BrowserMcpAssertions.BeginTransactionAsync(host.Address, "UI Audit Draft");

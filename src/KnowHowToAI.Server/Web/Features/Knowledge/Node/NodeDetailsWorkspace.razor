@@ -1,0 +1,85 @@
+@namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
+@using KnowHowToAI.Server.Web.Features.Content
+@using KnowHowToAI.Server.Web.Features.Knowledge.Components
+@using Microsoft.AspNetCore.Components.Web
+
+<NodeDetails ViewModel="@ViewModel"
+             IsLoading="@IsLoading"
+             ErrorMessage="@ErrorMessage"
+             NodeNotFound="@NodeNotFound"
+             ShowTitle="@ShowTitle"
+             ActiveView="@ActiveViewName"
+             IsWorking="@IsWorking" />
+
+@if (ViewModel is not null)
+{
+    <nav class="node-details-tabs" aria-label="Knotenansichten" data-testid="node-details-tabs">
+        <button type="button" class="node-details-tab @TabClass(NodeView.Read)"
+                data-testid="node-view-read" aria-pressed="@(_activeView == NodeView.Read ? "true" : "false")"
+                @onclick="SelectReadView">Lesen</button>
+        <button type="button" class="node-details-tab @TabClass(NodeView.Metadata)"
+                data-testid="node-view-metadata" aria-pressed="@(_activeView == NodeView.Metadata ? "true" : "false")"
+                @onclick="SelectMetadataView">Titel und Beschreibung</button>
+        <button type="button" class="node-details-tab @TabClass(NodeView.Editor)"
+                data-testid="node-view-editor" aria-pressed="@(_activeView == NodeView.Editor ? "true" : "false")"
+                @onclick="SelectEditorView">Editor</button>
+        <button type="button" class="node-details-tab @TabClass(NodeView.Technical)"
+                data-testid="node-view-technical" aria-pressed="@(_activeView == NodeView.Technical ? "true" : "false")"
+                @onclick="SelectTechnicalView">Technische Details</button>
+    </nav>
+
+    @if (_hasOpenedMetadata)
+    {
+        <section class="node-view-panel node-view-panel--metadata" aria-label="Titel und Beschreibung"
+                 data-testid="node-view-panel-metadata" hidden="@(_activeView != NodeView.Metadata)">
+            @if (IsWritableReadContext)
+            {
+                <NodeMetadataEditor Node="@ViewModel"
+                                    ExpectedChangeVersion="@ChangeVersion"
+                                    OnMutationSucceeded="OnNodeMutationSucceeded" />
+            }
+            else
+            {
+                <dl class="node-metadata-readonly" data-testid="node-metadata-readonly">
+                    <dt>Titel</dt><dd>@ViewModel.Title</dd>
+                    <dt>Beschreibung</dt><dd>@(ViewModel.Description ?? "Keine Beschreibung")</dd>
+                </dl>
+            }
+        </section>
+    }
+
+    @if (_hasOpenedEditor)
+    {
+        <section class="node-view-panel node-view-panel--editor" aria-label="Editor"
+                 data-testid="node-view-panel-editor" hidden="@(_activeView != NodeView.Editor)">
+            @if (ViewModel.ContentMode == "Derived")
+            {
+                <div class="node-content-context node-content-context--derived" data-testid="node-editor-derived-readonly">
+                    <p><strong>Abgeleiteter Inhalt ist schreibgeschützt.</strong></p>
+                    <p>Dieser Wissenseintrag ist aus anderen Inhalten abgeleitet. Änderungen erfolgen an der Quelle.</p>
+                </div>
+            }
+            else
+            {
+                @if (ViewModel.Availability is "Fallback" or "None")
+                {
+                    <div class="node-content-context node-content-context--fallback" data-testid="node-editor-independent-copy">
+                        <p><strong>Eigene Fassung für @ViewModel.RequestedAudienceId</strong></p>
+                        <p>Der Editor beginnt leer. Der angezeigte Fallback-Inhalt wird nicht übernommen.</p>
+                    </div>
+                }
+                <ContentEditor @ref="_contentEditor"
+                               NodeId="@ViewModel.NodeId"
+                               AudienceId="@ViewModel.RequestedAudienceId"
+                               Markdown="@EditorMarkdown"
+                               IsReadOnly="@(!IsWritableReadContext)"
+                               IsWorkspaceEditor="true"
+                               TransactionId="@TransactionId"
+                               ExpectedChangeVersion="@ChangeVersion"
+                               LoadedCurrentSnapshotId="@LoadedCurrentSnapshotId"
+                               FocusOnMount="@_focusEditorOnMount"
+                               OnMutationSucceeded="HandleContentMutationSucceededAsync" />
+            }
+        </section>
+    }
+}

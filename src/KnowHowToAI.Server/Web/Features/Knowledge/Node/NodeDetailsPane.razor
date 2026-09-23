@@ -1,49 +1,16 @@
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
-@using KnowHowToAI.Server.Web.Features.Content
-@using KnowHowToAI.Server.Web.Features.Knowledge.Components
 
 <div class="node-details-pane" data-testid="node-details-section">
-    <NodeDetails ViewModel="@_viewModel"
-                 IsLoading="@_isLoading"
-                 ErrorMessage="@_errorMessage"
-                 NodeNotFound="@_nodeNotFound"
-                 ShowTitle="@ShowTitle"
-                 ShowContent="@(!_isEditing)"
-                 IsWorking="@TransactionId.HasValue"
-                 ShowEditAction="@(! _isEditing && CanBeginEditing)"
-                 EditActionLabel="@EditActionLabel"
-                 OnEditRequested="BeginEditing" />
-
-    @if (_isEditing && _viewModel is not null)
-    {
-        <section class="node-workspace-section node-editing-section" aria-label="Dokument bearbeiten" data-testid="node-editing-section">
-            <header class="node-workspace-section__header">
-                <div>
-                    <h2>Dokument bearbeiten</h2>
-                    <p>Titel, Beschreibung und Inhalt werden einzeln ausdrücklich gespeichert.</p>
-                </div>
-                <button type="button" class="btn btn-secondary" data-testid="node-editing-done"
-                        disabled="@WorkspaceEditState.IsDirty" @onclick="EndEditing">
-                    Bearbeitung beenden
-                </button>
-            </header>
-
-            <NodeMetadataEditor Node="@_viewModel"
-                                ExpectedChangeVersion="@ChangeVersion"
-                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
-
-            @if (_viewModel.ContentMode != "Derived")
-            {
-                <ContentEditor NodeId="@_viewModel.NodeId"
-                               AudienceId="@_viewModel.RequestedAudienceId"
-                               Markdown="@EditorMarkdown"
-                               IsReadOnly="false"
-                               TransactionId="@TransactionId"
-                               ExpectedChangeVersion="@ChangeVersion"
-                               LoadedCurrentSnapshotId="@WorkspaceState.LoadedSnapshotId"
-                               FocusOnMount="@_focusEditorOnMount"
-                               OnMutationSucceeded="HandleContentMutationSucceededAsync" />
-            }
-        </section>
-    }
+    <NodeDetailsWorkspace ViewModel="@_viewModel"
+                          IsLoading="@_isLoading"
+                          ErrorMessage="@_errorMessage"
+                          NodeNotFound="@_nodeNotFound"
+                          ShowTitle="@ShowTitle"
+                          IsWorking="@TransactionId.HasValue"
+                          IsWritableReadContext="@IsWritableReadContext"
+                          ChangeVersion="@ChangeVersion"
+                          TransactionId="@TransactionId"
+                          LoadedCurrentSnapshotId="@WorkspaceState.LoadedSnapshotId"
+                          OnNodeMutationSucceeded="HandleNodeMutationSucceededAsync"
+                          OnContentSaved="HandleContentSavedAsync" />
 </div>

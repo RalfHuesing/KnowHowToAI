@@ -23,22 +23,36 @@ public sealed class NodeDetailsPaneTests : BunitContext
 {
     private static readonly SnapshotId SnapshotId = new(1);
     private static readonly NodeId NodeId = new(Guid.Parse("10000000-0000-0000-0000-000000000021"));
+    private static readonly NodeId OtherNodeId = new(Guid.Parse("10000000-0000-0000-0000-000000000022"));
     private static readonly AudienceId Developer = new("Developer");
     private static readonly AudienceId Reader = new("Reader");
 
     [Fact]
-    public void IndependentCurrentDocumentStartsEditingInPlace()
+    public void PaneStartsOnReadAndShowsFourExclusiveViews()
     {
         var harness = CreateHarness(ContentMode.Independent, hasOwnContent: true);
         var cut = RenderPane(harness, Developer.Value);
 
-        cut.Find("[data-testid='node-details-edit']").Click();
+        Assert.Equal(4, cut.FindAll("[data-testid^='node-view-']").Count(element => element.TagName == "BUTTON"));
+        Assert.Equal("true", cut.Find("[data-testid='node-view-read']").GetAttribute("aria-pressed"));
+        Assert.Single(cut.FindAll("h1"));
+        Assert.Equal(
+            ["Lesen", "Titel und Beschreibung", "Editor", "Technische Details"],
+            cut.FindAll("[data-testid^='node-view-']").Where(element => element.TagName == "BUTTON").Select(element => element.TextContent.Trim()));
+        Assert.Empty(cut.FindAll("[data-testid='node-metadata-editor']"));
+        Assert.Empty(cut.FindAll("[data-testid='content-editor']"));
 
-        Assert.Empty(cut.FindAll("[data-testid='node-edit-dialog']"));
-        Assert.NotNull(cut.Find("[data-testid='node-editing-section']"));
-        Assert.Equal("Titel", cut.Find("[data-testid='node-metadata-title']").GetAttribute("value"));
+        cut.Find("[data-testid='node-view-metadata']").Click();
+        Assert.NotNull(cut.Find("[data-testid='node-metadata-editor']"));
+        Assert.Empty(cut.FindAll("[data-testid='content-editor']"));
+        Assert.Single(cut.FindAll("h1"));
+
+        cut.Find("[data-testid='node-view-editor']").Click();
+        Assert.Equal("true", cut.Find("[data-testid='node-view-editor']").GetAttribute("aria-pressed"));
         Assert.NotNull(cut.Find("[data-testid='content-editor-save']"));
         Assert.False(cut.FindComponent<ContentEditor>().Instance.IsReadOnly);
+        Assert.Single(cut.FindAll("h1"));
+        Assert.True(cut.Find("[data-testid='node-view-panel-metadata']").HasAttribute("hidden"));
     }
 
     [Theory]
@@ -53,28 +67,62 @@ public sealed class NodeDetailsPaneTests : BunitContext
         var audienceId = availability == "Fallback" ? Reader.Value : Developer.Value;
         var cut = RenderPane(harness, audienceId);
 
-        Assert.Equal("Eigene Fassung erstellen", cut.Find("[data-testid='node-details-edit']").TextContent.Trim());
-        cut.Find("[data-testid='node-details-edit']").Click();
-
+        cut.Find("[data-testid='node-view-editor']").Click();
         var editor = cut.FindComponent<ContentEditor>();
         Assert.Equal(string.Empty, editor.Instance.Markdown);
         Assert.False(editor.Instance.IsReadOnly);
     }
 
     [Fact]
-    public void DerivedAndHistoricalContentRemainReadOnly()
+    public void DerivedMetadataIsWritableWhileDerivedContentStaysReadOnly()
     {
         var derived = CreateHarness(ContentMode.Derived, hasOwnContent: true);
         var derivedPane = RenderPane(derived, Developer.Value);
-        Assert.Empty(derivedPane.FindAll("[data-testid='node-details-edit']"));
-        Assert.Contains("schreibgeschützt", derivedPane.Find("[data-testid='node-content-derived-context']").TextContent);
+        Assert.Equal(4, derivedPane.FindAll("[data-testid^='node-view-']").Count(element => element.TagName == "BUTTON"));
+        derivedPane.Find("[data-testid='node-view-metadata']").Click();
+        Assert.NotNull(derivedPane.Find("[data-testid='node-metadata-editor']"));
+        derivedPane.Find("[data-testid='node-view-editor']").Click();
+        Assert.Contains("schreibgeschützt", derivedPane.Find("[data-testid='node-editor-derived-readonly']").TextContent);
+        Assert.Empty(derivedPane.FindAll("[data-testid='content-editor-save']"));
+        Assert.Single(derivedPane.FindAll("h1"));
+    }
 
-        var historical = CreateHarness(ContentMode.Independent, hasOwnContent: true);
-        var historicalPane = Render<NodeDetailsPane>(parameters => parameters
-            .Add(pane => pane.NodeId, NodeId.Value)
-            .Add(pane => pane.ReadContext, new ReadContext(SnapshotId: new SnapshotId(2)))
+    [Fact]
+    public async Task LocalMetadataAndContentSurviveTabSwitches()
+    {
+        var harness = CreateHarness(ContentMode.Independent, hasOwnContent: true);
+        var cut = RenderPane(harness, Developer.Value);
+        cut.Find("[data-testid='node-view-metadata']").Click();
+        await cut.Find("[data-testid='node-metadata-title']").InputAsync("Ungespeicherter Titel");
+        cut.Find("[data-testid='node-view-editor']").Click();
+        await cut.Find("[data-testid='content-editor-mode-source']").ClickAsync();
+        await cut.Find("[data-testid='content-editor-source']").InputAsync("Ungespeicherter Inhalt");
+
+        cut.Find("[data-testid='node-view-technical']").Click();
+        cut.Find("[data-testid='node-view-metadata']").Click();
+        Assert.Equal("Ungespeicherter Titel", cut.Find("[data-testid='node-metadata-title']").GetAttribute("value"));
+        cut.Find("[data-testid='node-view-editor']").Click();
+        Assert.Equal("Ungespeicherter Inhalt", cut.Find("[data-testid='content-editor-source']").GetAttribute("value"));
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
+        Assert.Single(cut.FindAll("h1"));
+    }
+
+    [Fact]
+    public void SelectingAnotherNodeRestartsOnRead()
+    {
+        var harness = CreateHarness(ContentMode.Independent, hasOwnContent: true);
+        var cut = RenderPane(harness, Developer.Value);
+        cut.Find("[data-testid='node-view-technical']").Click();
+
+        cut.Render(parameters => parameters
+            .Add(pane => pane.NodeId, OtherNodeId.Value)
+            .Add(pane => pane.ReadContext, new ReadContext())
             .Add(pane => pane.AudienceId, Developer.Value));
-        Assert.Empty(historicalPane.FindAll("[data-testid='node-details-edit']"));
+
+        Assert.Equal("true", cut.Find("[data-testid='node-view-read']").GetAttribute("aria-pressed"));
+        Assert.Single(cut.FindAll("h1"));
+        Assert.Empty(cut.FindAll("[data-testid='node-view-panel-metadata']"));
+        Assert.Equal("Zweiter Knoten", cut.Find("[data-testid='node-details-title']").TextContent.Trim());
     }
 
     private IRenderedComponent<NodeDetailsPane> RenderPane(NavigationTestHarness harness, string audienceId)
@@ -120,6 +168,7 @@ public sealed class NodeDetailsPaneTests : BunitContext
     {
         var harness = new NavigationTestHarness(SnapshotId);
         harness.AddNode(new Node(SnapshotId, NodeId, null, "Titel", "Beschreibung", 0, false));
+        harness.AddNode(new Node(SnapshotId, OtherNodeId, NodeId, "Zweiter Knoten", null, 1, false));
         if (hasOwnContent)
         {
             harness.AddContent(new NodeContent(

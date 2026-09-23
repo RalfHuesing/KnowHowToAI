@@ -16,7 +16,7 @@ namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 public sealed class NodeDocumentTests : BunitContext
 {
     [Fact]
-    public void CurrentRead_LoadsTheRequestedDocumentWithoutAnEditAction()
+    public void CurrentRead_LoadsTheDocumentAndOffersAllFourViews()
     {
         var snapshotId = new SnapshotId(1);
         var nodeId = new NodeId(Guid.NewGuid());
@@ -43,7 +43,8 @@ public sealed class NodeDocumentTests : BunitContext
         Assert.Equal("Lesbarer Inhalt", cut.Find("[data-testid='node-content-markdown']").TextContent.Trim());
         Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
         Assert.Empty(cut.FindAll("[data-testid='node-details-title']"));
-        Assert.Equal("Bearbeiten", cut.Find("[data-testid='node-details-edit']").TextContent.Trim());
+        Assert.Equal(4, cut.FindAll("[data-testid^='node-view-']").Count(element => element.TagName == "BUTTON"));
+        Assert.Empty(cut.FindAll("[data-testid='node-details-description']"));
         Assert.Empty(cut.FindAll("[data-testid='node-details-markdown-download']"));
     }
 
@@ -89,13 +90,12 @@ public sealed class NodeDocumentTests : BunitContext
             .Add(document => document.ReadContext, new ReadContext())
             .Add(document => document.AudienceId, "Developer"));
 
-        var provenance = cut.Find("[data-testid='node-details-provenance']").TextContent;
-        Assert.Contains("Lesbarer Quellknoten", provenance);
-        Assert.Contains("Developer", provenance);
-        Assert.DoesNotContain(sourceNodeId.Value.ToString(), provenance);
-        Assert.DoesNotContain(sourceNodeId.Value.ToString("N")[..8], provenance);
-        Assert.Equal("Abgeleitet", cut.Find("[data-testid='node-details-content-mode']").TextContent.Trim());
-        Assert.Equal("Aktuell", cut.Find("[data-testid='node-details-freshness']").TextContent.Trim());
+        var viewModel = cut.FindComponent<NodeDetails>().Instance.ViewModel!;
+        var sourceRevision = Assert.Single(viewModel.SourceRevisions);
+        Assert.Equal("Lesbarer Quellknoten", sourceRevision.SourceNodeTitle);
+        Assert.Equal("Developer", sourceRevision.SourceAudienceId);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString(), cut.Find("[data-testid='node-details']").TextContent);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString("N")[..8], cut.Find("[data-testid='node-details']").TextContent);
     }
 
     [Fact]
@@ -130,11 +130,10 @@ public sealed class NodeDocumentTests : BunitContext
             .Add(document => document.ReadContext, new ReadContext())
             .Add(document => document.AudienceId, "Developer"));
 
-        var provenance = cut.Find("[data-testid='node-details-provenance']").TextContent;
-        Assert.Contains("Quellknoten nicht verfügbar", provenance);
-        Assert.DoesNotContain(sourceNodeId.Value.ToString(), provenance);
-        Assert.DoesNotContain(sourceNodeId.Value.ToString("N")[..8], provenance);
-        Assert.Equal("Abgeleitet", cut.Find("[data-testid='node-details-content-mode']").TextContent.Trim());
-        Assert.Equal("Veraltet", cut.Find("[data-testid='node-details-freshness']").TextContent.Trim());
+        var viewModel = cut.FindComponent<NodeDetails>().Instance.ViewModel!;
+        var sourceRevision = Assert.Single(viewModel.SourceRevisions);
+        Assert.Equal("Quellknoten nicht verfügbar", sourceRevision.SourceNodeTitle);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString(), cut.Find("[data-testid='node-details']").TextContent);
+        Assert.DoesNotContain(sourceNodeId.Value.ToString("N")[..8], cut.Find("[data-testid='node-details']").TextContent);
     }
 }

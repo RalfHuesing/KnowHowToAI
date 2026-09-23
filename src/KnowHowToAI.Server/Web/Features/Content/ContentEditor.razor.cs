@@ -27,10 +27,10 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private WebWriteCoordinator WebWriteCoordinator { get; set; } = default!;
 
     [Inject]
-    public WorkspaceState WorkspaceState { get; set; } = default!;
+    private WorkspaceState WorkspaceState { get; set; } = default!;
 
     [Inject]
-    public WorkspaceEditState WorkspaceEditState { get; set; } = default!;
+    private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public Guid NodeId { get; set; }
@@ -55,6 +55,9 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
     [Parameter]
     public bool FocusOnMount { get; set; }
+
+    [Parameter]
+    public bool IsWorkspaceEditor { get; set; }
 
     [Parameter]
     public EventCallback<ContentMutationUseCaseResult> OnMutationSucceeded { get; set; }
@@ -199,6 +202,21 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
         _focusEditorAfterMount = false;
         await _module!.InvokeVoidAsync("focus", _editorElement);
+    }
+
+    internal async Task ActivateAsync()
+    {
+        if (_isDisposed)
+            return;
+
+        if (_isSourceMode)
+        {
+            await _sourceElement.FocusAsync();
+            return;
+        }
+
+        if (_module is not null && _mountedRequest is not null)
+            await _module.InvokeVoidAsync("activate", _editorElement);
     }
 
     [JSInvokable]

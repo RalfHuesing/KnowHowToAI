@@ -4,11 +4,20 @@
     gap: var(--ktai-space-3);
 }
 
+.content-editor--workspace {
+    min-height: 30rem;
+}
+
 .content-editor__surface {
     min-height: 14rem;
     border: 1px solid var(--ktai-color-border);
     border-radius: var(--ktai-radius-md);
     background: var(--ktai-color-surface);
+}
+
+.content-editor--workspace .content-editor__surface {
+    flex: 1;
+    min-height: min(60vh, 38rem);
 }
 
 .content-editor__mode-switch {

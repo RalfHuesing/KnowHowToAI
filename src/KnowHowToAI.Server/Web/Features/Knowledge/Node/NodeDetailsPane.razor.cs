@@ -1,4 +1,3 @@
-using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Domain.Common;
@@ -16,9 +15,6 @@ public sealed partial class NodeDetailsPane
 
     [Inject]
     private WorkspaceState WorkspaceState { get; set; } = default!;
-
-    [Inject]
-    private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
 
     [Parameter]
     public Guid? NodeId { get; set; }
@@ -45,29 +41,10 @@ public sealed partial class NodeDetailsPane
     private string? _errorMessage;
     private bool _nodeNotFound;
     private bool _isLoading;
-    private bool _isEditing;
-    private bool _createIndependentContent;
-    private bool _focusEditorOnMount;
     private (Guid? NodeId, ReadContext? ReadContext, string? AudienceId, long? ChangeVersion, TransactionId? TransactionId)? _loadedRequest;
     private (Guid? NodeId, string? AudienceId)? _editIdentity;
 
-    private bool CanBeginEditing =>
-        _viewModel is not null
-        && IsWritableReadContext
-        && !string.IsNullOrWhiteSpace(AudienceId)
-        && (_viewModel.Availability == "Explicit" && _viewModel.ContentMode == "Independent"
-            || _viewModel.Availability is "Fallback" or "None");
-
     private bool IsWritableReadContext => ReadContext is { SnapshotId: null };
-
-    private string EditActionLabel => _viewModel?.Availability is "Fallback" or "None"
-        ? "Eigene Fassung erstellen"
-        : "Bearbeiten";
-
-    private string EditorMarkdown => _createIndependentContent
-        ? string.Empty
-        : _viewModel?.ContentMd ?? string.Empty;
-
     protected override async Task OnParametersSetAsync()
     {
         var preserveEditingDocument = PrepareEditContext();
@@ -84,17 +61,13 @@ public sealed partial class NodeDetailsPane
     private bool PrepareEditContext()
     {
         var editIdentity = (NodeId, AudienceId);
-        var preserveEditingDocument = _isEditing
-            && _editIdentity == editIdentity
+        var preserveEditingDocument = _editIdentity == editIdentity
             && _viewModel is not null
             && ReadContext?.SnapshotId is null;
         if (_editIdentity == editIdentity)
             return preserveEditingDocument;
 
         _editIdentity = editIdentity;
-        _isEditing = false;
-        _createIndependentContent = false;
-        _focusEditorOnMount = false;
         return false;
     }
 
@@ -106,12 +79,6 @@ public sealed partial class NodeDetailsPane
             return;
 
         _viewModel = null;
-        if (ReadContext?.SnapshotId is null)
-            return;
-
-        _isEditing = false;
-        _createIndependentContent = false;
-        _focusEditorOnMount = false;
     }
 
     private async Task LoadDocumentAsync(
@@ -130,8 +97,6 @@ public sealed partial class NodeDetailsPane
             _viewModel = result.ViewModel;
             _nodeNotFound = result.IsNotFound;
             _errorMessage = result.ErrorMessage;
-            if (_viewModel is { Availability: "Explicit", ContentMode: "Independent" })
-                _createIndependentContent = false;
         }
         catch (Exception exception)
         {
@@ -143,35 +108,15 @@ public sealed partial class NodeDetailsPane
         }
     }
 
-    private void BeginEditing()
-    {
-        if (!CanBeginEditing)
-            return;
-
-        _createIndependentContent = _viewModel!.Availability is "Fallback" or "None";
-        _isEditing = true;
-        _focusEditorOnMount = true;
-    }
-
-    private void EndEditing()
-    {
-        if (WorkspaceEditState.IsDirty)
-            return;
-
-        _isEditing = false;
-        _createIndependentContent = false;
-        _focusEditorOnMount = false;
-    }
-
     private async Task HandleNodeMutationSucceededAsync(NodeMutationResult mutation)
     {
         _loadedRequest = null;
         await OnMutationSucceeded.InvokeAsync(mutation);
     }
 
-    private Task HandleContentMutationSucceededAsync(ContentMutationUseCaseResult mutation)
+    private Task HandleContentSavedAsync(long changeVersion)
     {
-        var request = (NodeId, ReadContext, AudienceId, (long?)mutation.ChangeVersion, TransactionId);
+        var request = (NodeId, ReadContext, AudienceId, (long?)changeVersion, TransactionId);
         _loadedRequest = request;
         return LoadDocumentAsync(request);
     }
