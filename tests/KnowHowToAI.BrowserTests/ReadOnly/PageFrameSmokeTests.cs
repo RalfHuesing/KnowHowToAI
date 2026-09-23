@@ -219,9 +219,9 @@ public sealed class PageFrameSmokeTests
                 $"Der Inhaltseditor liegt bei {width}×{height} außerhalb der erreichbaren Breite.");
             var surface = editor.GetByTestId("content-editor-surface");
             var surfaceStyles = await surface.EvaluateAsync<string[]>(
-                "element => { const style = getComputedStyle(element); return [style.borderTopStyle, style.minHeight, style.borderRadius]; }");
+                "element => { const style = getComputedStyle(element); return [style.borderTopStyle, style.overflowY, style.borderRadius]; }");
             Assert.NotEqual("none", surfaceStyles[0]);
-            Assert.NotEqual("0px", surfaceStyles[1]);
+            Assert.Equal("auto", surfaceStyles[1]);
             Assert.NotEqual("0px", surfaceStyles[2]);
 
             var footer = editorPanel.Locator(".tab-panel-layout__footer");
@@ -234,7 +234,6 @@ public sealed class PageFrameSmokeTests
             await Assertions.Expect(saveStatus).ToContainTextAsync("Gespeichert");
             var saveAction = page.GetByTestId("content-editor-save");
             await Assertions.Expect(saveAction).ToBeVisibleAsync();
-            await saveAction.ScrollIntoViewIfNeededAsync();
             var statusBox = await saveStatus.BoundingBoxAsync()
                 ?? throw new InvalidOperationException($"Der Speicherstatus besitzt bei {width}×{height} keine Begrenzungsbox.");
             Assert.True(statusBox.Y >= 0 && statusBox.Y + statusBox.Height <= height,
@@ -248,7 +247,9 @@ public sealed class PageFrameSmokeTests
             Assert.True(statusBox.X + statusBox.Width <= saveBox.X,
                 $"Der Speicherstatus steht bei {width}×{height} nicht links vor der Speichern-Aktion.");
             var viewportMetrics = await page.EvaluateAsync<double[]>(
-                "() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]");
+                "() => [document.documentElement.scrollWidth, document.documentElement.clientWidth, document.documentElement.scrollHeight, window.innerHeight]");
+            Assert.True(viewportMetrics[2] <= viewportMetrics[3],
+                $"Die Wissensroute erzeugt bei {width}x{height} einen Fensterscrollbalken ({viewportMetrics[2]} > {viewportMetrics[3]}).");
             Assert.True(viewportMetrics[0] <= viewportMetrics[1],
                 $"Die Wissensroute läuft bei {width}×{height} horizontal über ({viewportMetrics[0]} > {viewportMetrics[1]}).");
         }
@@ -390,7 +391,10 @@ public sealed class PageFrameSmokeTests
             $"{route.Name} weicht bei {viewport} an der rechten Shell-Innenkante ab.");
 
         var metrics = await page.EvaluateAsync<double[]>(
-            """() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]""");
+            """() => [document.documentElement.scrollWidth, document.documentElement.clientWidth, document.documentElement.scrollHeight, window.innerHeight]""");
+        Assert.True(
+            metrics[2] <= metrics[3],
+            $"{route.Name} erzeugt bei {viewport} CSS-Pixeln einen Fensterscrollbalken ({metrics[2]} > {metrics[3]}).");
         Assert.True(
             metrics[0] <= metrics[1],
             $"{route.Name} läuft bei {viewport} CSS-Pixeln horizontal über ({metrics[0]} > {metrics[1]}).");

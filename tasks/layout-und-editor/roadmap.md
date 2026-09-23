@@ -58,7 +58,7 @@ atomaren deutschen Conventional Commit nur seines Scopes. Builds laufen über
   - **Nicht:** Keine Änderungen an Speicher- oder Serialisierungslogiken in C# oder JS.
   - **Abnahme:** Texteingabe startet in Zeile 1; Klick in Textfläche fokussiert sauber; blauer Fokusring umschließt das gesamte Feld; Quellmodus-Combobox steht rechts; Speichern-Button ist bei jeder Textlänge ohne Fensterscrollen erreichbar; FastTests grün. Atomarer Commit: `refactor: ContentEditor auf Fullscreen-Resthöhe und zentriertes Fokus-Design ausrichten`.
 
-- [ ] **P5 – Browser-Test-Verifikation und Dokumentation**
+- [x] **P5 – Browser-Test-Verifikation und Dokumentation**
   - **Intention:** Automatisierter Nachweis der Viewport-Sperre und der erreichbaren Aktionen bei 1280×800 und 1024×720 sowie Aktualisierung des Ist-Zustands in `docs/WebUi.md`.
   - **Scope:**
     - `tests/KnowHowToAI.BrowserTests/ReadOnly/PageFrameSmokeTests.cs`: Prüfung ergänzen, dass `document.documentElement.scrollHeight <= window.innerHeight` erfüllt ist und `content-editor-save` ohne `ScrollIntoViewIfNeeded` direkt im Viewport liegt.

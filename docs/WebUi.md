@@ -12,11 +12,14 @@ Use-Cases.
 
 `App.razor` stellt die interaktive Server-Circuit-Grenze bereit. `MainLayout`
 besitzt Header, Navigation, aktiven Entwurfslink, `main#shell-main`,
-Dirty-Schutz, Toasts und Reconnect-Zustand. `PageFrame` stellt den gemeinsamen
-Seitenrahmen bereit. Die Wissensseite besitzt Tree, Knotenauswahl, Dokument,
-Zielgruppenauswahl und deren Query-Kontext. `DraftPage` besitzt Review,
-Validierung, Diff, Übernahme, Verwerfen und den lesenden Abschlusszustand.
-Gemeinsam verwendete Draft-Komponenten liegen unter
+Dirty-Schutz, Toasts und Reconnect-Zustand. Die Shell ist viewport-locked
+(`height: 100vh; overflow: hidden`), sodass das gesamte Browserfenster niemals
+scrollt. `PageFrame` stellt den gemeinsamen Seitenrahmen bereit und spannt den
+flexiblen Inhaltsbereich auf die Resthöhe auf. Die Wissensseite besitzt Tree,
+Knotenauswahl, Dokument, Zielgruppenauswahl und deren Query-Kontext; Wissensbaum
+links und Content-Pane rechts scrollen bei Überlänge jeweils autark in sich selbst.
+`DraftPage` besitzt Review, Validierung, Diff, Übernahme, Verwerfen und den
+lesenden Abschlusszustand. Gemeinsam verwendete Draft-Komponenten liegen unter
 [`Web/Features/Drafts`](../src/KnowHowToAI.Server/Web/Features/Drafts).
 
 ## Produktive UI-Routen
@@ -86,9 +89,14 @@ werden. Crepes LinkTooltip ist deaktiviert, damit keine zusätzliche
 kontextuelle Linkleiste neben der festen Werkzeugleiste erscheint. Die Leiste
 erscheint weder in der Markdown-Quelle noch bei fehlender Schreibbarkeit.
 Eine beschriftete native Ansichtsauswahl schaltet zwischen „Visuell“ und
-„Markdown-Quelle“ über denselben Wert und Speicherpfad. Der Crepe-Kontexttoolbar
-ist ausgeschaltet. Unter dem Text stehen der eigenständige Speicherstatus links
-und „Speichern“ rechts im Dokumentfluss. Paste-Reduktion, Validierungsfehler und
+„Markdown-Quelle“ über denselben Wert und Speicherpfad; sie bleibt im visuellen
+wie im Quellmodus stabil rechtsbündig verankert. Der Crepe-Kontexttoolbar
+ist ausgeschaltet. Der Editor füllt die Resthöhe des Panels vollständig aus;
+Texteingabe beginnt ohne Versatz in Zeile 1 und bei langem Text scrollt die
+Textfläche intern. Am unteren Panelrand bleiben der eigenständige Speicherstatus
+links und „Speichern“ rechts dauerhaft im Viewport sichtbar, ohne dass Fenster-
+Scrollen erforderlich ist. Eingabefelder, Textareas und Editor-Flächen folgen
+einem einheitlichen Fokus-Muster über Design-Tokens. Paste-Reduktion, Validierungsfehler und
 Warnungen erscheinen separat beim Editor und ersetzen nicht den Speicherstatus.
 
 `WorkspaceState` hält nur den Circuit-Zustand für ausgewählten Node,

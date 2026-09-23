@@ -46,9 +46,16 @@ public sealed class ContentEditorSourceSmokeTests
             var editor = page.GetByTestId("content-editor");
             await Assertions.Expect(editor).ToBeVisibleAsync();
             var viewMode = editor.GetByTestId("content-editor-view-mode");
+            var visualBox = await viewMode.BoundingBoxAsync();
             await viewMode.SelectOptionAsync("source");
             var source = editor.GetByTestId("content-editor-source");
             await Assertions.Expect(source).ToBeVisibleAsync();
+            var sourceBox = await viewMode.BoundingBoxAsync();
+            Assert.NotNull(visualBox);
+            Assert.NotNull(sourceBox);
+            Assert.True(
+                Math.Abs(visualBox.X - sourceBox.X) <= 15,
+                $"content-editor-view-mode springt im Quellmodus nach links (Visuell: {visualBox.X}, Quelle: {sourceBox.X}).");
 
             const string markdown = "Formatierung.\n\n- erster Eintrag\n- zweiter Eintrag\n\n[Dokumentation](https://example.test/docs)";
             await source.FillAsync(markdown);
