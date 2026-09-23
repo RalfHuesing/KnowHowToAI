@@ -19,7 +19,7 @@ public sealed class KnowledgeTreeExpansionTests : BunitContext
     private static readonly AudienceId DefaultAudienceId = new("Developer");
 
     [Fact]
-    public async Task RefreshAsync_PreservesExpansionIntentWithoutEagerLoadingAndInitializeStartsFresh()
+    public async Task RefreshAsync_PreservesExpansionIntentAndRehydratesRootChildren()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -35,11 +35,6 @@ public sealed class KnowledgeTreeExpansionTests : BunitContext
         await treeState.RefreshAsync(new ReadContext(), DefaultAudienceId.Value);
 
         Assert.True(treeState.RootNode!.IsExpanded);
-        Assert.False(treeState.RootNode.IsChildrenPageLoaded);
-        Assert.Empty(treeState.RootNode.Children);
-        Assert.Equal(0, treeState.LoadedPageCount);
-
-        await treeState.ExpandNodeAsync(rootId.Value);
         Assert.True(treeState.RootNode.IsChildrenPageLoaded);
         Assert.Single(treeState.RootNode.Children);
         Assert.Equal(1, treeState.LoadedPageCount);
@@ -47,6 +42,8 @@ public sealed class KnowledgeTreeExpansionTests : BunitContext
         treeState.CollapseNode(rootId.Value);
         await treeState.RefreshAsync(new ReadContext(), DefaultAudienceId.Value);
         Assert.False(treeState.RootNode!.IsExpanded);
+        Assert.False(treeState.RootNode.IsChildrenPageLoaded);
+        Assert.Equal(0, treeState.LoadedPageCount);
 
         await treeState.InitializeAsync(new ReadContext(), DefaultAudienceId.Value);
         Assert.False(treeState.RootNode!.IsExpanded);
@@ -84,7 +81,7 @@ public sealed class KnowledgeTreeExpansionTests : BunitContext
     }
 
     [Fact]
-    public async Task KnowledgeTree_EvictedExpandedBranchShowsTargetedLoadAction()
+    public async Task KnowledgeTree_EvictedExpandedBranchCollapsesAndCanBeReExpanded()
     {
         var harness = new NavigationTestHarness(DefaultSnapshotId);
         var rootId = new NodeId(Guid.NewGuid());
@@ -109,14 +106,18 @@ public sealed class KnowledgeTreeExpansionTests : BunitContext
 
         Assert.True(treeState.LoadedPageCount <= 10);
         var cut = Render<KnowledgeTree>();
-        var placeholder = cut.Find($"button[data-testid='tree-load-children-{branchIds[1].Value}']");
-        Assert.Equal("Unterknoten laden", placeholder.TextContent.Trim());
-        Assert.Empty(cut.FindAll($"[data-testid='tree-node-{childIds[1].Value}']"));
+        Assert.Empty(cut.FindAll($"button[data-testid='tree-load-children-{branchIds[1].Value}']"));
+        var evictedNode = treeState.FindNode(branchIds[1].Value);
+        Assert.NotNull(evictedNode);
+        Assert.False(evictedNode.IsExpanded);
+        Assert.False(evictedNode.IsChildrenPageLoaded);
 
-        await cut.InvokeAsync(() => placeholder.Click());
+        var toggleBtn = cut.Find($"button[data-testid='tree-toggle-{branchIds[1].Value}']");
+        await cut.InvokeAsync(() => toggleBtn.Click());
 
+        Assert.True(evictedNode.IsExpanded);
+        Assert.True(evictedNode.IsChildrenPageLoaded);
         Assert.NotNull(cut.Find($"[data-testid='tree-node-{childIds[1].Value}']"));
-        Assert.Empty(cut.FindAll($"[data-testid='tree-node-{childIds[2].Value}']"));
         Assert.True(treeState.LoadedPageCount <= 10);
     }
 }

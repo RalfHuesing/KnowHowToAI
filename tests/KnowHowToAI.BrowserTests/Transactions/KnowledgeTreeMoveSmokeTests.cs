@@ -98,10 +98,6 @@ public sealed class KnowledgeTreeMoveSmokeTests
             await Assertions.Expect(page.GetByTestId("active-draft-link")).ToHaveCountAsync(0);
             root = RootSelection(page);
             var rootToggle = root.Locator("xpath=..").Locator("button.tree-toggle-btn");
-            await Assertions.Expect(rootToggle).ToHaveAttributeAsync("aria-expanded", "true");
-            var loadChildren = page.GetByTestId($"tree-load-children-{rootId}");
-            await Assertions.Expect(loadChildren).ToBeVisibleAsync();
-            await loadChildren.ClickAsync();
             await Assertions.Expect(RootChildren(page).First).ToBeVisibleAsync();
             var restoredChildren = await ReadVisibleSiblingTitlesAsync(page);
             Assert.Contains(externalTitle, restoredChildren);

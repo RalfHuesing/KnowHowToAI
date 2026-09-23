@@ -73,8 +73,19 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
             {
                 Logger?.LogDebug(ex, "Wissensbaum-Interop konnte nicht initialisiert werden.");
             }
+            await EnsureVisibleExpandedNodesLoadedAsync();
         }
+    }
 
+    private async Task EnsureVisibleExpandedNodesLoadedAsync()
+    {
+        var nodeToLoad = GetVisibleNodes()
+            .FirstOrDefault(n => n.HasChildren && n.IsExpanded && !n.IsChildrenPageLoaded && !n.IsLoading);
+
+        if (nodeToLoad is not null)
+        {
+            await TreeWorkspace.ExpandNodeAsync(nodeToLoad.NodeId);
+        }
     }
 
     private void HandleTreeStateChanged()

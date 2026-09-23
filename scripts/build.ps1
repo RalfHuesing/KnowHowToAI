@@ -26,7 +26,7 @@ $logPath = Join-Path $repoRoot 'temp/build.log'
 New-Item -ItemType Directory -Path (Split-Path $logPath) -Force | Out-Null
 
 # 1. Blockierende Prozesse hart beenden; nicht gefunden ist kein Fehler.
-foreach ($processName in @('KnowHowToAI.Server.exe', 'testhost.exe')) {
+foreach ($processName in @('KnowHowToAI.Server.exe', 'testhost.exe', 'KnowHowToAI.BrowserTests.exe')) {
     & taskkill /F /IM $processName 2>$null | Out-Null
     $null = $LASTEXITCODE
 }

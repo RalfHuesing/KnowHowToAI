@@ -41,5 +41,9 @@ public sealed partial class KnowledgeTreeState
         Changed?.Invoke();
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_requestCoordinator.GlobalToken, cancellationToken);
         await LoadRootAsync(context, audienceId, generation, linkedCts.Token).ConfigureAwait(false);
+        if (preserveExpandedNodes && RootNode is not null && RootNode.IsExpanded && !RootNode.IsChildrenPageLoaded)
+        {
+            await LoadChildrenPageAsync(RootNode, cursor: null, linkedCts.Token).ConfigureAwait(false);
+        }
     }
 }

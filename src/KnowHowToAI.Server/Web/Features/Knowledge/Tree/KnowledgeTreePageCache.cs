@@ -147,6 +147,7 @@ internal sealed class KnowledgeTreePageCache
             return null;
 
         node.Children = Array.Empty<KnowledgeTreeNodeViewModel>();
+        node.IsExpanded = false;
         node.IsChildrenPageLoaded = false;
         node.NextCursor = null;
         node.HasPreviousPage = false;
@@ -177,6 +178,7 @@ internal sealed class KnowledgeTreePageCache
         RemovePage(rootNearest.NodeId);
 
         rootNearest.Children = Array.Empty<KnowledgeTreeNodeViewModel>();
+        rootNearest.IsExpanded = false;
         rootNearest.IsChildrenPageLoaded = false;
         rootNearest.NextCursor = null;
         rootNearest.HasPreviousPage = false;

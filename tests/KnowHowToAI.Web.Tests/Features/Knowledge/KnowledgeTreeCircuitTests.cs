@@ -179,8 +179,8 @@ public sealed class KnowledgeTreeCircuitTests : BunitContext
         // Cachegrenze bleibt strikt bei 10
         Assert.Equal(10, treeState.LoadedPageCount);
 
-        // Die Aufklappabsicht bleibt erhalten, obwohl die Kindseite aus dem Cache entfernt wurde.
-        Assert.True(subtree2Node.IsExpanded);
+        // Der verdrängte Teilbaum klappt sauber zu, da seine Kindseite aus dem Cache entfernt wurde.
+        Assert.False(subtree2Node.IsExpanded);
         Assert.Empty(subtree2Node.Children);
         Assert.Null(treeState.FindNode(subChildIds[1].Value));
 

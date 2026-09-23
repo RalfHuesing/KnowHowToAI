@@ -287,6 +287,21 @@
     padding: var(--ktai-space-1) 0;
 }
 
+.tree-loading-row {
+    list-style: none;
+    padding: var(--ktai-space-1) 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ktai-space-2);
+    font-size: var(--ktai-font-size-xs);
+    color: var(--ktai-color-text-muted);
+}
+
+.tree-loading-text {
+    font-size: var(--ktai-font-size-xs);
+    color: var(--ktai-color-text-muted);
+}
+
 .tree-page-btn {
     background: none;
     border: 1px dashed var(--ktai-color-primary);

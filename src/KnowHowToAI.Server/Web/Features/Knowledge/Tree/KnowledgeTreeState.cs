@@ -432,6 +432,7 @@ public sealed partial class KnowledgeTreeState : IKnowledgeTreeWorkspace, IDispo
             return;
         }
 
+        _expandedNodeIds.Remove(eviction.EvictedNode.NodeId);
         StatusMessage = eviction.StatusMessage;
         if (eviction.NewVisualRoot is not null)
         {
