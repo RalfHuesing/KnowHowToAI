@@ -8,6 +8,20 @@
 }
 
 /*
+ * Generalisiertes Fokus-Muster für Eingabefelder und zusammengesetzte Editor-Flächen.
+ * Einheitlicher Radius und zentraler Fokusring ohne lokale Sonderlocken.
+ */
+input[type='text']:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.content-editor__source:focus-visible,
+.content-editor__surface:focus-within {
+    outline: var(--ktai-focus-ring-width) solid var(--ktai-color-focus);
+    outline-offset: var(--ktai-focus-ring-offset);
+    border-radius: var(--ktai-radius-md);
+}
+
+/*
  * Deaktivierter Zustand: zusätzlich zur sichtbaren Abschwächung bleibt die
  * native Semantik (disabled / aria-disabled) die alleinige Wahrheitsquelle;
  * die Zustandsfarben liegen in den Tokens, nicht hier. Der Ring selbst wird

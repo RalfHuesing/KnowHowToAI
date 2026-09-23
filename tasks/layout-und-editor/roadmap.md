@@ -18,7 +18,7 @@ atomaren deutschen Conventional Commit nur seines Scopes. Builds laufen über
 
 ## 1. Arbeitspakete und Leaf-Tasks
 
-- [ ] **P1 – Zentrales Eingabefeld- und Fokus-Design etablieren**
+- [x] **P1 – Zentrales Eingabefeld- und Fokus-Design etablieren**
   - **Intention:** Eingabefelder, Textareas und zusammengesetzte Editor-Flächen folgen einem generalisierten Fokus-Muster mit einheitlichem Radius und zentralem Fokusring ohne lokale Sonderlocken.
   - **Scope:** In `src/KnowHowToAI.Server/wwwroot/css/base/accessibility.css` (und ggf. `tokens/`) das einheitliche Fokus-Muster für `input[type='text']:focus-visible`, `textarea:focus-visible`, `select:focus-visible` und `.content-editor__surface:focus-within` bereitstellen. Verwendung von `var(--ktai-radius-md)`, `var(--ktai-focus-ring-width)` und `var(--ktai-color-focus)`.
   - **Nicht:** Keine Razor-Markup-Eingriffe an bestehenden Formularen; keine lokalen Hilfsklassen in Komponenten.

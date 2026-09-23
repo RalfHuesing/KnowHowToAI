@@ -149,6 +149,18 @@ public sealed class DesignTokensTests
     }
 
     [Fact]
+    public void InputAndEditorSurfacesUseCentralizedFocusPattern()
+    {
+        var css = Stylesheet.Value;
+
+        Assert.Contains("input[type='text']:focus-visible", css, StringComparison.Ordinal);
+        Assert.Contains("textarea:focus-visible", css, StringComparison.Ordinal);
+        Assert.Contains("select:focus-visible", css, StringComparison.Ordinal);
+        Assert.Contains(".content-editor__surface:focus-within", css, StringComparison.Ordinal);
+        Assert.Contains("border-radius: var(--ktai-radius-md)", css, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LocalStylesheetsDoNotContainHexColorLiterals()
     {
         var serverDirectory = Path.Combine(
