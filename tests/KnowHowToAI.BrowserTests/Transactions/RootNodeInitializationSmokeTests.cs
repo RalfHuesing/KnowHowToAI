@@ -52,9 +52,9 @@ public sealed class RootNodeInitializationSmokeTests
             transactionId = parsedTransactionId;
             await Assertions.Expect(root).ToHaveAttributeAsync("aria-pressed", "true");
             await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Erstes Browser-Wissen", Exact = true, Level = 1 })).ToBeVisibleAsync();
-            await Assertions.Expect(page.GetByTestId("node-details-description")).ToHaveTextAsync("Initial über die Weboberfläche angelegt.");
+            await page.GetByTestId("node-view-metadata").ClickAsync();
+            await Assertions.Expect(page.GetByTestId("node-metadata-description")).ToHaveValueAsync("Initial über die Weboberfläche angelegt.");
 
-            await page.GetByRole(AriaRole.Button, new() { Name = "Eigene Fassung erstellen" }).ClickAsync();
             await page.GetByTestId("node-metadata-title").FillAsync("Aktualisiertes Browser-Wissen");
             await page.GetByTestId("node-metadata-description").FillAsync("Über die Weboberfläche aktualisiert.");
             await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "true");
@@ -70,8 +70,7 @@ public sealed class RootNodeInitializationSmokeTests
 
             await Assertions.Expect(root).ToContainTextAsync("Aktualisiertes Browser-Wissen");
             await Assertions.Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Aktualisiertes Browser-Wissen", Exact = true, Level = 1 })).ToBeVisibleAsync();
-            await Assertions.Expect(page.GetByTestId("node-details-description")).ToHaveTextAsync("Über die Weboberfläche aktualisiert.");
-            await Assertions.Expect(page.GetByTestId("node-editing-done")).ToBeVisibleAsync();
+            await Assertions.Expect(page.GetByTestId("node-metadata-description")).ToHaveValueAsync("Über die Weboberfläche aktualisiert.");
             await Assertions.Expect(page.Locator("[data-ktai-dirty]")).ToHaveAttributeAsync("data-ktai-dirty", "false");
         }
         finally

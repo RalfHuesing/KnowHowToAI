@@ -20,7 +20,7 @@ public sealed class UiAuditScreenshotTests
         var output = GetOutputDirectory();
         Directory.CreateDirectory(output);
         await using var host = await PublishedServerHost.StartAsync(BrowserTestDatabaseKind.VisualShell);
-        await BrowserKnowledgeSeed.EnsureVisualShellAsync(host.Address);
+        await BrowserKnowledgeSeed.EnsureWorkflowAsync(host.Address);
         await using var browser = await ChromeBrowser.LaunchAsync();
         await using var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
@@ -46,7 +46,8 @@ public sealed class UiAuditScreenshotTests
 
         var root = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
         await root.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
-        var child = page.Locator(".knowledge-tree > .tree-node-wrapper > .tree-children-group > .tree-node-wrapper > .tree-node-row > .tree-node-select").First;
+        var child = page.GetByText(BrowserKnowledgeSeed.FallbackNodeTitle, new() { Exact = true }).Locator("xpath=..");
+        await Assertions.Expect(child).ToBeVisibleAsync();
         await child.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-details")).ToBeVisibleAsync();
         foreach (var width in ReviewWidths)
@@ -73,21 +74,42 @@ public sealed class UiAuditScreenshotTests
         await Assertions.Expect(fallbackNode).ToBeVisibleAsync();
         await fallbackNode.Locator(".tree-node-title").ClickAsync();
         await Assertions.Expect(page.GetByTestId("node-content-fallback-context")).ToBeVisibleAsync();
-        await CaptureAsync(page, "05_knowledge_fallback-detail", output, captures);
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "05_knowledge_fallback-read", output, captures, width, 720);
+        await page.GetByTestId("node-view-editor").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("node-editor-independent-copy")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("content-editor-save")).ToBeVisibleAsync();
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "05_knowledge_fallback-editor", output, captures, width, 720);
+
+        await GotoAsync(page, host.Address, $"/knowledge?audienceId={Uri.EscapeDataString(BrowserKnowledgeSeed.HistoryAudienceId)}");
+        var derivedRoot = page.GetByTestId("knowledge-tree").Locator(":scope > li > .tree-node-row > .tree-node-select");
+        await derivedRoot.Locator("xpath=..").Locator("button.tree-toggle-btn").ClickAsync();
+        var derivedNode = page.GetByText(BrowserKnowledgeSeed.HistoryDerivedTitle, new() { Exact = true }).Locator("xpath=..");
+        await Assertions.Expect(derivedNode).ToBeVisibleAsync();
+        await derivedNode.Locator(".tree-node-title").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("node-content-derived-context")).ToBeVisibleAsync();
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "06_knowledge_derived-read", output, captures, width, 720);
+        await page.GetByTestId("node-view-editor").ClickAsync();
+        await Assertions.Expect(page.GetByTestId("node-editor-derived-readonly")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByTestId("content-editor-save")).ToHaveCountAsync(0);
+        foreach (var width in ReviewWidths)
+            await CaptureAsync(page, "06_knowledge_derived-editor", output, captures, width, 720);
 
         var transactionId = await BrowserMcpAssertions.BeginTransactionAsync(host.Address, "UI Audit Draft");
         try
         {
             await GotoAsync(page, host.Address, "/drafts");
             await Assertions.Expect(page.GetByTestId($"draft-item-{transactionId:D}")).ToBeVisibleAsync();
-            await CaptureAsync(page, "06_drafts_overview", output, captures);
+            await CaptureAsync(page, "07_drafts_overview", output, captures);
             await GotoAsync(page, host.Address, $"/drafts/{transactionId:D}");
             await Assertions.Expect(page.GetByTestId("draft-review")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("transaction-diff")).ToBeVisibleAsync();
             await Assertions.Expect(page.GetByTestId("transaction-validation")).ToBeVisibleAsync();
-            await CaptureAsync(page, "07_draft_detail", output, captures);
+            await CaptureAsync(page, "08_draft_detail", output, captures);
             foreach (var width in ReviewWidths)
-                await CaptureAsync(page, "07_draft_detail", output, captures, width, 720);
+                await CaptureAsync(page, "08_draft_detail", output, captures, width, 720);
         }
         finally
         {
@@ -136,7 +158,7 @@ public sealed class UiAuditScreenshotTests
         await page.SetViewportSizeAsync(width, height);
         await page.EvaluateAsync("() => document.fonts.ready");
         var fileName = $"{scenario}_{width}x{height}.png";
-        await page.ScreenshotAsync(new PageScreenshotOptions { Path = Path.Combine(output, fileName), FullPage = false });
+        await page.ScreenshotAsync(new PageScreenshotOptions { Path = Path.Combine(output, fileName), FullPage = true });
         captures.Add(new CaptureRecord(fileName, scenario, page.Url, $"{width}x{height}", DateTimeOffset.UtcNow));
     }
 

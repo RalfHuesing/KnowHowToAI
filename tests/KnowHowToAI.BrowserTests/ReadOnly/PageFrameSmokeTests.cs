@@ -192,6 +192,27 @@ public sealed class PageFrameSmokeTests
                 new RouteSpec("Wissensbasis ausgewählter Node", "/knowledge/{NodeId:guid}", "knowledge-page", "knowledge-page"),
                 viewport);
             await Assertions.Expect(page.GetByTestId("knowledge-page").Locator("h1")).ToContainTextAsync("Browser-");
+            var tabs = page.GetByTestId("node-details-tabs");
+            await Assertions.Expect(tabs.GetByRole(AriaRole.Button)).ToHaveCountAsync(4);
+            var tabBar = await tabs.BoundingBoxAsync()
+                ?? throw new InvalidOperationException($"Knotenreiter besitzen bei {viewport} keine Begrenzungsbox.");
+            Assert.True(tabBar.X >= 0 && tabBar.X + tabBar.Width <= viewport,
+                $"Knotenreiter liegen bei {viewport} außerhalb der erreichbaren Breite.");
+
+            await page.GetByTestId("node-view-editor").ClickAsync();
+            var editor = page.GetByTestId("content-editor");
+            await Assertions.Expect(editor).ToBeVisibleAsync();
+            var editorBox = await editor.BoundingBoxAsync()
+                ?? throw new InvalidOperationException($"Der Inhaltseditor besitzt bei {viewport} keine Begrenzungsbox.");
+            Assert.True(editorBox.X >= 0 && editorBox.X + editorBox.Width <= viewport,
+                $"Der Inhaltseditor liegt bei {viewport} außerhalb der erreichbaren Breite.");
+            var saveAction = page.GetByTestId("content-editor-save");
+            await Assertions.Expect(saveAction).ToBeVisibleAsync();
+            await saveAction.ScrollIntoViewIfNeededAsync();
+            var saveBox = await saveAction.BoundingBoxAsync()
+                ?? throw new InvalidOperationException($"Die Editor-Speicheraktion ist bei {viewport} nicht erreichbar.");
+            Assert.True(saveBox.X >= 0 && saveBox.X + saveBox.Width <= viewport,
+                $"Die Editor-Speicheraktion liegt bei {viewport} außerhalb der erreichbaren Breite.");
         }
 
     }

@@ -16,8 +16,8 @@ internal static class BrowserKnowledgeSeed
     private const string DefaultAudienceId = "Default";
     private const string FallbackAudienceId = "BrowserFallbackAudience";
     private const string HistorySourceTitle = "Browser-History-Quelle";
-    private const string HistoryDerivedTitle = "Browser-History-Diff-Knoten";
-    private const string HistoryAudienceId = "BrowserHistoryDiffAudience";
+    internal const string HistoryDerivedTitle = "Browser-History-Diff-Knoten";
+    internal const string HistoryAudienceId = "BrowserHistoryDiffAudience";
     private const string HistoryReleaseName = "Browser History Release";
     private const int HistoryPagingSnapshotCount = 20;
     private const string FallbackContent = "Browser-Testinhalt für den Fallback-Nachweis.";
