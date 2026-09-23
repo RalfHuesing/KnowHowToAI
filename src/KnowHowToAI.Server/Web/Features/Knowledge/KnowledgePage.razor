@@ -41,14 +41,15 @@
             </aside>
 
             <section class="knowledge-content-pane" aria-label="Knotendokument" data-testid="knowledge-content-pane">
-                @if (TreeWorkspace.SelectedNodeId is not null)
+                @if (NodeId is not null && WorkspaceState.CurrentAudienceId is not null)
                 {
-                    <NodeDocument NodeId="@TreeWorkspace.SelectedNodeId"
+                    <NodeDocument NodeId="@NodeId"
                                      ReadContext="@WorkspaceState.CurrentReadContext"
                                      AudienceId="@WorkspaceState.CurrentAudienceId"
                                      ChangeVersion="@WorkspaceState.CurrentChangeVersion"
                                      TransactionId="@WorkspaceState.ActiveTransactionId"
-                                     QueryTransactionId="@QueryTransactionId" />
+                                     QueryTransactionId="@QueryTransactionId"
+                                     OnMutationSucceeded="RefreshKnowledgeTreeAfterMetadataChangeAsync" />
                 }
                 else if (TreeWorkspace.VisualRootNode is null
                          && !TreeWorkspace.IsLoading

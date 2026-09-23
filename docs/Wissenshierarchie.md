@@ -78,6 +78,13 @@ abgelehnt (`HeadingNotAllowed`); nur heuristisch erkennbare Ersatztitel erzeugen
 wegen möglicher Fehlalarme die Qualitätswarnung `PossibleEmbeddedHeading`. Diese
 Trennung ist eine harte Systeminvariante.
 
+In der Wissensoberfläche werden Titel und Beschreibung ausdrücklich am
+Knotendokument bearbeitet und unabhängig vom Content gespeichert. Ein erster
+Save beginnt ohne vorgeschaltete Transaktionsmaske eine Working Transaction;
+weitere Node- und Content-Saves schreiben in denselben Entwurf. Die UI hält
+Titel und Markdown getrennt und speichert keine Dokumentüberschrift im Content
+([Web-UI-Gesamtbild](WebUi.md)).
+
 ## Heading-Verbot
 
 Gespeicherter Markdown-Content enthält **keine Überschriften**. Benötigt ein Agent

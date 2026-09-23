@@ -39,6 +39,7 @@ public sealed class ContextSelectorDialogTests : BunitContext
         Services.AddSingleton(_navigationService);
         Services.AddSingleton(_selectorState);
         Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton<WorkspaceEditState>();
         Services.AddSingleton<IAudienceStorageService>(_audienceStorage);
         Services.AddSingleton<IContextSelectionCatalog, EmptyContextSelectionCatalog>();
         Services.AddSingleton<IContextSelectionAudienceCatalog>(new ContextSelectionAudienceCatalog(_navigationService));

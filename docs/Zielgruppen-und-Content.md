@@ -51,6 +51,14 @@ bedeuten, dass Fallback genügt, der Node für die Zielgruppe irrelevant ist ode
 Dokumentation noch nicht erstellt wurde. Die MCP-Antwort macht transparent, ob
 `Explicit`, `Fallback` oder `None` verwendet wird.
 
+In der Wissensoberfläche ist nur expliziter `Independent`-Content direkt
+editierbar. Bei `Fallback` oder `None` muss die Person ausdrücklich eine eigene
+Fassung anlegen; der aufgelöste Fallback wird dabei nicht vorbefüllt. `Derived`
+bleibt im direkten Node-Editor lesbar und schreibgeschützt. Jeder Save läuft in
+der aktiven Working Transaction mit ihrer aktuellen `ChangeVersion`; ein
+veralteter Versionsstand wird als `ChangeVersionConflict` gezeigt und verwirft
+die Eingabe nicht.
+
 ## Audience Resolution Orders
 
 Für jede angefragte Zielgruppe existiert eine frei konfigurierbare, geordnete

@@ -36,6 +36,9 @@ public sealed partial class ContextSelectionForm : ComponentBase, IDisposable
     [Inject]
     private WorkspaceState WorkspaceState { get; set; } = default!;
 
+    [Inject]
+    private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
+
     private bool _isConfirmingDirtySwitch;
 
     protected override async Task OnInitializedAsync()
@@ -137,16 +140,16 @@ public sealed partial class ContextSelectionForm : ComponentBase, IDisposable
         if (_errorMessage is not null)
             return;
 
-        if (WorkspaceState.CurrentContext.IsDirty && !_isConfirmingDirtySwitch)
+        if (WorkspaceEditState.IsDirty && !_isConfirmingDirtySwitch)
         {
             _isConfirmingDirtySwitch = true;
             _errorMessage = "Sie haben ungespeicherte Änderungen. Wenn Sie den Kontext wechseln, gehen diese verloren. Klicken Sie erneut auf 'Übernehmen', um trotzdem zu wechseln.";
             return;
         }
 
-        if (WorkspaceState.CurrentContext.IsDirty)
+        if (WorkspaceEditState.IsDirty)
         {
-            WorkspaceState.SetDirty(false);
+            WorkspaceEditState.SetDirty(false, null);
         }
 
         if (!string.IsNullOrWhiteSpace(_selectedAudienceId))

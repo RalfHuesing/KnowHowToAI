@@ -19,6 +19,7 @@ public abstract class ShellTestContext : BunitContext
         Services.AddScoped<PageRegionState>();
         Services.AddScoped<ToastState>();
         Services.AddScoped<WorkspaceState>();
+        Services.AddScoped<WorkspaceEditState>();
         Services.AddScoped<ContextSelectorState>();
         var module = JSInterop.SetupModule("./Web/Components/Layout/Shell/MainLayout.razor.js");
         module.Mode = JSRuntimeMode.Strict;

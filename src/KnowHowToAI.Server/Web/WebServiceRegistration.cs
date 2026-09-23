@@ -1,6 +1,7 @@
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.Features.Search;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.Server.Web.Workflow;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ internal static class WebServiceRegistration
 
         // Flüchtiger Circuit-State für den Arbeitskontext (Node, Zielgruppe, Lese-Kontext).
         services.AddScoped<WorkspaceState>();
+        services.AddScoped<WorkspaceEditState>();
 
         // Gemeinsame Begin-/Resume-Koordination für persistente Web-Writes.
         services.AddScoped<WebWriteCoordinator>();
@@ -56,6 +58,8 @@ internal static class WebServiceRegistration
         services.AddScoped<ContextSelectionAudienceCatalog>();
         services.AddScoped<IContextSelectionAudienceCatalog>(serviceProvider =>
             serviceProvider.GetRequiredService<ContextSelectionAudienceCatalog>());
+
+        // Zusammengesetzter Präsentations-Read für Suchtreffer und Breadcrumbs.
 
         return services;
     }

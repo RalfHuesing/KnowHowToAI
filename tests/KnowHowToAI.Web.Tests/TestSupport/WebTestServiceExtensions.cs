@@ -5,6 +5,7 @@ using KnowHowToAI.Core.Application.Retrieval.Search;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Server.Web.Features.Search;
 using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ public static class WebTestServiceExtensions
     {
         services.AddSingleton(pageRegionState ?? new PageRegionState());
         services.AddSingleton(workspaceState ?? new WorkspaceState());
+        services.AddSingleton<WorkspaceEditState>();
         services.AddSingleton(contextSelectorState ?? new ContextSelectorState());
         services.AddSingleton(toastState ?? new ToastState());
         return services;

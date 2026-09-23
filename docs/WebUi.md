@@ -139,8 +139,17 @@ Wissensarbeitsplatz. Die Browserabnahme für `/` prüft diese Weiterleitung.
   Bearbeiten eines Nodes.
 - Hauptbereiche: Breadcrumbs, lazy geladener Wissensbaum, Knotendetails und
   Markdown-Teilbaumexport; leerer Working Tree bietet Root-Anlage.
-- Primäre Aktionen: Node auswählen/navigieren, Kontext/Zielgruppe wählen,
-  Node-/Content-Mutation ausführen oder eine Arbeitskopie beginnen.
+- Primäre Aktionen: Node auswählen/navigieren, Kontext/Zielgruppe wählen und
+  im Current-Kontext Titel, Beschreibung oder Independent-Content direkt
+  bearbeiten. Der erste ausdrückliche Save beginnt eine Working Transaction,
+  synchronisiert sie in URL und Entwurfslink und speichert die Mutation. Weitere
+  Saves schreiben in denselben Entwurf. Fallback und fehlender Content werden
+  erst nach ausdrücklicher Aktion als eigene Independent-Fassung angelegt;
+  Derived-Content bleibt schreibgeschützt.
+- Dirty-Eingaben bleiben bis zum ausdrücklichen Speichern erhalten und schützen
+  interne Navigation. Ein Wechsel in einen historischen Kontext beendet die
+  Bearbeitung; ein Stale-Write oder Mutationsfehler zeigt den Fehler und erhält
+  die Eingabe zur Korrektur.
 - Zustände: fehlender/ungültiger Kontext, keine Zielgruppen, Pflichtauswahl,
   Laden/Fehler/NotFound, Current-/Snapshot-/Release-read-only und Working-
   Dirty-State. Die Node-Route setzt zusätzlich die initiale Auswahl.

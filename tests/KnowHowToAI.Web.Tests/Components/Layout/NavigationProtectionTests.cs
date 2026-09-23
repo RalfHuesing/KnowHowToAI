@@ -1,5 +1,6 @@
 using Bunit;
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Components.Layout.Shell;
@@ -50,7 +51,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         pageRegions.SetKnowledgeContext(contextVm);
         workspaceState.SetContext(contextVm, new ReadContext());
-        workspaceState.SetDirty(true);
+        Services.GetRequiredService<WorkspaceEditState>().SetDirty(true);
 
         // Navigation versuchen
         navManager.NavigateTo("/search");
@@ -62,6 +63,28 @@ public sealed class NavigationProtectionTests : ShellTestContext
         var dialog = cut.FindComponent<KnowHowToAI.Server.Web.Components.Shared.Dialogs.ConfirmationDialog>();
         Assert.NotNull(dialog);
         Assert.Equal("Ungespeicherte Änderungen", dialog.Instance.Title);
+    }
+
+    [Fact]
+    public void NavigationProtection_AllowsMatchingDraftContextSynchronizationWithoutLosingDirtyInput()
+    {
+        var navManager = Services.GetRequiredService<NavigationManager>();
+        var workspaceState = Services.GetRequiredService<WorkspaceState>();
+        navManager.NavigateTo("/knowledge?audienceId=Default");
+        var transactionId = new TransactionId(Guid.NewGuid());
+        var context = new KnowledgeContextViewModel(
+            KnowledgeReadContextKind.Transaction,
+            ContextId: transactionId.Value.ToString("D"),
+            IsDirty: true);
+        var cut = RenderNavigationProtection();
+        workspaceState.SetContext(context, new ReadContext(TransactionId: transactionId));
+        Services.GetRequiredService<WorkspaceEditState>().SetDirty(true);
+
+        navManager.NavigateTo($"/knowledge?audienceId=Default&transactionId={transactionId.Value:D}");
+
+        Assert.Contains($"transactionId={transactionId.Value:D}", navManager.Uri, StringComparison.OrdinalIgnoreCase);
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
+        Assert.Empty(cut.FindAll(".confirmation-dialog"));
     }
 
     [Fact]
@@ -80,7 +103,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         pageRegions.SetKnowledgeContext(contextVm);
         workspaceState.SetContext(contextVm, new ReadContext());
-        workspaceState.SetDirty(true);
+        Services.GetRequiredService<WorkspaceEditState>().SetDirty(true);
 
         navManager.NavigateTo("/search");
 
@@ -92,7 +115,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         // Nach Bestätigung wird zur Ziel-URL navigiert und IsDirty ist false
         Assert.EndsWith("/search", navManager.Uri, StringComparison.Ordinal);
-        Assert.False(workspaceState.CurrentContext.IsDirty);
+        Assert.False(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         Assert.False(pageRegions.KnowledgeContext?.IsDirty);
     }
 
@@ -114,7 +137,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         pageRegions.SetKnowledgeContext(contextVm);
         workspaceState.SetContext(contextVm, new ReadContext());
-        workspaceState.SetDirty(true);
+        Services.GetRequiredService<WorkspaceEditState>().SetDirty(true);
 
         navManager.NavigateTo("/search");
 
@@ -126,7 +149,7 @@ public sealed class NavigationProtectionTests : ShellTestContext
 
         // Benutzer bleibt auf der Seite, IsDirty bleibt true
         Assert.Equal(initialUri, navManager.Uri);
-        Assert.True(workspaceState.CurrentContext.IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         Assert.True(pageRegions.KnowledgeContext?.IsDirty);
     }
 

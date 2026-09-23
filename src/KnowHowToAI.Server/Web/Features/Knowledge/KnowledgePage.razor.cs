@@ -1,4 +1,5 @@
 using KnowHowToAI.Core.Application.Navigation;
+using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Components.Layout.PageRegions;
 using KnowHowToAI.Server.Web.Features.Knowledge.Tree;
@@ -187,6 +188,11 @@ public sealed partial class KnowledgePage : IDisposable
         string audienceId,
         long? changeVersion)
     {
+        changeVersion = KnowledgePageChangeVersion.Resolve(
+            readContext,
+            WorkspaceState.ActiveTransactionId,
+            WorkspaceState.CurrentChangeVersion,
+            changeVersion);
         var selectedAudience = availableAudiences.First(audience => audience.Id == audienceId);
         var currentContext = context with
         {
@@ -234,6 +240,19 @@ public sealed partial class KnowledgePage : IDisposable
         var target = $"{path}{uri.Query}";
         if (!string.Equals(uri.PathAndQuery, target, StringComparison.OrdinalIgnoreCase))
             NavigationManager.NavigateTo(target);
+    }
+
+    private async Task RefreshKnowledgeTreeAfterMetadataChangeAsync(NodeMutationResult mutation)
+    {
+        if (WorkspaceState.CurrentAudienceId is not { } audienceId)
+            return;
+
+        var nodeId = NodeId ?? mutation.Node.NodeId.Value;
+        var readContext = WorkspaceState.CurrentReadContext;
+        await TreeWorkspace.InitializeAsync(readContext, audienceId, CancellationToken.None);
+        await TreeWorkspace.SelectNodeAsync(nodeId, CancellationToken.None);
+        WorkspaceState.SetNode(nodeId);
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()

@@ -20,6 +20,7 @@ public sealed class ContextSelectionFormTests : BunitContext
 
         Services.AddSingleton(selectorState);
         Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton<WorkspaceEditState>();
         Services.AddSingleton<IAudienceStorageService>(new InMemoryAudienceStorageService());
         Services.AddSingleton<IContextSelectionCatalog>(new FixedContextSelectionCatalog());
         Services.AddSingleton<IContextSelectionAudienceCatalog>(catalog);

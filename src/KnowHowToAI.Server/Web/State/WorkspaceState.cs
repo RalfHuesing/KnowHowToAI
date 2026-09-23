@@ -11,11 +11,10 @@ namespace KnowHowToAI.Server.Web.State;
 /// </summary>
 public sealed class WorkspaceState
 {
+    public long? CurrentChangeVersion { get; private set; }
     public Guid? CurrentNodeId { get; private set; }
 
     public string? CurrentAudienceId { get; private set; }
-
-    public long? CurrentChangeVersion { get; private set; }
 
     public long? LoadedSnapshotId { get; private set; }
 
@@ -27,15 +26,6 @@ public sealed class WorkspaceState
     public TransactionId? ActiveTransactionId => CurrentReadContext.TransactionId;
 
     public event Action? Changed;
-
-    public void SetDirty(bool isDirty)
-    {
-        if (CurrentContext.IsDirty == isDirty)
-            return;
-
-        CurrentContext = CurrentContext with { IsDirty = isDirty };
-        Changed?.Invoke();
-    }
 
     public void SetNode(Guid? nodeId)
     {
@@ -61,6 +51,8 @@ public sealed class WorkspaceState
             return;
 
         CurrentChangeVersion = changeVersion;
+        if (CurrentReadContext.TransactionId is not null)
+            CurrentContext = CurrentContext with { ChangeVersion = CurrentChangeVersion };
         Changed?.Invoke();
     }
 
@@ -83,6 +75,7 @@ public sealed class WorkspaceState
 
         CurrentContext = context;
         CurrentReadContext = readContext;
+        CurrentChangeVersion = context.ChangeVersion;
         Changed?.Invoke();
     }
 

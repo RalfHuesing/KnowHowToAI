@@ -70,7 +70,7 @@ public sealed class WebWriteCoordinator
                 false,
                 mutation,
                 getChangeVersion,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
         if (!CanBeginFromCurrent())
@@ -80,7 +80,7 @@ public sealed class WebWriteCoordinator
                 "Ein erster Web-Write kann nur vom Current Snapshot aus begonnen werden."));
         }
 
-        var selection = await SelectTransactionAsync(loadedCurrentSnapshotId, cancellationToken).ConfigureAwait(false);
+        var selection = await SelectTransactionAsync(loadedCurrentSnapshotId, cancellationToken);
         if (selection.Error is { } error)
             return new WebWriteCoordinatorResult<T>(selection.TransactionId, Result<T>.Failure(error), selection.StartedTransaction);
 
@@ -90,7 +90,7 @@ public sealed class WebWriteCoordinator
             selection.StartedTransaction,
             mutation,
             getChangeVersion,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private bool CanBeginFromCurrent() =>
@@ -101,13 +101,13 @@ public sealed class WebWriteCoordinator
         long? loadedCurrentSnapshotId,
         CancellationToken cancellationToken)
     {
-        await _beginGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        await _beginGate.WaitAsync(cancellationToken);
         try
         {
             if (_workspaceState.ActiveTransactionId is { } transactionId)
                 return new TransactionSelection(transactionId, _workspaceState.CurrentChangeVersion, false, null);
 
-            var currentSnapshot = await _snapshotRepository.GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+            var currentSnapshot = await _snapshotRepository.GetCurrentAsync(cancellationToken);
             if (loadedCurrentSnapshotId is null || currentSnapshot.SnapshotId.Value != loadedCurrentSnapshotId.Value)
             {
                 return new TransactionSelection(
@@ -119,7 +119,7 @@ public sealed class WebWriteCoordinator
 
             var beginResult = await _transactionService.BeginAsync(
                 new BeginTransactionOptions(Purpose, _currentUserService.GetCurrentUserName(), Client),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
             var transaction = beginResult.Value!;
             ApplyTransactionToWorkspace(transaction);
@@ -144,7 +144,7 @@ public sealed class WebWriteCoordinator
         Func<T, long?> getChangeVersion,
         CancellationToken cancellationToken)
     {
-        var result = await mutation(transactionId, expectedChangeVersion, cancellationToken).ConfigureAwait(false);
+        var result = await mutation(transactionId, expectedChangeVersion, cancellationToken);
         if (result.IsSuccess && result.Value is { } value && getChangeVersion(value) is { } changeVersion)
         {
             _workspaceState.SetChangeVersion(changeVersion);
@@ -168,7 +168,6 @@ public sealed class WebWriteCoordinator
             DisplayName = Purpose,
             BaseSnapshotId = transaction.BaseSnapshotId.Value,
             ChangeVersion = transaction.ChangeVersion,
-            IsDirty = _workspaceState.CurrentContext.IsDirty
         };
         _workspaceState.SetContext(context, new ReadContext(TransactionId: transaction.TransactionId));
         _workspaceState.SetChangeVersion(transaction.ChangeVersion);

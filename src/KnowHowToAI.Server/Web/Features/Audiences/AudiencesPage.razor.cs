@@ -19,6 +19,9 @@ public sealed partial class AudiencesPage : ComponentBase
     private WorkspaceState WorkspaceState { get; set; } = default!;
 
     [Inject]
+    private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
+
+    [Inject]
     private PageRegionState PageRegions { get; set; } = default!;
 
     [SupplyParameterFromQuery(Name = "transactionId")]
@@ -65,7 +68,7 @@ public sealed partial class AudiencesPage : ComponentBase
         WorkspaceState.SetContext(context, _readContext);
         WorkspaceState.SetChangeVersion(resolved.ChangeVersion);
         if (previousTransactionId != resolved.ReadContext.TransactionId)
-            WorkspaceState.SetDirty(false);
+            WorkspaceEditState.SetDirty(false, null);
 
         _isLoading = false;
     }
@@ -73,7 +76,7 @@ public sealed partial class AudiencesPage : ComponentBase
     private Task HandleMutationSucceededAsync(long changeVersion)
     {
         WorkspaceState.SetChangeVersion(changeVersion);
-        WorkspaceState.SetDirty(true);
+        WorkspaceEditState.SetDirty(true, null);
         var context = WorkspaceState.CurrentContext with
         {
             IsDirty = true,

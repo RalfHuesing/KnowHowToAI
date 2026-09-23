@@ -41,12 +41,12 @@ public sealed class RootNodeEditorTests : BunitContext
             .Add(component => component.OnMutationSucceeded, EventCallback.Factory.Create<NodeMutationResult>(this, result => persisted = result)));
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='root-node-title']").Change("Erstes Wissen"));
-        Assert.True(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         await cut.InvokeAsync(() => cut.Find("[data-testid='root-node-description']").Change("Startpunkt"));
         await cut.InvokeAsync(() => cut.Find("[data-testid='create-root-node']").Click());
 
         Assert.NotNull(persisted);
-        Assert.False(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
+        Assert.False(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         var root = Assert.Single(repository.State.Nodes);
         Assert.Equal(RootNodeId, root.NodeId);
         Assert.Null(root.ParentNodeId);
@@ -65,11 +65,11 @@ public sealed class RootNodeEditorTests : BunitContext
             .Add(component => component.TransactionId, TransactionId));
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='root-node-title']").Change("Entwurf"));
-        Assert.True(workspaceState.CurrentContext.IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='cancel-root-node']").Click());
 
-        Assert.False(workspaceState.CurrentContext.IsDirty);
+        Assert.False(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         Assert.Equal(string.Empty, cut.Find("[data-testid='root-node-title']").GetAttribute("value"));
     }
 
@@ -78,6 +78,7 @@ public sealed class RootNodeEditorTests : BunitContext
         var repository = new InMemoryNodeMutationRepository(
             new WorkingNodeMutationState(SnapshotId, [], [], [], []));
         Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton<WorkspaceEditState>();
         Services.AddSingleton(TestNodeMutations.CreateService(repository, RootNodeId));
         return repository;
     }

@@ -34,12 +34,16 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     private WorkspaceState WorkspaceState { get; set; } = default!;
 
     [Inject]
+    private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
+
+    [Inject]
     private IJSRuntime JSRuntime { get; set; } = default!;
 
     protected override void OnInitialized()
     {
         PageRegions.Changed += HandlePageRegionsChanged;
         WorkspaceState.Changed += HandlePageRegionsChanged;
+        WorkspaceEditState.Changed += HandlePageRegionsChanged;
     }
 
     protected override void OnParametersSet()
@@ -99,6 +103,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
     {
         PageRegions.Changed -= HandlePageRegionsChanged;
         WorkspaceState.Changed -= HandlePageRegionsChanged;
+        WorkspaceEditState.Changed -= HandlePageRegionsChanged;
         _selfReference?.Dispose();
 
         if (_moduleTask is null)
@@ -119,7 +124,7 @@ public sealed partial class MainLayout : LayoutComponentBase, IAsyncDisposable
 
     private void HandlePageRegionsChanged() => _ = InvokeAsync(StateHasChanged);
 
-    private bool IsDirty => WorkspaceState.CurrentContext.IsDirty;
+    private bool IsDirty => WorkspaceEditState.IsDirty;
 
     private async Task SkipToMainAsync() => await _mainElement.FocusAsync();
 

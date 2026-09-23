@@ -1,11 +1,10 @@
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
 
-<div class="node-details-pane" data-testid="node-details-section">
-    <NodeDetails ViewModel="@_viewModel"
-                 MarkdownDownloadUrl="@_markdownDownloadUrl"
-                 IsLoading="@_isLoading"
-                 ErrorMessage="@_errorMessage"
-                 NodeNotFound="@_nodeNotFound"
-                 IsWorking="@TransactionId.HasValue"
-                 ShowTitle="false" />
-</div>
+<NodeDetailsPane NodeId="@NodeId"
+                 ReadContext="@ReadContext"
+                 AudienceId="@AudienceId"
+                 ChangeVersion="@ChangeVersion"
+                 TransactionId="@TransactionId"
+                 QueryTransactionId="@QueryTransactionId"
+                 ShowTitle="false"
+                 OnMutationSucceeded="OnMutationSucceeded" />

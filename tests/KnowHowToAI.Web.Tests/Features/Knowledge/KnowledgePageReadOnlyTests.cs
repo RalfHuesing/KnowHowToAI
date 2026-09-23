@@ -23,7 +23,7 @@ public sealed class KnowledgePageReadOnlyTests : BunitContext
     private static readonly NodeId RootNodeId = new(Guid.Parse("22222222-2222-2222-2222-222222222222"));
 
     [Fact]
-    public void WorkingRead_RendersTheNodeDocumentWithoutMutationControls()
+    public void WorkingRead_RendersTheNodeDocumentWithExplicitDirectEditAction()
     {
         var harness = new NavigationTestHarness(CurrentSnapshotId);
         harness.SetTransaction(new KnowledgeTransaction(
@@ -59,7 +59,7 @@ public sealed class KnowledgePageReadOnlyTests : BunitContext
         Assert.Equal("Root", cut.Find("h1").TextContent.Trim());
         Assert.Equal("Root content", cut.Find("[data-testid='node-content-markdown']").TextContent.Trim());
         Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
-        Assert.Empty(cut.FindAll("[data-testid='node-details-edit']"));
+        Assert.Single(cut.FindAll("[data-testid='node-details-edit']"));
         Assert.Empty(cut.FindAll("[data-testid='node-metadata-editor']"));
         Assert.Empty(cut.FindAll("[data-testid='node-deletion-editor']"));
         Assert.Empty(cut.FindAll("[data-testid='root-node-editor']"));

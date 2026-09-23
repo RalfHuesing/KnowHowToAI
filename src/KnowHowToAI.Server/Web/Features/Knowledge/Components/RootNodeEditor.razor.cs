@@ -14,6 +14,9 @@ public sealed partial class RootNodeEditor : IDisposable
     [Inject]
     private WorkspaceState WorkspaceState { get; set; } = default!;
 
+    [Inject]
+    private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
+
     [Parameter]
     public TransactionId? TransactionId { get; set; }
 
@@ -50,7 +53,7 @@ public sealed partial class RootNodeEditor : IDisposable
             return;
         }
 
-        WorkspaceState.SetDirty(false);
+        WorkspaceEditState.SetDirty(false);
         await OnMutationSucceeded.InvokeAsync(result.Value!);
     }
 
@@ -58,7 +61,7 @@ public sealed partial class RootNodeEditor : IDisposable
     {
         var isDirty = !string.Equals(_title, InitialTitle, StringComparison.Ordinal)
             || !string.Equals(_description, InitialDescription, StringComparison.Ordinal);
-        WorkspaceState.SetDirty(isDirty);
+        WorkspaceEditState.SetDirty(isDirty);
     }
 
     private void Cancel()
@@ -66,8 +69,8 @@ public sealed partial class RootNodeEditor : IDisposable
         _title = InitialTitle;
         _description = InitialDescription;
         _errorMessage = null;
-        WorkspaceState.SetDirty(false);
+        WorkspaceEditState.SetDirty(false);
     }
 
-    public void Dispose() => WorkspaceState.SetDirty(false);
+    public void Dispose() => WorkspaceEditState.SetDirty(false);
 }

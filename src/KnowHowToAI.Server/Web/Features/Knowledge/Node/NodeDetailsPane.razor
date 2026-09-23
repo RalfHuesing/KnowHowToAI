@@ -1,5 +1,4 @@
 @namespace KnowHowToAI.Server.Web.Features.Knowledge.Node
-@using Microsoft.AspNetCore.Components.Web
 @using KnowHowToAI.Server.Web.Features.Content
 @using KnowHowToAI.Server.Web.Features.Knowledge.Components
 
@@ -9,126 +8,43 @@
                  IsLoading="@_isLoading"
                  ErrorMessage="@_errorMessage"
                  NodeNotFound="@_nodeNotFound"
-                 ShowContent="@ShowReadOnlyContent"
+                 ShowTitle="@ShowTitle"
+                 ShowContent="@(!_isEditing)"
                  IsWorking="@TransactionId.HasValue"
-                 ShowEditAction="@CanStartEdit"
-                 OnEditRequested="OpenEditDialogAsync" />
-    @if (_viewModel is not null && TransactionId.HasValue)
+                 ShowEditAction="@(! _isEditing && CanBeginEditing)"
+                 EditActionLabel="@EditActionLabel"
+                 OnEditRequested="BeginEditing" />
+
+    @if (_isEditing && _viewModel is not null)
     {
-        <section class="node-workspace-section node-structure-section" aria-labelledby="node-structure-heading" data-testid="node-structure-section">
+        <section class="node-workspace-section node-editing-section" aria-label="Dokument bearbeiten" data-testid="node-editing-section">
             <header class="node-workspace-section__header">
                 <div>
-                    <h2 id="node-structure-heading">Struktur</h2>
-                    <p>Stammdaten und Children der ausgewählten Node.</p>
+                    <h2>Dokument bearbeiten</h2>
+                    <p>Titel, Beschreibung und Inhalt werden einzeln ausdrücklich gespeichert.</p>
                 </div>
+                <button type="button" class="btn btn-secondary" data-testid="node-editing-done"
+                        disabled="@WorkspaceEditState.IsDirty" @onclick="EndEditing">
+                    Bearbeitung beenden
+                </button>
             </header>
+
             <NodeMetadataEditor Node="@_viewModel"
-                                TransactionId="@TransactionId"
                                 ExpectedChangeVersion="@ChangeVersion"
-                                OnMutationSucceeded="HandleMutationSucceededAsync" />
+                                OnMutationSucceeded="HandleNodeMutationSucceededAsync" />
+
+            @if (_viewModel.ContentMode != "Derived")
+            {
+                <ContentEditor NodeId="@_viewModel.NodeId"
+                               AudienceId="@_viewModel.RequestedAudienceId"
+                               Markdown="@EditorMarkdown"
+                               IsReadOnly="false"
+                               TransactionId="@TransactionId"
+                               ExpectedChangeVersion="@ChangeVersion"
+                               LoadedCurrentSnapshotId="@WorkspaceState.LoadedSnapshotId"
+                               FocusOnMount="@_focusEditorOnMount"
+                               OnMutationSucceeded="HandleContentMutationSucceededAsync" />
+            }
         </section>
-    }
-
-    @if (CanEditContent)
-    {
-        <section class="node-workspace-section node-content-section" aria-labelledby="node-content-heading" data-testid="node-content-section">
-            <header class="node-workspace-section__header">
-                <div>
-                    <h2 id="node-content-heading">Inhalt bearbeiten</h2>
-                    <p>WYSIWYG und Markdown-Quelle bearbeiten denselben Inhalt.</p>
-                </div>
-            </header>
-            <ContentEditor NodeId="@_viewModel!.NodeId"
-                           AudienceId="@_viewModel.RequestedAudienceId"
-                           Markdown="@_viewModel.ContentMd"
-                           IsReadOnly="false"
-                           TransactionId="@TransactionId"
-                           ExpectedChangeVersion="@ChangeVersion"
-                           OnMutationSucceeded="HandleContentMutationSucceededAsync" />
-        </section>
-    }
-
-    @if (_viewModel is not null && TransactionId.HasValue)
-    {
-        <details class="node-workspace-advanced" data-testid="node-workspace-advanced">
-            <summary>Weitere Arbeitsbereich-Aktionen</summary>
-            <NodeDeletionEditor Node="@_viewModel"
-                                TransactionId="@TransactionId.Value"
-                                OnMutationSucceeded="HandleMutationSucceededAsync" />
-        </details>
-    }
-
-    @if (_editDialogOpen)
-    {
-        <dialog class="node-edit-dialog" open data-testid="node-edit-dialog" aria-labelledby="node-edit-dialog-heading">
-            <div class="node-edit-dialog__header">
-                <h2 id="node-edit-dialog-heading">Wissenseintrag bearbeiten</h2>
-                <button type="button" class="btn btn-secondary" data-testid="node-edit-dialog-close"
-                        @onclick="CloseEditDialogAsync">Schließen</button>
-            </div>
-            <p>Wählen Sie ausdrücklich eine kompatible Arbeitskopie oder beginnen Sie eine neue.</p>
-
-            @if (_isLoadingEditOptions)
-            {
-                <p role="status" data-testid="node-edit-dialog-loading">Offene Arbeitskopien werden geprüft…</p>
-            }
-            else if (_editDialogError is not null)
-            {
-                <div role="alert" data-testid="node-edit-dialog-error">@_editDialogError</div>
-            }
-
-            @if (!_isLoadingEditOptions)
-            {
-                <section aria-labelledby="node-edit-working-copies-heading">
-                    <h3 id="node-edit-working-copies-heading">Offene Arbeitskopien</h3>
-                    @if (_workingCopyOptions.Count == 0)
-                    {
-                        <p data-testid="node-edit-no-working-copies">Keine offene Arbeitskopie gefunden.</p>
-                    }
-                    else
-                    {
-                        <ul class="node-edit-dialog__working-copies" data-testid="node-edit-working-copies">
-                            @foreach (var option in _workingCopyOptions)
-                            {
-                                <li data-testid="node-edit-working-copy-@option.TransactionId">
-                                    <div>
-                                        <strong>@option.DisplayName</strong>
-                                        <span class="node-edit-dialog__working-copy-status">Arbeitskopie · @option.StatusLabel</span>
-                                        @if (!option.IsCompatible)
-                                        {
-                                            <p class="node-edit-dialog__exclusion" data-testid="node-edit-working-copy-reason-@option.TransactionId">
-                                                Nicht kompatibel: @option.ExclusionReason
-                                            </p>
-                                        }
-                                    </div>
-                                    <div class="node-edit-dialog__working-copy-actions action-group">
-                                        <button type="button" class="btn btn-primary" disabled="@(!option.IsCompatible || _isBeginningWorkingCopy)"
-                                                data-testid="node-edit-working-copy-select-@option.TransactionId"
-                                                @onclick="() => SelectWorkingCopyAsync(option)">
-                                            Diese Arbeitskopie wählen
-                                        </button>
-                                        <a href="@GetTransactionDetailsUrl(option.TransactionId)" data-testid="node-edit-working-copy-details-@option.TransactionId">
-                                            Arbeitskopie-/Transaktionsdetails
-                                        </a>
-                                    </div>
-                                </li>
-                            }
-                        </ul>
-                    }
-                </section>
-
-                @if (_beginErrorMessage is not null)
-                {
-                    <div role="alert" data-testid="node-edit-begin-error">@_beginErrorMessage</div>
-                }
-
-                <div class="node-edit-dialog__new-action action-group">
-                    <button type="button" class="btn btn-secondary" disabled="@_isBeginningWorkingCopy"
-                            data-testid="node-edit-begin-working-copy" @onclick="() => BeginWorkingCopyAsync()">
-                        @(_isBeginningWorkingCopy ? "Neue Arbeitskopie wird begonnen…" : "Neue Arbeitskopie beginnen")
-                    </button>
-                </div>
-            }
-        </dialog>
     }
 </div>

@@ -60,7 +60,7 @@ public sealed class AudiencesPageTests : BunitContext
 
         var workspace = Services.GetRequiredService<WorkspaceState>();
         Assert.Equal(1, workspace.CurrentChangeVersion);
-        Assert.True(workspace.CurrentContext.IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         Assert.Equal(1, Services.GetRequiredService<PageRegionState>().KnowledgeContext!.ChangeVersion);
     }
 
@@ -88,6 +88,7 @@ public sealed class AudiencesPageTests : BunitContext
         var resolver = new StubContextResolver(resolution);
         Services.AddSingleton(new PageRegionState());
         Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton<WorkspaceEditState>();
         Services.AddSingleton(navigation);
         Services.AddSingleton<IWebReadContextResolver>(resolver);
         Services.AddSingleton(new AudienceMutationService(new InMemoryAudienceMutationRepository(

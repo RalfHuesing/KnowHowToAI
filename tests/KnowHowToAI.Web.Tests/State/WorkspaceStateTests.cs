@@ -77,6 +77,26 @@ public sealed class WorkspaceStateTests
     }
 
     [Fact]
+    public void SetContext_AllowsVersionResetWhenTransactionChanges()
+    {
+        var state = new WorkspaceState();
+        var firstTransaction = new TransactionId(Guid.NewGuid());
+        var secondTransaction = new TransactionId(Guid.NewGuid());
+        state.SetContext(
+            new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, ContextId: firstTransaction.Value.ToString("D")),
+            new ReadContext(TransactionId: firstTransaction));
+        state.SetChangeVersion(8);
+
+        state.SetContext(
+            new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, ContextId: secondTransaction.Value.ToString("D"), ChangeVersion: 1),
+            new ReadContext(TransactionId: secondTransaction));
+        state.SetChangeVersion(1);
+
+        Assert.Equal(1, state.CurrentChangeVersion);
+        Assert.Equal(1, state.CurrentContext.ChangeVersion);
+    }
+
+    [Fact]
     public void SetContext_UpdatesBothContextsAndFiresChanged()
     {
         var state = new WorkspaceState();
@@ -124,26 +144,6 @@ public sealed class WorkspaceStateTests
         Assert.Equal(KnowledgeReadContextKind.Current, state.CurrentContext.ReadContext);
         Assert.Null(state.CurrentReadContext.TransactionId);
         Assert.Equal(1, changeCount);
-    }
-
-    [Fact]
-    public void SetDirty_UpdatesPropertyAndFiresChangedOnlyWhenDifferent()
-    {
-        var state = new WorkspaceState();
-        var changeCount = 0;
-        state.Changed += () => changeCount++;
-
-        state.SetDirty(true);
-        Assert.True(state.CurrentContext.IsDirty);
-        Assert.Equal(1, changeCount);
-
-        // Gleicher Wert darf kein neues Event auslösen
-        state.SetDirty(true);
-        Assert.Equal(1, changeCount);
-
-        state.SetDirty(false);
-        Assert.False(state.CurrentContext.IsDirty);
-        Assert.Equal(2, changeCount);
     }
 
     [Fact]

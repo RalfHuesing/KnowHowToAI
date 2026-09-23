@@ -138,7 +138,7 @@ public sealed class WebWriteCoordinatorTests
     public async Task MutationFailure_AfterBeginStillReturnsDraftAndKeepsItSelected()
     {
         var fixture = new Fixture();
-        fixture.Workspace.SetDirty(true);
+        fixture.EditState.SetDirty(true);
         var result = await fixture.Coordinator.WriteAsync(
             CurrentId.Value,
             (_, _, _) => Task.FromResult(Result<WriteValue>.Failure(new DomainError("ChangeVersionConflict", "stale"))),
@@ -149,7 +149,7 @@ public sealed class WebWriteCoordinatorTests
         Assert.True(result.StartedTransaction);
         Assert.Equal(FixedTransactionId, result.TransactionId);
         Assert.Equal(result.TransactionId, fixture.Workspace.ActiveTransactionId);
-        Assert.True(fixture.Workspace.CurrentContext.IsDirty);
+        Assert.True(fixture.EditState.IsDirty);
         Assert.Equal(1, fixture.TransactionRepository.BeginCalls);
     }
 
@@ -160,6 +160,7 @@ public sealed class WebWriteCoordinatorTests
         public Fixture(SnapshotId? currentSnapshotId = null)
         {
             Workspace = new WorkspaceState();
+            EditState = new WorkspaceEditState();
             Workspace.SetAudience("Developer");
             Workspace.SetLoadedSnapshotId((currentSnapshotId ?? CurrentId).Value);
             var transactionRepo = TransactionRepository = new FakeTransactionRepository(currentSnapshotId ?? CurrentId);
@@ -178,6 +179,7 @@ public sealed class WebWriteCoordinatorTests
         }
 
         public WorkspaceState Workspace { get; }
+        public WorkspaceEditState EditState { get; }
         public FakeTransactionRepository TransactionRepository { get; }
         public WebWriteCoordinator Coordinator { get; }
         public TestNavigationManager NavigationManager { get; }

@@ -37,6 +37,9 @@ public sealed partial class NodeDetails
     public bool ShowEditAction { get; set; }
 
     [Parameter]
+    public string EditActionLabel { get; set; } = "Bearbeiten";
+
+    [Parameter]
     public EventCallback OnEditRequested { get; set; }
 
     private bool _isLoading;

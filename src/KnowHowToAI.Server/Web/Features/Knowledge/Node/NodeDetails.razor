@@ -106,7 +106,7 @@ else if (ViewModel is not null)
             {
                 <button type="button" class="btn btn-primary" data-testid="node-details-edit"
                         @onclick="() => OnEditRequested.InvokeAsync()">
-                    Bearbeiten
+                    @EditActionLabel
                 </button>
             }
             <a href="/history?nodeId=@ViewModel.NodeId" data-testid="node-details-history-link">Änderungshistorie dieses Knotens</a>

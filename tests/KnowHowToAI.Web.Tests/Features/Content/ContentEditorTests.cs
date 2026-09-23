@@ -1,13 +1,18 @@
 using Bunit;
 using KnowHowToAI.Core.Application.Mutations.Content;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Policies;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Audiences;
 using KnowHowToAI.Server.Web.Features.Content;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
+using KnowHowToAI.Server.Web.Features.Knowledge;
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Workflow;
 using KnowHowToAI.TestSupport;
+using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +35,7 @@ public sealed class ContentEditorTests : BunitContext
     {
         ConfigureLooseModule();
         var repository = AddServices();
-        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var workspace = Services.GetRequiredService<WorkspaceEditState>();
         ContentMutationUseCaseResult? mutation = null;
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
@@ -41,11 +46,11 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.OnMutationSucceeded,
                 EventCallback.Factory.Create<ContentMutationUseCaseResult>(this, value => mutation = value)));
 
-        workspace.SetDirty(true);
+        await cut.Instance.NotifyChangedAsync();
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
         Assert.NotNull(mutation);
-        Assert.False(workspace.CurrentContext.IsDirty);
+        Assert.False(workspace.IsDirty);
         Assert.Equal("Neuer Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
         Assert.Equal(1, mutation.ChangeVersion);
     }
@@ -74,7 +79,7 @@ public sealed class ContentEditorTests : BunitContext
         ConfigureLooseModule();
         var repository = AddServices();
         repository.Rejection = new DomainError("ChangeVersionConflict", "Die Version ist veraltet.");
-        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var workspace = Services.GetRequiredService<WorkspaceEditState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
@@ -82,10 +87,10 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
-        workspace.SetDirty(true);
+        await cut.Instance.NotifyChangedAsync();
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
-        Assert.True(workspace.CurrentContext.IsDirty);
+        Assert.True(workspace.IsDirty);
         Assert.Contains("ChangeVersionConflict", cut.Markup, StringComparison.Ordinal);
         Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
     }
@@ -97,7 +102,7 @@ public sealed class ContentEditorTests : BunitContext
         var module = ConfigureLooseModule(rejectedEditorValue);
         var repository = AddServices();
         repository.Rejection = new DomainError("RawHtmlNotAllowed", "Raw HTML ist unzulässig.");
-        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var workspace = Services.GetRequiredService<WorkspaceEditState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
@@ -105,10 +110,10 @@ public sealed class ContentEditorTests : BunitContext
             .Add(editor => editor.TransactionId, TransactionId)
             .Add(editor => editor.ExpectedChangeVersion, 0L));
 
-        workspace.SetDirty(true);
+        await cut.Instance.NotifyChangedAsync();
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
-        Assert.True(workspace.CurrentContext.IsDirty);
+        Assert.True(workspace.IsDirty);
         Assert.Contains("RawHtmlNotAllowed", cut.Markup, StringComparison.Ordinal);
         Assert.Equal(1, module.Invocations["mount"].Count);
         Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
@@ -130,7 +135,7 @@ public sealed class ContentEditorTests : BunitContext
             callOrder.Add("dispose");
             return true;
         }).SetVoidResult();
-        Services.AddSingleton(new WorkspaceState());
+        AddServices();
 
         var cut = Render<ContentEditorHost>(parameters => parameters
             .Add(host => host.NodeId, NodeId.Value)
@@ -154,19 +159,19 @@ public sealed class ContentEditorTests : BunitContext
         module.Mode = JSRuntimeMode.Strict;
         module.SetupVoid("mount", _ => true).SetException(new JSDisconnectedException("Circuit geschlossen"));
         module.SetupVoid("dispose", _ => true).SetVoidResult();
-        Services.AddSingleton(new WorkspaceState());
-        var workspace = Services.GetRequiredService<WorkspaceState>();
+        AddServices();
+        var workspace = Services.GetRequiredService<WorkspaceEditState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
             .Add(editor => editor.Markdown, "Ungespeichert"));
 
-        workspace.SetDirty(true);
+        await cut.Instance.NotifyChangedAsync();
         cut.Render(parameters => parameters.Add(editor => editor.Markdown, "Reconnect"));
 
-        Assert.True(workspace.CurrentContext.IsDirty);
+        Assert.True(workspace.IsDirty);
         await cut.Instance.DisposeAsync();
-        Assert.False(workspace.CurrentContext.IsDirty);
+        Assert.False(workspace.IsDirty);
     }
 
     [Fact]
@@ -174,7 +179,7 @@ public sealed class ContentEditorTests : BunitContext
     {
         var module = ConfigureLooseModule("**WYSIWYG**\n\n- Eintrag");
         AddServices();
-        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var workspace = Services.GetRequiredService<WorkspaceEditState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
@@ -187,7 +192,7 @@ public sealed class ContentEditorTests : BunitContext
         var source = cut.Find("[data-testid='content-editor-source']");
         Assert.Equal("**WYSIWYG**\n\n- Eintrag", source.GetAttribute("value"));
         source.Input("[Link](https://example.test)\n\nUnicode: ä");
-        Assert.True(workspace.CurrentContext.IsDirty);
+        Assert.True(workspace.IsDirty);
 
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-mode-wysiwyg']").Click());
         cut.WaitForAssertion(() => Assert.Equal(2, module.Invocations["mount"].Count));
@@ -202,7 +207,7 @@ public sealed class ContentEditorTests : BunitContext
         ConfigureLooseModule("Serverwert");
         var repository = AddServices();
         repository.Rejection = new DomainError("RawHtmlNotAllowed", "Raw HTML ist unzulässig.");
-        var workspace = Services.GetRequiredService<WorkspaceState>();
+        var workspace = Services.GetRequiredService<WorkspaceEditState>();
         var cut = Render<ContentEditor>(parameters => parameters
             .Add(editor => editor.NodeId, NodeId.Value)
             .Add(editor => editor.AudienceId, AudienceId.Value)
@@ -215,7 +220,7 @@ public sealed class ContentEditorTests : BunitContext
         cut.Find("[data-testid='content-editor-source']").Input(rejected);
         await cut.InvokeAsync(() => cut.Find("[data-testid='content-editor-save']").Click());
 
-        Assert.True(workspace.CurrentContext.IsDirty);
+        Assert.True(workspace.IsDirty);
         Assert.Equal(rejected, cut.Find("[data-testid='content-editor-source']").GetAttribute("value"));
         Assert.Contains("RawHtmlNotAllowed", cut.Markup, StringComparison.Ordinal);
         Assert.Equal("Alter Inhalt", repository.State.Contents.Single(content => !content.IsDeleted).ContentMd);
@@ -229,7 +234,21 @@ public sealed class ContentEditorTests : BunitContext
             [new Audience(SnapshotId, AudienceId, "Developer", null, false)],
             [new NodeContent(SnapshotId, NodeId, AudienceId, ExistingRevisionId, ContentMode.Independent, "Alter Inhalt", false)],
             []));
-        Services.AddSingleton(new WorkspaceState());
+        var workspace = new WorkspaceState();
+        var editState = new WorkspaceEditState();
+        workspace.SetAudience(AudienceId.Value);
+        workspace.SetLoadedSnapshotId(SnapshotId.Value);
+        workspace.SetChangeVersion(0);
+        workspace.SetContext(
+            new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, TransactionId.Value.ToString("D"), ChangeVersion: 0),
+            new ReadContext(TransactionId: TransactionId));
+        Services.AddSingleton(workspace);
+        Services.AddSingleton(editState);
+        var writeHarness = new NavigationTestHarness(SnapshotId);
+        Services.AddSingleton<WebWriteCoordinator>(serviceProvider => WebWriteTestServices.CreateCoordinator(
+            writeHarness,
+            workspace,
+            serviceProvider.GetRequiredService<NavigationManager>()));
         Services.AddSingleton(new ContentMutationApplicationService(
             repository,
             new ContentMutationService(new ContentRevisionService(new FixedIdentifierGenerator
@@ -277,3 +296,5 @@ public sealed class ContentEditorTests : BunitContext
         }
     }
 }
+
+

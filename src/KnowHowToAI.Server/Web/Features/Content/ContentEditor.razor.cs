@@ -1,8 +1,9 @@
 using KnowHowToAI.Core.Application.Mutations.Content;
 using KnowHowToAI.Core.Domain.Common;
+using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Workflow;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
 namespace KnowHowToAI.Server.Web.Features.Content;
@@ -14,15 +15,22 @@ namespace KnowHowToAI.Server.Web.Features.Content;
 public sealed partial class ContentEditor : IAsyncDisposable
 {
     private const string ModulePath = "./Web/Features/Content/ContentEditor.razor.js";
+    private readonly SemaphoreSlim _editorLifecycle = new(1, 1);
 
     [Inject]
     private IJSRuntime JSRuntime { get; set; } = default!;
 
     [Inject]
-    private IServiceProvider ServiceProvider { get; set; } = default!;
+    private ContentMutationApplicationService ContentMutationService { get; set; } = default!;
+
+    [Inject]
+    private WebWriteCoordinator WebWriteCoordinator { get; set; } = default!;
 
     [Inject]
     public WorkspaceState WorkspaceState { get; set; } = default!;
+
+    [Inject]
+    public WorkspaceEditState WorkspaceEditState { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public Guid NodeId { get; set; }
@@ -43,6 +51,12 @@ public sealed partial class ContentEditor : IAsyncDisposable
     public long? ExpectedChangeVersion { get; set; }
 
     [Parameter]
+    public long? LoadedCurrentSnapshotId { get; set; }
+
+    [Parameter]
+    public bool FocusOnMount { get; set; }
+
+    [Parameter]
     public EventCallback<ContentMutationUseCaseResult> OnMutationSucceeded { get; set; }
 
     private ElementReference _editorElement;
@@ -54,10 +68,10 @@ public sealed partial class ContentEditor : IAsyncDisposable
     private string _editorMarkdown = string.Empty;
     private string _sourceMarkdown = string.Empty;
     private string? _errorMessage;
+    private IReadOnlyList<DomainWarning> _warnings = [];
     private bool _isSaving;
     private bool _pasteWasReduced;
     private bool _mountRequested = true;
-    private bool _mountInProgress;
     private bool _isSourceMode;
     private bool _hasLocalEditorValue;
     private bool _focusSourceAfterRender;
@@ -78,8 +92,9 @@ public sealed partial class ContentEditor : IAsyncDisposable
             _hasLocalEditorValue = true;
             if (!IsReadOnly)
             {
-                WorkspaceState.SetDirty(true);
+                WorkspaceEditState.SetDirty(true, DirtySource);
                 _errorMessage = null;
+                _warnings = [];
             }
         }
     }
@@ -91,11 +106,13 @@ public sealed partial class ContentEditor : IAsyncDisposable
         if (_parameterIdentity != identity)
         {
             _parameterIdentity = identity;
+            WorkspaceEditState.SetDirty(false, DirtySource);
             _editorMarkdown = parameterMarkdown;
             _sourceMarkdown = parameterMarkdown;
             _isSourceMode = false;
             _hasLocalEditorValue = false;
             _mountRequested = true;
+            _focusEditorAfterMount = FocusOnMount;
         }
         else if (!_hasLocalEditorValue && _editorMarkdown != parameterMarkdown)
         {
@@ -107,60 +124,81 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_isDisposed || _mountInProgress)
+        if (_isDisposed)
             return;
 
         if (_isSourceMode)
         {
-            if (_focusSourceAfterRender)
-            {
-                _focusSourceAfterRender = false;
-                await _sourceElement.FocusAsync();
-            }
-
+            await FocusSourceAfterRenderAsync();
             return;
         }
 
         if (!_mountRequested)
             return;
 
-        _mountInProgress = true;
+        await _editorLifecycle.WaitAsync();
         try
         {
-            do
-            {
-                _mountRequested = false;
-                await DisposeEditorAsync();
-
-                try
-                {
-                    _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
-                    _selfReference ??= DotNetObjectReference.Create(this);
-                    await _module.InvokeVoidAsync(
-                        "mount",
-                        _editorElement,
-                        _editorMarkdown,
-                        _selfReference,
-                        IsReadOnly);
-                    _mountedRequest = (NodeId, AudienceId, IsReadOnly);
-                    if (_focusEditorAfterMount)
-                    {
-                        _focusEditorAfterMount = false;
-                        await _module.InvokeVoidAsync("focus", _editorElement);
-                    }
-                }
-                catch (JSDisconnectedException)
-                {
-                    _mountRequested = true;
-                    break;
-                }
-            }
-            while (_mountRequested && !_isDisposed);
+            await MountRequestedEditorsAsync();
         }
         finally
         {
-            _mountInProgress = false;
+            _editorLifecycle.Release();
         }
+    }
+
+    private async Task FocusSourceAfterRenderAsync()
+    {
+        if (!_focusSourceAfterRender)
+            return;
+
+        _focusSourceAfterRender = false;
+        await _sourceElement.FocusAsync();
+    }
+
+    private async Task MountRequestedEditorsAsync()
+    {
+        if (_isDisposed || _isSourceMode || !_mountRequested)
+            return;
+
+        do
+        {
+            _mountRequested = false;
+            await DisposeEditorAsync();
+            if (_isDisposed || _isSourceMode || !await TryMountEditorAsync())
+                break;
+        }
+        while (_mountRequested && !_isDisposed && !_isSourceMode);
+    }
+
+    private async Task<bool> TryMountEditorAsync()
+    {
+        try
+        {
+            _module ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+            if (_isDisposed || _isSourceMode)
+                return false;
+
+            _selfReference ??= DotNetObjectReference.Create(this);
+            await _module.InvokeVoidAsync("mount", _editorElement, _editorMarkdown, _selfReference, IsReadOnly);
+            _mountedRequest = (NodeId, AudienceId, IsReadOnly);
+            await FocusEditorAfterMountAsync();
+            return true;
+        }
+        catch (JSDisconnectedException)
+        {
+            _mountRequested = true;
+            return false;
+        }
+    }
+
+    private async Task FocusEditorAfterMountAsync()
+    {
+        if (!_focusEditorAfterMount || _isDisposed || _isSourceMode)
+            return;
+
+        _focusEditorAfterMount = false;
+        await _module!.InvokeVoidAsync("focus", _editorElement);
     }
 
     [JSInvokable]
@@ -169,8 +207,9 @@ public sealed partial class ContentEditor : IAsyncDisposable
         if (!IsReadOnly)
         {
             _hasLocalEditorValue = true;
-            WorkspaceState.SetDirty(true);
+            WorkspaceEditState.SetDirty(true, DirtySource);
             _errorMessage = null;
+            _warnings = [];
         }
 
         return InvokeAsync(StateHasChanged);
@@ -191,36 +230,62 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
     private async Task SaveAsync()
     {
-        if (_isSaving || IsReadOnly || !TransactionId.HasValue || ExpectedChangeVersion is not { } changeVersion)
+        if (_isSaving || IsReadOnly)
             return;
 
         _isSaving = true;
         _errorMessage = null;
+        _warnings = [];
         try
         {
-            var markdown = _isSourceMode ? _sourceMarkdown : await ReadMarkdownAsync();
+            string markdown;
+            await _editorLifecycle.WaitAsync();
+            try
+            {
+                if (_isDisposed)
+                    return;
+
+                markdown = _isSourceMode ? _sourceMarkdown : await ReadMarkdownAsync();
+            }
+            finally
+            {
+                _editorLifecycle.Release();
+            }
+
             _editorMarkdown = markdown;
-            var result = await ServiceProvider.GetRequiredService<ContentMutationApplicationService>().ReplaceContentAsync(
-                TransactionId.Value,
-                new ReplaceContentRequest(
-                    new NodeId(NodeId),
-                    new AudienceId(AudienceId),
-                    ContentMode.Independent,
-                    markdown,
-                    [],
-                    changeVersion),
+            var result = await WebWriteCoordinator.WriteAsync(
+                LoadedCurrentSnapshotId,
+                (transactionId, changeVersion, cancellationToken) =>
+                    ContentMutationService.ReplaceContentAsync(
+                        transactionId,
+                        new ReplaceContentRequest(
+                            new NodeId(NodeId),
+                            new AudienceId(AudienceId),
+                            ContentMode.Independent,
+                            markdown,
+                            [],
+                            changeVersion ?? ExpectedChangeVersion
+                                ?? throw new InvalidOperationException("Die Arbeitskopie enthält keine Änderungsversion.")),
+                        cancellationToken),
+                value => value.ChangeVersion,
                 CancellationToken.None);
 
-            if (!result.IsSuccess)
+            if (!result.Mutation.IsSuccess)
             {
-                _errorMessage = $"[{result.Error!.Code}] {result.Error.Message}";
+                _errorMessage = $"[{result.Mutation.Error!.Code}] {result.Mutation.Error.Message}";
+                _warnings = result.Mutation.Warnings;
                 return;
             }
 
-            WorkspaceState.SetDirty(false);
+            _warnings = result.Mutation.Warnings;
+            WorkspaceEditState.SetDirty(false, DirtySource);
             _hasLocalEditorValue = false;
             _pasteWasReduced = false;
-            await OnMutationSucceeded.InvokeAsync(result.Value!);
+            await OnMutationSucceeded.InvokeAsync(result.Mutation.Value!);
+        }
+        catch (Exception exception)
+        {
+            _errorMessage = $"[{exception.GetType().Name}] {exception.Message}";
         }
         finally
         {
@@ -238,14 +303,23 @@ public sealed partial class ContentEditor : IAsyncDisposable
 
     private async Task ShowSourceAsync()
     {
-        if (_isSourceMode)
-            return;
+        await _editorLifecycle.WaitAsync();
+        try
+        {
+            if (_isDisposed || _isSourceMode)
+                return;
 
-        _sourceMarkdown = await ReadMarkdownAsync();
-        _editorMarkdown = _sourceMarkdown;
-        await DisposeEditorAsync();
-        _isSourceMode = true;
-        _focusSourceAfterRender = true;
+            _sourceMarkdown = await ReadMarkdownAsync();
+            _editorMarkdown = _sourceMarkdown;
+            await DisposeEditorAsync();
+            _isSourceMode = true;
+            _focusSourceAfterRender = true;
+        }
+        finally
+        {
+            _editorLifecycle.Release();
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
@@ -267,10 +341,20 @@ public sealed partial class ContentEditor : IAsyncDisposable
             return;
 
         _isDisposed = true;
-        await DisposeEditorAsync();
-        _selfReference?.Dispose();
-        WorkspaceState.SetDirty(false);
+        await _editorLifecycle.WaitAsync();
+        try
+        {
+            await DisposeEditorAsync();
+            _selfReference?.Dispose();
+            WorkspaceEditState.SetDirty(false, DirtySource);
+        }
+        finally
+        {
+            _editorLifecycle.Release();
+        }
     }
+
+    private string DirtySource => $"content:{NodeId:D}:{AudienceId}";
 
     private async Task DisposeEditorAsync()
     {

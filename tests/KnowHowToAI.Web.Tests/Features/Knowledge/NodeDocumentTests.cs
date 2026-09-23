@@ -5,6 +5,7 @@ using KnowHowToAI.Core.Domain.Content;
 using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Core.Domain.Versioning;
 using KnowHowToAI.Server.Web.Features.Knowledge.Node;
+using KnowHowToAI.Server.Web.State;
 using KnowHowToAI.TestSupport;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,6 +31,8 @@ public sealed class NodeDocumentTests : BunitContext
             false));
         var navigation = harness.CreateService();
         Services.AddSingleton(navigation);
+        Services.AddSingleton(new WorkspaceState());
+        Services.AddSingleton<WorkspaceEditState>();
 
         var cut = Render<NodeDocument>(parameters => parameters
             .Add(document => document.NodeId, nodeId.Value)
@@ -39,7 +42,7 @@ public sealed class NodeDocumentTests : BunitContext
         Assert.Equal("Lesbarer Inhalt", cut.Find("[data-testid='node-content-markdown']").TextContent.Trim());
         Assert.Equal("Developer", cut.Find("[data-testid='node-details-requested-audience']").TextContent.Trim());
         Assert.Empty(cut.FindAll("[data-testid='node-details-title']"));
-        Assert.Empty(cut.FindAll("[data-testid='node-details-edit']"));
+        Assert.Equal("Bearbeiten", cut.Find("[data-testid='node-details-edit']").TextContent.Trim());
         Assert.Equal($"/downloads/markdown?nodeId={nodeId.Value:D}&audienceId=Developer", cut.Find("[data-testid='node-details-markdown-download']").GetAttribute("href"));
     }
 }

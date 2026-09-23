@@ -1,26 +1,30 @@
 using KnowHowToAI.Core.Application.Mutations.Nodes;
 using KnowHowToAI.Core.Domain.Common;
-using KnowHowToAI.Server.Web.Features.Knowledge;
-using KnowHowToAI.Server.Web.State;
-using Microsoft.AspNetCore.Components;
+using KnowHowToAI.Core.Domain.Hierarchy;
 using KnowHowToAI.Server.Web.Features.Knowledge.Node;
+using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Workflow;
+using Microsoft.AspNetCore.Components;
 
 namespace KnowHowToAI.Server.Web.Features.Knowledge.Components;
 
-/// <summary>Erfasst explizit speicherbare Node-Stammdaten und Child-Nodes im Working-Kontext.</summary>
-public sealed partial class NodeMetadataEditor : IDisposable
+/// <summary>Erfasst Titel und Beschreibung als eigenständige, explizit speicherbare Node-Mutation.</summary>
+public sealed partial class NodeMetadataEditor
 {
     [Inject]
     private NodeMutationApplicationService NodeMutationService { get; set; } = default!;
 
     [Inject]
+    private WebWriteCoordinator WebWriteCoordinator { get; set; } = default!;
+
+    [Inject]
     private WorkspaceState WorkspaceState { get; set; } = default!;
+
+    [Inject]
+    private WorkspaceEditState WorkspaceEditState { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public NodeDetailsViewModel Node { get; set; } = default!;
-
-    [Parameter]
-    public TransactionId? TransactionId { get; set; }
 
     [Parameter]
     public long? ExpectedChangeVersion { get; set; }
@@ -28,96 +32,92 @@ public sealed partial class NodeMetadataEditor : IDisposable
     [Parameter]
     public EventCallback<NodeMutationResult> OnMutationSucceeded { get; set; }
 
-    private Guid _boundNodeId;
-    private string _initialTitle = string.Empty;
-    private string? _initialDescription;
     private string _title = string.Empty;
     private string? _description;
-    private EditorMode _mode;
     private string? _errorMessage;
+    private IReadOnlyList<DomainWarning> _warnings = [];
     private bool _isSubmitting;
+    private bool _isDirty;
+    private Guid _boundNodeId;
 
     protected override void OnParametersSet()
     {
-        if (_boundNodeId == Node.NodeId)
+        if (_boundNodeId != Node.NodeId)
+        {
+            _boundNodeId = Node.NodeId;
+            SetDraft(Node.Title, Node.Description);
             return;
+        }
 
-        _boundNodeId = Node.NodeId;
-        ResetForm();
-    }
-
-    private void OpenEdit()
-    {
-        _mode = EditorMode.Edit;
-        SetDraft(Node.Title, Node.Description);
-        _errorMessage = null;
-    }
-
-    private void OpenCreate()
-    {
-        _mode = EditorMode.Create;
-        SetDraft(string.Empty, null);
-        _errorMessage = null;
+        if (!_isDirty)
+            SetDraft(Node.Title, Node.Description);
     }
 
     private async Task SubmitAsync()
     {
-        if (!TransactionId.HasValue)
+        if (_isSubmitting)
             return;
 
         _isSubmitting = true;
         _errorMessage = null;
-        var result = _mode == EditorMode.Edit
-            ? await NodeMutationService.UpdateAsync(
-                TransactionId.Value,
-                new UpdateNodeRequest(new NodeId(Node.NodeId), _title, _description, ExpectedChangeVersion))
-            : await NodeMutationService.CreateAsync(
-                TransactionId.Value,
-                new CreateNodeRequest(new NodeId(Node.NodeId), _title, _description, int.MaxValue),
-                ExpectedChangeVersion);
-        _isSubmitting = false;
-
-        if (!result.IsSuccess)
+        _warnings = [];
+        try
         {
-            _errorMessage = $"[{result.Code}] {result.Error!.Message}";
-            return;
-        }
+            var result = await WebWriteCoordinator.WriteAsync(
+                WorkspaceState.LoadedSnapshotId,
+                (transactionId, changeVersion, cancellationToken) => NodeMutationService.UpdateAsync(
+                    transactionId,
+                    new UpdateNodeRequest(
+                        new NodeId(Node.NodeId),
+                        _title,
+                        _description,
+                        changeVersion ?? ExpectedChangeVersion),
+                    cancellationToken),
+                value => value.ChangeVersion);
 
-        ResetForm();
-        await OnMutationSucceeded.InvokeAsync(result.Value!);
+            _warnings = result.Mutation.Warnings;
+            if (!result.Mutation.IsSuccess)
+            {
+                _errorMessage = $"[{result.Mutation.Error!.Code}] {result.Mutation.Error.Message}";
+                return;
+            }
+
+            SetDraft(_title, _description);
+            await OnMutationSucceeded.InvokeAsync(result.Mutation.Value!);
+        }
+        catch (Exception exception)
+        {
+            _errorMessage = $"[{exception.GetType().Name}] {exception.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
     }
 
-    private void Cancel() => ResetForm();
-
-    private void ResetForm()
+    private void Cancel()
     {
-        _mode = EditorMode.None;
         SetDraft(Node.Title, Node.Description);
         _errorMessage = null;
+        _warnings = [];
     }
 
     private void SetDraft(string title, string? description)
     {
-        _initialTitle = title;
-        _initialDescription = description;
         _title = title;
         _description = description;
-        WorkspaceState.SetDirty(false);
+        _isDirty = false;
+        WorkspaceEditState.SetDirty(false, DirtySource);
     }
 
     private void UpdateDirty()
     {
-        var isDirty = !string.Equals(_title, _initialTitle, StringComparison.Ordinal)
-            || !string.Equals(_description, _initialDescription, StringComparison.Ordinal);
-        WorkspaceState.SetDirty(isDirty);
+        _isDirty = !string.Equals(_title, Node.Title, StringComparison.Ordinal)
+            || !string.Equals(_description, Node.Description, StringComparison.Ordinal);
+        WorkspaceEditState.SetDirty(_isDirty, DirtySource);
+        _errorMessage = null;
+        _warnings = [];
     }
 
-    public void Dispose() => WorkspaceState.SetDirty(false);
-
-    private enum EditorMode
-    {
-        None,
-        Edit,
-        Create
-    }
+    private string DirtySource => $"node-metadata:{Node.NodeId:D}";
 }

@@ -1,17 +1,19 @@
 using Bunit;
 using KnowHowToAI.Core.Application.Mutations.Nodes;
-using KnowHowToAI.Core.Application.Policies;
+using KnowHowToAI.Core.Application.Navigation;
 using KnowHowToAI.Core.Application.Transactions;
 using KnowHowToAI.Core.Domain.Common;
 using KnowHowToAI.Core.Domain.Hierarchy;
-using KnowHowToAI.Server.Web.Features.Knowledge;
+using KnowHowToAI.Core.Domain.Versioning;
+using KnowHowToAI.Server.Web.Components.Layout.Context;
 using KnowHowToAI.Server.Web.Features.Knowledge.Components;
+using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 using KnowHowToAI.Server.Web.State;
+using KnowHowToAI.Server.Web.Workflow;
 using KnowHowToAI.TestSupport;
 using KnowHowToAI.Web.Tests.TestSupport;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using KnowHowToAI.Server.Web.Features.Knowledge.Node;
 
 namespace KnowHowToAI.Web.Tests.Features.Knowledge;
 
@@ -21,142 +23,90 @@ public sealed class NodeMetadataEditorTests : BunitContext
     private static readonly TransactionId TransactionId = new(Guid.Parse("0e3af35a-0e85-4f24-8ae9-7dd2b3d124b3"));
     private static readonly SnapshotId SnapshotId = new(42);
     private static readonly NodeId RootNodeId = new(Guid.Parse("11111111-1111-1111-1111-111111111111"));
-    private static readonly NodeId ChildNodeId = new(Guid.Parse("22222222-2222-2222-2222-222222222222"));
 
     [Fact]
-    public void NodeMetadataEditor_WithoutTransaction_ExplainsWhyMutationIsUnavailable()
+    public async Task UpdatePersistsMetadataThroughTheSelectedDraft()
     {
-        AddService(State(Node(RootNodeId)));
-        var cut = Render<NodeMetadataEditor>(parameters => parameters
-            .Add(component => component.Node, ViewModel()));
-
-        Assert.NotNull(cut.Find("[data-testid='node-metadata-readonly']"));
-        Assert.Empty(cut.FindAll("[data-testid='save-node-metadata']"));
-    }
-
-    [Fact]
-    public async Task NodeMetadataEditor_UpdatePersistsServerAcceptedMetadata()
-    {
-        var repository = AddService(State(Node(RootNodeId)));
+        var repository = AddServices(State(Node(RootNodeId)));
         NodeMutationResult? persisted = null;
         var cut = Render<NodeMetadataEditor>(parameters => parameters
             .Add(component => component.Node, ViewModel())
-            .Add(component => component.TransactionId, TransactionId)
             .Add(component => component.ExpectedChangeVersion, 0L)
-            .Add(component => component.OnMutationSucceeded, EventCallback.Factory.Create<NodeMutationResult>(this, result => persisted = result)));
+            .Add(component => component.OnMutationSucceeded,
+                EventCallback.Factory.Create<NodeMutationResult>(this, result => persisted = result)));
 
-        await cut.InvokeAsync(() => cut.Find("[data-testid='edit-node-metadata']").Click());
-        Assert.False(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Aktualisierter Titel"));
-        Assert.True(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-description']").Change("Neue Beschreibung"));
-        await cut.InvokeAsync(() => cut.Find("[data-testid='save-node-metadata']").Click());
+        await cut.Find("[data-testid='node-metadata-title']").InputAsync("Aktualisierter Titel");
+        await cut.Find("[data-testid='node-metadata-description']").InputAsync("Neue Beschreibung");
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
+        await cut.Find("[data-testid='save-node-metadata']").ClickAsync();
 
         Assert.NotNull(persisted);
-        Assert.False(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
+        Assert.False(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         Assert.Equal("Aktualisierter Titel", repository.State.Nodes.Single().Title);
         Assert.Equal("Neue Beschreibung", repository.State.Nodes.Single().Description);
         Assert.Equal(1, persisted.ChangeVersion);
+        Assert.Equal(KnowledgeReadContextKind.Transaction, Services.GetRequiredService<WorkspaceState>().CurrentContext.ReadContext);
     }
 
     [Fact]
-    public async Task NodeMetadataEditor_CreateChildUsesSelectedNodeAsParentAndRefreshSignal()
+    public async Task StaleChangeVersionShowsRejectionAndKeepsTheEditedValueDirty()
     {
-        var repository = AddService(State(Node(RootNodeId)));
-        NodeMutationResult? persisted = null;
-        var cut = Render<NodeMetadataEditor>(parameters => parameters
-            .Add(component => component.Node, ViewModel())
-            .Add(component => component.TransactionId, TransactionId)
-            .Add(component => component.ExpectedChangeVersion, 0L)
-            .Add(component => component.OnMutationSucceeded, EventCallback.Factory.Create<NodeMutationResult>(this, result => persisted = result)));
-
-        await cut.InvokeAsync(() => cut.Find("[data-testid='create-child-node']").Click());
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Child"));
-        Assert.True(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
-        await cut.InvokeAsync(() => cut.Find("[data-testid='save-node-metadata']").Click());
-
-        Assert.NotNull(persisted);
-        Assert.False(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
-        var child = Assert.Single(repository.State.Nodes.Where(node => node.NodeId == ChildNodeId));
-        Assert.Equal(RootNodeId, child.ParentNodeId);
-        Assert.Equal(ChildNodeId, persisted.Node.NodeId);
-    }
-
-    [Fact]
-    public async Task NodeMetadataEditor_StaleChangeVersionShowsServerRejection()
-    {
-        var repository = AddService(State(Node(RootNodeId)));
+        var repository = AddServices(State(Node(RootNodeId)));
         var service = Services.GetRequiredService<NodeMutationApplicationService>();
         await service.UpdateAsync(TransactionId, new UpdateNodeRequest(RootNodeId, "Anderer Client", null));
         var cut = Render<NodeMetadataEditor>(parameters => parameters
             .Add(component => component.Node, ViewModel())
-            .Add(component => component.TransactionId, TransactionId)
             .Add(component => component.ExpectedChangeVersion, 0L));
 
-        await cut.InvokeAsync(() => cut.Find("[data-testid='edit-node-metadata']").Click());
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Veralteter Stand"));
-        await cut.InvokeAsync(() => cut.Find("[data-testid='save-node-metadata']").Click());
+        await cut.Find("[data-testid='node-metadata-title']").InputAsync("Veralteter Stand");
+        await cut.Find("[data-testid='save-node-metadata']").ClickAsync();
 
         Assert.Contains(TransactionValidationErrorCodes.ChangeVersionConflict, cut.Markup);
-        Assert.True(Services.GetRequiredService<WorkspaceState>().CurrentContext.IsDirty);
+        Assert.True(Services.GetRequiredService<WorkspaceEditState>().IsDirty);
         Assert.Equal("Anderer Client", repository.State.Nodes.Single().Title);
+        Assert.Equal("Veralteter Stand", cut.Find("[data-testid='node-metadata-title']").GetAttribute("value"));
     }
 
     [Fact]
-    public async Task NodeMetadataEditor_RevertingDraftAndCancelClearsDirty()
+    public async Task CancellingMetadataInputDoesNotClearOtherDirtyEditorSources()
     {
-        AddService(State(Node(RootNodeId)));
-        var workspaceState = Services.GetRequiredService<WorkspaceState>();
-        var cut = Render<NodeMetadataEditor>(parameters => parameters
-            .Add(component => component.Node, ViewModel())
-            .Add(component => component.TransactionId, TransactionId));
+        AddServices(State(Node(RootNodeId)));
+        var workspace = Services.GetRequiredService<WorkspaceEditState>();
+        var cut = Render<NodeMetadataEditor>(parameters => parameters.Add(component => component.Node, ViewModel()));
 
-        await cut.InvokeAsync(() => cut.Find("[data-testid='edit-node-metadata']").Click());
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Geänderter Titel"));
-        Assert.True(workspaceState.CurrentContext.IsDirty);
+        await cut.Find("[data-testid='node-metadata-title']").InputAsync("Änderung");
+        workspace.SetDirty(true, "content:test");
+        await cut.Find("button[type='button']").ClickAsync();
 
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Root"));
-        Assert.False(workspaceState.CurrentContext.IsDirty);
-
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-description']").Change("Entwurf"));
-        Assert.True(workspaceState.CurrentContext.IsDirty);
-        await cut.InvokeAsync(() => cut.Find("button[type='button']").Click());
-
-        Assert.False(workspaceState.CurrentContext.IsDirty);
-        Assert.Single(cut.FindAll("[data-testid='edit-node-metadata']"));
+        Assert.True(workspace.IsDirty);
+        Assert.Equal("Root", cut.Find("[data-testid='node-metadata-title']").GetAttribute("value"));
     }
 
-    [Fact]
-    public async Task NodeMetadataEditor_DisposeClearsDirty()
-    {
-        AddService(State(Node(RootNodeId)));
-        var workspaceState = Services.GetRequiredService<WorkspaceState>();
-        var cut = Render<NodeMetadataEditor>(parameters => parameters
-            .Add(component => component.Node, ViewModel())
-            .Add(component => component.TransactionId, TransactionId));
-
-        await cut.InvokeAsync(() => cut.Find("[data-testid='edit-node-metadata']").Click());
-        await cut.InvokeAsync(() => cut.Find("[data-testid='node-metadata-title']").Change("Entwurf"));
-        Assert.True(workspaceState.CurrentContext.IsDirty);
-
-        cut.Instance.Dispose();
-
-        Assert.False(workspaceState.CurrentContext.IsDirty);
-    }
-
-    private InMemoryNodeMutationRepository AddService(WorkingNodeMutationState state)
+    private InMemoryNodeMutationRepository AddServices(WorkingNodeMutationState state)
     {
         var repository = new InMemoryNodeMutationRepository(state);
-        Services.AddSingleton(new WorkspaceState());
-        Services.AddSingleton(TestNodeMutations.CreateService(repository, ChildNodeId));
+        var workspace = new WorkspaceState();
+        var editState = new WorkspaceEditState();
+        workspace.SetAudience("Developer");
+        workspace.SetLoadedSnapshotId(SnapshotId.Value);
+        workspace.SetChangeVersion(0);
+        workspace.SetContext(
+            new KnowledgeContextViewModel(KnowledgeReadContextKind.Transaction, TransactionId.Value.ToString("D"), ChangeVersion: 0),
+            new ReadContext(TransactionId: TransactionId));
+        Services.AddSingleton(workspace);
+        Services.AddSingleton(editState);
+        var harness = new NavigationTestHarness(SnapshotId);
+        Services.AddSingleton<WebWriteCoordinator>(serviceProvider => WebWriteTestServices.CreateCoordinator(
+            harness, workspace, serviceProvider.GetRequiredService<NavigationManager>()));
+        Services.AddSingleton(TestNodeMutations.CreateService(repository));
         return repository;
     }
 
     private static WorkingNodeMutationState State(params Node[] nodes) =>
         new(SnapshotId, nodes, [], [], nodes.Select(node => node.NodeId).ToArray());
 
-    private static Node Node(NodeId nodeId, NodeId? parentNodeId = null) =>
-        new(SnapshotId, nodeId, parentNodeId, "Root", null, 0, false);
+    private static Node Node(NodeId nodeId) =>
+        new(SnapshotId, nodeId, null, "Root", null, 0, false);
 
     private static NodeDetailsViewModel ViewModel() =>
         new(
@@ -171,8 +121,10 @@ public sealed class NodeMetadataEditorTests : BunitContext
             "Explicit",
             "Current",
             null,
-            null,
-            null,
+            "Independent",
+            "Vorhandener Inhalt",
             [],
             ChangeVersion: 0);
 }
+
+

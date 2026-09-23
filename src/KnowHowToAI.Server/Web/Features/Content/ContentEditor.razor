@@ -10,12 +10,12 @@
     {
         <div class="content-editor__actions">
             <span class="content-editor__status" role="status" aria-live="polite">
-                @(_isSaving ? "Wird gespeichert…" : _pasteWasReduced ? "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert." : WorkspaceState.CurrentContext.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
+                @(_isSaving ? "Wird gespeichert…" : _pasteWasReduced ? "Eingefügter Inhalt wurde aus Sicherheitsgründen reduziert." : WorkspaceEditState.IsDirty ? "Ungespeicherte Änderungen" : "Gespeichert")
             </span>
             <button type="button"
                     class="btn btn-primary"
                     data-testid="content-editor-save"
-                    disabled="@(_isSaving || !TransactionId.HasValue)"
+                    disabled="@_isSaving"
                     @onclick="SaveAsync">
                 Speichern
             </button>
@@ -64,6 +64,13 @@
     {
         <div class="content-editor__error" role="alert" data-testid="content-editor-error">
             @_errorMessage
+        </div>
+    }
+
+    @foreach (var warning in _warnings)
+    {
+        <div class="content-editor__warning" role="status" data-testid="content-editor-warning-@warning.Code">
+            <strong>@warning.Code</strong> @warning.Message
         </div>
     }
 
