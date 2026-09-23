@@ -127,8 +127,9 @@ Wissensbereich.
   Es werden keine ARIA-Tabrollen ohne das dazugehörige Tastaturmuster und keine
   eigene Reiter-Tastatursteuerung eingeführt.
 - Das Muster nutzt die bestehenden Design-Tokens und die gemeinsame
-  Seitenbreite. Es bleibt bei Desktopbreite sowie beim vorgegebenen 200-/400-%-
-  Zoom ohne abgeschnittene Reiter, Inhalte oder Aktionen bedienbar.
+  Seitenbreite. Die Desktopabnahme erfolgt bei 1280 × 800 CSS-Pixeln (oder
+  begründet bei 1280 × 720) sowie sekundär bei 1024 × 720. Ansichten unter
+  1024 CSS-Pixeln und 200-/400-%-Zoom sind kein Abnahmegate.
 
 ### Inhalt je Reiter
 
@@ -249,7 +250,10 @@ Komponententests unter `tests/KnowHowToAI.Web.Tests/Components/Shared/Tabs/`.
   aktiven Zustand; die bestehenden Tests für Knotenansichten und Inhaltseditor
   prüfen Reiterwechsel, verborgen erhaltene Eingaben, Moduswechsel,
   Formatierungsaktionen und getrennte Speichern-Pfade.
-- Browserprüfung der betroffenen Routen und Zustände mit Computed Styles,
-  Innenkanten, vertikaler Reihenfolge, Overflow, Umbruch und erreichbaren
-  Aktionen bei 1280, 1024, 640 und 320 CSS-Pixeln; gemeinsame Sichtprüfung
-  der Screenshots. Die manuelle Zoom-Checkliste ergänzt dies.
+- Browserprüfung der betroffenen Routen und relevanten Zustände bei 1280 × 800
+  CSS-Pixeln (oder begründet bei 1280 × 720) und sekundär bei 1024 × 720 mit
+  Computed Styles, Innenkanten, vertikaler Reihenfolge, Overflow, Umbruch und
+  erreichbaren Aktionen. Gezielte Screenshots geänderter Zustände in der
+  jeweils nötigen Desktopgröße ergänzen die Prüfung; keine schmale
+  Viewport-Matrix und keine pauschalen FullPage-Screenshots. 200-/400-%-Zoom
+  sowie Ansichten unter 1024 CSS-Pixeln sind kein Abnahmegate.

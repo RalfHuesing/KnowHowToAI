@@ -6,23 +6,25 @@ alwaysApply: false
 
 # Web-UI-, HTML- und CSS-Guardrails
 
-Diese Regel triggert die vorhandene HTML-/CSS-/Layout-Kompetenz. Die
-Soll-Verträge für den Neustart stehen im
-[Web-Editor-Konzept](../../tasks/web-editor-neustart/Konzept.md); die
-anschließende Desktop-Mausbedienung steht im
-[freigegebenen Bedienkonzept](../../tasks/web-editor-bedienung/Konzept.md).
-Der Ablauf
-für Planung und Umsetzung steht im [Agent-Workflow-Kit](../agent-workflow/README.md);
-Nachweise richten sich nach den [Testregeln](TestRichtlinien.mdc) und der
-[manuellen UI-Abnahme](../../docs/Manuelle-UI-Abnahme.md).
+Diese Regel triggert die vorhandene HTML-/CSS-/Layout-Kompetenz. Für das
+aktuelle Reiterlayout steht das Soll-Konzept in
+[tasks/web-layout-reiter-tabs/Konzept.md](../../tasks/web-layout-reiter-tabs/Konzept.md).
+Der Ablauf für Planung und Umsetzung steht im
+[Agent-Workflow-Kit](../agent-workflow/README.md); Nachweise richten sich nach
+den [Testregeln](TestRichtlinien.mdc).
 
 Vor seitenübergreifenden UI-, Layout- oder UX-Änderungen ist das
 [Web-UI-Gesamtbild](../../docs/WebUi.md) zu lesen. Ändert der Slice den dort
 dokumentierten Ist-Zustand, wird `docs/WebUi.md` im selben Slice aktualisiert;
 die Regel enthält keine kopierte UI-Beschreibung.
 
-Die Web-Bedienung richtet sich an Desktopnutzer mit Maus. Eine besondere
-Tastatursteuerung oder ein Tastatur-Abnahmenachweis ist kein Produktziel.
+Die Web-Bedienung richtet sich an Desktopnutzer mit Maus. Der primäre
+Abnahmezustand ist 1280 × 800 CSS-Pixel; 1280 × 720 ist zulässig, wenn die
+konkrete Umgebung es besser begründet. Der sekundäre Zustand ist 1024 × 720.
+Unter 1024 CSS-Pixeln besteht kein verpflichtendes Freigabegate. 200-/400-%-
+Zoom und 640-/320-/390-Pixel-Ansichten sind ebenfalls kein Abnahmegate. Eine
+besondere Tastatursteuerung oder ein Tastatur-Abnahmenachweis ist kein
+Produktziel.
 Insbesondere dürfen Treeview-Pfeiltasten, Tastaturverschiebung und ein
 Tastaturmuster für visuelle Reiter nicht wegen früherer Tests oder
 Ist-Beschreibungen wieder eingebaut werden. Native HTML-Bedienung und
@@ -63,12 +65,14 @@ Tastaturhandler und Roving-Tabindex passen nicht zu diesem Vertrag.
 
 ## Nachweis vor Abschluss
 
-- Behauptete Layoutverträge routeübergreifend im echten Browser prüfen: feste
-  Viewports gemäß Projektvorgaben, Computed Styles, Bounding Boxes/Innenkanten,
+- Behauptete Layoutverträge im echten Browser an den für den Slice relevanten
+  Routen und Zuständen bei 1280 × 800 (oder begründet 1280 × 720) sowie bei
+  1024 × 720 CSS-Pixeln prüfen: Computed Styles, Bounding Boxes/Innenkanten,
   Overflow, Umbruch und erreichbare Aktionen.
-- Screenshots aller betroffenen Routen/Zustände in einem Lauf gemeinsam visuell
-  prüfen; sie ergänzen Assertions und ersetzen sie nicht. Baselines nie blind
-  aktualisieren.
+- Gezielte Screenshots nur für relevante geänderte Zustände und in der dafür
+  nötigen Desktopgröße erstellen und gemeinsam visuell prüfen. Keine schmale
+  Viewport-Matrix und keine pauschalen FullPage-Screenshots; Screenshots
+  ergänzen Assertions und ersetzen sie nicht. Baselines nie blind aktualisieren.
 - Ein grüner Einzelroute-/Sichtbarkeitstest belegt keine systemweite Konsistenz.
   Kein Slice ist fertig, solange eine behauptete Route, ein relevanter Zustand
   oder eine dokumentierte Ausnahme im Nachweis fehlt.

@@ -120,17 +120,19 @@ bleibt nicht als Übergabe zurück.
   - **Intention:** Die behauptete Reiter- und Editorordnung ist in den
     echten Wissensrouten und relevanten Zuständen belegt.
   - **Voraussetzung:** P3 abgeschlossen.
-  - **Scope:** `PageFrameSmokeTests` prüft bei 1280, 1024, 640 und 320
-    CSS-Pixeln Reiter vor Inhalt, Kontextposition, Footer mit Status links
+  - **Scope:** `PageFrameSmokeTests` prüft bei 1280 × 800 CSS-Pixeln (oder
+    begründet bei 1280 × 720) und sekundär bei 1024 × 720 Reiter vor Inhalt,
+    Kontextposition, Footer mit Status links
     und Speichern rechts, Innenkanten, Computed Styles, Umbruch,
     horizontalen Overflow und erreichbare Aktionen. Die bestehenden
     Knowledge-/Editor-Browser-Smokes werden an die neuen Labels und die
     native Ansichtsauswahl angepasst. `UiAuditScreenshotTests` erfasst
     zusätzlich den Working-Kontext und fehlenden eigenen Content, damit
-    alle im Konzept genannten Wissenszustände vertreten sind. Ein Lauf mit
-    `scripts/capture-ui-audit.ps1` erzeugt Screenshots der betroffenen
-    Wissensansichten in allen vier Breiten; diese werden gemeinsam visuell
-    auf unerklärten Drift geprüft. `docs/WebUi.md` und
+    alle im Konzept genannten Wissenszustände vertreten sind. Gezielte
+    Screenshots dokumentieren nur relevante geänderte Zustände in der jeweils
+    nötigen Desktopgröße und werden gemeinsam visuell auf unerklärten Drift
+    geprüft. Es gibt keine schmale Viewport-Matrix und keine pauschalen
+    FullPage-Screenshots. `docs/WebUi.md` und
     `docs/Architektur.md` werden gegen den tatsächlichen Endzustand
     abgeglichen. Vollständige FastTests, relevante Browser-Smokes,
     Solution-Build und Solution-Linter-Gate laufen nach Projektregeln.
@@ -142,14 +144,6 @@ bleibt nicht als Übergabe zurück.
     `docs/` beschreibt den implementierten Ist-Zustand. Abschlussnachweis
     enthält Testresultate, Screenshot-Verzeichnis, begründete Abweichungen
     und einen atomaren Commit nur für diesen Punkt.
-
-## Menschlicher Zoom-Nachweis
-
-- [ ] Ein Mensch prüft die geänderten Wissensansichten in Chrome Stable bei
-  100, 200 und 400 % nach
-  [`docs/Manuelle-UI-Abnahme.md`](../../docs/Manuelle-UI-Abnahme.md) und
-  dokumentiert Ergebnis und etwaige Befunde. Der Agent simuliert diesen
-  Durchlauf nicht. Der Punkt ist ein manuelles Abnahme-Gate, kein Codeauftrag.
 
 ## Audit
 

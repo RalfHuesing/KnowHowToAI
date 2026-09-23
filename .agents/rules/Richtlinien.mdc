@@ -36,7 +36,6 @@ Nutzeranweisungen haben Vorrang.
 
 ## Struktur, Migrationen und Dokumentation
 
-- Bei der Umsetzung des Web-Editor-Neustarts definieren das [Konzept](../../tasks/web-editor-neustart/Konzept.md) und der jeweils aktive Leaf unter `tasks/web-editor-neustart/roadmap/` das Soll-Delta. Den dreistufigen Ablauf beschreibt das [Agent-Workflow-Kit](../agent-workflow/README.md). `docs/` bleibt die Quelle für den belegten Ist-Zustand; Planungsartefakte ersetzen sie nicht.
 - Vor dem ersten unterstützten Datenbankstand darf die Greenfield-Baseline direkt korrigiert werden. Danach sind angewendete Migrationsskripte unveränderlich; Änderungen erfolgen ausschließlich durch neue, vorwärts gerichtete Migrationen mit neuer Versionsnummer.
 - `README.md` nur bei ausdrücklichem Auftrag ändern; Fremdänderungen erhalten.
 

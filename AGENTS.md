@@ -14,7 +14,7 @@ Hierarchische, versionierte und zielgruppenabhängige Wissensbasis für Agenten 
 - **Teststrategie & Testebenen**: [.agents/rules/TestRichtlinien.mdc](.agents/rules/TestRichtlinien.mdc)
 - **C#-Codeanalyse & Linter-Workflow**: [.agents/rules/AiNetLinter-McpWorkflow.mdc](.agents/rules/AiNetLinter-McpWorkflow.mdc)
 - **Doku-Pflege**: [.agents/rules/DokuRichtlinien.mdc](.agents/rules/DokuRichtlinien.mdc)
-- **HTML/CSS/Layout-Guardrails**: [.agents/rules/WebUiHtmlCss.mdc](.agents/rules/WebUiHtmlCss.mdc) — verbindliche routeübergreifende UI-, Semantik- und Layoutnachweise
+- **HTML/CSS/Layout-Guardrails**: [.agents/rules/WebUiHtmlCss.mdc](.agents/rules/WebUiHtmlCss.mdc) — verbindliche Desktop-/Mausausrichtung sowie routeübergreifende UI-, Semantik- und Layoutnachweise
 - **Planungs- und Ausführungspattern für Roadmaps**: [tasks/README.md](tasks/README.md)
 
 ## Modell- und Delegationsstrategie

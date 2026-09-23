@@ -4,9 +4,8 @@ Diese Dokumentation beschreibt den Ist-Zustand von KnowHowToAI. Sie ist die
 verbindliche fachliche und technische Quelle für implementiertes Verhalten.
 Konzepte und Roadmaps unter `tasks/` beschreiben das geplante Soll-Delta und
 ersetzen diese Ist-Dokumentation nicht. Das Planungs- und Ausführungspattern
-steht in [tasks/README.md](../tasks/README.md); für den Web-Editor-Neustart sind
-[Konzept](../tasks/web-editor-neustart/Konzept.md) und
-[Roadmap](../tasks/web-editor-neustart/roadmap.md) dessen aktuelle Projektartefakte.
+steht in [tasks/README.md](../tasks/README.md); aktuelle Projektartefakte sind
+dort verlinkt.
 
 ## Verbindlichkeit und Vorrang
 
