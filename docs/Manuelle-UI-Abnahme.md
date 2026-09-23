@@ -1,18 +1,16 @@
 # Manuelle UI-Abnahme
 
 Diese Checkliste richtet sich an Menschen und ergänzt die automatisierten
-Browser-Smokes aus `KnowHowToAI.BrowserTests` um die Punkte, die sich nicht
-zuverlässig automatisieren lassen – vor allem echten Browserzoom und die
-wahrgenommene Sichtbarkeit des Fokus. Sie ist eine Entwicklungsmaßnahme nach
-WCAG 2.2 AA und behauptet keine formale WCAG-Zertifizierung. Der Agent führt
-sie nicht interaktiv aus.
+Browser-Smokes aus `KnowHowToAI.BrowserTests` um echten Browserzoom und
+visuelle Reflow-Prüfung. Der Agent führt sie nicht interaktiv aus.
+Tastaturnavigation und Fokuswahrnehmung sind keine Abnahmepunkte.
 
 ## Prüfumgebung
 
 - Google Chrome Stable Desktop (installierte aktuelle Version), sonstige
   Browsererweiterungen deaktiviert.
 - Fenstergröße etwa 1280 × 720; die Zoomstufen werden über das
-  Chrome-Zoommenü (Strg + `+` / Strg + `-`) eingestellt, nicht über die
+  Chrome-Zoommenü eingestellt, nicht über die
   Bildschirmauflösung.
 
 ## Zoom- und Reflow-Durchlauf
@@ -39,34 +37,12 @@ Auf dem Desktop startet die Navigation offen; nach dem Schließen muss derselbe
 Button die Navigation wieder öffnen. In kompakter Breite erscheint die
 Navigation als Drawer/Overlay.
 
-## Kurze Tastaturschritte (in jeder Zoomstufe gleich)
-
-Ausgangspunkt ist jeweils der Grundzustand von `/knowledge?audienceId=Default`
-nach Auswahl der verfügbaren Zielgruppe. Die Weiterleitung von `/` nach
-`/knowledge` wird separat durch `KnowledgeRedirectSmokeTests` belegt.
-
-1. Tab – der Skip-Link „Zum Hauptinhalt springen“ erhält den Fokus und wird
-   sichtbar; der Fokusring bleibt während der gesamten Folge sichtbar.
-2. Enter – der Fokus springt auf den Hauptinhalt.
-3. Umschalt + Tab beziehungsweise der sichtbare App-Leisten-Button –
-   der Fokus erreicht den Kopfbutton „Navigation einblenden“.
-4. Enter – der Navigationsbereich öffnet sich; der Fokus liegt auf dem
-   Navigationsbereich.
-5. Tab – der Wissen-Link; die Reihenfolge ist logisch und ohne Tabfalle.
-6. Escape – der Bereich schließt sich; der Fokus kehrt zum Auslöser zurück.
-7. Den Dialog- und Toast-Tastaturvertrag mit dem jeweils ersten echten
-   Verbraucher prüfen (Öffnen, Fokusfalle, Escape entspricht Abbrechen,
-   Fokusrückgabe; Toast pausier-/schließbar, Fokus wird nicht verschoben).
-8. Statusmeldungen (Warnung, Fehler, Erfolg, ungespeichert) nie nur an der
-   Farbe erkennen: Icon und Text bleiben lesbar.
-
-Die Schritte 1–6 entsprechen den automatisierten Smokes
-(`LayoutShellSmokeTests`, `ResponsiveShellSmokeTests`); Abweichungen zwischen
-manueller Beobachtung und Smokes sind vor dem nächsten Slice zu klären.
+Statusmeldungen (Warnung, Fehler, Erfolg, ungespeichert) dürfen nicht nur an
+der Farbe erkennbar sein: Icon und Text bleiben lesbar.
 
 ## Nicht Teil dieser Checkliste
 
 - Screenreader-Durchläufe und Plattform-Vergrößerungen (eigenes späteres
   Planungsgate).
-- Automatisierte WCAG-Scans; der Umfang der automatisierten Nachweise ist im
-  jeweiligen Roadmap-Task festgelegt.
+- Tastatur- und Fokuswahrnehmungsprüfungen sowie automatisierte WCAG-Scans.
+  Der Umfang automatisierter Nachweise steht im jeweiligen Roadmap-Task.

@@ -36,7 +36,7 @@ steht in [tasks/README.md](../tasks/README.md); für den Web-Editor-Neustart sin
 | [Architektur](Architektur.md) | Stack, Schichten, Transportgrenzen, Projektstruktur, Deployment |
 | [Konfiguration und Betrieb](Konfiguration-und-Betrieb.md) | Konfigurationsschlüssel, Protokollierung, Build, Tests, Linter |
 | [Web-UI-Gesamtbild](WebUi.md) | Istbild von Shell, Wissenskontext, Seitennetz, Routen und UI-Verantwortungsgrenzen |
-| [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md) | manuelle Checkliste für Browserzoom, Reflow und Tastaturnavigation der Anwendungsshell |
+| [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md) | manuelle Checkliste für Browserzoom und visuelle Reflow-Prüfung |
 | [Invarianten](Invarianten.md) | verbindliche Regeln des Gesamtsystems |
 | [Entscheidungen](Entscheidungen.md) | Architekturentscheidungen, bewusste V1-Grenzen, spätere Erweiterungen |
 

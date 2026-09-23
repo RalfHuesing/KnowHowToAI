@@ -66,10 +66,10 @@ im Draft-Kontext.
 Die Routengrenze und MCP-/Asset-Erreichbarkeit stehen in den Hosttests. Die
 verbleibenden Web-Komponenten werden durch FastTests und Browser-Smokes geprüft.
 `LayoutShellSmokeTests`, `PageFrameSmokeTests` und `ResponsiveShellSmokeTests`
-belegen die gemeinsamen Landmarken, Seiten-Innenkanten, Skip-Link-/Fokusverträge
-und Reflow bei den vereinbarten CSS-Breiten. Die manuelle Abnahme ergänzt echten
-Chrome-Zoom und menschliche Sichtprüfung der Fokuswahrnehmung; diese Punkte
-werden nicht durch automatisierte Browser-Smokes behauptet. HTML-Semantik,
+belegen die gemeinsamen Landmarken, Seiten-Innenkanten und Reflow bei den
+vereinbarten CSS-Breiten. Die manuelle Abnahme ergänzt echten Chrome-Zoom
+und visuelle Reflow-Prüfung; diese Punkte werden nicht durch
+automatisierte Browser-Smokes behauptet. HTML-Semantik,
 responsive Reflow und Layoutgrenzen folgen den
 [Web-UI-Guardrails](../.agents/rules/WebUiHtmlCss.mdc) und der
 [manuellen UI-Abnahme](Manuelle-UI-Abnahme.md).

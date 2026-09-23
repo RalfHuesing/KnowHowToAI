@@ -8,6 +8,13 @@ Vier Reiter trennen Lesen, Titel/Beschreibung, Inhaltseditor und technische
 Angaben. Core, Storage, MCP und Routenformat bleiben unverändert. Maßgeblich
 ist das [Konzept](../../Konzept.md).
 
+## Nicht-Ziele
+
+Besondere Tastaturbedienung für Baum, Verschieben oder Reiter sowie ein
+Tastatur-/Fokus-Abnahmenachweis gehören nicht zu diesem Milestone. Frühere
+Tests oder Ist-Beschreibungen sind kein Auftrag, diese Bedienung erneut
+einzubauen. Native Texteingabe und Browserfunktionen werden nicht blockiert.
+
 ## Reihenfolge
 
 - [ ] [M1.1-T1 – Sichtbare Node-Kennungen und Herkunft bereinigen](tasks/M1.1-T1.md)

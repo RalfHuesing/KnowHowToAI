@@ -6,9 +6,12 @@ alwaysApply: false
 
 # Web-UI-, HTML- und CSS-Guardrails
 
-Diese Regel triggert die vorhandene HTML-/CSS-/Accessibility-Kompetenz. Die
-Soll-Verträge für Oberfläche und Struktur des Neustarts stehen im
-[Web-Editor-Konzept](../../tasks/web-editor-neustart/Konzept.md). Der Ablauf
+Diese Regel triggert die vorhandene HTML-/CSS-/Layout-Kompetenz. Die
+Soll-Verträge für den Neustart stehen im
+[Web-Editor-Konzept](../../tasks/web-editor-neustart/Konzept.md); die
+anschließende Desktop-Mausbedienung steht im
+[freigegebenen Bedienkonzept](../../tasks/web-editor-bedienung/Konzept.md).
+Der Ablauf
 für Planung und Umsetzung steht im [Agent-Workflow-Kit](../agent-workflow/README.md);
 Nachweise richten sich nach den [Testregeln](TestRichtlinien.mdc) und der
 [manuellen UI-Abnahme](../../docs/Manuelle-UI-Abnahme.md).
@@ -17,6 +20,14 @@ Vor seitenübergreifenden UI-, Layout- oder UX-Änderungen ist das
 [Web-UI-Gesamtbild](../../docs/WebUi.md) zu lesen. Ändert der Slice den dort
 dokumentierten Ist-Zustand, wird `docs/WebUi.md` im selben Slice aktualisiert;
 die Regel enthält keine kopierte UI-Beschreibung.
+
+Die Web-Bedienung richtet sich an Desktopnutzer mit Maus. Eine besondere
+Tastatursteuerung oder ein Tastatur-Abnahmenachweis ist kein Produktziel.
+Insbesondere dürfen Treeview-Pfeiltasten, Tastaturverschiebung und ein
+Tastaturmuster für visuelle Reiter nicht wegen früherer Tests oder
+Ist-Beschreibungen wieder eingebaut werden. Native HTML-Bedienung und
+Texteingabe werden nicht absichtlich blockiert. Die bestehende Shell wird
+außerhalb des jeweils beauftragten UI-Slices nicht zurückgebaut.
 
 ## Vor dem Edit
 
@@ -41,8 +52,9 @@ die Regel enthält keine kopierte UI-Beschreibung.
   Feature-CSS bleibt scoped. Keine `!important`-, Spezifitäts-, Negativ-Margin-,
   Transform- oder Overflow-Reparatur für falsche Ownership/Cascade.
 - Prosa darf begrenzt werden; Navigation, Baum, Tabellen, Diff, Formulare und
-  Aktionsflächen nicht. Semantik, zugängliche Namen, Fokus, Reflow und bestehende
-  Funktionen bleiben erhalten.
+  Aktionsflächen nicht. Semantik und zugängliche Namen müssen zum tatsächlich
+  angebotenen Verhalten passen; Reflow und fachliche Funktionen bleiben
+  erhalten. Ein Fokus- oder Tastaturvertrag wird daraus nicht abgeleitet.
 
 ## Nachweis vor Abschluss
 

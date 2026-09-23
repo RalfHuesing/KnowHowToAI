@@ -47,7 +47,7 @@ Gleichstände, nicht die Semantik einer neuen Verschiebung.
 
 Im Wissensbaum lassen sich der erste Root und Unterknoten anlegen sowie Titel
 und Beschreibung ändern. Nodes können sichtbar vor, nach oder unter ein Ziel
-verschoben werden; dieselben Ziele sind über Tastaturaktionen erreichbar.
+verschoben werden.
 Der erste bestätigte Save oder Move aus Current beginnt den sichtbaren Entwurf.
 Details zur Oberfläche und zum Reload-Verhalten stehen im
 [Web-UI-Gesamtbild](WebUi.md).

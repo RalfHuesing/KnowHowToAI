@@ -270,8 +270,8 @@ Dokumentfluss. Der wiederverwendte `NodeDocumentLoader` lädt ViewModel,
 Fehler/NotFound und Export-URL für die Dokumentansicht und die weiterhin
 eigenständig verfügbaren Bearbeitungs-Pane.
 
-Die Treeview-Semantik, fokussierbare Zustände und Mutationsgrenzen sind am Code
-und in den [repräsentativen Web-Tests](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/)
+Die Baum- und Mutationsgrenzen sind am Code und in den
+[repräsentativen Web-Tests](../tests/KnowHowToAI.Web.Tests/Features/Knowledge/)
 belegt und werden nicht als zweite Seitenbeschreibung in dieser Architekturdatei
 wiederholt.
 Beim Neuladen oder direkten Einstieg ermittelt der `KnowledgeTreePathLoader` die
@@ -305,7 +305,7 @@ Die sichtbare Shell-, Kontext- und Seitenregionen-Verantwortung steht im
 rendererfreie Slot-Grenze. `ContextSelectorDialog`, `ContextSelectorDialog`, `ContextSelectionForm`, `WorkspaceState` und
 `NavigationProtection` bleiben featureübergreifende Adapter für URL-Kontext und
 flüchtigen Circuit-State. Reconnect-Interop bleibt auf `App.razor` und das
-frameworkseitige Circuit-Verhalten begrenzt. Layout-, Fokus- und Reflow-Nachweise
+frameworkseitige Circuit-Verhalten begrenzt. Layout- und Reflow-Nachweise
 stehen in [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md) und der
 [Web-UI-Regel](../.agents/rules/WebUiHtmlCss.mdc); diese Datei wiederholt keine
 sichtbare Shellbeschreibung.
@@ -380,14 +380,11 @@ Der Testhost wartet nach dem Serverstart auf eine
 erste HTTP-Antwort unter der Zieladresse, bevor die Browsernavigation beginnt;
 die Prozessausgabe wird dabei begrenzt und redigiert im Speicher gesammelt und
 ausschließlich für Diagnosen fehlgeschlagener Läufe herangezogen.
-Ein Dialog-Smoke belegt die Tastaturfolge
-`Enter`, `Tab`, `Shift+Tab`, `Escape` einschließlich Fokusfalle und
-Fokusrückgabe gegen dieselben Serverressourcen und dass beim Laden keine
-Drittanbieter-Origin angefordert wird. Ein Layout-Smoke belegt für 1280 × 720
-und 1024 × 720 die Landmark-Struktur, das Nebeneinander der Spalten beziehungsweise
-das Ein-/Ausklappen über beschriftete Buttons, die Fokusübergabe an die
-Bereichsüberschrift mit Fokusrückgabe an den Auslöser, Escape als Schließen
-des zuletzt geöffneten Bereichs sowie fehlenden Horizontalüberlauf und
+Ein Dialog-Smoke prüft das Dialogverhalten gegen dieselben Serverressourcen
+und dass beim Laden keine Drittanbieter-Origin angefordert wird. Ein
+Layout-Smoke belegt für 1280 × 720 und 1024 × 720 die Landmark-Struktur,
+das Nebeneinander der Spalten beziehungsweise das Ein-/Ausklappen über
+beschriftete Buttons sowie fehlenden Horizontalüberlauf und
 Seiten-Scrollbarkeit mit langem Testinhalt. Ein visueller Smoke nimmt je
 Viewport erst nach den Verhaltensassertionen einen maskierten Light-Theme-
 Screenshot der Shell auf und vergleicht ihn mit der versionierten Baseline
