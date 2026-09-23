@@ -72,10 +72,3 @@
     margin: 0;
     padding: var(--ktai-space-3);
 }
-
-@media (max-width: 48rem) {
-    .transaction-diff__header {
-        align-items: stretch;
-        flex-direction: column;
-    }
-}

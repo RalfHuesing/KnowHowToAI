@@ -16,9 +16,3 @@
     gap: var(--ktai-space-3);
     min-width: 0;
 }
-
-@media (max-width: 44rem) {
-    .action-group {
-        align-items: stretch;
-    }
-}

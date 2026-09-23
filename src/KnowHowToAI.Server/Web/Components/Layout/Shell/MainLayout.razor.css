@@ -112,18 +112,3 @@
     border-radius: 0 var(--ktai-radius-md) var(--ktai-radius-md) 0;
     box-shadow: var(--ktai-shadow-surface);
 }
-
-@media (max-width: 639px) {
-    .shell-header {
-        gap: var(--ktai-space-2);
-        padding-inline: var(--ktai-space-3);
-    }
-
-    .shell-main {
-        padding: var(--ktai-space-3);
-    }
-
-    .shell-workspace-head {
-        flex-wrap: wrap;
-    }
-}

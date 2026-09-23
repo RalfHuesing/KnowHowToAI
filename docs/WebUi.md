@@ -115,8 +115,9 @@ verbleibenden Web-Komponenten werden durch FastTests und Browser-Smokes geprüft
 `LayoutShellSmokeTests` und `PageFrameSmokeTests` belegen die gemeinsamen
 Landmarken, Seiten-Innenkanten und Layoutzustände bei den dokumentierten
 Desktopbreiten 1280 × 720 und 1024 × 720. `LayoutShellSmokeTests` prüft die
-Navigation per Mausklick und langen Seiteninhalt per Mausrad. Die manuelle Abnahme prüft die relevanten
-Desktopansichten mit Maus; sie ersetzt keine automatisierten
-Verhaltensassertions. HTML-Semantik, responsive Darstellung und Layoutgrenzen folgen den
+Navigation per Mausklick und langen Seiteninhalt per Mausrad. Die manuelle
+Abnahme prüft die relevanten Desktopansichten mit Maus; sie ersetzt keine
+automatisierten Verhaltensassertions. HTML-Semantik, Darstellung bei den
+unterstützten Desktopbreiten und Layoutgrenzen folgen den
 [Web-UI-Guardrails](../.agents/rules/WebUiHtmlCss.mdc) und der
 [manuellen UI-Abnahme](Manuelle-UI-Abnahme.md).

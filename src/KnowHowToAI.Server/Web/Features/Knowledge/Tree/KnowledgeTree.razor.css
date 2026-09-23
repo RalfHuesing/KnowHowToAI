@@ -69,7 +69,6 @@
     padding: var(--ktai-space-1) var(--ktai-space-2);
     border-radius: var(--ktai-radius-sm);
     cursor: grab;
-    touch-action: none;
     font-size: var(--ktai-font-size-sm);
     transition: background-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, outline-color 0.12s ease;
     border-left: 3px solid transparent;
@@ -191,31 +190,6 @@
 .tree-action-btn:focus-visible {
     border-color: var(--ktai-color-primary);
     background: var(--ktai-color-info-background);
-}
-
-@media (max-width: 48rem) {
-    .tree-node {
-        flex-wrap: wrap;
-        align-items: flex-start;
-    }
-
-    .tree-node-title {
-        flex-basis: calc(100% - 2rem);
-        white-space: normal;
-        overflow-wrap: anywhere;
-    }
-
-    .tree-node-badges,
-    .tree-node-actions {
-        flex-basis: 100%;
-        padding-inline-start: 28px;
-        max-width: 100%;
-    }
-
-    .tree-action-btn {
-        white-space: normal;
-        overflow-wrap: anywhere;
-    }
 }
 
 .tree-node-badges {

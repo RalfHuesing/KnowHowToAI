@@ -306,10 +306,10 @@ Die sichtbare Shell-, Kontext- und Seitenregionen-Verantwortung steht im
 rendererfreie Slot-Grenze. `ContextSelectorDialog`, `ContextSelectorDialog`, `ContextSelectionForm`, `WorkspaceState` und
 `NavigationProtection` bleiben featureübergreifende Adapter für URL-Kontext und
 flüchtigen Circuit-State. Reconnect-Interop bleibt auf `App.razor` und das
-frameworkseitige Circuit-Verhalten begrenzt. Layout- und Reflow-Nachweise
-stehen in [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md) und der
-[Web-UI-Regel](../.agents/rules/WebUiHtmlCss.mdc); diese Datei wiederholt keine
-sichtbare Shellbeschreibung.
+frameworkseitige Circuit-Verhalten begrenzt. Layout- und Umbruchnachweise bei
+den unterstützten Desktopbreiten stehen in [Manuelle UI-Abnahme](Manuelle-UI-Abnahme.md)
+und der [Web-UI-Regel](../.agents/rules/WebUiHtmlCss.mdc); diese Datei
+wiederholt keine sichtbare Shellbeschreibung.
 `wwwroot/css/app.css` enthält den neutralen Reset, die zentralen
 Design-Tokens des Business-Themes als CSS Custom Properties (Farben mit
 Primary `#2563EB`, Text `#111827`, Page `#F8FAFC`, Surface `#FFFFFF` sowie

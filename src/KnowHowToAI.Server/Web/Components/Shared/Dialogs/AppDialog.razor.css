@@ -24,10 +24,3 @@
     font-size: var(--ktai-font-size-xl);
     line-height: var(--ktai-line-height-tight);
 }
-
-@media (max-width: 38rem) {
-    .app-dialog {
-        width: calc(100% - var(--ktai-space-4));
-        padding: var(--ktai-space-5);
-    }
-}

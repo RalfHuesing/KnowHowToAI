@@ -229,7 +229,7 @@ public sealed partial class KnowledgeTree : IAsyncDisposable, IDisposable
             }
             catch (Exception ex)
             {
-                Logger?.LogDebug(ex, "Wissensbaum-Tastaturmodul konnte nicht regulär freigegeben werden.");
+                Logger?.LogDebug(ex, "Wissensbaum-Modul konnte nicht regulär freigegeben werden.");
             }
         }
     }

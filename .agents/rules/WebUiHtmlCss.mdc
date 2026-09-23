@@ -60,8 +60,9 @@ Tastaturhandler und Roving-Tabindex passen nicht zu diesem Vertrag.
   Transform- oder Overflow-Reparatur für falsche Ownership/Cascade.
 - Prosa darf begrenzt werden; Navigation, Baum, Tabellen, Diff, Formulare und
   Aktionsflächen nicht. Semantik und zugängliche Namen müssen zum tatsächlich
-  angebotenen Verhalten passen; Reflow und fachliche Funktionen bleiben
-  erhalten. Ein Fokus- oder Tastaturvertrag wird daraus nicht abgeleitet.
+  angebotenen Verhalten passen; Umbruch und fachliche Funktionen bleiben bei den
+  unterstützten Desktopbreiten erhalten. Ein Fokus- oder Tastaturvertrag wird
+  daraus nicht abgeleitet.
 
 ## Nachweis vor Abschluss
 

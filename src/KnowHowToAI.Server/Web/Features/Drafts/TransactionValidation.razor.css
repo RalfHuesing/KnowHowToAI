@@ -88,10 +88,3 @@
     font-weight: 600;
     margin-left: var(--ktai-space-2);
 }
-
-@media (max-width: 640px) {
-    .transaction-validation__header {
-        align-items: stretch;
-        flex-direction: column;
-    }
-}

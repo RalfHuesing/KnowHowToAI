@@ -6,12 +6,6 @@
     align-items: start;
 }
 
-@media (max-width: 768px) {
-    .knowledge-layout {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
 .knowledge-sidebar {
     min-width: 0;
     background-color: var(--ktai-color-surface);

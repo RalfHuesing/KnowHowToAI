@@ -52,14 +52,3 @@
 .page-frame__content {
     min-width: 0;
 }
-
-@media (max-width: 44rem) {
-    .page-frame--shared {
-        gap: var(--ktai-space-4);
-    }
-
-    .page-frame__actions {
-        align-items: stretch;
-        width: 100%;
-    }
-}
